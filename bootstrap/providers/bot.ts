@@ -1,7 +1,7 @@
-import { Service, Container } from "@/bootstrap/container";
+import { IService, Container } from "@/bootstrap/container";
 import { CommandClient } from "detritus-client";
 
-export class BotService implements Service {
+export class BotService implements IService {
 	public name;
 	public client: CommandClient = new CommandClient(process.env.DISCORD_TOKEN);
 
@@ -23,7 +23,7 @@ export class BotService implements Service {
 	}
 }
 
-export default (container: Container): Service => {
+export default (container: Container): IService => {
 	const bot = new BotService();
 	bot.run();
 	return bot;

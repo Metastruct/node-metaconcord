@@ -1,14 +1,15 @@
 import makeBot from "./providers/bot";
+import makeTest from "./providers/test";
 
-export interface Service {
+export interface IService {
 	name: string;
 }
 
-type ProviderFactory = { (container: Container): Service }[];
+type ProviderFactory = { (container: Container): IService }[];
 
 export class Container {
 	private providers: ProviderFactory;
-	private services: Service[] = [];
+	private services: IService[] = [];
 
 	constructor(providers: ProviderFactory) {
 		this.providers = providers;
@@ -22,21 +23,20 @@ export class Container {
 		return this.providers;
 	}
 
-	getServices(): Service[] {
+	getServices(): IService[] {
 		return this.services;
 	}
 
-	addService(service: Service): void {
+	addService(service: IService): void {
 		this.services.push(service);
 	}
 
-	getService<T extends Service>(name?: string): T {
+	getService<T extends IService>(type: new () => T): T {
 		for (let i = 0; i < this.services.length; i++) {
 			const service = this.services[i];
-			if ((service as T) && (!name || service.name == name))
-				return this.services[i] as T;
+			if (service instanceof type) return service;
 		}
 	}
 }
 
-export const container = new Container([makeBot]);
+export const container = new Container([makeBot, makeTest]);
