@@ -1,0 +1,35 @@
+{
+  "name": "metaconcord",
+  "version": "0.0.1",
+  "description": "metaluvit but typescript",
+  "main": "index.ts",
+  "repository": "git@github.com:metastruct/metaconcord",
+  "author": "marceau-maubert <marceau.maubert2@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cross-env NODE_ENV=production node .",
+    "dev": "cross-env NODE_ENV=development ts-node-dev -r tsconfig-paths/register .",
+    "compile": "tsc && yarn start",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "detritus-client": "^0.10.6",
+    "dotenv": "^8.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.0.13",
+    "@typescript-eslint/eslint-plugin": "^3.3.0",
+    "@typescript-eslint/parser": "^3.3.0",
+    "cross-env": "^7.0.2",
+    "eslint": "^7.2.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "prettier": "^2.0.5",
+    "ts-node": "^8.10.2",
+    "ts-node-dev": "^1.0.0-pre.49",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^3.9.5"
+  }
+}
