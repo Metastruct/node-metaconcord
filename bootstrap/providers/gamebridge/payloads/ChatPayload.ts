@@ -1,3 +1,4 @@
+import "@/extensions/discord-whook";
 import * as schema from "@/schemas/ChatPayloadRequest.json";
 import { Payload, PayloadRequest } from ".";
 import { SteamService } from "../../steam";
@@ -36,7 +37,11 @@ export class ChatPayload extends Payload {
 		webhook.send(
 			payload.message.content,
 			`#${config.id} ${payload.message.player.name}`,
-			steamUser.avatar.large
+			steamUser.avatar.large,
+			[],
+			{
+				parse: ["users", "roles"],
+			}
 		);
 	}
 }
