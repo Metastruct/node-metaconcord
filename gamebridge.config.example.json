@@ -1,4 +1,5 @@
 {
+	"apiKey": "example",
 	"servers": [
 		{
 			"id": 1,

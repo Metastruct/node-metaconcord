@@ -36,8 +36,12 @@ export class GameBridgeServer implements IService {
 				}
 			}
 			if (!validHost) {
-				console.log("Bad connection");
+				console.log("Bad host");
 				return req.reject(403);
+			}
+			if (req.httpRequest.headers["x-auth-token"] !== config.token) {
+				console.log("Bad Authorization");
+				return req.reject(401);
 			}
 			console.log("New connection");
 
@@ -45,7 +49,7 @@ export class GameBridgeServer implements IService {
 			const bot = this.getBotForHost(req.host);
 			bot.run();
 			connection.on("message", async received => {
-				if (received.utf8Data == "") console.log("Heartbeat");
+				// if (received.utf8Data == "") console.log("Heartbeat");
 				if (!received.utf8Data || received.utf8Data == "") return;
 
 				let data;
