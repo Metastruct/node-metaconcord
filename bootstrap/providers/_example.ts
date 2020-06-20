@@ -1,4 +1,4 @@
-import { IService, Container } from "@/bootstrap/container";
+import { Container, IService } from "../container";
 
 export class TestService implements IService {
 	public name;

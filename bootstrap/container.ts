@@ -1,5 +1,7 @@
-import makeBot from "./providers/bot";
-import makeTest from "./providers/test";
+import discord from "./providers/discord";
+import gamebridge from "./providers/gamebridge";
+import steam from "./providers/steam";
+import webapp from "./providers/webapp";
 
 export interface IService {
 	name: string;
@@ -13,10 +15,6 @@ export class Container {
 
 	constructor(providers: ProviderFactory) {
 		this.providers = providers;
-
-		for (const provider of this.getProviders()) {
-			this.addService(provider(this));
-		}
 	}
 
 	getProviders(): ProviderFactory {
@@ -31,7 +29,7 @@ export class Container {
 		this.services.push(service);
 	}
 
-	getService<T extends IService>(type: new () => T): T {
+	getService<T extends IService>(type: new (...args: any[]) => T): T {
 		for (let i = 0; i < this.services.length; i++) {
 			const service = this.services[i];
 			if (service instanceof type) return service;
@@ -39,4 +37,4 @@ export class Container {
 	}
 }
 
-export const container = new Container([makeBot, makeTest]);
+export const container = new Container([steam, discord, webapp, gamebridge]);

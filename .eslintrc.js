@@ -9,6 +9,7 @@ module.exports = {
 		"prettier/@typescript-eslint",
 		"plugin:prettier/recommended",
 	],
+	plugins: ["sort-imports-es6-autofix"],
 	// add your custom rules here
 	rules: {
 		"nuxt/no-cjs-in-config": "off",
@@ -17,6 +18,7 @@ module.exports = {
 		"no-prototype-builtins": "off",
 		"require-await": "off",
 		"one-var": "off",
-		"import/order": "off",
+		"sort-imports-es6-autofix/sort-imports-es6": "warn",
+		"@typescript-eslint/no-explicit-any": "off",
 	},
 };
