@@ -36,11 +36,12 @@ export class GameBridgeServer implements IService {
 				}
 			}
 			if (!validHost) {
-				console.log("Bad host");
+				console.log(`Bad Host - ${req.host}`);
 				return req.reject(403);
 			}
-			if (req.httpRequest.headers["x-auth-token"] !== config.token) {
-				console.log("Bad Authorization");
+			const requestToken = req.httpRequest.headers["x-auth-token"];
+			if (requestToken !== config.token) {
+				console.log(`Bad X-Auth-Token - ${requestToken}`);
 				return req.reject(401);
 			}
 			console.log("New connection");
