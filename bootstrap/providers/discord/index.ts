@@ -1,6 +1,6 @@
 import * as config from "@/discord.config.json";
 import { BaseClient } from "./BaseClient";
-import { IService } from "../../container";
+import { IService } from "../../Container";
 import { ShardClient } from "detritus-client";
 
 export class DiscordBot implements IService {

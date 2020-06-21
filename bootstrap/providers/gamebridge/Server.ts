@@ -2,6 +2,8 @@ import "@/extensions/websocket";
 import * as config from "@/gamebridge.config.json";
 import * as payloads from "./payloads";
 import { DiscordClient } from "./index";
+import { ErrorPayload } from "./payloads";
+import { ErrorResponse } from "./payloads/structures";
 import { Server as HTTPServer } from "http";
 import { connection as WebSocketConnection } from "websocket";
 import { server as WebSocketServer } from "websocket";
@@ -41,7 +43,7 @@ export default class Server {
 				console.log(`Bad X-Auth-Token - ${requestToken}`);
 				return req.reject(401);
 			}
-			console.log("New connection");
+			console.log(`New connection from ${ip}`);
 
 			const connection = req.accept();
 			const bot = this.getBot(ip, connection);
@@ -54,18 +56,18 @@ export default class Server {
 				try {
 					data = JSON.parse(received.utf8Data);
 				} catch (e) {
-					return connection.sendPayload("ErrorPayload", {
+					return new ErrorPayload(connection, this).send({
 						error: { message: "Malformed JSON" },
-					});
+					} as ErrorResponse);
 				}
 
 				let payloadRequest;
 				try {
 					payloadRequest = data.payload;
 				} catch (err) {
-					return connection.sendPayload("ErrorPayload", {
+					return new ErrorPayload(connection, this).send({
 						error: { message: "Missing payload" },
-					});
+					} as ErrorResponse);
 				}
 
 				try {
@@ -80,9 +82,9 @@ export default class Server {
 					console.error(`${data.payload.name} exception:`, err);
 				}
 
-				connection.sendPayload("ErrorPayload", {
-					message: "Payload doesn't exist, nothing to do",
-				});
+				new ErrorPayload(connection, this).send({
+					error: { message: "Payload doesn't exist, nothing to do" },
+				} as ErrorResponse);
 			});
 			connection.on("close", (code, desc) => {
 				bot.kill();

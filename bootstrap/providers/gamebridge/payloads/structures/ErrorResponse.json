@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "additionalProperties": false,
+    "properties": {
+        "error": {
+        },
+        "name": {
+            "enum": [
+                "ErrorPayload"
+            ],
+            "type": "string"
+        }
+    },
+    "type": "object"
+}
+

@@ -1,7 +1,7 @@
 import discord from "./providers/discord";
 import gamebridge from "./providers/gamebridge";
-import steam from "./providers/steam";
-import webapp from "./providers/webapp";
+import steam from "./providers/Steam";
+import webapp from "./providers/WebApp";
 
 export interface IService {
 	name: string;

@@ -1,6 +1,7 @@
 import * as Ajv from "ajv";
-import * as schema from "./requests/PayloadRequest.json";
-import { PayloadRequest, PayloadResponse } from "./requests";
+import * as requestSchema from "./structures/PayloadRequest.json";
+import * as responseSchema from "./structures/PayloadResponse.json";
+import { PayloadRequest, PayloadResponse } from "./structures";
 import { Server } from "../index";
 import {
 	connection as WebSocketConnection,
@@ -8,7 +9,8 @@ import {
 } from "websocket";
 
 export default abstract class Payload {
-	protected schema = schema;
+	protected requestSchema = requestSchema;
+	protected responseSchema = responseSchema;
 	protected connection: WebSocketConnection;
 	protected gameBridge: Server;
 
@@ -17,22 +19,19 @@ export default abstract class Payload {
 		this.gameBridge = server;
 	}
 
-	public isInvalid(payload: PayloadRequest): Ajv.ErrorObject[] {
+	public isInvalid(
+		schema: any,
+		payload: PayloadRequest | PayloadResponse
+	): Ajv.ErrorObject[] {
 		const ajv = new Ajv();
-		const validate = ajv.compile(this.schema);
+		const validate = ajv.compile(schema);
 		if (!validate(payload)) {
-			this.connection.sendPayload("ErrorPayload", {
-				error: {
-					message: "Invalid payload",
-					validator: validate.errors,
-				},
-			});
 			return validate.errors;
 		}
 	}
 
-	public handle(request: WebSocketRequest, payload: PayloadRequest): void {
-		const invalid = this.isInvalid(payload);
+	public validate(schema: any, payload: PayloadResponse): void {
+		const invalid = this.isInvalid(schema, payload);
 		if (invalid) {
 			let msg = "";
 			for (let i = 0; i < invalid.length; i++) {
@@ -44,11 +43,16 @@ export default abstract class Payload {
 		}
 	}
 
-	public send(payload: PayloadResponse): void {
+	public async handle?(
+		request: WebSocketRequest,
+		payload: PayloadRequest
+	): Promise<void>;
+
+	public async send(payload: PayloadResponse): Promise<void> {
 		this.connection.send(
 			JSON.stringify({
 				payload: {
-					name,
+					name: this.constructor.name,
 					...payload,
 				},
 			})

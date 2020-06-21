@@ -2,7 +2,7 @@ import * as discordConfig from "@/discord.config.json";
 import * as express from "express";
 import * as webappConfig from "@/webapp.config.json";
 import { BaseClient } from "./discord/BaseClient";
-import { Container, IService } from "../container";
+import { Container, IService } from "../Container";
 import { DiscordBot } from "./discord";
 import { Server as HTTPServer } from "http";
 

@@ -1,24 +1,22 @@
 import "@/extensions/discord-whook";
-import * as schema from "./requests/ChatRequest.json";
-import { ChatRequest } from "./requests";
-import { Steam } from "../../steam";
-import {
-	connection as WebSocketConnection,
-	request as WebSocketRequest,
-} from "websocket";
+import * as requestSchema from "./structures/ChatRequest.json";
+import * as responseSchema from "./structures/ChatResponse.json";
+import { ChatRequest } from "./structures";
+import { Steam } from "../../Steam";
+import { request as WebSocketRequest } from "websocket";
 import { Webhook } from "discord-whook.js";
-
 import Payload from "./Payload";
 import app from "@/app";
 
 export default class ChatPayload extends Payload {
-	protected schema = schema;
+	protected requestSchema = requestSchema;
+	protected responseSchema = responseSchema;
 
 	public async handle(
 		req: WebSocketRequest,
 		payload: ChatRequest
 	): Promise<void> {
-		super.handle(req, payload);
+		this.validate(this.requestSchema, payload);
 
 		const ip = req.httpRequest.connection.remoteAddress;
 		const config = this.gameBridge.config;
@@ -43,11 +41,4 @@ export default class ChatPayload extends Payload {
 			}
 		);
 	}
-
-	/*
-	public async send(
-		connection: WebSocketConnection,
-		payload: ChatPayloadResponse
-	): Promise<void> {}
-	*/
 }

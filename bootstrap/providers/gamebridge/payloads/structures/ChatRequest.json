@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "additionalProperties": false,
+    "properties": {
+        "message": {
+            "additionalProperties": false,
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "player": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "steamId64": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "name": {
+            "enum": [
+                "ChatPayload"
+            ],
+            "type": "string"
+        }
+    },
+    "type": "object"
+}
+

@@ -1,4 +1,4 @@
-import { Container, container } from "@/bootstrap/container";
+import { Container, container } from "@/bootstrap/Container";
 
 export class App {
 	public container: Container;

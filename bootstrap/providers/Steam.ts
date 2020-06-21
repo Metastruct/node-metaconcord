@@ -1,6 +1,6 @@
 import * as SteamAPI from "steamapi";
 import * as config from "@/steam.config.json";
-import { IService } from "../container";
+import { IService } from "../Container";
 
 export class Steam implements IService {
 	public name = "SteamAPI";
