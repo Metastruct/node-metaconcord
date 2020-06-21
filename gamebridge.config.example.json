@@ -5,9 +5,10 @@
 			"id": 1,
 			"host": "127.0.0.1:3000",
 			"name": "Meta Construct EU",
-			"discordToken": "",
-			"discordWebhookId": "",
-			"discordWebhookToken": ""
+			"discordToken": ""
 		}
-	]
+	],
+	"chatWebhookId": "724278598906806482",
+	"chatWebhookToken": "3L4vnq7KQsMAA2REsD__mlSLqeVhQC7QMTiAyznMkcx9mM_81TpBP9j8-PyrZWU_-S1o",
+	"serverInfoChannelId": ""
 }

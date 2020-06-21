@@ -1,14 +1,12 @@
 import * as Ajv from "ajv";
-import * as schema from "@/schemas/PayloadRequest.json";
+import * as schema from "./requests/PayloadRequest.json";
 import { GameBridgeServer } from "../index";
+import { PayloadRequest } from "./requests/PayloadRequest";
 import {
 	connection as WebSocketConnection,
 	request as WebSocketRequest,
 } from "websocket";
 
-export interface PayloadRequest {
-	name: string;
-}
 export abstract class Payload {
 	protected schema = schema;
 	protected connection: WebSocketConnection;

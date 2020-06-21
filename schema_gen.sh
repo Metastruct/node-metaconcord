@@ -6,7 +6,8 @@ schemas=(
 	'PayloadRequest'
 	'ChatPayloadRequest'
 )
+requestspath='./bootstrap/providers/gamebridge/payloads/requests/'
 for schema in ${schemas[@]}; do
 	echo "Generating schema for $schema"
-	typescript-json-schema tsconfig.json "$schema" --noExtraProps -o "./schemas/$schema.json"
+	npx typescript-json-schema "$requestspath*.ts" "$schema" --noExtraProps -o "$requestspath$schema.json"
 done
