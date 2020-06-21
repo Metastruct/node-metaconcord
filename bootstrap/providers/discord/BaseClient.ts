@@ -4,7 +4,7 @@ import {
 	ShardClient,
 } from "detritus-client";
 
-export class DiscordClient extends CommandClient {
+export class BaseClient extends CommandClient {
 	public client: ShardClient;
 
 	constructor(token: string | ShardClient, options?: CommandClientOptions) {

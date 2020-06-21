@@ -1,8 +1,8 @@
 import * as SteamAPI from "steamapi";
 import * as config from "@/steam.config.json";
-import { Container, IService } from "../container";
+import { IService } from "../container";
 
-export class SteamService implements IService {
+export class Steam implements IService {
 	public name = "SteamAPI";
 
 	public steam: SteamAPI = new SteamAPI(config.apiKey);
@@ -20,6 +20,6 @@ export class SteamService implements IService {
 	}
 }
 
-export default (container: Container): IService => {
-	return new SteamService();
+export default (): IService => {
+	return new Steam();
 };

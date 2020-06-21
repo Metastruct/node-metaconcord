@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-rm -rf ./schemas/
-mkdir ./schemas/
 requestspath='./bootstrap/providers/gamebridge/payloads/requests/'
+rm -rf "$requestspath*.json"
 for schema in $requestspath*.ts; do
 	schema=$(basename $schema)
 	schema=${schema/%.ts/}

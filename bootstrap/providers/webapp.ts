@@ -1,19 +1,19 @@
 import * as discordConfig from "@/discord.config.json";
 import * as express from "express";
 import * as webappConfig from "@/webapp.config.json";
+import { BaseClient } from "./discord/BaseClient";
 import { Container, IService } from "../container";
-import { DiscordClient } from "./discord/client";
-import { DiscordService } from "./discord";
+import { DiscordBot } from "./discord";
 import { Server as HTTPServer } from "http";
 
 export class WebApp implements IService {
 	public name = "WebApp";
 
-	public discord: DiscordClient;
+	public discord: BaseClient;
 	public server: HTTPServer;
 	public app = express();
 
-	public constructor(discord: DiscordClient) {
+	public constructor(discord: BaseClient) {
 		this.discord = discord;
 
 		this.app.get("/discord/guild/emojis", (req, res) => {
@@ -46,5 +46,5 @@ export class WebApp implements IService {
 }
 
 export default (container: Container): IService => {
-	return new WebApp(container.getService(DiscordService).bot);
+	return new WebApp(container.getService(DiscordBot).bot);
 };

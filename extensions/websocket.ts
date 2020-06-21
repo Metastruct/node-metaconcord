@@ -2,16 +2,16 @@ import { connection } from "websocket";
 
 declare module "websocket" {
 	interface connection {
-		sendError(error: any): void;
+		sendPayload(name: string, payload): void;
 	}
 }
 
-connection.prototype.sendError = function (error: any): void {
+connection.prototype.sendPayload = function (name: string, payload): void {
 	this.send(
 		JSON.stringify({
 			payload: {
-				name: "ErrorPayload",
-				error,
+				name,
+				...payload,
 			},
 		})
 	);

@@ -1,11 +1,11 @@
 import * as config from "@/discord.config.json";
-import { DiscordClient } from "./client";
+import { BaseClient } from "./BaseClient";
 import { IService } from "../../container";
 import { ShardClient } from "detritus-client";
 
-export class DiscordService implements IService {
+export class DiscordBot implements IService {
 	public name: "Discord";
-	public bot: DiscordClient = new DiscordClient(config.token);
+	public bot: BaseClient = new BaseClient(config.token);
 
 	public constructor() {
 		this.bot.run().then((client: ShardClient) => {
@@ -15,5 +15,5 @@ export class DiscordService implements IService {
 }
 
 export default (): IService => {
-	return new DiscordService();
+	return new DiscordBot();
 };

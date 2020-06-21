@@ -1,18 +1,26 @@
 import "@/extensions/discord-whook";
-import * as schema from "./requests/ChatPayloadRequest.json";
-import { ChatPayloadRequest } from "./requests/ChatPayloadRequest";
-import { Payload } from ".";
-import { SteamService } from "../../steam";
+import * as schema from "./requests/ChatRequest.json";
+import { ChatRequest } from "./requests";
+import { Steam } from "../../steam";
+import {
+	connection as WebSocketConnection,
+	request as WebSocketRequest,
+} from "websocket";
 import { Webhook } from "discord-whook.js";
+
+import Payload from "./Payload";
 import app from "@/app";
 
-export class ChatPayload extends Payload {
+export default class ChatPayload extends Payload {
 	protected schema = schema;
 
-	public async handle(payload: ChatPayloadRequest): Promise<void> {
-		super.handle(payload);
+	public async handle(
+		req: WebSocketRequest,
+		payload: ChatRequest
+	): Promise<void> {
+		super.handle(req, payload);
 
-		const ip = this.request.httpRequest.connection.remoteAddress;
+		const ip = req.httpRequest.connection.remoteAddress;
 		const config = this.gameBridge.config;
 		const webhook = new Webhook(
 			config.chatWebhookId,
@@ -23,7 +31,7 @@ export class ChatPayload extends Payload {
 		)[0];
 
 		const steamUser = await app.container
-			.getService(SteamService)
+			.getService(Steam)
 			.getUserSummaries(payload.message.player.steamId64);
 		webhook.send(
 			payload.message.content,
@@ -35,4 +43,11 @@ export class ChatPayload extends Payload {
 			}
 		);
 	}
+
+	/*
+	public async send(
+		connection: WebSocketConnection,
+		payload: ChatPayloadResponse
+	): Promise<void> {}
+	*/
 }

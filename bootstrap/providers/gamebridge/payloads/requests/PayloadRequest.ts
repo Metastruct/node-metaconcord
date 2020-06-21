@@ -1,5 +1,3 @@
-interface PayloadRequest {
+export default interface PayloadRequest {
 	name: string;
 }
-
-export { PayloadRequest };
