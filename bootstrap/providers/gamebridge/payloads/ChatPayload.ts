@@ -12,14 +12,14 @@ export class ChatPayload extends Payload {
 	public async handle(payload: ChatPayloadRequest): Promise<void> {
 		super.handle(payload);
 
-		const host = this.request.host;
+		const ip = this.request.httpRequest.connection.remoteAddress;
 		const config = this.gameBridge.config;
 		const webhook = new Webhook(
 			config.chatWebhookId,
 			config.chatWebhookToken
 		);
 		const server = this.gameBridge.config.servers.filter(
-			server => server.host == host
+			server => server.ip == ip
 		)[0];
 
 		const steamUser = await app.container

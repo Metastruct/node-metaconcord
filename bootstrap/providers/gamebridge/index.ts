@@ -14,11 +14,11 @@ export class GameBridgeServer implements IService {
 
 	public http: HTTPServer;
 	public ws: WebSocketServer;
-	public discord: { [host: string]: DiscordClient } = {};
+	public discord: { [ip: string]: DiscordClient } = {};
 
 	public constructor(http: HTTPServer) {
 		for (const server of config.servers) {
-			this.discord[server.host] = new DiscordClient(server.discordToken);
+			this.discord[server.ip] = new DiscordClient(server.discordToken);
 		}
 
 		this.http = http;
@@ -28,15 +28,17 @@ export class GameBridgeServer implements IService {
 		});
 
 		this.ws.on("request", req => {
-			let validHost = false;
+			let validIP = false;
+			const ip = req.httpRequest.connection.remoteAddress;
 			for (const server of Object.values(config.servers)) {
-				if (req.host === server.host) {
-					validHost = true;
+				if (ip === server.ip) {
+					validIP = true;
 					break;
 				}
 			}
-			if (!validHost) {
-				console.log(`Bad Host - ${req.host}`);
+			if (!validIP) {
+				console.log();
+				console.log(`Bad IP - ${ip}`);
 				return req.reject(403);
 			}
 			const requestToken = req.httpRequest.headers["x-auth-token"];
@@ -47,7 +49,7 @@ export class GameBridgeServer implements IService {
 			console.log("New connection");
 
 			const connection = req.accept();
-			const bot = this.getBotForHost(req.host);
+			const bot = this.getBotForIP(ip);
 			bot.run();
 			connection.on("message", async received => {
 				// if (received.utf8Data == "") console.log("Heartbeat");
@@ -94,8 +96,8 @@ export class GameBridgeServer implements IService {
 		});
 	}
 
-	public getBotForHost(host: string): DiscordClient {
-		return this.discord[host];
+	public getBotForIP(ip: string): DiscordClient {
+		return this.discord[ip];
 	}
 }
 

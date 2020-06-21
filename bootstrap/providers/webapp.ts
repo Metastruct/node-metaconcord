@@ -37,7 +37,7 @@ export class WebApp implements IService {
 			return res.status(200).json(emojis);
 		});
 
-		this.server = this.app.listen(webappConfig.port, () => {
+		this.server = this.app.listen(webappConfig.port, "0.0.0.0", () => {
 			console.log(
 				`Server and websocket server listening on ${webappConfig.port}`
 			);
