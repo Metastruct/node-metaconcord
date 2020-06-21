@@ -17,10 +17,6 @@ export class GameBridgeServer implements IService {
 	public discord: { [ip: string]: DiscordClient } = {};
 
 	public constructor(http: HTTPServer) {
-		for (const server of config.servers) {
-			this.discord[server.ip] = new DiscordClient(server.discordToken);
-		}
-
 		this.http = http;
 		this.ws = new WebSocketServer({
 			httpServer: this.http,
@@ -91,13 +87,17 @@ export class GameBridgeServer implements IService {
 			});
 			connection.on("close", (code, desc) => {
 				bot.kill();
+				delete this.discord[ip];
 				console.log("Client disconnected", code, desc);
 			});
 		});
 	}
 
 	public getBotForIP(ip: string): DiscordClient {
-		return this.discord[ip];
+		const bot = (this.discord[ip] = new DiscordClient(
+			config.servers.filter(server => server.ip == ip)[0].discordToken
+		));
+		return bot;
 	}
 }
 
