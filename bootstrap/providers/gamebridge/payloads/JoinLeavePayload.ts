@@ -28,12 +28,12 @@ export default class JoinLeavePayload extends Payload {
 		const embed = new Embed()
 			.setAuthor(
 				`${payload.player.name} has ${
-					payload.reason ? "left" : "spawned"
+					payload.spawned ? "spawned" : "left"
 				}`,
 				steamUser.avatar.large,
 				`https://steamcommunity.com/profiles/${payload.player.steamId64}`
 			)
-			.setColor(payload.reason ? 0xb54343 : 0x4bb543);
+			.setColor(payload.spawned ? 0x4bb543 : 0xb54343);
 		if (payload.reason) embed.setDescription(`Reason: ${payload.reason}`);
 		relayChannel.createMessage({ embed });
 	}

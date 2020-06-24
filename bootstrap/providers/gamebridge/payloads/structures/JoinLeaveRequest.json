@@ -22,6 +22,9 @@
         },
         "reason": {
             "type": "string"
+        },
+        "spawned": {
+            "type": "boolean"
         }
     },
     "type": "object"

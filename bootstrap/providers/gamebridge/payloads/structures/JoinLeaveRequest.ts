@@ -7,4 +7,5 @@ export default interface JoinLeaveRequest extends PayloadRequest {
 		steamId64: string;
 	};
 	reason?: string;
+	spawned?: boolean;
 }
