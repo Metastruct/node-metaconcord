@@ -12,7 +12,7 @@
     "start": "cross-env NODE_ENV=production node dist",
     "dev": "cross-env NODE_ENV=development ts-node-dev -r tsconfig-paths/register index.ts",
     "compile": "yarn build && yarn start",
-    "build": "./schema_gen.sh && tsc && tscpaths -p tsconfig.json -s ./ -o ./dist"
+    "build": "./schema_gen.sh && rm -rf ./dist && tsc && tscpaths -p tsconfig.json -s ./ -o ./dist"
   },
   "dependencies": {
     "ajv": "^6.12.2",

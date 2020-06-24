@@ -19,10 +19,9 @@ export default class ChatPayload extends Payload {
 		this.validate(this.requestSchema, payload);
 
 		const ip = req.httpRequest.connection.remoteAddress;
-		const config = this.gameBridge.config;
 		const webhook = new Webhook(
-			config.chatWebhookId,
-			config.chatWebhookToken
+			this.gameBridge.config.chatWebhookId,
+			this.gameBridge.config.chatWebhookToken
 		);
 		const server = this.gameBridge.config.servers.filter(
 			server => server.ip == ip

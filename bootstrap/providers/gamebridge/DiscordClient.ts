@@ -37,7 +37,7 @@ export default class DiscordClient extends BaseClient {
 
 			let content = ctx.message.content;
 			for (const [, attachment] of ctx.message.attachments) {
-				content += attachment.url + "\n";
+				content += "\n" + attachment.url;
 			}
 
 			const payload = new ChatPayload(this.connection, this.gameBridge);

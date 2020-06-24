@@ -80,6 +80,7 @@ export default class Server {
 				} catch (err) {
 					console.log(payloadRequest);
 					console.error(`${data.payload.name} exception:`, err);
+					return;
 				}
 
 				new ErrorPayload(connection, this).send({
@@ -95,11 +96,15 @@ export default class Server {
 	}
 
 	public getBot(ip: string, connection: WebSocketConnection): DiscordClient {
-		const bot = (this.discord[ip] = new DiscordClient(
-			config.servers.filter(server => server.ip == ip)[0].discordToken,
-			connection,
-			this
-		));
-		return bot;
+		if (!this.discord[ip]) {
+			this.discord[ip] = new DiscordClient(
+				config.servers.filter(
+					server => server.ip == ip
+				)[0].discordToken,
+				connection,
+				this
+			);
+		}
+		return this.discord[ip];
 	}
 }
