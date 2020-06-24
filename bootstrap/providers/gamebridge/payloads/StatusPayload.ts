@@ -15,16 +15,17 @@ export default class StatusPayload extends Payload {
 
 		const ip = req.httpRequest.connection.remoteAddress;
 		const bot = this.gameBridge.getBot(ip, this.connection);
-		const count = payload.status.players.length;
-		const status = {
-			activity: {
-				name: `${count} player${count != 1 ? "s" : ""}`,
-				type: 2,
-			},
-			status: "online",
-		};
 		const updateStatus = async () => {
+			const count = payload.status.players.length;
+
 			// Presence
+			const status = {
+				activity: {
+					name: `${count} player${count != 1 ? "s" : ""}`,
+					type: 2,
+				},
+				status: "online",
+			};
 			bot.client.gateway.setPresence(status);
 			const guild = bot.client.guilds.get(this.gameBridge.config.guildId);
 			const serverInfoChannel = bot.client.channels.get(
@@ -44,11 +45,14 @@ export default class StatusPayload extends Payload {
 			let desc = `:map: **Map**: \`${payload.status.map}\`
 :busts_in_silhouette: **${count} player${count != 1 ? "s" : ""}**`;
 			if (count > 0) {
-				desc = `${desc}:
+				desc += `:
 \`\`\`
 ${payload.status.players.join(", ")}
 \`\`\``;
+			} else {
+				desc += "\n";
 			}
+			desc += `\nsteam://connect/${ip}`;
 			const embed = new Embed().setDescription(desc).setColor(0x4bf5ca);
 			const messages = await serverInfoChannel.fetchMessages({});
 			const message = messages.filter(
@@ -60,6 +64,7 @@ ${payload.status.players.join(", ")}
 				serverInfoChannel.createMessage({ embed });
 			}
 		};
+
 		if (bot.ran) {
 			updateStatus();
 		} else {
