@@ -31,7 +31,8 @@ export class WebApp implements IService {
 
 			const emojis = JSON.parse(JSON.stringify(guild.emojis));
 			for (const emoji of emojis) {
-				emoji.url = `https://cdn.discordapp.com/emojis/${emoji.id}.png?v=1`;
+				const extension = emoji.animated ? "gif" : "png";
+				emoji.url = `https://cdn.discordapp.com/emojis/${emoji.id}.${extension}?v=1`;
 			}
 
 			return res.status(200).json(emojis);

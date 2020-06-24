@@ -38,6 +38,13 @@ export default class DiscordClient extends BaseClient {
 			if (ctx.message.author.bot || !ctx.message.author.client) return;
 
 			let content = ctx.message.content;
+			content = content.replace(
+				/<(a?):([^\s:<>]*):(\d+)>/g,
+				(_, animated, emoji, id) => {
+					const extension = !!animated ? "gif" : "png";
+					return `https://media.discordapp.net/emojis/${id}.${extension}?v=1&size=64 `;
+				}
+			);
 			for (const [, attachment] of ctx.message.attachments) {
 				content += "\n" + attachment.url;
 			}

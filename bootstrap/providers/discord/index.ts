@@ -5,6 +5,7 @@ import { ShardClient } from "detritus-client";
 
 export class DiscordBot implements IService {
 	public name: "Discord";
+	public config = config;
 	public bot: BaseClient = new BaseClient(config.token);
 
 	public constructor() {

@@ -7,6 +7,7 @@ import { request as WebSocketRequest } from "websocket";
 import { Webhook } from "discord-whook.js";
 import Payload from "./Payload";
 import app from "@/app";
+import { DiscordBot } from "../../discord";
 
 export default class ChatPayload extends Payload {
 	protected requestSchema = requestSchema;
@@ -19,6 +20,7 @@ export default class ChatPayload extends Payload {
 		this.validate(this.requestSchema, payload);
 
 		const ip = req.httpRequest.connection.remoteAddress;
+		const bot = app.container.getService(DiscordBot).bot;
 		const webhook = new Webhook(
 			this.gameBridge.config.chatWebhookId,
 			this.gameBridge.config.chatWebhookToken
@@ -27,13 +29,28 @@ export default class ChatPayload extends Payload {
 			server => server.ip == ip
 		)[0];
 
-		const steamUser = await app.container
-			.getService(Steam)
-			.getUserSummaries(payload.message.player.steamId64);
+		let content = payload.message.content;
+		content = content.replace(/@(\S*)/, (match, name) => {
+			for (const [, member] of bot.client.channels.get(
+				this.gameBridge.config.relayChannelId
+			).guild.members) {
+				if (
+					(member.nick &&
+						member.nick.toLowerCase() == name.toLowerCase()) ||
+					member.username.toLowerCase() == name.toLowerCase()
+				)
+					return `<@${member.id}>`;
+			}
+			return match;
+		});
 		webhook.send(
-			payload.message.content,
+			content,
 			`#${server.id} ${payload.message.player.name}`,
-			steamUser.avatar.large,
+			(
+				await app.container
+					.getService(Steam)
+					.getUserSummaries(payload.message.player.steamId64)
+			).avatar.large,
 			[],
 			{
 				parse: ["users", "roles"],
