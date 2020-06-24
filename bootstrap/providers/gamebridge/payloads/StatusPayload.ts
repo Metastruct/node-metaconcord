@@ -15,9 +15,10 @@ export default class StatusPayload extends Payload {
 
 		const ip = req.httpRequest.connection.remoteAddress;
 		const bot = this.gameBridge.getBot(ip, this.connection);
+		const count = payload.status.players.length;
 		const status = {
 			activity: {
-				name: `${payload.status.players.length} players`,
+				name: `${count} player${count != 1 ? "s" : ""}`,
 				type: 2,
 			},
 			status: "online",
@@ -40,15 +41,15 @@ export default class StatusPayload extends Payload {
 			guild.me.editNick(payload.status.map);
 
 			// Permanent status message
-			const embed = new Embed()
-				.setDescription(
-					`:map: **Map**: \`${payload.status.map}\`
-:busts_in_silhouette: **${payload.status.players.length} players**:
+			let desc = `:map: **Map**: \`${payload.status.map}\`
+:busts_in_silhouette: **${count} player${count != 1 ? "s" : ""}**`;
+			if (count > 0) {
+				desc = `${desc}:
 \`\`\`
 ${payload.status.players.join(", ")}
-\`\`\``
-				)
-				.setColor(0x4bf5ca);
+\`\`\``;
+			}
+			const embed = new Embed().setDescription(desc).setColor(0x4bf5ca);
 			const messages = await serverInfoChannel.fetchMessages({});
 			const message = messages.filter(
 				msg => msg.author.id == bot.client.user.id
