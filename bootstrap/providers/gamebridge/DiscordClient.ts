@@ -12,17 +12,19 @@ import { connection as WebSocketConnection } from "websocket";
 
 export default class DiscordClient extends BaseClient {
 	public client: ShardClient;
+	public config: any;
 	public connection: WebSocketConnection;
 	public gameBridge: Server;
 
 	constructor(
-		token: string | ShardClient,
+		config: any,
 		connection: WebSocketConnection,
 		gameBridge: Server,
 		options?: CommandClientOptions
 	) {
-		super(token, options);
+		super(config.discordToken, options);
 
+		this.config = config;
 		this.connection = connection;
 		this.gameBridge = gameBridge;
 	}

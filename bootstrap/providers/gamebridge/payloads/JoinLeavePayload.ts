@@ -17,7 +17,7 @@ export default class JoinLeavePayload extends Payload {
 
 		const ip = req.httpRequest.connection.remoteAddress;
 		const bot = this.gameBridge.getBot(ip, this.connection);
-		const relayChannel = bot.client.channels.get(
+		const relayChannel = await bot.client.rest.fetchChannel(
 			this.gameBridge.config.relayChannelId
 		);
 

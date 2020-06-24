@@ -16,10 +16,12 @@
   },
   "dependencies": {
     "ajv": "^6.12.2",
+    "axios": "^0.19.2",
     "detritus-client": "^0.10.6",
     "discord-whook.js": "github:Ernest05/discord-whook.js",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "qs": "^6.9.4",
     "steamapi": "^2.1.1",
     "websocket": "^1.0.31"
   },

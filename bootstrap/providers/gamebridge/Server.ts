@@ -34,7 +34,6 @@ export default class Server {
 				}
 			}
 			if (!validIP) {
-				console.log();
 				console.log(`Bad IP - ${ip}`);
 				return req.reject(403);
 			}
@@ -97,13 +96,10 @@ export default class Server {
 
 	public getBot(ip: string, connection: WebSocketConnection): DiscordClient {
 		if (!this.discord[ip]) {
-			this.discord[ip] = new DiscordClient(
-				config.servers.filter(
-					server => server.ip == ip
-				)[0].discordToken,
-				connection,
-				this
-			);
+			const config = this.config.servers.filter(
+				server => server.ip == ip
+			)[0];
+			this.discord[ip] = new DiscordClient(config, connection, this);
 		}
 		return this.discord[ip];
 	}

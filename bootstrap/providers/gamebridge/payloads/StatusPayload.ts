@@ -1,8 +1,11 @@
 import * as requestSchema from "./structures/StatusRequest.json";
+import * as util from "util";
 import { Embed } from "detritus-client/lib/utils";
 import { StatusRequest } from "./structures";
+import { Steam } from "../../Steam";
 import { request as WebSocketRequest } from "websocket";
 import Payload from "./Payload";
+import app from "@/app";
 
 export default class StatusPayload extends Payload {
 	protected requestSchema = requestSchema;
@@ -22,7 +25,7 @@ export default class StatusPayload extends Payload {
 			const status = {
 				activity: {
 					name: `${count} player${count != 1 ? "s" : ""}`,
-					type: 2,
+					type: 3,
 				},
 				status: "online",
 			};
@@ -39,21 +42,45 @@ export default class StatusPayload extends Payload {
 			)[1];
 			if (hostname) guild.me.editNick(hostname.substring(0, 32));
 			*/
-			guild.me.editNick(payload.status.map);
+			guild.me.editNick(bot.config.name);
 
 			// Permanent status message
-			let desc = `:map: **Map**: \`${payload.status.map}\`
-:busts_in_silhouette: **${count} player${count != 1 ? "s" : ""}**`;
+			let desc = ":busts_in_silhouette: **%d player%s**";
 			if (count > 0) {
-				desc += `:
-\`\`\`
-${payload.status.players.join(", ")}
-\`\`\``;
-			} else {
-				desc += "\n";
+				desc += ":\n```\n%s\n```";
 			}
-			desc += `\nsteam://connect/${ip}`;
-			const embed = new Embed().setDescription(desc).setColor(0x4bf5ca);
+			desc = util.format(
+				desc,
+				count,
+				count != 1 ? "s" : "",
+				payload.status.players.join(", ")
+			);
+
+			const embed = new Embed()
+				.setTitle(payload.status.map)
+				.setUrl(
+					`https://metastruct.net/${
+						bot.config.label ? "join/" + bot.config.label : ""
+					}`
+				)
+				.setDescription(desc)
+				.setColor(0x4bf5ca);
+			if (payload.status.workshopMap) {
+				embed.setThumbnail(
+					(
+						await app.container
+							.getService(Steam)
+							.getPublishedFileDetails([
+								payload.status.workshopMap.id,
+							])
+					).publishedfiledetails[0].preview_url
+				);
+			} else {
+				embed.setThumbnail(
+					"https://metastruct.net/img/gm_construct_m.jpg"
+				);
+			}
+
 			const messages = await serverInfoChannel.fetchMessages({});
 			const message = messages.filter(
 				msg => msg.author.id == bot.client.user.id
