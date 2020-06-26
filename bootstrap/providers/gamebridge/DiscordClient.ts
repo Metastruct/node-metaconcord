@@ -53,7 +53,7 @@ export default class DiscordClient extends BaseClient {
 			payload.send({
 				message: {
 					user: {
-						name: ctx.message.author.name,
+						name: ctx.message.member.name,
 					},
 					content: content,
 				},
