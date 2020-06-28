@@ -7,7 +7,6 @@ import { request as WebSocketRequest } from "websocket";
 import { Webhook } from "discord-whook.js";
 import Payload from "./Payload";
 import app from "@/app";
-import { DiscordBot } from "../../discord";
 
 export default class ChatPayload extends Payload {
 	protected requestSchema = requestSchema;
@@ -20,19 +19,18 @@ export default class ChatPayload extends Payload {
 		this.validate(this.requestSchema, payload);
 
 		const ip = req.httpRequest.connection.remoteAddress;
-		const bot = app.container.getService(DiscordBot).bot;
 		const webhook = new Webhook(
-			this.gameBridge.config.chatWebhookId,
-			this.gameBridge.config.chatWebhookToken
+			this.bot.gameBridge.config.chatWebhookId,
+			this.bot.gameBridge.config.chatWebhookToken
 		);
-		const server = this.gameBridge.config.servers.filter(
+		const server = this.bot.gameBridge.config.servers.filter(
 			server => server.ip == ip
 		)[0];
 
 		let content = payload.message.content;
 		content = content.replace(/@(\S*)/, (match, name) => {
-			for (const [, member] of bot.client.channels.get(
-				this.gameBridge.config.relayChannelId
+			for (const [, member] of this.bot.client.channels.get(
+				this.bot.gameBridge.config.relayChannelId
 			).guild.members) {
 				if (
 					(member.nick &&

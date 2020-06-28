@@ -1,7 +1,4 @@
-import discord from "./providers/discord";
-import gamebridge from "./providers/gamebridge";
-import steam from "./providers/Steam";
-import webapp from "./providers/WebApp";
+import providers from "./providers";
 
 export interface IService {
 	name: string;
@@ -37,4 +34,4 @@ export class Container {
 	}
 }
 
-export const container = new Container([steam, discord, webapp, gamebridge]);
+export const container = new Container(providers);

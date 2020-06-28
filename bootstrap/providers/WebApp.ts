@@ -16,6 +16,7 @@ export class WebApp implements IService {
 	public constructor(discord: BaseClient) {
 		this.discord = discord;
 
+		// Probably need to move this to the DiscordBot service
 		this.app.get("/discord/guild/emojis", (req, res) => {
 			const client = this.discord.client;
 			if (!client.ran || client.killed)

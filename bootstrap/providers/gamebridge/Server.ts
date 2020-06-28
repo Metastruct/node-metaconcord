@@ -55,7 +55,7 @@ export default class Server {
 				try {
 					data = JSON.parse(received.utf8Data);
 				} catch (e) {
-					return new ErrorPayload(connection, this).send({
+					return new ErrorPayload(bot).send({
 						error: { message: "Malformed JSON" },
 					} as ErrorResponse);
 				}
@@ -64,7 +64,7 @@ export default class Server {
 				try {
 					payloadRequest = data.payload;
 				} catch (err) {
-					return new ErrorPayload(connection, this).send({
+					return new ErrorPayload(bot).send({
 						error: { message: "Missing payload" },
 					} as ErrorResponse);
 				}
@@ -72,7 +72,7 @@ export default class Server {
 				try {
 					for (const [name, type] of Object.entries(this.payloads)) {
 						if (payloadRequest.name === name) {
-							const payload = new type(connection, this);
+							const payload = new type(bot);
 							return payload.handle(req, payloadRequest);
 						}
 					}
@@ -82,7 +82,7 @@ export default class Server {
 					return;
 				}
 
-				new ErrorPayload(connection, this).send({
+				new ErrorPayload(bot).send({
 					error: { message: "Payload doesn't exist, nothing to do" },
 				} as ErrorResponse);
 			});

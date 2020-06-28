@@ -1,22 +1,17 @@
 import * as Ajv from "ajv";
 import * as requestSchema from "./structures/PayloadRequest.json";
 import * as responseSchema from "./structures/PayloadResponse.json";
+import { DiscordClient } from "../index";
 import { PayloadRequest, PayloadResponse } from "./structures";
-import { Server } from "../index";
-import {
-	connection as WebSocketConnection,
-	request as WebSocketRequest,
-} from "websocket";
+import { request as WebSocketRequest } from "websocket";
 
 export default abstract class Payload {
 	protected requestSchema = requestSchema;
 	protected responseSchema = responseSchema;
-	protected connection: WebSocketConnection;
-	protected gameBridge: Server;
+	protected bot: DiscordClient;
 
-	public constructor(connection: WebSocketConnection, server: Server) {
-		this.connection = connection;
-		this.gameBridge = server;
+	public constructor(bot: DiscordClient) {
+		this.bot = bot;
 	}
 
 	public isInvalid(
@@ -49,7 +44,7 @@ export default abstract class Payload {
 	): Promise<void>;
 
 	public async send(payload: PayloadResponse): Promise<void> {
-		this.connection.send(
+		this.bot.connection.send(
 			JSON.stringify({
 				payload: {
 					name: this.constructor.name,

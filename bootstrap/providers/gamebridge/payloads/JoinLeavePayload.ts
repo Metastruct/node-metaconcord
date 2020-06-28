@@ -15,10 +15,8 @@ export default class JoinLeavePayload extends Payload {
 	): Promise<void> {
 		this.validate(this.requestSchema, payload);
 
-		const ip = req.httpRequest.connection.remoteAddress;
-		const bot = this.gameBridge.getBot(ip, this.connection);
-		const relayChannel = await bot.client.rest.fetchChannel(
-			this.gameBridge.config.relayChannelId
+		const relayChannel = await this.bot.client.rest.fetchChannel(
+			this.bot.gameBridge.config.relayChannelId
 		);
 
 		const steamUser = await app.container

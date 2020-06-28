@@ -49,7 +49,7 @@ export default class DiscordClient extends BaseClient {
 				content += "\n" + attachment.url;
 			}
 
-			const payload = new ChatPayload(this.connection, this.gameBridge);
+			const payload = new ChatPayload(this);
 			payload.send({
 				message: {
 					user: {

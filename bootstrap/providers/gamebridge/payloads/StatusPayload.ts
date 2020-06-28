@@ -16,8 +16,6 @@ export default class StatusPayload extends Payload {
 	): Promise<void> {
 		this.validate(this.requestSchema, payload);
 
-		const ip = req.httpRequest.connection.remoteAddress;
-		const bot = this.gameBridge.getBot(ip, this.connection);
 		const updateStatus = async () => {
 			const count = payload.status.players.length;
 
@@ -29,10 +27,12 @@ export default class StatusPayload extends Payload {
 				},
 				status: "online",
 			};
-			bot.client.gateway.setPresence(status);
-			const guild = bot.client.guilds.get(this.gameBridge.config.guildId);
-			const serverInfoChannel = bot.client.channels.get(
-				this.gameBridge.config.serverInfoChannelId
+			this.bot.client.gateway.setPresence(status);
+			const guild = this.bot.client.guilds.get(
+				this.bot.gameBridge.config.guildId
+			);
+			const serverInfoChannel = this.bot.client.channels.get(
+				this.bot.gameBridge.config.serverInfoChannelId
 			);
 
 			// Nick
@@ -42,7 +42,7 @@ export default class StatusPayload extends Payload {
 			)[1];
 			if (hostname) guild.me.editNick(hostname.substring(0, 32));
 			*/
-			guild.me.editNick(bot.config.name);
+			guild.me.editNick(this.bot.config.name);
 
 			// Permanent status message
 			let desc = ":busts_in_silhouette: **%d player%s**";
@@ -60,7 +60,9 @@ export default class StatusPayload extends Payload {
 				.setTitle(payload.status.map)
 				.setUrl(
 					`https://metastruct.net/${
-						bot.config.label ? "join/" + bot.config.label : ""
+						this.bot.config.label
+							? "join/" + this.bot.config.label
+							: ""
 					}`
 				)
 				.setDescription(desc)
@@ -83,7 +85,7 @@ export default class StatusPayload extends Payload {
 
 			const messages = await serverInfoChannel.fetchMessages({});
 			const message = messages.filter(
-				msg => msg.author.id == bot.client.user.id
+				msg => msg.author.id == this.bot.client.user.id
 			)[0];
 			if (message) {
 				message.edit({ embed });
@@ -92,10 +94,10 @@ export default class StatusPayload extends Payload {
 			}
 		};
 
-		if (bot.ran) {
+		if (this.bot.ran) {
 			updateStatus();
 		} else {
-			bot.client.once("gatewayReady", () => {
+			this.bot.client.once("gatewayReady", () => {
 				updateStatus();
 			});
 		}
