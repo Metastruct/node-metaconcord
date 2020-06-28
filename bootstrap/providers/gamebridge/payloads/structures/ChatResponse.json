@@ -11,6 +11,9 @@
                 "user": {
                     "additionalProperties": false,
                     "properties": {
+                        "color": {
+                            "type": "number"
+                        },
                         "name": {
                             "type": "string"
                         }
