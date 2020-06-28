@@ -5,6 +5,7 @@ export default interface ChatResponse extends PayloadRequest {
 	message: {
 		user: {
 			name: string;
+			color: number;
 		};
 		content: string;
 	};

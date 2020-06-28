@@ -54,6 +54,7 @@ export default class DiscordClient extends BaseClient {
 				message: {
 					user: {
 						name: ctx.message.member.name,
+						color: ctx.message.member.color,
 					},
 					content: content,
 				},
