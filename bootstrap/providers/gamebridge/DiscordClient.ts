@@ -56,7 +56,9 @@ export default class DiscordClient extends BaseClient {
 						name: ctx.message.member.name,
 						color: ctx.message.member.color,
 					},
-					content: content,
+					content: ctx.message.convertContent({
+						guildSpecific: true,
+					}),
 				},
 			} as ChatResponse);
 		});
