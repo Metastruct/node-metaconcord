@@ -37,7 +37,9 @@ export default class DiscordClient extends BaseClient {
 				return;
 			if (ctx.message.author.bot || !ctx.message.author.client) return;
 
-			let content = ctx.message.content;
+			let content = ctx.message.convertContent({
+				guildSpecific: true,
+			});
 			content = content.replace(
 				/<(a?):([^\s:<>]*):(\d+)>/g,
 				(_, animated, emoji, id) => {
@@ -56,9 +58,7 @@ export default class DiscordClient extends BaseClient {
 						name: ctx.message.member.name,
 						color: ctx.message.member.color,
 					},
-					content: ctx.message.convertContent({
-						guildSpecific: true,
-					}),
+					content,
 				},
 			} as ChatResponse);
 		});
