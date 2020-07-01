@@ -94,7 +94,7 @@ export default class StatusPayload extends Payload {
 			}
 		};
 
-		if (this.bot.ran) {
+		if (this.bot.ran && this.bot.client.gateway.state == "READY") {
 			updateStatus();
 		} else {
 			this.bot.client.once("gatewayReady", () => {

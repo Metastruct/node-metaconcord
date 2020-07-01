@@ -3,6 +3,7 @@ module.exports = {
 		{
 			script: "./dist/index.js",
 			name: "metaconcord",
+			time: true,
 		},
 	],
 };

@@ -27,6 +27,14 @@ export default class Server {
 		this.ws.on("request", req => {
 			let validIP = false;
 			const ip = req.httpRequest.connection.remoteAddress;
+			for (const connection of this.ws.connections) {
+				if (ip == connection.remoteAddress) {
+					console.log(
+						`${ip} is trying to connect multiple times, dropping previous connection.`
+					);
+					connection.close();
+				}
+			}
 			for (const server of Object.values(config.servers)) {
 				if (ip === server.ip) {
 					validIP = true;

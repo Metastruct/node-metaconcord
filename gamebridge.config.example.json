@@ -11,5 +11,7 @@
 	],
 	"chatWebhookId": "",
 	"chatWebhookToken": "",
-	"serverInfoChannelId": ""
+	"serverInfoChannelId": "",
+	"relayChannelId": "",
+	"guildId": ""
 }
