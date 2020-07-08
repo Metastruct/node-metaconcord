@@ -16,7 +16,7 @@ export class Steam implements IService {
 	public steam: SteamAPI = new SteamAPI(config.apiKey);
 	private userCache: {
 		[steamId64: string]: UserCache;
-	};
+	} = {};
 
 	public async getUserSummaries(steamId64: string): Promise<any> {
 		const userCache = this.getUserCache(steamId64);
