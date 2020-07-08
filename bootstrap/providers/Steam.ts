@@ -4,11 +4,18 @@ import * as qs from "qs";
 import { IService } from "../Container";
 import axios from "axios";
 
+type Cached = {
+	lifespan: number;
+	data: any;
+};
+
 export class Steam implements IService {
 	public name = "SteamAPI";
 
 	public steam: SteamAPI = new SteamAPI(config.apiKey);
-	private cachedSummaries: { [steamId64: string]: any }[] = [];
+	private cachedSummaries: {
+		[steamId64: string]: Cached;
+	};
 
 	public async getUserSummaries(steamId64: string): Promise<any> {
 		let cached = this.cachedSummaries[steamId64];
