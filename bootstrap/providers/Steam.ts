@@ -4,40 +4,34 @@ import * as qs from "qs";
 import { IService } from "../Container";
 import axios from "axios";
 
-type Cached = {
-	lifespan: number;
-	data: any;
+type UserCache = {
+	expireTime: number;
+	summary: any; // From Steam, cba
 };
+const validTime = 30 * 60 * 1000;
 
 export class Steam implements IService {
 	public name = "SteamAPI";
 
 	public steam: SteamAPI = new SteamAPI(config.apiKey);
-	private cachedSummaries: {
-		[steamId64: string]: Cached;
+	private userCache: {
+		[steamId64: string]: UserCache;
 	};
 
 	public async getUserSummaries(steamId64: string): Promise<any> {
-		let cached = this.cachedSummaries[steamId64];
-		if (!cached || cached.lifespan < Date.now()) {
-			cached = this.cachedSummaries[steamId64] = {
-				lifespan: Date.now() * 30 * 60 * 1000,
-				data: await this.steam.getUserSummary(steamId64),
-			};
+		const userCache = this.getUserCache(steamId64);
+		if (!userCache.summary) {
+			userCache.summary = await this.steam.getUserSummary(steamId64);
 		}
-		return cached.data;
+		return userCache.summary;
 	}
 
 	public async getPublishedFileDetails(ids: string[]): Promise<any> {
 		const query = {
-			itemcount: 0,
-			publishedfileids: [],
+			publishedfileids: ids,
+			itemcount: ids.length,
 			key: config.apiKey,
 		};
-		for (const id of ids) {
-			query.publishedfileids.push(id);
-		}
-		query.itemcount = query.publishedfileids.length;
 		return (
 			await axios
 				.post(
@@ -49,6 +43,19 @@ export class Steam implements IService {
 					return { data: { response: {} } };
 				})
 		).data.response;
+	}
+
+	private getUserCache(steamId64): UserCache {
+		if (
+			!this.userCache[steamId64] ||
+			this.userCache[steamId64].expireTime < Date.now()
+		) {
+			this.userCache[steamId64] = {
+				expireTime: Date.now() + validTime,
+				summary: null,
+			};
+		}
+		return this.userCache[steamId64];
 	}
 }
 
