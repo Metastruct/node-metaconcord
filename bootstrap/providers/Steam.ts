@@ -12,7 +12,7 @@ export class Steam implements IService {
 
 	public async getUserSummaries(steamId64: string): Promise<any> {
 		let cached = this.cachedSummaries[steamId64];
-		if (!cached || cached.lifespan < Date.now) {
+		if (!cached || cached.lifespan < Date.now()) {
 			cached = this.cachedSummaries[steamId64] = {
 				lifespan: Date.now() * 30 * 60 * 1000,
 				data: await this.steam.getUserSummary(steamId64),
