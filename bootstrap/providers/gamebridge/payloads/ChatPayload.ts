@@ -41,14 +41,15 @@ export default class ChatPayload extends Payload {
 			}
 			return match;
 		});
+		const summary = await app.container
+			.getService(Steam)
+			.getUserSummaries(payload.message.player.steamId64);
+		const avatar =
+			summary && summary.avatar ? summary.avatar.large : undefined;
 		webhook.send(
 			content,
 			`#${server.id} ${payload.message.player.name}`,
-			(
-				await app.container
-					.getService(Steam)
-					.getUserSummaries(payload.message.player.steamId64)
-			).avatar.large,
+			avatar,
 			[],
 			{
 				parse: ["users", "roles"],

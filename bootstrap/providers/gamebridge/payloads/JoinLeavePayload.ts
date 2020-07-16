@@ -19,16 +19,18 @@ export default class JoinLeavePayload extends Payload {
 			this.bot.gameBridge.config.relayChannelId
 		);
 
-		const steamUser = await app.container
+		const summary = await app.container
 			.getService(Steam)
 			.getUserSummaries(payload.player.steamId64);
+		const avatar =
+			summary && summary.avatar ? summary.avatar.large : undefined;
 
 		const embed = new Embed()
 			.setAuthor(
 				`${payload.player.name} has ${
 					payload.spawned ? "spawned" : "left"
 				}`,
-				steamUser.avatar.large,
+				avatar,
 				`https://steamcommunity.com/profiles/${payload.player.steamId64}`
 			)
 			.setColor(payload.spawned ? 0x4bb543 : 0xb54343);
