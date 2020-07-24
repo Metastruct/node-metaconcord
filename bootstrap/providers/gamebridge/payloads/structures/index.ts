@@ -5,6 +5,7 @@ import JoinLeaveRequest from "./JoinLeaveRequest";
 import PayloadRequest from "./PayloadRequest";
 import PayloadResponse from "./PayloadResponse";
 import StatusRequest from "./StatusRequest";
+import BanRequest from "./BanRequest"
 
 export {
 	PayloadRequest,
@@ -14,4 +15,5 @@ export {
 	ErrorResponse,
 	StatusRequest,
 	JoinLeaveRequest,
+	BanRequest,
 };
