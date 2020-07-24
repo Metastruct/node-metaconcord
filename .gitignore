@@ -7,5 +7,3 @@ node_modules
 .env
 *.config.json
 deploy.sh
-
-package-lock.json
