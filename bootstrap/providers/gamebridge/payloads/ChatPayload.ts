@@ -12,10 +12,7 @@ export default class ChatPayload extends Payload {
 	protected requestSchema = requestSchema;
 	protected responseSchema = responseSchema;
 
-	public async handle(
-		req: WebSocketRequest,
-		payload: ChatRequest
-	): Promise<void> {
+	public async handle(req: WebSocketRequest, payload: ChatRequest): Promise<void> {
 		this.validate(this.requestSchema, payload);
 
 		const ip = req.httpRequest.connection.remoteAddress;
@@ -23,9 +20,7 @@ export default class ChatPayload extends Payload {
 			this.bot.gameBridge.config.chatWebhookId,
 			this.bot.gameBridge.config.chatWebhookToken
 		);
-		const server = this.bot.gameBridge.config.servers.filter(
-			server => server.ip == ip
-		)[0];
+		const server = this.bot.gameBridge.config.servers.filter(server => server.ip == ip)[0];
 
 		let content = payload.message.content;
 		content = content.replace(/@(\S*)/, (match, name) => {
@@ -33,8 +28,7 @@ export default class ChatPayload extends Payload {
 				this.bot.gameBridge.config.relayChannelId
 			).guild.members) {
 				if (
-					(member.nick &&
-						member.nick.toLowerCase() == name.toLowerCase()) ||
+					member?.nick.toLowerCase() == name.toLowerCase() ||
 					member.username.toLowerCase() == name.toLowerCase()
 				)
 					return `<@${member.id}>`;
@@ -44,16 +38,9 @@ export default class ChatPayload extends Payload {
 		const summary = await app.container
 			.getService(Steam)
 			.getUserSummaries(payload.message.player.steamId64);
-		const avatar =
-			summary && summary.avatar ? summary.avatar.large : undefined;
-		webhook.send(
-			content,
-			`#${server.id} ${payload.message.player.name}`,
-			avatar,
-			[],
-			{
-				parse: ["users", "roles"],
-			}
-		);
+		const avatar = summary?.avatar?.large ?? undefined;
+		webhook.send(content, `#${server.id} ${payload.message.player.name}`, avatar, [], {
+			parse: ["users", "roles"],
+		});
 	}
 }

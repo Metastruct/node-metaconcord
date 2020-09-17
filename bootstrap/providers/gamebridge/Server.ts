@@ -104,9 +104,7 @@ export default class Server {
 
 	public getBot(ip: string, connection: WebSocketConnection): DiscordClient {
 		if (!this.discord[ip]) {
-			const config = this.config.servers.filter(
-				server => server.ip == ip
-			)[0];
+			const config = this.config.servers.filter(server => server.ip == ip)[0];
 			this.discord[ip] = new DiscordClient(config, connection, this);
 		}
 		return this.discord[ip];

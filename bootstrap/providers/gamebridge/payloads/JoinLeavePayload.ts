@@ -9,10 +9,7 @@ import app from "@/app";
 export default class JoinLeavePayload extends Payload {
 	protected requestSchema = requestSchema;
 
-	public async handle(
-		req: WebSocketRequest,
-		payload: JoinLeaveRequest
-	): Promise<void> {
+	public async handle(req: WebSocketRequest, payload: JoinLeaveRequest): Promise<void> {
 		this.validate(this.requestSchema, payload);
 
 		const relayChannel = await this.bot.client.rest.fetchChannel(
@@ -22,14 +19,11 @@ export default class JoinLeavePayload extends Payload {
 		const summary = await app.container
 			.getService(Steam)
 			.getUserSummaries(payload.player.steamId64);
-		const avatar =
-			summary && summary.avatar ? summary.avatar.large : undefined;
+		const avatar = summary?.avatar?.large ?? undefined;
 
 		const embed = new Embed()
 			.setAuthor(
-				`${payload.player.name} has ${
-					payload.spawned ? "spawned" : "left"
-				}`,
+				`${payload.player.name} has ${payload.spawned ? "spawned" : "left"}`,
 				avatar,
 				`https://steamcommunity.com/profiles/${payload.player.steamId64}`
 			)

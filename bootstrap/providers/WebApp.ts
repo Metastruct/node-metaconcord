@@ -40,9 +40,7 @@ export class WebApp implements IService {
 		});
 
 		this.server = this.app.listen(webappConfig.port, "0.0.0.0", () => {
-			console.log(
-				`Server and websocket server listening on ${webappConfig.port}`
-			);
+			console.log(`Server and websocket server listening on ${webappConfig.port}`);
 		});
 	}
 }

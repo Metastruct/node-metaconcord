@@ -29,24 +29,18 @@ export default class DiscordClient extends BaseClient {
 		this.gameBridge = gameBridge;
 	}
 
-	async run(
-		options?: CommandClientRunOptions
-	): Promise<ClusterClient | ShardClient> {
+	async run(options?: CommandClientRunOptions): Promise<ClusterClient | ShardClient> {
 		this.client.on("messageCreate", ctx => {
-			if (ctx.message.channelId != this.gameBridge.config.relayChannelId)
-				return;
+			if (ctx.message.channelId != this.gameBridge.config.relayChannelId) return;
 			if (ctx.message.author.bot || !ctx.message.author.client) return;
 
 			let content = ctx.message.convertContent({
 				guildSpecific: true,
 			});
-			content = content.replace(
-				/<(a?):([^\s:<>]*):(\d+)>/g,
-				(_, animated, emoji, id) => {
-					const extension = !!animated ? "gif" : "png";
-					return `https://media.discordapp.net/emojis/${id}.${extension}?v=1&size=64 `;
-				}
-			);
+			content = content.replace(/<(a?):([^\s:<>]*):(\d+)>/g, (_, animated, emoji, id) => {
+				const extension = !!animated ? "gif" : "png";
+				return `https://media.discordapp.net/emojis/${id}.${extension}?v=1&size=64 `;
+			});
 			for (const [, attachment] of ctx.message.attachments) {
 				content += "\n" + attachment.url;
 			}
