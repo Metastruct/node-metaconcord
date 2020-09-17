@@ -19,7 +19,7 @@ export class WebApp implements IService {
 		// Probably need to move this to the DiscordBot service
 		this.app.get("/discord/guild/emojis", (req, res) => {
 			const client = this.discord.client;
-			if (!client.ran || client.killed)
+			if (!client.gateway.connected)
 				return res.status(500).json({
 					error: "Bot is not connected",
 				});
