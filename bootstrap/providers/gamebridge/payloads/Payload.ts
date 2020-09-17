@@ -14,10 +14,7 @@ export default abstract class Payload {
 		this.bot = bot;
 	}
 
-	public isInvalid(
-		schema: any,
-		payload: PayloadRequest | PayloadResponse
-	): Ajv.ErrorObject[] {
+	public isInvalid(schema: any, payload: PayloadRequest | PayloadResponse): Ajv.ErrorObject[] {
 		const ajv = new Ajv();
 		const validate = ajv.compile(schema);
 		if (!validate(payload)) {
@@ -30,18 +27,13 @@ export default abstract class Payload {
 		if (invalid) {
 			let msg = "";
 			for (let i = 0; i < invalid.length; i++) {
-				msg += `- ${invalid[i].message}${
-					i == invalid.length - 1 ? "" : "\n"
-				}`;
+				msg += `- ${invalid[i].message}${i == invalid.length - 1 ? "" : "\n"}`;
 			}
 			throw new Error(msg);
 		}
 	}
 
-	public async handle?(
-		request: WebSocketRequest,
-		payload: PayloadRequest
-	): Promise<void>;
+	public async handle?(request: WebSocketRequest, payload: PayloadRequest): Promise<void>;
 
 	public async send(payload: PayloadResponse): Promise<void> {
 		this.bot.connection.send(

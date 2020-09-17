@@ -10,10 +10,7 @@ import app from "@/app";
 export default class StatusPayload extends Payload {
 	protected requestSchema = requestSchema;
 
-	public async handle(
-		req: WebSocketRequest,
-		payload: StatusRequest
-	): Promise<void> {
+	public async handle(req: WebSocketRequest, payload: StatusRequest): Promise<void> {
 		this.validate(this.requestSchema, payload);
 
 		const updateStatus = async () => {
@@ -28,9 +25,7 @@ export default class StatusPayload extends Payload {
 				status: "online",
 			};
 			this.bot.client.gateway.setPresence(status);
-			const guild = this.bot.client.guilds.get(
-				this.bot.gameBridge.config.guildId
-			);
+			const guild = this.bot.client.guilds.get(this.bot.gameBridge.config.guildId);
 			const serverInfoChannel = this.bot.client.channels.get(
 				this.bot.gameBridge.config.serverInfoChannelId
 			);
@@ -60,33 +55,25 @@ export default class StatusPayload extends Payload {
 				.setTitle(payload.status.map)
 				.setUrl(
 					`https://metastruct.net/${
-						this.bot.config.label
-							? "join/" + this.bot.config.label
-							: ""
+						this.bot.config.label ? "join/" + this.bot.config.label : ""
 					}`
 				)
 				.setDescription(desc)
-				.setColor(0x4bf5ca);
+				.setColor(0x4bf5ca)
+				.setThumbnail("https://metastruct.net/img/gm_construct_m.jpg");
 			if (payload.status.workshopMap) {
-				embed.setThumbnail(
-					(
-						await app.container
-							.getService(Steam)
-							.getPublishedFileDetails([
-								payload.status.workshopMap.id,
-							])
-					).publishedfiledetails[0].preview_url
-				);
-			} else {
-				embed.setThumbnail(
-					"https://metastruct.net/img/gm_construct_m.jpg"
-				);
+				const res = await app.container
+					.getService(Steam)
+					.getPublishedFileDetails([payload.status.workshopMap.id])
+					.catch(console.error);
+
+				if (res?.publishedfiledetails[0]?.preview_url) {
+					embed.setThumbnail(res.publishedfiledetails[0].preview_url);
+				}
 			}
 
 			const messages = await serverInfoChannel.fetchMessages({});
-			const message = messages.filter(
-				msg => msg.author.id == this.bot.client.user.id
-			)[0];
+			const message = messages.filter(msg => msg.author.id == this.bot.client.user.id)[0];
 			if (message) {
 				message.edit({ embed });
 			} else {

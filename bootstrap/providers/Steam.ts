@@ -21,11 +21,9 @@ export class Steam implements IService {
 	public async getUserSummaries(steamId64: string): Promise<any> {
 		const userCache = this.getUserCache(steamId64);
 		if (!userCache.summary) {
-			userCache.summary = await this.steam
-				.getUserSummary(steamId64)
-				.catch(err => {
-					console.error(err.message, steamId64);
-				});
+			userCache.summary = await this.steam.getUserSummary(steamId64).catch(err => {
+				console.error(err.message, steamId64);
+			});
 		}
 		return userCache.summary;
 	}
@@ -50,10 +48,7 @@ export class Steam implements IService {
 	}
 
 	private getUserCache(steamId64): UserCache {
-		if (
-			!this.userCache[steamId64] ||
-			this.userCache[steamId64].expireTime < Date.now()
-		) {
+		if (!this.userCache[steamId64] || this.userCache[steamId64].expireTime < Date.now()) {
 			this.userCache[steamId64] = {
 				expireTime: Date.now() + validTime,
 				summary: null,

@@ -2,12 +2,6 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "additionalProperties": false,
     "properties": {
-        "name": {
-            "enum": [
-                "BanPayload"
-            ],
-            "type": "string"
-        },
         "ban": {
             "additionalProperties": false,
             "properties": {
@@ -16,16 +10,23 @@
                 },
                 "banner": {
                     "type": "string"
-				},
-				"reason": {
+                },
+                "reason": {
                     "type": "string"
-				},
-				"unbanTime": {
+                },
+                "unbanTime": {
                     "type": "string"
                 }
             },
             "type": "object"
+        },
+        "name": {
+            "enum": [
+                "BanPayload"
+            ],
+            "type": "string"
         }
     },
     "type": "object"
 }
+

@@ -1,8 +1,4 @@
-import {
-	CommandClient,
-	CommandClientOptions,
-	ShardClient,
-} from "detritus-client";
+import { CommandClient, CommandClientOptions, ShardClient } from "detritus-client";
 
 export class BaseClient extends CommandClient {
 	public client: ShardClient;
