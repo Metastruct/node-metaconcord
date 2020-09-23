@@ -37,7 +37,7 @@ export default class StatusPayload extends Payload {
 			)[1];
 			if (hostname) guild.me.editNick(hostname.substring(0, 32));
 			*/
-			guild.me.editNick(this.bot.config.name);
+			if (guild.me.nick !== this.bot.config.name) guild.me.editNick(this.bot.config.name);
 
 			// Permanent status message
 			let desc = ":busts_in_silhouette: **%d player%s**";
