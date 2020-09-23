@@ -30,7 +30,9 @@ export default class DiscordClient extends BaseClient {
 	}
 
 	async run(options?: CommandClientRunOptions): Promise<ClusterClient | ShardClient> {
-		this.client.on("messageCreate", ctx => {
+		const client = <ShardClient>await super.run(options);
+
+		client.on("messageCreate", ctx => {
 			if (ctx.message.channelId != this.gameBridge.config.relayChannelId) return;
 			if (ctx.message.author.bot || !ctx.message.author.client) return;
 
@@ -57,6 +59,6 @@ export default class DiscordClient extends BaseClient {
 			} as ChatResponse);
 		});
 
-		return super.run(options);
+		return client;
 	}
 }

@@ -28,7 +28,7 @@ export default class ChatPayload extends Payload {
 				this.bot.gameBridge.config.relayChannelId
 			).guild.members) {
 				if (
-					member?.nick.toLowerCase() == name.toLowerCase() ||
+					member?.nick?.toLowerCase() == name.toLowerCase() ||
 					member.username.toLowerCase() == name.toLowerCase()
 				)
 					return `<@${member.id}>`;
