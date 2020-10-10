@@ -1,7 +1,6 @@
 import { Command, CommandOptions, Context, ParsedArgs } from "detritus-client/lib/command";
 import { CommandClient, ShardClient } from "detritus-client";
 import { Permissions } from "detritus-client/lib/constants";
-import { cpuUsage } from "process";
 
 export class HelpCommand extends Command {
 	constructor(commandClient: CommandClient) {

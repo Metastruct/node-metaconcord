@@ -6,7 +6,7 @@ export class Data implements IService {
 	name = "Data";
 	private dataPath = path.join(process.cwd(), "data");
 
-	muted: { [userId: string]: { until: number } } = {};
+	muted: { [userId: string]: { until: number; reason?: string; muter?: string } } = {};
 
 	async init(): Promise<void> {
 		try {
