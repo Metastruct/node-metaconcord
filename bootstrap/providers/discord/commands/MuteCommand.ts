@@ -20,7 +20,7 @@ async function checkUserId(ctx: Context, args: ParsedArgs): Promise<boolean> {
 	if (ctx.command.name == "whymute" && !userId) {
 		userId = ctx.user.id;
 	} else {
-		userId = userId.match(/<@!?(\d+)>/)?.[1] || userId;
+		userId = (userId || "").match(/<@!?(\d+)>/)?.[1] || userId;
 	}
 	args.userId = userId;
 
@@ -184,7 +184,8 @@ export class WhyMuteCommand extends Command {
 			label: "userId",
 			disableDm: true,
 			metadata: {
-				help: "Prints the reason of a member's muting.",
+				help:
+					"Prints the reason of a member's muting. You can omit the argument to check your own details, if any.",
 				usage: ["!whymute <UserID?>", `#MENTION whymute <UserID?>`],
 			},
 		} as CommandOptions);
