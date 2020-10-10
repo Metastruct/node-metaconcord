@@ -2,6 +2,7 @@
 yarn-error.log
 
 dist
+data
 node_modules
 
 .env

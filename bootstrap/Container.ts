@@ -1,10 +1,7 @@
+import { IService } from "./providers";
 import providers from "./providers";
 
-export interface IService {
-	name: string;
-}
-
-type ProviderFactory = { (container: Container): IService }[];
+type ProviderFactory = { (container: Container): IService | Promise<IService> }[];
 
 export class Container {
 	private providers: ProviderFactory;
@@ -22,7 +19,10 @@ export class Container {
 		return this.services;
 	}
 
-	addService(service: IService): void {
+	async addService(service: IService | Promise<IService>): Promise<void> {
+		if (service instanceof Promise) {
+			service = await service;
+		}
 		this.services.push(service);
 	}
 

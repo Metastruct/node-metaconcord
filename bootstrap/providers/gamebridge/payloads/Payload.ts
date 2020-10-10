@@ -10,11 +10,11 @@ export default abstract class Payload {
 	protected responseSchema = responseSchema;
 	protected bot: DiscordClient;
 
-	public constructor(bot: DiscordClient) {
+	constructor(bot: DiscordClient) {
 		this.bot = bot;
 	}
 
-	public isInvalid(schema: any, payload: PayloadRequest | PayloadResponse): Ajv.ErrorObject[] {
+	isInvalid(schema: any, payload: PayloadRequest | PayloadResponse): Ajv.ErrorObject[] {
 		const ajv = new Ajv();
 		const validate = ajv.compile(schema);
 		if (!validate(payload)) {
@@ -22,7 +22,7 @@ export default abstract class Payload {
 		}
 	}
 
-	public validate(schema: any, payload: PayloadResponse): void {
+	validate(schema: any, payload: PayloadResponse): void {
 		const invalid = this.isInvalid(schema, payload);
 		if (invalid) {
 			let msg = "";
@@ -33,9 +33,9 @@ export default abstract class Payload {
 		}
 	}
 
-	public async handle?(request: WebSocketRequest, payload: PayloadRequest): Promise<void>;
+	async handle?(request: WebSocketRequest, payload: PayloadRequest): Promise<void>;
 
-	public async send(payload: PayloadResponse): Promise<void> {
+	async send(payload: PayloadResponse): Promise<void> {
 		this.bot.connection.send(
 			JSON.stringify({
 				payload: {

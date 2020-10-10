@@ -1,25 +1,25 @@
-import { BaseClient } from "../discord/BaseClient";
-import { ChatPayload } from "./payloads";
-import { ChatResponse } from "./payloads/structures";
+import { BaseClient } from "../../discord/BaseClient";
+import { ChatPayload } from "../payloads";
+import { ChatResponse } from "../payloads/structures";
 import {
 	ClusterClient,
 	CommandClientOptions,
 	CommandClientRunOptions,
 	ShardClient,
 } from "detritus-client";
-import { Server } from "./index";
+import { GameBridge } from "../index";
 import { connection as WebSocketConnection } from "websocket";
 
 export default class DiscordClient extends BaseClient {
-	public client: ShardClient;
-	public config: any;
-	public connection: WebSocketConnection;
-	public gameBridge: Server;
+	client: ShardClient;
+	config: any;
+	connection: WebSocketConnection;
+	gameBridge: GameBridge;
 
 	constructor(
 		config: any,
 		connection: WebSocketConnection,
-		gameBridge: Server,
+		gameBridge: GameBridge,
 		options?: CommandClientOptions
 	) {
 		super(config.discordToken, options);
@@ -27,12 +27,8 @@ export default class DiscordClient extends BaseClient {
 		this.config = config;
 		this.connection = connection;
 		this.gameBridge = gameBridge;
-	}
 
-	async run(options?: CommandClientRunOptions): Promise<ClusterClient | ShardClient> {
-		const client = <ShardClient>await super.run(options);
-
-		client.on("messageCreate", ctx => {
+		this.client.on("messageCreate", ctx => {
 			if (ctx.message.channelId != this.gameBridge.config.relayChannelId) return;
 			if (ctx.message.author.bot || !ctx.message.author.client) return;
 
@@ -58,7 +54,5 @@ export default class DiscordClient extends BaseClient {
 				},
 			} as ChatResponse);
 		});
-
-		return client;
 	}
 }

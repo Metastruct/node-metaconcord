@@ -1,9 +1,10 @@
-import DiscordClient from "./DiscordClient";
-import Server from "./Server";
-export { DiscordClient, Server };
+import { DiscordClient } from "./discord";
+import GameBridge from "./GameBridge";
+export { DiscordClient, GameBridge };
 
-import { Container, IService } from "../../Container";
+import { Container } from "../../Container";
+import { IService } from "../../providers";
 import { WebApp } from "../WebApp";
 export default (container: Container): IService => {
-	return new Server(container.getService(WebApp).server);
+	return new GameBridge(container.getService(WebApp).server);
 };

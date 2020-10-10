@@ -9,7 +9,7 @@ import app from "@/app";
 export default class JoinLeavePayload extends Payload {
 	protected requestSchema = requestSchema;
 
-	public async handle(req: WebSocketRequest, payload: JoinLeaveRequest): Promise<void> {
+	async handle(req: WebSocketRequest, payload: JoinLeaveRequest): Promise<void> {
 		this.validate(this.requestSchema, payload);
 
 		const relayChannel = await this.bot.client.rest.fetchChannel(

@@ -7,7 +7,7 @@ import {
 } from "detritus-client";
 
 export class BaseClient extends CommandClient {
-	public client: ShardClient;
+	client: ShardClient;
 
 	constructor(token: string | ShardClient, options?: CommandClientOptions) {
 		super(token, options);
