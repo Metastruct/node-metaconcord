@@ -12,7 +12,7 @@ export default class ChatPayload extends Payload {
 	protected requestSchema = requestSchema;
 	protected responseSchema = responseSchema;
 
-	public async handle(req: WebSocketRequest, payload: ChatRequest): Promise<void> {
+	async handle(req: WebSocketRequest, payload: ChatRequest): Promise<void> {
 		this.validate(this.requestSchema, payload);
 
 		const ip = req.httpRequest.connection.remoteAddress;

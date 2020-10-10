@@ -2,18 +2,19 @@ import * as discordConfig from "@/discord.config.json";
 import * as express from "express";
 import * as webappConfig from "@/webapp.config.json";
 import { BaseClient } from "./discord/BaseClient";
-import { Container, IService } from "../Container";
+import { Container } from "../Container";
 import { DiscordBot } from "./discord";
 import { Server as HTTPServer } from "http";
+import { IService } from "./";
 
 export class WebApp implements IService {
-	public name = "WebApp";
+	name = "WebApp";
 
-	public discord: BaseClient;
-	public server: HTTPServer;
-	public app = express();
+	discord: BaseClient;
+	server: HTTPServer;
+	app = express();
 
-	public constructor(discord: BaseClient) {
+	constructor(discord: BaseClient) {
 		this.discord = discord;
 
 		// Probably need to move this to the DiscordBot service

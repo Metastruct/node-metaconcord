@@ -1,17 +1,19 @@
 import { Container, container } from "@/bootstrap/Container";
 
 export class App {
-	public container: Container;
+	container: Container;
 
 	constructor(container: Container) {
 		this.container = container;
 
+		this.init();
+	}
+
+	async init(): Promise<void> {
 		for (const provider of this.container.getProviders()) {
-			this.container.addService(provider(this.container));
+			await this.container.addService(provider(this.container));
 		}
 	}
 }
 
-const app = new App(container);
-
-export default app;
+export default new App(container);

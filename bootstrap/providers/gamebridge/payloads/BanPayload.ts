@@ -7,7 +7,7 @@ import Payload from "./Payload";
 export default class BanPayload extends Payload {
 	protected requestSchema = requestSchema;
 
-	public async handle(_: WebSocketRequest, payload: BanRequest): Promise<void> {
+	async handle(_: WebSocketRequest, payload: BanRequest): Promise<void> {
 		this.validate(this.requestSchema, payload);
 
 		const relayChannel = await this.bot.client.rest.fetchChannel(

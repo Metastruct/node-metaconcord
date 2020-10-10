@@ -10,7 +10,7 @@ import app from "@/app";
 export default class StatusPayload extends Payload {
 	protected requestSchema = requestSchema;
 
-	public async handle(req: WebSocketRequest, payload: StatusRequest): Promise<void> {
+	async handle(req: WebSocketRequest, payload: StatusRequest): Promise<void> {
 		this.validate(this.requestSchema, payload);
 
 		const updateStatus = async () => {

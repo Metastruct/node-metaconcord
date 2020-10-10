@@ -1,7 +1,7 @@
 import * as SteamAPI from "steamapi";
 import * as config from "@/steam.config.json";
 import * as qs from "qs";
-import { IService } from "../Container";
+import { IService } from "./";
 import axios from "axios";
 
 type UserCache = {
@@ -11,14 +11,14 @@ type UserCache = {
 const validTime = 30 * 60 * 1000;
 
 export class Steam implements IService {
-	public name = "SteamAPI";
+	name = "SteamAPI";
 
-	public steam: SteamAPI = new SteamAPI(config.apiKey);
+	steam: SteamAPI = new SteamAPI(config.apiKey);
 	private userCache: {
 		[steamId64: string]: UserCache;
 	} = {};
 
-	public async getUserSummaries(steamId64: string): Promise<any> {
+	async getUserSummaries(steamId64: string): Promise<any> {
 		const userCache = this.getUserCache(steamId64);
 		if (!userCache.summary) {
 			userCache.summary = await this.steam.getUserSummary(steamId64).catch(err => {
@@ -28,7 +28,7 @@ export class Steam implements IService {
 		return userCache.summary;
 	}
 
-	public async getPublishedFileDetails(ids: string[]): Promise<any> {
+	async getPublishedFileDetails(ids: string[]): Promise<any> {
 		const query = {
 			publishedfileids: ids,
 			itemcount: ids.length,

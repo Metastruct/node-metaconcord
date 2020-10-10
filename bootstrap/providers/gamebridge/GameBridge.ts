@@ -8,16 +8,16 @@ import { Server as HTTPServer } from "http";
 import { connection as WebSocketConnection } from "websocket";
 import { server as WebSocketServer } from "websocket";
 
-export default class Server {
-	public name = "GameBridge";
-	public config = config;
-	public payloads = payloads;
+export default class GameBridge {
+	name = "GameBridge";
+	config = config;
+	payloads = payloads;
 
-	public http: HTTPServer;
-	public ws: WebSocketServer;
-	public discord: { [ip: string]: DiscordClient } = {};
+	http: HTTPServer;
+	ws: WebSocketServer;
+	discord: { [ip: string]: DiscordClient } = {};
 
-	public constructor(http: HTTPServer) {
+	constructor(http: HTTPServer) {
 		this.http = http;
 		this.ws = new WebSocketServer({
 			httpServer: this.http,
@@ -102,7 +102,7 @@ export default class Server {
 		});
 	}
 
-	public getBot(ip: string, connection: WebSocketConnection): DiscordClient {
+	getBot(ip: string, connection: WebSocketConnection): DiscordClient {
 		if (!this.discord[ip]) {
 			const config = this.config.servers.filter(server => server.ip == ip)[0];
 			this.discord[ip] = new DiscordClient(config, connection, this);
