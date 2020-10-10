@@ -29,6 +29,17 @@ export class MuteCommand extends Command {
 					type: "string",
 				},
 			],
+			metadata: {
+				help:
+					"Mutes a member for a time. The `-for` argument is optional and can be omitted to specify an indeterminate period of time for which the person will be affected. The syntax for it is also quite lenient...",
+				usage: [
+					"!mute <UserID>",
+					"!mute <UserID> -for 1 hour 30 minutes",
+					`#MENTION mute <UserID>`,
+				],
+			},
+			permissions: [Permissions.MANAGE_ROLES],
+			permissionsClient: [Permissions.MANAGE_ROLES],
 		} as CommandOptions);
 
 		this.data = data;
@@ -51,10 +62,6 @@ export class MuteCommand extends Command {
 			}
 			if (changes) this.data.save();
 		}, 1000);
-	}
-
-	onBefore(ctx: Context): boolean {
-		return ctx.member.can(Permissions.MANAGE_ROLES);
 	}
 
 	async run(ctx: Context, { mute: userId, for: time }: ParsedArgs): Promise<void> {
@@ -119,13 +126,15 @@ export class UnmuteCommand extends Command {
 			name: "unmute",
 			responseOptional: true,
 			disableDm: true,
+			metadata: {
+				help: "Unmutes a member.",
+				usage: ["!unmute <UserID>", `#MENTION unmute <UserID>`],
+			},
+			permissions: [Permissions.MANAGE_ROLES],
+			permissionsClient: [Permissions.MANAGE_ROLES],
 		} as CommandOptions);
 
 		this.data = data;
-	}
-
-	onBefore(ctx: Context): boolean {
-		return ctx.member.can(Permissions.MANAGE_ROLES);
 	}
 
 	async run(ctx: Context, { unmute: userId }: ParsedArgs): Promise<void> {
