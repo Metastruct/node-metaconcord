@@ -14,7 +14,7 @@ export class BaseClient extends CommandClient {
 	}
 
 	async run(options?: CommandClientRunOptions): Promise<ClusterClient | ShardClient> {
-		const client = <ShardClient>await super.run(options);
+		const client = (await super.run(options)) as ShardClient;
 
 		client.gateway.socket.on("state", ({ state }) => {
 			console.log(`${client.user.name} gateway socket changed state to '${state}'`);
