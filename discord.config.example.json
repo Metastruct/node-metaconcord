@@ -1,4 +1,9 @@
 {
 	"token": "",
-	"guildId": ""
+	"guildId": "",
+	"modules": {
+		"mute": {
+			"roleId": ""
+		}
+	},
 }
