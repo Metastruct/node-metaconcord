@@ -17,6 +17,15 @@ export class HelpCommand extends Command {
 	async run(ctx: Context): Promise<void> {
 		let content = `**Help is on the way!**\n\n`;
 		for (const command of ctx.commandClient.commands) {
+			if (command?.permissions) {
+				let show = true;
+				for (const permission of command.permissions) {
+					if (!ctx.member.can(permission)) show = false;
+					break;
+				}
+				if (!show) continue;
+			}
+
 			content += `**${ctx.commandClient.prefixes.custom.values().next().value}${
 				command.name
 			}** - ${command?.metadata.help ?? "No help provided."}\n`;
