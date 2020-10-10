@@ -18,6 +18,15 @@ export class DiscordBot implements IService {
 
 		this.bot.run().then((client: ShardClient) => {
 			console.log(`${client.user.name} has logged in`);
+
+			const status = {
+				activity: {
+					name: `!help`,
+					type: 2,
+				},
+				status: "online",
+			};
+			client.gateway.setPresence(status);
 		});
 	}
 }
