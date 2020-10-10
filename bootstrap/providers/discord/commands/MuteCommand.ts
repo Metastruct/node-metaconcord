@@ -64,7 +64,7 @@ export class MuteCommand extends Command {
 			],
 			metadata: {
 				help:
-					"Mutes a member for a time. The `-for` argument is optional and can be omitted to specify an indeterminate period of time for which the person will be affected. The syntax for it is also quite lenient...",
+					"Mutes a member for an optional reason and amount of time. The `-for` argument is optional and can be omitted to specify an indeterminate period of time for which the person will be affected. The syntax for it is also quite lenient...",
 				usage: [
 					"!mute <UserID>",
 					"!mute <UserID> -for 1 hour 30 minutes",
