@@ -1,4 +1,5 @@
 import * as config from "@/discord.config.json";
+import * as moment from "moment";
 import { Command, CommandOptions, Context, ParsedArgs } from "detritus-client/lib/command";
 import { CommandClient } from "detritus-client";
 import { Data } from "../../Data";
@@ -20,6 +21,8 @@ export class MuteCommand extends Command {
 	constructor(commandClient: CommandClient, data: Data) {
 		super(commandClient, {
 			name: "mute",
+			responseOptional: true,
+			disableDm: true,
 			args: [
 				{
 					name: "for",
@@ -78,11 +81,32 @@ export class MuteCommand extends Command {
 
 			const member = await ctx.rest.fetchGuildMember(ctx.guildId, userId);
 			member.addRole(config.modules.mute.roleId);
+
+			const content =
+				`${ctx.user.mention}, user ${member.mention} has been muted` +
+				(unmuteTime
+					? ` for ${moment.duration(moment(unmuteTime).diff(moment())).humanize()}`
+					: "") +
+				`.`;
+			if (ctx.canReply) {
+				ctx.reply(content);
+			} else {
+				ctx.user.createMessage(content);
+			}
+			ctx.message.delete();
 		} else {
-			const msg = await ctx.reply(`${ctx.user.mention}, invalid user!`);
-			setTimeout(() => {
-				msg.delete();
-			}, 5000);
+			const content = `${ctx.user.mention}, invalid user!`;
+			let msg;
+			if (ctx.canReply) {
+				msg = await ctx.reply(content);
+			} else {
+				msg = await ctx.user.createMessage(content);
+			}
+			if (msg) {
+				setTimeout(() => {
+					msg.delete();
+				}, 5000);
+			}
 		}
 	}
 }
@@ -93,6 +117,8 @@ export class UnmuteCommand extends Command {
 	constructor(commandClient: CommandClient, data: Data) {
 		super(commandClient, {
 			name: "unmute",
+			responseOptional: true,
+			disableDm: true,
 		} as CommandOptions);
 
 		this.data = data;
@@ -113,11 +139,27 @@ export class UnmuteCommand extends Command {
 
 			const member = await ctx.rest.fetchGuildMember(ctx.guildId, userId);
 			member.removeRole(config.modules.mute.roleId);
+
+			const content = `${ctx.user.mention}, user ${member.mention} has been unmuted.`;
+			if (ctx.canReply) {
+				ctx.reply(content);
+			} else {
+				ctx.user.createMessage(content);
+			}
+			ctx.message.delete();
 		} else {
-			const msg = await ctx.reply(`${ctx.user.mention}, invalid user!`);
-			setTimeout(() => {
-				msg.delete();
-			}, 5000);
+			const content = `${ctx.user.mention}, invalid user!`;
+			let msg;
+			if (ctx.canReply) {
+				msg = await ctx.reply(content);
+			} else {
+				msg = await ctx.user.createMessage(content);
+			}
+			if (msg) {
+				setTimeout(() => {
+					msg.delete();
+				}, 5000);
+			}
 		}
 	}
 }
