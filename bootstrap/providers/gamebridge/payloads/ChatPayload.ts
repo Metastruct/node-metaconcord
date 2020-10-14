@@ -15,13 +15,12 @@ export default class ChatPayload extends Payload {
 	async handle(req: WebSocketRequest, payload: ChatRequest): Promise<void> {
 		this.validate(this.requestSchema, payload);
 
-		const ip = req.httpRequest.connection.remoteAddress;
 		const webhook = new Webhook(
 			this.bot.gameBridge.config.chatWebhookId,
 			this.bot.gameBridge.config.chatWebhookToken
 		);
-		const server = this.bot.gameBridge.config.servers.filter(server => server.ip == ip)[0];
 
+		// Parse mentions
 		let content = payload.message.content;
 		content = content.replace(/@(\S*)/, (match, name) => {
 			for (const [, member] of this.bot.client.channels.get(
@@ -35,12 +34,18 @@ export default class ChatPayload extends Payload {
 			}
 			return match;
 		});
+
+		// Fetch Steam avatar
 		const summary = await app.container
 			.getService(Steam)
 			.getUserSummaries(payload.message.player.steamId64);
 		const avatar = summary?.avatar?.large ?? undefined;
-		webhook.send(content, `#${server.id} ${payload.message.player.name}`, avatar, [], {
-			parse: ["users", "roles"],
-		});
+
+		// Post the damn thing
+		await webhook
+			.send(content, `#${this.bot.config.id} ${payload.message.player.name}`, avatar, [], {
+				parse: ["users", "roles"],
+			})
+			.catch(console.error);
 	}
 }
