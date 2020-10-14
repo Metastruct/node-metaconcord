@@ -12,21 +12,24 @@ Webhook.prototype.send = function (
 		throw new Error("Cannot send an empty message!");
 	}
 
-	return new Promise(async () => {
-		await fetch(`https://discordapp.com/api/webhooks/${this.webhookID}/${this.webhookToken}`, {
+	return new Promise(async (resolve, reject) => {
+		const body = JSON.stringify({
+			content: content,
+			username: username,
+			avatar_url: avatarURL,
+			embeds: embed,
+			allowed_mentions: allowedMentions,
+		});
+		fetch(`https://discordapp.com/api/webhooks/${this.webhookID}/${this.webhookToken}`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({
-				content: content,
-				username: username,
-				avatar_url: avatarURL,
-				embeds: embed,
-				allowed_mentions: allowedMentions,
-			}),
-		}).catch(error => {
-			throw new Error(`Webhook sending error: ${error}`);
-		});
+			body,
+		})
+			.then(resolve)
+			.catch(error => {
+				reject(new Error(`Webhook sending error: ${error}`));
+			});
 	});
 };
