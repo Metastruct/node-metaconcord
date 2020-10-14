@@ -25,19 +25,13 @@ export default class StatusPayload extends Payload {
 				status: "online",
 			};
 			this.bot.client.gateway.setPresence(status);
-			const guild = this.bot.client.guilds.get(this.bot.gameBridge.config.guildId);
-			const serverInfoChannel = this.bot.client.channels.get(
-				this.bot.gameBridge.config.serverInfoChannelId
-			);
 
 			// Nick
-			/*
-			const hostname = payload.status.hostname.match(
-				/Meta Construct\s*.?.? - (.*)/i
-			)[1];
-			if (hostname) guild.me.editNick(hostname.substring(0, 32));
-			*/
-			if (guild.me.nick !== this.bot.config.name) guild.me.editNick(this.bot.config.name);
+			const me = await this.bot.client.rest.fetchGuildMember(
+				this.bot.gameBridge.config.guildId,
+				this.bot.client.userId
+			);
+			if (me.nick !== this.bot.config.name) me.editNick(this.bot.config.name);
 
 			// Permanent status message
 			let desc = ":busts_in_silhouette: **%d player%s**";
@@ -72,12 +66,15 @@ export default class StatusPayload extends Payload {
 				}
 			}
 
-			const messages = await serverInfoChannel.fetchMessages({});
+			const channel = await this.bot.client.rest.fetchChannel(
+				this.bot.gameBridge.config.serverInfoChannelId
+			);
+			const messages = await channel.fetchMessages({});
 			const message = messages.filter(msg => msg.author.id == this.bot.client.user.id)[0];
 			if (message) {
 				message.edit({ embed });
 			} else {
-				serverInfoChannel.createMessage({ embed });
+				channel.createMessage({ embed });
 			}
 		};
 
