@@ -10,8 +10,8 @@ export default class BanPayload extends Payload {
 	async handle(_: WebSocketRequest, payload: BanRequest): Promise<void> {
 		this.validate(this.requestSchema, payload);
 
-		const relayChannel = await this.bot.client.rest.fetchChannel(
-			this.bot.gameBridge.config.relayChannelId
+		const notificationsChannel = await this.bot.client.rest.fetchChannel(
+			this.bot.gameBridge.config.notificationsChannelId
 		);
 
 		const unixTime = parseInt(payload.ban.unbanTime);
@@ -27,6 +27,6 @@ export default class BanPayload extends Payload {
 			.addField("Unban Date", unbanDateTime)
 			.setColor(0xc42144);
 
-		relayChannel.createMessage({ embed });
+		notificationsChannel.createMessage({ embed });
 	}
 }

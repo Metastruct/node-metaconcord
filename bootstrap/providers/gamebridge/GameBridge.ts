@@ -24,7 +24,7 @@ export default class GameBridge {
 			autoAcceptConnections: false,
 		});
 
-		this.ws.on("request", req => {
+		this.ws.on("request", async req => {
 			let validIP = false;
 			const ip = req.httpRequest.connection.remoteAddress;
 			for (const connection of this.ws.connections) {
@@ -54,7 +54,8 @@ export default class GameBridge {
 
 			const connection = req.accept();
 			const bot = this.getBot(ip, connection);
-			bot.run();
+
+			await bot.run();
 			connection.on("message", async received => {
 				// if (received.utf8Data == "") console.log("Heartbeat");
 				if (!received.utf8Data || received.utf8Data == "") return;
@@ -90,6 +91,8 @@ export default class GameBridge {
 					return;
 				}
 
+				console.log("Invalid payload:");
+				console.log(payloadRequest?.name, payloadRequest);
 				new ErrorPayload(bot).send({
 					error: { message: "Payload doesn't exist, nothing to do" },
 				} as ErrorResponse);
