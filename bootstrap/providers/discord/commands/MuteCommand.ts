@@ -78,9 +78,27 @@ export class MuteCommand extends Command {
 
 		this.data = data;
 
-		commandClient.client.on("guildMemberAdd", ({ member }) => {
-			if (this.data.muted[member.id]) member.addRole(config.modules.mute.roleId);
+		// Re-add muted role if user leaves and rejoins to try and escape it
+		commandClient.client.on("guildMemberAdd", async ({ member }) => {
+			if (this.data.muted[member.id]) await member.addRole(config.modules.mute.roleId);
 		});
+
+		// Don't let anyone add muted people, and persist the role if someone tries to take it off
+		commandClient.client.on("guildMemberUpdate", async ({ member }) => {
+			if (
+				member.roles.find(role => role.id == config.modules.mute.roleId) &&
+				!this.data.muted[member.id]
+			)
+				await member.removeRole(config.modules.mute.roleId);
+
+			if (
+				!member.roles.find(role => role.id == config.modules.mute.roleId) &&
+				this.data.muted[member.id]
+			)
+				await member.addRole(config.modules.mute.roleId);
+		});
+
+		// Every second, check if mute period is over
 		setInterval(async () => {
 			let changes = false;
 			for (const [userId, data] of Object.entries(this.data.muted)) {
@@ -119,7 +137,7 @@ export class MuteCommand extends Command {
 		await this.data.save();
 
 		const member = await ctx.rest.fetchGuildMember(ctx.guildId, userId);
-		member.addRole(config.modules.mute.roleId);
+		await member.addRole(config.modules.mute.roleId);
 
 		const content =
 			`${ctx.user.mention}, user ${member.mention} has been muted` +
@@ -163,7 +181,7 @@ export class UnmuteCommand extends Command {
 		await this.data.save();
 
 		const member = await ctx.rest.fetchGuildMember(ctx.guildId, userId);
-		member.removeRole(config.modules.mute.roleId);
+		await member.removeRole(config.modules.mute.roleId);
 
 		const content = `${ctx.user.mention}, user ${member.mention} has been unmuted.`;
 		if (ctx.canReply) {
