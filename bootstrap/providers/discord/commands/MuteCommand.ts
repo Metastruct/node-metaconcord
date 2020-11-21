@@ -1,9 +1,9 @@
 import * as config from "@/discord.config.json";
 import * as moment from "moment";
+import { AuditLogActions, Permissions } from "detritus-client/lib/constants";
 import { Command, CommandOptions, Context, ParsedArgs } from "detritus-client/lib/command";
 import { CommandClient } from "detritus-client";
 import { Data } from "../../Data";
-import { Permissions } from "detritus-client/lib/constants";
 
 const unitSecondsMap = {
 	second: 1,
@@ -43,6 +43,7 @@ async function checkUserId(ctx: Context, args: ParsedArgs): Promise<boolean> {
 	}
 }
 
+const manualMuteReminderTimeouts: string[] = [];
 export class MuteCommand extends Command {
 	private data: Data;
 
@@ -85,17 +86,51 @@ export class MuteCommand extends Command {
 
 		// Don't let anyone add muted people, and persist the role if someone tries to take it off
 		commandClient.client.on("guildMemberUpdate", async ({ member }) => {
+			// This might be redundant but I just saw a role ID being null for some reason
+			member = await commandClient.client.rest.fetchGuildMember(member.guildId, member.id);
+
+			// This is sort of really ugly... See who's trying to mess with the role and notify them
+			const warn = async () => {
+				const auditLogs = await member.guild.fetchAuditLogs({
+					actionType: AuditLogActions.MEMBER_ROLE_UPDATE,
+				});
+				for (const { target, user } of auditLogs.values()) {
+					if (user.id == user.client.user.id) continue;
+					if (target.id == member.id && !manualMuteReminderTimeouts.includes(user.id)) {
+						const notificationsChannel = await user.client.rest.fetchChannel(
+							config.notificationsChannelId
+						);
+						notificationsChannel.createMessage(
+							`${user.mention}, this role can only be managed with me. Sorry!\nYou can ask for \`!help\` in the chat for more information.`
+						);
+
+						manualMuteReminderTimeouts.push(user.id);
+						setTimeout(() => {
+							delete manualMuteReminderTimeouts[
+								manualMuteReminderTimeouts.findIndex(id => id == user.id)
+							];
+						}, 30 * 1000);
+
+						break;
+					}
+				}
+			};
+
 			if (
 				member.roles.find(role => role.id == config.modules.mute.roleId) &&
 				!this.data.muted[member.id]
-			)
+			) {
 				await member.removeRole(config.modules.mute.roleId);
+				warn();
+			}
 
 			if (
 				!member.roles.find(role => role.id == config.modules.mute.roleId) &&
 				this.data.muted[member.id]
-			)
+			) {
 				await member.addRole(config.modules.mute.roleId);
+				warn();
+			}
 		});
 
 		// Every second, check if mute period is over
@@ -120,7 +155,7 @@ export class MuteCommand extends Command {
 
 	async run(ctx: Context, { userId, for: time, reason }: ParsedArgs): Promise<void> {
 		// Calculate time if any is specified
-		let until;
+		let until: number;
 		if (time) {
 			for (const {
 				groups: { amount, unit },
@@ -144,11 +179,8 @@ export class MuteCommand extends Command {
 			(until ? ` for *${moment.duration(moment(until).diff(moment())).humanize()}*` : "") +
 			(reason ? ` with reason:\n\n${reason}` : "") +
 			`.`;
-		if (ctx.canReply) {
-			ctx.reply(content);
-		} else {
-			ctx.user.createMessage(content);
-		}
+		const mutedChannel = await ctx.rest.fetchChannel(config.mutedChannelId);
+		mutedChannel.createMessage(content);
 		ctx.message.delete();
 	}
 }
@@ -184,11 +216,8 @@ export class UnmuteCommand extends Command {
 		await member.removeRole(config.modules.mute.roleId);
 
 		const content = `${ctx.user.mention}, user ${member.mention} has been unmuted.`;
-		if (ctx.canReply) {
-			ctx.reply(content);
-		} else {
-			ctx.user.createMessage(content);
-		}
+		const mutedChannel = await ctx.rest.fetchChannel(config.mutedChannelId);
+		mutedChannel.createMessage(content);
 		ctx.message.delete();
 	}
 }
