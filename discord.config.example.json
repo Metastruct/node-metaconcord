@@ -1,9 +1,11 @@
 {
 	"token": "",
 	"guildId": "",
+	"notificationsChannelId": "",
+	"mutedChannelId": "",
 	"modules": {
 		"mute": {
 			"roleId": ""
 		}
-	},
+	}
 }

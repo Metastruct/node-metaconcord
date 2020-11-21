@@ -43,7 +43,7 @@ export default class AdminNotifyPayload extends Payload {
 			)
 			.setDescription(
 				`\`\`\`\n${Markup.escape.codeblock(message.substring(0, 1900))}\n\`\`\`` +
-				`SteamID64: ${reportedSteamId64}`
+					`SteamID64: ${reportedSteamId64}`
 			)
 			.setFooter(`by ${nick} (steamcommunity.com/profiles/${steamId64})`, avatar)
 			.setColor(0xb54343);
