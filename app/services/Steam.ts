@@ -22,7 +22,8 @@ export class Steam implements IService {
 		const userCache = this.getUserCache(steamId64);
 		if (!userCache.summary) {
 			userCache.summary = await this.steam.getUserSummary(steamId64).catch(err => {
-				console.error(err.message, steamId64);
+				err.message += ` - ${steamId64}`;
+				console.error(err);
 			});
 		}
 		return userCache.summary;
