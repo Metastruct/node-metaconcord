@@ -1,14 +1,15 @@
 {
 	"compilerOptions": {
-		"moduleResolution": "node",
 		"baseUrl": "./",
 		"paths": {
 			"@/*": ["./*"]
 		},
-		"resolveJsonModule": true,
-		"module": "CommonJS",
 		"target": "es2019",
+		"module": "commonjs",
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
 		"allowSyntheticDefaultImports": true,
+		"moduleResolution": "node",
 		"outDir": "./dist"
 	}
 }

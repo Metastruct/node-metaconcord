@@ -1,0 +1,69 @@
+@import "_whitney.scss";
+
+$link: #2a77be;
+
+* {
+	box-sizing: border-box;
+}
+html, body {
+	padding: 0;
+	margin: 0;
+}
+main {
+	background: url("https://metastruct.net/img/gm_construct_m.jpg");
+	background-position: center;
+	background-size: cover;
+	background-repeat: no-repeat;
+	max-width: 520px;
+	width: auto;
+	height: auto;
+}
+
+.playerlist {
+	display: flex;
+	flex-wrap: wrap;
+	font-family: "Whitney";
+	font-size: 20px;
+	cursor: default;
+	margin: auto 0;
+	padding: 0.5em;
+	backdrop-filter: blur(4px); 
+	background: rgba(0, 0, 0, 0.75);
+	overflow-y: auto;
+	color: white;
+
+	.player {
+		display: flex;
+		align-items: center;
+		margin: 0.25em;
+
+		a {
+			color: $link;
+			text-decoration: none;
+			display: flex;
+			align-items: center;
+
+			&:hover,
+			&:active,
+			&:focus {
+				filter: brightness(75%);
+			}
+
+			.nick {
+				display: inline-block;
+				font-size: 0.9em;
+				color: $link;
+			}
+
+			.avatar {
+				height: 28px;
+				border-radius: 50%;
+				margin-right: 0.33em;
+			}
+		}
+
+		&.is-admin a .nick {
+			color: lighten(adjust-hue($link, 80), 5%) !important;
+		}
+	}
+}
