@@ -22,6 +22,6 @@ html(lang="en")
 				each player in server.status.players
 					li.player(class={ 'is-admin': player.isAdmin })
 						a(title="View profile", href=player.accountId ? `https://steamcommunity.com/profiles/[U:1:${player.accountId}]` : "#", target="_blank")
-							if (player.avatar) 
+							if (player.avatar)
 								img.avatar(src=player.avatar)
-							span.nick= player.nick
+							span.nick #{player.nick}
