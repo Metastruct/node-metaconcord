@@ -55,13 +55,15 @@ export default class StatusPayload extends Payload {
 								await app.container
 									.getService(Steam)
 									.getUserSummaries(
-										new SteamID(player.accountId.toString()).getSteamID64()
+										new SteamID(`[U:1:${player.accountId}]`).getSteamID64()
 									)
 							)?.avatar?.large ?? undefined;
 					}
 					if (!avatar) avatar = `https://robohash.org/${Date.now() + k}`;
 					player.avatar = avatar;
 				}
+
+				player.nick = player.nick.trim();
 			}
 			server.status.players.sort(function (a, b) {
 				let i = 0;
