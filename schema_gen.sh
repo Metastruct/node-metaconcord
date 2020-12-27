@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-requestspath='./bootstrap/providers/gamebridge/payloads/structures/'
+requestspath='./app/services/gamebridge/payloads/structures/'
 if [[ ! -d $requestspath ]]; then
 	echo "$requestspath doesn't exist"
 	exit 1
