@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "ajv": "^6.12.2",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "detritus-client": "^0.10.6",
     "discord-whook.js": "github:Ernest05/discord-whook.js",
     "dotenv": "^8.2.0",
