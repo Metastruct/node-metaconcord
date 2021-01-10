@@ -1,13 +1,15 @@
-import { IService } from "./services";
-import providers from "./services";
+import { App } from ".";
+import { Service, ServiceMap } from "./services";
 
-type ProviderFactory = { (container: Container): IService | Promise<IService> }[];
+type ProviderFactory = { (container: Container): Service | Promise<Service> }[];
 
 export class Container {
+	readonly app: App;
 	private providers: ProviderFactory;
-	private services: IService[] = [];
+	private services: ServiceMap = {};
 
-	constructor(providers: ProviderFactory) {
+	constructor(app: App, providers: ProviderFactory) {
+		this.app = app;
 		this.providers = providers;
 	}
 
@@ -15,23 +17,18 @@ export class Container {
 		return this.providers;
 	}
 
-	getServices(): IService[] {
+	getServices(): ServiceMap {
 		return this.services;
 	}
 
-	async addService(service: IService | Promise<IService>): Promise<void> {
+	async addService(service: Service | Promise<Service>): Promise<void> {
 		if (service instanceof Promise) {
 			service = await service;
 		}
-		this.services.push(service);
+		this.services[service.name] = service;
 	}
 
-	getService<T extends IService>(type: new (...args: any[]) => T): T {
-		for (let i = 0; i < this.services.length; i++) {
-			const service = this.services[i];
-			if (service instanceof type) return service;
-		}
+	getService<Name extends string>(type: Name): ServiceMap[Name] {
+		return this.services[type];
 	}
 }
-
-export const container = new Container(providers);

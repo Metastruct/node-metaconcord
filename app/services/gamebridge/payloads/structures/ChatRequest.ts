@@ -1,9 +1,9 @@
 import PayloadRequest from "./PayloadRequest";
 export default interface ChatRequest extends PayloadRequest {
 	name: "ChatPayload";
-	message: {
+	data: {
 		player: {
-			name: string;
+			nick: string;
 			steamId64: string;
 		};
 		content: string;

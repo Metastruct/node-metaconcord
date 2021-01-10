@@ -1,39 +1,40 @@
 import "@/extensions/websocket";
 import * as payloads from "./payloads";
+import { Container } from "@/app/Container";
 import { GameServerConfig } from "./GameServer";
-import { IService } from "..";
-import { WebApp } from "../webapp";
+import { Service } from "@/app/services";
+import { WebApp } from "@/app/services/webapp";
 import { request as WebSocketRequest } from "websocket";
 import { server as WebSocketServer } from "websocket";
 import GameServer from "./GameServer";
 import config from "@/gamebridge.json";
 import servers from "@/gamebridge.servers.json";
 
-export default class GameBridge implements IService {
-	serviceName = "GameBridge";
+export default class GameBridge extends Service {
+	name = "GameBridge";
 	config = {
 		servers,
 		...config,
 	};
 	payloads = payloads;
-
 	webApp: WebApp;
 	ws: WebSocketServer;
 	servers: GameServer[] = [];
 
-	constructor(webApp: WebApp) {
-		this.webApp = webApp;
+	constructor(container: Container) {
+		super(container);
+
+		this.webApp = container.getService("WebApp");
 		this.ws = new WebSocketServer({
 			httpServer: this.webApp.http,
 			autoAcceptConnections: false,
 		});
-		this.webApp.gameBridge = this;
 
 		this.ws.on("request", req => {
 			this.handleConnection(req);
 		});
 
-		console.log(`Web socket server listening on ${webApp.config.port}`);
+		console.log(`Web socket server listening on ${this.webApp.config.port}`);
 	}
 
 	async handleConnection(req: WebSocketRequest): Promise<void> {

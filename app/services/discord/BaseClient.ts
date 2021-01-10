@@ -6,7 +6,7 @@ import {
 	ShardClient,
 } from "detritus-client";
 
-export class BaseClient extends CommandClient {
+export default class BaseClient extends CommandClient {
 	client: ShardClient;
 
 	constructor(token: string | ShardClient, options?: CommandClientOptions) {

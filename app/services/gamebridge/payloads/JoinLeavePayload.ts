@@ -1,34 +1,32 @@
 import * as requestSchema from "./structures/JoinLeaveRequest.json";
 import { Embed } from "detritus-client/lib/utils";
+import { GameServer } from "..";
 import { JoinLeaveRequest } from "./structures";
-import { Steam } from "../../Steam";
-import { request as WebSocketRequest } from "websocket";
 import Payload from "./Payload";
-import app from "@/app";
 
 export default class JoinLeavePayload extends Payload {
-	protected requestSchema = requestSchema;
+	protected static requestSchema = requestSchema;
 
-	async handle(req: WebSocketRequest, payload: JoinLeaveRequest): Promise<void> {
-		this.validate(this.requestSchema, payload);
-		const bridge = this.server.bridge;
-		const discordClient = this.server.discord.client;
+	static async handle(payload: JoinLeaveRequest, server: GameServer): Promise<void> {
+		super.handle(payload, server);
+
+		const { player, reason, spawned } = payload.data;
+		const {
+			bridge,
+			discord: { client: discordClient },
+		} = server;
 
 		const relayChannel = await discordClient.rest.fetchChannel(bridge.config.relayChannelId);
 
-		const summary = await app.container
-			.getService(Steam)
-			.getUserSummaries(payload.player.steamId64);
-		const avatar = summary?.avatar?.large ?? undefined;
-
+		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
 		const embed = new Embed()
 			.setAuthor(
-				`${payload.player.name} has ${payload.spawned ? "spawned" : "left"}`,
+				`${player.nick} has ${spawned ? "spawned" : "left"}`,
 				avatar,
-				`https://steamcommunity.com/profiles/${payload.player.steamId64}`
+				`https://steamcommunity.com/profiles/${player.steamId64}`
 			)
-			.setColor(payload.spawned ? 0x4bb543 : 0xb54343);
-		if (payload.reason) embed.setDescription(`Reason: ${payload.reason}`);
+			.setColor(spawned ? 0x4bb543 : 0xb54343);
+		if (reason) embed.setDescription(`Reason: ${reason}`);
 		relayChannel.createMessage({ embed });
 	}
 }

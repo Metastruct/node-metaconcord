@@ -1,19 +1,20 @@
-import { Command, CommandOptions, Context } from "detritus-client/lib/command";
-import { CommandClient, ShardClient } from "detritus-client";
+import { BaseCommand } from ".";
+import { Command } from "detritus-client";
+import { DiscordBot } from "..";
 import { Permissions } from "detritus-client/lib/constants";
 
-export class HelpCommand extends Command {
-	constructor(commandClient: CommandClient) {
-		super(commandClient, {
+export class HelpCommand extends BaseCommand {
+	constructor(bot: DiscordBot) {
+		super(bot, {
 			name: "help",
 			metadata: {
 				help: "Displays this message.",
 				usage: ["!help", `#MENTION help`],
 			},
-		} as CommandOptions);
+		});
 	}
 
-	async run(ctx: Context): Promise<void> {
+	async run(ctx: Command.Context): Promise<void> {
 		let content = `**Help is on the way!**\n\n`;
 		for (const command of ctx.commandClient.commands) {
 			if (command?.permissions) {
@@ -32,11 +33,7 @@ export class HelpCommand extends Command {
 			if (command?.metadata.usage && command.metadata.usage.length > 0) {
 				content += `__Usage:__\`\`\`\n`;
 				for (const line of command.metadata.usage) {
-					content +=
-						line.replace(
-							"#MENTION",
-							(ctx.commandClient.client as ShardClient).user.mention
-						) + "\n";
+					content += line.replace("#MENTION", ctx.client.user.mention) + "\n";
 				}
 				content += `\`\`\``;
 			}

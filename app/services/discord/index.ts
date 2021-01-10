@@ -1,19 +1,20 @@
-import { BaseClient } from "./BaseClient";
-import { Container } from "../../Container";
-import { Data } from "../Data";
-import { IService } from "..";
+import { Container } from "@/app/Container";
+import { Service } from "@/app/services";
 import { ShardClient } from "detritus-client";
+import BaseClient from "./BaseClient";
 import commands from "./commands";
 import config from "@/discord.json";
 
-export class DiscordBot implements IService {
-	serviceName: "DiscordBot";
+export class DiscordBot extends Service {
+	name = "DiscordBot";
 	config = config;
 	discord: BaseClient = new BaseClient(config.token, { prefix: "!" });
 
-	constructor(data: Data) {
-		for (const Command of commands) {
-			this.discord.add(new Command(this.discord, data));
+	constructor(container: Container) {
+		super(container);
+
+		for (const command of commands) {
+			this.discord.add(new command(this));
 		}
 
 		this.discord.run().then((client: ShardClient) => {
@@ -31,6 +32,6 @@ export class DiscordBot implements IService {
 	}
 }
 
-export default (container: Container): IService => {
-	return new DiscordBot(container.getService(Data));
+export default (container: Container): Service => {
+	return new DiscordBot(container);
 };

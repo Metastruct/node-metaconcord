@@ -1,10 +1,33 @@
-export interface IService {
-	serviceName: string;
+import { Container } from "@/app/Container";
+
+export class Service {
+	readonly name: string;
+	container: Container;
+
+	constructor(container: Container) {
+		this.container = container;
+	}
 }
 
-import Data from "./Data";
-import DiscordBot from "./discord";
-import GameBridge from "./gamebridge";
-import Steam from "./Steam";
-import WebApp from "./webapp";
-export default [Steam, Data, DiscordBot, WebApp, GameBridge]; // The order is important
+import DataProvider, { Data } from "./Data";
+import DiscordBotProvider, { DiscordBot } from "./discord";
+import GameBridgeProvider, { GameBridge } from "./gamebridge";
+import SteamProvider, { Steam } from "./Steam";
+import WebAppProvider, { WebApp } from "./webapp";
+
+export default [
+	SteamProvider,
+	DataProvider,
+	DiscordBotProvider,
+	WebAppProvider,
+	GameBridgeProvider,
+]; // The order is important
+export { Data, DiscordBot, GameBridge, Steam, WebApp };
+export type ServiceMap = {
+	[key: string]: Service;
+	Data?: Data;
+	DiscordBot?: DiscordBot;
+	GameBridge?: GameBridge;
+	Steam?: Steam;
+	WebApp?: WebApp;
+};

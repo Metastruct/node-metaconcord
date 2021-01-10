@@ -3,4 +3,5 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 // Main
-import "./app/index";
+import { App } from "./app";
+new App();
