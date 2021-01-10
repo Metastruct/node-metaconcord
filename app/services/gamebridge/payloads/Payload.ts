@@ -1,22 +1,14 @@
-import * as requestSchema from "./structures/PayloadRequest.json";
-import * as responseSchema from "./structures/PayloadResponse.json";
-import { PayloadRequest, PayloadResponse } from "./structures";
-import { request as WebSocketRequest } from "websocket";
+import { PayloadRequest } from "./structures";
 import Ajv from "ajv";
 import GameServer from "../GameServer";
 
 export default abstract class Payload {
-	protected requestSchema = requestSchema;
-	protected responseSchema = responseSchema;
-	protected server: GameServer;
+	protected static requestSchema: Record<any, unknown>;
+	protected static responseSchema: Record<any, unknown>;
 
-	constructor(server: GameServer) {
-		this.server = server;
-	}
-
-	isInvalid(
+	protected static isInvalid(
 		schema: Record<string, unknown>,
-		payload: PayloadRequest | PayloadResponse
+		payload: PayloadRequest | unknown
 	): Ajv.ErrorObject[] {
 		const ajv = new Ajv();
 		const validate = ajv.compile(schema);
@@ -25,7 +17,7 @@ export default abstract class Payload {
 		}
 	}
 
-	validate(schema: Record<string, unknown>, payload: PayloadResponse): void {
+	static validate(schema: Record<string, unknown>, payload: PayloadRequest | unknown): void {
 		const invalid = this.isInvalid(schema, payload);
 		if (invalid) {
 			console.log(payload);
@@ -39,14 +31,18 @@ export default abstract class Payload {
 		}
 	}
 
-	async handle?(request: WebSocketRequest, payload: PayloadRequest): Promise<void>;
+	static async handle(payload: PayloadRequest, server: GameServer): Promise<void> {
+		this.validate(this.requestSchema, payload);
+	}
 
-	async send(payload: PayloadResponse): Promise<void> {
-		this.server.connection.send(
+	static async send(payload: unknown, server: GameServer): Promise<void> {
+		this.validate(this.responseSchema, payload);
+
+		server.connection.send(
 			JSON.stringify({
 				payload: {
 					name: this.constructor.name,
-					...payload,
+					data: payload,
 				},
 			})
 		);

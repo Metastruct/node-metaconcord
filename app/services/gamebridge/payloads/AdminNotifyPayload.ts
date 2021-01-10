@@ -1,23 +1,23 @@
 import * as requestSchema from "./structures/AdminNotifyRequest.json";
 import { AdminNotifyRequest } from "./structures";
 import { Embed, Markup } from "detritus-client/lib/utils";
+import { GameServer } from "..";
 import { Role } from "detritus-client/lib/structures";
-import { Steam } from "../../Steam";
-import { request as WebSocketRequest } from "websocket";
 import Payload from "./Payload";
 import SteamID from "steamid";
-import app from "@/app";
 
 export default class AdminNotifyPayload extends Payload {
-	protected requestSchema = requestSchema;
+	protected static requestSchema = requestSchema;
 
-	async handle(req: WebSocketRequest, payload: AdminNotifyRequest): Promise<void> {
-		this.validate(this.requestSchema, payload);
-		const bridge = this.server.bridge;
-		const discordClient = this.server.discord.client;
+	static async handle(payload: AdminNotifyRequest, server: GameServer): Promise<void> {
+		super.handle(payload, server);
 
-		const { nick, reportedNick, steamId, reportedSteamId } = payload;
-		let message = payload.message;
+		const { player, reported } = payload.data;
+		let { message } = payload.data;
+		const {
+			bridge,
+			discord: { client: discordClient },
+		} = server;
 
 		const callAdminRole = (
 			await discordClient.rest.fetchGuildRoles(bridge.config.guildId)
@@ -26,28 +26,26 @@ export default class AdminNotifyPayload extends Payload {
 			bridge.config.notificationsChannelId
 		);
 
-		const steamId64 = new SteamID(steamId).getSteamID64();
-		const reportedSteamId64 = new SteamID(reportedSteamId).getSteamID64();
-
-		// Grab player avatars
-		const steam = app.container.getService(Steam);
-		const avatar = (await steam.getUserSummaries(steamId64))?.avatar?.large ?? undefined;
-		const reportedAvatar =
-			(await steam.getUserSummaries(reportedSteamId64))?.avatar?.large ?? undefined;
-
+		const steamId64 = new SteamID(player.steamId).getSteamID64();
+		const reportedSteamId64 = new SteamID(reported.steamId).getSteamID64();
+		const steam = bridge.container.getService("Steam");
+		const avatar = await steam.getUserAvatar(steamId64);
+		const reportedAvatar = await steam.getUserAvatar(reportedSteamId64);
 		if (message.trim().length < 1) message = "No message provided..?";
 		const embed = new Embed()
 			.setAuthor(
-				`${reportedNick} was reported`,
-				reportedAvatar,
-				`https://steamcommunity.com/profiles/${reportedSteamId64}`
+				`${player.nick} reported a player`,
+				avatar,
+				`https://steamcommunity.com/profiles/${steamId64}`
 			)
-			.setDescription(
-				`\`\`\`\n${Markup.escape.codeblock(message.substring(0, 1900))}\n\`\`\`` +
-					`SteamID64: ${reportedSteamId64}`
+			.addField("Nick", Markup.escape.all(reported.nick))
+			.addField("Message", Markup.escape.all(message.substring(0, 1900)))
+			.addField(
+				"SteamID64",
+				`[${reportedSteamId64}](https://steamcommunity.com/profiles/${steamId64})`
 			)
-			.setFooter(`by ${nick} (steamcommunity.com/profiles/${steamId64})`, avatar)
-			.setColor(0xb54343);
+			.setThumbnail(reportedAvatar)
+			.setColor(0xc4af21);
 		notificationsChannel.createMessage({
 			content: callAdminRole && callAdminRole.mention,
 			embed,

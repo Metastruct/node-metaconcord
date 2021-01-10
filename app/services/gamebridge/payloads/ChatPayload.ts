@@ -1,27 +1,27 @@
 import "@/extensions/discord-whook";
 import * as requestSchema from "./structures/ChatRequest.json";
 import * as responseSchema from "./structures/ChatResponse.json";
-import { ChatRequest } from "./structures";
-import { Steam } from "../../Steam";
-import { request as WebSocketRequest } from "websocket";
+import { ChatRequest, ChatResponse } from "./structures";
+import { GameServer } from "..";
 import { Webhook } from "discord-whook.js";
 import Payload from "./Payload";
-import app from "@/app";
 
 export default class ChatPayload extends Payload {
-	protected requestSchema = requestSchema;
-	protected responseSchema = responseSchema;
+	protected static requestSchema = requestSchema;
+	protected static responseSchema = responseSchema;
 
-	async handle(req: WebSocketRequest, payload: ChatRequest): Promise<void> {
-		this.validate(this.requestSchema, payload);
-		const server = this.server;
-		const bridge = this.server.bridge;
-		const discordClient = this.server.discord.client;
+	static async handle(payload: ChatRequest, server: GameServer): Promise<void> {
+		super.handle(payload, server);
+		const { player } = payload.data;
+		let { content } = payload.data;
+		const {
+			bridge,
+			discord: { client: discordClient },
+		} = server;
 
 		const webhook = new Webhook(bridge.config.chatWebhookId, bridge.config.chatWebhookToken);
 
-		// Parse mentions
-		let content = payload.message.content;
+		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
 		content = content.replace(/@(\S*)/, (match, name) => {
 			for (const [, member] of discordClient.channels.get(bridge.config.relayChannelId).guild
 				.members) {
@@ -33,18 +33,14 @@ export default class ChatPayload extends Payload {
 			}
 			return match;
 		});
-
-		// Fetch Steam avatar
-		const summary = await app.container
-			.getService(Steam)
-			.getUserSummaries(payload.message.player.steamId64);
-		const avatar = summary?.avatar?.large ?? undefined;
-
-		// Post the damn thing
 		await webhook
-			.send(content, `#${server.config.id} ${payload.message.player.name}`, avatar, [], {
+			.send(content, `#${server.config.id} ${player.nick}`, avatar, [], {
 				parse: ["users", "roles"],
 			})
 			.catch(console.error);
+	}
+
+	static async send(payload: ChatResponse, server: GameServer): Promise<void> {
+		super.send(payload, server);
 	}
 }

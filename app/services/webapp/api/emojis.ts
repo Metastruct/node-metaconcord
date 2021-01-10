@@ -1,15 +1,18 @@
-import WebApp from "../WebApp";
-import discordConfig from "@/discord.json";
+import { WebApp } from "..";
 
 export default (webApp: WebApp): void => {
+	const {
+		config,
+		discord: { client },
+	} = webApp.container.getService("DiscordBot");
+
 	webApp.app.get("/discord/guild/emojis", (_, res) => {
-		const client = webApp.discord.client;
 		if (!client.gateway.connected)
 			return res.status(500).json({
 				error: "Bot is not connected",
 			});
 
-		const guild = client.guilds.get(discordConfig.guildId);
+		const guild = client.guilds.get(config.guildId);
 		if (!guild)
 			return res.status(500).json({
 				error: "Bot is not part of guild",

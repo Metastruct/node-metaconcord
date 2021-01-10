@@ -1,7 +1,6 @@
-import { BaseClient } from "../../discord/BaseClient";
 import { ChatPayload } from "../payloads";
-import { ChatResponse } from "../payloads/structures";
 import { CommandClientOptions, ShardClient } from "detritus-client";
+import BaseClient from "@/app/services/discord/BaseClient";
 import GameServer from "../GameServer";
 
 export default class DiscordClient extends BaseClient {
@@ -28,16 +27,16 @@ export default class DiscordClient extends BaseClient {
 				content += "\n" + attachment.url;
 			}
 
-			const payload = new ChatPayload(this.gameServer);
-			payload.send({
-				message: {
+			ChatPayload.send(
+				{
 					user: {
-						name: ctx.message.member.name,
+						nick: ctx.message.member.name,
 						color: ctx.message.member.color,
 					},
 					content,
 				},
-			} as ChatResponse);
+				this.gameServer
+			);
 		});
 	}
 }

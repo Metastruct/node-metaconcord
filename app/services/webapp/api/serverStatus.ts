@@ -1,14 +1,24 @@
-import { GameServer } from "../../gamebridge";
-import WebApp from "../WebApp";
+import { GameBridge } from "@/app/services";
+import { WebApp } from "..";
 import nodeHtmlToImage from "node-html-to-image";
 import path from "path";
 import pug from "pug";
 
 export default (webApp: WebApp): void => {
+	let gameBridge: GameBridge;
 	webApp.app.get("/server-status/:id/:bruh?", async (req, res) => {
-		if (!webApp.gameBridge) return res.sendStatus(500);
-		const server: GameServer = webApp.gameBridge.servers[req.params.id];
-		if (!server) return res.sendStatus(500);
+		gameBridge = gameBridge || webApp.container.getService("GameBridge");
+
+		if (!gameBridge) {
+			console.warn("Game Bridge is missing?");
+			return res.sendStatus(503);
+		}
+
+		const server = gameBridge.servers[req.params.id];
+		if (!server?.status?.players) {
+			console.warn(`No data for server ${req.params.id}`);
+			return res.sendStatus(503);
+		}
 
 		// Discord Bot and Cloudflare
 		const discordBot = req.headers.accept == "*/*" || !req.headers.accept;

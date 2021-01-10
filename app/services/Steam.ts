@@ -1,4 +1,5 @@
-import { IService } from ".";
+import { Container } from "@/app/Container";
+import { Service } from ".";
 import SteamAPI from "steamapi";
 import axios from "axios";
 import config from "@/steam.json";
@@ -10,9 +11,8 @@ type UserCache = {
 };
 const validTime = 30 * 60 * 1000;
 
-export class Steam implements IService {
-	serviceName = "SteamAPI";
-
+export class Steam extends Service {
+	name = "Steam";
 	steam: SteamAPI = new SteamAPI(config.apiKey);
 	private userCache: {
 		[steamId64: string]: UserCache;
@@ -48,7 +48,11 @@ export class Steam implements IService {
 		).data.response;
 	}
 
-	private getUserCache(steamId64): UserCache {
+	async getUserAvatar(steamId64: string): Promise<any> {
+		return (await this.getUserSummaries(steamId64).catch(console.error))?.avatar?.large;
+	}
+
+	private getUserCache(steamId64: string): UserCache {
 		if (!this.userCache[steamId64] || this.userCache[steamId64].expireTime < Date.now()) {
 			this.userCache[steamId64] = {
 				expireTime: Date.now() + validTime,
@@ -59,6 +63,6 @@ export class Steam implements IService {
 	}
 }
 
-export default (): IService => {
-	return new Steam();
+export default (container: Container): Service => {
+	return new Steam(container);
 };

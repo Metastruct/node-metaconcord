@@ -1,7 +1,7 @@
 import PayloadRequest from "./PayloadRequest";
 export default interface StatusRequest extends PayloadRequest {
 	name: "StatusPayload";
-	status: {
+	data: {
 		hostname: string;
 		players: {
 			accountId?: number;

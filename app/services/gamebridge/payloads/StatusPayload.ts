@@ -1,26 +1,27 @@
 import * as requestSchema from "./structures/StatusRequest.json";
 import { Embed } from "detritus-client/lib/utils";
+import { GameServer } from "..";
 import { Message } from "detritus-client/lib/structures";
 import { StatusRequest } from "./structures";
-import { Steam } from "../../Steam";
-import { request as WebSocketRequest } from "websocket";
 import Payload from "./Payload";
 import SteamID from "steamid";
-import app from "@/app";
 import util from "util";
 import webAppConfig from "@/webapp.json";
 
 export default class StatusPayload extends Payload {
-	protected requestSchema = requestSchema;
+	protected static requestSchema = requestSchema;
 
-	async handle(req: WebSocketRequest, payload: StatusRequest): Promise<void> {
-		this.validate(this.requestSchema, payload);
-		const server = this.server;
-		const bridge = this.server.bridge;
-		const discordClient = this.server.discord.client;
+	static async handle(payload: StatusRequest, server: GameServer): Promise<void> {
+		super.handle(payload, server);
+
+		const { players, map, workshopMap } = payload.data;
+		const {
+			bridge,
+			discord: { client: discordClient },
+		} = server;
 
 		const updateStatus = async () => {
-			const count = payload.status.players.length;
+			const count = players.length;
 
 			// Presence
 			const status = {
@@ -45,19 +46,14 @@ export default class StatusPayload extends Payload {
 				count,
 				count != 1 ? "s" : ""
 			);
-			server.status.players = payload.status.players;
+			server.status.players = players;
 			for (const [k, player] of Object.entries(server.status.players)) {
 				if (!player.avatar) {
-					let avatar;
+					let avatar: string;
 					if (player.accountId) {
-						avatar =
-							(
-								await app.container
-									.getService(Steam)
-									.getUserSummaries(
-										new SteamID(`[U:1:${player.accountId}]`).getSteamID64()
-									)
-							)?.avatar?.large ?? undefined;
+						avatar = await bridge.container
+							.getService("Steam")
+							.getUserAvatar(new SteamID(`[U:1:${player.accountId}]`).getSteamID64());
 					}
 					if (!avatar) avatar = `https://robohash.org/${Date.now() + k}`;
 					player.avatar = avatar;
@@ -76,7 +72,7 @@ export default class StatusPayload extends Payload {
 			server.playerListImage = null;
 
 			const embed = new Embed()
-				.setTitle(payload.status.map)
+				.setTitle(map)
 				.setUrl(
 					`https://metastruct.net/${
 						server.config.label ? "join/" + server.config.label : ""
@@ -94,10 +90,10 @@ export default class StatusPayload extends Payload {
 					)
 					.setFooter("Middle-click the player list to open an interactive version");
 			}
-			if (payload.status.workshopMap) {
-				const res = await app.container
-					.getService(Steam)
-					.getPublishedFileDetails([payload.status.workshopMap.id])
+			if (workshopMap) {
+				const res = await bridge.container
+					.getService("Steam")
+					.getPublishedFileDetails([workshopMap.id])
 					.catch(console.error);
 
 				if (res?.publishedfiledetails[0]?.preview_url) {

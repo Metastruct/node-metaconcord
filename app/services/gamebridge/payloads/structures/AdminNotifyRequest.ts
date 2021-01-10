@@ -1,9 +1,12 @@
 import PayloadRequest from "./PayloadRequest";
 export default interface AdminNotifyRequest extends PayloadRequest {
 	name: "AdminNotifyPayload";
-	nick: string;
-	steamId: string;
-	reportedNick: string;
-	reportedSteamId: string;
-	message: string;
+	data: {
+		player: {
+			nick: string;
+			steamId: string;
+		};
+		reported: { nick: string; steamId: string };
+		message: string;
+	};
 }

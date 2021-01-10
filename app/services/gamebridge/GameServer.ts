@@ -1,6 +1,5 @@
-import { DiscordClient, GameBridge } from "./index";
+import { DiscordClient, GameBridge } from ".";
 import { ErrorPayload } from "./payloads";
-import { ErrorResponse } from "./payloads/structures";
 import { connection as WebSocketConnection, request as WebSocketRequest } from "websocket";
 
 export type GameServerConfig = {
@@ -38,42 +37,39 @@ export default class GameServer {
 			// if (received.utf8Data == "") console.log("Heartbeat");
 			if (!utf8Data || utf8Data == "") return;
 
-			let data: { payload: any };
+			let data: any;
 			try {
 				data = JSON.parse(utf8Data);
-			} catch (e) {
-				return new ErrorPayload(this).send({
-					error: { message: "Malformed JSON" },
-				} as ErrorResponse);
-			}
-
-			let payloadRequest: { name: string };
-			try {
-				payloadRequest = data.payload;
-			} catch (err) {
-				return new ErrorPayload(this).send({
-					error: { message: "Missing payload" },
-				} as ErrorResponse);
+				if (!data.name || !data.data) throw new Error("Malformed payload");
+			} catch ({ message }) {
+				return ErrorPayload.send(
+					{
+						error: { message },
+					},
+					this
+				);
 			}
 
 			try {
-				for (const [name, type] of Object.entries(bridge.payloads)) {
-					if (payloadRequest.name === name) {
-						const payload = new type(this);
-						return payload.handle(req, payloadRequest);
+				for (const [name, payload] of Object.entries(bridge.payloads)) {
+					if (data.name === name) {
+						return payload.handle(data, this);
 					}
 				}
 			} catch (err) {
-				console.log(payloadRequest);
-				console.error(`${data.payload.name} exception:`, err);
+				console.error(`${data.name} exception:`, err);
+				console.log("with payload: ", data.data);
 				return;
 			}
 
 			console.log("Invalid payload:");
-			console.log(payloadRequest?.name, payloadRequest);
-			new ErrorPayload(this).send({
-				error: { message: "Payload doesn't exist, nothing to do" },
-			} as ErrorResponse);
+			console.log(data);
+			ErrorPayload.send(
+				{
+					error: { message: "Payload doesn't exist, nothing was done" },
+				},
+				this
+			);
 		});
 
 		this.connection.on("close", (code, desc) => {

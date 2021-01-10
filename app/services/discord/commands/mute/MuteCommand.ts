@@ -1,9 +1,8 @@
 import { AuditLogActions, Permissions } from "detritus-client/lib/constants";
-import { Command, CommandOptions, Context, ParsedArgs } from "detritus-client/lib/command";
-import { CommandClient } from "detritus-client";
-import { Data } from "../../Data";
+import { BaseCommand } from "..";
+import { Command } from "detritus-client";
+import { DiscordBot } from "../..";
 import { Message } from "detritus-client/lib/structures";
-import config from "@/discord.json";
 import moment from "moment";
 
 const unitSecondsMap = {
@@ -16,7 +15,10 @@ const unitSecondsMap = {
 	year: 60 * 60 * 24 * 365,
 };
 
-async function checkUserId(ctx: Context, args: ParsedArgs): Promise<boolean> {
+export async function onBeforeRun(
+	ctx: Command.Context,
+	args: Command.ParsedArgs
+): Promise<boolean> {
 	let userId = args.userId;
 	if (ctx.command.name == "whymute" && !userId) {
 		userId = ctx.user.id;
@@ -45,11 +47,9 @@ async function checkUserId(ctx: Context, args: ParsedArgs): Promise<boolean> {
 }
 
 const manualMuteReminderTimeouts: string[] = [];
-export class MuteCommand extends Command {
-	private data: Data;
-
-	constructor(commandClient: CommandClient, data: Data) {
-		super(commandClient, {
+export default class MuteCommand extends BaseCommand {
+	constructor(bot: DiscordBot) {
+		super(bot, {
 			name: "mute",
 			label: "userId",
 			responseOptional: true,
@@ -66,7 +66,9 @@ export class MuteCommand extends Command {
 			],
 			metadata: {
 				help:
-					"Mutes a member for an optional reason and amount of time. The `-for` argument is optional and can be omitted to specify an indeterminate period of time for which the person will be affected. The syntax for it is also quite lenient...",
+					"Mutes a member for an optional reason and amount of time.\n" +
+					"The `-for` argument is optional and can be omitted to specify an indeterminate period of time for which the person will be affected." +
+					"The syntax for it is also quite lenient...",
 				usage: [
 					"!mute <UserID>",
 					"!mute <UserID> -for 1 hour 30 minutes",
@@ -76,19 +78,21 @@ export class MuteCommand extends Command {
 			},
 			permissions: [Permissions.MANAGE_ROLES],
 			permissionsClient: [Permissions.MANAGE_ROLES],
-		} as CommandOptions);
+		});
 
-		this.data = data;
+		const { config } = this.bot,
+			{ client } = this.bot.discord,
+			{ muted } = this.data;
 
 		// Re-add muted role if user leaves and rejoins to try and escape it
-		commandClient.client.on("guildMemberAdd", async ({ member }) => {
-			if (this.data.muted[member.id]) await member.addRole(config.modules.mute.roleId);
+		client.on("guildMemberAdd", async ({ member }) => {
+			if (muted[member.id]) await member.addRole(config.modules.mute.roleId);
 		});
 
 		// Don't let anyone add muted people, and persist the role if someone tries to take it off
-		commandClient.client.on("guildMemberUpdate", async ({ member }) => {
+		client.on("guildMemberUpdate", async ({ member }) => {
 			// This might be redundant but I just saw a role ID being null for some reason
-			member = await commandClient.client.rest.fetchGuildMember(member.guildId, member.id);
+			member = await client.rest.fetchGuildMember(member.guildId, member.id);
 
 			// This is sort of really ugly... See who's trying to mess with the role and notify them
 			const warn = async () => {
@@ -119,7 +123,7 @@ export class MuteCommand extends Command {
 
 			if (
 				member.roles.find(role => role.id == config.modules.mute.roleId) &&
-				!this.data.muted[member.id]
+				!muted[member.id]
 			) {
 				await member.removeRole(config.modules.mute.roleId);
 				warn();
@@ -127,7 +131,7 @@ export class MuteCommand extends Command {
 
 			if (
 				!member.roles.find(role => role.id == config.modules.mute.roleId) &&
-				this.data.muted[member.id]
+				muted[member.id]
 			) {
 				await member.addRole(config.modules.mute.roleId);
 				warn();
@@ -137,13 +141,10 @@ export class MuteCommand extends Command {
 		// Every second, check if mute period is over
 		setInterval(async () => {
 			let changes = false;
-			for (const [userId, data] of Object.entries(this.data.muted)) {
+			for (const [userId, data] of Object.entries(muted)) {
 				if (typeof data.until == "number" && data.until < Date.now()) {
-					delete this.data.muted[userId];
-					const member = await commandClient.client.rest.fetchGuildMember(
-						config.guildId,
-						userId
-					);
+					delete muted[userId];
+					const member = await bot.discord.rest.fetchGuildMember(config.guildId, userId);
 					member.removeRole(config.modules.mute.roleId);
 					changes = true;
 				}
@@ -152,9 +153,15 @@ export class MuteCommand extends Command {
 		}, 1000);
 	}
 
-	onBeforeRun = checkUserId;
+	onBeforeRun = onBeforeRun;
 
-	async run(ctx: Context, { userId, for: time, reason }: ParsedArgs): Promise<void> {
+	async run(
+		ctx: Command.Context,
+		{ userId, for: time, reason }: Command.ParsedArgs
+	): Promise<void> {
+		const { config } = this.bot;
+		let { muted } = this.data;
+
 		// Calculate time if any is specified
 		let until: number;
 		if (time) {
@@ -168,8 +175,8 @@ export class MuteCommand extends Command {
 			}
 		}
 
-		if (!this.data.muted) this.data.muted = {};
-		this.data.muted[userId] = { until, reason, muter: ctx.user.id };
+		if (!muted) muted = this.data.muted = {};
+		muted[userId] = { until, reason, muter: ctx.user.id };
 		await this.data.save();
 
 		const member = await ctx.rest.fetchGuildMember(ctx.guildId, userId);
@@ -183,89 +190,5 @@ export class MuteCommand extends Command {
 		const mutedChannel = await ctx.rest.fetchChannel(config.mutedChannelId);
 		mutedChannel.createMessage(content);
 		ctx.message.delete();
-	}
-}
-
-export class UnmuteCommand extends Command {
-	private data: Data;
-
-	constructor(commandClient: CommandClient, data: Data) {
-		super(commandClient, {
-			name: "unmute",
-			label: "userId",
-			responseOptional: true,
-			disableDm: true,
-			metadata: {
-				help: "Unmutes a member.",
-				usage: ["!unmute <UserID>", `#MENTION unmute <UserID>`],
-			},
-			permissions: [Permissions.MANAGE_ROLES],
-			permissionsClient: [Permissions.MANAGE_ROLES],
-		} as CommandOptions);
-
-		this.data = data;
-	}
-
-	onBeforeRun = checkUserId;
-
-	async run(ctx: Context, { userId }: ParsedArgs): Promise<void> {
-		if (!this.data.muted) this.data.muted = {};
-		delete this.data.muted[userId];
-		await this.data.save();
-
-		const member = await ctx.rest.fetchGuildMember(ctx.guildId, userId);
-		await member.removeRole(config.modules.mute.roleId);
-
-		const content = `${ctx.user.mention}, user ${member.mention} has been unmuted.`;
-		const mutedChannel = await ctx.rest.fetchChannel(config.mutedChannelId);
-		mutedChannel.createMessage(content);
-		ctx.message.delete();
-	}
-}
-
-export class WhyMuteCommand extends Command {
-	private data: Data;
-
-	constructor(commandClient: CommandClient, data: Data) {
-		super(commandClient, {
-			name: "whymute",
-			label: "userId",
-			disableDm: true,
-			metadata: {
-				help:
-					"Prints the reason of a member's muting. You can omit the argument to check your own details, if any.",
-				usage: ["!whymute <UserID?>", `#MENTION whymute <UserID?>`],
-			},
-		} as CommandOptions);
-
-		this.data = data;
-	}
-
-	onBeforeRun = checkUserId;
-
-	async run(ctx: Context, { userId }: ParsedArgs): Promise<void> {
-		if (this.data.muted[userId]) {
-			const { until, reason, muter } = this.data.muted[userId];
-			const mutedMember = await ctx.rest.fetchGuildMember(ctx.guildId, userId);
-			const muterMember = await ctx.rest.fetchGuildMember(ctx.guildId, muter);
-
-			const content =
-				`${ctx.user.mention}, ` +
-				(ctx.user.id == userId
-					? `you remain muted`
-					: `user **${mutedMember.toString()}** (\`${mutedMember.id}\`) remains muted`) +
-				(until
-					? ` for *${moment.duration(moment(until).diff(moment())).humanize()}*`
-					: "") +
-				(muterMember ? ` by **${muterMember.toString()}** (\`${muterMember.id}\`)` : "") +
-				(reason ? ` with reason:\n\n${reason}` : " without a reason") +
-				`.`;
-			if (ctx.canReply) {
-				ctx.reply(content);
-			} else {
-				ctx.user.createMessage(content);
-			}
-			ctx.message.delete();
-		}
 	}
 }

@@ -5,11 +5,9 @@ import ChatResponse from "./ChatResponse";
 import ErrorResponse from "./ErrorResponse";
 import JoinLeaveRequest from "./JoinLeaveRequest";
 import PayloadRequest from "./PayloadRequest";
-import PayloadResponse from "./PayloadResponse";
 import StatusRequest from "./StatusRequest";
 export {
 	PayloadRequest,
-	PayloadResponse,
 	ChatRequest,
 	ChatResponse,
 	ErrorResponse,

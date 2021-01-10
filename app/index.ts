@@ -1,10 +1,11 @@
-import { Container, container } from "./Container";
+import { Container } from "./Container";
+import providers from "./services";
 
 export class App {
 	container: Container;
 
-	constructor(container: Container) {
-		this.container = container;
+	constructor() {
+		this.container = new Container(this, providers);
 
 		this.init();
 	}
@@ -15,5 +16,3 @@ export class App {
 		}
 	}
 }
-
-export default new App(container);
