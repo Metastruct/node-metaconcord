@@ -41,7 +41,7 @@ export default abstract class Payload {
 		server.connection.send(
 			JSON.stringify({
 				payload: {
-					name: this.constructor.name,
+					name: this.name,
 					data: payload,
 				},
 			})
