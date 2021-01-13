@@ -32,7 +32,8 @@ export default class BanPayload extends Payload {
 		if (!unixTime || isNaN(unixTime))
 			throw new Error(`Unban time is not a number? Supplied time: ${unbanTime}`);
 		const banDuration = humanizeDuration(
-			moment.duration(unixTime - Date.now()).asMilliseconds()
+			moment.duration(unixTime - Date.now()).asMilliseconds(),
+			{ round: true, units: ["y", "mo", "w", "d", "h", "m"] }
 		);
 		const embed = new Embed()
 			.setAuthor(
