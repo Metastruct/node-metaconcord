@@ -67,13 +67,13 @@ export default class MuteCommand extends BaseCommand {
 			metadata: {
 				help:
 					"Mutes a member for an optional reason and amount of time.\n" +
-					"The `-for` argument is optional and can be omitted to specify an indeterminate period of time for which the person will be affected." +
+					"The `-for` argument is optional and can be omitted to specify an indeterminate period of time for which the person will be affected.\n" +
 					"The syntax for it is also quite lenient...",
 				usage: [
-					"!mute <UserID>",
-					"!mute <UserID> -for 1 hour 30 minutes",
-					"!mute <UserID> -reason bad -for 5 minutes",
-					`#MENTION mute <UserID>`,
+					"!mute <Mention/UserID>",
+					"!mute <Mention/UserID> -for 1 hour 30 minutes",
+					"!mute <Mention/UserID> -reason bad -for 5 minutes",
+					`#MENTION mute <Mention/UserID>`,
 				],
 			},
 			permissions: [Permissions.MANAGE_ROLES],

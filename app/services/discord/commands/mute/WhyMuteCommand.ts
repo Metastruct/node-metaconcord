@@ -13,7 +13,7 @@ export default class WhyMuteCommand extends BaseCommand {
 			metadata: {
 				help:
 					"Prints the reason of a member's muting. You can omit the argument to check your own details, if any.",
-				usage: ["!whymute <UserID?>", `#MENTION whymute <UserID?>`],
+				usage: ["!whymute <Mention?/UserID?>", `#MENTION whymute <Mention?/UserID?>`],
 			},
 		});
 	}
