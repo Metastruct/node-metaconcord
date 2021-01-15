@@ -13,7 +13,7 @@ export default class UnmuteCommand extends BaseCommand {
 			disableDm: true,
 			metadata: {
 				help: "Unmutes a member.",
-				usage: ["!unmute <UserID>", `#MENTION unmute <UserID>`],
+				usage: ["!unmute <Mention/UserID>", `#MENTION unmute <Mention/UserID>`],
 			},
 			permissions: [Permissions.MANAGE_ROLES],
 			permissionsClient: [Permissions.MANAGE_ROLES],
