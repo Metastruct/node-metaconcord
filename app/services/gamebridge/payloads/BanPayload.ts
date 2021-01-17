@@ -31,10 +31,10 @@ export default class BanPayload extends Payload {
 		const unixTime = parseInt(unbanTime) * 1000;
 		if (!unixTime || isNaN(unixTime))
 			throw new Error(`Unban time is not a number? Supplied time: ${unbanTime}`);
-		const banDuration = humanizeDuration(
-			moment.duration(unixTime - Date.now()).asMilliseconds(),
-			{ round: true, units: ["y", "mo", "w", "d", "h", "m"] }
-		);
+		const banDuration = humanizeDuration(unixTime - Date.now(), {
+			round: true,
+			units: ["y", "mo", "w", "d", "h", "m"],
+		});
 		const embed = new Embed()
 			.setAuthor(
 				`${player.nick} banned a player`,
