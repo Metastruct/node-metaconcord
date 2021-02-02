@@ -42,7 +42,7 @@ export default class AdminNotifyPayload extends Payload {
 			.addField("Message", Markup.escape.all(message.substring(0, 1900)))
 			.addField(
 				"SteamID64",
-				`[${reportedSteamId64}](https://steamcommunity.com/profiles/${steamId64})`
+				`[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64})`
 			)
 			.setThumbnail(reportedAvatar)
 			.setColor(0xc4af21);
