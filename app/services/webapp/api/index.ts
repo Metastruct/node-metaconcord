@@ -1,4 +1,5 @@
 import addEmojiAPI from "./emojis";
-import addServerStatusAPI from "./serverStatus";
+import addMapThumbnails from "./map-thumbnails";
+import addServerStatusAPI from "./server-status";
 
-export default [addEmojiAPI, addServerStatusAPI];
+export default [addEmojiAPI, addServerStatusAPI, addMapThumbnails];

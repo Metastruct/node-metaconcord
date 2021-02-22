@@ -17,7 +17,7 @@ html(lang="en")
 					justify-content: center;
 				}
 	body
-		main
+		main(style=`background-image: url(${server.status.mapThumbnail})`)
 			ul.playerlist
 				each player in server.status.players
 					li.player(class={ 'is-admin': player.isAdmin })
