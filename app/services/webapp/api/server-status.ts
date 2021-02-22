@@ -23,9 +23,9 @@ export default (webApp: WebApp): void => {
 		// Discord Bot and Cloudflare
 		const discordBot = req.headers.accept == "*/*" || !req.headers.accept;
 
-		const html = pug.renderFile(path.join(__dirname, "../resources/serverStatus/view.pug"), {
+		const html = pug.renderFile(path.join(__dirname, "../resources/server-status/view.pug"), {
 			server,
-			image: discordBot,
+			image: !!discordBot,
 		});
 		if (discordBot) {
 			if (!server.playerListImage) {

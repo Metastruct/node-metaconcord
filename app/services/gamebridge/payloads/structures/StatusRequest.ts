@@ -15,5 +15,9 @@ export default interface StatusRequest extends PayloadRequest {
 			id: string;
 		};
 		uptime: number;
+		gamemode: {
+			folderName: string;
+			name: string;
+		};
 	};
 }

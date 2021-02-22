@@ -16,13 +16,14 @@ export default class GameServer {
 	bridge: GameBridge;
 	discord: DiscordClient;
 	status: {
+		mapThumbnail: string;
 		players: {
 			accountId?: number;
 			nick: string;
 			avatar?: string;
 			isAdmin?: boolean;
 		}[];
-	} = { players: [] };
+	} = { mapThumbnail: "", players: [] };
 	playerListImage: Buffer;
 
 	constructor(req: WebSocketRequest, bridge: GameBridge, config: GameServerConfig) {
