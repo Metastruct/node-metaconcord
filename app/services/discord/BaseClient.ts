@@ -16,9 +16,7 @@ export default class BaseClient extends CommandClient {
 	async run(options?: CommandClientRunOptions): Promise<ClusterClient | ShardClient> {
 		const client = (await super.run(options)) as ShardClient;
 
-		client.gateway.socket.on("state", ({ state }) => {
-			console.log(`${client.user.name} gateway socket changed state to '${state}'`);
-		});
+		client.gateway.reconnectMax = Infinity; // Let's hope this works lmao
 
 		return client;
 	}
