@@ -1,6 +1,7 @@
 import { PayloadRequest } from "./structures";
 import Ajv from "ajv";
 import GameServer from "../GameServer";
+import util from "util";
 
 export default abstract class Payload {
 	protected static requestSchema: Record<any, unknown>;
@@ -20,7 +21,7 @@ export default abstract class Payload {
 	static validate(schema: Record<string, unknown>, payload: PayloadRequest | unknown): void {
 		const invalid = this.isInvalid(schema, payload);
 		if (invalid) {
-			console.log(payload);
+			console.warn(util.inspect(payload, { showHidden: false, depth: null }));
 			let msg = "";
 			for (let i = 0; i < invalid.length; i++) {
 				msg += `${invalid[i].dataPath} ${invalid[i].message}${

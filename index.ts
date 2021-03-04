@@ -4,4 +4,7 @@ dotenv.config();
 
 // Main
 import { App } from "./app";
-new App();
+const MetaConcord = new App();
+(global as any).MetaConcord = MetaConcord;
+
+export default MetaConcord;
