@@ -132,16 +132,15 @@ export default class StatusPayload extends Payload {
 			updateStatus().catch(console.error);
 		} else {
 			// Apparently there can be memory leaks if I don't do this
-			const listener = gatewayReadyListeners[discordClient.clientId];
+			let listener = gatewayReadyListeners[discordClient.clientId];
 			if (listener) discordClient.removeListener("gatewayReady", listener);
 
-			gatewayReadyListeners[discordClient.clientId] = discordClient.once(
-				"gatewayReady",
-				() => {
-					updateStatus().catch(console.error);
-					delete gatewayReadyListeners[discordClient.clientId];
-				}
-			);
+			listener = () => {
+				updateStatus().catch(console.error);
+				delete gatewayReadyListeners[discordClient.clientId];
+			};
+			discordClient.once("gatewayReady", listener);
+			gatewayReadyListeners[discordClient.clientId] = listener;
 		}
 	}
 }
