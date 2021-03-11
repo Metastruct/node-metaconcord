@@ -7,6 +7,8 @@ import Payload from "./Payload";
 import SteamID from "steamid";
 import util from "util";
 
+const gatewayReadyListeners = {};
+
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
 
@@ -129,9 +131,17 @@ export default class StatusPayload extends Payload {
 		if (discordClient.gateway.connected && discordClient.gateway.state == "READY") {
 			updateStatus().catch(console.error);
 		} else {
-			discordClient.once("gatewayReady", () => {
-				updateStatus().catch(console.error);
-			});
+			// Apparently there can be memory leaks if I don't do this
+			const listener = gatewayReadyListeners[discordClient.clientId];
+			if (listener) discordClient.removeListener("gatewayReady", listener);
+
+			gatewayReadyListeners[discordClient.clientId] = discordClient.once(
+				"gatewayReady",
+				() => {
+					updateStatus().catch(console.error);
+					delete gatewayReadyListeners[discordClient.clientId];
+				}
+			);
 		}
 	}
 }

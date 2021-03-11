@@ -20,7 +20,7 @@ export default class GameServer {
 		players: {
 			accountId?: number;
 			nick: string;
-			avatar?: string;
+			avatar?: string | false;
 			isAdmin?: boolean;
 		}[];
 	} = { mapThumbnail: "", players: [] };
