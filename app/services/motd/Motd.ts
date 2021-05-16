@@ -8,17 +8,17 @@ import { Container } from "@/app/Container";
 export default class Motd extends Service {
     name = "Motd";
     messages: Array<string>;
-    
+
     constructor(container: Container) {
 		super(container);
         this.messages = [];
-        schedule.scheduleJob('0 12 * * *', this.executeJob);
+        schedule.scheduleJob("0 12 * * *", this.executeJob);
     }
 
     pushMessage(msg: string): void {
         this.messages.push(msg);
     }
-    
+
     private executeJob(): void {
         if (this.messages.length <= 0) return;
 
@@ -26,6 +26,14 @@ export default class Motd extends Service {
         this.messages = [];
         if (msg == null || msg.length === 0) return;
 
-        axios.post(config.webhook, msg);
+        axios.post(config.webhook, JSON.stringify({
+            content: msg,
+            username: "Meta Construct",
+            avatar_url: "https://pbs.twimg.com/profile_images/1503242277/meta4_crop.png",
+        }), {
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
     }
 }
