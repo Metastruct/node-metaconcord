@@ -25,6 +25,7 @@
     "humanize-duration": "^3.25.1",
     "moment": "^2.29.1",
     "node-html-to-image": "marceau-maubert/node-html-to-image#master",
+    "node-schedule": "^2.0.0",
     "pug": "^3.0.1",
     "puppeteer": "^5.5.0",
     "qs": "^6.9.4",
