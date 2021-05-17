@@ -16,7 +16,9 @@ export default class Motd extends Service {
     }
 
     pushMessage(msg: string): void {
+        msg = msg.trim();
         if (!this.isValidMsg(msg)) return;
+
         this.messages.push(msg);
     }
 
