@@ -23,7 +23,7 @@ export default class Motd extends Service {
     }
 
     private isValidMsg(msg: string): boolean {
-		if (msg.length > 139) return false;
+		if (msg.length > 279) return false;
 		if (msg.length < 5) return false;
 		if (msg.search("^[!\\.\\\\/]") === 0 ) return false;
 		if (msg.search("[a-zA-Z]") === -1 ) return false;
