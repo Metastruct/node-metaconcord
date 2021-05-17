@@ -16,8 +16,21 @@ export default class Motd extends Service {
     }
 
     pushMessage(msg: string): void {
+        if (!this.isValidMsg(msg)) return;
         this.messages.push(msg);
     }
+
+    private isValidMsg(msg: string): boolean {
+		if (msg.length > 139) return false;
+		if (msg.length < 5) return false;
+		if (msg.search("^[!\\.\\\\/]") === 0 ) return false;
+		if (msg.search("[a-zA-Z]") === -1 ) return false;
+		if (msg.indexOf("http://") >= 0) return false;
+		if (msg.indexOf("https://") >= 0) return false;
+		if (msg.indexOf(" ") === -1) return false;
+
+		return true;
+	}
 
     private executeJob(): void {
         if (this.messages.length <= 0) return;
