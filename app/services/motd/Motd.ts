@@ -1,5 +1,5 @@
 import axios from "axios";
-import config from "motd.json";
+import config from "@/motd.json";
 import schedule from "node-schedule";
 
 import { Container } from "@/app/Container";
