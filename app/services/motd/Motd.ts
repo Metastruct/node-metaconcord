@@ -12,7 +12,7 @@ export default class Motd extends Service {
 	constructor(container: Container) {
 		super(container);
 		this.messages = [];
-		schedule.scheduleJob("0 12 * * *", this.executeJob);
+		schedule.scheduleJob("0 12 * * *", this.executeJob.bind(this));
 	}
 
 	pushMessage(msg: string): void {
