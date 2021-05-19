@@ -5,7 +5,6 @@ import { ChatRequest, ChatResponse } from "./structures";
 import { GameServer } from "..";
 import { Webhook } from "discord-whook.js";
 import Payload from "./Payload";
-import { Motd } from "../../motd";
 
 export default class ChatPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -36,7 +35,7 @@ export default class ChatPayload extends Payload {
 		});
 
 		bridge.container.getService("Motd").pushMessage(content);
-		
+
 		await webhook
 			.send(content, `#${server.config.id} ${player.nick}`, avatar, [], {
 				parse: ["users", "roles"],
