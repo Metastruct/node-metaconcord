@@ -54,5 +54,6 @@ export default class Motd extends Service {
 				},
 			}
 		);
+		this.container.getService("Twitter").postStatus(msg);
 	}
 }
