@@ -15,6 +15,7 @@ import GameBridgeProvider, { GameBridge } from "./gamebridge";
 import SteamProvider, { Steam } from "./Steam";
 import WebAppProvider, { WebApp } from "./webapp";
 import MotdProvider, { Motd } from "./motd";
+import TwitterProvider, { Twitter } from "./Twitter";
 
 export default [
 	SteamProvider,
@@ -23,8 +24,9 @@ export default [
 	WebAppProvider,
 	GameBridgeProvider,
 	MotdProvider,
+	TwitterProvider,
 ]; // The order is important
-export { Data, DiscordBot, GameBridge, Steam, WebApp, Motd };
+export { Data, DiscordBot, GameBridge, Steam, WebApp, Motd, Twitter };
 export type ServiceMap = {
 	[key: string]: Service;
 	Data?: Data;
@@ -33,4 +35,5 @@ export type ServiceMap = {
 	Steam?: Steam;
 	WebApp?: WebApp;
 	Motd?: Motd;
+	Twitter?: Twitter;
 };
