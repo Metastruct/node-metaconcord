@@ -18,7 +18,7 @@ export class Twitter extends Service {
 			iss: "#motd",
 		};
 
-		const token = jwt.sign(data, config.token, { algorithm: "RS256" });
+		const token = jwt.sign(data, config.token);
 		const ret = await axios.get(`http://g2.metastruct.net:20080/dotweet?token=${token}`);
 		if (ret.status !== 200) {
 			if (ret.status == 503 && ret.headers["Retry-After"]) {
