@@ -21,14 +21,18 @@ export class Twitter extends Service {
 
 	constructor(container: Container) {
 		super(container);
-		this.twit.get("followers/list", (err, res: { users: Array<twit.Twitter.User> }) => {
-			if (err) {
-				console.log(err);
-				return;
-			}
+		this.twit.post(
+			"followers/list",
+			{ user_id: config.id },
+			(err, res: { users: Array<twit.Twitter.User> }) => {
+				if (err) {
+					console.log(err);
+					return;
+				}
 
-			this.followerIds = res.users.map(user => user.id_str);
-		});
+				this.followerIds = res.users.map(user => user.id_str);
+			}
+		);
 
 		this.userStream = this.twit.stream("user");
 		this.userStream.on("follow", ev => {
