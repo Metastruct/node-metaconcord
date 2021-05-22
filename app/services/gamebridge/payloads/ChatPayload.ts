@@ -35,6 +35,7 @@ export default class ChatPayload extends Payload {
 		});
 
 		bridge.container.getService("Motd").pushMessage(content);
+		bridge.container.getService("Markov").addLine(content);
 
 		await webhook
 			.send(content, `#${server.config.id} ${player.nick}`, avatar, [], {
