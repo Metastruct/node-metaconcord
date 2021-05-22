@@ -44,16 +44,14 @@ export class Twitter extends Service {
 		this.followerStream?.stop(); // just in case it already exists
 		this.followerStream = this.twit.stream("statuses/filter", { follow: this.followerIds });
 		this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
-			if (data.user.following === true) {
-				const mentions = data.entities.user_mentions.map(mention => mention.id_str);
-				const isMentioned = mentions.includes(config.id);
-				if (
-					isMentioned ||
-					data.in_reply_to_user_id_str === config.id ||
-					(!data.in_reply_to_status_id && Math.random() <= 0.1)
-				) {
-					this.replyMarkovToStatus(data.id_str);
-				}
+			const mentions = data.entities.user_mentions.map(mention => mention.id_str);
+			const isMentioned = mentions.includes(config.id);
+			if (
+				isMentioned ||
+				data.in_reply_to_user_id_str === config.id ||
+				(!data.in_reply_to_status_id && Math.random() <= 0.1)
+			) {
+				this.replyMarkovToStatus(data.id_str);
 			}
 		});
 	}
