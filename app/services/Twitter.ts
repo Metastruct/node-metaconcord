@@ -22,15 +22,15 @@ export class Twitter extends Service {
 	constructor(container: Container) {
 		super(container);
 		this.twit.get(
-			"followers/list",
-			{ user_id: config.id },
-			(err, res: { users: Array<twit.Twitter.User> }) => {
+			"followers/ids",
+			{ user_id: config.id, stringify_ids: true },
+			(err, res: { ids: Array<string> }) => {
 				if (err) {
-					console.log(err);
+					console.error(err);
 					return;
 				}
 
-				this.followerIds = res.users.map(user => user.id_str);
+				this.followerIds = res.ids;
 			}
 		);
 
