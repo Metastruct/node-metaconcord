@@ -23,7 +23,7 @@ export class Twitter extends Service {
 		super(container);
 		this.twit.get(
 			"followers/ids",
-			{ user_id: config.id, stringify_ids: true },
+			{ user_id: config.id, screen_name: "metastruct" },
 			(err, res: { ids: Array<string> }) => {
 				if (err) {
 					console.error(err);
@@ -34,7 +34,7 @@ export class Twitter extends Service {
 			}
 		);
 
-		this.userStream = this.twit.stream("user");
+		this.userStream = this.twit.stream("user", { follow: [config.id] });
 		this.userStream.on("follow", ev => {
 			const user: twit.Twitter.User = ev.source;
 			this.followerIds.push(user.id_str);
