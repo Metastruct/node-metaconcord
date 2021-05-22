@@ -15,16 +15,34 @@ export class Twitter extends Service {
 		access_token: config.access_token,
 		access_token_secret: config.access_token_secret,
 	});
+	followerIds: Array<string> = [];
 	followerStream: twit.Stream;
 
 	constructor(container: Container) {
 		super(container);
-		this.initializeFollowerStream();
+		this.refreshFollowers();
+		setInterval(this.refreshFollowers.bind(this), 10000); // refresh every 10 mins
+	}
+
+	private refreshFollowers(): void {
+		this.twit.get(
+			"followers/ids",
+			{ user_id: config.id, screen_name: "metastruct" },
+			(err, res: { ids: Array<string> }) => {
+				if (err) {
+					console.error(err);
+					return;
+				}
+
+				this.followerIds = res.ids;
+				this.initializeFollowerStream();
+			}
+		);
 	}
 
 	private initializeFollowerStream(): void {
 		this.followerStream?.stop(); // just in case it already exists
-		this.followerStream = this.twit.stream("statuses/filter", { follow: true });
+		this.followerStream = this.twit.stream("statuses/filter", { follow: this.followerIds });
 		this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
 			if (data.user.following === true) {
 				const mentions = data.entities.user_mentions.map(mention => mention.id_str);
