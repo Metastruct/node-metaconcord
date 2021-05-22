@@ -6,6 +6,7 @@ import config from "@/twitter.json";
 import jwt from "jsonwebtoken";
 import twit from "twit";
 
+const FOLLOWER_REFRESH_RATE = 600000;
 export class Twitter extends Service {
 	name = "Twitter";
 	filter = new Filter();
@@ -21,7 +22,7 @@ export class Twitter extends Service {
 	constructor(container: Container) {
 		super(container);
 		this.refreshFollowers();
-		setInterval(this.refreshFollowers.bind(this), 10000); // refresh every 10 mins
+		setInterval(this.refreshFollowers.bind(this), FOLLOWER_REFRESH_RATE); // refresh every 10 mins
 	}
 
 	private refreshFollowers(): void {
