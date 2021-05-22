@@ -15,14 +15,14 @@ export default class Motd extends Service {
 		schedule.scheduleJob("0 12 * * *", this.executeJob.bind(this));
 	}
 
-	pushMessage(msg: string): void {
+	public pushMessage(msg: string): void {
 		msg = msg.trim();
 		if (!this.isValidMsg(msg)) return;
 
 		this.messages.push(msg);
 	}
 
-	private isValidMsg(msg: string): boolean {
+	public isValidMsg(msg: string): boolean {
 		if (msg.length > 279) return false;
 		if (msg.length < 5) return false;
 		if (msg.search("^[!\\.\\\\/]") === 0) return false;
