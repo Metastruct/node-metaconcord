@@ -15,8 +15,6 @@ export class Twitter extends Service {
 		access_token: config.access_token,
 		access_token_secret: config.access_token_secret,
 	});
-	followerIds: Array<string> = [];
-	userStream: twit.Stream;
 	followerStream: twit.Stream;
 
 	constructor(container: Container) {
@@ -26,7 +24,7 @@ export class Twitter extends Service {
 
 	private initializeFollowerStream(): void {
 		this.followerStream?.stop(); // just in case it already exists
-		this.followerStream = this.twit.stream("statuses/filter", { follow: this.followerIds });
+		this.followerStream = this.twit.stream("statuses/filter", { follow: true });
 		this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
 			if (data.user.following === true) {
 				const mentions = data.entities.user_mentions.map(mention => mention.id_str);
