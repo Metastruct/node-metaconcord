@@ -28,14 +28,14 @@ export class Twitter extends Service {
 	private refreshFollowers(): void {
 		this.twit.get(
 			"followers/ids",
-			{ user_id: config.id, screen_name: "metastruct" },
-			(err, res: { ids: Array<string> }) => {
+			{ screen_name: "metastruct" },
+			(err, res: { ids: Array<number> }) => {
 				if (err) {
 					console.error(err);
 					return;
 				}
 
-				this.followerIds = res.ids;
+				this.followerIds = res.ids.map(id => id.toString());
 				this.initializeFollowerStream();
 			}
 		);
