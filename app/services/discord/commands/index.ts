@@ -13,5 +13,6 @@ export class BaseCommand extends Command.Command {
 }
 
 import { HelpCommand } from "./HelpCommand";
+import { MarkovCommand } from "./MarkovCommand";
 import { MuteCommand, UnmuteCommand, WhyMuteCommand } from "./mute";
-export default [HelpCommand, MuteCommand, UnmuteCommand, WhyMuteCommand];
+export default [HelpCommand, MarkovCommand, MuteCommand, UnmuteCommand, WhyMuteCommand];
