@@ -21,7 +21,7 @@ export class Twitter extends Service {
 
 	constructor(container: Container) {
 		super(container);
-		this.twit.post(
+		this.twit.get(
 			"followers/list",
 			{ user_id: config.id },
 			(err, res: { users: Array<twit.Twitter.User> }) => {
