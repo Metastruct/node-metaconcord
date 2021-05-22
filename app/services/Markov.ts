@@ -28,9 +28,7 @@ export class MarkovService extends Service {
 	}
 
 	public addLine(line: string): void {
-		const input = [];
-		input.push(line);
-		this.generator.addData(input);
+		this.generator.addData([line]);
 
 		fs.appendFile(MARKOV_DATA_PATH, line + EOL, err => {
 			if (!err) return;
