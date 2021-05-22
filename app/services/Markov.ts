@@ -7,7 +7,7 @@ import fs from "fs";
 const MARKOV_DATA_PATH = "markov_data.txt";
 
 export class MarkovService extends Service {
-	name = "Twitter";
+	name = "Markov";
 	generator = new Markov({ stateSize: 2 });
 	genOptions = { maxTries: 20 };
 
