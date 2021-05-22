@@ -21,32 +21,6 @@ export class Twitter extends Service {
 
 	constructor(container: Container) {
 		super(container);
-		this.twit.get(
-			"followers/ids",
-			{ user_id: config.id, screen_name: "metastruct" },
-			(err, res: { ids: Array<string> }) => {
-				if (err) {
-					console.error(err);
-					return;
-				}
-
-				this.followerIds = res.ids;
-			}
-		);
-
-		this.userStream = this.twit.stream("user", { follow: [config.id] });
-		this.userStream.on("follow", ev => {
-			const user: twit.Twitter.User = ev.source;
-			this.followerIds.push(user.id_str);
-			this.initializeFollowerStream();
-		});
-
-		this.userStream.on("unfollow", ev => {
-			const user: twit.Twitter.User = ev.source;
-			this.followerIds = this.followerIds.filter(id => id !== user.id_str);
-			this.initializeFollowerStream();
-		});
-
 		this.initializeFollowerStream();
 	}
 
@@ -54,14 +28,16 @@ export class Twitter extends Service {
 		this.followerStream?.stop(); // just in case it already exists
 		this.followerStream = this.twit.stream("statuses/filter", { follow: this.followerIds });
 		this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
-			const mentions = data.entities.user_mentions.map(mention => mention.id_str);
-			const isMentioned = mentions.includes(config.id);
-			if (
-				isMentioned ||
-				data.in_reply_to_user_id_str === config.id ||
-				(!data.in_reply_to_status_id && Math.random() <= 0.1)
-			) {
-				this.replyMarkovToStatus(data.id_str);
+			if (data.user.following === true) {
+				const mentions = data.entities.user_mentions.map(mention => mention.id_str);
+				const isMentioned = mentions.includes(config.id);
+				if (
+					isMentioned ||
+					data.in_reply_to_user_id_str === config.id ||
+					(!data.in_reply_to_status_id && Math.random() <= 0.1)
+				) {
+					this.replyMarkovToStatus(data.id_str);
+				}
 			}
 		});
 	}
