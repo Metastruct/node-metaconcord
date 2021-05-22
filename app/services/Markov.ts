@@ -13,15 +13,18 @@ export class MarkovService extends Service {
 
 	constructor(container: Container) {
 		super(container);
-		fs.readFile(MARKOV_DATA_PATH, "utf8", (err, data) => {
-			if (err) {
-				console.log(err);
-				return;
-			}
 
-			const lines = data.split(EOL);
-			this.generator.addData(lines);
-		});
+		if (fs.existsSync(MARKOV_DATA_PATH)) {
+			fs.readFile(MARKOV_DATA_PATH, "utf8", (err, data) => {
+				if (err) {
+					console.log(err);
+					return;
+				}
+
+				const lines = data.split(EOL);
+				this.generator.addData(lines);
+			});
+		}
 	}
 
 	public addLine(line: string): void {
