@@ -45,6 +45,7 @@ export class Twitter extends Service {
 		this.followerStream?.stop(); // just in case it already exists
 		this.followerStream = this.twit.stream("statuses/filter", {
 			follow: this.followerIds,
+			track: "metastruct",
 		});
 
 		this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
