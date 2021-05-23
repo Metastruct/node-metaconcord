@@ -1,21 +1,22 @@
 import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
-import config from "@/discord.json";
 import moment from "moment";
+import Silent from "../";
+
 export class SlashWhyMuteCommand extends SlashCommand {
 	private bot: DiscordBot;
 
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
 			name: "whymute",
-			description:
-				"Prints the reason of a member's muting. You can omit the argument to check your own details, if any.",
+			description: "Prints the reason of a member's muting.",
+			guildIDs: [bot.config.guildId],
 			options: [
 				{
 					type: CommandOptionType.USER,
 					name: "user",
-					description: "The discord user for which we want the reason of the mute",
-					required: true,
+					description: "The Discord user for which we want the reason of the mute",
+					required: false,
 				},
 			],
 		});
@@ -24,10 +25,8 @@ export class SlashWhyMuteCommand extends SlashCommand {
 		this.bot = bot;
 	}
 
-	//onBeforeRun = onBeforeRun;
-
-	async run(ctx: CommandContext): Promise<string> {
-		const userId = ctx.options.user.toString();
+	async run(ctx: CommandContext): Promise<any> {
+		const userId = (ctx.options.user ?? ctx.user.id).toString();
 		const { muted } = this.bot.container.getService("Data");
 		if (muted && muted[userId]) {
 			const { until, reason, muter } = muted[userId];
@@ -52,9 +51,15 @@ export class SlashWhyMuteCommand extends SlashCommand {
 						: "") +
 					(reason ? ` with reason:\n\n${reason}` : " without a reason") +
 					`.`;
-				return content;
+				return Silent(content);
 			} else {
-				return "not in a guild";
+				return Silent("how#3");
+			}
+		} else {
+			if (userId == ctx.user.id) {
+				return Silent("You're not muted... yet!");
+			} else {
+				return Silent("That user hasn't been muted... yet!");
 			}
 		}
 	}
