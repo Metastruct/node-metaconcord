@@ -8,6 +8,7 @@ export class SlashMarkovCommand extends SlashCommand {
 		super(creator, {
 			name: "mk",
 			description: "Funny text generation based off the gmod and discord chats.",
+			options: [],
 		});
 		this.filePath = __filename;
 		this.container = container;
