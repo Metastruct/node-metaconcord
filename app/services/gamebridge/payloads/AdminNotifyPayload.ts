@@ -1,8 +1,7 @@
 import * as requestSchema from "./structures/AdminNotifyRequest.json";
 import { AdminNotifyRequest } from "./structures";
-import { Embed, Markup } from "detritus-client/lib/utils";
 import { GameServer } from "..";
-import { Role } from "detritus-client/lib/structures";
+import Discord, { TextChannel } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
 
@@ -14,17 +13,17 @@ export default class AdminNotifyPayload extends Payload {
 
 		const { player, reported } = payload.data;
 		let { message } = payload.data;
-		const {
-			bridge,
-			discord: { client: discordClient },
-		} = server;
+		const { bridge, discord: discordClient } = server;
 
-		const callAdminRole = (
-			await discordClient.rest.fetchGuildRoles(bridge.config.guildId)
-		).find((role: Role) => role.id == bridge.config.callAdminRoleId);
-		const notificationsChannel = await discordClient.rest.fetchChannel(
-			bridge.config.notificationsChannelId
-		);
+		const guild = await discordClient.guilds.resolve(bridge.config.guildId)?.fetch();
+		if (!guild) return;
+
+		const callAdminRole = guild.roles.resolve(bridge.config.callAdminRoleId);
+
+		const notificationsChannel = await guild.channels
+			.resolve(bridge.config.notificationsChannelId)
+			?.fetch();
+		if (!notificationsChannel) return;
 
 		const steamId64 = new SteamID(player.steamId).getSteamID64();
 		const reportedSteamId64 = new SteamID(reported.steamId).getSteamID64();
@@ -32,22 +31,23 @@ export default class AdminNotifyPayload extends Payload {
 		const avatar = await steam.getUserAvatar(steamId64);
 		const reportedAvatar = await steam.getUserAvatar(reportedSteamId64);
 		if (message.trim().length < 1) message = "No message provided..?";
-		const embed = new Embed()
+		const embed = new Discord.MessageEmbed()
 			.setAuthor(
 				`${player.nick} reported a player`,
 				avatar,
 				`https://steamcommunity.com/profiles/${steamId64}`
 			)
-			.addField("Nick", Markup.escape.all(reported.nick))
-			.addField("Message", Markup.escape.all(message.substring(0, 1900)))
+			.addField("Nick", reported.nick)
+			.addField("Message", message.substring(0, 1900))
 			.addField(
 				"SteamID64",
 				`[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64})`
 			)
 			.setThumbnail(reportedAvatar)
 			.setColor(0xc4af21);
-		notificationsChannel.createMessage({
-			content: callAdminRole && callAdminRole.mention,
+
+		(notificationsChannel as TextChannel).send({
+			content: callAdminRole && `<@&${callAdminRole.id}>`,
 			embed,
 		});
 	}

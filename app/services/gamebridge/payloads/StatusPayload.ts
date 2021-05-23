@@ -1,13 +1,11 @@
 import * as requestSchema from "./structures/StatusRequest.json";
-import { Embed } from "detritus-client/lib/utils";
 import { GameServer } from "..";
-import { Message } from "detritus-client/lib/structures";
 import { StatusRequest } from "./structures";
+import Discord, { TextChannel } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
+import config from "@/discord.json";
 import util from "util";
-
-const gatewayReadyListeners = {};
 
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -16,10 +14,7 @@ export default class StatusPayload extends Payload {
 		super.handle(payload, server);
 
 		const { players, map, workshopMap, gamemode } = payload.data;
-		const {
-			bridge,
-			discord: { client: discordClient },
-		} = server;
+		const { bridge, discord: discordClient } = server;
 		const {
 			config: { host, port },
 		} = bridge.container.getService("WebApp");
@@ -29,21 +24,20 @@ export default class StatusPayload extends Payload {
 			const count = players.length;
 
 			// Presence
-			const status = {
+			discordClient.user.setPresence({
 				activity: {
 					name: `${count} player${count != 1 ? "s" : ""}`,
 					type: 3,
 				},
 				status: "online",
-			};
-			discordClient.gateway.setPresence(status);
+			});
+
+			const guild = await discordClient.guilds.resolve(config.guildId)?.fetch();
+			if (!guild) return;
 
 			// Nick
-			const me = await discordClient.rest.fetchGuildMember(
-				bridge.config.guildId,
-				discordClient.userId
-			);
-			if (me.nick !== server.config.name) me.editNick(server.config.name);
+			const me = await guild.members.resolve(discordClient.user.id)?.fetch();
+			if (me.nickname !== server.config.name) me.setNickname(server.config.name);
 
 			// Permanent status message
 			let desc = util.format(
@@ -60,12 +54,12 @@ export default class StatusPayload extends Payload {
 				mapThumbnail = `http://${host}:${port}/map-thumbnails/rp_unioncity.jpg`;
 			}
 
-			const embed = new Embed()
+			const embed = new Discord.MessageEmbed()
 				.setColor(0x4bf5ca)
 				.setTitle(map)
 				.setDescription(desc)
 				.setThumbnail(mapThumbnail)
-				.setUrl(
+				.setURL(
 					`https://metastruct.net/${
 						server.config.label ? "join/" + server.config.label : ""
 					}`
@@ -114,33 +108,24 @@ export default class StatusPayload extends Payload {
 			});
 			server.playerListImage = null;
 
-			const channel = await discordClient.rest.fetchChannel(
-				bridge.config.serverInfoChannelId
-			);
-			const messages = await channel.fetchMessages({});
+			const channel = (await guild.channels
+				.resolve(bridge.config.serverInfoChannelId)
+				?.fetch()) as TextChannel;
+			if (!channel) return;
+
+			const messages = await channel.messages.fetch();
 			const message = messages.filter(
-				(msg: Message) => msg.author.id == discordClient.user.id
+				(msg: Discord.Message) => msg.author.id == discordClient.user.id
 			)[0];
 			if (message) {
 				message.edit({ embed });
 			} else {
-				channel.createMessage({ embed });
+				channel.send({ embed });
 			}
 		};
 
-		if (discordClient.gateway.connected && discordClient.gateway.state == "READY") {
+		if (discordClient.readyAt) {
 			updateStatus().catch(console.error);
-		} else {
-			// Apparently there can be memory leaks if I don't do this
-			let listener = gatewayReadyListeners[discordClient.clientId];
-			if (listener) discordClient.removeListener("gatewayReady", listener);
-
-			listener = () => {
-				updateStatus().catch(console.error);
-				delete gatewayReadyListeners[discordClient.clientId];
-			};
-			discordClient.once("gatewayReady", listener);
-			gatewayReadyListeners[discordClient.clientId] = listener;
 		}
 	}
 }

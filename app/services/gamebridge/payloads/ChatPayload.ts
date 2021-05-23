@@ -4,7 +4,9 @@ import * as responseSchema from "./structures/ChatResponse.json";
 import { ChatRequest, ChatResponse } from "./structures";
 import { GameServer } from "..";
 import { Webhook } from "discord-whook.js";
+import Discord from "discord.js";
 import Payload from "./Payload";
+import config from "@/discord.json";
 
 export default class ChatPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -14,23 +16,27 @@ export default class ChatPayload extends Payload {
 		super.handle(payload, server);
 		const { player } = payload.data;
 		let { content } = payload.data;
-		const {
-			bridge,
-			discord: { client: discordClient },
-		} = server;
+		const { bridge, discord: discordClient } = server;
+
+		const guild = await discordClient.guilds.resolve(config.guildId)?.fetch();
+		if (!guild) return;
 
 		const webhook = new Webhook(bridge.config.chatWebhookId, bridge.config.chatWebhookToken);
 
 		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
+
+		const matches = content.match(/@(\S*)/);
+		const cachedMembers = new Discord.Collection<string, Discord.GuildMember>();
+		for (const match of matches) {
+			const members = await guild.members.fetch({ query: match, limit: 1 });
+			const foundMember = members.first();
+			if (!foundMember) continue;
+
+			cachedMembers.set(match, foundMember);
+		}
+
 		content = content.replace(/@(\S*)/, (match, name) => {
-			for (const [, member] of discordClient.channels.get(bridge.config.relayChannelId).guild
-				.members) {
-				if (
-					member?.nick?.toLowerCase() == name.toLowerCase() ||
-					member.username.toLowerCase() == name.toLowerCase()
-				)
-					return `<@${member.id}>`;
-			}
+			if (cachedMembers.has(name)) return `<@!${cachedMembers[name].id}>`;
 			return match;
 		});
 
