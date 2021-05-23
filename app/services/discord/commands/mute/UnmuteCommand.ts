@@ -7,7 +7,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
-			name: "whymute",
+			name: "unmute",
 			description:
 				"Prints the reason of a member's muting. You can omit the argument to check your own details, if any.",
 			options: [
