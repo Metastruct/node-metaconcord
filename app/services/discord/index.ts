@@ -1,14 +1,13 @@
 import { Container } from "@/app/Container";
 import { ExpressServer, SlashCreator } from "slash-create";
+import { HelpCommand, SlashHelpCommand } from "./commands/HelpCommand";
+import { MarkovCommand, SlashMarkovCommand } from "./commands/MarkovCommand";
 import { Service } from "@/app/services";
 import { ShardClient } from "detritus-client";
-import { SlashHelpCommand } from "./commands/HelpCommand";
-import { SlashMarkovCommand } from "./commands/MarkovCommand";
-import { SlashMuteCommand } from "./commands/mute/MuteCommand";
-import { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
-import { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
 import BaseClient from "./BaseClient";
-import commands from "./commands";
+import MuteCommand, { SlashMuteCommand } from "./commands/mute/MuteCommand";
+import UnmuteCommand, { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
+import WhyMuteCommand, { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
 import config from "@/discord.json";
 import webappConfig from "@/webapp.json";
 
@@ -20,9 +19,11 @@ export class DiscordBot extends Service {
 	constructor(container: Container) {
 		super(container);
 
-		for (const command of commands) {
-			this.discord.add(new command(this));
-		}
+		this.discord.add(MarkovCommand);
+		this.discord.add(WhyMuteCommand);
+		this.discord.add(MuteCommand);
+		this.discord.add(UnmuteCommand);
+		this.discord.add(HelpCommand);
 
 		this.discord.run().then((client: ShardClient) => {
 			console.log(`'${client.user.name}' Discord Bot has logged in`);
