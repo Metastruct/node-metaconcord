@@ -47,8 +47,8 @@ export class DiscordBot extends Service {
 				.withServer(
 					new GatewayServer(handler => {
 						client.gateway.on("packet", packet => {
-							const data: any = JSON.parse(packet.d);
-							if (data.type === "APPLICATION_COMMAND") {
+							if (packet.t === "APPLICATION_COMMAND") {
+								const data: any = JSON.parse(packet.d);
 								handler(data);
 							}
 						});
