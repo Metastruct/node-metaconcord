@@ -16,7 +16,7 @@ export default (webApp: WebApp): void => {
 			});
 		}
 
-		const emojis = JSON.parse(JSON.stringify(guild.emojis));
+		const emojis = JSON.parse(JSON.stringify(guild.emojis.cache));
 		for (const emoji of emojis) {
 			const extension = emoji.animated ? "gif" : "png";
 			emoji.url = `https://cdn.discordapp.com/emojis/${emoji.id}.${extension}?v=1`;
