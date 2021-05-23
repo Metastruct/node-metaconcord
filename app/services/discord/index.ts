@@ -30,6 +30,7 @@ export class DiscordBot extends Service {
 			this.discord.add(new MuteCommand(this));
 			const client = (await this.discord.run()) as ShardClient;
 			console.log(`'${client.user.name}' Discord Bot has logged in`);
+			this.discord.client = client;
 
 			client.gateway.setPresence({
 				activity: {
