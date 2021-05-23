@@ -13,7 +13,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 			options: [
 				{
 					type: CommandOptionType.STRING,
-					name: "userId",
+					name: "userid",
 					description: "The discord id for the user",
 				},
 			],
@@ -26,7 +26,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 	onBeforeRun = onBeforeRun;
 
 	async run(ctx: CommandContext): Promise<string> {
-		const userId = ctx.options.userId.toString();
+		const userId = ctx.options.userid.toString();
 		const data = this.bot.container.getService("Data");
 
 		const { config } = this.bot;
