@@ -1,5 +1,5 @@
 import { Container } from "@/app/Container";
-import { ExpressServer, SlashCreator } from "slash-create";
+import { GatewayServer, SlashCreator } from "slash-create";
 import { HelpCommand, SlashHelpCommand } from "./commands/HelpCommand";
 import { MarkovCommand, SlashMarkovCommand } from "./commands/MarkovCommand";
 import { Service } from "@/app/services";
@@ -9,7 +9,6 @@ import MuteCommand, { SlashMuteCommand } from "./commands/mute/MuteCommand";
 import UnmuteCommand, { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
 import WhyMuteCommand, { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
 import config from "@/discord.json";
-import webappConfig from "@/webapp.json";
 
 export class DiscordBot extends Service {
 	name = "DiscordBot";
@@ -42,14 +41,17 @@ export class DiscordBot extends Service {
 				applicationID: config.applicationId,
 				publicKey: config.publicKey,
 				token: config.token,
-				serverPort: webappConfig.port,
-				serverHost: webappConfig.host,
 			});
 
 			creator
 				.withServer(
-					new ExpressServer(container.getService("WebApp").app, {
-						alreadyListening: true,
+					new GatewayServer(handler => {
+						client.gateway.on("packet", packet => {
+							const data: any = JSON.parse(packet.d);
+							if (data.type === "APPLICATION_COMMAND") {
+								handler(data);
+							}
+						});
 					})
 				)
 				.registerCommands([
