@@ -1,5 +1,14 @@
+import {
+	CommandData,
+	CommandMember,
+	GatewayServer,
+	GuildInteractionRequestData,
+	InteractionType,
+	Member,
+	SlashCommand,
+	SlashCreator,
+} from "slash-create";
 import { Container } from "@/app/Container";
-import { GatewayServer, SlashCommand, SlashCreator } from "slash-create";
 import { Service } from "@/app/services";
 import { ShardClient } from "detritus-client";
 import { SlashMarkovCommand } from "./commands/MarkovCommand";
@@ -40,7 +49,19 @@ export class DiscordBot extends Service {
 
 			creator.withServer(
 				new GatewayServer(handler => {
-					client.on("interactionCreate", ev => handler(ev));
+					client.on("interactionCreate", ev => {
+						const member: unknown = new Member(ev.member.toJSON(), creator);
+						handler({
+							channel_id: ev.channelId,
+							data: ev.data as unknown as CommandData,
+							guild_id: ev.guildId,
+							id: ev.id,
+							member: member as CommandMember,
+							token: ev.token,
+							type: ev.type as unknown as InteractionType,
+							version: ev.version as 1,
+						} as GuildInteractionRequestData);
+					});
 				})
 			);
 
