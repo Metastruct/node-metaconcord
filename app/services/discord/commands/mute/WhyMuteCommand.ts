@@ -1,4 +1,4 @@
-import { CommandContext, CommandOptionType, SlashCommand, SlashCreator, User } from "slash-create";
+import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { onBeforeRun } from "./MuteCommand";
 import config from "@/discord.json";
@@ -15,7 +15,7 @@ export class SlashWhyMuteCommand extends SlashCommand {
 				{
 					type: CommandOptionType.USER,
 					name: "user",
-					description: "The discord user",
+					description: "The discord user for which we want the reason of the mute",
 					required: true,
 				},
 			],
