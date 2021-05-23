@@ -44,7 +44,7 @@ export class Twitter extends Service {
 	private initializeFollowerStream(): void {
 		this.followerStream?.stop(); // just in case it already exists
 		this.followerStream = this.twit.stream("statuses/filter", {
-			follow: this.followerIds.join(","),
+			follow: this.followerIds,
 		});
 
 		this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
