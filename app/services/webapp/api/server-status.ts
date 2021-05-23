@@ -15,7 +15,7 @@ export default (webApp: WebApp): void => {
 		}
 
 		const server = gameBridge.servers[req.params.id];
-		if (!server?.status?.players) {
+		if (!server?.status?.players && !server?.status?.mapThumbnail) {
 			console.warn(`No data for server ${req.params.id}`);
 			return res.sendStatus(503);
 		}
