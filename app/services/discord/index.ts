@@ -1,11 +1,14 @@
 import { Container } from "@/app/Container";
 import { ExpressServer, SlashCreator } from "slash-create";
+import { HelpCommand } from "./commands/HelpCommand";
+import { MarkovCommand } from "./commands/MarkovCommand";
+import { MuteCommand, UnmuteCommand, WhyMuteCommand } from "./commands/mute";
 import { Service } from "@/app/services";
 import { ShardClient } from "detritus-client";
 import BaseClient from "./BaseClient";
 import commands from "./commands";
 import config from "@/discord.json";
-import path from "path";
+import webappConfig from "@/webapp.json";
 
 export class DiscordBot extends Service {
 	name = "DiscordBot";
@@ -36,6 +39,8 @@ export class DiscordBot extends Service {
 				applicationID: config.applicationId,
 				publicKey: config.publicKey,
 				token: config.token,
+				serverPort: webappConfig.port,
+				serverHost: webappConfig.host,
 			});
 
 			creator
@@ -44,7 +49,13 @@ export class DiscordBot extends Service {
 						alreadyListening: true,
 					})
 				)
-				.registerCommandsIn(path.join(__dirname, "commands"))
+				.registerCommands([
+					MarkovCommand,
+					WhyMuteCommand,
+					MuteCommand,
+					UnmuteCommand,
+					HelpCommand,
+				])
 				.syncCommands();
 		});
 
