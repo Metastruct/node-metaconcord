@@ -2,6 +2,7 @@ import { BaseCommand } from ".";
 import { Command } from "detritus-client";
 import { DiscordBot } from "..";
 import { Permissions } from "detritus-client/lib/constants";
+import { SlashCommand, SlashCreator } from "slash-create";
 
 export class HelpCommand extends BaseCommand {
 	constructor(bot: DiscordBot) {
@@ -55,5 +56,15 @@ export class HelpCommand extends BaseCommand {
 		} else {
 			ctx.user.createMessage(content);
 		}
+	}
+}
+
+export class SlashHelpCommand extends SlashCommand {
+	constructor(creator: SlashCreator) {
+		super(creator, {
+			name: "help",
+			description: "Displays this message.",
+		});
+		this.filePath = __filename;
 	}
 }

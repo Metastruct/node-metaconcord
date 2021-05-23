@@ -3,6 +3,7 @@ import { Command } from "detritus-client";
 import { DiscordBot } from "../..";
 import { Permissions } from "detritus-client/lib/constants";
 import { onBeforeRun } from "./MuteCommand";
+import { SlashCommand, SlashCreator } from "slash-create";
 
 export default class UnmuteCommand extends BaseCommand {
 	constructor(bot: DiscordBot) {
@@ -37,5 +38,15 @@ export default class UnmuteCommand extends BaseCommand {
 		const mutedChannel = await ctx.rest.fetchChannel(config.mutedChannelId);
 		mutedChannel.createMessage(content);
 		ctx.message.delete();
+	}
+}
+
+export class SlashUnmuteCommand extends SlashCommand {
+	constructor(creator: SlashCreator) {
+		super(creator, {
+			name: "unmute",
+			description: "Unmutes a member.",
+		});
+		this.filePath = __filename;
 	}
 }

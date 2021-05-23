@@ -3,6 +3,7 @@ import { Command } from "detritus-client";
 import { DiscordBot } from "../..";
 import { onBeforeRun } from "./MuteCommand";
 import moment from "moment";
+import { SlashCommand, SlashCreator } from "slash-create";
 
 export default class WhyMuteCommand extends BaseCommand {
 	constructor(bot: DiscordBot) {
@@ -45,5 +46,15 @@ export default class WhyMuteCommand extends BaseCommand {
 			}
 			ctx.message.delete();
 		}
+	}
+}
+
+export class SlashWhyMuteCommand extends SlashCommand {
+	constructor(creator: SlashCreator) {
+		super(creator, {
+			name: "whymute",
+			description: "Prints the reason of a member's muting. You can omit the argument to check your own details, if any.",
+		});
+		this.filePath = __filename;
 	}
 }
