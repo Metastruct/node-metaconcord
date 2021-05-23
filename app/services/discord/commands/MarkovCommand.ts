@@ -18,8 +18,10 @@ export class MarkovCommand extends BaseCommand {
 			ctx.message.delete();
 		}
 
-		const content: string = this.bot.container.getService("Markov").generate();
+		let content: string = this.bot.container.getService("Markov").generate();
+		content = `${ctx.message.author.mention} ${content}`;
 		if (ctx.canReply) {
+
 			ctx.reply(content);
 		} else {
 			ctx.user.createMessage(content);
