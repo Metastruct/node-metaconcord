@@ -27,7 +27,7 @@ export default class DiscordClient extends Discord.Client {
 			ChatPayload.send(
 				{
 					user: {
-						nick: ctx.member.nickname,
+						nick: ctx.member.user.username,
 						color: ctx.member.displayColor,
 					},
 					content,
