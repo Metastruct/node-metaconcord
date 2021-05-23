@@ -1,6 +1,7 @@
 {
 	"token": "",
 	"applicationId": "",
+	"publicKey": "",
 	"guildId": "",
 	"notificationsChannelId": "",
 	"mutedChannelId": "",

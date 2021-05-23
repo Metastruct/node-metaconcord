@@ -1,7 +1,7 @@
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
 import { ShardClient } from "detritus-client";
-import { GatewayServer, SlashCreator } from "slash-create";
+import { ExpressServer, FastifyServer, SlashCreator } from "slash-create";
 import BaseClient from "./BaseClient";
 import commands from "./commands";
 import config from "@/discord.json";
@@ -32,18 +32,15 @@ export class DiscordBot extends Service {
 
 			client.gateway.setPresence(status);
 
-			const socket = this.discord.client.gateway.socket;
 			const creator = new SlashCreator({
 				applicationID: config.applicationId,
+				publicKey: config.publicKey,
 				token: config.token,
 			});
 
-			creator.withServer(new GatewayServer((handler) => socket.on("INTERACTION_CREATE", handler)));
 			creator
-				// Registers all of your commands in the ./commands/ directory
+				.withServer(new ExpressServer(container.getService("WebApp").app, { alreadyListening: true }))
 				.registerCommandsIn(path.join(__dirname, "commands"))
-				// This will sync commands to Discord, it must be called after commands are loaded.
-				// This also returns itself for more chaining capabilities.
 				.syncCommands();
 		});
 
