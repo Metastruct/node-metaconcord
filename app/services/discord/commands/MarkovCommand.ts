@@ -1,6 +1,7 @@
 import { BaseCommand } from ".";
 import { Command } from "detritus-client";
 import { DiscordBot } from "..";
+import { SlashCommand, SlashCreator } from "slash-create";
 
 export class MarkovCommand extends BaseCommand {
 	constructor(bot: DiscordBot) {
@@ -26,5 +27,15 @@ export class MarkovCommand extends BaseCommand {
 		} else {
 			ctx.user.createMessage(content);
 		}
+	}
+}
+
+export class SlashMarkovCommand extends SlashCommand {
+	constructor(creator: SlashCreator) {
+		super(creator, {
+			name: "mk",
+			description: "Funny text generation based off the gmod and discord chats."
+		});
+		this.filePath = __filename;
 	}
 }
