@@ -74,7 +74,7 @@ export default class GameServer {
 		});
 
 		this.connection.on("close", (code, desc) => {
-			this.discord.kill();
+			this.discord.destroy();
 			console.log(`'${this.config.name}' Game Server disconnected - [${code}] ${desc}`);
 		});
 

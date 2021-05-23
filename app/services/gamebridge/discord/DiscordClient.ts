@@ -1,42 +1,43 @@
 import { ChatPayload } from "../payloads";
-import { CommandClientOptions, ShardClient } from "detritus-client";
-import BaseClient from "@/app/services/discord/BaseClient";
+import Discord from "discord.js";
 import GameServer from "../GameServer";
+import config from "@/discord.json";
 
-export default class DiscordClient extends BaseClient {
-	client: ShardClient;
+export default class DiscordClient extends Discord.Client {
 	gameServer: GameServer;
 
-	constructor(gameServer: GameServer, options?: CommandClientOptions) {
-		super(gameServer.config.discordToken, options);
+	constructor(gameServer: GameServer, options?: Discord.ClientOptions) {
+		super(options);
 
 		this.gameServer = gameServer;
 
-		this.client.on("messageCreate", ctx => {
-			if (ctx.message.channelId != this.gameServer.bridge.config.relayChannelId) return;
-			if (ctx.message.author.bot || !ctx.message.author.client) return;
+		this.on("message", ctx => {
+			if (ctx.channel.id != this.gameServer.bridge.config.relayChannelId) return;
+			if (ctx.author.bot || !ctx.author.client) return;
 
-			let content = ctx.message.convertContent({
-				guildSpecific: true,
-			});
+			let content = ctx.content;
 			content = content.replace(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
 				const extension = !!animated ? "gif" : "png";
 				return `https://media.discordapp.net/emojis/${id}.${extension}?v=1&size=64 `;
 			});
-			for (const [, attachment] of ctx.message.attachments) {
+			for (const [, attachment] of ctx.attachments) {
 				content += "\n" + attachment.url;
 			}
 
 			ChatPayload.send(
 				{
 					user: {
-						nick: ctx.message.member.name,
-						color: ctx.message.member.color,
+						nick: ctx.member.nickname,
+						color: ctx.member.displayColor,
 					},
 					content,
 				},
 				this.gameServer
 			);
 		});
+	}
+
+	public run(): void {
+		this.login(config.token);
 	}
 }

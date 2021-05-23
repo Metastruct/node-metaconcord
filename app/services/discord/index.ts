@@ -2,7 +2,6 @@ import { Container } from "@/app/Container";
 import { GatewayServer, SlashCommand, SlashCreator } from "slash-create";
 import { Service } from "@/app/services";
 import { SlashMarkovCommand } from "./commands/MarkovCommand";
-import { SlashMuteCommand } from "./commands/mute/MuteCommand";
 import { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
 import { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
 import Discord, { WSEventType } from "discord.js";
@@ -44,7 +43,7 @@ export class DiscordBot extends Service {
 			const cmds: Array<SlashCommand> = [
 				new SlashMarkovCommand(container, creator),
 				new SlashWhyMuteCommand(this, creator),
-				new SlashMuteCommand(creator),
+				//new SlashMuteCommand(creator),
 				new SlashUnmuteCommand(this, creator),
 			];
 
