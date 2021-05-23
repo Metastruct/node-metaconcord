@@ -1,7 +1,7 @@
 import { Container } from "@/app/Container";
+import { ExpressServer, SlashCreator } from "slash-create";
 import { Service } from "@/app/services";
 import { ShardClient } from "detritus-client";
-import { ExpressServer, FastifyServer, SlashCreator } from "slash-create";
 import BaseClient from "./BaseClient";
 import commands from "./commands";
 import config from "@/discord.json";
@@ -39,7 +39,11 @@ export class DiscordBot extends Service {
 			});
 
 			creator
-				.withServer(new ExpressServer(container.getService("WebApp").app, { alreadyListening: true }))
+				.withServer(
+					new ExpressServer(container.getService("WebApp").app, {
+						alreadyListening: true,
+					})
+				)
 				.registerCommandsIn(path.join(__dirname, "commands"))
 				.syncCommands();
 		});
