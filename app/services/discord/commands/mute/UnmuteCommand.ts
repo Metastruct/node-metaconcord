@@ -1,6 +1,5 @@
 import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "../..";
-import { onBeforeRun } from "./MuteCommand";
 
 export class SlashUnmuteCommand extends SlashCommand {
 	private bot: DiscordBot;
@@ -24,7 +23,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 		this.bot = bot;
 	}
 
-	onBeforeRun = onBeforeRun;
+	//onBeforeRun = onBeforeRun;
 
 	async run(ctx: CommandContext): Promise<string> {
 		const userId = ctx.options.user.toString();
@@ -37,9 +36,15 @@ export class SlashUnmuteCommand extends SlashCommand {
 		delete muted[userId];
 		await data.save();
 
-		const member = await this.bot.discord.rest.fetchGuildMember(config.guildId, userId);
-		await member.removeRole(config.modules.mute.roleId);
+		const guild = await this.bot.discord.guilds.resolve(ctx.guildID)?.fetch();
+		if (guild) {
+			const member = await guild.members.resolve(userId)?.fetch();
+			if (!member) return "invalid user";
 
-		return `${ctx.user.mention}, user ${member.mention} has been unmuted.`;
+			await member.roles.remove(config.modules.mute.roleId);
+			return `${ctx.user.mention}, user <@${member.id}> has been unmuted.`;
+		} else {
+			return "not in a guild";
+		}
 	}
 }

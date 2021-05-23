@@ -6,7 +6,7 @@ import { Message } from "detritus-client/lib/structures";
 import { SlashCommand, SlashCreator } from "slash-create";
 import moment from "moment";
 
-const unitSecondsMap = {
+/*const unitSecondsMap = {
 	second: 1,
 	minute: 60,
 	hour: 60 * 60,
@@ -192,7 +192,7 @@ export default class MuteCommand extends BaseCommand {
 		mutedChannel.createMessage(content);
 		ctx.message.delete();
 	}
-}
+}*/
 
 export class SlashMuteCommand extends SlashCommand {
 	constructor(creator: SlashCreator) {
