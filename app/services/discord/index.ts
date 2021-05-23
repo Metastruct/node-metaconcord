@@ -19,11 +19,11 @@ export class DiscordBot extends Service {
 	constructor(container: Container) {
 		super(container);
 
-		this.discord.add(MarkovCommand);
-		this.discord.add(WhyMuteCommand);
-		this.discord.add(MuteCommand);
-		this.discord.add(UnmuteCommand);
-		this.discord.add(HelpCommand);
+		this.discord.add(new MarkovCommand(this));
+		this.discord.add(new WhyMuteCommand(this));
+		this.discord.add(new MuteCommand(this));
+		this.discord.add(new UnmuteCommand(this));
+		this.discord.add(new HelpCommand(this));
 
 		this.discord.run().then((client: ShardClient) => {
 			console.log(`'${client.user.name}' Discord Bot has logged in`);
@@ -53,11 +53,11 @@ export class DiscordBot extends Service {
 					})
 				)
 				.registerCommands([
-					SlashMarkovCommand,
-					SlashWhyMuteCommand,
-					SlashMuteCommand,
-					SlashUnmuteCommand,
-					SlashHelpCommand,
+					new SlashMarkovCommand(creator),
+					new SlashWhyMuteCommand(creator),
+					new SlashMuteCommand(creator),
+					new SlashUnmuteCommand(creator),
+					new SlashHelpCommand(creator),
 				])
 				.syncCommands();
 		});
