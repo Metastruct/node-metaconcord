@@ -842,7 +842,7 @@ color-name@~1.1.4:
   resolved "https://registry.yarnpkg.com/color-name/-/color-name-1.1.4.tgz#c2a09a87acbde69543de6f63fa3995c826c536a2"
   integrity sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==
 
-combined-stream@^1.0.6, combined-stream@~1.0.6:
+combined-stream@^1.0.6, combined-stream@^1.0.8, combined-stream@~1.0.6:
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/combined-stream/-/combined-stream-1.0.8.tgz#c3d45a8b34fd730631a110a8a2520682b31d5a7f"
   integrity sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==
@@ -1058,40 +1058,43 @@ destroy@~1.0.4:
   resolved "https://registry.yarnpkg.com/destroy/-/destroy-1.0.4.tgz#978857442c44749e4206613e37946205826abd80"
   integrity sha1-l4hXRCxEdJ5CBmE+N5RiBYJqvYA=
 
-detritus-client-rest@^0.7.1:
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/detritus-client-rest/-/detritus-client-rest-0.7.1.tgz#c40062fc1ce5753c97fa437ba39afa24ec50c49f"
-  integrity sha512-+eCcKsXNcBWCzPdvdpob2PeTb4BcIxRnh6/RFQE87guCMfSux8fi1rDNPAGItpGKZ9JmQfDoOPLlATHlTA9yIQ==
+detritus-client-rest@^0.9.3:
+  version "0.9.4"
+  resolved "https://registry.yarnpkg.com/detritus-client-rest/-/detritus-client-rest-0.9.4.tgz#7bc9c04017e71061e75416178331c60e9ea591eb"
+  integrity sha512-M1BPpj/6pXOGx976KbqO9nhDzJWQ37B9RVoCb0W36wO4oIoZobASPJrcZh5VL/hlQN/poFJGQrGm8+WP6KGKlQ==
   dependencies:
-    detritus-rest "^0.4.0"
-    detritus-utils "^0.2.6"
+    detritus-rest "^0.7.0"
+    detritus-utils "^0.4.0"
 
-detritus-client-socket@^0.5.1:
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/detritus-client-socket/-/detritus-client-socket-0.5.1.tgz#c58431627766f738c3158331447df829e9447dfe"
-  integrity sha512-cYvobhp69vrnuwYTrKcI1MjBCLEHiScRMaT5zjWGiQYWjVFeKXTTHUkWsvfdXITCyFxy25NPH0cJXuhaJ+pz4A==
+detritus-client-socket@^0.7.2:
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/detritus-client-socket/-/detritus-client-socket-0.7.2.tgz#6a14120240b80da738563968df3ad87181db0c9c"
+  integrity sha512-5302Rr/e+vRcE4ZvmgYCNsBIXkhZPlhLbl7p8YPK+bjvnLgXX0E+sv0SIvM4bRqNXIlDjXjnpMHgSlrTAqKKQQ==
   dependencies:
-    detritus-utils "^0.2.6"
-    ws "^7.3.0"
+    detritus-utils "^0.4.0"
+    ws "^7.4.2"
 
-detritus-client@^0.10.6:
-  version "0.10.6"
-  resolved "https://registry.yarnpkg.com/detritus-client/-/detritus-client-0.10.6.tgz#e0448b0c1267afdde9ff0da39677fd90a60e3040"
-  integrity sha512-VRdjrbyOefkrbyXFuxEvwJG6iAL1iVNl9KoTSWIRaHgXgnzeQIlkxcpJaiSqiQo+SGOubw6ltKn1teeBnKeSAQ==
+detritus-client@^0.14.3:
+  version "0.14.3"
+  resolved "https://registry.yarnpkg.com/detritus-client/-/detritus-client-0.14.3.tgz#fb831d40fb87810f6d36b14b56e9d000d609de70"
+  integrity sha512-4f8H4WsCV/fp6kyrNhOaoV/Slperx15t2/Ip+34LzbbfTmJskXf+s5w85KRpucyn1xHM/FHZU31WZ9IXKjONdw==
   dependencies:
-    detritus-client-rest "^0.7.1"
-    detritus-client-socket "^0.5.1"
-    detritus-utils "^0.2.6"
+    detritus-client-rest "^0.9.3"
+    detritus-client-socket "^0.7.2"
+    detritus-utils "^0.4.0"
 
-detritus-rest@^0.4.0:
+detritus-rest@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/detritus-rest/-/detritus-rest-0.7.0.tgz#15d7a98c7038935de7ba2a88eeed83aba1c88ed7"
+  integrity sha512-T5FNXpyv5F69ZXEz6z8mWo5yiz7Mhrg+HQsZumih/uDeqf3+1AvZgNI4XLscG1D56F0o5DSyXkoOxDgd2oeTgA==
+  dependencies:
+    form-data "^3.0.0"
+    node-fetch "^2.6.1"
+
+detritus-utils@^0.4.0:
   version "0.4.0"
-  resolved "https://registry.yarnpkg.com/detritus-rest/-/detritus-rest-0.4.0.tgz#84cfe93e770b4044f8683ed584d312e7362b2d6a"
-  integrity sha512-zJqmHgzjcmNvOOyJv2+YgT664KNIockQPiVrfYWhWayB1FsV92xxgpGi6a5osmUFyal6fGK+bRAwVW6Wj/u36g==
-
-detritus-utils@^0.2.6:
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/detritus-utils/-/detritus-utils-0.2.6.tgz#9249850d769d8572de43690a111899d6c3961f6c"
-  integrity sha512-cjeZjmIPew0h4ZP+A9aGizGCNrUyYhSx4FkQXGa3bJ5dNunChSqzUR8a5c2Gq6PIerWldTbh9976WxMw3m6Ejw==
+  resolved "https://registry.yarnpkg.com/detritus-utils/-/detritus-utils-0.4.0.tgz#42c01e029bd716c5be30a82ee4c621136f64ef35"
+  integrity sha512-XO9crk1eCOecajzOg4WMsvcgXV/3GAltV0nt+kXXmglwcKyh/5DpQ7jmQ/2HycEN0dGBdgLCLPzYMxrWPN9gpw==
 
 devtools-protocol@0.0.818844:
   version "0.0.818844"
@@ -1777,6 +1780,15 @@ forever-agent@~0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/forever-agent/-/forever-agent-0.6.1.tgz#fbc71f0c41adeb37f96c577ad1ed42d8fdacca91"
   integrity sha1-+8cfDEGt6zf5bFd60e1C2P2sypE=
+
+form-data@^3.0.0:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/form-data/-/form-data-3.0.1.tgz#ebd53791b78356a99af9a300d4282c4d5eb9755f"
+  integrity sha512-RHkBKtLWUVwd7SqRIvCZMEvAMoGUp0XU+seQiZejj0COz3RI3hWP4sCv3gZWWLjJTd7rGwcsF5eKZGii0r/hbg==
+  dependencies:
+    asynckit "^0.4.0"
+    combined-stream "^1.0.8"
+    mime-types "^2.1.12"
 
 form-data@~2.3.2:
   version "2.3.3"
@@ -4541,7 +4553,7 @@ wrappy@1:
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
   integrity sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
 
-ws@^7.2.3, ws@^7.3.0:
+ws@^7.2.3, ws@^7.4.2:
   version "7.4.5"
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.5.tgz#a484dd851e9beb6fdb420027e3885e8ce48986c1"
   integrity sha512-xzyu3hFvomRfXKH8vOFMU3OguG6oOvhXMo3xsGy3xWExqaM2dxBbVxuD99O7m3ZUFMvvscsZDqxfgMaRr/Nr1g==
