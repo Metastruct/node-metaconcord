@@ -14,6 +14,10 @@ export class MarkovCommand extends BaseCommand {
 	}
 
 	async run(ctx: Command.Context): Promise<void> {
+		if (ctx.canDelete) {
+			ctx.message.delete();
+		}
+
 		const content: string = this.bot.container.getService("Markov").generate();
 		if (ctx.canReply) {
 			ctx.reply(content);

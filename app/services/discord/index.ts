@@ -5,6 +5,7 @@ import BaseClient from "./BaseClient";
 import commands from "./commands";
 import config from "@/discord.json";
 
+const META_GUILD_ID = "164734812668559360";
 export class DiscordBot extends Service {
 	name = "DiscordBot";
 	config = config;
@@ -28,6 +29,15 @@ export class DiscordBot extends Service {
 				status: "online",
 			};
 			client.gateway.setPresence(status);
+		});
+
+		this.discord.client.on("messageCreate", ev => {
+			const author = ev.message.author;
+			if (ev.message.guildId !== META_GUILD_ID || author.bot || author.isWebhook) return;
+
+			const content = ev.message.content;
+			if (this.container.getService("Motd").isValidMsg(content))
+				this.container.getService("Markov").addLine(content);
 		});
 	}
 }
