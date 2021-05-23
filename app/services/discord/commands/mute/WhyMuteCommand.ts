@@ -1,32 +1,41 @@
-import { BaseCommand } from "..";
-import { Command } from "detritus-client";
-import { DiscordBot } from "../..";
+import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
+import { DiscordBot } from "@/app/services";
 import { onBeforeRun } from "./MuteCommand";
+import config from "@/discord.json";
 import moment from "moment";
-import { SlashCommand, SlashCreator } from "slash-create";
+export class SlashWhyMuteCommand extends SlashCommand {
+	private bot: DiscordBot;
 
-export default class WhyMuteCommand extends BaseCommand {
-	constructor(bot: DiscordBot) {
-		super(bot, {
+	constructor(bot: DiscordBot, creator: SlashCreator) {
+		super(creator, {
 			name: "whymute",
-			label: "userId",
-			disableDm: true,
-			metadata: {
-				help:
-					"Prints the reason of a member's muting. You can omit the argument to check your own details, if any.",
-				usage: ["!whymute <Mention?/UserID?>", `#MENTION whymute <Mention?/UserID?>`],
-			},
+			description:
+				"Prints the reason of a member's muting. You can omit the argument to check your own details, if any.",
+			options: [
+				{
+					type: CommandOptionType.STRING,
+					name: "userId",
+					description: "The discord id for the user",
+				},
+			],
 		});
+
+		this.filePath = __filename;
+		this.bot = bot;
 	}
 
 	onBeforeRun = onBeforeRun;
 
-	async run(ctx: Command.Context, { userId }: Command.ParsedArgs): Promise<void> {
-		const { muted } = this.data;
+	async run(ctx: CommandContext): Promise<string> {
+		const userId = ctx.options.userId.toString();
+		const { muted } = this.bot.container.getService("Data");
 		if (muted && muted[userId]) {
-			const { until, reason, muter } = this.data.muted[userId];
-			const mutedMember = await ctx.rest.fetchGuildMember(ctx.guildId, userId);
-			const muterMember = await ctx.rest.fetchGuildMember(ctx.guildId, muter);
+			const { until, reason, muter } = muted[userId];
+			const mutedMember = await this.bot.discord.rest.fetchGuildMember(
+				config.guildId,
+				userId
+			);
+			const muterMember = await this.bot.discord.rest.fetchGuildMember(config.guildId, muter);
 
 			const content =
 				`${ctx.user.mention}, ` +
@@ -39,22 +48,7 @@ export default class WhyMuteCommand extends BaseCommand {
 				(muterMember ? ` by **${muterMember.toString()}** (\`${muterMember.id}\`)` : "") +
 				(reason ? ` with reason:\n\n${reason}` : " without a reason") +
 				`.`;
-			if (ctx.canReply) {
-				ctx.reply(content);
-			} else {
-				ctx.user.createMessage(content);
-			}
-			ctx.message.delete();
+			return content;
 		}
-	}
-}
-
-export class SlashWhyMuteCommand extends SlashCommand {
-	constructor(creator: SlashCreator) {
-		super(creator, {
-			name: "whymute",
-			description: "Prints the reason of a member's muting. You can omit the argument to check your own details, if any.",
-		});
-		this.filePath = __filename;
 	}
 }
