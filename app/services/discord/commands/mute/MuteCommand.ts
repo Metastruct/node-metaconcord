@@ -3,8 +3,8 @@ import { BaseCommand } from "..";
 import { Command } from "detritus-client";
 import { DiscordBot } from "../..";
 import { Message } from "detritus-client/lib/structures";
-import moment from "moment";
 import { SlashCommand, SlashCreator } from "slash-create";
+import moment from "moment";
 
 const unitSecondsMap = {
 	second: 1,
@@ -198,9 +198,7 @@ export class SlashMuteCommand extends SlashCommand {
 	constructor(creator: SlashCreator) {
 		super(creator, {
 			name: "mute",
-			description: "Mutes a member for an optional reason and amount of time.\n" +
-			"The `-for` argument is optional and can be omitted to specify an indeterminate period of time for which the person will be affected.\n" +
-			"The syntax for it is also quite lenient...",
+			description: "Mutes a member.",
 		});
 		this.filePath = __filename;
 	}
