@@ -26,11 +26,10 @@ export class DiscordBot extends Service {
 	constructor(container: Container) {
 		super(container);
 
-		async () => {
+		(async () => {
 			this.discord.add(new MuteCommand(this));
 			const client = (await this.discord.run()) as ShardClient;
 			console.log(`'${client.user.name}' Discord Bot has logged in`);
-			this.discord.client = client;
 
 			client.gateway.setPresence({
 				activity: {
@@ -79,7 +78,7 @@ export class DiscordBot extends Service {
 			}
 
 			creator.syncCommands();
-		};
+		})();
 
 		this.discord.client.on("messageCreate", ev => {
 			const author = ev.message.author;
