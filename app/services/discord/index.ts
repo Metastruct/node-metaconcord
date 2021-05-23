@@ -1,37 +1,27 @@
-import {
-	CommandData,
-	CommandMember,
-	GatewayServer,
-	GuildInteractionRequestData,
-	InteractionType,
-	Member,
-	SlashCommand,
-	SlashCreator,
-} from "slash-create";
 import { Container } from "@/app/Container";
+import { GatewayServer, SlashCommand, SlashCreator } from "slash-create";
 import { Service } from "@/app/services";
-import { ShardClient } from "detritus-client";
 import { SlashMarkovCommand } from "./commands/MarkovCommand";
+import { SlashMuteCommand } from "./commands/mute/MuteCommand";
 import { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
 import { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
-import BaseClient from "./BaseClient";
-import MuteCommand, { SlashMuteCommand } from "./commands/mute/MuteCommand";
+import Discord, { WSEventType } from "discord.js";
 import config from "@/discord.json";
 
 export class DiscordBot extends Service {
 	name = "DiscordBot";
 	config = config;
-	discord: BaseClient = new BaseClient(config.token, { prefix: "/" });
+	discord: Discord.Client = new Discord.Client();
 
 	constructor(container: Container) {
 		super(container);
 
 		(async () => {
-			this.discord.add(new MuteCommand(this));
-			const client = (await this.discord.run()) as ShardClient;
-			console.log(`'${client.user.name}' Discord Bot has logged in`);
+			//this.discord.add(new MuteCommand(this));
+			await this.discord.login(config.token);
+			console.log(`'${this.discord.user.username}' Discord Bot has logged in`);
 
-			client.gateway.setPresence({
+			this.discord.user.setPresence({
 				activity: {
 					name: `!help`,
 					type: 2,
@@ -46,21 +36,9 @@ export class DiscordBot extends Service {
 			});
 
 			creator.withServer(
-				new GatewayServer(handler => {
-					client.on("interactionCreate", ev => {
-						const member: unknown = new Member(ev.member.toJSON(), creator);
-						handler({
-							channel_id: ev.channelId,
-							data: ev.data as unknown as CommandData,
-							guild_id: ev.guildId,
-							id: ev.id,
-							member: member as CommandMember,
-							token: ev.token,
-							type: ev.type as unknown as InteractionType,
-							version: ev.version as 1,
-						} as GuildInteractionRequestData);
-					});
-				})
+				new GatewayServer(handler =>
+					this.discord.ws.on("INTERACTION_CREATE" as WSEventType, handler)
+				)
 			);
 
 			const cmds: Array<SlashCommand> = [
@@ -80,7 +58,7 @@ export class DiscordBot extends Service {
 			creator.syncCommands();
 		})();
 
-		this.discord.client.on("messageCreate", ev => {
+		this.discord.on("messageCreate", ev => {
 			const author = ev.message.author;
 			if (ev.message.guildId !== config.guildId || author.bot || author.isWebhook) return;
 
