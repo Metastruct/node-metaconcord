@@ -43,7 +43,10 @@ export class Twitter extends Service {
 
 	private initializeFollowerStream(): void {
 		this.followerStream?.stop(); // just in case it already exists
-		this.followerStream = this.twit.stream("statuses/filter", { follow: this.followerIds });
+		this.followerStream = this.twit.stream("statuses/filter", {
+			follow: this.followerIds.join(","),
+		});
+
 		this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
 			const mentions = data.entities.user_mentions.map(mention => mention.id_str);
 			const isMentioned = mentions.includes(config.id);
