@@ -1,4 +1,4 @@
-import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
+import { CommandContext, CommandOptionType, SlashCommand, SlashCreator, User } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { onBeforeRun } from "./MuteCommand";
 import config from "@/discord.json";
@@ -13,9 +13,10 @@ export class SlashWhyMuteCommand extends SlashCommand {
 				"Prints the reason of a member's muting. You can omit the argument to check your own details, if any.",
 			options: [
 				{
-					type: CommandOptionType.STRING,
-					name: "userid",
-					description: "The discord id for the user",
+					type: CommandOptionType.USER,
+					name: "user",
+					description: "The discord user",
+					required: true,
 				},
 			],
 		});
@@ -27,7 +28,7 @@ export class SlashWhyMuteCommand extends SlashCommand {
 	onBeforeRun = onBeforeRun;
 
 	async run(ctx: CommandContext): Promise<string> {
-		const userId = ctx.options.userid.toString();
+		const userId = ctx.options.user.toString();
 		const { muted } = this.bot.container.getService("Data");
 		if (muted && muted[userId]) {
 			const { until, reason, muter } = muted[userId];
