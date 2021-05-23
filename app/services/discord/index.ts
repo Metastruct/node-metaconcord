@@ -40,12 +40,7 @@ export class DiscordBot extends Service {
 
 			creator.withServer(
 				new GatewayServer(handler => {
-					client.gateway.on("packet", packet => {
-						if (packet.t === "APPLICATION_COMMAND") {
-							const data: any = JSON.parse(packet.d);
-							handler(data);
-						}
-					});
+					client.on("interactionCreate", ev => handler(ev));
 				})
 			);
 
