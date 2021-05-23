@@ -12,9 +12,10 @@ export class SlashUnmuteCommand extends SlashCommand {
 				"Prints the reason of a member's muting. You can omit the argument to check your own details, if any.",
 			options: [
 				{
-					type: CommandOptionType.STRING,
-					name: "userid",
-					description: "The discord id for the user",
+					type: CommandOptionType.USER,
+					name: "user",
+					description: "The discord user to unmute",
+					required: true,
 				},
 			],
 		});
@@ -26,7 +27,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 	onBeforeRun = onBeforeRun;
 
 	async run(ctx: CommandContext): Promise<string> {
-		const userId = ctx.options.userid.toString();
+		const userId = ctx.options.user.toString();
 		const data = this.bot.container.getService("Data");
 
 		const { config } = this.bot;
