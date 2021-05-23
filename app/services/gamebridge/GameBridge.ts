@@ -1,4 +1,3 @@
-import "@/extensions/websocket";
 import * as payloads from "./payloads";
 import { Container } from "@/app/Container";
 import { GameServerConfig } from "./GameServer";

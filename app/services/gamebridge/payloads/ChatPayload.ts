@@ -1,4 +1,3 @@
-import "@/extensions/discord-whook";
 import * as requestSchema from "./structures/ChatRequest.json";
 import * as responseSchema from "./structures/ChatResponse.json";
 import { ChatRequest, ChatResponse } from "./structures";

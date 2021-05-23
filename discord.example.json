@@ -3,6 +3,7 @@
 	"applicationId": "",
 	"publicKey": "",
 	"guildId": "",
+	"developerRoleId": "",
 	"notificationsChannelId": "",
 	"mutedChannelId": "",
 	"modules": {

@@ -28,19 +28,23 @@ export default (webApp: WebApp): void => {
 			image: !!discordBot,
 		});
 		if (discordBot) {
-			if (!server.playerListImage) {
-				server.playerListImage = (await nodeHtmlToImage({
-					html,
-					transparent: true,
-					selector: "main",
-				})) as Buffer;
-			}
+			try {
+				if (!server.playerListImage) {
+					server.playerListImage = (await nodeHtmlToImage({
+						html,
+						transparent: true,
+						selector: "main",
+					})) as Buffer;
+				}
 
-			res.writeHead(200, {
-				"content-type": "image/png",
-				"content-length": server.playerListImage.length,
-			});
-			res.end(server.playerListImage);
+				res.writeHead(200, {
+					"content-type": "image/png",
+					"content-length": server.playerListImage.length,
+				});
+				res.end(server.playerListImage);
+			} catch (err) {
+				res.send(err);
+			}
 		} else {
 			res.end(html);
 		}
