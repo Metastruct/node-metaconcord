@@ -1,5 +1,5 @@
 import { Container } from "@/app/Container";
-import { GatewayServer, SlashCreator } from "slash-create";
+import { GatewayServer, SlashCommand, SlashCreator } from "slash-create";
 import { Service } from "@/app/services";
 import { ShardClient } from "detritus-client";
 import { SlashMarkovCommand } from "./commands/MarkovCommand";
@@ -38,24 +38,29 @@ export class DiscordBot extends Service {
 				token: config.token,
 			});
 
-			creator
-				.withServer(
-					new GatewayServer(handler => {
-						client.gateway.on("packet", packet => {
-							if (packet.t === "APPLICATION_COMMAND") {
-								const data: any = JSON.parse(packet.d);
-								handler(data);
-							}
-						});
-					})
-				)
-				.registerCommands([
-					new SlashMarkovCommand(container, creator),
-					new SlashWhyMuteCommand(this, creator),
-					new SlashMuteCommand(creator),
-					new SlashUnmuteCommand(this, creator),
-				])
-				.syncCommands();
+			creator.withServer(
+				new GatewayServer(handler => {
+					client.gateway.on("packet", packet => {
+						if (packet.t === "APPLICATION_COMMAND") {
+							const data: any = JSON.parse(packet.d);
+							handler(data);
+						}
+					});
+				})
+			);
+
+			const cmds: Array<SlashCommand> = [
+				new SlashMarkovCommand(container, creator),
+				new SlashWhyMuteCommand(this, creator),
+				new SlashMuteCommand(creator),
+				new SlashUnmuteCommand(this, creator),
+			];
+
+			for (const cmd of cmds) {
+				creator.unregisterCommand(cmd);
+			}
+
+			creator.registerCommands(cmds).syncCommands();
 		});
 
 		this.discord.client.on("messageCreate", ev => {
