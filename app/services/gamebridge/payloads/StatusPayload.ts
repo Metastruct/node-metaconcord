@@ -114,9 +114,9 @@ export default class StatusPayload extends Payload {
 			if (!channel) return;
 
 			const messages = await channel.messages.fetch();
-			const message = messages.filter(
-				(msg: Discord.Message) => msg.author.id == discordClient.user.id
-			)[0];
+			const message = messages
+				.filter((msg: Discord.Message) => msg.author.id == discordClient.user.id)
+				.first();
 			if (message) {
 				message.edit({ embed });
 			} else {
