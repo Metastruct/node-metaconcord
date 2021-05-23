@@ -56,11 +56,7 @@ export class DiscordBot extends Service {
 				new SlashUnmuteCommand(this, creator),
 			];
 
-			for (const cmd of cmds) {
-				creator.unregisterCommand(cmd);
-			}
-
-			creator.registerCommands(cmds).syncCommands();
+			creator.registerCommands(cmds, true).syncCommands();
 		});
 
 		this.discord.client.on("messageCreate", ev => {
