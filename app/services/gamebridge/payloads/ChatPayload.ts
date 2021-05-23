@@ -27,12 +27,15 @@ export default class ChatPayload extends Payload {
 
 		const matches = content.match(/@(\S*)/);
 		const cachedMembers = new Discord.Collection<string, Discord.GuildMember>();
-		for (const match of matches) {
-			const members = await guild.members.fetch({ query: match, limit: 1 });
-			const foundMember = members.first();
-			if (!foundMember) continue;
 
-			cachedMembers.set(match, foundMember);
+		if (matches) {
+			for (const match of matches) {
+				const members = await guild.members.fetch({ query: match, limit: 1 });
+				const foundMember = members.first();
+				if (!foundMember) continue;
+
+				cachedMembers.set(match, foundMember);
+			}
 		}
 
 		content = content.replace(/@(\S*)/, (match, name) => {
