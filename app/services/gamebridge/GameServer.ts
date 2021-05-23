@@ -32,7 +32,7 @@ export default class GameServer {
 		this.bridge = bridge;
 		this.discord = new DiscordClient(this);
 
-		this.discord.run();
+		this.discord.run(this.config.discordToken);
 
 		this.connection.on("message", async ({ utf8Data }) => {
 			// if (received.utf8Data == "") console.log("Heartbeat");

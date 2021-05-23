@@ -1,7 +1,6 @@
 import { ChatPayload } from "../payloads";
 import Discord from "discord.js";
 import GameServer from "../GameServer";
-import config from "@/discord.json";
 
 export default class DiscordClient extends Discord.Client {
 	gameServer: GameServer;
@@ -37,7 +36,7 @@ export default class DiscordClient extends Discord.Client {
 		});
 	}
 
-	public run(): void {
-		this.login(config.token);
+	public run(token: string): void {
+		this.login(token);
 	}
 }
