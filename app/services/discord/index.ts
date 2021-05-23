@@ -26,20 +26,18 @@ export class DiscordBot extends Service {
 	constructor(container: Container) {
 		super(container);
 
-		this.discord.add(new MuteCommand(this));
-
-		this.discord.run().then((client: ShardClient) => {
+		async () => {
+			this.discord.add(new MuteCommand(this));
+			const client = (await this.discord.run()) as ShardClient;
 			console.log(`'${client.user.name}' Discord Bot has logged in`);
 
-			const status = {
+			client.gateway.setPresence({
 				activity: {
 					name: `!help`,
 					type: 2,
 				},
 				status: "online",
-			};
-
-			client.gateway.setPresence(status);
+			});
 
 			const creator = new SlashCreator({
 				applicationID: config.applicationId,
@@ -80,7 +78,7 @@ export class DiscordBot extends Service {
 			}
 
 			creator.syncCommands();
-		});
+		};
 
 		this.discord.client.on("messageCreate", ev => {
 			const author = ev.message.author;
