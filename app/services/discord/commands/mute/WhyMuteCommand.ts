@@ -14,7 +14,7 @@ export class SlashWhyMuteCommand extends SlashCommand {
 			options: [
 				{
 					type: CommandOptionType.STRING,
-					name: "userId",
+					name: "userid",
 					description: "The discord id for the user",
 				},
 			],
@@ -27,7 +27,7 @@ export class SlashWhyMuteCommand extends SlashCommand {
 	onBeforeRun = onBeforeRun;
 
 	async run(ctx: CommandContext): Promise<string> {
-		const userId = ctx.options.userId.toString();
+		const userId = ctx.options.userid.toString();
 		const { muted } = this.bot.container.getService("Data");
 		if (muted && muted[userId]) {
 			const { until, reason, muter } = muted[userId];
