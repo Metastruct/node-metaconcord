@@ -1,52 +1,44 @@
-import { BaseCommand } from "..";
-import { Command } from "detritus-client";
+import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "../..";
-import { Permissions } from "detritus-client/lib/constants";
 import { onBeforeRun } from "./MuteCommand";
-import { SlashCommand, SlashCreator } from "slash-create";
 
-export default class UnmuteCommand extends BaseCommand {
-	constructor(bot: DiscordBot) {
-		super(bot, {
-			name: "unmute",
-			label: "userId",
-			responseOptional: true,
-			disableDm: true,
-			metadata: {
-				help: "Unmutes a member.",
-				usage: ["!unmute <Mention/UserID>", `#MENTION unmute <Mention/UserID>`],
-			},
-			permissions: [Permissions.MANAGE_ROLES],
-			permissionsClient: [Permissions.MANAGE_ROLES],
+export class SlashUnmuteCommand extends SlashCommand {
+	private bot: DiscordBot;
+
+	constructor(bot: DiscordBot, creator: SlashCreator) {
+		super(creator, {
+			name: "whymute",
+			description:
+				"Prints the reason of a member's muting. You can omit the argument to check your own details, if any.",
+			options: [
+				{
+					type: CommandOptionType.STRING,
+					name: "userId",
+					description: "The discord id for the user",
+				},
+			],
 		});
+
+		this.filePath = __filename;
+		this.bot = bot;
 	}
 
 	onBeforeRun = onBeforeRun;
 
-	async run(ctx: Command.Context, { userId }: Command.ParsedArgs): Promise<void> {
+	async run(ctx: CommandContext): Promise<string> {
+		const userId = ctx.options.userId.toString();
+		const data = this.bot.container.getService("Data");
+
 		const { config } = this.bot;
-		let { muted } = this.data;
+		let { muted } = data;
 
-		if (!muted) muted = this.data.muted = {};
+		if (!muted) muted = data.muted = {};
 		delete muted[userId];
-		await this.data.save();
+		await data.save();
 
-		const member = await ctx.rest.fetchGuildMember(ctx.guildId, userId);
+		const member = await this.bot.discord.rest.fetchGuildMember(config.guildId, userId);
 		await member.removeRole(config.modules.mute.roleId);
 
-		const content = `${ctx.user.mention}, user ${member.mention} has been unmuted.`;
-		const mutedChannel = await ctx.rest.fetchChannel(config.mutedChannelId);
-		mutedChannel.createMessage(content);
-		ctx.message.delete();
-	}
-}
-
-export class SlashUnmuteCommand extends SlashCommand {
-	constructor(creator: SlashCreator) {
-		super(creator, {
-			name: "unmute",
-			description: "Unmutes a member.",
-		});
-		this.filePath = __filename;
+		return `${ctx.user.mention}, user ${member.mention} has been unmuted.`;
 	}
 }

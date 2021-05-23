@@ -1,13 +1,12 @@
 import { Container } from "@/app/Container";
 import { GatewayServer, SlashCreator } from "slash-create";
-import { HelpCommand, SlashHelpCommand } from "./commands/HelpCommand";
-import { MarkovCommand, SlashMarkovCommand } from "./commands/MarkovCommand";
 import { Service } from "@/app/services";
 import { ShardClient } from "detritus-client";
+import { SlashMarkovCommand } from "./commands/MarkovCommand";
+import { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
+import { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
 import BaseClient from "./BaseClient";
 import MuteCommand, { SlashMuteCommand } from "./commands/mute/MuteCommand";
-import UnmuteCommand, { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
-import WhyMuteCommand, { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
 import config from "@/discord.json";
 
 export class DiscordBot extends Service {
@@ -18,11 +17,7 @@ export class DiscordBot extends Service {
 	constructor(container: Container) {
 		super(container);
 
-		this.discord.add(new MarkovCommand(this));
-		this.discord.add(new WhyMuteCommand(this));
 		this.discord.add(new MuteCommand(this));
-		this.discord.add(new UnmuteCommand(this));
-		this.discord.add(new HelpCommand(this));
 
 		this.discord.run().then((client: ShardClient) => {
 			console.log(`'${client.user.name}' Discord Bot has logged in`);
@@ -55,11 +50,10 @@ export class DiscordBot extends Service {
 					})
 				)
 				.registerCommands([
-					new SlashMarkovCommand(creator),
-					new SlashWhyMuteCommand(creator),
+					new SlashMarkovCommand(container, creator),
+					new SlashWhyMuteCommand(this, creator),
 					new SlashMuteCommand(creator),
-					new SlashUnmuteCommand(creator),
-					new SlashHelpCommand(creator),
+					new SlashUnmuteCommand(this, creator),
 				])
 				.syncCommands();
 		});
