@@ -24,23 +24,24 @@ export default class ChatPayload extends Payload {
 
 		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
 
-		const matches = content.match(/@(\S*)/);
+		const matches = content.match(/@(\S*)/g);
 		const cachedMembers = new Discord.Collection<string, Discord.GuildMember>();
 
 		if (matches) {
 			for (const match of matches) {
-				const members = await guild.members.fetch({ query: match, limit: 1 });
+				const name = match.substr(1);
+				const members = await guild.members.fetch({ query: name, limit: 1 });
 				const foundMember = members.first();
 				if (!foundMember) continue;
 
-				cachedMembers.set(match, foundMember);
+				cachedMembers.set(name, foundMember);
 			}
-		}
 
-		content = content.replace(/@(\S*)/, (match, name) => {
-			if (cachedMembers.has(name)) return `<@!${cachedMembers[name].id}>`;
-			return match;
-		});
+			content = content.replace(/@(\S*)/, (match, name) => {
+				if (cachedMembers.has(name)) return `<@!${cachedMembers.get(name).id}>`;
+				return match;
+			});
+		}
 
 		const motd = bridge.container.getService("Motd");
 		if (motd.isValidMsg(content)) {
