@@ -12,7 +12,7 @@ export class SlashMarkovCommand extends SlashCommand {
 			options: [],
 			throttling: {
 				usages: 1,
-				duration: 5,
+				duration: 10,
 			},
 		});
 		this.filePath = __filename;
