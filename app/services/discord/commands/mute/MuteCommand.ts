@@ -125,7 +125,7 @@ export class SlashMuteCommand extends SlashCommand {
 							config.notificationsChannelId
 						)) as TextChannel;
 						notificationsChannel.send(
-							`${user.mention}, this role can only be managed with me. Sorry!\nYou can ask for \`!help\` in the chat for more information.`
+							`${user.mention}, this role can only be managed by me. Sorry!`
 						);
 
 						manualMuteReminderTimeouts.push(user.id);
