@@ -6,7 +6,9 @@ import config from "@/twitter.json";
 import jwt from "jsonwebtoken";
 import twit from "twit";
 
-const FOLLOWER_REFRESH_RATE = 600000;
+const FOLLOWER_REFRESH_RATE = 600000; // 10 mins
+const RATE_LIMIT_REFRESH_RATE = 7200000; // 2 hours
+const TWEET_COUNT_LIMIT = 100;
 export class Twitter extends Service {
 	name = "Twitter";
 	filter = new Filter();
@@ -18,11 +20,13 @@ export class Twitter extends Service {
 	});
 	followerIds: Array<string> = [];
 	followerStream: twit.Stream;
+	tweetCount = 0;
 
 	constructor(container: Container) {
 		super(container);
 		this.refreshFollowers();
-		setInterval(this.refreshFollowers.bind(this), FOLLOWER_REFRESH_RATE); // refresh every 10 mins
+		setInterval(this.refreshFollowers.bind(this), FOLLOWER_REFRESH_RATE);
+		setInterval(() => (this.tweetCount = 0), RATE_LIMIT_REFRESH_RATE);
 	}
 
 	private refreshFollowers(): void {
@@ -62,6 +66,8 @@ export class Twitter extends Service {
 	}
 
 	private replyMarkovToStatus(statusId: string): void {
+		if (this.tweetCount >= TWEET_COUNT_LIMIT) return;
+
 		let gen = this.container.getService("Markov").generate();
 		gen = this.filter.clean(gen);
 		this.twit.post("statuses/update", {
@@ -69,6 +75,7 @@ export class Twitter extends Service {
 			in_reply_to_status_id: statusId,
 			auto_populate_reply_metadata: true,
 		});
+		this.tweetCount++;
 	}
 
 	public async postStatus(status: string): Promise<void> {
