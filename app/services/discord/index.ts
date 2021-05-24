@@ -49,14 +49,13 @@ export class DiscordBot extends Service {
 		creator.syncCommands();
 
 		this.discord.login(config.token).then(async () => {
-			this.discord.user.setPresence({
-				activity: {
-					name: `/help`,
-					type: 2,
-				},
-				status: "online",
-			});
 			console.log(`'${this.discord.user.username}' Discord Bot has logged in`);
+			this.setStatus(`Crashing the source engine`);
+
+			setInterval(() => {
+				const newStatus = this.container.getService("Markov").generate();
+				this.setStatus(newStatus);
+			}, 1000 * 60 * 10); // change status every 10mins
 		});
 
 		this.discord.on("messageCreate", ev => {
@@ -66,6 +65,18 @@ export class DiscordBot extends Service {
 			const content = ev.message.content;
 			if (this.container.getService("Motd").isValidMsg(content))
 				this.container.getService("Markov").addLine(content);
+		});
+	}
+
+	private setStatus(status: string): void {
+		if (status.length > 127) status = status.substring(0, 120) + "...";
+
+		this.discord.user.setPresence({
+			activity: {
+				name: status.trim().substring(0, 100),
+				type: "CUSTOM_STATUS",
+			},
+			status: "online",
 		});
 	}
 }
