@@ -30,6 +30,7 @@ export default class ChatPayload extends Payload {
 		if (matches) {
 			for (const match of matches) {
 				const name = match.substr(1);
+				if (cachedMembers.has(name)) continue; // don't fetch if it's already cached
 				const members = await guild.members.fetch({ query: name, limit: 1 });
 				const foundMember = members.first();
 				if (!foundMember) continue;
