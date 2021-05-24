@@ -74,7 +74,7 @@ export class DiscordBot extends Service {
 		this.discord.user.setPresence({
 			activity: {
 				name: status.trim().substring(0, 100),
-				type: "CUSTOM_STATUS",
+				type: "PLAYING",
 			},
 			status: "online",
 		});
