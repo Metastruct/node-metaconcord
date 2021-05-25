@@ -79,7 +79,7 @@ export class DiscordBot extends Service {
 			if (!logChannel) return;
 
 			const embed = new Discord.MessageEmbed()
-				.setAuthor(msg.author)
+				.setAuthor(msg.author.mention, msg.author.avatarURL())
 				.setColor(DELETE_COLOR)
 				.addField("Channel", `<#${msg.channel.id}>`)
 				.addField("Message", msg.content.substring(0, EMBED_FIELD_LIMIT), true)
@@ -93,7 +93,7 @@ export class DiscordBot extends Service {
 			if (!logChannel) return;
 
 			const embed = new Discord.MessageEmbed()
-				.setAuthor(oldMsg.author)
+				.setAuthor(oldMsg.author.mention, oldMsg.author.avatarURL())
 				.setColor(EDIT_COLOR)
 				.addField("Channel", `<#${oldMsg.channel.id}>`, true)
 				.addField("New Message", newMsg.content.substring(0, EMBED_FIELD_LIMIT), true)
