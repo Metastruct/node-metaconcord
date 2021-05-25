@@ -5,8 +5,12 @@ import { SlashMarkovCommand } from "./commands/MarkovCommand";
 import { SlashMuteCommand } from "./commands/mute/MuteCommand";
 import { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
 import { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
-import Discord, { WSEventType } from "discord.js";
+import Discord from "discord.js";
 import config from "@/discord.json";
+
+const DELETE_COLOR: Discord.ColorResolvable = [255, 0, 0];
+const EDIT_COLOR: Discord.ColorResolvable = [220, 150, 0];
+const EMBED_FIELD_LIMIT = 1999;
 
 export class DiscordBot extends Service {
 	name = "DiscordBot";
@@ -34,7 +38,7 @@ export class DiscordBot extends Service {
 		// creator.on("ping", console.log);
 		creator.withServer(
 			new GatewayServer(handler =>
-				this.discord.ws.on("INTERACTION_CREATE" as WSEventType, handler)
+				this.discord.ws.on("INTERACTION_CREATE" as Discord.WSEventType, handler)
 			)
 		);
 		const cmds: Array<SlashCommand> = [
@@ -58,14 +62,54 @@ export class DiscordBot extends Service {
 			}, 1000 * 60 * 10); // change status every 10mins
 		});
 
-		this.discord.on("messageCreate", ev => {
-			const author = ev.message.author;
-			if (ev.message.guildId !== config.guildId || author.bot || author.isWebhook) return;
+		this.discord.on("message", ev => {
+			if (ev.author.bot || ev.guild?.id !== config.guildId) return;
 
-			const content = ev.message.content;
+			const chan = ev.channel as Discord.GuildChannel;
+			const perms = chan.permissionsFor(chan.guild.roles.everyone);
+			if (!perms.has("SEND_MESSAGES")) return; // dont get text from channels that are not "public"
+
+			const content = ev.content;
 			if (this.container.getService("Motd").isValidMsg(content))
 				this.container.getService("Markov").addLine(content);
 		});
+
+		this.discord.on("messageDelete", async msg => {
+			const logChannel = await this.getGuildTextChannel(config.logChannelId);
+			if (!logChannel) return;
+
+			const embed = new Discord.MessageEmbed()
+				.setAuthor(msg.author)
+				.setColor(DELETE_COLOR)
+				.addField("Channel", `<#${msg.channel.id}>`)
+				.addField("Message", msg.content.substring(0, EMBED_FIELD_LIMIT), true)
+				.setFooter("Message Deleted")
+				.setTimestamp(Date.now());
+			logChannel.send(embed);
+		});
+
+		this.discord.on("messageUpdate", async (oldMsg, newMsg) => {
+			const logChannel = await this.getGuildTextChannel(config.logChannelId);
+			if (!logChannel) return;
+
+			const embed = new Discord.MessageEmbed()
+				.setAuthor(oldMsg.author)
+				.setColor(EDIT_COLOR)
+				.addField("Channel", `<#${oldMsg.channel.id}>`, true)
+				.addField("New Message", newMsg.content.substring(0, EMBED_FIELD_LIMIT), true)
+				.addField("Old Message", oldMsg.content.substring(0, EMBED_FIELD_LIMIT), true)
+				.setFooter("Message Edited")
+				.setTimestamp(newMsg.editedTimestamp);
+			logChannel.send(embed);
+		});
+	}
+
+	private async getGuildTextChannel(channelId: string): Promise<Discord.TextChannel> {
+		const guild = await this.discord.guilds.resolve(config.guildId)?.fetch();
+		if (!guild) return;
+
+		const chan = (await guild.channels.resolve(channelId)?.fetch()) as Discord.TextChannel;
+		return chan;
 	}
 
 	private setStatus(status: string): void {
