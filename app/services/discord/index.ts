@@ -75,6 +75,8 @@ export class DiscordBot extends Service {
 		});
 
 		this.discord.on("messageDelete", async msg => {
+			if (msg.author.bot) return;
+
 			const logChannel = await this.getGuildTextChannel(config.logChannelId);
 			if (!logChannel) return;
 
@@ -90,6 +92,8 @@ export class DiscordBot extends Service {
 		});
 
 		this.discord.on("messageUpdate", async (oldMsg, newMsg) => {
+			if (oldMsg.author.bot) return;
+
 			const logChannel = await this.getGuildTextChannel(config.logChannelId);
 			if (!logChannel) return;
 
