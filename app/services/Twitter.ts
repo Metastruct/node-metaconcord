@@ -58,7 +58,8 @@ export class Twitter extends Service {
 			if (
 				isMentioned ||
 				data.in_reply_to_user_id_str === config.id ||
-				(!data.in_reply_to_status_id && Math.random() <= 0.1)
+				!data.in_reply_to_status_id ||
+				(!data.retweeted && Math.random() <= 0.1)
 			) {
 				this.replyMarkovToStatus(data.id_str);
 			}
