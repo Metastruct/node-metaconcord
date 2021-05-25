@@ -79,9 +79,10 @@ export class DiscordBot extends Service {
 			if (!logChannel) return;
 
 			const embed = new Discord.MessageEmbed()
-				.setAuthor(msg.author.mention, msg.author.avatarURL())
+				.setAuthor(msg.author.username, msg.author.avatarURL())
 				.setColor(DELETE_COLOR)
 				.addField("Channel", `<#${msg.channel.id}>`)
+				.addField("Mention", msg.author.mention)
 				.addField("Message", msg.content.substring(0, EMBED_FIELD_LIMIT), true)
 				.setFooter("Message Deleted")
 				.setTimestamp(Date.now());
@@ -93,9 +94,10 @@ export class DiscordBot extends Service {
 			if (!logChannel) return;
 
 			const embed = new Discord.MessageEmbed()
-				.setAuthor(oldMsg.author.mention, oldMsg.author.avatarURL())
+				.setAuthor(oldMsg.author.username, oldMsg.author.avatarURL())
 				.setColor(EDIT_COLOR)
-				.addField("Channel", `<#${oldMsg.channel.id}>`, true)
+				.addField("Channel", `<#${oldMsg.channel.id}>`)
+				.addField("Mention", oldMsg.author.mention)
 				.addField("New Message", newMsg.content.substring(0, EMBED_FIELD_LIMIT), true)
 				.addField("Old Message", oldMsg.content.substring(0, EMBED_FIELD_LIMIT), true)
 				.setFooter("Message Edited")
