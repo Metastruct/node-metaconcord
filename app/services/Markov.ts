@@ -27,7 +27,20 @@ export class MarkovService extends Service {
 		}
 	}
 
+	private sanitizeString(input: string): string {
+		if (!input) return "";
+
+		return input
+			.replace(/\(|\)|\[|\]|\@|\<|\>|\"|\{|\}|\\/g, "")
+			.replace(/-|\t|_|\n/g, " ")
+			.replace(/\s{2,}/g, " ")
+			.trim();
+	}
+
 	public addLine(line: string): void {
+		line = this.sanitizeString(line);
+		if (line.length <= 0) return;
+
 		this.generator.addData([line]);
 
 		fs.appendFile(MARKOV_DATA_PATH, line + EOL, err => {
