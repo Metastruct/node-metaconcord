@@ -1,6 +1,7 @@
 import {
 	ApplicationCommandOption,
 	ApplicationCommandPermissionType,
+	Command,
 	CommandContext,
 	CommandOptionType,
 	SlashCommand,
@@ -45,6 +46,27 @@ export class SlashGservCommand extends SlashCommand {
 				name: param[0],
 				description: param[1],
 				type: CommandOptionType.SUB_COMMAND,
+				options: [
+					{
+						name: "server",
+						description: "the server to run the command on",
+						type: CommandOptionType.INTEGER,
+						choices: [
+							{
+								name: "g1",
+								value: 1,
+							},
+							{
+								name: "g2",
+								value: 2,
+							},
+							{
+								name: "g3",
+								value: 3,
+							},
+						],
+					},
+				],
 			} as ApplicationCommandOption);
 		}
 	}
@@ -82,10 +104,16 @@ export class SlashGservCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
-		const param = Object.keys(ctx.options)[0];
-		const promises = config.servers.map(srvConfig =>
-			this.gserv(ctx, srvConfig.host, srvConfig.username, srvConfig.port, param)
-		);
+		const command = Object.keys(ctx.options)[0];
+		const server = (ctx.options[command] as any)?.server;
+
+		const promises = config.servers
+			.filter(
+				srvConfig => srvConfig.host.substr(1, 1) === server?.toString() || server == null
+			)
+			.map(srvConfig =>
+				this.gserv(ctx, srvConfig.host, srvConfig.username, srvConfig.port, command)
+			);
 
 		const results = await Promise.all(promises);
 		for (const result of results) {
