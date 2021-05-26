@@ -31,7 +31,7 @@ export class MarkovService extends Service {
 		if (!input) return "";
 
 		return input
-			.replace(/\(|\)|\[|\]|\@|\<|\>|\"|\{|\}|\\/g, "")
+			.replace(/\(|\)|\[|\]|\@|\<|\>|\"|\{|\}|\\|\,|\.|\;/g, "")
 			.replace(/-|\t|_|\n/g, " ")
 			.replace(/\s{2,}/g, " ")
 			.trim();
