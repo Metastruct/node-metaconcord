@@ -54,7 +54,7 @@ export class SlashGservCommand extends SlashCommand {
 		param?: string
 	): Promise<boolean> {
 		if (!param) param = "rehash";
-		if (VALID_GSERV_PARAMS[param]) return false;
+		if (!VALID_GSERV_PARAMS[param]) return false;
 
 		try {
 			const ssh = new NodeSSH();
