@@ -16,7 +16,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
 			name: "unmute",
-			description: "Prints the reason of a member's muting.",
+			description: "Unmutes an user.",
 			guildIDs: [bot.config.guildId],
 			defaultPermission: false,
 			permissions: {

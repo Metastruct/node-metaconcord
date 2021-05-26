@@ -9,13 +9,14 @@ export class SlashWhyMuteCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
 			name: "whymute",
-			description: "Prints the reason of a member's muting.",
+			description: "Prints the reason and duration for a muted user.",
 			guildIDs: [bot.config.guildId],
 			options: [
 				{
 					type: CommandOptionType.USER,
 					name: "user",
-					description: "The Discord user for which we want the reason of the mute",
+					description:
+						"The Discord user for which we want the reason/duration of the mute",
 					required: false,
 				},
 			],
