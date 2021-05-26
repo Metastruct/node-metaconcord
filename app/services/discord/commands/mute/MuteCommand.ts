@@ -61,7 +61,7 @@ export class SlashMuteCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
 			name: "mute",
-			description: "Mutes a member.",
+			description: "Mutes an user.",
 			guildIDs: [bot.config.guildId],
 			defaultPermission: false,
 			permissions: {
