@@ -9,7 +9,7 @@ import {
 import { DiscordBot } from "..";
 import { NodeSSH } from "node-ssh";
 import EphemeralResponse from ".";
-import config from "ssh.json";
+import config from "@/ssh.json";
 
 const VALID_GSERV_PARAMS: [string, string][] = [
 	["rehash", "rehashes the server"],
