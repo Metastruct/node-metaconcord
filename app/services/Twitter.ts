@@ -55,11 +55,17 @@ export class Twitter extends Service {
 		this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
 			const mentions = data.entities.user_mentions.map(mention => mention.id_str);
 			const isMentioned = mentions.includes(config.id);
-			if (
-				isMentioned ||
-				data.in_reply_to_user_id_str === config.id ||
-				(!data.in_reply_to_status_id && !data.retweeted && Math.random() <= 0.1)
-			) {
+			if (isMentioned || data.in_reply_to_user_id_str === config.id) {
+				this.replyMarkovToStatus(data.id_str);
+				return;
+			}
+
+			if (data.retweeted || data.in_reply_to_status_id) return;
+			if (data.is_quote_status || data.possibly_sensitive) return;
+
+			if (!data.user.protected) return; // don't reply to users that "protected"
+
+			if (Math.random() <= 0.1) {
 				this.replyMarkovToStatus(data.id_str);
 			}
 		});

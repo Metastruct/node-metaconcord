@@ -1,7 +1,6 @@
 import {
 	ApplicationCommandOption,
 	ApplicationCommandPermissionType,
-	Command,
 	CommandContext,
 	CommandOptionType,
 	SlashCommand,
