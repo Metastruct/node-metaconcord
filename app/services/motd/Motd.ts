@@ -12,7 +12,8 @@ export default class Motd extends Service {
 	constructor(container: Container) {
 		super(container);
 		this.messages = [];
-		schedule.scheduleJob("0 12 * * *", this.executeJob.bind(this));
+		schedule.scheduleJob("0 12 * * *", this.executeMessageJob.bind(this));
+		schedule.scheduleJob("0 20 * * *", this.executeImageJob.bind(this));
 	}
 
 	public pushMessage(msg: string): void {
@@ -34,7 +35,7 @@ export default class Motd extends Service {
 		return true;
 	}
 
-	private executeJob(): void {
+	private executeMessageJob(): void {
 		if (this.messages.length <= 0) return;
 
 		const msg: string = this.messages[Math.floor(Math.random() * this.messages.length)];
@@ -55,5 +56,34 @@ export default class Motd extends Service {
 			}
 		);
 		this.container.getService("Twitter").postStatus(msg);
+	}
+
+	private async executeImageJob(): Promise<void> {
+		const res = await axios.get(`https://api.imgur.com/3/album/${config.imgurAlbumId}/images`, {
+			headers: {
+				Authorization: `Client-ID ${config.imgurClientId}`,
+			},
+		});
+
+		if (res.status == 200) {
+			const urls = res.data.map((img: { link: string }) => img.link);
+			const url: string = urls[Math.floor(Math.random() * urls.length)];
+
+			axios.post(
+				config.webhook,
+				JSON.stringify({
+					content: url,
+					username: "Meta Construct",
+					avatar_url: "https://pbs.twimg.com/profile_images/1503242277/meta4_crop.png",
+				}),
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+				}
+			);
+
+			this.container.getService("Twitter").postStatus("Image of the day", url);
+		}
 	}
 }
