@@ -66,7 +66,7 @@ export default class Motd extends Service {
 		});
 
 		if (res.status == 200) {
-			const urls = res.data.map((img: { link: string }) => img.link);
+			const urls = res.data.data.map((img: { link: string }) => img.link);
 			const url: string = urls[Math.floor(Math.random() * urls.length)];
 
 			axios.post(
