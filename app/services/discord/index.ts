@@ -95,6 +95,7 @@ export class DiscordBot extends Service {
 
 		this.discord.on("messageUpdate", async (oldMsg, newMsg) => {
 			if (oldMsg.author.bot) return;
+			if (oldMsg.content === newMsg.content) return; // discord manages embeds by updating user messages
 
 			const logChannel = await this.getGuildTextChannel(config.logChannelId);
 			if (!logChannel) return;
