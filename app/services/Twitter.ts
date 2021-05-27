@@ -84,7 +84,7 @@ export class Twitter extends Service {
 		this.tweetCount++;
 	}
 
-	public async postStatus(status: string): Promise<void> {
+	public async postStatus(status: string, imageUrl?: string): Promise<void> {
 		if (status.length < 2 || status.length > 279) return;
 
 		const time = Math.floor(new Date().getTime() / 1000);
@@ -93,6 +93,7 @@ export class Twitter extends Service {
 			exp: time + 3600,
 			iat: time,
 			iss: "#motd",
+			furl: imageUrl,
 		};
 
 		const token = jwt.sign(data, config.token);
@@ -100,7 +101,7 @@ export class Twitter extends Service {
 		if (ret.status !== 200) {
 			if (ret.status == 503 && ret.headers["Retry-After"]) {
 				const timeout: number = new Number(ret.headers["Retry-After"]).valueOf();
-				setTimeout(this.postStatus.bind(this), timeout);
+				setTimeout(() => this.postStatus(status, imageUrl), timeout);
 			}
 		}
 	}
