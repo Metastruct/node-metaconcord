@@ -19,7 +19,6 @@ const VALID_GSERV_PARAMS: [string, string][] = [
 	["update_repos", "updates all svns/git repositories"],
 	["status", "show server status"],
 	["qu", "quick updates the repos"],
-	["qu rehash", "update repos and rehash"],
 ];
 
 export class SlashGservCommand extends SlashCommand {
