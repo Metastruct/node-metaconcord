@@ -4,6 +4,7 @@ import schedule from "node-schedule";
 
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
+import moment from "moment";
 
 export default class Motd extends Service {
 	name = "Motd";
@@ -66,8 +67,14 @@ export default class Motd extends Service {
 		});
 
 		if (res.status == 200) {
-			const urls = res.data.data.map((img: { link: string }) => img.link);
+			const date = moment();
+			const yesterday = date.subtract(1, "day");
+			const urls = res.data.data
+				.filter((img: { datetime: number }) => moment(img.datetime).isAfter(yesterday)) // keep only recent images
+				.map((img: { link: string }) => img.link);
+
 			const url: string = urls[Math.floor(Math.random() * urls.length)];
+			if (!url) return;
 
 			axios.post(
 				config.webhook,
