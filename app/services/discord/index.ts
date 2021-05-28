@@ -82,12 +82,19 @@ export class DiscordBot extends Service {
 			const logChannel = await this.getGuildTextChannel(config.logChannelId);
 			if (!logChannel) return;
 
+			const message =
+				msg.content.length > 1
+					? msg.content
+					: msg.attachments
+					? `[${msg.attachments.first().name}]`
+					: "???";
+
 			const embed = new Discord.MessageEmbed()
 				.setAuthor(msg.author.username, msg.author.avatarURL())
 				.setColor(DELETE_COLOR)
 				.addField("Channel", `<#${msg.channel.id}>`)
 				.addField("Mention", msg.author.mention)
-				.addField("Message", msg.content.substring(0, EMBED_FIELD_LIMIT), true)
+				.addField("Message", message.substring(0, EMBED_FIELD_LIMIT), true)
 				.setFooter("Message Deleted")
 				.setTimestamp(Date.now());
 			logChannel.send(embed);
