@@ -60,9 +60,7 @@ export class Twitter extends Service {
 				return;
 			}
 
-			if (data.retweeted || data.in_reply_to_status_id) return;
-			if (data.is_quote_status || data.possibly_sensitive) return;
-
+			if (data.retweeted || data.is_quote_status || data.possibly_sensitive) return;
 			if (data.user.protected) return; // don't reply to users that are "protected"
 
 			if (Math.random() <= 0.1) {
