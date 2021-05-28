@@ -60,6 +60,7 @@ export class Twitter extends Service {
 				return;
 			}
 
+			if (data.in_reply_to_user_id_str === config.id) return;
 			if (data.retweeted || data.is_quote_status || data.possibly_sensitive) return;
 			if (data.user.protected) return; // don't reply to users that are "protected"
 
