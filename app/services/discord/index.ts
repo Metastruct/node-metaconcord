@@ -52,7 +52,6 @@ export class DiscordBot extends Service {
 		for (const slashCmd of cmds) {
 			creator.registerCommand(slashCmd);
 		}
-		creator.syncCommands();
 
 		this.discord.login(config.token).then(async () => {
 			console.log(`'${this.discord.user.username}' Discord Bot has logged in`);
@@ -62,6 +61,8 @@ export class DiscordBot extends Service {
 				const newStatus = this.container.getService("Markov").generate();
 				this.setStatus(newStatus);
 			}, 1000 * 60 * 10); // change status every 10mins
+
+			creator.syncCommands();
 		});
 
 		this.discord.on("message", ev => {
