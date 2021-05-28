@@ -53,6 +53,8 @@ export class Twitter extends Service {
 		});
 
 		this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
+			if (data.user.id === config.id) return; // don't answer yourself :v
+
 			const mentions = data.entities.user_mentions.map(mention => mention.id_str);
 			const isMentioned = mentions.includes(config.id);
 			if (isMentioned || data.in_reply_to_user_id_str === config.id) {
@@ -60,7 +62,6 @@ export class Twitter extends Service {
 				return;
 			}
 
-			if (data.in_reply_to_user_id_str === config.id) return;
 			if (data.retweeted || data.is_quote_status || data.possibly_sensitive) return;
 			if (data.user.protected) return; // don't reply to users that are "protected"
 
