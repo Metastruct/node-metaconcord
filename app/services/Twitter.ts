@@ -53,7 +53,7 @@ export class Twitter extends Service {
 		});
 
 		this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
-			if (data.user.id === config.id) return; // don't answer yourself :v
+			if (data.user.id_str === config.id) return; // don't answer yourself :v
 
 			const mentions = data.entities.user_mentions.map(mention => mention.id_str);
 			const isMentioned = mentions.includes(config.id);
