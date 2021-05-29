@@ -105,6 +105,27 @@ export class Twitter extends Service {
 			}
 		}
 	}
+
+	public async getStatusMediaURLs(url: string): Promise<Array<string>> {
+		try {
+			if (!url.match(/\/status\/[0-9]+$/g)) return [];
+
+			const matches = url.match(/[0-9]+$/g);
+			const statusId = matches[0];
+			const res = await this.twit.get("statuses/show", {
+				id: statusId,
+			});
+
+			if (res.resp.statusCode !== 200) return [];
+
+			const status = res.data as twit.Twitter.Status;
+			if (!status.entities.media) return [];
+
+			return status.entities.media.map(media => media.display_url);
+		} catch {
+			return [];
+		}
+	}
 }
 
 export default (container: Container): Service => {
