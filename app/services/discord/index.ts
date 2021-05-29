@@ -66,15 +66,8 @@ export class DiscordBot extends Service {
 		});
 
 		this.discord.on("message", ev => {
-			if (ev.author.bot || ev.guild?.id !== config.guildId) return;
-
-			const chan = ev.channel as Discord.GuildChannel;
-			const perms = chan.permissionsFor(chan.guild.roles.everyone);
-			if (!perms.has("SEND_MESSAGES")) return; // dont get text from channels that are not "public"
-
-			const content = ev.content;
-			if (this.container.getService("Motd").isValidMsg(content))
-				this.container.getService("Markov").addLine(content);
+			this.handleTwitterEmbeds(ev);
+			this.handleMarkov(ev);
 		});
 
 		this.discord.on("messageDelete", async msg => {
@@ -139,6 +132,33 @@ export class DiscordBot extends Service {
 			},
 			status: "online",
 		});
+	}
+
+	private handleMarkov(ev: Discord.Message): void {
+		if (ev.author.bot || ev.guild?.id !== config.guildId) return;
+
+		const chan = ev.channel as Discord.GuildChannel;
+		const perms = chan.permissionsFor(chan.guild.roles.everyone);
+		if (!perms.has("SEND_MESSAGES")) return; // dont get text from channels that are not "public"
+
+		const content = ev.content;
+		if (this.container.getService("Motd").isValidMsg(content))
+			this.container.getService("Markov").addLine(content);
+	}
+
+	private async handleTwitterEmbeds(ev: Discord.Message): Promise<void> {
+		const urls = [];
+		for (const embed of ev.embeds) {
+			if (!embed.provider.name.toLowerCase().includes("twitter")) continue;
+
+			const mediaUrls = await this.container
+				.getService("Twitter")
+				.getStatusMediaURLs(embed.url);
+			urls.push(mediaUrls);
+		}
+
+		const msg = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
+		ev.reply(msg);
 	}
 }
 
