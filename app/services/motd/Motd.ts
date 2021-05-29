@@ -67,10 +67,9 @@ export default class Motd extends Service {
 		});
 
 		if (res.status === 200) {
-			const date = moment(Date.now());
-			const yesterday = date.subtract(1, "day");
+			const yesterday = moment(Date.now()).subtract(1, "d").unix();
 			const urls = res.data.data
-				.filter((img: { datetime: number }) => moment(img.datetime).isAfter(yesterday)) // keep only recent images
+				.filter((img: { datetime: number }) => img.datetime >= yesterday) // keep only recent images
 				.map((img: { link: string }) => img.link);
 
 			const url: string = urls[Math.floor(Math.random() * urls.length)];
