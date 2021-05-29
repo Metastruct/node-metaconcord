@@ -121,7 +121,9 @@ export class Twitter extends Service {
 			const status = res.data as twit.Twitter.Status;
 			if (!status.entities.media) return [];
 
-			return status.entities.media.map(media => media.display_url);
+			return status.entities.media
+				.filter(media => media.type !== "photo")
+				.map(media => media.display_url);
 		} catch {
 			return [];
 		}
