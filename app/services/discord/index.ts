@@ -161,8 +161,10 @@ export class DiscordBot extends Service {
 			urls.push(mediaUrls);
 		}
 
+		if (urls.length === 0) return;
+
 		const msg = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
-		ev.reply(msg);
+		ev.channel.send(msg);
 	}
 }
 
