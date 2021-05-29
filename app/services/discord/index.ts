@@ -153,12 +153,13 @@ export class DiscordBot extends Service {
 	private async handleTwitterEmbeds(ev: Discord.Message): Promise<void> {
 		const urls = [];
 		for (const embed of ev.embeds) {
-			if (!embed.provider.name.toLowerCase().includes("twitter")) continue;
-
-			const mediaUrls = await this.container
-				.getService("Twitter")
-				.getStatusMediaURLs(embed.url);
-			urls.push(mediaUrls);
+			if (!embed.url) continue;
+			if (embed.url.startsWith("https://twitter.com")) {
+				const mediaUrls = await this.container
+					.getService("Twitter")
+					.getStatusMediaURLs(embed.url);
+				urls.push(mediaUrls);
+			}
 		}
 
 		if (urls.length === 0) return;
