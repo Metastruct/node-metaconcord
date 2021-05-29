@@ -125,7 +125,7 @@ export class Twitter extends Service {
 					const data = media as any;
 					if (data.video_info) {
 						const variants = data.video_info.variants
-							.filter(variant => variant.content_type == "video/mp4")
+							.filter(variant => variant.content_type === "video/mp4")
 							.sort(
 								(x: { bitrate: number }, y: { bitrate: number }) =>
 									x.bitrate - y.bitrate
