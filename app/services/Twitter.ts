@@ -121,7 +121,18 @@ export class Twitter extends Service {
 
 			return status.extended_entities.media
 				.filter(media => media.type !== "photo")
-				.map(media => media.media_url_https);
+				.map(media => {
+					const data = media as any;
+					if (data.video_info) {
+						const variants = data.video_info.variants.sort(
+							(x: number, y: number) => x - y
+						);
+						const variant = variants[variants.length - 1];
+						if (variant?.url) return variant.url;
+					}
+
+					return media.media_url_https;
+				});
 		} catch {
 			return [];
 		}
