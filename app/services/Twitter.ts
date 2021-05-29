@@ -123,7 +123,7 @@ export class Twitter extends Service {
 
 			return status.entities.media
 				.filter(media => media.type !== "photo")
-				.map(media => media.display_url);
+				.map(media => media.media_url_https);
 		} catch {
 			return [];
 		}
