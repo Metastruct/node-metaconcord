@@ -66,6 +66,7 @@ export class DiscordBot extends Service {
 		});
 
 		this.discord.on("message", ev => {
+			this.handleTwitterEmbeds(ev as Discord.Message);
 			this.handleMarkov(ev);
 		});
 
@@ -95,11 +96,7 @@ export class DiscordBot extends Service {
 
 		this.discord.on("messageUpdate", async (oldMsg, newMsg) => {
 			// discord manages embeds by updating user messages
-			if (oldMsg.content === newMsg.content) {
-				this.handleTwitterEmbeds(newMsg as Discord.Message);
-				return;
-			}
-
+			if (oldMsg.content === newMsg.content) return;
 			if (oldMsg.author.bot) return;
 
 			const logChannel = await this.getGuildTextChannel(config.logChannelId);
@@ -151,15 +148,17 @@ export class DiscordBot extends Service {
 	}
 
 	private async handleTwitterEmbeds(ev: Discord.Message): Promise<void> {
-		const urls = [];
-		for (const embed of ev.embeds) {
-			if (!embed.url) continue;
-			if (embed.url.startsWith("https://twitter.com")) {
-				const mediaUrls = await this.container
-					.getService("Twitter")
-					.getStatusMediaURLs(embed.url);
-				urls.push(mediaUrls);
-			}
+		const statusUrls = ev.content.match(
+			/https?:\/\/twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g
+		);
+		if (!statusUrls) return;
+
+		let urls: Array<string> = [];
+		for (const statusUrl of statusUrls) {
+			const mediaUrls = await this.container
+				.getService("Twitter")
+				.getStatusMediaURLs(statusUrl);
+			urls = urls.concat(mediaUrls);
 		}
 
 		if (urls.length === 0) return;
