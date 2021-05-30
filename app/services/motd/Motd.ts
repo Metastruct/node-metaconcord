@@ -78,7 +78,7 @@ export default class Motd extends Service {
 			axios.post(
 				config.webhook,
 				JSON.stringify({
-					content: url,
+					content: "Image of the day:\n" + url,
 					username: "Meta Construct",
 					avatar_url: "https://pbs.twimg.com/profile_images/1503242277/meta4_crop.png",
 				}),
