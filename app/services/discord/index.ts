@@ -55,7 +55,7 @@ export class DiscordBot extends Service {
 			creator.registerCommand(slashCmd);
 		}
 
-		this.discord.login(config.token).then(async () => {
+		this.discord.on("ready", () => {
 			console.log(`'${this.discord.user.username}' Discord Bot has logged in`);
 			this.setStatus(`Crashing the source engine`);
 
@@ -115,6 +115,8 @@ export class DiscordBot extends Service {
 				.setTimestamp(newMsg.editedTimestamp);
 			logChannel.send(embed);
 		});
+
+		this.discord.login(config.token);
 	}
 
 	private async getGuildTextChannel(channelId: string): Promise<Discord.TextChannel> {
