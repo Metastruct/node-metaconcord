@@ -4,6 +4,7 @@ import ChatPayload from "./ChatPayload";
 import ErrorPayload from "./ErrorPayload";
 import JoinLeavePayload from "./JoinLeavePayload";
 import Payload from "./Payload";
+import RconPayload from "./RconPayload";
 import StatusPayload from "./StatusPayload";
 export {
 	Payload,
@@ -13,4 +14,5 @@ export {
 	JoinLeavePayload,
 	BanPayload,
 	AdminNotifyPayload,
+	RconPayload,
 };
