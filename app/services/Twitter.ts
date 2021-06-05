@@ -9,6 +9,7 @@ import twit from "twit";
 const FOLLOWER_REFRESH_RATE = 600000; // 10 mins
 const RATE_LIMIT_REFRESH_RATE = 7200000; // 2 hours
 const TWEET_COUNT_LIMIT = 100;
+const RANDOM_REPLY_PERC = 5 / 100;
 export class Twitter extends Service {
 	name = "Twitter";
 	filter = new Filter();
@@ -45,6 +46,16 @@ export class Twitter extends Service {
 		);
 	}
 
+	private canReply(data: twit.Twitter.Status): boolean {
+		if (data.user.id_str === config.id) return false; // don't answer yourself :v
+
+		// make sure we don't reply to retweets of our own stuff
+		if (data.retweeted && data.retweeted_status?.user?.id_str === config.id) return false;
+		if (data.is_quote_status && data.quoted_status?.user?.id_str === config.id) return false;
+
+		return true;
+	}
+
 	private initializeFollowerStream(): void {
 		this.followerStream?.stop(); // just in case it already exists
 		this.followerStream = this.twit.stream("statuses/filter", {
@@ -53,35 +64,47 @@ export class Twitter extends Service {
 		});
 
 		this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
-			if (data.user.id_str === config.id) return; // don't answer yourself :v
+			if (!this.canReply(data)) return;
 
 			const mentions = data.entities.user_mentions.map(mention => mention.id_str);
 			const isMentioned = mentions.includes(config.id);
 			if (isMentioned || data.in_reply_to_user_id_str === config.id) {
-				this.replyMarkovToStatus(data.id_str);
+				this.replyMarkovToStatus(data.id_str, data.user.screen_name);
 				return;
 			}
 
 			if (data.retweeted || data.is_quote_status || data.possibly_sensitive) return;
 			if (data.user.protected) return; // don't reply to users that are "protected"
 
-			if (Math.random() <= 0.1) {
-				this.replyMarkovToStatus(data.id_str);
+			if (Math.random() <= RANDOM_REPLY_PERC) {
+				this.replyMarkovToStatus(data.id_str, data.user.screen_name);
 			}
 		});
 	}
 
-	private replyMarkovToStatus(statusId: string): void {
+	private async replyMarkovToStatus(statusId: string, userName: string): Promise<void> {
 		if (this.tweetCount >= TWEET_COUNT_LIMIT) return;
 
 		let gen = this.container.getService("Markov").generate();
 		gen = this.filter.clean(gen);
-		this.twit.post("statuses/update", {
+		const newTweetResp = await this.twit.post("statuses/update", {
 			status: gen,
 			in_reply_to_status_id: statusId,
 			auto_populate_reply_metadata: true,
 		});
 		this.tweetCount++;
+
+		// check for deletion later
+		setTimeout(async () => {
+			const sourceStatusUrl = `https://twitter.com/${userName}/status/${statusId}`;
+			const res = await axios.get(sourceStatusUrl);
+			if (res.status === 200) return;
+
+			const newTweet = newTweetResp.data as twit.Twitter.Status;
+			this.twit.post("statuses/destroy", {
+				id: newTweet.id_str,
+			});
+		}, FOLLOWER_REFRESH_RATE);
 	}
 
 	public async postStatus(status: string, imageUrl?: string): Promise<void> {
@@ -125,7 +148,10 @@ export class Twitter extends Service {
 					const data = media as any;
 					if (data.video_info) {
 						const variants = data.video_info.variants
-							.filter(variant => variant.content_type === "video/mp4")
+							.filter(
+								(variant: { content_type: string }) =>
+									variant.content_type === "video/mp4"
+							)
 							.sort(
 								(x: { bitrate: number }, y: { bitrate: number }) =>
 									x.bitrate - y.bitrate
