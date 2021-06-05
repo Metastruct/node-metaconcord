@@ -3,8 +3,10 @@ import { GatewayServer, SlashCommand, SlashCreator } from "slash-create";
 import { Service } from "@/app/services";
 import { SlashCustomRoleCommand } from "./commands/CustomRoleCommand";
 import { SlashGservCommand } from "./commands/GservCommand";
+import { SlashLuaCommand } from "./commands/LuaCommand";
 import { SlashMarkovCommand } from "./commands/MarkovCommand";
 import { SlashMuteCommand } from "./commands/mute/MuteCommand";
+import { SlashRconCommand } from "./commands/RconCommand";
 import { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
 import { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
 import Discord from "discord.js";
@@ -50,6 +52,8 @@ export class DiscordBot extends Service {
 			new SlashWhyMuteCommand(this, creator),
 			new SlashGservCommand(this, creator),
 			new SlashCustomRoleCommand(this, creator),
+			new SlashLuaCommand(this, creator),
+			new SlashRconCommand(this, creator),
 		];
 		for (const slashCmd of cmds) {
 			creator.registerCommand(slashCmd);
