@@ -47,6 +47,7 @@ export class Twitter extends Service {
 	}
 
 	private canReply(data: twit.Twitter.Status): boolean {
+		if (data.user.protected) return false; // don't reply to users that are "protected"
 		if (data.user.id_str === config.id) return false; // don't answer yourself :v
 
 		// make sure we don't reply to retweets of our own stuff
@@ -74,7 +75,6 @@ export class Twitter extends Service {
 			}
 
 			if (data.retweeted || data.is_quote_status || data.possibly_sensitive) return;
-			if (data.user.protected) return; // don't reply to users that are "protected"
 
 			if (Math.random() <= RANDOM_REPLY_PERC) {
 				this.replyMarkovToStatus(data.id_str, data.user.screen_name);
