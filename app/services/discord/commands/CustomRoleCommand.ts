@@ -41,7 +41,7 @@ export class SlashCustomRoleCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
-		const roleName = ctx.options.name;
+		const roleName = ctx.options.name + "\u2063";
 		const r = ctx.options?.red?.toString() ?? "255",
 			g = ctx.options?.green?.toString() ?? "255",
 			b = ctx.options?.blue?.toString() ?? "255";
