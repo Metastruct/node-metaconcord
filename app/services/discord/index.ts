@@ -8,6 +8,7 @@ import { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
 import { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
 import Discord from "discord.js";
 import config from "@/discord.json";
+import { SlashCustomRoleCommand } from "./commands/CustomRoleCommand";
 
 const DELETE_COLOR: Discord.ColorResolvable = [255, 0, 0];
 const EDIT_COLOR: Discord.ColorResolvable = [220, 150, 0];
@@ -48,6 +49,7 @@ export class DiscordBot extends Service {
 			new SlashUnmuteCommand(this, creator),
 			new SlashWhyMuteCommand(this, creator),
 			new SlashGservCommand(this, creator),
+			new SlashCustomRoleCommand(this, creator),
 		];
 		for (const slashCmd of cmds) {
 			creator.registerCommand(slashCmd);
