@@ -53,9 +53,9 @@ export class SlashCustomRoleCommand extends SlashCommand {
 		}
 
 		const roles = await guild.roles.fetch();
-		const targetRole = roles.cache.filter(r => r.name === roleName).first();
+		let targetRole = roles.cache.filter(r => r.name === roleName).first();
 		if (!targetRole) {
-			roles.create({
+			targetRole = await roles.create({
 				reason: "Role command",
 				data: {
 					name: roleName.toString(),
