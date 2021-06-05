@@ -51,6 +51,7 @@ export class SlashLuaCommand extends SlashCommand {
 							value: 3,
 						},
 					],
+					required: true,
 				},
 				{
 					type: CommandOptionType.STRING,
@@ -58,15 +59,15 @@ export class SlashLuaCommand extends SlashCommand {
 					description: "The realm to run the code on",
 					choices: [
 						{
-							name: "sv",
+							name: "server",
 							value: "sv",
 						},
 						{
-							name: "sh",
+							name: "shared",
 							value: "sh",
 						},
 						{
-							name: "cl",
+							name: "clients",
 							value: "cl",
 						},
 					],
@@ -80,7 +81,7 @@ export class SlashLuaCommand extends SlashCommand {
 	async run(ctx: CommandContext): Promise<any> {
 		const bridge = this.bot.container.getService("GameBridge");
 		const code = ctx.options.code.toString();
-		const server = ctx.options.server?.toString();
+		const server = parseInt(ctx.options.server.toString());
 		const realm = ctx.options.realm?.toString() ?? "sv";
 		const response = {
 			isLua: true,
@@ -90,15 +91,7 @@ export class SlashLuaCommand extends SlashCommand {
 			runner: ctx.member?.displayName ?? "???",
 		};
 
-		if (server) {
-			const serverIndex = parseInt(server);
-			await bridge.payloads.RconPayload.send(response, bridge.servers[serverIndex]);
-		} else {
-			await Promise.all(
-				bridge.servers.map(srv => bridge.payloads.RconPayload.send(response, srv))
-			);
-		}
-
+		await bridge.payloads.RconPayload.send(response, bridge.servers[server]);
 		return EphemeralResponse("Sent");
 	}
 }
