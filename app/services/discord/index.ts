@@ -1,6 +1,7 @@
 import { Container } from "@/app/Container";
 import { GatewayServer, SlashCommand, SlashCreator } from "slash-create";
 import { Service } from "@/app/services";
+import { SlashCustomRoleCommand } from "./commands/CustomRoleCommand";
 import { SlashGservCommand } from "./commands/GservCommand";
 import { SlashMarkovCommand } from "./commands/MarkovCommand";
 import { SlashMuteCommand } from "./commands/mute/MuteCommand";
@@ -8,7 +9,6 @@ import { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
 import { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
 import Discord from "discord.js";
 import config from "@/discord.json";
-import { SlashCustomRoleCommand } from "./commands/CustomRoleCommand";
 
 const DELETE_COLOR: Discord.ColorResolvable = [255, 0, 0];
 const EDIT_COLOR: Discord.ColorResolvable = [220, 150, 0];
