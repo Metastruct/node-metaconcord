@@ -135,11 +135,13 @@ export class DiscordBot extends Service {
 		});
 	}
 
-	private handleMarkov(ev: Discord.Message): void {
+	private async handleMarkov(ev: Discord.Message): Promise<void> {
 		if (ev.author.bot || ev.guild?.id !== config.guildId) return;
 
-		const chan = ev.channel as Discord.GuildChannel;
-		const perms = chan.permissionsFor(chan.guild.roles.everyone);
+		const chan = (await ev.channel.fetch()) as Discord.GuildChannel;
+		const guild = await chan.guild.fetch();
+		const roles = await guild.roles.fetch();
+		const perms = chan.permissionsFor(roles.everyone);
 		if (!perms.has("SEND_MESSAGES")) return; // dont get text from channels that are not "public"
 
 		const content = ev.content;
