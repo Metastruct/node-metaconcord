@@ -51,6 +51,7 @@ export class SlashRconCommand extends SlashCommand {
 							value: 3,
 						},
 					],
+					required: true,
 				},
 			],
 		});
@@ -61,7 +62,7 @@ export class SlashRconCommand extends SlashCommand {
 	async run(ctx: CommandContext): Promise<any> {
 		const bridge = this.bot.container.getService("GameBridge");
 		const command = ctx.options.command.toString();
-		const server = ctx.options.server?.toString();
+		const server = parseInt(ctx.options.server.toString());
 		const response = {
 			isLua: false,
 			code: "",
@@ -70,15 +71,7 @@ export class SlashRconCommand extends SlashCommand {
 			runner: ctx.member?.displayName ?? "???",
 		};
 
-		if (server) {
-			const serverIndex = parseInt(server);
-			await bridge.payloads.RconPayload.send(response, bridge.servers[serverIndex]);
-		} else {
-			await Promise.all(
-				bridge.servers.map(srv => bridge.payloads.RconPayload.send(response, srv))
-			);
-		}
-
+		await bridge.payloads.RconPayload.send(response, bridge.servers[server]);
 		return EphemeralResponse("Sent");
 	}
 }
