@@ -69,6 +69,7 @@ export class SlashRconCommand extends SlashCommand {
 			realm: "",
 			command: command,
 			runner: ctx.member?.displayName ?? "???",
+			identifier: "",
 		};
 
 		await bridge.payloads.RconPayload.send(response, bridge.servers[server]);
