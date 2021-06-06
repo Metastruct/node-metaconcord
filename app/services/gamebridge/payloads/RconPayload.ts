@@ -10,7 +10,7 @@ export default class RconPayload extends Payload {
 	protected static responseSchema = responseSchema;
 
 	private static callbackId = 0;
-	private static callbackMap: Map<number, (req: RconRequest) => void> = new Map();
+	private static callbackMap: Map<string, (req: RconRequest) => void> = new Map();
 
 	static async send(payload: RconResponse, server: GameServer): Promise<void> {
 		super.send(payload, server);
@@ -19,10 +19,10 @@ export default class RconPayload extends Payload {
 	static async handle(payload: RconRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
-		const callbackId = parseInt(payload.data.identifier);
-		if (callbackId && !isNaN(callbackId)) {
-			const callback: (req: RconRequest) => void = this.callbackMap[callbackId - 1]; // for some reason -1 ?
-			callback?.bind(this)(payload);
+		const callbackId = payload.data.identifier;
+		if (callbackId && this.callbackMap.has(callbackId)) {
+			const callback: (req: RconRequest) => void = this.callbackMap[callbackId];
+			callback.bind(this)(payload);
 		}
 	}
 
@@ -32,7 +32,7 @@ export default class RconPayload extends Payload {
 		server: GameServer,
 		runner: string
 	): Promise<RconRequest> {
-		const identifier = this.callbackId++;
+		const identifier = (this.callbackId++).toString();
 		const payload: RconResponse = {
 			isLua: true,
 			code: code,
@@ -44,13 +44,14 @@ export default class RconPayload extends Payload {
 
 		return new Promise(async (resolve, reject) => {
 			this.callbackMap.set(identifier, (req: RconRequest) => {
-				setTimeout(() => this.callbackMap.delete(identifier), 1000);
+				this.callbackMap.delete(identifier);
 				resolve(req);
 			});
+
 			setTimeout(() => {
 				this.callbackMap.delete(identifier);
 				reject("Timeout");
-			}, 10000);
+			}, 30000);
 
 			await this.send(payload, server);
 		});
