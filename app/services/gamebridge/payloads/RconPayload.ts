@@ -21,8 +21,8 @@ export default class RconPayload extends Payload {
 
 		const callbackId = parseInt(payload.data.identifier);
 		if (callbackId && !isNaN(callbackId)) {
-			const callback: (req: RconRequest) => void = this.callbackMap[callbackId];
-			callback.bind(this)(payload);
+			const callback: (req: RconRequest) => void = this.callbackMap[callbackId - 1]; // for some reason -1 ?
+			callback?.bind(this)(payload);
 		}
 	}
 
