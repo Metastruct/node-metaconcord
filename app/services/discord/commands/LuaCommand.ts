@@ -80,9 +80,9 @@ export class SlashLuaCommand extends SlashCommand {
 
 	async run(ctx: CommandContext): Promise<any> {
 		const bridge = this.bot.container.getService("GameBridge");
-		const code = ctx.options.code.toString();
-		const server = parseInt(ctx.options.server.toString());
-		const realm = ctx.options.realm?.toString() ?? "sv";
+		const code = ctx.options.code.replace("```", "") as string;
+		const server = ctx.options.server as number;
+		const realm = (ctx.options.realm ?? "sv") as string;
 
 		try {
 			const res = await bridge.payloads.RconPayload.callLua(
@@ -94,8 +94,9 @@ export class SlashLuaCommand extends SlashCommand {
 
 			const embed = new Discord.MessageEmbed();
 			embed.setTitle("Metastruct #" + server);
-			embed.setDescription(code.substring(0, 1999));
+			embed.setDescription(`\`\`\`lua\n${code.substring(0, 1999)}\`\`\``);
 			embed.setColor(res.data.errors.length > 0 ? [255, 0, 0] : [0, 255, 0]);
+			embed.setFooter(realm);
 
 			if (res.data.stdout.length > 0) {
 				embed.addField("Stdout", res.data.stdout.substring(0, 1999));
