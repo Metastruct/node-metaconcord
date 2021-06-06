@@ -2,6 +2,7 @@ import {
 	ApplicationCommandPermissionType,
 	CommandContext,
 	CommandOptionType,
+	MessageEmbedOptions,
 	SlashCommand,
 	SlashCreator,
 } from "slash-create";
@@ -98,7 +99,7 @@ export class SlashLuaCommand extends SlashCommand {
 		embed.addField("Errors", res.data.errors.join("\n"));
 
 		await ctx.send({
-			embeds: [embed],
+			embeds: [embed.toJSON()],
 		});
 	}
 }
