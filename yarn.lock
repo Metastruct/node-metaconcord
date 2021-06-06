@@ -1091,12 +1091,6 @@ dir-glob@^2.2.2:
   dependencies:
     path-type "^3.0.0"
 
-"discord-whook.js@github:Ernest05/discord-whook.js":
-  version "1.0.0"
-  resolved "https://codeload.github.com/Ernest05/discord-whook.js/tar.gz/7bb3d645d64b9c6a5715aa5b3593e4264e80b41d"
-  dependencies:
-    node-fetch "^2.6.0"
-
 discord.js@^12.5.3:
   version "12.5.3"
   resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-12.5.3.tgz#56820d473c24320871df9ea0bbc6b462f21cf85c"
@@ -2879,7 +2873,7 @@ next-tick@~1.0.0:
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
   integrity sha1-yobR/ogoFpsBICCOPchCS524NCw=
 
-node-fetch@^2.6.0, node-fetch@^2.6.1:
+node-fetch@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
   integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
