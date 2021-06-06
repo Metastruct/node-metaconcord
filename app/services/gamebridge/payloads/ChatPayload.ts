@@ -2,7 +2,6 @@ import * as requestSchema from "./structures/ChatRequest.json";
 import * as responseSchema from "./structures/ChatResponse.json";
 import { ChatRequest, ChatResponse } from "./structures";
 import { GameServer } from "..";
-import { Webhook } from "discord-whook.js";
 import Discord from "discord.js";
 import Payload from "./Payload";
 import config from "@/discord.json";
@@ -20,7 +19,10 @@ export default class ChatPayload extends Payload {
 		const guild = await discordClient.guilds.resolve(config.guildId)?.fetch();
 		if (!guild) return;
 
-		const webhook = new Webhook(bridge.config.chatWebhookId, bridge.config.chatWebhookToken);
+		const webhook = new Discord.WebhookClient(
+			bridge.config.chatWebhookId,
+			bridge.config.chatWebhookToken
+		);
 
 		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
 
@@ -51,8 +53,10 @@ export default class ChatPayload extends Payload {
 		}
 
 		await webhook
-			.send(content, `#${server.config.id} ${player.nick}`, avatar, [], {
-				parse: ["users", "roles"],
+			.send(content, {
+				username: `#${server.config.id} ${player.nick}`,
+				avatarURL: avatar,
+				allowedMentions: { parse: ["users", "roles"] },
 			})
 			.catch(console.error);
 	}
