@@ -43,7 +43,7 @@ export default class RconPayload extends Payload {
 
 		return new Promise(async (resolve, reject) => {
 			this.callbackMap.set(identifier, (req: RconRequest) => {
-				this.callbackMap.delete(identifier);
+				setTimeout(() => this.callbackMap.delete(identifier), 1000);
 				resolve(req);
 			});
 			setTimeout(() => {
