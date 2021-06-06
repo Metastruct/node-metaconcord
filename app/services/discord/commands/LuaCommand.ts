@@ -84,21 +84,26 @@ export class SlashLuaCommand extends SlashCommand {
 		const server = parseInt(ctx.options.server.toString());
 		const realm = ctx.options.realm?.toString() ?? "sv";
 
-		const res = await bridge.payloads.RconPayload.callLua(
-			code,
-			realm,
-			bridge.servers[server],
-			ctx.member?.displayName ?? "???"
-		);
+		try {
+			const res = await bridge.payloads.RconPayload.callLua(
+				code,
+				realm,
+				bridge.servers[server],
+				ctx.member?.displayName ?? "???"
+			);
 
-		const embed = new Discord.MessageEmbed();
-		embed.setDescription(res.data.stdout.substring(0, 1999));
-		embed.setColor(res.data.errors.length > 0 ? [255, 0, 0] : [0, 255, 0]);
-		embed.addField("Returns", res.data.returns.join("\n"));
-		embed.addField("Errors", res.data.errors.join("\n"));
+			const embed = new Discord.MessageEmbed();
+			embed.setDescription(res.data.stdout.substring(0, 1999));
+			embed.setColor(res.data.errors.length > 0 ? [255, 0, 0] : [0, 255, 0]);
+			embed.addField("Returns", res.data.returns.join("\n"));
+			embed.addField("Errors", res.data.errors.join("\n"));
 
-		await ctx.send({
-			embeds: [embed.toJSON()],
-		});
+			await ctx.send({
+				embeds: [embed.toJSON()],
+			});
+		} catch (err) {
+			const errMsg = (err as Error)?.message ?? err;
+			await ctx.send(errMsg);
+		}
 	}
 }
