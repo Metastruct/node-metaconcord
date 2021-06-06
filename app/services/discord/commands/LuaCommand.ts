@@ -13,7 +13,7 @@ export class SlashLuaCommand extends SlashCommand {
 
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
-			name: "lua",
+			name: "l",
 			description: "Executes lua on one of the gmod servers",
 			deferEphemeral: true,
 			guildIDs: [bot.config.guildId],
@@ -93,9 +93,13 @@ export class SlashLuaCommand extends SlashCommand {
 			);
 
 			const embed = new Discord.MessageEmbed();
-			embed.setAuthor(ctx.member);
-			embed.setDescription(res.data.stdout.substring(0, 1999));
+			embed.setAuthor(ctx.member.user.username, ctx.member.user.avatarURL);
+			embed.setDescription(code.substring(0, 1999));
 			embed.setColor(res.data.errors.length > 0 ? [255, 0, 0] : [0, 255, 0]);
+
+			if (res.data.stdout.length > 0) {
+				embed.addField("Stdout", res.data.stdout.substring(0, 1999));
+			}
 
 			if (res.data.returns.length > 0) {
 				embed.addField("Returns", res.data.returns.join("\n"));
