@@ -101,7 +101,7 @@ export class SlashLuaCommand extends SlashCommand {
 				embed.addField("Returns", res.data.returns.join("\n"));
 			}
 
-			if (res.data.errors) {
+			if (res.data.errors.length > 0) {
 				embed.addField("Errors", res.data.errors.join("\n"));
 			}
 
