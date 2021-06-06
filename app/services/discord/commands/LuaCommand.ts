@@ -6,7 +6,7 @@ import {
 	SlashCreator,
 } from "slash-create";
 import { DiscordBot } from "..";
-import EphemeralResponse from ".";
+import Discord from "discord.js";
 
 export class SlashLuaCommand extends SlashCommand {
 	private bot: DiscordBot;
@@ -83,15 +83,22 @@ export class SlashLuaCommand extends SlashCommand {
 		const code = ctx.options.code.toString();
 		const server = parseInt(ctx.options.server.toString());
 		const realm = ctx.options.realm?.toString() ?? "sv";
-		const response = {
-			isLua: true,
-			code: code,
-			realm: realm,
-			command: "",
-			runner: ctx.member?.displayName ?? "???",
-		};
 
-		await bridge.payloads.RconPayload.send(response, bridge.servers[server]);
-		return EphemeralResponse("Sent");
+		const res = await bridge.payloads.RconPayload.callLua(
+			code,
+			realm,
+			bridge.servers[server],
+			ctx.member?.displayName ?? "???"
+		);
+
+		const embed = new Discord.MessageEmbed();
+		embed.setDescription(res.data.stdout.substring(0, 1999));
+		embed.setColor(res.data.errors.length > 0 ? [255, 0, 0] : [0, 255, 0]);
+		embed.addField("Returns", res.data.returns.join("\n"));
+		embed.addField("Errors", res.data.errors.join("\n"));
+
+		await ctx.send({
+			embeds: [embed],
+		});
 	}
 }
