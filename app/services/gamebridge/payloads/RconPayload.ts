@@ -21,7 +21,7 @@ export default class RconPayload extends Payload {
 
 		const callbackId = payload.data.identifier;
 		if (callbackId && this.callbackMap.has(callbackId)) {
-			const callback: (req: RconRequest) => void = this.callbackMap[callbackId];
+			const callback: (req: RconRequest) => void = this.callbackMap.get(callbackId);
 			callback.bind(this)(payload);
 		}
 	}
