@@ -2,7 +2,6 @@ import {
 	ApplicationCommandPermissionType,
 	CommandContext,
 	CommandOptionType,
-	MessageEmbedOptions,
 	SlashCommand,
 	SlashCreator,
 } from "slash-create";
