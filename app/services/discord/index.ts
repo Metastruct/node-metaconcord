@@ -59,21 +59,23 @@ export class DiscordBot extends Service {
 			creator.registerCommand(slashCmd);
 		}
 
-		this.discord.on("ready", () => {
+		this.discord.on("ready", async () => {
 			console.log(`'${this.discord.user.username}' Discord Bot has logged in`);
-			this.setStatus(`Crashing the source engine`);
+			await this.setStatus(`Crashing the source engine`);
 
-			setInterval(() => {
+			setInterval(async () => {
 				const newStatus = this.container.getService("Markov").generate();
-				this.setStatus(newStatus);
+				await this.setStatus(newStatus);
 			}, 1000 * 60 * 10); // change status every 10mins
 
 			creator.syncCommands();
 		});
 
-		this.discord.on("message", ev => {
-			this.handleTwitterEmbeds(ev as Discord.Message);
-			this.handleMarkov(ev);
+		this.discord.on("message", async ev => {
+			await Promise.all([
+				this.handleTwitterEmbeds(ev as Discord.Message),
+				this.handleMarkov(ev),
+			]);
 		});
 
 		this.discord.on("messageDelete", async msg => {
@@ -97,7 +99,7 @@ export class DiscordBot extends Service {
 				.addField("Message", message.substring(0, EMBED_FIELD_LIMIT), true)
 				.setFooter("Message Deleted")
 				.setTimestamp(Date.now());
-			logChannel.send(embed);
+			await logChannel.send(embed);
 		});
 
 		this.discord.on("messageUpdate", async (oldMsg, newMsg) => {
@@ -117,7 +119,7 @@ export class DiscordBot extends Service {
 				.addField("Old Message", oldMsg.content.substring(0, EMBED_FIELD_LIMIT), true)
 				.setFooter("Message Edited")
 				.setTimestamp(newMsg.editedTimestamp);
-			logChannel.send(embed);
+			await logChannel.send(embed);
 		});
 
 		this.discord.login(config.token);
@@ -131,10 +133,10 @@ export class DiscordBot extends Service {
 		return chan;
 	}
 
-	private setStatus(status: string): void {
+	private async setStatus(status: string): Promise<void> {
 		if (status.length > 127) status = status.substring(0, 120) + "...";
 
-		this.discord.user.setPresence({
+		await this.discord.user.setPresence({
 			activity: {
 				name: status.trim().substring(0, 100),
 				type: "PLAYING",
@@ -174,7 +176,7 @@ export class DiscordBot extends Service {
 		if (urls.length === 0) return;
 
 		const msg = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
-		ev.channel.send(msg);
+		await ev.channel.send(msg);
 	}
 }
 
