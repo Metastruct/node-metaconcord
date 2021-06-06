@@ -93,7 +93,7 @@ export class SlashLuaCommand extends SlashCommand {
 			);
 
 			const embed = new Discord.MessageEmbed();
-			embed.setAuthor(ctx.member.user.username, ctx.member.user.avatarURL);
+			embed.setTitle("Metastruct #" + server);
 			embed.setDescription(code.substring(0, 1999));
 			embed.setColor(res.data.errors.length > 0 ? [255, 0, 0] : [0, 255, 0]);
 
