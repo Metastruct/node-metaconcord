@@ -4,4 +4,5 @@ export default interface RconResponse {
 	command: string;
 	realm: string;
 	runner: string;
+	identifier: string;
 }
