@@ -27,7 +27,7 @@ export class Starboard extends Service {
 				m =>
 					(msg.content.length > 0 && m.content === msg.content) ||
 					(m.embeds.length > 0 &&
-						m.embeds.some((e: MessageEmbedOptions) => e.author.url.includes(msg.id)))
+						m.embeds.some((e: MessageEmbedOptions) => e.author?.url.includes(msg.id)))
 			);
 
 			if (old.size > 0) return;
