@@ -7,6 +7,7 @@ import { SlashLuaCommand } from "./commands/LuaCommand";
 import { SlashMarkovCommand } from "./commands/MarkovCommand";
 import { SlashMuteCommand } from "./commands/mute/MuteCommand";
 import { SlashRconCommand } from "./commands/RconCommand";
+import { SlashRefreshLuaCommand } from "./commands/RefreshLuaCommand";
 import { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
 import { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
 import Discord from "discord.js";
@@ -19,7 +20,10 @@ const EMBED_FIELD_LIMIT = 1999;
 export class DiscordBot extends Service {
 	name = "DiscordBot";
 	config = config;
-	discord: Discord.Client = new Discord.Client();
+	discord: Discord.Client = new Discord.Client({
+		fetchAllMembers: false,
+		shardCount: 1,
+	});
 
 	constructor(container: Container) {
 		super(container);
@@ -54,6 +58,7 @@ export class DiscordBot extends Service {
 			new SlashCustomRoleCommand(this, creator),
 			new SlashLuaCommand(this, creator),
 			new SlashRconCommand(this, creator),
+			new SlashRefreshLuaCommand(this, creator),
 		];
 		for (const slashCmd of cmds) {
 			creator.registerCommand(slashCmd);
@@ -122,7 +127,19 @@ export class DiscordBot extends Service {
 			await logChannel.send(embed);
 		});
 
-		this.discord.login(config.token);
+		this.discord.ws.on("MESSAGE_REACTION_ADD", async reaction => {
+			console.log(reaction);
+			const channel = await this.getGuildTextChannel(reaction.channel_id);
+			const msg = await channel.messages.fetch(reaction.message_id);
+			const msgReaction = await new Discord.MessageReaction(
+				this.discord,
+				reaction,
+				msg
+			).fetch();
+			await this.container.getService("Starboard").handleReactionAdded(msgReaction);
+		});
+
+		this.discord.login(config.token).then(() => console.log("READY!"));
 	}
 
 	private async getGuildTextChannel(channelId: string): Promise<Discord.TextChannel> {
