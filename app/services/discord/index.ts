@@ -139,7 +139,7 @@ export class DiscordBot extends Service {
 			await this.container.getService("Starboard").handleReactionAdded(msgReaction);
 		});
 
-		this.discord.login(config.token).then(() => console.log("READY!"));
+		this.discord.login(config.token);
 	}
 
 	private async getGuildTextChannel(channelId: string): Promise<Discord.TextChannel> {
