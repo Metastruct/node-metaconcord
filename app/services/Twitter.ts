@@ -70,19 +70,20 @@ export class Twitter extends Service {
 			const mentions = data.entities.user_mentions.map(mention => mention.id_str);
 			const isMentioned = mentions.includes(config.id);
 			if (isMentioned || data.in_reply_to_user_id_str === config.id) {
-				this.replyMarkovToStatus(data.id_str, data.user.screen_name);
+				this.replyMarkovToStatus(data.id_str);
 				return;
 			}
 
 			if (data.retweeted || data.is_quote_status || data.possibly_sensitive) return;
+			if (!this.followerIds.includes(data.user.id_str)) return; // apparently twitter api gives us non follower tweets
 
 			if (Math.random() <= RANDOM_REPLY_PERC) {
-				this.replyMarkovToStatus(data.id_str, data.user.screen_name);
+				this.replyMarkovToStatus(data.id_str);
 			}
 		});
 	}
 
-	private async replyMarkovToStatus(statusId: string, userName: string): Promise<void> {
+	private async replyMarkovToStatus(statusId: string): Promise<void> {
 		if (this.tweetCount >= TWEET_COUNT_LIMIT) return;
 
 		let gen = this.container.getService("Markov").generate();
@@ -96,12 +97,11 @@ export class Twitter extends Service {
 
 		// check for deletion later
 		setTimeout(async () => {
-			const sourceStatusUrl = `https://twitter.com/${userName}/status/${statusId}`;
-			const res = await axios.get(sourceStatusUrl);
-			if (res.status === 200) return;
+			const res = await this.twit.get("statuses/lookup", { id: statusId });
+			if ((res.data as Array<twit.Twitter.Status>).length > 0) return;
 
 			const newTweet = newTweetResp.data as twit.Twitter.Status;
-			this.twit.post("statuses/destroy", {
+			await this.twit.post("statuses/destroy", {
 				id: newTweet.id_str,
 			});
 		}, FOLLOWER_REFRESH_RATE);

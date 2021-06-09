@@ -19,7 +19,11 @@ const VALID_GSERV_PARAMS: [string, string][] = [
 	["update_repos", "updates all svns/git repositories"],
 	["status", "show server status"],
 	["qu", "quick updates the repos"],
+	["qu_rehash", "quick rehashes the server"],
 ];
+
+const COMMAND_MAPPING: Map<string, Array<string>> = new Map<string, Array<string>>();
+COMMAND_MAPPING.set("qu_rehash", ["qu", "rehash"]);
 
 export class SlashGservCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
@@ -86,21 +90,33 @@ export class SlashGservCommand extends SlashCommand {
 			privateKey: config.keyPath,
 		});
 
+		let args = [param];
+		if (COMMAND_MAPPING.has(param)) {
+			args = COMMAND_MAPPING.get(param);
+		}
+
 		let output = "";
-		await ssh.exec("gserv", [param], {
+		await ssh.exec("gserv", args, {
 			stream: "stderr",
 			onStdout: buff => (output += buff),
 			onStderr: buff => (output += buff),
 		});
 
-		if (output.length + host.length > 1994) {
-			output = output.substring(0, 1990 - host.length) + "...";
-		}
+		const success = !output.includes("GSERV FAILED");
 
-		output = `${host}\n\`\`\`${output}\`\`\``;
-		await ctx.send(output);
+		const fileName = `${args.join("_")}_${host}_${Date.now()}.txt`;
+		let msgContent = host;
+		if (!success) msgContent += " FAILED";
 
-		return true;
+		await ctx.send({
+			content: msgContent,
+			file: {
+				file: Buffer.from(output, "utf8"),
+				name: fileName,
+			},
+		});
+
+		return success;
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
@@ -109,9 +125,10 @@ export class SlashGservCommand extends SlashCommand {
 
 		const promises = config.servers
 			.filter(
-				srvConfig => srvConfig.host.substr(1, 1) === server?.toString() || server == null
+				(srvConfig: { host: string }) =>
+					srvConfig.host.substr(1, 1) === server?.toString() || server == null
 			)
-			.map(srvConfig =>
+			.map((srvConfig: { host: string; username: string; port: string }) =>
 				this.gserv(ctx, srvConfig.host, srvConfig.username, srvConfig.port, command)
 			);
 
@@ -120,6 +137,6 @@ export class SlashGservCommand extends SlashCommand {
 			if (!result) return EphemeralResponse("Failed");
 		}
 
-		return EphemeralResponse("Success");
+		return EphemeralResponse("Done");
 	}
 }
