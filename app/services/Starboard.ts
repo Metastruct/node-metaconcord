@@ -26,7 +26,7 @@ export class Starboard extends Service {
 			old = old.filter(
 				m =>
 					(msg.content.length > 0 && m.content === msg.content) ||
-					(m.embeds.length > 1 &&
+					(m.embeds.length > 0 &&
 						m.embeds.some((e: MessageEmbedOptions) => e.author.url.includes(msg.id)))
 			);
 
@@ -44,7 +44,7 @@ export class Starboard extends Service {
 			}
 
 			text += msg.content;
-			text += `${msg.attachments.size > 1 ? "\n" + msg.attachments.first().url : ""}`;
+			text += `${msg.attachments.size > 0 ? "\n" + msg.attachments.first().url : ""}`;
 
 			await WHC.send(text, {
 				avatarURL: msg.author.avatarURL(),
