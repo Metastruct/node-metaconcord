@@ -169,7 +169,7 @@ export class DiscordBot extends Service {
 		const guild = await chan.guild.fetch();
 		const roles = await guild.roles.fetch();
 		const perms = chan.permissionsFor(roles.everyone);
-		if (!perms.has("SEND_MESSAGES")) return; // dont get text from channels that are not "public"
+		if (!perms.has("SEND_MESSAGES", false)) return; // dont get text from channels that are not "public"
 
 		const content = ev.content;
 		if (this.container.getService("Motd").isValidMsg(content))
