@@ -1,17 +1,17 @@
 import { Container } from "../Container";
+import { Database, open } from "sqlite";
 import { Service } from ".";
-import sqlite from "sqlite";
 import sqlite3 from "sqlite3";
 
 export class Sql extends Service {
 	name = "Sql";
 
-	private database: sqlite.Database;
+	private database: Database;
 
-	public async getDatabase(): Promise<sqlite.Database> {
+	public async getDatabase(): Promise<Database> {
 		if (this.database != null) return this.database;
 
-		this.database = await sqlite.open({
+		this.database = await open({
 			driver: sqlite3.Database,
 			filename: "metaconcord.db",
 		});
