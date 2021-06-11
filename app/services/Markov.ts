@@ -1,11 +1,11 @@
 import { Container } from "@/app/Container";
-import { EOL } from "os";
+//import { EOL } from "os";
 import { Service } from ".";
 import Markov from "markov-strings";
-import fs from "fs";
+//import fs from "fs";
 
-const MARKOV_DATA_PATH = "markov_data.txt";
-const MIGRATION_RATE = 50;
+//const MARKOV_DATA_PATH = "markov_data.txt";
+//const MIGRATION_RATE = 50;
 
 export class MarkovService extends Service {
 	name = "Markov";
