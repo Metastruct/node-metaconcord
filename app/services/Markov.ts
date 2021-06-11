@@ -14,17 +14,35 @@ export class MarkovService extends Service {
 	constructor(container: Container) {
 		super(container);
 
-		if (fs.existsSync(MARKOV_DATA_PATH)) {
-			fs.readFile(MARKOV_DATA_PATH, "utf8", (err, data) => {
-				if (err) {
-					console.log(err);
-					return;
-				}
+		(async () => {
+			const sql = this.container.getService("Sql");
+			const db = await sql.getDatabase();
+			const hasTable = await sql.tableExists("markov");
+			if (!hasTable) {
+				await db.exec(`CREATE TABLE markov (Data TEXT);`);
+			}
 
-				const lines = data.split(EOL);
-				this.generator.addData(lines);
-			});
-		}
+			// legacy data
+			if (fs.existsSync(MARKOV_DATA_PATH)) {
+				fs.readFile(MARKOV_DATA_PATH, "utf8", (err, data) => {
+					if (err) {
+						console.log(err);
+						return;
+					}
+
+					const lines = data.split(EOL);
+					for (const line of lines) {
+						db.run("INSERT INTO markov (Data) VALUES (?)", line);
+					}
+
+					this.generator.addData(lines);
+					fs.unlinkSync(MARKOV_DATA_PATH);
+				});
+			}
+
+			const lines: Array<string> = await db.all("SELECT Data FROM markov;");
+			this.generator.addData(lines);
+		})();
 	}
 
 	private sanitizeString(input: string): string {
@@ -37,16 +55,15 @@ export class MarkovService extends Service {
 			.trim();
 	}
 
-	public addLine(line: string): void {
+	public async addLine(line: string): Promise<void> {
 		line = this.sanitizeString(line);
 		if (line.length <= 0) return;
 
 		this.generator.addData([line]);
 
-		fs.appendFile(MARKOV_DATA_PATH, line + EOL, err => {
-			if (!err) return;
-			console.log(err);
-		});
+		const sql = this.container.getService("Sql");
+		const db = await sql.getDatabase();
+		db.run("INSERT INTO markov (Data) VALUES(?)", line);
 	}
 
 	public generate(): string {
