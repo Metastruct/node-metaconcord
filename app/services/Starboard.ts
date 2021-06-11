@@ -14,6 +14,19 @@ const WHC = new Discord.WebhookClient(config.webhookId, config.webhookToken, {
 export class Starboard extends Service {
 	name = "Starboard";
 
+	private async isMsgStarred(msgId: string): Promise<boolean> {
+		const sql = this.container.getService("Sql");
+		const db = await sql.getDatabase();
+		if (!(await sql.tableExists("starboard"))) {
+			await db.exec(`CREATE TABLE starboard (
+				MessageId BIGINT,
+			);`);
+		}
+
+		const res = await db.get("SELECT * FROM starboard WHERE MessageId = ? LIMIT 1;", msgId);
+		return res != null;
+	}
+
 	public async handleReactionAdded(reaction: MessageReaction): Promise<void> {
 		if (reaction.emoji.id === config.emoteId && reaction.count >= AMOUNT) {
 			const client = reaction.client;
@@ -22,6 +35,10 @@ export class Starboard extends Service {
 
 			if (msg.channel.id === config.channelId) return;
 
+			// check against our local db first
+			if (this.isMsgStarred(msg.id)) return;
+
+			// check against channel in case (for old messages mostly)
 			let old = await channel.messages.fetch({ limit: 100 });
 			old = old.filter(
 				m =>
