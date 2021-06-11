@@ -18,9 +18,7 @@ export class Starboard extends Service {
 		const sql = this.container.getService("Sql");
 		const db = await sql.getDatabase();
 		if (!(await sql.tableExists("starboard"))) {
-			await db.exec(`CREATE TABLE starboard (
-				MessageId BIGINT,
-			);`);
+			await db.exec(`CREATE TABLE starboard (MessageId BIGINT);`);
 		}
 
 		const res = await db.get("SELECT * FROM starboard WHERE MessageId = ? LIMIT 1;", msgId);
