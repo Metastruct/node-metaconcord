@@ -27,6 +27,12 @@ export class Starboard extends Service {
 		return res != null;
 	}
 
+	private async starMsg(msgId: string): Promise<void> {
+		const sql = this.container.getService("Sql");
+		const db = await sql.getDatabase();
+		await db.run("INSERT INTO starboard(MessageId) VALUES(?)", msgId);
+	}
+
 	public async handleReactionAdded(reaction: MessageReaction): Promise<void> {
 		if (reaction.emoji.id === config.emoteId && reaction.count >= AMOUNT) {
 			const client = reaction.client;
@@ -63,6 +69,7 @@ export class Starboard extends Service {
 			text += msg.content;
 			text += `${msg.attachments.size > 0 ? "\n" + msg.attachments.first().url : ""}`;
 
+			await this.starMsg(msg.id);
 			await WHC.send(text, {
 				avatarURL: msg.author.avatarURL(),
 				username: `${msg.author.username}`,
