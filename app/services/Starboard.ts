@@ -22,7 +22,7 @@ export class Starboard extends Service {
 		}
 
 		const res = await db.get("SELECT * FROM starboard WHERE MessageId = ? LIMIT 1;", msgId);
-		return res != null;
+		return res ? true : false;
 	}
 
 	private async starMsg(msgId: string): Promise<void> {
@@ -40,7 +40,7 @@ export class Starboard extends Service {
 			if (msg.channel.id === config.channelId) return;
 
 			// check against our local db first
-			if (this.isMsgStarred(msg.id)) return;
+			if (await this.isMsgStarred(msg.id)) return;
 
 			// check against channel in case (for old messages mostly)
 			let old = await channel.messages.fetch({ limit: 100 });
