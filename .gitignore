@@ -12,5 +12,5 @@ app/services/webapp/resources/server-status/style.css
 *.json
 !*.example.json
 deploy.sh
-
 markov_data.txt
+metaconcord.db
