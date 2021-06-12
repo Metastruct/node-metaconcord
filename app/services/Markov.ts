@@ -20,7 +20,7 @@ export class MarkovService extends Service {
 			const db = await sql.getDatabase();
 			const hasTable = await sql.tableExists("markov");
 			if (!hasTable) {
-				await db.exec(`CREATE TABLE markov (Data TEXT);`);
+				await db.exec(`CREATE TABLE markov (string TEXT);`);
 			}
 
 			// legacy data
@@ -50,9 +50,13 @@ export class MarkovService extends Service {
 				});
 			}*/
 
-			const res = await db.all("SELECT * FROM markov;");
+			// load our data asynchronously so we don't hog the resources for the rest
+			const res = await db.all("SELECT string FROM markov;");
 			if (res.length > 0) {
-				this.generator.addData(res.map(row => row.Data));
+				const old = Date.now();
+				console.log("Building markov...");
+				this.generator.addData(res);
+				console.log(`Done (in ${(Date.now() - old) / 1000}s)`);
 			}
 		}, 5000); // call after everything has initialized ?
 	}
@@ -75,7 +79,7 @@ export class MarkovService extends Service {
 
 		const sql = this.container.getService("Sql");
 		const db = await sql.getDatabase();
-		await db.run("INSERT INTO markov (Data) VALUES(?)", line);
+		await db.run("INSERT INTO markov (string) VALUES(?)", line);
 	}
 
 	public generate(): string {
