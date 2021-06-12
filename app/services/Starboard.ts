@@ -18,7 +18,7 @@ export class Starboard extends Service {
 		const sql = this.container.getService("Sql");
 		const db = await sql.getDatabase();
 		if (!(await sql.tableExists("starboard"))) {
-			await db.exec(`CREATE TABLE starboard (MessageId BIGINT);`);
+			await db.exec(`CREATE TABLE starboard (MessageId VARCHAR(1000));`);
 		}
 
 		const res = await db.get("SELECT * FROM starboard WHERE MessageId = ? LIMIT 1;", msgId);
@@ -67,11 +67,11 @@ export class Starboard extends Service {
 			text += msg.content;
 			text += `${msg.attachments.size > 0 ? "\n" + msg.attachments.first().url : ""}`;
 
-			await this.starMsg(msg.id);
 			await WHC.send(text, {
 				avatarURL: msg.author.avatarURL(),
 				username: `${msg.author.username}`,
 			});
+			await this.starMsg(msg.id);
 		}
 	}
 }
