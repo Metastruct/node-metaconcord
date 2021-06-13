@@ -2,7 +2,6 @@ import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "s
 import { DiscordBot } from "..";
 import EphemeralResponse from ".";
 import axios from "axios";
-import moment from "moment";
 
 class MetaBan {
 	public sid: string;
