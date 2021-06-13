@@ -9,6 +9,7 @@ import { SlashMuteCommand } from "./commands/mute/MuteCommand";
 import { SlashRconCommand } from "./commands/RconCommand";
 import { SlashRefreshLuaCommand } from "./commands/RefreshLuaCommand";
 import { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
+import { SlashWhyBanCommand } from "./commands/WhyBanCommand";
 import { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
 import Discord from "discord.js";
 import config from "@/discord.json";
@@ -59,6 +60,7 @@ export class DiscordBot extends Service {
 			new SlashLuaCommand(this, creator),
 			new SlashRconCommand(this, creator),
 			new SlashRefreshLuaCommand(this, creator),
+			new SlashWhyBanCommand(this, creator),
 		];
 		for (const slashCmd of cmds) {
 			creator.registerCommand(slashCmd);
