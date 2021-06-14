@@ -16,8 +16,8 @@ export class SlashCustomRoleCommand extends SlashCommand {
 			options: [
 				{
 					type: CommandOptionType.SUB_COMMAND,
-					name: "add",
-					description: "Adds a custom role",
+					name: "add_rgb",
+					description: "Adds a custom role with rgb colors",
 					options: [
 						{
 							type: CommandOptionType.STRING,
@@ -28,17 +28,35 @@ export class SlashCustomRoleCommand extends SlashCommand {
 						{
 							type: CommandOptionType.INTEGER,
 							name: "red",
-							description: "The red component of your color",
+							description: "The red component of your color 0 - 255",
 						},
 						{
 							type: CommandOptionType.INTEGER,
 							name: "green",
-							description: "The green component of your color",
+							description: "The green component of your color 0 - 255",
 						},
 						{
 							type: CommandOptionType.INTEGER,
 							name: "blue",
-							description: "The blue component of your color",
+							description: "The blue component of your color 0 - 255",
+						},
+					],
+				},
+				{
+					type: CommandOptionType.SUB_COMMAND,
+					name: "add_hex",
+					description: "Adds a custom role with a hex color",
+					options: [
+						{
+							type: CommandOptionType.STRING,
+							name: "name",
+							description: "The name of your role",
+							required: true,
+						},
+						{
+							type: CommandOptionType.STRING,
+							name: "hex",
+							description: "Hex color value for example #465f83",
 						},
 					],
 				},
@@ -56,7 +74,8 @@ export class SlashCustomRoleCommand extends SlashCommand {
 	async run(ctx: CommandContext): Promise<any> {
 		const cmd = Object.keys(ctx.options)[0];
 		switch (cmd) {
-			case "add":
+			case "add_rgb":
+			case "add_hex":
 				return this.addRole(ctx);
 			case "remove":
 				return this.removeRole(ctx);
@@ -80,11 +99,16 @@ export class SlashCustomRoleCommand extends SlashCommand {
 			: EphemeralResponse("You don't have a custom role...");
 	}
 	async addRole(ctx: CommandContext): Promise<any> {
-		const roleName = ctx.options.add.name + ROLE_IDENTIFIER;
-		const r = ctx.options.add?.red?.toString() ?? "255",
-			g = ctx.options.add?.green?.toString() ?? "255",
-			b = ctx.options.add?.blue?.toString() ?? "255";
-		const roleColor: Discord.ColorResolvable = [parseInt(r), parseInt(g), parseInt(b)];
+		const isRGB = ctx.options.add_rgb != null;
+		const roleName = isRGB
+			? ctx.options.add_rgb.name + ROLE_IDENTIFIER
+			: ctx.options.add_hex.name + ROLE_IDENTIFIER;
+		const r = ctx.options.add_rgb?.red?.toString() ?? "255",
+			g = ctx.options.add_rgb?.green?.toString() ?? "255",
+			b = ctx.options.add_rgb?.blue?.toString() ?? "255";
+		const roleColor: Discord.ColorResolvable = isRGB
+			? [parseInt(r), parseInt(g), parseInt(b)]
+			: ctx.options.add_hex?.hex;
 
 		const guild = await this.bot.discord.guilds.resolve(ctx.guildID)?.fetch();
 		if (!guild) {
