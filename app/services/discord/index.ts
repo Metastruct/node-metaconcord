@@ -122,8 +122,16 @@ export class DiscordBot extends Service {
 				.setColor(EDIT_COLOR)
 				.addField("Channel", `<#${oldMsg.channel.id}>`)
 				.addField("Mention", oldMsg.author.mention)
-				.addField("New Message", newMsg.content.substring(0, EMBED_FIELD_LIMIT), true)
-				.addField("Old Message", oldMsg.content.substring(0, EMBED_FIELD_LIMIT), true)
+				.addField(
+					"New Message",
+					`\`\`\`${newMsg.content.substring(0, EMBED_FIELD_LIMIT - 6)}\`\`\``,
+					true
+				)
+				.addField(
+					"Old Message",
+					`\`\`\`${oldMsg.content.substring(0, EMBED_FIELD_LIMIT - 6)}\`\`\``,
+					true
+				)
 				.setFooter("Message Edited")
 				.setTimestamp(newMsg.editedTimestamp);
 			await logChannel.send(embed);
