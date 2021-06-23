@@ -36,21 +36,21 @@ export default class BanPayload extends Payload {
 			round: true,
 			units: ["y", "mo", "w", "d", "h", "m"],
 		});
-		const embed = new Discord.MessageEmbed()
-			.setAuthor(
-				`${player.nick} banned a player`,
-				avatar,
-				`https://steamcommunity.com/profiles/${steamId64}`
-			)
-			.addField("Nick", banned.nick, true)
-			.addField("Ban Duration", banDuration, true)
-			.addField("Reason", reason.substring(0, 1900))
-			.addField(
-				"SteamID64",
-				`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64})`
-			)
-			.setThumbnail(bannedAvatar)
-			.setColor(0xc42144);
+		const embed = new Discord.MessageEmbed();
+		embed.setAuthor(
+			`${player.nick} banned a player`,
+			avatar,
+			`https://steamcommunity.com/profiles/${steamId64}`
+		);
+		if (banned.nick) embed.addField("Nick", banned.nick, true);
+		embed.addField("Ban Duration", banDuration, true);
+		embed.addField("Reason", reason.substring(0, 1900));
+		embed.addField(
+			"SteamID64",
+			`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64})`
+		);
+		embed.setThumbnail(bannedAvatar);
+		embed.setColor(0xc42144);
 		(notificationsChannel as TextChannel).send({ embed });
 	}
 }
