@@ -38,7 +38,7 @@ export default class BanPayload extends Payload {
 		});
 		const embed = new Discord.MessageEmbed();
 		embed.setAuthor(
-			`${player.nick} banned a player`,
+			`${player.nick || "<-"} banned a player`,
 			avatar,
 			`https://steamcommunity.com/profiles/${steamId64}`
 		);
