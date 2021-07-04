@@ -8,6 +8,7 @@ export default interface StatusRequest extends PayloadRequest {
 			nick: string;
 			avatar?: string | false; // Metastruct SteamCache can return false...
 			isAdmin?: boolean;
+			isBanned?: boolean;
 		}[];
 		map: string;
 		workshopMap?: {
