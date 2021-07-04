@@ -1,6 +1,7 @@
 @import "_whitney.scss";
 
 $link: #2a77be;
+$link: #FF0000;
 
 * {
 	box-sizing: border-box;
@@ -28,7 +29,7 @@ main {
 	cursor: default;
 	margin: auto 0;
 	padding: 0.5em;
-	backdrop-filter: blur(4px); 
+	backdrop-filter: blur(4px);
 	background: rgba(0, 0, 0, 0.75);
 	overflow-y: auto;
 	color: white;
@@ -61,6 +62,10 @@ main {
 				border-radius: 50%;
 				margin-right: 0.33em;
 			}
+		}
+
+		&.is-banned a .nick {
+			color: $link-banned;
 		}
 
 		&.is-admin a .nick {
