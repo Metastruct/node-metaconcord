@@ -3,12 +3,13 @@ import {
 	ApplicationCommandPermissionType,
 	CommandContext,
 	CommandOptionType,
+	Message,
 	SlashCommand,
 	SlashCreator,
 } from "slash-create";
 import { DiscordBot } from "..";
 import { NodeSSH } from "node-ssh";
-import EphemeralResponse from ".";
+import { TextChannel } from "discord.js";
 import config from "@/ssh.json";
 
 const VALID_GSERV_PARAMS: [string, string][] = [
@@ -26,6 +27,7 @@ const COMMAND_MAPPING: Map<string, Array<string>> = new Map<string, Array<string
 COMMAND_MAPPING.set("qu_rehash", ["qu", "rehash"]);
 
 export class SlashGservCommand extends SlashCommand {
+	private bot: DiscordBot;
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
 			name: "gserv",
@@ -44,6 +46,7 @@ export class SlashGservCommand extends SlashCommand {
 			options: [],
 		});
 		this.filePath = __filename;
+		this.bot = bot;
 
 		for (const param of VALID_GSERV_PARAMS) {
 			this.options.push({
@@ -108,7 +111,7 @@ export class SlashGservCommand extends SlashCommand {
 		let msgContent = host;
 		if (!success) msgContent += " FAILED";
 
-		await ctx.send({
+		const response = await ctx.send({
 			content: msgContent,
 			file: {
 				file: Buffer.from(output, "utf8"),
@@ -116,6 +119,13 @@ export class SlashGservCommand extends SlashCommand {
 			},
 		});
 
+		if (response instanceof Message) {
+			const channel = (await this.bot.discord.channels.fetch(
+				response.channelID
+			)) as TextChannel;
+			const msg = await channel.messages.fetch(response.id);
+			await msg.react(success ? "👍" : "👎");
+		}
 		return success;
 	}
 
@@ -132,11 +142,6 @@ export class SlashGservCommand extends SlashCommand {
 				this.gserv(ctx, srvConfig.host, srvConfig.username, srvConfig.port, command)
 			);
 
-		const results = await Promise.all(promises);
-		for (const result of results) {
-			if (!result) return EphemeralResponse("Failed");
-		}
-
-		return EphemeralResponse("Done");
+		await Promise.all(promises);
 	}
 }
