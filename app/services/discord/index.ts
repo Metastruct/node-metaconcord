@@ -130,7 +130,6 @@ export class DiscordBot extends Service {
 		});
 
 		this.discord.ws.on("MESSAGE_REACTION_ADD", async reaction => {
-			console.log(reaction);
 			const channel = await this.getGuildTextChannel(reaction.channel_id);
 			const msg = await channel.messages.fetch(reaction.message_id);
 			const msgReaction = await new Discord.MessageReaction(
