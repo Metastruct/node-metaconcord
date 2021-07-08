@@ -35,16 +35,15 @@ export class DiscordBot extends Service {
 			token: config.token,
 		});
 		// Emergency mode lolol
-		// creator.on("error", console.log);
-		// creator.on("commandError", console.log);
-		// creator.on("warn", console.log);
+		creator.on("error", console.error);
+		creator.on("commandError", console.error);
+		creator.on("warn", console.warn);
 		// creator.on("debug", console.log);
 		// creator.on("ping", console.log);
 		// creator.on("rawREST", console.log);
 		// creator.on("unknownInteraction", console.log);
 		// creator.on("unverifiedRequest", console.log);
 		// creator.on("synced", console.log);
-		// creator.on("ping", console.log);
 		creator.withServer(
 			new GatewayServer(handler =>
 				this.discord.ws.on("INTERACTION_CREATE" as Discord.WSEventType, handler)
