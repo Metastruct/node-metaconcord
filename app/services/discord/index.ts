@@ -66,6 +66,8 @@ export class DiscordBot extends Service {
 			creator.registerCommand(slashCmd);
 		}
 
+		creator.syncCommands();
+
 		this.discord.on("ready", async () => {
 			console.log(`'${this.discord.user.username}' Discord Bot has logged in`);
 			await this.setStatus(`Crashing the source engine`);
@@ -74,8 +76,6 @@ export class DiscordBot extends Service {
 				const newStatus = this.container.getService("Markov").generate();
 				await this.setStatus(newStatus);
 			}, 1000 * 60 * 10); // change status every 10mins
-
-			creator.syncCommands();
 		});
 
 		this.discord.on("message", async ev => {
