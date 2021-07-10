@@ -25,7 +25,7 @@ export class SlashMarkovCommand extends SlashCommand {
 
 	async run(ctx: CommandContext): Promise<any> {
 		const building = this.markov.building;
-		if (building) return EphemeralResponse("Markov is not ready yet!");
+		if (building) return EphemeralResponse("Markov is not ready yet! Try again later...");
 		ctx.send("Generating Markov...");
 		ctx.send(this.markov.generate());
 	}
