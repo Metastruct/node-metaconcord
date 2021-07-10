@@ -1,8 +1,11 @@
+import { CommandContext, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "..";
-import { SlashCommand, SlashCreator } from "slash-create";
+import { MarkovService } from "../../Markov";
+import EphemeralResponse from ".";
 
 export class SlashMarkovCommand extends SlashCommand {
 	private bot: DiscordBot;
+	private markov: MarkovService;
 
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
@@ -17,9 +20,13 @@ export class SlashMarkovCommand extends SlashCommand {
 		});
 		this.filePath = __filename;
 		this.bot = bot;
+		this.markov = this.bot.container.getService("Markov");
 	}
 
-	async run(): Promise<string> {
-		return this.bot.container.getService("Markov").generate();
+	async run(ctx: CommandContext): Promise<any> {
+		const building = this.markov.building;
+		if (building) return EphemeralResponse("Markov is not ready yet!");
+		ctx.send("Generating Markov...");
+		ctx.send(this.markov.generate());
 	}
 }
