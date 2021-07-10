@@ -13,7 +13,7 @@ export class MarkovService extends Service {
 	generator = new Markov({ stateSize: 2 });
 	genOptions = { maxTries: 20 };
 
-	private building: boolean;
+	building: boolean;
 	constructor(container: Container) {
 		super(container);
 		this.building = true;
