@@ -1,4 +1,3 @@
-import { Message } from "discord.js";
 import { CommandContext, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "..";
 import { MarkovService } from "../../Markov";
