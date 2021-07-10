@@ -1,3 +1,4 @@
+import { Message } from "discord.js";
 import { CommandContext, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "..";
 import { MarkovService } from "../../Markov";
@@ -21,8 +22,8 @@ export class SlashMarkovCommand extends SlashCommand {
 		this.markov = this.bot.container.getService("Markov");
 	}
 
-	async run(ctx: CommandContext): Promise<any> {
-		await ctx.send("Generating Markov...");
-		await ctx.editOriginal(this.markov.generate());
+	async run(ctx: CommandContext): Promise<void> {
+		await ctx.defer();
+		await ctx.send(this.markov.generate());
 	}
 }
