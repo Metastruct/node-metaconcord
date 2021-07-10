@@ -2,6 +2,7 @@ import { Container } from "@/app/Container";
 //import { EOL } from "os";
 import { Service } from ".";
 import Markov from "markov-strings";
+import sleep from "sleep-promise";
 //import fs from "fs";
 
 //const MARKOV_DATA_PATH = "markov_data.txt";
@@ -12,10 +13,12 @@ export class MarkovService extends Service {
 	generator = new Markov({ stateSize: 2 });
 	genOptions = { maxTries: 20 };
 
+	private building: boolean;
 	constructor(container: Container) {
 		super(container);
+		this.building = true;
 
-		setTimeout(async () => {
+		(async () => {
 			const sql = this.container.getService("Sql");
 			const db = await sql.getDatabase();
 			const hasTable = await sql.tableExists("markov");
@@ -55,10 +58,24 @@ export class MarkovService extends Service {
 			if (res.length > 0) {
 				const old = Date.now();
 				console.log("Building markov...");
-				this.generator.addData(res);
+
+				let dataChunk = [];
+				for (let i = 0; i < res.length; i++) {
+					dataChunk.push(res[i]);
+
+					if (i % 500 === 0) {
+						this.generator.addData(dataChunk);
+						dataChunk = [];
+
+						await sleep(100);
+					}
+				}
+
+				this.generator.addData(dataChunk);
+				this.building = false;
 				console.log(`Done (in ${(Date.now() - old) / 1000}s)`);
 			}
-		}, 5000); // call after everything has initialized ?
+		})();
 	}
 
 	private sanitizeString(input: string): string {
@@ -83,6 +100,10 @@ export class MarkovService extends Service {
 	}
 
 	public generate(): string {
+		if (this.generator.data.length === 0) {
+			return "Service is still loading";
+		}
+
 		const res = this.generator.generate(this.genOptions);
 		return res.string.trim();
 	}

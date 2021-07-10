@@ -35,6 +35,7 @@
     "puppeteer": "^5.5.0",
     "qs": "^6.9.4",
     "slash-create": "^3.3.0",
+    "sleep-promise": "^9.1.0",
     "sqlite": "^4.0.23",
     "sqlite3": "^5.0.2",
     "steamapi": "^2.1.1",
