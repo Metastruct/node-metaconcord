@@ -1,8 +1,6 @@
 import { CommandContext, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "..";
 import { MarkovService } from "../../Markov";
-import EphemeralResponse from ".";
-
 export class SlashMarkovCommand extends SlashCommand {
 	private bot: DiscordBot;
 	private markov: MarkovService;
@@ -24,8 +22,6 @@ export class SlashMarkovCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
-		const building = this.markov.building;
-		if (building) return EphemeralResponse("Markov is not ready yet! Try again later...");
 		ctx.send("Generating Markov...");
 		ctx.send(this.markov.generate());
 	}

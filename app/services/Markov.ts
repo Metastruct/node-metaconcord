@@ -13,10 +13,8 @@ export class MarkovService extends Service {
 	generator = new Markov({ stateSize: 2 });
 	genOptions = { maxTries: 20 };
 
-	building: boolean;
 	constructor(container: Container) {
 		super(container);
-		this.building = true;
 
 		(async () => {
 			const sql = this.container.getService("Sql");
@@ -72,7 +70,6 @@ export class MarkovService extends Service {
 				}
 
 				this.generator.addData(dataChunk);
-				this.building = false;
 				console.log(`Done (in ${(Date.now() - old) / 1000}s)`);
 			}
 		})();
