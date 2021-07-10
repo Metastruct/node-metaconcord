@@ -21,6 +21,8 @@ import TwitterProvider, { Twitter } from "./Twitter";
 import WebAppProvider, { WebApp } from "./webapp";
 
 export default [
+	SqlProvider,
+	MarkovProvider,
 	SteamProvider,
 	DataProvider,
 	DiscordBotProvider,
@@ -28,11 +30,9 @@ export default [
 	GameBridgeProvider,
 	MotdProvider,
 	TwitterProvider,
-	MarkovProvider,
 	StarboardProvider,
-	SqlProvider,
 ]; // The order is important
-export { Data, DiscordBot, GameBridge, Steam, WebApp, Motd, Twitter, MarkovService };
+export { SqlProvider, MarkovService, Data, DiscordBot, GameBridge, Steam, WebApp, Motd, Twitter };
 export type ServiceMap = {
 	[key: string]: Service;
 	Data?: Data;
