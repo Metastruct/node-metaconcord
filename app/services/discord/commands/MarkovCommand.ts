@@ -23,6 +23,6 @@ export class SlashMarkovCommand extends SlashCommand {
 
 	async run(ctx: CommandContext): Promise<any> {
 		ctx.send("Generating Markov...");
-		ctx.send(this.markov.generate());
+		ctx.editOriginal(this.markov.generate());
 	}
 }
