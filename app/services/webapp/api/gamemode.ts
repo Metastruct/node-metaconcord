@@ -26,7 +26,7 @@ export default (webApp: WebApp): void => {
 		});
 
 		const output = new Stream.Writable();
-		await ssh.exec("gserv", ["merge_repos", "rehash"], {
+		ssh.exec("gserv", ["merge_repos", "rehash"], {
 			stream: "stderr",
 			onStdout: buff => output.write(buff),
 			onStderr: buff => output.write(buff),
