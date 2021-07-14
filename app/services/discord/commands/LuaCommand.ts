@@ -79,6 +79,7 @@ export class SlashLuaCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
+		await ctx.defer();
 		const bridge = this.bot.container.getService("GameBridge");
 		const code = ctx.options.code.replace("```", "") as string;
 		const server = ctx.options.server as number;

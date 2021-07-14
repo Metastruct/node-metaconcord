@@ -72,6 +72,7 @@ export class SlashWhyBanCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
+		await ctx.defer();
 		const res = await axios.get<Array<MetaBan>>("http://g2.metastruct.net/bans");
 
 		if (res.status === 200) {
