@@ -130,6 +130,7 @@ export class SlashGservCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
+		await ctx.defer();
 		const command = Object.keys(ctx.options)[0];
 		const server = (ctx.options[command] as any)?.server;
 

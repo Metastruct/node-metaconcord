@@ -60,6 +60,7 @@ export class SlashRconCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
+		await ctx.defer();
 		const bridge = this.bot.container.getService("GameBridge");
 		const command = ctx.options.command.toString();
 		const server = parseInt(ctx.options.server.toString());

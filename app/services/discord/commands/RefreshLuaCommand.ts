@@ -59,6 +59,7 @@ export class SlashRefreshLuaCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
+		await ctx.defer();
 		const bridge = this.bot.container.getService("GameBridge");
 		const code = `if not RefreshLua then return false, "Couldn't refresh file" end return RefreshLua([[${ctx.options.filepath}]])`;
 		const server = ctx.options.server as number;
