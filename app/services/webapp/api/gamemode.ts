@@ -1,10 +1,13 @@
 import { NodeSSH } from "node-ssh";
+import { TextChannel } from "discord.js";
 import { WebApp } from "..";
 import config from "@/ssh.json";
 import servers from "@/gamebridge.servers.json";
 
 const HOSTING_IDS = { 3: true };
 export default (webApp: WebApp): void => {
+	const bot = webApp.container.getService("DiscordBot");
+
 	webApp.app.get("/gamemode/:id/", async (req, res) => {
 		const isOkIp =
 			servers.find(srv => srv.ip == req.ip.toString()) || req.ip.toString() === "127.0.0.1";
@@ -33,6 +36,22 @@ export default (webApp: WebApp): void => {
 			onStderr: buff => (output += buff),
 		});
 
-		return res.status(200).contentType("text/plain").send(output);
+		const failed = output.includes("GSERV FAILED");
+		if (failed) {
+			const guild = await bot.discord.guilds.resolve(bot.config.guildId)?.fetch();
+			if (guild) {
+				const channel = await guild.channels
+					.resolve(bot.config.notificationsChannelId)
+					?.fetch();
+				await (channel as TextChannel)?.send(
+					`<@&683288525990395962> GSERV FAILED ON SERVER ${id}, PLEASE FIX`
+				);
+			}
+		}
+
+		return res
+			.status(failed ? 500 : 200)
+			.contentType("text/plain")
+			.send(output);
 	});
 };
