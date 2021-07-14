@@ -30,7 +30,7 @@ export default (webApp: WebApp): void => {
 			stream: "stderr",
 			onStdout: buff => output.write(buff),
 			onStderr: buff => output.write(buff),
-		});
+		}).finally(() => output.destroy());
 
 		return res.status(206).pipe(output);
 	});
