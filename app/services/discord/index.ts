@@ -2,6 +2,7 @@ import { Container } from "@/app/Container";
 import { GatewayServer, SlashCommand, SlashCreator } from "slash-create";
 import { Service } from "@/app/services";
 import { SlashCustomRoleCommand } from "./commands/CustomRoleCommand";
+import { SlashVaccinatedCommand } from "./commands/VaccinationCommand";
 import { SlashGservCommand } from "./commands/GservCommand";
 import { SlashLuaCommand } from "./commands/LuaCommand";
 import { SlashMarkovCommand } from "./commands/MarkovCommand";
@@ -56,6 +57,7 @@ export class DiscordBot extends Service {
 			new SlashWhyMuteCommand(this, creator),
 			new SlashGservCommand(this, creator),
 			new SlashCustomRoleCommand(this, creator),
+			new SlashVaccinatedCommand(this, creator),
 			new SlashLuaCommand(this, creator),
 			new SlashRconCommand(this, creator),
 			new SlashRefreshLuaCommand(this, creator),
