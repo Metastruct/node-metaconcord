@@ -5,6 +5,7 @@ import schedule from "node-schedule";
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
 import moment from "moment";
+import FormData from "form-data";
 
 export default class Motd extends Service {
 	name = "Motd";
@@ -90,6 +91,17 @@ export default class Motd extends Service {
 			);
 
 			this.container.getService("Twitter").postStatus("Image of the day", url);
+
+			// remove images from album after posting
+			const data = new FormData();
+			data.append("deletehashes[]", "");
+
+			axios.post(`https://api.imgur.com/3/album/${config.imgurDeleteHash}`, data, {
+				headers: {
+					Authorization: `Client-ID ${config.imgurClientId}`,
+					...data.getHeaders(),
+				},
+			});
 		}
 	}
 }
