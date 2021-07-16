@@ -1,6 +1,5 @@
-import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
+import { CommandContext, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "..";
-import Discord from "discord.js";
 import EphemeralResponse from ".";
 import config from "@/discord-extras.json";
 
@@ -21,19 +20,21 @@ export class SlashVaccinatedCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
-		await ctx.defer();
-		return this.addRole(ctx);
+		return EphemeralResponse(await this.addRole(ctx));
 	}
 
-	async addRole(ctx: CommandContext): Promise<any> {
+	async addRole(ctx: CommandContext): Promise<string> {
 		const guild = await this.bot.discord.guilds.resolve(ctx.guildID)?.fetch();
-		if (!guild) {
-			return EphemeralResponse("Not in a guild");
-		}
+		if (!guild) return;
 
 		const member = await guild.members.fetch(ctx.member.id);
+
+		if (member.roles.cache.get(VACCINATION_ROLE)) {
+			return "You are already vaccinated!";
+		}
+
 		await member.roles.add(VACCINATION_ROLE);
 
-		return EphemeralResponse("You got vaccinated!");
+		return "You just got vaccinated!";
 	}
 }
