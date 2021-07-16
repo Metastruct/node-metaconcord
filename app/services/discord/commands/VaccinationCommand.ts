@@ -1,6 +1,5 @@
 import { CommandContext, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "..";
-import EphemeralResponse from ".";
 import config from "@/discord-extras.json";
 
 const VACCINATION_ROLE = config.roles.vaccination;
