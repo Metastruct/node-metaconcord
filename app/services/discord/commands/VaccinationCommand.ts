@@ -20,8 +20,8 @@ export class SlashVaccinatedCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
-		await ctx.defer();
-		return EphemeralResponse(await this.addRole(ctx));
+		await ctx.defer(true);
+		return await this.addRole(ctx);
 	}
 
 	async addRole(ctx: CommandContext): Promise<string> {
