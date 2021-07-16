@@ -21,6 +21,7 @@ export class SlashVaccinatedCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
+		await ctx.defer();
 		return this.addRole(ctx);
 	}
 
