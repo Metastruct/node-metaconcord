@@ -11,10 +11,6 @@ export class SlashMarkovCommand extends SlashCommand {
 			description: "Funny text generation based off the gmod and discord chats.",
 			guildIDs: [bot.config.guildId],
 			options: [],
-			throttling: {
-				usages: 1,
-				duration: 60,
-			},
 		});
 		this.filePath = __filename;
 		this.bot = bot;
