@@ -134,7 +134,7 @@ export class SlashGservCommand extends SlashCommand {
 		});
 
 		ctx.registerComponent("gserv_command", async (selected: ComponentContext) => {
-			if (selected.user !== user) return;
+			if (selected.user.id !== user.id) return;
 			commands = selected.values;
 
 			let servers: string[];
@@ -156,7 +156,7 @@ export class SlashGservCommand extends SlashCommand {
 				],
 			});
 			ctx.registerComponent("gserv_server", async (selected: ComponentContext) => {
-				if (selected.user !== user) return;
+				if (selected.user.id !== user.id) return;
 				servers = selected.values;
 				selected.editParent(
 					`Running ${commands.join(" and ")} on ${servers.join(",")} please wait...`,
