@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-	ApplicationCommandOption,
 	ApplicationCommandPermissionType,
-	ButtonStyle,
 	CommandContext,
 	ComponentContext,
 	ComponentSelectOption,
@@ -13,7 +11,7 @@ import {
 } from "slash-create";
 import { DiscordBot } from "..";
 import { NodeSSH } from "node-ssh";
-import { Emoji, TextChannel } from "discord.js";
+import { TextChannel } from "discord.js";
 import config from "@/ssh.json";
 
 // order matters for the menu
