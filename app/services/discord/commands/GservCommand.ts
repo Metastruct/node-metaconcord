@@ -12,6 +12,7 @@ import {
 import { DiscordBot } from "..";
 import { NodeSSH } from "node-ssh";
 import { TextChannel } from "discord.js";
+import EphemeralResponse from ".";
 import config from "@/ssh.json";
 
 // order matters for the menu
@@ -109,6 +110,9 @@ export class SlashGservCommand extends SlashCommand {
 		}
 		return success;
 	}
+	private deny(ctx: CommandContext) {
+		return EphemeralResponse(`This command can only be used by ${ctx.user.username}`);
+	}
 
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer();
@@ -134,7 +138,10 @@ export class SlashGservCommand extends SlashCommand {
 		});
 
 		ctx.registerComponent("gserv_command", async (selected: ComponentContext) => {
-			if (selected.user.id !== user.id) return;
+			if (selected.user.id !== user.id) {
+				selected.send(this.deny(ctx));
+				return;
+			}
 			commands = selected.values;
 
 			let servers: string[];
@@ -156,7 +163,10 @@ export class SlashGservCommand extends SlashCommand {
 				],
 			});
 			ctx.registerComponent("gserv_server", async (selected: ComponentContext) => {
-				if (selected.user.id !== user.id) return;
+				if (selected.user.id !== user.id) {
+					selected.send(this.deny(ctx));
+					return;
+				}
 				servers = selected.values;
 				selected.editParent(
 					`Running ${commands.join(" and ")} on ${servers.join(",")} please wait...`,
