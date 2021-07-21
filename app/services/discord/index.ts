@@ -83,6 +83,7 @@ export class DiscordBot extends Service {
 			await Promise.all([
 				this.handleTwitterEmbeds(ev as Discord.Message),
 				this.handleMarkov(ev),
+				this.handleMediaUrls(ev),
 			]);
 		});
 
@@ -196,6 +197,22 @@ export class DiscordBot extends Service {
 
 		const msg = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
 		await ev.channel.send(msg);
+	}
+	private async handleMediaUrls(ev: Discord.Message): Promise<void> {
+		// https://media.discordapp.net/attachments/769875739817410562/867369588014448650/video.mp4
+		// https://cdn.discordapp.com/attachments/769875739817410562/867369588014448650/video.mp4
+
+		const mediaUrls = ev.content.matchAll(
+			/https?:\/\/media.discordapp.net\/attachments(\/\d+\/\d+\/\S+\.(webm|mp4|mov))/g
+		);
+
+		let urls: Array<string> = [];
+		for (const mediaUrl of mediaUrls) {
+			urls = urls.concat(`https://cdn.discordapp.com/attachments${mediaUrl[1]}`);
+		}
+		if (urls.length === 0) return;
+
+		ev.reply(urls.join("\n"));
 	}
 }
 
