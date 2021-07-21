@@ -4,7 +4,6 @@ import schedule from "node-schedule";
 
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
-import FormData from "form-data";
 import moment from "moment";
 
 export default class Motd extends Service {
