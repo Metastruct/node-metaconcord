@@ -93,13 +93,9 @@ export default class Motd extends Service {
 			this.container.getService("Twitter").postStatus("Image of the day", url);
 
 			// remove images from album after posting
-			const data = new FormData();
-			data.append("deletehashes[]", "");
-
-			axios.post(`https://api.imgur.com/3/album/${config.imgurDeleteHash}`, data, {
+			axios.post(`https://api.imgur.com/3/album/${config.imgurDeleteHash}`, {
 				headers: {
 					Authorization: `Client-ID ${config.imgurClientId}`,
-					...data.getHeaders(),
 				},
 			});
 		}
