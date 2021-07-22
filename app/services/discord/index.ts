@@ -1,8 +1,10 @@
 import { Container } from "@/app/Container";
 import { GatewayServer, SlashCommand, SlashCreator } from "slash-create";
 import { Service } from "@/app/services";
+import { SlashBanCommand } from "./commands/BanCommand";
 import { SlashCustomRoleCommand } from "./commands/CustomRoleCommand";
 import { SlashGservCommand } from "./commands/GservCommand";
+import { SlashKickCommand } from "./commands/KickCommand";
 import { SlashLuaCommand } from "./commands/LuaCommand";
 import { SlashMarkovCommand } from "./commands/MarkovCommand";
 import { SlashMuteCommand } from "./commands/mute/MuteCommand";
@@ -62,6 +64,8 @@ export class DiscordBot extends Service {
 			new SlashRconCommand(this, creator),
 			new SlashRefreshLuaCommand(this, creator),
 			new SlashWhyBanCommand(this, creator),
+			new SlashBanCommand(this, creator),
+			new SlashKickCommand(this, creator),
 		];
 		for (const slashCmd of cmds) {
 			creator.registerCommand(slashCmd);
