@@ -11,7 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "cross-env NODE_ENV=production node dist",
     "dev": "cross-env NODE_ENV=development ts-node-dev -r tsconfig-paths/register index.ts",
-    "build": "yarn scss && rm -rf ./dist && tsc && tscpaths -p tsconfig.json -s ./ -o ./dist",
+    "build": "yarn scss && rm -rf ./dist && tsc && tsconfig-replace-paths -p tsconfig.json -s ./ -o ./dist",
     "scss": "sass app/services/webapp/resources/ --no-source-map",
     "scss-watch": "sass --watch app/services/webapp/resources/ --no-source-map"
   },
@@ -65,7 +65,7 @@
     "ts-node": "^8.10.2",
     "ts-node-dev": "^1.1.6",
     "tsconfig-paths": "^3.9.0",
-    "tscpaths": "^0.0.9",
+    "tsconfig-replace-paths": "^0.0.5",
     "typescript": "^3.9.5",
     "typescript-json-schema": "^0.42.0"
   }
