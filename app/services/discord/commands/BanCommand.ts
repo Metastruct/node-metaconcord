@@ -1,4 +1,10 @@
-import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
+import {
+	ApplicationCommandPermissionType,
+	CommandContext,
+	CommandOptionType,
+	SlashCommand,
+	SlashCreator,
+} from "slash-create";
 import { DiscordBot } from "..";
 
 export class SlashBanCommand extends SlashCommand {
@@ -10,6 +16,16 @@ export class SlashBanCommand extends SlashCommand {
 			description: "Bans a player in-game",
 			deferEphemeral: true,
 			guildIDs: [bot.config.guildId],
+			defaultPermission: false,
+			permissions: {
+				[bot.config.guildId]: [
+					{
+						type: ApplicationCommandPermissionType.ROLE,
+						id: bot.config.developerRoleId,
+						permission: true,
+					},
+				],
+			},
 			options: [
 				{
 					type: CommandOptionType.STRING,
