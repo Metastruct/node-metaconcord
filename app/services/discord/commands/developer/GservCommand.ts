@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-	ApplicationCommandPermissionType,
 	CommandContext,
 	ComponentContext,
 	ComponentSelectOption,
 	ComponentType,
 	Message,
-	SlashCommand,
 	SlashCreator,
 } from "slash-create";
-import { DiscordBot } from "..";
+import { DiscordBot } from "../..";
 import { NodeSSH } from "node-ssh";
+import { SlashDeveloperCommand } from "./DeveloperCommand";
 import { TextChannel } from "discord.js";
-import EphemeralResponse from ".";
+import EphemeralResponse from "..";
 import config from "@/ssh.json";
 
 // order matters for the menu
@@ -25,26 +24,15 @@ const VALID_GSERV_COMMANDS: [string, string][] = [
 	["status", "show server status"],
 ];
 
-export class SlashGservCommand extends SlashCommand {
-	private bot: DiscordBot;
+export class SlashGservCommand extends SlashDeveloperCommand {
 	private commandOptions: ComponentSelectOption[] = [];
 	private serverOptions: ComponentSelectOption[] = [];
 	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(creator, {
+		super(bot, creator, {
 			name: "gserv",
 			description: "Gserv from discord",
-			guildIDs: [bot.config.guildId],
-			defaultPermission: false,
-			permissions: {
-				[bot.config.guildId]: [
-					{
-						type: ApplicationCommandPermissionType.ROLE,
-						id: bot.config.developerRoleId,
-						permission: true,
-					},
-				],
-			},
 		});
+
 		this.filePath = __filename;
 		this.bot = bot;
 

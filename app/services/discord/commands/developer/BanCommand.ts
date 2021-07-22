@@ -1,31 +1,13 @@
-import {
-	ApplicationCommandPermissionType,
-	CommandContext,
-	CommandOptionType,
-	SlashCommand,
-	SlashCreator,
-} from "slash-create";
-import { DiscordBot } from "..";
+import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
+import { DiscordBot } from "@/app/services";
+import { SlashDeveloperCommand } from "./DeveloperCommand";
 
-export class SlashBanCommand extends SlashCommand {
-	private bot: DiscordBot;
-
+export class SlashBanCommand extends SlashDeveloperCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(creator, {
+		super(bot, creator, {
 			name: "ban",
 			description: "Bans a player in-game",
 			deferEphemeral: true,
-			guildIDs: [bot.config.guildId],
-			defaultPermission: false,
-			permissions: {
-				[bot.config.guildId]: [
-					{
-						type: ApplicationCommandPermissionType.ROLE,
-						id: bot.config.developerRoleId,
-						permission: true,
-					},
-				],
-			},
 			options: [
 				{
 					type: CommandOptionType.STRING,
@@ -68,6 +50,7 @@ export class SlashBanCommand extends SlashCommand {
 				},
 			],
 		});
+
 		this.filePath = __filename;
 		this.bot = bot;
 	}
@@ -125,7 +108,7 @@ export class SlashBanCommand extends SlashCommand {
 
 		const bridge = this.bot.container.getService("GameBridge");
 		const server = (ctx.options.server as number) ?? 2;
-		const plyName = summary.personaname ?? `[???: ${ctx.options.steamid}]`;
+		const plyName = summary.personaname ?? `???`;
 		const length = Date.now() / 1000 + this.parseLength(ctx.options.length);
 		const code = `if not banni then return false end return banni.Ban("${ctx.options.steamid}", "${plyName}", nil, [[${ctx.options.reason}]], ${length}).b`;
 		try {

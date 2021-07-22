@@ -1,31 +1,13 @@
-import {
-	ApplicationCommandPermissionType,
-	CommandContext,
-	CommandOptionType,
-	SlashCommand,
-	SlashCreator,
-} from "slash-create";
-import { DiscordBot } from "..";
+import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
+import { DiscordBot } from "@/app/services";
+import { SlashDeveloperCommand } from "./DeveloperCommand";
 
-export class SlashRefreshLuaCommand extends SlashCommand {
-	private bot: DiscordBot;
-
+export class SlashRefreshLuaCommand extends SlashDeveloperCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(creator, {
+		super(bot, creator, {
 			name: "refreshlua",
 			description: "Refreshes a lua file on one of the servers",
 			deferEphemeral: true,
-			guildIDs: [bot.config.guildId],
-			defaultPermission: false,
-			permissions: {
-				[bot.config.guildId]: [
-					{
-						type: ApplicationCommandPermissionType.ROLE,
-						id: bot.config.developerRoleId,
-						permission: true,
-					},
-				],
-			},
 			options: [
 				{
 					type: CommandOptionType.STRING,
@@ -55,6 +37,7 @@ export class SlashRefreshLuaCommand extends SlashCommand {
 				},
 			],
 		});
+
 		this.filePath = __filename;
 		this.bot = bot;
 	}

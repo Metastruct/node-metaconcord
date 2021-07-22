@@ -7,7 +7,7 @@ import {
 } from "slash-create";
 import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../..";
-import Silent from "../";
+import Silent from "..";
 
 export class SlashUnmuteCommand extends SlashCommand {
 	private bot: DiscordBot;

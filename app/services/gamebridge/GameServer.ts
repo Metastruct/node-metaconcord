@@ -61,12 +61,12 @@ export default class GameServer {
 			} catch (err) {
 				console.error(`${data.name} exception:`, err);
 				console.log("with payload: ", data.data);
-				return;
+				return new Promise((_, reject) => reject(err.message));
 			}
 
 			console.log("Invalid payload:");
 			console.log(data);
-			ErrorPayload.send(
+			return ErrorPayload.send(
 				{
 					error: { message: "Payload doesn't exist, nothing was done" },
 				},
