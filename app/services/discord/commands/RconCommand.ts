@@ -17,6 +17,7 @@ export class SlashRconCommand extends SlashCommand {
 			description: "Executes a command on one of the gmod servers",
 			deferEphemeral: true,
 			guildIDs: [bot.config.guildId],
+			defaultPermission: false,
 			permissions: {
 				[bot.config.guildId]: [
 					{

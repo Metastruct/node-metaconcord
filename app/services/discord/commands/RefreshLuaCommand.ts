@@ -16,6 +16,7 @@ export class SlashRefreshLuaCommand extends SlashCommand {
 			description: "Refreshes a lua file on one of the servers",
 			deferEphemeral: true,
 			guildIDs: [bot.config.guildId],
+			defaultPermission: false,
 			permissions: {
 				[bot.config.guildId]: [
 					{

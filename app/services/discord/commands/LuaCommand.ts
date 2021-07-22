@@ -17,6 +17,7 @@ export class SlashLuaCommand extends SlashCommand {
 			description: "Executes lua on one of the gmod servers",
 			deferEphemeral: true,
 			guildIDs: [bot.config.guildId],
+			defaultPermission: false,
 			permissions: {
 				[bot.config.guildId]: [
 					{
