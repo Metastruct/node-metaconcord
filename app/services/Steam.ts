@@ -1,6 +1,7 @@
 import { Container } from "@/app/Container";
 import { Service } from ".";
 import SteamAPI from "steamapi";
+import SteamID from "steamid";
 import axios from "axios";
 import config from "@/steam.json";
 import qs from "qs";
@@ -60,6 +61,10 @@ export class Steam extends Service {
 			};
 		}
 		return this.userCache[steamId64];
+	}
+
+	public steamIDToSteamID64(steamid: string): string {
+		return new SteamID(steamid).getSteamID64();
 	}
 }
 
