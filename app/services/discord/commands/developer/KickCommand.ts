@@ -1,31 +1,12 @@
-import {
-	ApplicationCommandPermissionType,
-	CommandContext,
-	CommandOptionType,
-	SlashCommand,
-	SlashCreator,
-} from "slash-create";
-import { DiscordBot } from "..";
+import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
+import { DiscordBot } from "@/app/services";
+import { SlashDeveloperCommand } from "./DeveloperCommand";
 
-export class SlashKickCommand extends SlashCommand {
-	private bot: DiscordBot;
-
+export class SlashKickCommand extends SlashDeveloperCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(creator, {
+		super(bot, creator, {
 			name: "kick",
 			description: "Kick a player in-game",
-			deferEphemeral: true,
-			guildIDs: [bot.config.guildId],
-			defaultPermission: false,
-			permissions: {
-				[bot.config.guildId]: [
-					{
-						type: ApplicationCommandPermissionType.ROLE,
-						id: bot.config.developerRoleId,
-						permission: true,
-					},
-				],
-			},
 			options: [
 				{
 					type: CommandOptionType.STRING,
@@ -62,6 +43,7 @@ export class SlashKickCommand extends SlashCommand {
 				},
 			],
 		});
+
 		this.filePath = __filename;
 		this.bot = bot;
 	}

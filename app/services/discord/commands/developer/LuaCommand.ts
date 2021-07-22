@@ -1,32 +1,14 @@
-import {
-	ApplicationCommandPermissionType,
-	CommandContext,
-	CommandOptionType,
-	SlashCommand,
-	SlashCreator,
-} from "slash-create";
-import { DiscordBot } from "..";
+import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
+import { DiscordBot } from "@/app/services";
+import { SlashDeveloperCommand } from "./DeveloperCommand";
 import Discord from "discord.js";
 
-export class SlashLuaCommand extends SlashCommand {
-	private bot: DiscordBot;
-
+export class SlashLuaCommand extends SlashDeveloperCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(creator, {
+		super(bot, creator, {
 			name: "l",
 			description: "Executes lua on one of the gmod servers",
 			deferEphemeral: true,
-			guildIDs: [bot.config.guildId],
-			defaultPermission: false,
-			permissions: {
-				[bot.config.guildId]: [
-					{
-						type: ApplicationCommandPermissionType.ROLE,
-						id: bot.config.developerRoleId,
-						permission: true,
-					},
-				],
-			},
 			options: [
 				{
 					type: CommandOptionType.STRING,
@@ -75,6 +57,7 @@ export class SlashLuaCommand extends SlashCommand {
 				},
 			],
 		});
+
 		this.filePath = __filename;
 		this.bot = bot;
 	}

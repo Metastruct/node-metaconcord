@@ -1,6 +1,6 @@
 import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
-import Silent from "../";
+import Silent from "..";
 import moment from "moment";
 
 export class SlashWhyMuteCommand extends SlashCommand {
