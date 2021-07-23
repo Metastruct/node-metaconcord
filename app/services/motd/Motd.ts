@@ -4,6 +4,7 @@ import schedule from "node-schedule";
 
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
+import FormData from "form-data";
 import moment from "moment";
 
 export default class Motd extends Service {
@@ -75,7 +76,7 @@ export default class Motd extends Service {
 			const url: string = urls[Math.floor(Math.random() * urls.length)];
 			if (!url) return;
 
-			axios.post(
+			await axios.post(
 				config.webhook,
 				JSON.stringify({
 					content: "Image of the day:\n" + url,
@@ -92,11 +93,17 @@ export default class Motd extends Service {
 			this.container.getService("Twitter").postStatus("Image of the day", url);
 
 			// remove images from album after posting
-			axios.post(`https://api.imgur.com/3/album/${config.imgurDeleteHash}`, {
-				headers: {
-					Authorization: `Client-ID ${config.imgurClientId}`,
-				},
-			});
+			const data = new FormData();
+			data.append("deletehashes[]", "");
+			await axios.post(
+				`https://api.imgur.com/3/album/${config.imgurDeleteHash}`,
+				data.getBuffer().toString(),
+				{
+					headers: {
+						Authorization: `Client-ID ${config.imgurClientId}`,
+					},
+				}
+			);
 		}
 	}
 }
