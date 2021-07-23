@@ -1,7 +1,7 @@
 import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "..";
+import { EphemeralResponse } from ".";
 import Discord from "discord.js";
-import EphemeralResponse from ".";
 
 const ROLE_IDENTIFIER = "\u2063";
 export class SlashCustomRoleCommand extends SlashCommand {

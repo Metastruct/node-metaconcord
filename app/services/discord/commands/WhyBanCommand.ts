@@ -1,6 +1,6 @@
 import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "..";
-import EphemeralResponse from ".";
+import { EphemeralResponse } from ".";
 import axios from "axios";
 
 class MetaBan {

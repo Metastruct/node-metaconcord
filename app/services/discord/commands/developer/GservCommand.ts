@@ -8,10 +8,10 @@ import {
 	SlashCreator,
 } from "slash-create";
 import { DiscordBot } from "../..";
+import { EphemeralResponse } from "..";
 import { NodeSSH } from "node-ssh";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
 import { TextChannel } from "discord.js";
-import EphemeralResponse from "..";
 import config from "@/ssh.json";
 
 // order matters for the menu
