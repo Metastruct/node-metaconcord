@@ -1,6 +1,6 @@
 import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
-import Silent from "..";
+import { EphemeralResponse } from "..";
 import moment from "moment";
 
 export class SlashWhyMuteCommand extends SlashCommand {
@@ -52,15 +52,15 @@ export class SlashWhyMuteCommand extends SlashCommand {
 						: "") +
 					(reason ? ` with reason:\n\n${reason}` : " without a reason") +
 					`.`;
-				return Silent(content);
+				return EphemeralResponse(content);
 			} else {
-				return Silent("how#3");
+				return EphemeralResponse("how#3");
 			}
 		} else {
 			if (userId == ctx.user.id) {
-				return Silent("You're not muted... yet!");
+				return EphemeralResponse("You're not muted... yet!");
 			} else {
-				return Silent("That user hasn't been muted... yet!");
+				return EphemeralResponse("That user hasn't been muted... yet!");
 			}
 		}
 	}
