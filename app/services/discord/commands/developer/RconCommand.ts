@@ -1,7 +1,7 @@
 import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
+import { EphemeralResponse } from "..";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
-import EphemeralResponse from "..";
 
 export class SlashRconCommand extends SlashDeveloperCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {

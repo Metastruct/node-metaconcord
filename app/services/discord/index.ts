@@ -1,19 +1,7 @@
 import { Container } from "@/app/Container";
-import { GatewayServer, SlashCommand, SlashCreator } from "slash-create";
+import { GatewayServer, SlashCreator } from "slash-create";
 import { Service } from "@/app/services";
-import { SlashBanCommand } from "./commands/developer/BanCommand";
-import { SlashCustomRoleCommand } from "./commands/CustomRoleCommand";
-import { SlashGservCommand } from "./commands/developer/GservCommand";
-import { SlashKickCommand } from "./commands/developer/KickCommand";
-import { SlashLuaCommand } from "./commands/developer/LuaCommand";
-import { SlashMarkovCommand } from "./commands/MarkovCommand";
-import { SlashMuteCommand } from "./commands/mute/MuteCommand";
-import { SlashRconCommand } from "./commands/developer/RconCommand";
-import { SlashRefreshLuaCommand } from "./commands/developer/RefreshLuaCommand";
-import { SlashUnmuteCommand } from "./commands/mute/UnmuteCommand";
-import { SlashVaccinatedCommand } from "./commands/VaccinationCommand";
-import { SlashWhyBanCommand } from "./commands/WhyBanCommand";
-import { SlashWhyMuteCommand } from "./commands/mute/WhyMuteCommand";
+import { commands } from "./commands";
 import Discord from "discord.js";
 import config from "@/discord.json";
 
@@ -52,23 +40,8 @@ export class DiscordBot extends Service {
 				this.discord.ws.on("INTERACTION_CREATE" as Discord.WSEventType, handler)
 			)
 		);
-		const cmds: Array<SlashCommand> = [
-			new SlashMarkovCommand(this, creator),
-			new SlashMuteCommand(this, creator),
-			new SlashUnmuteCommand(this, creator),
-			new SlashWhyMuteCommand(this, creator),
-			new SlashGservCommand(this, creator),
-			new SlashCustomRoleCommand(this, creator),
-			new SlashVaccinatedCommand(this, creator),
-			new SlashLuaCommand(this, creator),
-			new SlashRconCommand(this, creator),
-			new SlashRefreshLuaCommand(this, creator),
-			new SlashWhyBanCommand(this, creator),
-			new SlashBanCommand(this, creator),
-			new SlashKickCommand(this, creator),
-		];
-		for (const slashCmd of cmds) {
-			creator.registerCommand(slashCmd);
+		for (const slashCmd of commands) {
+			creator.registerCommand(new slashCmd(this, creator));
 		}
 
 		creator.syncCommands();
