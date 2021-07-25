@@ -7,7 +7,7 @@ import config from "@/discord.json";
 
 const DELETE_COLOR: Discord.ColorResolvable = [255, 0, 0];
 const EDIT_COLOR: Discord.ColorResolvable = [220, 150, 0];
-const EMBED_FIELD_LIMIT = 1999;
+const EMBED_FIELD_LIMIT = 1024;
 
 export class DiscordBot extends Service {
 	name = "DiscordBot";
@@ -73,7 +73,7 @@ export class DiscordBot extends Service {
 			const message =
 				msg.content.length > 1
 					? msg.content
-					: msg.attachments
+					: Object.keys(msg.attachments).length > 0
 					? `[${msg.attachments.first().name}]`
 					: "???";
 
