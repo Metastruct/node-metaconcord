@@ -1,7 +1,7 @@
 import { Container } from "@/app/Container";
 //import { EOL } from "os";
 import { Service } from ".";
-import Markov from "markov-strings";
+import Markov, { MarkovGenerateOptions } from "markov-strings";
 import sleep from "sleep-promise";
 //import fs from "fs";
 
@@ -10,8 +10,8 @@ import sleep from "sleep-promise";
 
 export class MarkovService extends Service {
 	name = "Markov";
-	generator = new Markov({ stateSize: 2 });
-	genOptions = { maxTries: 20 };
+	generator = new Markov({ stateSize: 3 });
+	genOptions: MarkovGenerateOptions = { maxTries: 20 };
 
 	constructor(container: Container) {
 		super(container);
