@@ -34,13 +34,6 @@ export default class AdminNotifyPayload extends Payload {
 		const reportedAvatar = await steam.getUserAvatar(reportedSteamId64);
 		if (message.trim().length < 1) message = "No message provided..?";
 
-		const reportPath = path.resolve(
-			`${Date.now()}_${player.nick}_report.txt`.toLocaleLowerCase()
-		);
-		await new Promise<void>((resolve, reject) =>
-			fs.writeFile(reportPath, message, err => (err ? reject(err.message) : resolve()))
-		);
-
 		const embed = new Discord.MessageEmbed()
 			.setAuthor(
 				`${player.nick} reported a player`,
@@ -49,20 +42,36 @@ export default class AdminNotifyPayload extends Payload {
 			)
 			.addField("Nick", reported.nick)
 			.addField(
-				"SteamID64",
-				`[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64})`
+				"SteamID",
+				`[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64}) (${player.steamId})`
 			)
 			.setThumbnail(reportedAvatar)
 			.setColor(0xc4af21);
 
-		await (notificationsChannel as TextChannel).send({
-			content: callAdminRole && `<@&${callAdminRole.id}>`,
-			files: [reportPath],
-			embed: embed,
-		});
+		if (message.length > 200) {
+			const reportPath = path.resolve(
+				`${Date.now()}_${player.nick}_report.txt`.toLocaleLowerCase()
+			);
+			await new Promise<void>((resolve, reject) =>
+				fs.writeFile(reportPath, message, err => (err ? reject(err.message) : resolve()))
+			);
 
-		await new Promise<void>((resolve, reject) =>
-			fs.unlink(reportPath, err => (err ? reject(err.message) : resolve()))
-		);
+			await (notificationsChannel as TextChannel).send({
+				content: callAdminRole && `<@&${callAdminRole.id}>`,
+				files: [reportPath],
+				embed: embed,
+			});
+
+			await new Promise<void>((resolve, reject) =>
+				fs.unlink(reportPath, err => (err ? reject(err.message) : resolve()))
+			);
+		} else {
+			embed.addField("Message", message);
+
+			await (notificationsChannel as TextChannel).send({
+				content: callAdminRole && `<@&${callAdminRole.id}>`,
+				embed: embed,
+			});
+		}
 	}
 }

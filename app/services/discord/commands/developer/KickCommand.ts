@@ -10,9 +10,8 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 			options: [
 				{
 					type: CommandOptionType.STRING,
-					name: "steamid",
-					description:
-						"The steamid of the banned player in this format STEAM_0:0:000000000",
+					name: "name",
+					description: "The name of the player to kick",
 					required: true,
 				},
 				{
@@ -54,7 +53,11 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 		const bridge = this.bot.container.getService("GameBridge");
 		const server = ctx.options.server as number;
 		const reason = ctx.options.reason ?? "byebye!!!";
-		const code = `local ply = player.GetBySteamID("${ctx.options.steamid}") if not IsValid(ply) then return false end ply:Kick([[${reason}]])`;
+		const code =
+			`if not easylua then return false end ` +
+			`local ply = easylua.FindEntity("${ctx.options.name}") ` +
+			`if not IsValid(ply) or not ply:IsPlayer() then return false end ` +
+			`ply:Kick([[${reason}]])`;
 		try {
 			const res = await bridge.payloads.RconPayload.callLua(
 				code,
