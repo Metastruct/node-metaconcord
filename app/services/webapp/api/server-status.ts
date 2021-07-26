@@ -46,7 +46,7 @@ export default (webApp: WebApp): void => {
 				res.send(err);
 			}
 		} else {
-			res.end(html);
+			res.send(html);
 		}
 	});
 };
