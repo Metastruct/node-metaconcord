@@ -23,6 +23,7 @@ export default class GameServer {
 			avatar?: string | false;
 			isAdmin?: boolean;
 			isBanned?: boolean;
+			isAfk?: boolean;
 		}[];
 	} = { mapThumbnail: "", players: [] };
 	playerListImage: Buffer;

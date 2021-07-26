@@ -71,5 +71,9 @@ main {
 		&.is-admin a .nick {
 			color: lighten(adjust-hue($link, 80), 5%) !important;
 		}
+
+		&.is-afk {
+			opacity: 0.5;
+		}
 	}
 }
