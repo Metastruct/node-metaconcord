@@ -37,11 +37,11 @@ export default (webApp: WebApp): void => {
 					})) as Buffer;
 				}
 
-				res.writeHead(200, {
+				res.set({
 					"content-type": "image/png",
 					"content-length": server.playerListImage.length,
 				});
-				res.end(server.playerListImage);
+				res.send(server.playerListImage);
 			} catch (err) {
 				res.send(err);
 			}
