@@ -3,6 +3,7 @@ import {
 	SlashCommand,
 	SlashCommandOptions,
 	SlashCreator,
+	User,
 } from "slash-create";
 import { DiscordBot } from "@/app/services";
 
@@ -33,5 +34,11 @@ export class SlashDeveloperCommand extends SlashCommand {
 
 		this.filePath = __filename;
 		this.bot = bot;
+	}
+
+	protected async isAllowed(user: User): Promise<boolean> {
+		const guild = await this.bot.discord.guilds.resolve(this.bot.config.guildId)?.fetch();
+		const devRole = guild.roles.resolve(this.bot.config.developerRoleId);
+		return devRole.members.has(user.id);
 	}
 }

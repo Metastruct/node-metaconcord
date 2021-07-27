@@ -1,5 +1,6 @@
 import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
+import { EphemeralResponse } from "..";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
 
 export class SlashBanCommand extends SlashDeveloperCommand {
@@ -98,6 +99,10 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer();
+
+		if (!this.isAllowed(ctx.user)) {
+			return EphemeralResponse(`You are not allowed to use this command.`);
+		}
 
 		const steam = this.bot.container.getService("Steam");
 		const summary = await steam.getUserSummaries(steam.steamIDToSteamID64(ctx.options.steamid));

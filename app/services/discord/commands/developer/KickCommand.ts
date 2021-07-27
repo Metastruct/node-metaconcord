@@ -1,5 +1,6 @@
 import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
+import { EphemeralResponse } from "..";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
 
 export class SlashKickCommand extends SlashDeveloperCommand {
@@ -49,6 +50,10 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer();
+
+		if (!this.isAllowed(ctx.user)) {
+			return EphemeralResponse(`You are not allowed to use this command.`);
+		}
 
 		const bridge = this.bot.container.getService("GameBridge");
 		const server = ctx.options.server as number;
