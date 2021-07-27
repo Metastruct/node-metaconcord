@@ -66,7 +66,7 @@ export class SlashLuaCommand extends SlashDeveloperCommand {
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer();
 
-		if (!this.isAllowed(ctx.user)) {
+		if (!(await this.isAllowed(ctx.user))) {
 			return EphemeralResponse(`You are not allowed to use this command.`);
 		}
 
