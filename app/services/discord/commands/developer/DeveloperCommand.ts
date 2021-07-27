@@ -44,8 +44,7 @@ export class SlashDeveloperCommand extends SlashCommand {
 			const member = await guild.members.resolve(user.id)?.fetch();
 			if (!member) return false;
 
-			const devRole = member.roles.resolve(this.bot.config.developerRoleId);
-			return devRole != null;
+			return member.roles.cache.has(this.bot.config.developerRoleId);
 		} catch {
 			return false;
 		}
