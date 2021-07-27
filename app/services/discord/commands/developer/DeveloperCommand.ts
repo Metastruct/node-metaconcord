@@ -37,8 +37,17 @@ export class SlashDeveloperCommand extends SlashCommand {
 	}
 
 	protected async isAllowed(user: User): Promise<boolean> {
-		const guild = await this.bot.discord.guilds.resolve(this.bot.config.guildId)?.fetch();
-		const devRole = guild.roles.resolve(this.bot.config.developerRoleId);
-		return devRole.members.has(user.id);
+		try {
+			const guild = await this.bot.discord.guilds.resolve(this.bot.config.guildId)?.fetch();
+			if (!guild) return false;
+
+			const member = await guild.members.resolve(user.id)?.fetch();
+			if (!member) return false;
+
+			const devRole = member.roles.resolve(this.bot.config.developerRoleId);
+			return devRole != null;
+		} catch {
+			return false;
+		}
 	}
 }

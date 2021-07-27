@@ -106,7 +106,7 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 		await ctx.defer();
 		const user = ctx.user;
 
-		if (!this.isAllowed(user)) {
+		if (!(await this.isAllowed(user))) {
 			return EphemeralResponse(`You are not allowed to use this command.`);
 		}
 
