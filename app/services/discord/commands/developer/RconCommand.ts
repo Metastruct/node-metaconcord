@@ -43,13 +43,7 @@ export class SlashRconCommand extends SlashDeveloperCommand {
 		this.bot = bot;
 	}
 
-	async run(ctx: CommandContext): Promise<any> {
-		await ctx.defer();
-
-		if (!(await this.isAllowed(ctx.user))) {
-			return EphemeralResponse(`You are not allowed to use this command.`);
-		}
-
+	public async runProtected(ctx: CommandContext): Promise<any> {
 		const bridge = this.bot.container.getService("GameBridge");
 		const command = ctx.options.command.toString();
 		const server = parseInt(ctx.options.server.toString());

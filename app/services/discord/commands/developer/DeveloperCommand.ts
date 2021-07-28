@@ -1,11 +1,13 @@
 import {
 	ApplicationCommandPermissionType,
+	CommandContext,
 	SlashCommand,
 	SlashCommandOptions,
 	SlashCreator,
 	User,
 } from "slash-create";
 import { DiscordBot } from "@/app/services";
+import { EphemeralResponse } from "..";
 
 export class SlashDeveloperCommand extends SlashCommand {
 	protected bot: DiscordBot;
@@ -36,7 +38,7 @@ export class SlashDeveloperCommand extends SlashCommand {
 		this.bot = bot;
 	}
 
-	protected async isAllowed(user: User): Promise<boolean> {
+	private async isAllowed(user: User): Promise<boolean> {
 		try {
 			const guild = await this.bot.discord.guilds.resolve(this.bot.config.guildId)?.fetch();
 			if (!guild) return false;
@@ -48,5 +50,20 @@ export class SlashDeveloperCommand extends SlashCommand {
 		} catch {
 			return false;
 		}
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	protected async runProtected(ctx: CommandContext): Promise<any> {
+		throw new Error("runProtected is not defined");
+	}
+
+	public async run(ctx: CommandContext): Promise<any> {
+		await ctx.defer();
+
+		if (!this.isAllowed(ctx.user)) {
+			return EphemeralResponse("You are not allowed to use this command.");
+		}
+
+		return this.runProtected(ctx);
 	}
 }

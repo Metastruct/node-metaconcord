@@ -102,14 +102,8 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 		return EphemeralResponse(`This command can only be used by ${ctx.user.username}`);
 	}
 
-	async run(ctx: CommandContext): Promise<any> {
-		await ctx.defer();
+	public async runProtected(ctx: CommandContext): Promise<any> {
 		const user = ctx.user;
-
-		if (!(await this.isAllowed(user))) {
-			return EphemeralResponse(`You are not allowed to use this command.`);
-		}
-
 		let commands: string[];
 		await ctx.send("What command do you want to run?", {
 			components: [

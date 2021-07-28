@@ -1,6 +1,5 @@
 import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
-import { EphemeralResponse } from "..";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
 
 export class SlashRefreshLuaCommand extends SlashDeveloperCommand {
@@ -43,13 +42,7 @@ export class SlashRefreshLuaCommand extends SlashDeveloperCommand {
 		this.bot = bot;
 	}
 
-	async run(ctx: CommandContext): Promise<any> {
-		await ctx.defer();
-
-		if (!(await this.isAllowed(ctx.user))) {
-			return EphemeralResponse(`You are not allowed to use this command.`);
-		}
-
+	public async runProtected(ctx: CommandContext): Promise<any> {
 		const bridge = this.bot.container.getService("GameBridge");
 		const code = `if not RefreshLua then return false, "Couldn't refresh file" end return RefreshLua([[${ctx.options.filepath}]])`;
 		const server = ctx.options.server as number;
