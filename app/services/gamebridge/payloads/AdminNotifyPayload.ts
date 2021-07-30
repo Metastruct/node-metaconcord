@@ -43,7 +43,7 @@ export default class AdminNotifyPayload extends Payload {
 			.addField("Nick", reported.nick)
 			.addField(
 				"SteamID",
-				`[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64}) (${player.steamId})`
+				`[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64}) (${reported.steamId})`
 			)
 			.setThumbnail(reportedAvatar)
 			.setColor(0xc4af21);
