@@ -37,7 +37,7 @@ export default class GameBridge extends Service {
 	}
 
 	async handleConnection(req: WebSocketRequest): Promise<void> {
-		const ip = req.httpRequest.connection.remoteAddress;
+		const ip = req.httpRequest.socket.remoteAddress;
 
 		for (const connection of this.ws.connections) {
 			if (ip == connection.remoteAddress) {
