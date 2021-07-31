@@ -10,7 +10,7 @@ export default class DiscordClient extends Discord.Client {
 
 		this.gameServer = gameServer;
 
-		this.on("message", ctx => {
+		this.on("messageCreate", ctx => {
 			if (ctx.channel.id != this.gameServer.bridge.config.relayChannelId) return;
 			if (ctx.author.bot || !ctx.author.client) return;
 

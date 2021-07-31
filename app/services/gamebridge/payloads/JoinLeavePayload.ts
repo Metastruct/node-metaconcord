@@ -29,6 +29,6 @@ export default class JoinLeavePayload extends Payload {
 			)
 			.setColor(spawned ? 0x4bb543 : 0xb54343);
 		if (reason) embed.setDescription(`Reason: ${reason}`);
-		(relayChannel as TextChannel).send({ embed });
+		(relayChannel as TextChannel).send({ embeds: [embed] });
 	}
 }

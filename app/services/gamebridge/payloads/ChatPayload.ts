@@ -19,10 +19,10 @@ export default class ChatPayload extends Payload {
 		const guild = await discordClient.guilds.resolve(config.guildId)?.fetch();
 		if (!guild) return;
 
-		const webhook = new Discord.WebhookClient(
-			bridge.config.chatWebhookId,
-			bridge.config.chatWebhookToken
-		);
+		const webhook = new Discord.WebhookClient({
+			id: bridge.config.chatWebhookId,
+			token: bridge.config.chatWebhookToken,
+		});
 
 		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
 
@@ -53,7 +53,8 @@ export default class ChatPayload extends Payload {
 		}
 
 		await webhook
-			.send(content, {
+			.send({
+				content: content,
 				username: `#${server.config.id} ${player.nick}`,
 				avatarURL: avatar,
 				allowedMentions: { parse: ["users", "roles"] },

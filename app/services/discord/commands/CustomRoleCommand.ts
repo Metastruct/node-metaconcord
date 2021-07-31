@@ -115,7 +115,7 @@ export class SlashCustomRoleCommand extends SlashCommand {
 			return EphemeralResponse("Not in a guild");
 		}
 
-		const roles = await guild.roles.fetch();
+		const roles = guild.roles;
 		const member = await guild.members.fetch(ctx.member.id);
 		let targetRole = roles.cache.find(r => r.name === roleName);
 		if (!targetRole) {
@@ -130,13 +130,11 @@ export class SlashCustomRoleCommand extends SlashCommand {
 
 			targetRole = await roles.create({
 				reason: "Added role via command",
-				data: {
-					name: roleName.toString(),
-					color: roleColor,
-				},
+				name: roleName.toString(),
+				color: roleColor,
 			});
 		} else {
-			await targetRole.setColor(roleColor, "Updated role via command");
+			await targetRole.setColor(roleColor, "Updated role color via command");
 		}
 
 		await member.roles.add(targetRole);

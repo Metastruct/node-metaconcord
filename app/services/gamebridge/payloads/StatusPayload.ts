@@ -25,18 +25,20 @@ export default class StatusPayload extends Payload {
 
 			// Presence
 			discordClient.user.setPresence({
-				activity: {
-					name: `${count} player${count != 1 ? "s" : ""}`,
-					type: 3,
-				},
+				activities: [
+					{
+						name: `${count} player${count != 1 ? "s" : ""}`,
+						type: 3,
+					},
+				],
 				status: "online",
 			});
 
-			const guild = await discordClient.guilds.resolve(config.guildId)?.fetch();
+			const guild = await discordClient.guilds.fetch(config.guildId);
 			if (!guild) return;
 
 			// Nick
-			const me = await guild.members.resolve(discordClient.user.id)?.fetch();
+			const me = await guild.members.fetch(discordClient.user.id);
 			if (me.nickname !== server.config.name) me.setNickname(server.config.name);
 
 			// Permanent status message
@@ -118,9 +120,9 @@ export default class StatusPayload extends Payload {
 				.filter((msg: Discord.Message) => msg.author.id == discordClient.user.id)
 				.first();
 			if (message) {
-				message.edit({ embed });
+				message.edit({ embeds: [embed] });
 			} else {
-				channel.send({ embed });
+				channel.send({ embeds: [embed] });
 			}
 		};
 

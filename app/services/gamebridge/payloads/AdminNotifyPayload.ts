@@ -59,7 +59,7 @@ export default class AdminNotifyPayload extends Payload {
 			await (notificationsChannel as TextChannel).send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
 				files: [reportPath],
-				embed: embed,
+				embeds: [embed],
 			});
 
 			await new Promise<void>((resolve, reject) =>
@@ -70,7 +70,7 @@ export default class AdminNotifyPayload extends Payload {
 
 			await (notificationsChannel as TextChannel).send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
-				embed: embed,
+				embeds: [embed],
 			});
 		}
 	}
