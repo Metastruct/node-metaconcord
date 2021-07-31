@@ -107,8 +107,11 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 		const bridge = this.bot.container.getService("GameBridge");
 		const server = (ctx.options.server as number) ?? 2;
 		const plyName = summary.personaname ?? `???`;
-		const length = Date.now() / 1000 + this.parseLength(ctx.options.length);
-		const code = `if not banni then return false end return banni.Ban("${ctx.options.steamid}", "${plyName}", nil, [[${ctx.options.reason}]], ${length}).b`;
+		const length = Math.round(Date.now() / 1000 + this.parseLength(ctx.options.length));
+		const code =
+			`if not banni then return false end ` +
+			`local data = banni.Ban("${ctx.options.steamid}", "${plyName}", "Discord (${ctx.user.username})", [[${ctx.options.reason}]], ${length}) ` +
+			`if istable(data) then return data.b else return data end`;
 		try {
 			const res = await bridge.payloads.RconPayload.callLua(
 				code,
