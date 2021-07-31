@@ -1,6 +1,7 @@
 import * as requestSchema from "./structures/AdminNotifyRequest.json";
 import { AdminNotifyRequest } from "./structures";
-import { DiscordClient, GameServer } from "..";
+import { DiscordClient, GameBridge, GameServer } from "..";
+import { Steam } from "../..";
 import Discord, { TextChannel, User } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
@@ -10,6 +11,7 @@ import path from "path";
 
 export default class AdminNotifyPayload extends Payload {
 	protected static requestSchema = requestSchema;
+	private static interactionHandler = false;
 
 	private static async isAllowed(bot: DiscordClient, user: User): Promise<boolean> {
 		try {
@@ -22,6 +24,38 @@ export default class AdminNotifyPayload extends Payload {
 			return member.roles.cache.has(config.developerRoleId);
 		} catch {
 			return false;
+		}
+	}
+
+	private static async onInteractionCreate(
+		discordClient: DiscordClient,
+		server: GameServer,
+		bridge: GameBridge,
+		steam: Steam,
+		interactionCtx: Discord.Interaction
+	): Promise<any> {
+		if (!interactionCtx.isButton() || !interactionCtx.customId.endsWith("_REPORT_KICK")) return;
+		if (!(await this.isAllowed(discordClient, interactionCtx.user))) return;
+
+		try {
+			const interactionId64 = new SteamID(
+				interactionCtx.customId.replace("_REPORT_KICK", "")
+			).getSteamID64();
+			const res = await bridge.payloads.RconPayload.callLua(
+				`local ply = player.GetBySteamID64("${interactionId64}") if not ply then return false end ply:Kick("Discord (${interactionCtx.user.username}) for a related report.")`,
+				"sv",
+				server,
+				interactionCtx.user.username
+			);
+
+			if (res.data.returns[0] !== "false") {
+				const summary = await steam.getUserSummaries(interactionId64);
+				await interactionCtx.reply({ content: "Kicked player " + summary.nickname });
+			} else {
+				await interactionCtx.reply({ content: "Could not kick player: not on server" });
+			}
+		} catch (err) {
+			await interactionCtx.reply({ content: "Could not kick player: " + err });
 		}
 	}
 
@@ -80,32 +114,15 @@ export default class AdminNotifyPayload extends Payload {
 			},
 		]);
 
-		discordClient.on("interactionCreate", async interactionCtx => {
-			if (!interactionCtx.isButton() || !interactionCtx.customId.endsWith("_REPORT_KICK"))
-				return;
-			if (!(await this.isAllowed(discordClient, interactionCtx.user))) return;
+		if (!this.interactionHandler) {
+			discordClient.on(
+				"interactionCreate",
+				async iCtx =>
+					await this.onInteractionCreate(discordClient, server, bridge, steam, iCtx)
+			);
 
-			try {
-				const interactionId64 = new SteamID(
-					interactionCtx.customId.replace("_REPORT_KICK", "")
-				).getSteamID64();
-				const res = await bridge.payloads.RconPayload.callLua(
-					`local ply = player.GetBySteamID64("${interactionId64}") if not ply then return false end ply:Kick("Discord (${interactionCtx.user.username}) for a related report.")`,
-					"sv",
-					server,
-					interactionCtx.user.username
-				);
-
-				if (res.data.returns[0] !== "false") {
-					const summary = await steam.getUserSummaries(interactionId64);
-					await interactionCtx.reply({ content: "Kicked player " + summary.nickname });
-				} else {
-					await interactionCtx.reply({ content: "Could not kick player: not on server" });
-				}
-			} catch (err) {
-				await interactionCtx.reply({ content: "Could not kick player: " + err });
-			}
-		});
+			this.interactionHandler = true;
+		}
 
 		if (message.length > 200) {
 			const reportPath = path.resolve(
