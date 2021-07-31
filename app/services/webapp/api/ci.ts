@@ -8,14 +8,13 @@ const ERROR = 500;
 
 export default (webApp: WebApp): void => {
 	webApp.app.get("/ci/reload", async (req, res) => {
-		const bearer = req.headers["authorization"]?.toLowerCase();
+		const bearer = req.headers["authorization"];
 		if (!bearer || bearer.length < 1) return res.status(FORBIDDEN).send();
 
 		const token = bearer.split("bearer ")[1];
 		if (token !== config.token) return res.status(FORBIDDEN).send();
 
 		try {
-			spawnSync("git pull", { cwd: __dirname });
 			spawn("sh deploy.sh", { cwd: __dirname });
 			return res.status(SUCCESS).send();
 		} catch (err) {
