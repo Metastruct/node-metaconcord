@@ -106,7 +106,7 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 
 		const bridge = this.bot.container.getService("GameBridge");
 		const server = (ctx.options.server as number) ?? 2;
-		const plyName = summary.personaname ?? `???`;
+		const plyName = summary.nickname ?? `???`;
 		const length = Math.round(Date.now() / 1000 + this.parseLength(ctx.options.length));
 		const code =
 			`if not banni then return false end ` +
