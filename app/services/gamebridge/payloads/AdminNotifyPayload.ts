@@ -113,7 +113,7 @@ export default class AdminNotifyPayload extends Payload {
 				customId: `${steamId64}_REPORT_KICK`,
 			},
 			{
-				label: "Victim",
+				label: "Offender",
 				type: 2,
 				style: "SECONDARY",
 				emoji: "🥾",
