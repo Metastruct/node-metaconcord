@@ -22,9 +22,9 @@ export default class AdminNotifyPayload extends Payload {
 
 		const callAdminRole = guild.roles.resolve(bridge.config.callAdminRoleId);
 
-		const notificationsChannel = await guild.channels
-			.resolve(bridge.config.notificationsChannelId)
-			?.fetch();
+		const notificationsChannel = await guild.channels.fetch(
+			bridge.config.notificationsChannelId
+		);
 		if (!notificationsChannel) return;
 
 		const steamId64 = new SteamID(player.steamId).getSteamID64();
@@ -47,7 +47,27 @@ export default class AdminNotifyPayload extends Payload {
 			)
 			.setThumbnail(reportedAvatar)
 			.setColor(0xc4af21);
-
+		// You can have a maximum of five ActionRows per message, and five buttons within an ActionRow.
+		const row = new Discord.MessageActionRow().addComponents([
+			{
+				label: "Reporter",
+				type: 2,
+				style: "SECONDARY",
+				emoji: "🥾",
+				customId: `${steamId64}-K`,
+			},
+			{
+				label: "Victim",
+				type: 2,
+				style: "SECONDARY",
+				emoji: "🥾",
+				customId: `${reportedSteamId64}-K`,
+			},
+		]);
+		discordClient.on("interactionCreate", async itx => {
+			if (!itx.isButton()) return;
+			await itx.reply(`this should kick ${itx.customId}`);
+		});
 		if (message.length > 200) {
 			const reportPath = path.resolve(
 				`${Date.now()}_${player.nick}_report.txt`.toLocaleLowerCase()
@@ -60,6 +80,7 @@ export default class AdminNotifyPayload extends Payload {
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
 				files: [reportPath],
 				embeds: [embed],
+				components: [row],
 			});
 
 			await new Promise<void>((resolve, reject) =>
@@ -71,6 +92,7 @@ export default class AdminNotifyPayload extends Payload {
 			await (notificationsChannel as TextChannel).send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
 				embeds: [embed],
+				components: [row],
 			});
 		}
 	}
