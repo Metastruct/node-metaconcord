@@ -7,9 +7,10 @@ import Discord from "discord.js";
 import config from "@/starboard.json";
 
 const AMOUNT = config.amount;
-const WHC = new Discord.WebhookClient(config.webhookId, config.webhookToken, {
-	allowedMentions: { parse: ["users", "roles"] },
-});
+const WHC = new Discord.WebhookClient(
+	{ id: config.webhookId, token: config.webhookToken },
+	{ allowedMentions: { parse: ["users", "roles"] } }
+);
 
 export class Starboard extends Service {
 	name = "Starboard";
@@ -57,8 +58,8 @@ export class Starboard extends Service {
 			const reference = msg.reference;
 			if (reference) {
 				const refMsg = await (
-					client.channels.resolve(reference.channelID) as TextChannel
-				).messages.fetch(reference.messageID);
+					client.channels.resolve(reference.channelId) as TextChannel
+				).messages.fetch(reference.messageId);
 				text += `${
 					reference ? `[replying to ${refMsg.author.username}](${refMsg.url})\n` : ""
 				}`;
@@ -67,7 +68,8 @@ export class Starboard extends Service {
 			text += msg.content;
 			text += `${msg.attachments.size > 0 ? "\n" + msg.attachments.first().url : ""}`;
 
-			await WHC.send(text, {
+			await WHC.send({
+				content: text,
 				avatarURL: msg.author.avatarURL(),
 				username: `${msg.author.username}`,
 			});

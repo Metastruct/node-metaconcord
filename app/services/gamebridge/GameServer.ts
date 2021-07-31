@@ -1,6 +1,10 @@
 import { DiscordClient, GameBridge } from ".";
 import { ErrorPayload } from "./payloads";
-import { connection as WebSocketConnection, request as WebSocketRequest } from "websocket";
+import {
+	IUtf8Message,
+	connection as WebSocketConnection,
+	request as WebSocketRequest,
+} from "websocket";
 
 export type GameServerConfig = {
 	id: number;
@@ -32,17 +36,19 @@ export default class GameServer {
 		this.connection = req.accept();
 		this.config = config;
 		this.bridge = bridge;
-		this.discord = new DiscordClient(this);
+		this.discord = new DiscordClient(this, {
+			intents: ["GUILDS", "GUILD_MESSAGES"],
+		});
 
 		this.discord.run(this.config.discordToken);
 
-		this.connection.on("message", async ({ utf8Data }) => {
+		this.connection.on("message", async (msg: IUtf8Message) => {
 			// if (received.utf8Data == "") console.log("Heartbeat");
-			if (!utf8Data || utf8Data == "") return;
+			if (!msg || msg.utf8Data == "") return;
 
 			let data: any;
 			try {
-				data = JSON.parse(utf8Data);
+				data = JSON.parse(msg.utf8Data);
 				if (!data.name || !data.data) throw new Error("Malformed payload");
 			} catch ({ message }) {
 				return ErrorPayload.send(

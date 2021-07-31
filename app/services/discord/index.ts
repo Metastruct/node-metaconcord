@@ -13,8 +13,7 @@ export class DiscordBot extends Service {
 	name = "DiscordBot";
 	config = config;
 	discord: Discord.Client = new Discord.Client({
-		fetchAllMembers: false,
-		shardCount: 1,
+		intents: ["GUILDS", "GUILD_MEMBERS", "GUILD_MESSAGES", "GUILD_MESSAGE_REACTIONS"],
 	});
 
 	constructor(container: Container) {
@@ -56,7 +55,7 @@ export class DiscordBot extends Service {
 			}, 1000 * 60 * 10); // change status every 10mins
 		});
 
-		this.discord.on("message", async ev => {
+		this.discord.on("messageCreate", async ev => {
 			await Promise.all([
 				this.handleTwitterEmbeds(ev as Discord.Message),
 				this.handleMarkov(ev),
@@ -85,7 +84,7 @@ export class DiscordBot extends Service {
 				.addField("Message", message.substring(0, EMBED_FIELD_LIMIT), true)
 				.setFooter("Message Deleted")
 				.setTimestamp(Date.now());
-			await logChannel.send(embed);
+			await logChannel.send({ embeds: [embed] });
 		});
 
 		this.discord.on("messageUpdate", async (oldMsg, newMsg) => {
@@ -105,7 +104,7 @@ export class DiscordBot extends Service {
 				.addField("Old Message", oldMsg.content.substring(0, EMBED_FIELD_LIMIT), true)
 				.setFooter("Message Edited")
 				.setTimestamp(newMsg.editedTimestamp);
-			await logChannel.send(embed);
+			await logChannel.send({ embeds: [embed] });
 		});
 
 		this.discord.ws.on("MESSAGE_REACTION_ADD", async reaction => {
@@ -134,10 +133,12 @@ export class DiscordBot extends Service {
 		if (status.length > 127) status = status.substring(0, 120) + "...";
 
 		await this.discord.user.setPresence({
-			activity: {
-				name: status.trim().substring(0, 100),
-				type: "PLAYING",
-			},
+			activities: [
+				{
+					name: status.trim().substring(0, 100),
+					type: "PLAYING",
+				},
+			],
 			status: "online",
 		});
 	}
@@ -147,8 +148,7 @@ export class DiscordBot extends Service {
 
 		const chan = (await ev.channel.fetch()) as Discord.GuildChannel;
 		const guild = await chan.guild.fetch();
-		const roles = await guild.roles.fetch();
-		const perms = chan.permissionsFor(roles.everyone);
+		const perms = chan.permissionsFor(guild.roles.everyone);
 		if (!perms.has("SEND_MESSAGES", false)) return; // dont get text from channels that are not "public"
 
 		const content = ev.content;

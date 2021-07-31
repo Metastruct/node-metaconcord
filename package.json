@@ -20,7 +20,7 @@
 		"ajv": "^6.12.2",
 		"axios": "^0.21.1",
 		"bad-words": "^3.0.4",
-		"discord.js": "^12.5.3",
+		"discord.js": "^13.0.0-dev.t1627732975.331a9d3",
 		"dotenv": "^8.2.0",
 		"express": "^4.17.1",
 		"fastify": "^3.15.1",
@@ -42,7 +42,7 @@
 		"steamapi": "^2.1.1",
 		"steamid": "^1.1.3",
 		"twit": "^2.2.11",
-		"websocket": "^1.0.31"
+		"websocket": "^1.0.34"
 	},
 	"devDependencies": {
 		"@types/bad-words": "^3.0.0",
@@ -51,7 +51,7 @@
 		"@types/node": "^14.0.13",
 		"@types/node-schedule": "^1.3.1",
 		"@types/pug": "^2.0.4",
-		"@types/websocket": "^1.0.0",
+		"@types/websocket": "^1.0.4",
 		"@typescript-eslint/eslint-plugin": "^3.3.0",
 		"@typescript-eslint/parser": "^3.3.0",
 		"cross-env": "^7.0.2",
@@ -62,11 +62,11 @@
 		"eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
 		"prettier": "^2.0.5",
 		"sass": "^1.30.0",
-		"ts-node": "^8.10.2",
-		"ts-node-dev": "^1.1.6",
+		"ts-node": "^10.1.0",
+		"ts-node-dev": "^1.1.8",
 		"tsconfig-paths": "^3.9.0",
 		"tsconfig-replace-paths": "^0.0.5",
-		"typescript": "^3.9.5",
+		"typescript": "^4.3.5",
 		"typescript-json-schema": "^0.42.0"
 	}
 }
