@@ -51,16 +51,16 @@ export default class AdminNotifyPayload extends Payload {
 			if (res.data.returns[0] !== "false") {
 				const summary = await steam.getUserSummaries(interactionId64);
 				await interactionCtx.reply({
-					content: `<@${interactionCtx.id}> kicked player \`${summary.nickname}\``,
+					content: `${interactionCtx.user.mention} kicked player \`${summary.nickname}\``,
 				});
 			} else {
 				await interactionCtx.reply({
-					content: `<@${interactionCtx.id}>, could not kick player: not on server`,
+					content: `${interactionCtx.user.mention}, could not kick player: not on server`,
 				});
 			}
 		} catch (err) {
 			await interactionCtx.reply({
-				content: `<@${interactionCtx.id}>, could not kick player: ${err}`,
+				content: `${interactionCtx.user.mention}, could not kick player: ${err}`,
 			});
 		}
 	}
