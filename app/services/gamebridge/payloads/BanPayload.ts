@@ -52,7 +52,20 @@ export default class BanPayload extends Payload {
 				`https://steamcommunity.com/profiles/${steamId64}`
 			);
 		} else {
-			embed.setTitle(bannerName);
+			if (bannerName.startsWith("Discord")) {
+				const chunks = bannerName
+					.replace("Discord ", "")
+					.replace(")", "")
+					.replace("(", "")
+					.split("|");
+
+				const name = chunks[0].trim();
+				const mention = chunks[1].trim();
+				embed.setTitle(`${name} banned a player`);
+				embed.addField("Mention", mention);
+			} else {
+				embed.setTitle(`${bannerName} banned a player`);
+			}
 		}
 
 		if (banned.nick) embed.addField("Nick", banned.nick, true);
