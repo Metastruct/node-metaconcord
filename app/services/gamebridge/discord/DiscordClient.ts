@@ -1,9 +1,8 @@
 import { ChatPayload } from "../payloads";
-import { SteamID } from "steamid";
 import Discord, { ButtonInteraction, User } from "discord.js";
 import GameServer from "../GameServer";
+import SteamID from "steamid";
 import config from "@/discord.json";
-import steam from "app/services/Steam";
 
 export default class DiscordClient extends Discord.Client {
 	gameServer: GameServer;
