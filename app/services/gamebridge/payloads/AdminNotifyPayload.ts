@@ -32,8 +32,10 @@ export default class AdminNotifyPayload extends Payload {
 		server: GameServer,
 		bridge: GameBridge,
 		steam: Steam,
-		interactionCtx: Discord.Interaction
+		interactionCtx: Discord.ButtonInteraction
 	): Promise<any> {
+		await interactionCtx.defer();
+
 		if (!interactionCtx.isButton() || !interactionCtx.customId.endsWith("_REPORT_KICK")) return;
 		if (!(await this.isAllowed(discordClient, interactionCtx.user))) return;
 
@@ -124,7 +126,13 @@ export default class AdminNotifyPayload extends Payload {
 			discordClient.on(
 				"interactionCreate",
 				async iCtx =>
-					await this.onInteractionCreate(discordClient, server, bridge, steam, iCtx)
+					await this.onInteractionCreate(
+						discordClient,
+						server,
+						bridge,
+						steam,
+						iCtx as Discord.ButtonInteraction
+					)
 			);
 
 			this.interactionHandler = true;
