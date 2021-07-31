@@ -34,9 +34,8 @@ export default class AdminNotifyPayload extends Payload {
 		steam: Steam,
 		interactionCtx: Discord.ButtonInteraction
 	): Promise<any> {
-		await interactionCtx.defer();
-
 		if (!interactionCtx.isButton() || !interactionCtx.customId.endsWith("_REPORT_KICK")) return;
+		await interactionCtx.defer();
 		if (!(await this.isAllowed(discordClient, interactionCtx.user))) return;
 
 		try {
@@ -52,16 +51,16 @@ export default class AdminNotifyPayload extends Payload {
 
 			if (res.data.returns[0] !== "false") {
 				const summary = await steam.getUserSummaries(interactionId64);
-				await interactionCtx.reply({
+				await interactionCtx.editReply({
 					content: `${interactionCtx.user.mention} kicked player \`${summary.nickname}\``,
 				});
 			} else {
-				await interactionCtx.reply({
+				await interactionCtx.editReply({
 					content: `${interactionCtx.user.mention}, could not kick player: not on server`,
 				});
 			}
 		} catch (err) {
-			await interactionCtx.reply({
+			await interactionCtx.editReply({
 				content: `${interactionCtx.user.mention}, could not kick player: ${err}`,
 			});
 		}
