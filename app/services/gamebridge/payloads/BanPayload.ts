@@ -24,10 +24,18 @@ export default class BanPayload extends Payload {
 			?.fetch();
 		if (!notificationsChannel) return;
 
-		const steamId64 = new SteamID(player.steamId).getSteamID64();
-		const bannedSteamId64 = new SteamID(banned.steamId).getSteamID64();
 		const steam = bridge.container.getService("Steam");
-		const avatar = await steam.getUserAvatar(steamId64);
+		let steamId64 = undefined;
+		let bannerName = "";
+		let avatar = undefined;
+		try {
+			steamId64 = new SteamID(player.steamId).getSteamID64();
+			avatar = await steam.getUserAvatar(steamId64);
+		} catch {
+			bannerName = player.steamId;
+		}
+
+		const bannedSteamId64 = new SteamID(banned.steamId).getSteamID64();
 		const bannedAvatar = await steam.getUserAvatar(bannedSteamId64);
 		const unixTime = parseInt(unbanTime) * 1000;
 		if (!unixTime || isNaN(unixTime))
@@ -37,11 +45,16 @@ export default class BanPayload extends Payload {
 			units: ["y", "mo", "w", "d", "h", "m"],
 		});
 		const embed = new Discord.MessageEmbed();
-		embed.setAuthor(
-			`${player.nick || "<-"} banned a player`,
-			avatar,
-			`https://steamcommunity.com/profiles/${steamId64}`
-		);
+		if (avatar) {
+			embed.setAuthor(
+				`${player.nick || "<-"} banned a player`,
+				avatar,
+				`https://steamcommunity.com/profiles/${steamId64}`
+			);
+		} else {
+			embed.setTitle(bannerName);
+		}
+
 		if (banned.nick) embed.addField("Nick", banned.nick, true);
 		embed.addField("Ban Duration", banDuration, true);
 		embed.addField("Reason", reason.substring(0, 1900));
