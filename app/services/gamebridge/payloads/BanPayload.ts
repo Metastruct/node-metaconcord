@@ -59,8 +59,8 @@ export default class BanPayload extends Payload {
 		embed.addField("Ban Duration", banDuration, true);
 		embed.addField("Reason", reason.substring(0, 1900));
 		embed.addField(
-			"SteamID64",
-			`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64})`
+			"SteamID",
+			`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
 		);
 		embed.setThumbnail(bannedAvatar);
 		embed.setColor(0xc42144);
