@@ -65,11 +65,11 @@ export class SlashUnBanCommand extends SlashDeveloperCommand {
 			);
 
 			if (res.data.returns.length > 0 && res.data.returns[0] === "true") {
-				await ctx.send(`Unbanned \`${ctx.options.steamid})\``);
+				await ctx.send(`Unbanned \`${ctx.options.steamid}\``);
 				return;
 			}
 
-			await ctx.send(`Could not unban \`${ctx.options.steamid})\``);
+			await ctx.send(`Could not unban \`${ctx.options.steamid}\``);
 		} catch (err) {
 			const errMsg = (err as Error)?.message ?? err;
 			await ctx.send(errMsg);
