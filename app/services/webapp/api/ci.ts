@@ -1,5 +1,5 @@
 import { WebApp } from "..";
-import { spawn, spawnSync } from "child_process";
+import { spawn } from "child_process";
 import config from "@/ci.json";
 
 const FORBIDDEN = 403;
@@ -15,8 +15,9 @@ export default (webApp: WebApp): void => {
 		if (token !== config.token) return res.status(FORBIDDEN).send();
 
 		try {
-			spawn("sh deploy.sh", { cwd: __dirname });
-			return res.status(SUCCESS).send();
+			res.status(SUCCESS).send();
+			spawn("deploy.sh");
+			return;
 		} catch (err) {
 			return res.status(ERROR).send(err.message);
 		}
