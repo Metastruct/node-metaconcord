@@ -11,7 +11,7 @@ export default (webApp: WebApp): void => {
 		const bearer = req.headers["authorization"];
 		if (!bearer || bearer.length < 1) return res.status(FORBIDDEN).send();
 
-		const token = bearer.split("bearer ")[1];
+		const token = bearer.split("Bearer ")[1];
 		if (token !== config.token) return res.status(FORBIDDEN).send();
 
 		try {
