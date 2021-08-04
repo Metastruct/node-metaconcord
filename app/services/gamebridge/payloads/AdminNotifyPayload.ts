@@ -9,7 +9,6 @@ import path from "path";
 
 export default class AdminNotifyPayload extends Payload {
 	protected static requestSchema = requestSchema;
-	private static interactionHandler = false;
 
 	static async handle(payload: AdminNotifyRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
