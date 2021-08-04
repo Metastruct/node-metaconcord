@@ -49,7 +49,7 @@ export default class DiscordClient extends Discord.Client {
 					interactionCtx.customId.replace("_REPORT_KICK", "")
 				).getSteamID64();
 				const res = await gameServer.bridge.payloads.RconPayload.callLua(
-					`local ply = player.GetBySteamID64("${interactionId64}") if not ply then return false end ply:Kick("Discord (${interactionCtx.user.username}) for a related report.")`,
+					`local ply = player.GetBySteamID64("${interactionId64}") if not ply then return false end ply:Kick("Kicked by Discord (${interactionCtx.user.username}) for a related report.")`,
 					"sv",
 					this.gameServer,
 					interactionCtx.user.username
