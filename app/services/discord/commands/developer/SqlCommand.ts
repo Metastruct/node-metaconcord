@@ -46,6 +46,7 @@ export class SlashSqlCommand extends SlashDeveloperCommand {
 					const res = await db.all(ctx.options.query);
 
 					await ctx.send({
+						content: "Results:",
 						file: {
 							file: Buffer.from(JSON.stringify(res), "utf-8"),
 							name: "sql_result.txt",
