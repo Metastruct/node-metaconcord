@@ -1,8 +1,10 @@
 import { ChatPayload } from "../payloads";
-import Discord, { ButtonInteraction, User } from "discord.js";
+import Discord, { ButtonInteraction, TextChannel, User } from "discord.js";
 import GameServer from "../GameServer";
 import SteamID from "steamid";
 import config from "@/discord.json";
+import schedule from "node-schedule";
+import sleep from "sleep-promise";
 
 export default class DiscordClient extends Discord.Client {
 	gameServer: GameServer;
@@ -70,8 +72,39 @@ export default class DiscordClient extends Discord.Client {
 					content: `${interactionCtx.user.mention}, could not kick player: ${err}`,
 				});
 			}
+
+			await interactionCtx.update({ components: [] });
+		});
+
+		schedule.scheduleJob("0 12 * * *", async () => {
+			const sql = gameServer.bridge.container.getService("Sql");
+			const db = await sql.getDatabase();
+			const hasTable = await sql.tableExists("reports");
+			if (!hasTable) return;
+
+			const today = new Date();
+			today.setDate(today.getDate() - 1);
+			const res = await db.all(
+				`SELECT id FROM reports WHERE date < '${today.getFullYear()}-${today.getMonth()}-${today.getDay()}' AND server = ${
+					gameServer.config.id
+				};`
+			);
+
+			if (res.length <= 0) return;
+
+			const guild = await this.guilds.resolve(config.guildId)?.fetch();
+			const chan = (await guild.channels
+				.resolve(config.notificationsChannelId)
+				?.fetch()) as TextChannel;
+			for (const id of res) {
+				const msg = await chan.messages.resolve(id)?.fetch();
+				await msg.edit({ components: [] });
+				await sleep(5000); // sleep 5 seconds between each edits so we don't end up
+				// abusing discord API somehow
+			}
 		});
 	}
+
 	private async isAllowed(bot: DiscordClient, user: User): Promise<boolean> {
 		try {
 			const guild = await bot.guilds.resolve(config.guildId)?.fetch();

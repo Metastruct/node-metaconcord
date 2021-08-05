@@ -50,21 +50,22 @@ export default class AdminNotifyPayload extends Payload {
 		// You can have a maximum of five ActionRows per message, and five buttons within an ActionRow.
 		const row = new Discord.MessageActionRow().addComponents([
 			{
-				label: "Reporter",
-				type: 2,
-				style: "SECONDARY",
-				emoji: "🥾",
-				customId: `${steamId64}_REPORT_KICK`,
-			},
-			{
-				label: "Offender",
+				label: "KICK Offender",
 				type: 2,
 				style: "SECONDARY",
 				emoji: "🥾",
 				customId: `${reportedSteamId64}_REPORT_KICK`,
 			},
+			{
+				label: "KICK Reporter",
+				type: 2,
+				style: "SECONDARY",
+				emoji: "🥾",
+				customId: `${steamId64}_REPORT_KICK`,
+			},
 		]);
 
+		let discordMsg: Discord.Message;
 		if (message.length > 200) {
 			const reportPath = path.resolve(
 				`${Date.now()}_${player.nick}_report.txt`.toLocaleLowerCase()
@@ -73,7 +74,7 @@ export default class AdminNotifyPayload extends Payload {
 				fs.writeFile(reportPath, message, err => (err ? reject(err.message) : resolve()))
 			);
 
-			await (notificationsChannel as TextChannel).send({
+			discordMsg = await (notificationsChannel as TextChannel).send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
 				files: [reportPath],
 				embeds: [embed],
@@ -86,11 +87,25 @@ export default class AdminNotifyPayload extends Payload {
 		} else {
 			embed.addField("Message", message);
 
-			await (notificationsChannel as TextChannel).send({
+			discordMsg = await (notificationsChannel as TextChannel).send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
 				embeds: [embed],
 				components: [row],
 			});
 		}
+
+		const sql = bridge.container.getService("Sql");
+		const db = await sql.getDatabase();
+		const hasTable = await sql.tableExists("reports");
+		if (!hasTable) {
+			await db.exec(`CREATE TABLE reports (id VARCHAR(1000), server INT, date DATETIME);`);
+		}
+
+		await db.run(
+			"INSERT INTO markov (id, date) VALUES(?, ?, ?);",
+			discordMsg.id,
+			server.config.id,
+			Date.now() / 1000 // unix timestamp
+		);
 	}
 }
