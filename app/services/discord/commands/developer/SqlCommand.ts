@@ -38,22 +38,26 @@ export class SlashSqlCommand extends SlashDeveloperCommand {
 	}
 
 	public async runProtected(ctx: CommandContext): Promise<any> {
-		switch (ctx.options.target) {
-			case "metaconcord":
-				const sql = this.bot.container.getService("Sql");
-				const db = await sql.getDatabase();
-				const res = await db.all(ctx.options.query);
+		try {
+			switch (ctx.options.target) {
+				case "metaconcord":
+					const sql = this.bot.container.getService("Sql");
+					const db = await sql.getDatabase();
+					const res = await db.all(ctx.options.query);
 
-				await ctx.send({
-					file: {
-						file: Buffer.from(JSON.stringify(res), "utf-8"),
-						name: "sql_result.txt",
-					},
-				});
-				break;
-			default:
-				await ctx.send("Unsupported or un-implemented target");
-				break;
+					await ctx.send({
+						file: {
+							file: Buffer.from(JSON.stringify(res), "utf-8"),
+							name: "sql_result.txt",
+						},
+					});
+					break;
+				default:
+					await ctx.send("Unsupported or un-implemented target");
+					break;
+			}
+		} catch (err) {
+			await ctx.send(err.message);
 		}
 	}
 }
