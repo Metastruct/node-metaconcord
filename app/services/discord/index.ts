@@ -2,7 +2,7 @@ import { Container } from "@/app/Container";
 import { GatewayServer, SlashCreator } from "slash-create";
 import { Service } from "@/app/services";
 import { commands } from "./commands";
-import Discord from "discord.js";
+import Discord, { TextChannel } from "discord.js";
 import config from "@/discord.json";
 
 const DELETE_COLOR: Discord.ColorResolvable = [255, 0, 0];
@@ -53,6 +53,30 @@ export class DiscordBot extends Service {
 				const newStatus = this.container.getService("Markov").generate();
 				await this.setStatus(newStatus);
 			}, 1000 * 60 * 10); // change status every 10mins
+
+			// home-made sentry :WeirdChamp:
+			process.on("uncaughtException", async (err: Error) => {
+				try {
+					const guild = await this.discord.guilds.resolve(config.guildId)?.fetch();
+					const channel = (await guild.channels
+						.resolve(config.notificationsChannelId)
+						?.fetch()) as TextChannel;
+
+					const embed = new Discord.MessageEmbed({
+						hexColor: "#f00",
+						description: err.message,
+						title: "Unhandled Exception on Metaconcord",
+						fields: [{ name: "Stack", value: err.stack.substring(0, 1000) + "..." }],
+					});
+					await channel.send({
+						content: config.appDevelopers.map(id => `<@!${id}>`).join(", "),
+						embeds: [embed],
+					});
+				} catch (oops) {
+					console.error(err);
+					console.error(oops);
+				}
+			});
 		});
 
 		this.discord.on("messageCreate", async ev => {

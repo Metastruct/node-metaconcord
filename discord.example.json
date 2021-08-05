@@ -6,6 +6,7 @@
 	"developerRoleId": "",
 	"notificationsChannelId": "",
 	"mutedChannelId": "",
+	"appDevelopers": [],
 	"modules": {
 		"mute": {
 			"roleId": ""
