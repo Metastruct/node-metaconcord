@@ -41,6 +41,7 @@ export default class AdminNotifyPayload extends Payload {
 				`https://steamcommunity.com/profiles/${steamId64}`
 			)
 			.addField("Nick", reported.nick)
+			.addField("Message", message)
 			.addField(
 				"SteamID",
 				`[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64}) (${reported.steamId})`
@@ -66,7 +67,14 @@ export default class AdminNotifyPayload extends Payload {
 		]);
 
 		let discordMsg: Discord.Message;
-		if (message.length > 200) {
+		try {
+			discordMsg = await (notificationsChannel as TextChannel).send({
+				content: callAdminRole && `<@&${callAdminRole.id}>`,
+				embeds: [embed],
+				components: [row],
+			});
+		} catch {
+			embed.fields = embed.fields.filter(f => f.name !== "Message");
 			const reportPath = path.resolve(
 				`${Date.now()}_${player.nick}_report.txt`.toLocaleLowerCase()
 			);
@@ -84,14 +92,6 @@ export default class AdminNotifyPayload extends Payload {
 			await new Promise<void>((resolve, reject) =>
 				fs.unlink(reportPath, err => (err ? reject(err.message) : resolve()))
 			);
-		} else {
-			embed.addField("Message", message);
-
-			discordMsg = await (notificationsChannel as TextChannel).send({
-				content: callAdminRole && `<@&${callAdminRole.id}>`,
-				embeds: [embed],
-				components: [row],
-			});
 		}
 
 		const sql = bridge.container.getService("Sql");
