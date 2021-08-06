@@ -43,7 +43,7 @@ export default class DiscordClient extends Discord.Client {
 		this.on("interactionCreate", async (interactionCtx: ButtonInteraction) => {
 			if (!interactionCtx.isButton() || !interactionCtx.customId.endsWith("_REPORT_KICK"))
 				return;
-			await interactionCtx.defer();
+			await interactionCtx.deferReply();
 			if (!(await this.isAllowed(gameServer.discord, interactionCtx.user))) return;
 
 			try {
