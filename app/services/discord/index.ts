@@ -69,7 +69,7 @@ export class DiscordBot extends Service {
 						fields: [{ name: "Stack", value: err.stack.substring(0, 1000) + "..." }],
 					});
 					await channel.send({
-						content: config.appDevelopers.map(id => `<@!${id}>`).join(", "),
+						content: `<@&${config.appDeveloperRole}`,
 						embeds: [embed],
 					});
 				} catch (oops) {
