@@ -56,6 +56,8 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 		return input
 			.split("")
 			.filter(x => {
+				if (x === "\n") return true;
+
 				const n = x.charCodeAt(0);
 				return 31 < n && 127 > n;
 			})
