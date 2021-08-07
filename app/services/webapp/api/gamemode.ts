@@ -3,6 +3,7 @@ import { TextChannel } from "discord.js";
 import { WebApp } from "..";
 import config from "@/ssh.json";
 import servers from "@/gamebridge.servers.json";
+import discordConfig from "@/discord.json";
 
 const HOSTING_IDS = { 3: true };
 export default (webApp: WebApp): void => {
@@ -36,6 +37,12 @@ export default (webApp: WebApp): void => {
 			onStderr: buff => (output += buff),
 		});
 
+		await ssh.exec("gserv", ["qu", "rehash"], {
+			stream: "stderr",
+			onStdout: buff => (output += buff),
+			onStderr: buff => (output += buff),
+		});
+
 		const failed = output.includes("GSERV FAILED");
 		if (failed) {
 			const guild = await bot.discord.guilds.resolve(bot.config.guildId)?.fetch();
@@ -44,7 +51,9 @@ export default (webApp: WebApp): void => {
 					.resolve(bot.config.notificationsChannelId)
 					?.fetch();
 				await (channel as TextChannel)?.send(
-					`<@&683288525990395962> GSERV FAILED ON SERVER ${id}, PLEASE FIX`
+					`${discordConfig.appDevelopers
+						.map(id => `<@!${id}>`)
+						.join(", ")} GSERV FAILED ON SERVER ${id}, PLEASE FIX`
 				);
 			}
 		}
