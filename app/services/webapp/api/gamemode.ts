@@ -51,7 +51,7 @@ export default (webApp: WebApp): void => {
 					.resolve(bot.config.notificationsChannelId)
 					?.fetch();
 				await (channel as TextChannel)?.send(
-					`<@&${discordConfig.appDeveloperRole} GSERV FAILED ON SERVER ${id}, PLEASE FIX`
+					`<@&${discordConfig.appDeveloperRole}> GSERV FAILED ON SERVER ${id}, PLEASE FIX`
 				);
 			}
 		}
