@@ -57,13 +57,9 @@ export class DiscordBot extends Service {
 
 			// home-made sentry :WeirdChamp:
 			process.on("uncaughtException", async (err: Error) => {
-				console.error(err);
 				if (process.env.NODE_ENV === "development") return;
 				try {
-					const guild = await this.discord.guilds.resolve(config.guildId)?.fetch();
-					const channel = (await guild.channels
-						.resolve(config.notificationsChannelId)
-						?.fetch()) as TextChannel;
+					const channel = await this.getTextChannel(config.notificationsChannelId);
 
 					const embed = new Discord.MessageEmbed({
 						hexColor: "#f00",
