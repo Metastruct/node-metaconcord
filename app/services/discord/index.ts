@@ -2,7 +2,7 @@ import { Container } from "@/app/Container";
 import { GatewayServer, SlashCreator } from "slash-create";
 import { Service } from "@/app/services";
 import { commands } from "./commands";
-import Discord, { TextChannel } from "discord.js";
+import Discord, { MessageReaction, TextChannel } from "discord.js";
 import config from "@/discord.json";
 
 const DELETE_COLOR: Discord.ColorResolvable = [255, 0, 0];
@@ -14,6 +14,7 @@ export class DiscordBot extends Service {
 	config = config;
 	discord: Discord.Client = new Discord.Client({
 		intents: ["GUILDS", "GUILD_MEMBERS", "GUILD_MESSAGES", "GUILD_MESSAGE_REACTIONS"],
+		partials: ["MESSAGE", "CHANNEL", "REACTION"],
 	});
 
 	constructor(container: Container) {
@@ -56,6 +57,8 @@ export class DiscordBot extends Service {
 
 			// home-made sentry :WeirdChamp:
 			process.on("uncaughtException", async (err: Error) => {
+				console.error(err);
+				if (process.env.NODE_ENV === "development") return;
 				try {
 					const guild = await this.discord.guilds.resolve(config.guildId)?.fetch();
 					const channel = (await guild.channels
@@ -79,18 +82,32 @@ export class DiscordBot extends Service {
 			});
 		});
 
-		this.discord.on("messageCreate", async ev => {
+		this.discord.on("messageCreate", async msg => {
+			if (msg.partial) {
+				try {
+					msg = await msg.fetch();
+				} catch {
+					return;
+				}
+			}
 			await Promise.all([
-				this.handleTwitterEmbeds(ev as Discord.Message),
-				this.handleMarkov(ev),
-				this.handleMediaUrls(ev),
+				this.handleTwitterEmbeds(msg),
+				this.handleMarkov(msg),
+				this.handleMediaUrls(msg),
 			]);
 		});
 
 		this.discord.on("messageDelete", async msg => {
+			if (msg.partial) {
+				try {
+					msg = await msg.fetch();
+				} catch {
+					return;
+				}
+			}
 			if (msg.author.bot) return;
 
-			const logChannel = await this.getGuildTextChannel(config.logChannelId);
+			const logChannel = await this.getTextChannel(config.logChannelId);
 			if (!logChannel) return;
 
 			const message =
@@ -113,10 +130,17 @@ export class DiscordBot extends Service {
 
 		this.discord.on("messageUpdate", async (oldMsg, newMsg) => {
 			// discord manages embeds by updating user messages
+			if (oldMsg.partial) {
+				try {
+					oldMsg = await oldMsg.fetch();
+				} catch {
+					return;
+				}
+			}
 			if (oldMsg.content === newMsg.content) return;
 			if (oldMsg.author.bot) return;
 
-			const logChannel = await this.getGuildTextChannel(config.logChannelId);
+			const logChannel = await this.getTextChannel(config.logChannelId);
 			if (!logChannel) return;
 
 			const embed = new Discord.MessageEmbed()
@@ -131,32 +155,30 @@ export class DiscordBot extends Service {
 			await logChannel.send({ embeds: [embed] });
 		});
 
-		this.discord.ws.on("MESSAGE_REACTION_ADD", async reaction => {
-			const channel = await this.getGuildTextChannel(reaction.channel_id);
-			const msg = await channel.messages.fetch(reaction.message_id);
-			const msgReaction = await new Discord.MessageReaction(
-				this.discord,
-				reaction,
-				msg
-			).fetch();
-			await this.container.getService("Starboard").handleReactionAdded(msgReaction);
+		this.discord.on("messageReactionAdd", async reaction => {
+			if (reaction.partial) {
+				try {
+					reaction = await reaction.fetch();
+				} catch {
+					return;
+				}
+			}
+			await this.container
+				.getService("Starboard")
+				.handleReactionAdded(reaction as MessageReaction);
 		});
 
 		this.discord.login(config.token);
 	}
 
-	private async getGuildTextChannel(channelId: string): Promise<Discord.TextChannel> {
-		const guild = await this.discord.guilds.resolve(config.guildId)?.fetch();
-		if (!guild) return;
-
-		const chan = (await guild.channels.resolve(channelId)?.fetch()) as Discord.TextChannel;
-		return chan;
+	private async getTextChannel(channelId: string): Promise<Discord.TextChannel> {
+		return this.discord.channels.cache.get(channelId) as Discord.TextChannel;
 	}
 
 	private async setStatus(status: string): Promise<void> {
 		if (status.length > 127) status = status.substring(0, 120) + "...";
 
-		await this.discord.user.setPresence({
+		this.discord.user.setPresence({
 			activities: [
 				{
 					name: status.trim().substring(0, 100),
@@ -167,21 +189,21 @@ export class DiscordBot extends Service {
 		});
 	}
 
-	private async handleMarkov(ev: Discord.Message): Promise<void> {
-		if (ev.author.bot || ev.guild?.id !== config.guildId) return;
+	private async handleMarkov(msg: Discord.Message): Promise<void> {
+		if (msg.author.bot || msg.guild?.id !== config.guildId) return;
 
-		const chan = (await ev.channel.fetch()) as Discord.GuildChannel;
-		const guild = await chan.guild.fetch();
+		const chan = msg.channel as Discord.GuildChannel;
+		const guild = chan.guild;
 		const perms = chan.permissionsFor(guild.roles.everyone);
 		if (!perms.has("SEND_MESSAGES", false)) return; // dont get text from channels that are not "public"
 
-		const content = ev.content;
+		const content = msg.content;
 		if (this.container.getService("Motd").isValidMsg(content))
 			this.container.getService("Markov").addLine(content);
 	}
 
-	private async handleTwitterEmbeds(ev: Discord.Message): Promise<void> {
-		const statusUrls = ev.content.match(
+	private async handleTwitterEmbeds(msg: Discord.Message): Promise<void> {
+		const statusUrls = msg.content.match(
 			/https?:\/\/twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g
 		);
 		if (!statusUrls) return;
@@ -196,8 +218,8 @@ export class DiscordBot extends Service {
 
 		if (urls.length === 0) return;
 
-		const msg = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
-		await ev.channel.send(msg);
+		const fix = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
+		await msg.channel.send(fix);
 	}
 	private async handleMediaUrls(ev: Discord.Message): Promise<void> {
 		// https://media.discordapp.net/attachments/769875739817410562/867369588014448650/video.mp4
