@@ -1,56 +1,16 @@
 import {
 	ApplicationCommandPermissionType,
+	ApplicationCommandType,
 	CommandContext,
-	CommandOptionType,
 	SlashCommand,
 	SlashCreator,
 } from "slash-create";
 import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../..";
+import { EphemeralResponse } from "..";
 import { GuildAuditLogs, User } from "discord.js";
 import { TextChannel } from "discord.js";
 import moment from "moment";
-
-const unitSecondsMap = {
-	second: 1,
-	minute: 60,
-	hour: 60 * 60,
-	day: 60 * 60 * 24,
-	week: 60 * 60 * 24 * 7,
-	month: 60 * 60 * 24 * 30,
-	year: 60 * 60 * 24 * 365,
-};
-
-// export async function onBeforeRun(
-// 	ctx: Command.Context,
-// 	args: Command.ParsedArgs
-// ): Promise<boolean> {
-// 	let userId = args.userId;
-// 	if (ctx.command.name == "whymute" && !userId) {
-// 		userId = ctx.user.id;
-// 	} else {
-// 		userId = (userId || "").match(/<@!?(\d+)>/)?.[1] || userId;
-// 	}
-// 	args.userId = userId;
-
-// 	if (!/^\d+$/.test(userId)) {
-// 		const content = `${ctx.user.mention}, invalid user!`;
-// 		let msg: Message;
-// 		if (ctx.canReply) {
-// 			msg = await ctx.reply(content);
-// 		} else {
-// 			msg = await ctx.user.createMessage(content);
-// 		}
-// 		if (msg) {
-// 			setTimeout(() => {
-// 				msg.delete();
-// 			}, 5000);
-// 		}
-// 		return false;
-// 	} else {
-// 		return true;
-// 	}
-// }
 
 const manualMuteReminderTimeouts: string[] = [];
 
@@ -62,6 +22,7 @@ export class SlashMuteCommand extends SlashCommand {
 		super(creator, {
 			name: "mute",
 			description: "Mutes an user.",
+			type: ApplicationCommandType.USER,
 			guildIDs: [bot.config.guildId],
 			defaultPermission: false,
 			permissions: {
@@ -73,27 +34,6 @@ export class SlashMuteCommand extends SlashCommand {
 					},
 				],
 			},
-			options: [
-				{
-					type: CommandOptionType.USER,
-					name: "user",
-					description: "The Discord user we want to mute",
-					required: true,
-				},
-				{
-					type: CommandOptionType.STRING,
-					name: "reason",
-					description: "Why you want to mute the user.",
-					required: true,
-				},
-				{
-					type: CommandOptionType.STRING,
-					name: "time",
-					description:
-						"The amount of time you want to mute the user for. Input none for indefinite",
-					required: false,
-				},
-			],
 		});
 
 		this.filePath = __filename;
@@ -170,36 +110,24 @@ export class SlashMuteCommand extends SlashCommand {
 	async run(ctx: CommandContext): Promise<any> {
 		const { discord, config } = this.bot;
 		let { muted } = this.data;
-		const userId = ctx.options.user.toString();
-		const time = ctx.options.time as string;
-		const reason = ctx.options.reason as string;
+		const userId = ctx.targetID;
 
-		// Calculate time if any is specified
-		let until: number;
-		if (time) {
-			for (const {
-				groups: { amount, unit },
-			} of time.matchAll(
-				/(?<amount>\d+)\s*(?<unit>year|month|week|day|hour|minute|second)/gi
-			)) {
-				if (!until) until = Date.now();
-				until += +amount * unitSecondsMap[unit] * 1000;
-			}
-		}
+		const until = undefined; // pog, always undefined
+		const reason = undefined; // we could add a callback and check for last msg but dunno man
 
 		if (!muted) muted = this.data.muted = {};
 		muted[userId] = { until, reason, muter: ctx.user.id };
 		await this.data.save();
 
-		const guild = discord.guilds.resolve(this.bot.config.guildId);
+		const guild = await discord.guilds.fetch(this.bot.config.guildId);
 		const member = await guild.members.fetch(userId);
-		await member.roles.add(config.modules.mute.roleId);
+		await member.roles.add(config.modules.mute.roleId, "muted via rightclick menu command");
 
 		const content =
-			`${ctx.user.mention}, user ${member.mention} has been muted` +
+			`${member.mention} has been muted` +
 			(until ? ` for *${moment.duration(moment(until).diff(moment())).humanize()}*` : "") +
 			(reason ? ` with reason:\n\n${reason}` : "") +
 			`.`;
-		return content;
+		return EphemeralResponse(content);
 	}
 }
