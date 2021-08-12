@@ -222,7 +222,7 @@ export class DiscordBot extends Service {
 		// https://cdn.discordapp.com/attachments/769875739817410562/867369588014448650/video.mp4
 
 		const mediaUrls = ev.content.matchAll(
-			/https?:\/\/media.discordapp.net\/attachments(\/\d+\/\d+\/\S+\.(webm|mp4|mov))/g
+			/https?:\/\/media.discordapp.net\/attachments(\/\d+\/\d+\/\S+\.(webm|mp4|mov))$/g
 		);
 
 		let urls: Array<string> = [];
