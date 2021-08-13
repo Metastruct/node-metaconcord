@@ -1,6 +1,6 @@
 import { CommandContext, SlashCommand, SlashCreator } from "slash-create";
-import { DiscordBot } from "..";
-import { MarkovService } from "../../Markov";
+import { DiscordBot } from "../..";
+import { MarkovService } from "../../../Markov";
 export class SlashMarkovCommand extends SlashCommand {
 	private bot: DiscordBot;
 	private markov: MarkovService;

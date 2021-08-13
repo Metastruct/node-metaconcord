@@ -3,7 +3,6 @@ import { GameServer } from "..";
 import { JoinLeaveRequest } from "./structures";
 import Discord, { TextChannel } from "discord.js";
 import Payload from "./Payload";
-import config from "@/discord.json";
 
 export default class JoinLeavePayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -12,9 +11,9 @@ export default class JoinLeavePayload extends Payload {
 		super.handle(payload, server);
 
 		const { player, reason, spawned } = payload.data;
-		const { bridge, discord: discordClient } = server;
+		const { bridge, discord } = server;
 
-		const guild = await discordClient.guilds.resolve(config.guildId)?.fetch();
+		const guild = await discord.guilds.resolve(discord.config.guildId)?.fetch();
 		if (!guild) return;
 
 		const relayChannel = await guild.channels.resolve(bridge.config.relayChannelId)?.fetch();

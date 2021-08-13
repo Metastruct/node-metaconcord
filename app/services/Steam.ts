@@ -3,7 +3,7 @@ import { Service } from ".";
 import SteamAPI from "steamapi";
 import SteamID from "steamid";
 import axios from "axios";
-import config from "@/steam.json";
+import config from "@/config/steam.json";
 import qs from "qs";
 
 type UserCache = {

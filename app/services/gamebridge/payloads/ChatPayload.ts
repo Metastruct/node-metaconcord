@@ -4,7 +4,6 @@ import { ChatRequest, ChatResponse } from "./structures";
 import { GameServer } from "..";
 import Discord from "discord.js";
 import Payload from "./Payload";
-import config from "@/discord.json";
 
 export default class ChatPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -14,9 +13,9 @@ export default class ChatPayload extends Payload {
 		super.handle(payload, server);
 		const { player } = payload.data;
 		let { content } = payload.data;
-		const { bridge, discord: discordClient } = server;
+		const { bridge, discord } = server;
 
-		const guild = await discordClient.guilds.resolve(config.guildId)?.fetch();
+		const guild = await discord.guilds.resolve(discord.config.guildId)?.fetch();
 		if (!guild) return;
 
 		const webhook = new Discord.WebhookClient({

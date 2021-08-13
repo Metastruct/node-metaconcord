@@ -1,13 +1,14 @@
 import { ChatPayload } from "../payloads";
+import { sleep } from "@/utils";
 import Discord, { ButtonInteraction, TextChannel, User } from "discord.js";
 import GameServer from "../GameServer";
 import SteamID from "steamid";
-import config from "@/discord.json";
+import config from "@/config/discord.json";
 import schedule from "node-schedule";
-import sleep from "sleep-promise";
 
 export default class DiscordClient extends Discord.Client {
 	gameServer: GameServer;
+	config = config;
 
 	constructor(gameServer: GameServer, options?: Discord.ClientOptions) {
 		super(options);

@@ -1,3 +1,5 @@
+import { DiscordBot } from "../..";
+import { GatewayServer, SlashCreator } from "slash-create";
 import { MessageOptions } from "slash-create";
 import { SlashBanCommand } from "./developer/BanCommand";
 import { SlashCustomRoleCommand } from "./CustomRoleCommand";
@@ -36,3 +38,29 @@ export const commands = [
 	SlashKickCommand,
 	SlashSqlCommand,
 ];
+
+export default (bot: DiscordBot): void => {
+	const creator = new SlashCreator({
+		applicationID: bot.config.applicationId,
+		publicKey: bot.config.publicKey,
+		token: bot.config.token,
+	});
+	// Emergency mode lolol
+	creator.on("error", console.error);
+	creator.on("commandError", console.error);
+	creator.on("warn", console.warn);
+	// creator.on("debug", console.log);
+	// creator.on("ping", console.log);
+	// creator.on("rawREST", console.log);
+	// creator.on("unknownInteraction", console.log);
+	// creator.on("unverifiedRequest", console.log);
+	// creator.on("synced", console.log);
+	creator.withServer(
+		new GatewayServer(handler => bot.discord.ws.on("INTERACTION_CREATE", handler))
+	);
+	for (const slashCmd of commands) {
+		creator.registerCommand(new slashCmd(bot, creator));
+	}
+
+	creator.syncCommands();
+};
