@@ -12,8 +12,8 @@
 		"start": "cross-env NODE_ENV=production node dist",
 		"dev": "cross-env NODE_ENV=development ts-node-dev -r tsconfig-paths/register index.ts",
 		"build": "yarn scss && rm -rf ./dist && tsc && tsconfig-replace-paths -p tsconfig.json -s ./ -o ./dist",
-		"scss": "sass app/services/webapp/resources/ --no-source-map",
-		"scss-watch": "sass --watch app/services/webapp/resources/ --no-source-map"
+		"scss": "sass resources/ --no-source-map",
+		"scss-watch": "sass --watch resources/ --no-source-map"
 	},
 	"dependencies": {
 		"@types/twit": "^2.2.28",

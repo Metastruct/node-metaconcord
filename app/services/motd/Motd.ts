@@ -1,10 +1,9 @@
-import axios from "axios";
-import config from "@/config/motd.json";
-import schedule from "node-schedule";
-
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
+import { scheduleJob } from "node-schedule";
 import FormData from "form-data";
+import axios from "axios";
+import config from "@/config/motd.json";
 import moment from "moment";
 
 export default class Motd extends Service {
@@ -14,8 +13,8 @@ export default class Motd extends Service {
 	constructor(container: Container) {
 		super(container);
 		this.messages = [];
-		schedule.scheduleJob("0 12 * * *", this.executeMessageJob.bind(this));
-		schedule.scheduleJob("0 20 * * *", this.executeImageJob.bind(this));
+		scheduleJob("0 12 * * *", this.executeMessageJob.bind(this));
+		scheduleJob("0 20 * * *", this.executeImageJob.bind(this));
 	}
 
 	public pushMessage(msg: string): void {
