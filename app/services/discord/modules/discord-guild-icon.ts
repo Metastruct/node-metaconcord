@@ -42,7 +42,9 @@ export default (bot: DiscordBot): void => {
 			try {
 				await guild.setIcon(
 					filePath,
-					eventName ? `It's ${eventName}!` : "Back to regularly scheduled activities."
+					eventName !== "None"
+						? `It's ${eventName}!`
+						: "Back to regularly scheduled activities."
 				);
 
 				data.lastDiscordGuildIcon = eventName;
@@ -50,8 +52,9 @@ export default (bot: DiscordBot): void => {
 
 				console.log("Changed server icon successfully!");
 			} catch (err) {
+				console.error(err);
 				throw new Error(
-					"Can't change guild icon: either can't fetch it, icon doesn't exist, or the bot is missing permissions to do so."
+					"Can't change guild icon: the bot is likely missing permissions to do so."
 				);
 			}
 		};
@@ -66,7 +69,12 @@ export default (bot: DiscordBot): void => {
 				const day = now.date();
 				const month = now.month() + 1;
 
-				if (startDay >= day && startMonth >= month && endDay <= day && endMonth <= month) {
+				const inMonth = month >= startMonth && month <= endMonth;
+				const correctDay =
+					startDay <= (month > startMonth ? startDay : day) &&
+					endDay >= (month < endMonth ? endDay : day);
+
+				if (inMonth && correctDay) {
 					let filePath = join(iconsPath, `${icon}.gif`);
 					if (!(await fileExists(filePath)) || guild.premiumTier === "NONE") {
 						filePath = join(iconsPath, `${icon}.png`);
@@ -82,15 +90,18 @@ export default (bot: DiscordBot): void => {
 							.map(str => str.charAt(0).toUpperCase() + str.slice(1))
 							.join(" "),
 					};
-				} else {
-					return { filePath: defaultIconPath, eventName: "None" };
 				}
 			}
+
+			return { filePath: defaultIconPath, eventName: "None" };
 		};
 
-		scheduleJob("0 0 * * *", async () => {
+		const doIt = async () => {
 			const { filePath, eventName } = await checkDate();
 			changeIcon(filePath, eventName);
-		});
+		};
+
+		// doIt();
+		scheduleJob("0 0 * * *", doIt);
 	});
 };
