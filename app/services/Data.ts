@@ -8,7 +8,8 @@ export class Data extends Service {
 	private dataPath = path.join(process.cwd(), "data");
 
 	muted: { [userId: string]: { until: number; reason?: string; muter?: string } } = {};
-	toSave = ["muted"];
+	lastDiscordGuildIcon: "None";
+	toSave = ["muted", "lastDiscordGuildIcon"];
 
 	async init(): Promise<void> {
 		try {

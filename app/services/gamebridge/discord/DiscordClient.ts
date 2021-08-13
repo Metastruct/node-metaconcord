@@ -1,10 +1,10 @@
 import { ChatPayload } from "../payloads";
+import { scheduleJob } from "node-schedule";
 import { sleep } from "@/utils";
 import Discord, { ButtonInteraction, TextChannel, User } from "discord.js";
 import GameServer from "../GameServer";
 import SteamID from "steamid";
 import config from "@/config/discord.json";
-import schedule from "node-schedule";
 
 export default class DiscordClient extends Discord.Client {
 	gameServer: GameServer;
@@ -77,7 +77,7 @@ export default class DiscordClient extends Discord.Client {
 			await interactionCtx.update({ components: [] });
 		});
 
-		schedule.scheduleJob("0 12 * * *", async () => {
+		scheduleJob("0 12 * * *", async () => {
 			const sql = gameServer.bridge.container.getService("Sql");
 			const db = await sql.getDatabase();
 			const hasTable = await sql.tableExists("reports");

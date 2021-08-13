@@ -5,7 +5,7 @@ yarn-error.log
 node_modules
 dist
 data
-**/resources/server-status/style.css
+resources/game-server-status/style.css
 
 # Our files
 .env
