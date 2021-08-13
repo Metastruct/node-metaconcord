@@ -5,7 +5,7 @@ yarn-error.log
 node_modules
 dist
 data
-app/services/webapp/resources/server-status/style.css
+**/resources/server-status/style.css
 
 # Our files
 .env

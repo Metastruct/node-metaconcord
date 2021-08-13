@@ -6,7 +6,7 @@ import {
 	SlashCreator,
 } from "slash-create";
 import { Data } from "@/app/services/Data";
-import { DiscordBot } from "../..";
+import { DiscordBot } from "../../..";
 import { EphemeralResponse } from "..";
 import { GuildAuditLogs, User } from "discord.js";
 import { TextChannel } from "discord.js";
@@ -46,7 +46,7 @@ export class SlashMuteCommand extends SlashCommand {
 
 		// Re-add muted role if user leaves and rejoins to try and escape it
 		client.on("guildMemberAdd", async member => {
-			if (muted[member.id]) await member.roles.add(config.modules.mute.roleId);
+			if (muted[member.id]) await member.roles.add(config.mutedRoleId);
 		});
 
 		// Don't let anyone add muted people, and persist the role if someone tries to take it off
@@ -80,13 +80,13 @@ export class SlashMuteCommand extends SlashCommand {
 				}
 			};
 
-			if (member.roles.cache.has(config.modules.mute.roleId) && !muted[member.id]) {
-				await member.roles.remove(config.modules.mute.roleId);
+			if (member.roles.cache.has(config.mutedRoleId) && !muted[member.id]) {
+				await member.roles.remove(config.mutedRoleId);
 				warn();
 			}
 
-			if (!member.roles.cache.has(config.modules.mute.roleId) && muted[member.id]) {
-				await member.roles.add(config.modules.mute.roleId);
+			if (!member.roles.cache.has(config.mutedRoleId) && muted[member.id]) {
+				await member.roles.add(config.mutedRoleId);
 				warn();
 			}
 		});
@@ -99,7 +99,7 @@ export class SlashMuteCommand extends SlashCommand {
 				if (typeof data.until == "number" && data.until < Date.now()) {
 					delete muted[userId];
 					const member = await guild.members.fetch(userId);
-					member.roles.remove(config.modules.mute.roleId);
+					member.roles.remove(config.mutedRoleId);
 					changes = true;
 				}
 			}
@@ -121,7 +121,7 @@ export class SlashMuteCommand extends SlashCommand {
 
 		const guild = await discord.guilds.fetch(this.bot.config.guildId);
 		const member = await guild.members.fetch(userId);
-		await member.roles.add(config.modules.mute.roleId, "muted via rightclick menu command");
+		await member.roles.add(config.mutedRoleId, "muted via rightclick menu command");
 
 		const content =
 			`${member.mention} has been muted` +

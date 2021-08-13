@@ -1,6 +1,6 @@
 import { WebApp } from "..";
 import { spawn } from "child_process";
-import config from "@/ci.json";
+import config from "@/config/ci.json";
 
 const FORBIDDEN = 403;
 const SUCCESS = 200;

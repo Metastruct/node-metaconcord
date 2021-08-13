@@ -1,9 +1,8 @@
 import { NodeSSH } from "node-ssh";
 import { TextChannel } from "discord.js";
 import { WebApp } from "..";
-import config from "@/ssh.json";
-import discordConfig from "@/discord.json";
-import servers from "@/gamebridge.servers.json";
+import config from "@/config/ssh.json";
+import servers from "@/config/gamebridge.servers.json";
 
 const HOSTING_IDS = { 3: true };
 export default (webApp: WebApp): void => {
@@ -51,7 +50,7 @@ export default (webApp: WebApp): void => {
 					.resolve(bot.config.notificationsChannelId)
 					?.fetch();
 				await (channel as TextChannel)?.send(
-					`<@&${discordConfig.appDeveloperRole}> GSERV FAILED ON SERVER ${id}, PLEASE FIX`
+					`<@&${bot.config.appDeveloperRole}> GSERV FAILED ON SERVER ${id}, PLEASE FIX`
 				);
 			}
 		}

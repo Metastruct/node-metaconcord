@@ -7,12 +7,12 @@ import {
 	Message,
 	SlashCreator,
 } from "slash-create";
-import { DiscordBot } from "../..";
+import { DiscordBot } from "../../..";
 import { EphemeralResponse } from "..";
 import { NodeSSH } from "node-ssh";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
 import { TextChannel } from "discord.js";
-import config from "@/ssh.json";
+import config from "@/config/ssh.json";
 
 // order matters for the menu
 const VALID_GSERV_COMMANDS: [string, string][] = [

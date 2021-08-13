@@ -4,7 +4,6 @@ import { StatusRequest } from "./structures";
 import Discord, { TextChannel } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
-import config from "@/discord.json";
 import util from "util";
 
 export default class StatusPayload extends Payload {
@@ -14,7 +13,7 @@ export default class StatusPayload extends Payload {
 		super.handle(payload, server);
 
 		const { players, map, workshopMap, gamemode } = payload.data;
-		const { bridge, discord: discordClient } = server;
+		const { bridge, discord } = server;
 		const {
 			config: { host, port },
 		} = bridge.container.getService("WebApp");
@@ -24,7 +23,7 @@ export default class StatusPayload extends Payload {
 			const count = players.length;
 
 			// Presence
-			discordClient.user.setPresence({
+			discord.user.setPresence({
 				activities: [
 					{
 						name: `${count} player${count != 1 ? "s" : ""}`,
@@ -34,11 +33,11 @@ export default class StatusPayload extends Payload {
 				status: "online",
 			});
 
-			const guild = await discordClient.guilds.fetch(config.guildId);
+			const guild = await discord.guilds.fetch(discord.config.guildId);
 			if (!guild) return;
 
 			// Nick
-			const me = await guild.members.fetch(discordClient.user.id);
+			const me = await guild.members.fetch(discord.user.id);
 			if (me.nickname !== server.config.name) me.setNickname(server.config.name);
 
 			// Permanent status message
@@ -117,7 +116,7 @@ export default class StatusPayload extends Payload {
 
 			const messages = await channel.messages.fetch();
 			const message = messages
-				.filter((msg: Discord.Message) => msg.author.id == discordClient.user.id)
+				.filter((msg: Discord.Message) => msg.author.id == discord.user.id)
 				.first();
 			if (message) {
 				message.edit({ embeds: [embed] });
@@ -126,7 +125,7 @@ export default class StatusPayload extends Payload {
 			}
 		};
 
-		if (discordClient.readyAt) {
+		if (discord.readyAt) {
 			updateStatus().catch(console.error);
 		}
 	}

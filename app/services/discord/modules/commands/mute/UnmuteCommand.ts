@@ -6,7 +6,7 @@ import {
 	SlashCreator,
 } from "slash-create";
 import { Data } from "@/app/services/Data";
-import { DiscordBot } from "../..";
+import { DiscordBot } from "../../..";
 import { EphemeralResponse } from "..";
 
 export class SlashUnmuteCommand extends SlashCommand {
@@ -51,7 +51,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 			const member = await guild.members.fetch(userId);
 			if (!member) return EphemeralResponse("Invalid user.");
 
-			await member.roles.remove(config.modules.mute.roleId);
+			await member.roles.remove(config.mutedRoleId);
 			return EphemeralResponse(`<@${member.id}> has been unmuted.`);
 		} else {
 			return EphemeralResponse("how#3");

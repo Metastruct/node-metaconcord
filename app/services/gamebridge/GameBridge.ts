@@ -6,8 +6,8 @@ import { WebApp } from "@/app/services/webapp";
 import { request as WebSocketRequest } from "websocket";
 import { server as WebSocketServer } from "websocket";
 import GameServer from "./GameServer";
-import config from "@/gamebridge.json";
-import servers from "@/gamebridge.servers.json";
+import config from "@/config/gamebridge.json";
+import servers from "@/config/gamebridge.servers.json";
 
 export default class GameBridge extends Service {
 	name = "GameBridge";

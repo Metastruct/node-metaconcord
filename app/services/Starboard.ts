@@ -4,7 +4,7 @@ import { MessageReaction } from "discord.js";
 import { Service } from ".";
 import { TextChannel } from "discord.js";
 import Discord from "discord.js";
-import config from "@/starboard.json";
+import config from "@/config/starboard.json";
 
 const AMOUNT = config.amount;
 const WHC = new Discord.WebhookClient(

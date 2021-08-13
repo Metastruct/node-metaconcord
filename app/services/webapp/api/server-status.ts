@@ -15,18 +15,23 @@ export default (webApp: WebApp): void => {
 		}
 
 		const server = gameBridge.servers[req.params.id];
-		if (!server?.status?.players && !server?.status?.mapThumbnail) {
-			console.warn(`No data for server ${req.params.id}`);
-			return res.sendStatus(503);
+		if (
+			(!Array.isArray(server?.status?.players) && !server?.status?.mapThumbnail) ||
+			server.status.players.length < 1
+		) {
+			return res.sendStatus(204);
 		}
 
 		// Discord Bot and Cloudflare
 		const discordBot = req.headers.accept == "*/*" || !req.headers.accept;
 
-		const html = pug.renderFile(path.join(__dirname, "../resources/server-status/view.pug"), {
-			server,
-			image: !!discordBot,
-		});
+		const html = pug.renderFile(
+			path.join(require.main.path, "resources/server-status/view.pug"),
+			{
+				server,
+				image: !!discordBot,
+			}
+		);
 		if (discordBot) {
 			try {
 				if (!server.playerListImage) {

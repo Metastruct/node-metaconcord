@@ -1,6 +1,6 @@
 import { CommandContext, SlashCommand, SlashCreator } from "slash-create";
-import { DiscordBot } from "..";
-import config from "@/discord-extras.json";
+import { DiscordBot } from "../..";
+import config from "@/config/discord-extras.json";
 
 const VACCINATION_ROLE = config.roles.vaccination;
 

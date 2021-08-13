@@ -2,7 +2,7 @@ import { Container } from "@/app/Container";
 import { Service } from ".";
 import Filter from "bad-words";
 import axios from "axios";
-import config from "@/twitter.json";
+import config from "@/config/twitter.json";
 import jwt from "jsonwebtoken";
 import twit from "twit";
 

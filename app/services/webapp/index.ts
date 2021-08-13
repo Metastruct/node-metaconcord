@@ -2,7 +2,7 @@ import { Container } from "@/app/Container";
 import { Server as HTTPServer } from "http";
 import { Service } from "@/app/services";
 import APIs from "./api";
-import config from "@/webapp.json";
+import config from "@/config/webapp.json";
 import express from "express";
 
 export class WebApp extends Service {

@@ -1,8 +1,8 @@
 import { Container } from "@/app/Container";
 //import { EOL } from "os";
 import { Service } from ".";
+import { sleep } from "@/utils";
 import Markov from "markov-strings";
-import sleep from "sleep-promise";
 //import fs from "fs";
 
 //const MARKOV_DATA_PATH = "markov_data.txt";
@@ -25,7 +25,8 @@ export class MarkovService extends Service {
 			}
 
 			// legacy data
-			/*if (fs.existsSync(MARKOV_DATA_PATH)) {
+			/* 
+			if (fs.existsSync(MARKOV_DATA_PATH)) {
 				fs.readFile(MARKOV_DATA_PATH, "utf8", async (err, data) => {
 					if (err) {
 						console.log(err);
@@ -49,7 +50,8 @@ export class MarkovService extends Service {
 					this.generator.addData(lines);
 					//fs.unlinkSync(MARKOV_DATA_PATH);
 				});
-			}*/
+			}
+			*/
 
 			// load our data asynchronously so we don't hog the resources for the rest
 			const res = await db.all("SELECT string FROM markov;");
