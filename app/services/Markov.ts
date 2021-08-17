@@ -2,7 +2,7 @@ import { Container } from "@/app/Container";
 //import { EOL } from "os";
 import { Service } from ".";
 import { sleep } from "@/utils";
-import Markov from "markov-strings";
+import Markov, { MarkovGenerateOptions } from "markov-strings";
 //import fs from "fs";
 
 //const MARKOV_DATA_PATH = "markov_data.txt";
@@ -11,7 +11,7 @@ import Markov from "markov-strings";
 export class MarkovService extends Service {
 	name = "Markov";
 	generator = new Markov({ stateSize: 2 });
-	genOptions = { maxTries: 20 };
+	genOptions: MarkovGenerateOptions = { maxTries: 20, filter: result => result.score > 10 };
 
 	constructor(container: Container) {
 		super(container);
@@ -25,7 +25,7 @@ export class MarkovService extends Service {
 			}
 
 			// legacy data
-			/* 
+			/*
 			if (fs.existsSync(MARKOV_DATA_PATH)) {
 				fs.readFile(MARKOV_DATA_PATH, "utf8", async (err, data) => {
 					if (err) {
