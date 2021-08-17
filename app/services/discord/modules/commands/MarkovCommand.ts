@@ -34,27 +34,30 @@ export class SlashMarkovCommand extends SlashCommand {
 
 	async run(ctx: CommandContext): Promise<void> {
 		await ctx.defer();
-		if (ctx.options.verbose) {
-			const res = this.markov.generate(ctx.options.score, true);
+		try {
+			const res = this.markov.generate(ctx.options.score, ctx.options.verbose);
+			if (ctx.options.verbose) {
+				const fpath = path.resolve(`${Date.now()}_mkv.txt`.toLocaleLowerCase());
 
-			const fpath = path.resolve(`${Date.now()}_mkv.txt`.toLocaleLowerCase());
+				await new Promise<void>((resolve, reject) =>
+					fs.writeFile(fpath, res, err => (err ? reject(err.message) : resolve()))
+				);
 
-			await new Promise<void>((resolve, reject) =>
-				fs.writeFile(fpath, res, err => (err ? reject(err.message) : resolve()))
-			);
+				ctx.send(JSON.parse(res).string, {
+					file: {
+						name: "result.json",
+						file: fs.readFileSync(fpath),
+					},
+				});
 
-			ctx.send(JSON.parse(res).string, {
-				file: {
-					name: "result.json",
-					file: fs.readFileSync(fpath),
-				},
-			});
-
-			await new Promise<void>((resolve, reject) =>
-				fs.unlink(fpath, err => (err ? reject(err.message) : resolve()))
-			);
-		} else {
-			await ctx.send(this.markov.generate(ctx.options.score));
+				await new Promise<void>((resolve, reject) =>
+					fs.unlink(fpath, err => (err ? reject(err.message) : resolve()))
+				);
+			} else {
+				await ctx.send(res);
+			}
+		} catch {
+			await ctx.send("Failed to build a sentence after 30 tries, please try a lower score.");
 		}
 	}
 }
