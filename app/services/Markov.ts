@@ -2,7 +2,7 @@ import { Container } from "@/app/Container";
 //import { EOL } from "os";
 import { Service } from ".";
 import { sleep } from "@/utils";
-import Markov, { MarkovGenerateOptions } from "markov-strings";
+import Markov from "markov-strings";
 //import fs from "fs";
 
 //const MARKOV_DATA_PATH = "markov_data.txt";
@@ -11,7 +11,6 @@ import Markov, { MarkovGenerateOptions } from "markov-strings";
 export class MarkovService extends Service {
 	name = "Markov";
 	generator = new Markov({ stateSize: 2 });
-	genOptions: MarkovGenerateOptions = { maxTries: 20, filter: result => result.score > 10 };
 
 	constructor(container: Container) {
 		super(container);
@@ -98,13 +97,17 @@ export class MarkovService extends Service {
 		await db.run("INSERT INTO markov (string) VALUES(?)", line);
 	}
 
-	public generate(): string {
+	public generate(score = 10, verbose = false): string {
 		if (this.generator.data.length === 0) {
 			return "Service is still loading";
 		}
 
-		const res = this.generator.generate(this.genOptions);
-		return res.string.trim();
+		const res = this.generator.generate({
+			maxTries: 30,
+			filter: result => result.score > score,
+		});
+
+		return verbose ? JSON.stringify(res, undefined, 2) : res.string.trim();
 	}
 }
 
