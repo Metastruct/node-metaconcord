@@ -103,7 +103,7 @@ export class MarkovService extends Service {
 		}
 
 		const res = this.generator.generate({
-			maxTries: 30,
+			maxTries: 50,
 			filter: result => result.score > score,
 		});
 

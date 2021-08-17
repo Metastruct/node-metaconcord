@@ -56,8 +56,15 @@ export class SlashMarkovCommand extends SlashCommand {
 			} else {
 				await ctx.send(res);
 			}
-		} catch {
-			await ctx.send("Failed to build a sentence after 30 tries, please try a lower score.");
+		} catch (err) {
+			await ctx.send({
+				embeds: [
+					{
+						color: 0xff0000,
+						description: err,
+					},
+				],
+			});
 		}
 	}
 }
