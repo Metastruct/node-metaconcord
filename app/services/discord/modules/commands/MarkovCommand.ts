@@ -61,7 +61,7 @@ export class SlashMarkovCommand extends SlashCommand {
 				embeds: [
 					{
 						color: 0xff0000,
-						description: err,
+						description: err.toString(),
 					},
 				],
 			});
