@@ -13,7 +13,7 @@ export default class JoinLeavePayload extends Payload {
 		const { player, reason, spawned } = payload.data;
 		const { bridge, discord } = server;
 
-		if (!discord.readyAt) return;
+		if (!discord.isReady()) return;
 
 		const guild = discord.guilds.cache.get(discord.config.guildId);
 		if (!guild) return;
