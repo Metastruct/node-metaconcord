@@ -33,11 +33,11 @@ export default class StatusPayload extends Payload {
 				status: "online",
 			});
 
-			const guild = await discord.guilds.fetch(discord.config.guildId);
+			const guild = discord.guilds.cache.get(discord.config.guildId);
 			if (!guild) return;
 
 			// Nick
-			const me = await guild.members.fetch(discord.user.id);
+			const me = guild.members.cache.get(discord.user.id);
 			if (me.nickname !== server.config.name) me.setNickname(server.config.name);
 
 			// Permanent status message
@@ -109,9 +109,9 @@ export default class StatusPayload extends Payload {
 			});
 			server.playerListImage = null;
 
-			const channel = (await guild.channels
-				.resolve(bridge.config.serverInfoChannelId)
-				?.fetch()) as TextChannel;
+			const channel = guild.channels.cache.get(
+				bridge.config.serverInfoChannelId
+			) as TextChannel;
 			if (!channel) return;
 
 			const messages = await channel.messages.fetch();

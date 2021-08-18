@@ -17,14 +17,14 @@ export default class AdminNotifyPayload extends Payload {
 		let { message } = payload.data;
 		const { bridge, discord: discordClient } = server;
 
-		const guild = await discordClient.guilds.resolve(bridge.config.guildId)?.fetch();
+		if (!discordClient.readyAt) return;
+
+		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
 		if (!guild) return;
 
-		const callAdminRole = guild.roles.resolve(bridge.config.callAdminRoleId);
+		const callAdminRole = guild.roles.cache.get(bridge.config.callAdminRoleId);
 
-		const notificationsChannel = await guild.channels.fetch(
-			bridge.config.notificationsChannelId
-		);
+		const notificationsChannel = guild.channels.cache.get(bridge.config.notificationsChannelId);
 		if (!notificationsChannel) return;
 
 		const steamId64 = new SteamID(player.steamId).getSteamID64();
