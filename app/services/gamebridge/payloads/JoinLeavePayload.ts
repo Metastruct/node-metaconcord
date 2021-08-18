@@ -13,10 +13,12 @@ export default class JoinLeavePayload extends Payload {
 		const { player, reason, spawned } = payload.data;
 		const { bridge, discord } = server;
 
-		const guild = await discord.guilds.resolve(discord.config.guildId)?.fetch();
+		if (!discord.readyAt) return;
+
+		const guild = discord.guilds.cache.get(discord.config.guildId);
 		if (!guild) return;
 
-		const relayChannel = await guild.channels.resolve(bridge.config.relayChannelId)?.fetch();
+		const relayChannel = guild.channels.cache.get(bridge.config.relayChannelId);
 		if (!relayChannel) return;
 
 		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);

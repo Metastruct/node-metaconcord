@@ -15,7 +15,9 @@ export default class ChatPayload extends Payload {
 		let { content } = payload.data;
 		const { bridge, discord } = server;
 
-		const guild = await discord.guilds.resolve(discord.config.guildId)?.fetch();
+		if (!discord.readyAt) return;
+
+		const guild = discord.guilds.cache.get(discord.config.guildId);
 		if (!guild) return;
 
 		const webhook = new Discord.WebhookClient({

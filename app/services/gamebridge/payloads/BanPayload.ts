@@ -16,12 +16,12 @@ export default class BanPayload extends Payload {
 		const { player, banned, reason, unbanTime } = payload.data;
 		const { bridge, discord: discordClient } = server;
 
-		const guild = await discordClient.guilds.resolve(bridge.config.guildId)?.fetch();
+		if (!discordClient.readyAt) return;
+
+		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
 		if (!guild) return;
 
-		const notificationsChannel = await guild.channels
-			.resolve(bridge.config.notificationsChannelId)
-			?.fetch();
+		const notificationsChannel = guild.channels.cache.get(bridge.config.notificationsChannelId);
 		if (!notificationsChannel) return;
 
 		const steam = bridge.container.getService("Steam");
