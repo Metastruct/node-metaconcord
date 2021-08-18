@@ -27,26 +27,33 @@ export class DiscordBot extends Service {
 			}, 1000 * 60 * 10); // change status every 10mins
 
 			// home-made sentry :WeirdChamp:
-			process.on("uncaughtException", async (err: Error) => {
-				if (process.env.NODE_ENV === "development") return;
-				try {
-					const channel = await this.getTextChannel(config.notificationsChannelId);
+			if (process.env.NODE_ENV !== "development") {
+				process.on("uncaughtException", async (err: any) => {
+					// Unknown inconsequential error, either from our websocket or Discord.js's
+					if (err.code == "ECONNRESET" && err.message == "aborted") return;
 
-					const embed = new Discord.MessageEmbed({
-						hexColor: "#f00",
-						description: err.message,
-						title: "Unhandled Exception on Metaconcord",
-						fields: [{ name: "Stack", value: err.stack.substring(0, 1000) + "..." }],
-					});
-					await channel.send({
-						content: `<@&${config.appDeveloperRole}>`,
-						embeds: [embed],
-					});
-				} catch (oops) {
-					console.error(err);
-					console.error(oops);
-				}
-			});
+					try {
+						const channel = await this.getTextChannel(config.notificationsChannelId);
+
+						const embed = new Discord.MessageEmbed({
+							hexColor: "#f00",
+							description: err.message,
+							title: "Unhandled Exception on Metaconcord",
+							fields: [
+								{ name: "Stack", value: err.stack.substring(0, 1000) + "..." },
+								...(err.code ? [{ name: "Code", value: err.code }] : []),
+							],
+						});
+						await channel.send({
+							content: `<@&${config.appDeveloperRole}>`,
+							embeds: [embed],
+						});
+					} catch (oops) {
+						console.error(err);
+						console.error(oops);
+					}
+				});
+			}
 		});
 
 		for (const loadModule of modules) {
