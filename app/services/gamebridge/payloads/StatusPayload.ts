@@ -125,7 +125,7 @@ export default class StatusPayload extends Payload {
 			}
 		};
 
-		if (discord.readyAt) {
+		if (discord.isReady()) {
 			updateStatus().catch(console.error);
 		}
 	}
