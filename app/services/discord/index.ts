@@ -22,8 +22,10 @@ export class DiscordBot extends Service {
 			await this.setStatus(`Crashing the source engine`);
 
 			setInterval(() => {
-				const newStatus = this.container.getService("Markov").generate();
-				this.setStatus(newStatus);
+				try {
+					const newStatus = this.container.getService("Markov").generate();
+					this.setStatus(newStatus);
+				} catch {} // who cares
 			}, 1000 * 60 * 10); // change status every 10mins
 
 			// home-made sentry :WeirdChamp:
