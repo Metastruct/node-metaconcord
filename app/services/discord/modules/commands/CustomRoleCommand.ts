@@ -85,7 +85,7 @@ export class SlashCustomRoleCommand extends SlashCommand {
 	}
 
 	async removeRole(ctx: CommandContext): Promise<any> {
-		const guild = await this.bot.discord.guilds.resolve(ctx.guildID)?.fetch();
+		const guild = await this.bot.discord.guilds.fetch(ctx.guildID);
 		const member = await guild.members.fetch(ctx.member.id);
 		const hasRole = member.roles.cache.find(r => r.name.endsWith(ROLE_IDENTIFIER));
 		if (hasRole) {
@@ -110,7 +110,7 @@ export class SlashCustomRoleCommand extends SlashCommand {
 			? [parseInt(r), parseInt(g), parseInt(b)]
 			: ctx.options.add_hex?.hex;
 
-		const guild = await this.bot.discord.guilds.resolve(ctx.guildID)?.fetch();
+		const guild = await this.bot.discord.guilds.fetch(ctx.guildID);
 		if (!guild) {
 			return EphemeralResponse("Not in a guild");
 		}
@@ -132,6 +132,7 @@ export class SlashCustomRoleCommand extends SlashCommand {
 				reason: "Added role via command",
 				name: roleName.toString(),
 				color: roleColor,
+				position: 10,
 			});
 		} else {
 			await targetRole.setColor(roleColor, "Updated role color via command");
