@@ -34,7 +34,7 @@ export default (bot: DiscordBot): void => {
 		if (!logChannel) return;
 
 		const message =
-			msg.content.length > 1
+			msg.content.length > 0
 				? msg.content
 				: Object.keys(msg.attachments).length > 0
 				? `[${msg.attachments.first().name}]`
