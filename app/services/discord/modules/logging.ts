@@ -36,8 +36,8 @@ export default (bot: DiscordBot): void => {
 		const message =
 			msg.content.length > 0
 				? msg.content
-				: Object.keys(msg.attachments).length > 0
-				? `[${msg.attachments.first().name}]`
+				: msg.attachments.size > 0
+				? `[${msg.attachments.values().next().value.name}]`
 				: "???";
 
 		const embed = new Discord.MessageEmbed()
