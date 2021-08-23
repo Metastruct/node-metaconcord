@@ -52,7 +52,6 @@ export default (bot: DiscordBot): void => {
 	});
 
 	bot.discord.on("messageUpdate", async (oldMsg, newMsg) => {
-		// discord manages embeds by updating user messages
 		if (oldMsg.partial) {
 			try {
 				oldMsg = await oldMsg.fetch();
@@ -60,7 +59,7 @@ export default (bot: DiscordBot): void => {
 				return;
 			}
 		}
-		if (oldMsg.content === newMsg.content) return;
+		if (oldMsg.content === newMsg.content) return; // discord manages embeds by updating user messages
 		if (oldMsg.author.bot) return;
 
 		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
@@ -71,8 +70,8 @@ export default (bot: DiscordBot): void => {
 			.setColor(EDIT_COLOR)
 			.addField("Channel", `<#${oldMsg.channel.id}>`)
 			.addField("Mention", oldMsg.author.mention)
-			.addField("New Message", newMsg.content.substring(0, EMBED_FIELD_LIMIT), true)
-			.addField("Old Message", oldMsg.content.substring(0, EMBED_FIELD_LIMIT), true)
+			.addField("New Message", newMsg.content.substring(0, EMBED_FIELD_LIMIT) ?? "???", true)
+			.addField("Old Message", oldMsg.content.substring(0, EMBED_FIELD_LIMIT) ?? "???", true)
 			.setFooter("Message Edited")
 			.setTimestamp(newMsg.editedTimestamp);
 		await logChannel.send({ embeds: [embed] });
