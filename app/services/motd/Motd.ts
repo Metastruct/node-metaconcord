@@ -1,6 +1,7 @@
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
 import { scheduleJob } from "node-schedule";
+import FormData from "form-data";
 import axios from "axios";
 import config from "@/config/motd.json";
 import moment from "moment";
@@ -91,7 +92,9 @@ export default class Motd extends Service {
 			this.container.getService("Twitter").postStatus("Image of the day", url);
 
 			// remove images from album after posting
-			await axios.post(`https://api.imgur.com/3/album/${config.imgurDeleteHash}`, undefined, {
+			const data = new FormData();
+			data.append("deletehashes[]", undefined); // this will return 403 but delete the images anyway because????
+			await axios.post(`https://api.imgur.com/3/album/${config.imgurDeleteHash}`, data, {
 				headers: {
 					Authorization: `Client-ID ${config.imgurClientId}`,
 				},
