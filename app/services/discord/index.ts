@@ -6,6 +6,7 @@ import modules from "./modules";
 
 export const EMBED_FIELD_LIMIT = 1024;
 
+const IGNORED_CODES = ["ECONNRESET", "ETIMEDOUT"];
 export class DiscordBot extends Service {
 	name = "DiscordBot";
 	config = config;
@@ -32,7 +33,7 @@ export class DiscordBot extends Service {
 			if (process.env.NODE_ENV !== "development") {
 				process.on("uncaughtException", async (err: any) => {
 					// Unknown inconsequential error, either from our websocket or Discord.js's
-					if (err.code == "ECONNRESET" && err.message == "aborted") return;
+					if (IGNORED_CODES.includes(err.code)) return;
 
 					try {
 						const channel = await this.getTextChannel(config.notificationsChannelId);
