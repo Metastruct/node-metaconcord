@@ -1,5 +1,4 @@
 import { Container } from "../Container";
-import { MessageEmbedOptions } from "discord.js";
 import { MessageReaction } from "discord.js";
 import { Service } from ".";
 import { TextChannel } from "discord.js";
@@ -33,36 +32,40 @@ export class Starboard extends Service {
 	}
 
 	public async handleReactionAdded(reaction: MessageReaction): Promise<void> {
-		if (reaction.emoji.id === config.emoteId && reaction.count >= AMOUNT) {
-			const client = reaction.client;
-			const msg = await reaction.message.fetch();
+		if (reaction.emoji.id === config.emoteId) {
+			const ego = reaction.users.cache.has(reaction.message.author.id);
+			const count = ego ? reaction.count - 1 : reaction.count;
+			if (count >= AMOUNT) {
+				const client = reaction.client;
+				const msg = await reaction.message.fetch();
 
-			// don't loop
-			if (msg.channel.id === config.channelId) return;
+				// don't loop
+				if (msg.channel.id === config.channelId) return;
 
-			// check against our local db first
-			if (await this.isMsgStarred(msg.id)) return;
+				// check against our local db first
+				if (await this.isMsgStarred(msg.id)) return;
 
-			let text = "";
-			const reference = msg.reference;
-			if (reference) {
-				const refMsg = await (
-					client.channels.cache.get(reference.channelId) as TextChannel
-				).messages.fetch(reference.messageId);
-				text += `${
-					reference ? `[replying to ${refMsg.author.username}](${refMsg.url})\n` : ""
-				}`;
+				let text = "";
+				const reference = msg.reference;
+				if (reference) {
+					const refMsg = await (
+						client.channels.cache.get(reference.channelId) as TextChannel
+					).messages.fetch(reference.messageId);
+					text += `${
+						reference ? `[replying to ${refMsg.author.username}](${refMsg.url})\n` : ""
+					}`;
+				}
+
+				text += msg.content;
+				text += `${msg.attachments.size > 0 ? "\n" + msg.attachments.first().url : ""}`;
+
+				await WHC.send({
+					content: text,
+					avatarURL: msg.author.avatarURL(),
+					username: `${msg.author.username}`,
+				});
+				await this.starMsg(msg.id);
 			}
-
-			text += msg.content;
-			text += `${msg.attachments.size > 0 ? "\n" + msg.attachments.first().url : ""}`;
-
-			await WHC.send({
-				content: text,
-				avatarURL: msg.author.avatarURL(),
-				username: `${msg.author.username}`,
-			});
-			await this.starMsg(msg.id);
 		}
 	}
 }
