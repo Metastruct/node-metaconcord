@@ -36,29 +36,18 @@ export class Starboard extends Service {
 		if (reaction.emoji.id === config.emoteId && reaction.count >= AMOUNT) {
 			const client = reaction.client;
 			const msg = await reaction.message.fetch();
-			const channel = (await client.channels.fetch(config.channelId)) as Discord.TextChannel;
 
+			// don't loop
 			if (msg.channel.id === config.channelId) return;
 
 			// check against our local db first
 			if (await this.isMsgStarred(msg.id)) return;
 
-			// check against channel in case (for old messages mostly)
-			let old = await channel.messages.fetch({ limit: 100 });
-			old = old.filter(
-				m =>
-					(msg.content.length > 0 && m.content === msg.content) ||
-					(m.embeds.length > 0 &&
-						m.embeds.some((e: MessageEmbedOptions) => e.author?.url.includes(msg.id)))
-			);
-
-			if (old.size > 0) return;
-
 			let text = "";
 			const reference = msg.reference;
 			if (reference) {
 				const refMsg = await (
-					client.channels.resolve(reference.channelId) as TextChannel
+					client.channels.cache.get(reference.channelId) as TextChannel
 				).messages.fetch(reference.messageId);
 				text += `${
 					reference ? `[replying to ${refMsg.author.username}](${refMsg.url})\n` : ""
