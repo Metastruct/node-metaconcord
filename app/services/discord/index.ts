@@ -6,7 +6,7 @@ import modules from "./modules";
 
 export const EMBED_FIELD_LIMIT = 1024;
 
-const IGNORED_CODES = ["ECONNRESET", "ETIMEDOUT"];
+const IGNORED_CODES = ["ECONNRESET", "ETIMEDOUT", "ECONNREFUSED"];
 export class DiscordBot extends Service {
 	name = "DiscordBot";
 	config = config;
