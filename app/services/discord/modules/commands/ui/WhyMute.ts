@@ -41,7 +41,6 @@ export class UIWhyMuteCommand extends SlashCommand {
 				}
 
 				const content =
-					`${ctx.user.mention}, ` +
 					(ctx.user.id == userId
 						? `you remain muted`
 						: `user **${mutedMember.toString()}** (\`${
