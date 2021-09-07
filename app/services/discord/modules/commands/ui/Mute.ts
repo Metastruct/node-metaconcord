@@ -8,6 +8,7 @@ import {
 import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../../..";
 import { EphemeralResponse } from "..";
+import { GuildMember } from "discord.js";
 
 export class UIMuteCommand extends SlashCommand {
 	private bot: DiscordBot;
@@ -46,7 +47,12 @@ export class UIMuteCommand extends SlashCommand {
 		await this.data.save();
 
 		const guild = discord.guilds.cache.get(this.bot.config.guildId);
-		const member = await guild.members.fetch(userId);
+		let member: GuildMember;
+		try {
+			member = await guild.members.fetch(userId);
+		} catch {
+			return EphemeralResponse("Couldn't get that User, probably left the guild already...");
+		}
 		await member.roles.add(config.mutedRoleId, "muted via rightclick menu command");
 
 		const content = `${member.mention} has been muted.`;
