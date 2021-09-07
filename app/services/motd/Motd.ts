@@ -93,7 +93,7 @@ export default class Motd extends Service {
 
 			// remove images from album after posting
 			const data = new FormData();
-			data.append("deletehashes[]", undefined); // this will return 403 but delete the images anyway because????
+			data.append("deletehashes[]", ""); // this will return 403 but delete the images anyway because????
 			await axios.post(`https://api.imgur.com/3/album/${config.imgurDeleteHash}`, data, {
 				headers: {
 					Authorization: `Client-ID ${config.imgurClientId}`,
