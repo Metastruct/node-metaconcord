@@ -1,16 +1,26 @@
 import {
 	ApplicationCommandPermissionType,
-	ApplicationCommandType,
 	CommandContext,
+	CommandOptionType,
 	SlashCommand,
 	SlashCreator,
 } from "slash-create";
 import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../../..";
-import { EphemeralResponse } from "..";
 import { GuildAuditLogs, User } from "discord.js";
 import { TextChannel } from "discord.js";
-import moment from "moment";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+const unitSecondsMap = {
+	second: 1,
+	minute: 60,
+	hour: 60 * 60,
+	day: 60 * 60 * 24,
+	week: 60 * 60 * 24 * 7,
+	month: 60 * 60 * 24 * 30,
+	year: 60 * 60 * 24 * 365,
+};
 
 const manualMuteReminderTimeouts: string[] = [];
 
@@ -22,7 +32,6 @@ export class SlashMuteCommand extends SlashCommand {
 		super(creator, {
 			name: "mute",
 			description: "Mutes an user.",
-			type: ApplicationCommandType.USER,
 			guildIDs: [bot.config.guildId],
 			defaultPermission: false,
 			permissions: {
@@ -34,11 +43,34 @@ export class SlashMuteCommand extends SlashCommand {
 					},
 				],
 			},
+			options: [
+				{
+					type: CommandOptionType.USER,
+					name: "user",
+					description: "The Discord user we want to mute",
+					required: true,
+				},
+				{
+					type: CommandOptionType.STRING,
+					name: "reason",
+					description: "Why you want to mute the user.",
+					required: true,
+				},
+				{
+					type: CommandOptionType.STRING,
+					name: "time",
+					description:
+						"The amount of time you want to mute the user for. Input none for indefinite",
+					required: false,
+				},
+			],
 		});
 
 		this.filePath = __filename;
 		this.bot = bot;
 		this.data = this.bot.container.getService("Data");
+
+		dayjs.extend(relativeTime);
 
 		const { config } = this.bot,
 			client = this.bot.discord,
@@ -61,9 +93,9 @@ export class SlashMuteCommand extends SlashCommand {
 					const user = entry.executor;
 					if (user.id == user.client.user.id) continue;
 					if (target.id == member.id && !manualMuteReminderTimeouts.includes(user.id)) {
-						const notificationsChannel = (await user.client.channels.fetch(
+						const notificationsChannel = user.client.channels.cache.get(
 							config.notificationsChannelId
-						)) as TextChannel;
+						) as TextChannel;
 						notificationsChannel.send(
 							`${user.mention}, this role can only be managed by me. Sorry!`
 						);
@@ -110,24 +142,36 @@ export class SlashMuteCommand extends SlashCommand {
 	async run(ctx: CommandContext): Promise<any> {
 		const { discord, config } = this.bot;
 		let { muted } = this.data;
-		const userId = ctx.targetID;
+		const userId = ctx.options.user.toString();
+		const time = ctx.options.time as string;
+		const reason = ctx.options.reason as string;
 
-		const until = undefined; // pog, always undefined
-		const reason = undefined; // we could add a callback and check for last msg but dunno man
+		// Calculate time if any is specified
+		let until: number;
+		if (time) {
+			for (const {
+				groups: { amount, unit },
+			} of time.matchAll(
+				/(?<amount>\d+)\s*(?<unit>year|month|week|day|hour|minute|second)/gi
+			)) {
+				if (!until) until = Date.now();
+				until += +amount * unitSecondsMap[unit] * 1000;
+			}
+		}
 
 		if (!muted) muted = this.data.muted = {};
 		muted[userId] = { until, reason, muter: ctx.user.id };
 		await this.data.save();
 
-		const guild = await discord.guilds.fetch(this.bot.config.guildId);
+		const guild = discord.guilds.cache.get(this.bot.config.guildId);
 		const member = await guild.members.fetch(userId);
-		await member.roles.add(config.mutedRoleId, "muted via rightclick menu command");
+		await member.roles.add(config.mutedRoleId, "muted via slash command");
 
 		const content =
-			`${member.mention} has been muted` +
-			(until ? ` for *${moment.duration(moment(until).diff(moment())).humanize()}*` : "") +
+			`${ctx.user.mention}, user ${member.mention} has been muted` +
+			(until ? ` for *${dayjs(until).fromNow()}*` : "") +
 			(reason ? ` with reason:\n\n${reason}` : "") +
 			`.`;
-		return EphemeralResponse(content);
+		return content;
 	}
 }

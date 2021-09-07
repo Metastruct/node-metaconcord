@@ -1,7 +1,8 @@
 import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
-import moment from "moment";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
 export class SlashWhyMuteCommand extends SlashCommand {
 	private bot: DiscordBot;
@@ -24,6 +25,7 @@ export class SlashWhyMuteCommand extends SlashCommand {
 
 		this.filePath = __filename;
 		this.bot = bot;
+		dayjs.extend(relativeTime);
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
@@ -44,9 +46,7 @@ export class SlashWhyMuteCommand extends SlashCommand {
 						: `user **${mutedMember.toString()}** (\`${
 								mutedMember.id
 						  }\`) remains muted`) +
-					(until
-						? ` for *${moment.duration(moment(until).diff(moment())).humanize()}*`
-						: "") +
+					(until ? ` for *${dayjs(until).fromNow()}*` : "") +
 					(muterMember
 						? ` by **${muterMember.toString()}** (\`${muterMember.id}\`)`
 						: "") +

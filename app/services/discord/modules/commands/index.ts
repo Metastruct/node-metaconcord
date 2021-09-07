@@ -1,21 +1,24 @@
 import { DiscordBot } from "../..";
 import { GatewayServer, SlashCreator } from "slash-create";
 import { MessageOptions } from "slash-create";
-import { SlashBanCommand } from "./developer/BanCommand";
-import { SlashCustomRoleCommand } from "./CustomRoleCommand";
-import { SlashGservCommand } from "./developer/GservCommand";
-import { SlashKickCommand } from "./developer/KickCommand";
-import { SlashLuaCommand } from "./developer/LuaCommand";
-import { SlashMarkovCommand } from "./MarkovCommand";
-import { SlashMuteCommand } from "./mute/MuteCommand";
-import { SlashRconCommand } from "./developer/RconCommand";
-import { SlashRefreshLuaCommand } from "./developer/RefreshLuaCommand";
-import { SlashSqlCommand } from "./developer/SqlCommand";
-import { SlashUnBanCommand } from "./developer/UnBanCommand";
-import { SlashUnmuteCommand } from "./mute/UnmuteCommand";
-import { SlashVaccinatedCommand } from "./VaccinationCommand";
-import { SlashWhyBanCommand } from "./WhyBanCommand";
-import { SlashWhyMuteCommand } from "./mute/WhyMuteCommand";
+import { SlashBanCommand } from "./developer/Ban";
+import { SlashCustomRoleCommand } from "./CustomRole";
+import { SlashGservCommand } from "./developer/Gserv";
+import { SlashKickCommand } from "./developer/Kick";
+import { SlashLuaCommand } from "./developer/Lua";
+import { SlashMarkovCommand } from "./Markov";
+import { SlashMuteCommand } from "./mute/Mute";
+import { SlashRconCommand } from "./developer/Rcon";
+import { SlashRefreshLuaCommand } from "./developer/RefreshLua";
+import { SlashSqlCommand } from "./developer/Sql";
+import { SlashUnBanCommand } from "./developer/UnBan";
+import { SlashUnmuteCommand } from "./mute/Unmute";
+import { SlashVaccinatedCommand } from "./Vaccination";
+import { SlashWhyBanCommand } from "./WhyBan";
+import { SlashWhyMuteCommand } from "./mute/WhyMute";
+import { UIMuteCommand } from "./ui/Mute";
+import { UIUnmuteCommand } from "./ui/Unmute";
+import { UIWhyMuteCommand } from "./ui/WhyMute";
 
 export function EphemeralResponse(content: string): MessageOptions {
 	return { content, ephemeral: true };
@@ -37,6 +40,9 @@ export const commands = [
 	SlashUnBanCommand,
 	SlashKickCommand,
 	SlashSqlCommand,
+	UIMuteCommand,
+	UIUnmuteCommand,
+	UIWhyMuteCommand,
 ];
 
 export default (bot: DiscordBot): void => {
