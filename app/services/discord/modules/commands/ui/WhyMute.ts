@@ -1,4 +1,4 @@
-import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
+import { ApplicationCommandType, CommandContext, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
 import dayjs from "dayjs";
@@ -12,15 +12,7 @@ export class UIWhyMuteCommand extends SlashCommand {
 			name: "Mute Reason",
 			description: "Prints the reason and duration for a muted user.",
 			guildIDs: [bot.config.guildId],
-			options: [
-				{
-					type: CommandOptionType.USER,
-					name: "user",
-					description:
-						"The Discord user for which we want the reason/duration of the mute",
-					required: false,
-				},
-			],
+			type: ApplicationCommandType.USER,
 		});
 
 		this.filePath = __filename;
