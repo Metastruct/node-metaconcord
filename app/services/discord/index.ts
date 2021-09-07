@@ -96,25 +96,26 @@ export class DiscordBot extends Service {
 		if (this.container.getService("Motd").isValidMsg(content))
 			this.container.getService("Markov").addLine(content);
 	}
-	async fixTwitterEmbeds(msg: Discord.Message): Promise<void> {
-		const statusUrls = msg.content.match(
-			/https?:\/\/twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g
-		);
-		if (!statusUrls) return;
+	// async fixTwitterEmbeds(msg: Discord.Message): Promise<void> {
+	// 	const statusUrls = msg.content.match(
+	// 		/https?:\/\/twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g
+	// 	);
+	// 	if (!statusUrls) return;
 
-		let urls: Array<string> = [];
-		for (const statusUrl of statusUrls) {
-			const mediaUrls = await this.container
-				.getService("Twitter")
-				.getStatusMediaURLs(statusUrl);
-			urls = urls.concat(mediaUrls);
-		}
+	// 	let urls: Array<string> = [];
+	// 	for (const statusUrl of statusUrls) {
+	// 		const mediaUrls = await this.container
+	// 			.getService("Twitter")
+	// 			.getStatusMediaURLs(statusUrl);
+	// 		urls = urls.concat(mediaUrls);
+	// 	}
 
-		if (urls.length === 0) return;
+	// 	if (urls.length === 0) return;
 
-		const fix = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
-		await msg.channel.send(fix);
-	}
+	// 	const fix = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
+	// 	await msg.channel.send(fix);
+	// }
+
 	async handleMediaUrls(msg: Discord.Message): Promise<void> {
 		// https://media.discordapp.net/attachments/769875739817410562/867369588014448650/video.mp4
 		// https://cdn.discordapp.com/attachments/769875739817410562/867369588014448650/video.mp4
