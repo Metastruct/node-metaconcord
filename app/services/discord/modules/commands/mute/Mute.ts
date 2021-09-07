@@ -140,6 +140,7 @@ export class SlashMuteCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
+		await ctx.defer();
 		const { discord, config } = this.bot;
 		let { muted } = this.data;
 		const userId = ctx.options.user.toString();
