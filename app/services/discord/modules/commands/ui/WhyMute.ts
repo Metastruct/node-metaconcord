@@ -34,7 +34,9 @@ export class UIWhyMuteCommand extends SlashCommand {
 					mutedMember = await guild.members.fetch(userId);
 					muterMember = await guild.members.fetch(muter);
 				} catch {
-					return "Couldn't get that User, probably left the guild already...";
+					return EphemeralResponse(
+						"Couldn't get that User, probably left the guild already..."
+					);
 				}
 
 				const content =
