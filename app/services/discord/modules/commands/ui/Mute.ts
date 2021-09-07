@@ -38,7 +38,7 @@ export class UIMuteCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
-		await ctx.defer();
+		await ctx.defer(true);
 		const { discord, config } = this.bot;
 		let { muted } = this.data;
 		const userId = ctx.targetID;
