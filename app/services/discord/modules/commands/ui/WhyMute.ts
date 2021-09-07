@@ -43,7 +43,7 @@ export class UIWhyMuteCommand extends SlashCommand {
 				const content =
 					(ctx.user.id == userId ? `you remain muted` : `${mutedMember} remains muted`) +
 					(until ? ` for *${dayjs(until).fromNow()}*` : "") +
-					(muterMember ? ` by ${muterMember})` : "") +
+					(muterMember ? ` by ${muterMember}` : "") +
 					(reason ? ` with reason:\n\n${reason}` : " without a reason") +
 					`.`;
 				return EphemeralResponse(content);
