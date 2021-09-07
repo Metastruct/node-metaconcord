@@ -2,7 +2,7 @@ import { DiscordBot } from "..";
 import { join } from "path";
 import { scheduleJob } from "node-schedule";
 import { stat } from "fs/promises";
-import moment from "moment";
+import dayjs from "dayjs";
 
 const events = [
 	{
@@ -65,7 +65,7 @@ export default (bot: DiscordBot): void => {
 				const [startDay, startMonth] = start.split("/").map(n => +n);
 				const [endDay, endMonth] = end.split("/").map(n => +n);
 
-				const now = moment();
+				const now = dayjs();
 				const day = now.date();
 				const month = now.month() + 1;
 

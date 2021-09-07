@@ -4,7 +4,7 @@ import { scheduleJob } from "node-schedule";
 import FormData from "form-data";
 import axios from "axios";
 import config from "@/config/motd.json";
-import moment from "moment";
+import dayjs from "dayjs";
 
 export default class Motd extends Service {
 	name = "Motd";
@@ -67,7 +67,7 @@ export default class Motd extends Service {
 		});
 
 		if (res.status === 200) {
-			const yesterday = moment(Date.now()).subtract(1, "d").unix();
+			const yesterday = dayjs().subtract(1, "d").unix();
 			const urls = res.data.data
 				.filter((img: { datetime: number }) => img.datetime >= yesterday) // keep only recent images
 				.map((img: { link: string }) => img.link);
