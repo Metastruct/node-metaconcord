@@ -36,15 +36,11 @@ export class SlashWhyMuteCommand extends SlashCommand {
 			const { until, reason, muter } = muted[userId];
 			const guild = await this.bot.discord.guilds.resolve(ctx.guildID)?.fetch();
 			if (guild) {
-				const mutedMember = await guild.members.resolve(userId)?.fetch();
-				const muterMember = await guild.members.resolve(muter)?.fetch();
-				if (!mutedMember || !muterMember) return "invalid user";
-
 				const content =
 					`${ctx.user.mention}, ` +
-					(ctx.user.id == userId ? `you remain muted` : `${mutedMember} remains muted`) +
+					(ctx.user.id == userId ? `you remain muted` : `<@${userId}> remains muted`) +
 					(until ? ` for *${dayjs(until).fromNow()}*` : "") +
-					(muterMember ? ` by ${muterMember}` : "") +
+					(muter ? ` by <@${muter}>` : "") +
 					(reason ? ` with reason:\n\n${reason}` : " without a reason") +
 					`.`;
 				return EphemeralResponse(content);
