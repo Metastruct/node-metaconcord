@@ -21,14 +21,14 @@ export class UIWhyMuteCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
-		const userId = (ctx.options.user ?? ctx.user.id).toString();
+		const userId = (ctx.targetID ?? ctx.user.id).toString();
 		const { muted } = this.bot.container.getService("Data");
 		if (muted && muted[userId]) {
 			const { until, reason, muter } = muted[userId];
-			const guild = await this.bot.discord.guilds.resolve(ctx.guildID)?.fetch();
+			const guild = this.bot.discord.guilds.cache.get(ctx.guildID);
 			if (guild) {
-				const mutedMember = await guild.members.resolve(userId)?.fetch();
-				const muterMember = await guild.members.resolve(muter)?.fetch();
+				const mutedMember = await guild.members.fetch(userId);
+				const muterMember = await guild.members.fetch(muter);
 				if (!mutedMember || !muterMember) return "invalid user";
 
 				const content =
