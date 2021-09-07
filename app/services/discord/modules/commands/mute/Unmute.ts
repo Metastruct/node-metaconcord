@@ -44,6 +44,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
+		await ctx.defer();
 		const userId = ctx.targetID;
 
 		const { config } = this.bot;
