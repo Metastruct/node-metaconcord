@@ -56,7 +56,7 @@ export class UIMuteCommand extends SlashCommand {
 		}
 		await member.roles.add(config.mutedRoleId, "muted via rightclick menu command");
 
-		const content = `${member.mention} has been muted.`;
+		const content = `${member} has been muted.`;
 		return EphemeralResponse(content);
 	}
 }

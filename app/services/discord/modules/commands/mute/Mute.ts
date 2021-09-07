@@ -169,7 +169,7 @@ export class SlashMuteCommand extends SlashCommand {
 		await member.roles.add(config.mutedRoleId, "muted via slash command");
 
 		const content =
-			`${ctx.user.mention}, user ${member.mention} has been muted` +
+			`${ctx.user.mention}, ${member} has been muted` +
 			(until ? ` for *${dayjs(until).fromNow()}*` : "") +
 			(reason ? ` with reason:\n\n${reason}` : "") +
 			`.`;

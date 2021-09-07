@@ -59,7 +59,7 @@ export class UIUnmuteCommand extends SlashCommand {
 				);
 			}
 			await member.roles.remove(config.mutedRoleId);
-			return EphemeralResponse(`<@${member.id}> has been unmuted.`);
+			return EphemeralResponse(`${member} has been unmuted.`);
 		} else {
 			return EphemeralResponse("how#3");
 		}
