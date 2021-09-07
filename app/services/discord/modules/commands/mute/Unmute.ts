@@ -60,7 +60,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 			if (!member) return EphemeralResponse("Invalid user.");
 
 			await member.roles.remove(config.mutedRoleId);
-			return EphemeralResponse(`<@${member.id}> has been unmuted.`);
+			return EphemeralResponse(`${member.id} has been unmuted.`);
 		} else {
 			return EphemeralResponse("how#3");
 		}

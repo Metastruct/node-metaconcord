@@ -42,15 +42,9 @@ export class SlashWhyMuteCommand extends SlashCommand {
 
 				const content =
 					`${ctx.user.mention}, ` +
-					(ctx.user.id == userId
-						? `you remain muted`
-						: `user **${mutedMember.toString()}** (\`${
-								mutedMember.id
-						  }\`) remains muted`) +
+					(ctx.user.id == userId ? `you remain muted` : `${mutedMember} remains muted`) +
 					(until ? ` for *${dayjs(until).fromNow()}*` : "") +
-					(muterMember
-						? ` by **${muterMember.toString()}** (\`${muterMember.id}\`)`
-						: "") +
+					(muterMember ? ` by ${muterMember}` : "") +
 					(reason ? ` with reason:\n\n${reason}` : " without a reason") +
 					`.`;
 				return EphemeralResponse(content);
