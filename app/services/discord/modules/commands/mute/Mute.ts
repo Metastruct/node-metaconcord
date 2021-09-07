@@ -7,7 +7,7 @@ import {
 } from "slash-create";
 import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../../..";
-import { GuildAuditLogs, User } from "discord.js";
+import { GuildAuditLogs, GuildMember, User } from "discord.js";
 import { TextChannel } from "discord.js";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -165,7 +165,12 @@ export class SlashMuteCommand extends SlashCommand {
 		await this.data.save();
 
 		const guild = discord.guilds.cache.get(this.bot.config.guildId);
-		const member = await guild.members.fetch(userId);
+		let member: GuildMember;
+		try {
+			member = await guild.members.fetch(userId);
+		} catch {
+			return "Couldn't get that User, probably left the guild already...";
+		}
 		await member.roles.add(config.mutedRoleId, "muted via slash command");
 
 		const content =
