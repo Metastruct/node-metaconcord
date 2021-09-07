@@ -1,7 +1,7 @@
 import {
 	ApplicationCommandPermissionType,
-	ApplicationCommandType,
 	CommandContext,
+	CommandOptionType,
 	SlashCommand,
 	SlashCreator,
 } from "slash-create";
@@ -17,7 +17,6 @@ export class SlashUnmuteCommand extends SlashCommand {
 		super(creator, {
 			name: "unmute",
 			description: "Unmutes an user.",
-			type: ApplicationCommandType.USER,
 			guildIDs: [bot.config.guildId],
 			defaultPermission: false,
 			permissions: {
@@ -29,6 +28,14 @@ export class SlashUnmuteCommand extends SlashCommand {
 					},
 				],
 			},
+			options: [
+				{
+					type: CommandOptionType.USER,
+					name: "user",
+					description: "The Discord user to unmute",
+					required: true,
+				},
+			],
 		});
 
 		this.filePath = __filename;
@@ -46,7 +53,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 		delete muted[userId];
 		await this.data.save();
 
-		const guild = await this.bot.discord.guilds.fetch(ctx.guildID);
+		const guild = this.bot.discord.guilds.cache.get(ctx.guildID);
 		if (guild) {
 			const member = await guild.members.fetch(userId);
 			if (!member) return EphemeralResponse("Invalid user.");
