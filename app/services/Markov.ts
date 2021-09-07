@@ -97,7 +97,7 @@ export class MarkovService extends Service {
 		await db.run("INSERT INTO markov (string) VALUES(?)", line);
 	}
 
-	public generate(score = 10, verbose = false): string {
+	public generate(score = 20, verbose = false): string {
 		if (this.generator.data.length === 0) {
 			return "Service is still loading";
 		}
