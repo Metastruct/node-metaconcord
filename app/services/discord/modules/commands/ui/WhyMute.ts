@@ -1,7 +1,6 @@
 import { ApplicationCommandType, CommandContext, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
-import { GuildMember } from "discord.js";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
@@ -29,21 +28,10 @@ export class UIWhyMuteCommand extends SlashCommand {
 			const { until, reason, muter } = muted[userId];
 			const guild = this.bot.discord.guilds.cache.get(ctx.guildID);
 			if (guild) {
-				let mutedMember: GuildMember;
-				let muterMember: GuildMember;
-				try {
-					mutedMember = await guild.members.fetch(userId);
-					muterMember = await guild.members.fetch(muter);
-				} catch {
-					return EphemeralResponse(
-						"Couldn't get that User, probably left the guild already..."
-					);
-				}
-
 				const content =
-					(ctx.user.id == userId ? `you remain muted` : `${mutedMember} remains muted`) +
+					(ctx.user.id == userId ? `you remain muted` : `<@${userId}> remains muted`) +
 					(until ? ` for *${dayjs(until).fromNow()}*` : "") +
-					(muterMember ? ` by ${muterMember}` : "") +
+					(muter ? ` by <@${muter}>` : "") +
 					(reason ? ` with reason:\n\n${reason}` : " without a reason") +
 					`.`;
 				return EphemeralResponse(content);
