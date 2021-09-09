@@ -25,6 +25,12 @@ export class SlashMarkovCommand extends SlashCommand {
 					description: "show full makrov output",
 					required: false,
 				},
+				{
+					type: CommandOptionType.INTEGER,
+					name: "amount",
+					description: "amount of sentences to use",
+					required: false,
+				},
 			],
 		});
 		this.filePath = __filename;
@@ -35,7 +41,11 @@ export class SlashMarkovCommand extends SlashCommand {
 	async run(ctx: CommandContext): Promise<void> {
 		await ctx.defer();
 		try {
-			const res = this.markov.generate(ctx.options.score, ctx.options.verbose);
+			const res = this.markov.generate(
+				ctx.options.score,
+				ctx.options.verbose,
+				ctx.options.amount
+			);
 			if (ctx.options.verbose) {
 				const fpath = path.resolve(`${Date.now()}_mkv.txt`.toLocaleLowerCase());
 
@@ -57,14 +67,7 @@ export class SlashMarkovCommand extends SlashCommand {
 				await ctx.send(res);
 			}
 		} catch (err) {
-			await ctx.send({
-				embeds: [
-					{
-						color: 0xff0000,
-						description: err.toString(),
-					},
-				],
-			});
+			await ctx.delete();
 		}
 	}
 }
