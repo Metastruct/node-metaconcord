@@ -97,14 +97,14 @@ export class MarkovService extends Service {
 		await db.run("INSERT INTO markov (string) VALUES(?)", line);
 	}
 
-	public generate(score = 20, verbose = false): string {
+	public generate(score = 20, verbose = false, amount = 5): string {
 		if (this.generator.data.length === 0) {
 			return "Service is still loading";
 		}
 
 		const res = this.generator.generate({
-			maxTries: 50,
-			filter: result => result.score > score,
+			maxTries: 100,
+			filter: result => result.score > score && result.refs.length > amount,
 		});
 
 		return verbose ? JSON.stringify(res, undefined, 2) : res.string.trim();
