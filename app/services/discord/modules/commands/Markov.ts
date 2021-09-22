@@ -27,8 +27,8 @@ export class SlashMarkovCommand extends SlashCommand {
 				},
 				{
 					type: CommandOptionType.INTEGER,
-					name: "amount",
-					description: "amount of sentences to use",
+					name: "length",
+					description: "minimum amount of words",
 					required: false,
 				},
 			],
