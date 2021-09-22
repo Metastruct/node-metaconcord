@@ -44,7 +44,7 @@ export class SlashMarkovCommand extends SlashCommand {
 			const res = this.markov.generate(
 				ctx.options.score,
 				ctx.options.verbose,
-				ctx.options.amount
+				ctx.options.length
 			);
 			if (ctx.options.verbose) {
 				const fpath = path.resolve(`${Date.now()}_mkv.txt`.toLocaleLowerCase());
