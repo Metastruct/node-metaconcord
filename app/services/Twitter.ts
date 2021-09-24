@@ -135,6 +135,7 @@ export class Twitter extends Service {
 			const statusId = matches[0];
 			const res = await this.twit.get("statuses/show", {
 				id: statusId,
+				tweet_mode: "extended",
 			});
 
 			if (res.resp.statusCode !== 200) return [];
