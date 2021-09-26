@@ -113,7 +113,7 @@ export class DiscordBot extends Service {
 		if (urls.length === 0) return;
 
 		const fix = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
-		await msg.channel.send(fix);
+		await msg.reply(fix);
 	}
 
 	async handleMediaUrls(msg: Discord.Message): Promise<void> {
