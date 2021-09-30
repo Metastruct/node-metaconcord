@@ -67,7 +67,7 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 		ctx: ComponentContext,
 		host: string,
 		username: string,
-		port: string,
+		port: number,
 		commands: string[],
 		solo: boolean
 	): Promise<boolean> {
@@ -175,7 +175,7 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 						(srvConfig: { host: string }) =>
 							servers.find(srv => srvConfig.host.substr(1, 1) === srv) != undefined
 					)
-					.map((srvConfig: { host: string; username: string; port: string }) =>
+					.map((srvConfig: { host: string; username: string; port: number }) =>
 						this.gserv(
 							selected,
 							srvConfig.host,
