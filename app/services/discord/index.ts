@@ -6,7 +6,6 @@ import modules from "./modules";
 
 export const EMBED_FIELD_LIMIT = 1024;
 
-const IGNORED_CODES = ["ECONNRESET", "ETIMEDOUT", "ECONNREFUSED"];
 export class DiscordBot extends Service {
 	name = "DiscordBot";
 	config = config;
@@ -28,35 +27,6 @@ export class DiscordBot extends Service {
 					this.setStatus(newStatus);
 				} catch {} // who cares
 			}, 1000 * 60 * 10); // change status every 10mins
-
-			// home-made sentry :WeirdChamp:
-			if (process.env.NODE_ENV !== "development") {
-				process.on("uncaughtException", async (err: any) => {
-					// Unknown inconsequential error, either from our websocket or Discord.js's
-					if (IGNORED_CODES.includes(err.code)) return;
-
-					try {
-						const channel = await this.getTextChannel(config.notificationsChannelId);
-
-						const embed = new Discord.MessageEmbed({
-							hexColor: "#f00",
-							description: err.message,
-							title: "Unhandled Exception on Metaconcord",
-							fields: [
-								{ name: "Stack", value: err.stack.substring(0, 1000) + "..." },
-								...(err.code ? [{ name: "Code", value: err.code }] : []),
-							],
-						});
-						await channel.send({
-							content: `<@&${config.appDeveloperRole}>`,
-							embeds: [embed],
-						});
-					} catch (oops) {
-						console.error(err);
-						console.error(oops);
-					}
-				});
-			}
 		});
 
 		for (const loadModule of modules) {
