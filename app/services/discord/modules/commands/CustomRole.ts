@@ -122,7 +122,16 @@ export class SlashCustomRoleCommand extends SlashCommand {
 				return false; // ??? I guess
 		}
 	}
+	async hasTier2(guildId: string): Promise<boolean> {
+		return await this.bot.discord.guilds.fetch(guildId).then(guild => {
+			return guild.premiumTier == "TIER_2";
+		});
+	}
 	async removeRoleIcon(ctx: CommandContext): Promise<any> {
+		const possible = await this.hasTier2(this.bot.config.guildId);
+		if (!possible) {
+			return EphemeralResponse("Sorry we need Server Boost Tier 2 to use this feature...");
+		}
 		const role = await this.hasRole(ctx);
 		if (!role) {
 			return EphemeralResponse("You don't have a custom role yet!");
@@ -135,6 +144,10 @@ export class SlashCustomRoleCommand extends SlashCommand {
 		return EphemeralResponse("Your icon is now gone.");
 	}
 	async addRoleIcon(ctx: CommandContext, download: boolean): Promise<any> {
+		const possible = await this.hasTier2(this.bot.config.guildId);
+		if (!possible) {
+			return EphemeralResponse("Sorry we need Server Boost Tier 2 to use this feature...");
+		}
 		const role = await this.hasRole(ctx);
 		if (!role) {
 			return EphemeralResponse("You don't have a custom role yet!");
