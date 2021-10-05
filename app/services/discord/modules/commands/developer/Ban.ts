@@ -1,6 +1,15 @@
-import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
+import {
+	AutocompleteChoice,
+	AutocompleteContext,
+	CommandContext,
+	CommandOptionType,
+	SlashCreator,
+} from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
+
+const DEFAULT_BAN_LENGTHS = ["1d", "1w", "4w", "6mo", "1y"];
+const DEFAULT_BAN_REASONS = ["Mingebag", "Prop Spam", "Harassment"];
 
 export class SlashBanCommand extends SlashDeveloperCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
@@ -21,12 +30,14 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 					name: "length",
 					description: "The length of the ban",
 					required: true,
+					autocomplete: true,
 				},
 				{
 					type: CommandOptionType.STRING,
 					name: "reason",
 					description: "The reason for the ban",
 					required: true,
+					autocomplete: true,
 				},
 				{
 					type: CommandOptionType.INTEGER,
@@ -53,6 +64,19 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 
 		this.filePath = __filename;
 		this.bot = bot;
+	}
+
+	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[]> {
+		switch (ctx.focused) {
+			case "length":
+				return DEFAULT_BAN_LENGTHS.map(entry => {
+					return { name: entry, value: entry } as AutocompleteChoice;
+				});
+			case "reason":
+				return DEFAULT_BAN_REASONS.map(entry => {
+					return { name: entry, value: entry } as AutocompleteChoice;
+				});
+		}
 	}
 
 	private parseLength(input: string): number {
