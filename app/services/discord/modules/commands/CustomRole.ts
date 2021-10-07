@@ -105,6 +105,7 @@ export class SlashCustomRoleCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
+		await ctx.defer(true);
 		const cmd = Object.keys(ctx.options)[0];
 		switch (cmd) {
 			case "add_rgb":
