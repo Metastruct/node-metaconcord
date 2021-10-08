@@ -15,7 +15,7 @@ export default (webApp: WebApp): void => {
 		}
 
 		const server = gameBridge.servers[req.params.id];
-		if (!Array.isArray(server?.status?.players) && !server?.status?.mapThumbnail) {
+		if (!Array.isArray(server?.status?.players) && server?.status?.mapThumbnail != "") {
 			return res.sendStatus(204);
 		}
 
