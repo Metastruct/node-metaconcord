@@ -60,16 +60,16 @@ export default class DiscordClient extends Discord.Client {
 
 				if (res.data.returns[0] !== "false") {
 					const summary = await steam.getUserSummaries(interactionId64);
-					await interactionCtx.editReply({
+					await interactionCtx.reply({
 						content: `${interactionCtx.user.mention} kicked player \`${summary.nickname}\``,
 					});
 				} else {
-					await interactionCtx.editReply({
+					await interactionCtx.reply({
 						content: `${interactionCtx.user.mention}, could not kick player: not on server`,
 					});
 				}
 			} catch (err) {
-				await interactionCtx.editReply({
+				await interactionCtx.reply({
 					content: `${interactionCtx.user.mention}, could not kick player: ${err}`,
 				});
 			}
