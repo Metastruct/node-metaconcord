@@ -93,12 +93,10 @@ export default class DiscordClient extends Discord.Client {
 
 			if (res.length <= 0) return;
 
-			const guild = await this.guilds.resolve(config.guildId)?.fetch();
-			const chan = (await guild.channels
-				.resolve(config.notificationsChannelId)
-				?.fetch()) as TextChannel;
+			const guild = this.guilds.cache.get(config.guildId);
+			const chan = guild.channels.cache.get(config.notificationsChannelId) as TextChannel;
 			for (const id of res) {
-				const msg = await chan.messages.resolve(id)?.fetch();
+				const msg = await chan.messages.fetch(id);
 				await msg.edit({ components: [] });
 				await sleep(5000); // sleep 5 seconds between each edits so we don't end up
 				// abusing discord API somehow
