@@ -41,7 +41,7 @@ export class Twitter extends Service {
 				}
 
 				this.followerIds = res.ids.map(id => id.toString());
-				this.initializeFollowerStream();
+				// this.initializeFollowerStream();
 			}
 		);
 	}
@@ -57,55 +57,55 @@ export class Twitter extends Service {
 		return true;
 	}
 
-	private initializeFollowerStream(): void {
-		this.followerStream?.stop(); // just in case it already exists
-		this.followerStream = this.twit.stream("statuses/filter", {
-			follow: this.followerIds,
-			track: "metastruct",
-		});
+	// private initializeFollowerStream(): void {
+	// 	this.followerStream?.stop(); // just in case it already exists
+	// 	this.followerStream = this.twit.stream("statuses/filter", {
+	// 		follow: this.followerIds,
+	// 		track: "metastruct",
+	// });
 
-		this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
-			if (!this.canReply(data)) return;
+	// this.followerStream.on("tweet", (data: twit.Twitter.Status) => {
+	// 	if (!this.canReply(data)) return;
 
-			const mentions = data.entities.user_mentions.map(mention => mention.id_str);
-			const isMentioned = mentions.includes(config.id);
-			if (isMentioned || data.in_reply_to_user_id_str === config.id) {
-				this.replyMarkovToStatus(data.id_str);
-				return;
-			}
+	// 	const mentions = data.entities.user_mentions.map(mention => mention.id_str);
+	// 	const isMentioned = mentions.includes(config.id);
+	// 	if (isMentioned || data.in_reply_to_user_id_str === config.id) {
+	// 		this.replyMarkovToStatus(data.id_str);
+	// 		return;
+	// 	}
 
-			if (data.retweeted || data.is_quote_status || data.possibly_sensitive) return;
-			if (!this.followerIds.includes(data.user.id_str)) return; // apparently twitter api gives us non follower tweets
+	// 	if (data.retweeted || data.is_quote_status || data.possibly_sensitive) return;
+	// 	if (!this.followerIds.includes(data.user.id_str)) return; // apparently twitter api gives us non follower tweets
 
-			if (Math.random() <= RANDOM_REPLY_PERC) {
-				this.replyMarkovToStatus(data.id_str);
-			}
-		});
-	}
+	// 	if (Math.random() <= RANDOM_REPLY_PERC) {
+	// 		this.replyMarkovToStatus(data.id_str);
+	// 	}
+	// });
+	// }
 
-	private async replyMarkovToStatus(statusId: string): Promise<void> {
-		if (this.tweetCount >= TWEET_COUNT_LIMIT) return;
+	// private async replyMarkovToStatus(statusId: string): Promise<void> {
+	// 	if (this.tweetCount >= TWEET_COUNT_LIMIT) return;
 
-		let gen = this.container.getService("Markov").generate();
-		gen = this.filter.clean(gen);
-		const newTweetResp = await this.twit.post("statuses/update", {
-			status: gen,
-			in_reply_to_status_id: statusId,
-			auto_populate_reply_metadata: true,
-		});
-		this.tweetCount++;
+	// 	let gen = this.container.getService("Markov").generate();
+	// 	gen = this.filter.clean(gen);
+	// 	const newTweetResp = await this.twit.post("statuses/update", {
+	// 		status: gen,
+	// 		in_reply_to_status_id: statusId,
+	// 		auto_populate_reply_metadata: true,
+	// 	});
+	// 	this.tweetCount++;
 
-		// check for deletion later
-		setTimeout(async () => {
-			const res = await this.twit.get("statuses/lookup", { id: statusId });
-			if ((res.data as Array<twit.Twitter.Status>).length > 0) return;
+	// 	// check for deletion later
+	// 	setTimeout(async () => {
+	// 		const res = await this.twit.get("statuses/lookup", { id: statusId });
+	// 		if ((res.data as Array<twit.Twitter.Status>).length > 0) return;
 
-			const newTweet = newTweetResp.data as twit.Twitter.Status;
-			await this.twit.post("statuses/destroy", {
-				id: newTweet.id_str,
-			});
-		}, FOLLOWER_REFRESH_RATE);
-	}
+	// 		const newTweet = newTweetResp.data as twit.Twitter.Status;
+	// 		await this.twit.post("statuses/destroy", {
+	// 			id: newTweet.id_str,
+	// 		});
+	// 	}, FOLLOWER_REFRESH_RATE);
+	// }
 
 	public async postStatus(status: string, imageUrl?: string): Promise<void> {
 		if (status.length < 2 || status.length > 279) return;

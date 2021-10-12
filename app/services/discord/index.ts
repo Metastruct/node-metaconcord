@@ -21,12 +21,12 @@ export class DiscordBot extends Service {
 			console.log(`'${this.discord.user.username}' Discord Bot has logged in`);
 			await this.setStatus(`Crashing the source engine`);
 
-			setInterval(() => {
-				try {
-					const newStatus = this.container.getService("Markov").generate();
-					this.setStatus(newStatus);
-				} catch {} // who cares
-			}, 1000 * 60 * 10); // change status every 10mins
+			// setInterval(() => {
+			// 	try {
+			// 		const newStatus = this.container.getService("Markov").generate();
+			// 		this.setStatus(newStatus);
+			// 	} catch {} // who cares
+			// }, 1000 * 60 * 10); // change status every 10mins
 		});
 
 		for (const loadModule of modules) {
@@ -54,18 +54,18 @@ export class DiscordBot extends Service {
 		});
 	}
 
-	async feedMarkov(msg: Discord.Message): Promise<void> {
-		if (msg.author.bot || msg.guild?.id !== config.guildId) return;
+	// async feedMarkov(msg: Discord.Message): Promise<void> {
+	// 	if (msg.author.bot || msg.guild?.id !== config.guildId) return;
 
-		const channel = msg.channel as Discord.GuildChannel;
-		const guild = channel.guild;
-		const perms = channel.permissionsFor(guild.roles.everyone);
-		if (!perms.has("SEND_MESSAGES", false)) return; // don't get text from channels that are not "public"
+	// 	const channel = msg.channel as Discord.GuildChannel;
+	// 	const guild = channel.guild;
+	// 	const perms = channel.permissionsFor(guild.roles.everyone);
+	// 	if (!perms.has("SEND_MESSAGES", false)) return; // don't get text from channels that are not "public"
 
-		const content = msg.content;
-		if (this.container.getService("Motd").isValidMsg(content))
-			this.container.getService("Markov").addLine(content);
-	}
+	// 	const content = msg.content;
+	// 	if (this.container.getService("Motd").isValidMsg(content))
+	// 		this.container.getService("Markov").addLine(content);
+	// }
 	async fixTwitterEmbeds(msg: Discord.Message): Promise<void> {
 		const statusUrls = msg.content.match(
 			/https?:\/\/twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g

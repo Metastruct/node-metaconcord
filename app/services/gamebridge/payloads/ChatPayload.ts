@@ -50,7 +50,7 @@ export default class ChatPayload extends Payload {
 		const motd = bridge.container.getService("Motd");
 		if (motd.isValidMsg(content)) {
 			motd.pushMessage(content);
-			bridge.container.getService("Markov").addLine(content);
+			// bridge.container.getService("Markov").addLine(content);
 		}
 
 		await webhook

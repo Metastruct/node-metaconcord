@@ -15,7 +15,7 @@ export default (bot: DiscordBot): void => {
 		}
 		await Promise.all([
 			bot.fixTwitterEmbeds(msg),
-			bot.feedMarkov(msg),
+			// bot.feedMarkov(msg),
 			bot.handleMediaUrls(msg),
 		]);
 	});
