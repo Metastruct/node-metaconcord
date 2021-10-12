@@ -6,7 +6,7 @@ import { SlashCustomRoleCommand } from "./CustomRole";
 import { SlashGservCommand } from "./developer/Gserv";
 import { SlashKickCommand } from "./developer/Kick";
 import { SlashLuaCommand } from "./developer/Lua";
-import { SlashMarkovCommand } from "./Markov";
+// import { SlashMarkovCommand } from "./Markov";
 import { SlashMuteCommand } from "./mute/Mute";
 import { SlashRconCommand } from "./developer/Rcon";
 import { SlashRefreshLuaCommand } from "./developer/RefreshLua";
@@ -25,7 +25,7 @@ export function EphemeralResponse(content: string): MessageOptions {
 }
 
 export const commands = [
-	SlashMarkovCommand,
+	// SlashMarkovCommand,
 	SlashMuteCommand,
 	SlashUnmuteCommand,
 	SlashWhyMuteCommand,
