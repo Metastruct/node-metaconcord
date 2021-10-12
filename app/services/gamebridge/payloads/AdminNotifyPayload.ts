@@ -102,7 +102,7 @@ export default class AdminNotifyPayload extends Payload {
 		}
 
 		await db.run(
-			"INSERT INTO reports (id, date) VALUES(?, ?, ?);",
+			"INSERT INTO reports (id, server, date) VALUES(?, ?, ?);",
 			discordMsg.id,
 			server.config.id,
 			Date.now() / 1000 // unix timestamp
