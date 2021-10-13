@@ -46,7 +46,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer();
-		const userId = ctx.targetID;
+		const userId = ctx.options.user;
 
 		const { config } = this.bot;
 		let { muted } = this.data;
@@ -55,17 +55,19 @@ export class SlashUnmuteCommand extends SlashCommand {
 		delete muted[userId];
 		await this.data.save();
 
-		const guild = this.bot.discord.guilds.cache.get(ctx.guildID);
+		const guild = this.bot.discord.guilds.cache.get(config.guildId);
 		if (guild) {
 			let member: GuildMember;
 			try {
 				member = await guild.members.fetch(userId);
 			} catch {
-				return "Couldn't get that User, probably left the guild already...";
+				return EphemeralResponse(
+					"Couldn't get that User, probably left the guild already..."
+				);
 			}
 
 			await member.roles.remove(config.mutedRoleId);
-			return EphemeralResponse(`${member.id} has been unmuted.`);
+			return `${member.mention} has been unmuted by ${ctx.user.mention}.`;
 		} else {
 			return EphemeralResponse("how#3");
 		}
