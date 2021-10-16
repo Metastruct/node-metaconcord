@@ -3,5 +3,10 @@ export default interface ChatResponse {
 		nick: string;
 		color: number;
 	};
+	replied_message?: {
+		nick: string;
+		color: number;
+		content: string;
+	};
 	content: string;
 }
