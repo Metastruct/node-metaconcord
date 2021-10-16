@@ -33,7 +33,10 @@ export default class DiscordClient extends Discord.Client {
 			for (const [, attachment] of ctx.attachments) {
 				content += "\n" + attachment.url;
 			}
-			const reply = await ctx.fetchReference();
+			let reply: Discord.Message;
+			if (ctx.reference) {
+				reply = await ctx.fetchReference();
+			}
 
 			const payload: ChatResponse = {
 				user: {
