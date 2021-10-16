@@ -48,8 +48,8 @@ export default class DiscordClient extends Discord.Client {
 
 			if (reply) {
 				payload.replied_message = {
-					nick: reply.member.user.username,
-					color: reply.member.displayColor,
+					nick: reply.author.username,
+					color: reply.author.bot ? reply.author.accentColor : reply.member.displayColor,
 					content: reply.content,
 				};
 			}
