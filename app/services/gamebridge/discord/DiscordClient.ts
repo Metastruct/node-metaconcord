@@ -30,6 +30,10 @@ export default class DiscordClient extends Discord.Client {
 				const extension = !!animated ? "gif" : "png";
 				return `https://media.discordapp.net/emojis/${id}.${extension}?v=1&size=64 `;
 			});
+			content = content.replace(
+				/<#([\d]+)>/g,
+				(_, id) => `#${(ctx.client.channels.cache.get(id) as TextChannel).name}`
+			);
 			for (const [, attachment] of ctx.attachments) {
 				content += "\n" + attachment.url;
 			}
