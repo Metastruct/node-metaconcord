@@ -1,4 +1,5 @@
 import { ChatPayload } from "../payloads";
+import { ChatResponse } from "../payloads/structures";
 import { scheduleJob } from "node-schedule";
 import { sleep } from "@/utils";
 import Discord, { ButtonInteraction, TextChannel, User } from "discord.js";
@@ -16,9 +17,13 @@ export default class DiscordClient extends Discord.Client {
 		this.gameServer = gameServer;
 		const steam = gameServer.bridge.container.getService("Steam");
 
-		this.on("messageCreate", ctx => {
+		this.on("messageCreate", async ctx => {
 			if (ctx.channel.id != this.gameServer.bridge.config.relayChannelId) return;
 			if (ctx.author.bot || !ctx.author.client) return;
+
+			if (ctx.partial) {
+				ctx = await ctx.fetch();
+			}
 
 			let content = ctx.content;
 			content = content.replace(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
@@ -28,17 +33,25 @@ export default class DiscordClient extends Discord.Client {
 			for (const [, attachment] of ctx.attachments) {
 				content += "\n" + attachment.url;
 			}
+			const reply = await ctx.fetchReference();
 
-			ChatPayload.send(
-				{
-					user: {
-						nick: ctx.member.user.username,
-						color: ctx.member.displayColor,
-					},
-					content,
+			const payload: ChatResponse = {
+				user: {
+					nick: ctx.member.user.username,
+					color: ctx.member.displayColor,
 				},
-				this.gameServer
-			);
+				content,
+			};
+
+			if (reply) {
+				payload.replied_message = {
+					nick: reply.member.user.username,
+					color: reply.member.displayColor,
+					content: reply.content,
+				};
+			}
+
+			ChatPayload.send(payload, this.gameServer);
 		});
 
 		this.on("interactionCreate", async (interactionCtx: ButtonInteraction) => {
