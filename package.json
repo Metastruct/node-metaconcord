@@ -25,7 +25,6 @@
 		"express": "^4.17.1",
 		"fastify": "^3.15.1",
 		"form-data": "^4.0.0",
-		"humanize-duration": "^3.25.1",
 		"jsonwebtoken": "^8.5.1",
 		"markov-strings": "^3.0.1",
 		"node-html-to-image": "marceau-maubert/node-html-to-image#master",

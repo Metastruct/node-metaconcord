@@ -5,7 +5,6 @@ import { TextChannel } from "discord.js";
 import Discord from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
-import humanizeDuration from "humanize-duration";
 
 export default class BanPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -37,13 +36,10 @@ export default class BanPayload extends Payload {
 
 		const bannedSteamId64 = new SteamID(banned.steamId).getSteamID64();
 		const bannedAvatar = await steam.getUserAvatar(bannedSteamId64);
-		const unixTime = parseInt(unbanTime) * 1000;
+		const unixTime = parseInt(unbanTime);
 		if (!unixTime || isNaN(unixTime))
 			throw new Error(`Unban time is not a number? Supplied time: ${unbanTime}`);
-		const banDuration = humanizeDuration(unixTime - Date.now(), {
-			round: true,
-			units: ["y", "mo", "w", "d", "h", "m"],
-		});
+
 		const embed = new Discord.MessageEmbed();
 		if (avatar) {
 			embed.setAuthor(
@@ -69,7 +65,7 @@ export default class BanPayload extends Payload {
 		}
 
 		if (banned.nick) embed.addField("Nick", banned.nick, true);
-		embed.addField("Ban Duration", banDuration, true);
+		embed.addField("Expiration", `<t:${unixTime}:R>`, true);
 		embed.addField("Reason", reason.substring(0, 1900));
 		embed.addField(
 			"SteamID",
