@@ -44,6 +44,7 @@ export class Starboard extends Service {
 
 				// check against our local db first
 				if (await this.isMsgStarred(msg.id)) return;
+				await this.starMsg(msg.id);
 
 				let text = "";
 				const reference = msg.reference;
@@ -64,7 +65,7 @@ export class Starboard extends Service {
 					avatarURL: msg.author.avatarURL(),
 					username: `${msg.author.username}`,
 				});
-				await this.starMsg(msg.id);
+
 			}
 		}
 	}
