@@ -41,7 +41,9 @@ export default class StatusPayload extends Payload {
 			if (me.nickname !== server.config.name) me.setNickname(server.config.name);
 
 			// Permanent status message
-			let desc = `:busts_in_silhouette: **${count} player${count > 0 ? "s" : ""}**`;
+			let desc = `:busts_in_silhouette: **${count > 0 ? count : "no"} player${
+				count > 1 || count == 0 ? "s" : ""
+			}**`;
 			// Time, kinda sucks we need to calculate but that's just how it is.
 			const servertime = dayjs().subtract(serverUptime, "s").unix();
 			const maptime = dayjs().subtract(mapUptime, "s").unix();
