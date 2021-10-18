@@ -16,7 +16,8 @@ export default interface StatusRequest extends PayloadRequest {
 			name: string;
 			id: string;
 		};
-		uptime: number;
+		serverUptime: number;
+		mapUptime: number;
 		gamemode: {
 			folderName: string;
 			name: string;

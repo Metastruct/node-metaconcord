@@ -5,7 +5,6 @@ import Discord, { TextChannel } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
 import dayjs from "dayjs";
-import util from "util";
 
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -13,7 +12,7 @@ export default class StatusPayload extends Payload {
 	static async handle(payload: StatusRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
-		const { players, map, workshopMap, gamemode, uptime } = payload.data;
+		const { players, map, workshopMap, gamemode, serverUptime, mapUptime } = payload.data;
 		const { bridge, discord } = server;
 		const {
 			config: { host, port },
@@ -42,15 +41,15 @@ export default class StatusPayload extends Payload {
 			if (me.nickname !== server.config.name) me.setNickname(server.config.name);
 
 			// Permanent status message
-			let desc = util.format(
-				`:busts_in_silhouette: **%d player%s**`,
-				count,
-				count != 1 ? "s" : ""
-			);
-			const time = dayjs().subtract(uptime, "hours").unix(); // this is so bad
-			desc += util.format("\n:timer: **Up since**: <t:%s:R>", time);
+			let desc = `:busts_in_silhouette: **${count} player${count > 0 ? "s" : ""}**`;
+			// Time, kinda sucks we need to calculate but that's just how it is.
+			const servertime = dayjs().subtract(serverUptime, "s").unix();
+			const maptime = dayjs().subtract(mapUptime, "s").unix();
+
+			desc += `\n:repeat: <t:${maptime}:R>`;
+			desc += `\n:file_cabinet: <t:${servertime}:R>`;
 			if (gamemode && gamemode.name != "QBox")
-				desc += util.format("\n:game_die: **Gamemode**: %s", gamemode.name);
+				desc += `"\n:game_die: **Gamemode**: ${gamemode.name}}"`;
 			let mapThumbnail = "";
 			if (/^gm_construct_m/i.test(map)) {
 				mapThumbnail = `http://${host}:${port}/map-thumbnails/gm_construct_m.jpg`;
