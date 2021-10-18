@@ -46,7 +46,7 @@ export default class DiscordClient extends Discord.Client {
 				user: {
 					nick: ctx.member.user.username,
 					color: ctx.member.displayColor,
-					avatar_url: ctx.member.avatarURL({ dynamic: true }),
+					avatar_url: ctx.author.avatarURL({ dynamic: true }),
 				},
 				content,
 			};
