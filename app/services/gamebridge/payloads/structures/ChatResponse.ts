@@ -13,4 +13,5 @@ export default interface ChatResponse {
 		content: string;
 	};
 	content: string;
+	msgID: string;
 }

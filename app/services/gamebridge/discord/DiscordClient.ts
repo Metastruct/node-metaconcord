@@ -49,6 +49,7 @@ export default class DiscordClient extends Discord.Client {
 					avatar_url: ctx.author.avatarURL({ dynamic: true }),
 				},
 				content,
+				msgID: ctx.id,
 			};
 
 			if (reply) {
