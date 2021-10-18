@@ -49,7 +49,7 @@ export default class StatusPayload extends Payload {
 			desc += `\n:repeat: <t:${maptime}:R>`;
 			desc += `\n:file_cabinet: <t:${servertime}:R>`;
 			if (gamemode && gamemode.name != "QBox")
-				desc += `"\n:game_die: **Gamemode**: ${gamemode.name}`;
+				desc += `\n:game_die: **Gamemode**: ${gamemode.name}`;
 			let mapThumbnail = "";
 			if (/^gm_construct_m/i.test(map)) {
 				mapThumbnail = `http://${host}:${port}/map-thumbnails/gm_construct_m.jpg`;
