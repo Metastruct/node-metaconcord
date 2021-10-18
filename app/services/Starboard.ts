@@ -65,7 +65,6 @@ export class Starboard extends Service {
 					avatarURL: msg.author.avatarURL(),
 					username: `${msg.author.username}`,
 				});
-
 			}
 		}
 	}

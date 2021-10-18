@@ -4,6 +4,7 @@ import { StatusRequest } from "./structures";
 import Discord, { TextChannel } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
+import dayjs from "dayjs";
 import util from "util";
 
 export default class StatusPayload extends Payload {
@@ -12,7 +13,7 @@ export default class StatusPayload extends Payload {
 	static async handle(payload: StatusRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
-		const { players, map, workshopMap, gamemode } = payload.data;
+		const { players, map, workshopMap, gamemode, uptime } = payload.data;
 		const { bridge, discord } = server;
 		const {
 			config: { host, port },
@@ -46,6 +47,8 @@ export default class StatusPayload extends Payload {
 				count,
 				count != 1 ? "s" : ""
 			);
+			const time = dayjs().subtract(uptime, "hours").unix(); // this is so bad
+			desc += util.format("\n:timer: **Up since**: <t:%s:R>", time);
 			if (gamemode && gamemode.name != "QBox")
 				desc += util.format("\n:game_die: **Gamemode**: %s", gamemode.name);
 			let mapThumbnail = "";
