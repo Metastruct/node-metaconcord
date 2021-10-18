@@ -46,14 +46,21 @@ export default class DiscordClient extends Discord.Client {
 				user: {
 					nick: ctx.member.user.username,
 					color: ctx.member.displayColor,
+					avatar_url: ctx.member.avatarURL({ dynamic: true }),
 				},
 				content,
 			};
 
 			if (reply) {
 				payload.replied_message = {
-					nick: reply.author.username,
-					color: reply.author.bot ? reply.author.accentColor : reply.member.displayColor,
+					user: {
+						nick: reply.author.username,
+						color: reply.author.bot
+							? reply.author.accentColor
+							: reply.member.displayColor,
+						avatar_url: reply.author.avatarURL({ dynamic: true }),
+					},
+
 					content: reply.content,
 				};
 			}
