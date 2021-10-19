@@ -1,17 +1,15 @@
 export default interface ChatResponse {
 	user: {
+		id: string;
 		nick: string;
 		color: number;
 		avatar_url: string;
 	};
 	replied_message?: {
-		user: {
-			nick: string;
-			color: number;
-			avatar_url: string;
-		};
+		msgID: string;
 		content: string;
+		ingame: boolean;
 	};
-	content: string;
 	msgID: string;
+	content: string;
 }

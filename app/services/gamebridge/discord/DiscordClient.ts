@@ -44,25 +44,20 @@ export default class DiscordClient extends Discord.Client {
 
 			const payload: ChatResponse = {
 				user: {
-					nick: ctx.member.user.username,
+					id: ctx.author.id,
+					nick: ctx.author.username,
 					color: ctx.member.displayColor,
 					avatar_url: ctx.author.avatarURL({ dynamic: true }),
 				},
-				content,
 				msgID: ctx.id,
+				content: content,
 			};
 
 			if (reply) {
 				payload.replied_message = {
-					user: {
-						nick: reply.author.username,
-						color: reply.author.bot
-							? reply.author.accentColor
-							: reply.member.displayColor,
-						avatar_url: reply.author.avatarURL({ dynamic: true }),
-					},
-
+					msgID: reply.id,
 					content: reply.content,
+					ingame: reply.author.discriminator === "#0000",
 				};
 			}
 
