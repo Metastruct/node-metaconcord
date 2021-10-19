@@ -57,7 +57,7 @@ export default class DiscordClient extends Discord.Client {
 				payload.replied_message = {
 					msgID: reply.id,
 					content: reply.content,
-					ingame: reply.author.discriminator === "#0000",
+					ingame: reply.author.discriminator === "0000",
 				};
 			}
 
