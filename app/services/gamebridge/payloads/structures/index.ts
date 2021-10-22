@@ -4,6 +4,7 @@ import ChatRequest from "./ChatRequest";
 import ChatResponse from "./ChatResponse";
 import ErrorResponse from "./ErrorResponse";
 import JoinLeaveRequest from "./JoinLeaveRequest";
+import NotificationResponse from "./NotificationResponse";
 import PayloadRequest from "./PayloadRequest";
 import RconRequest from "./RconRequest";
 import RconResponse from "./RconResponse";
@@ -15,6 +16,7 @@ export {
 	ErrorResponse,
 	StatusRequest,
 	JoinLeaveRequest,
+	NotificationResponse,
 	BanRequest,
 	AdminNotifyRequest,
 	RconResponse,

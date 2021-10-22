@@ -32,6 +32,7 @@ export default abstract class Payload {
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	static async handle(payload: PayloadRequest, server: GameServer): Promise<void> {
 		this.validate(this.requestSchema, payload);
 	}
