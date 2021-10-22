@@ -144,20 +144,16 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 				ctx.member?.displayName ?? "???"
 			);
 
-			const unbanDate = new Date(length * 1000);
+			const unbanDate = length;
 			if (res.data.returns.length > 0 && res.data.returns[0] === "true") {
 				await ctx.send(
-					`Banned \`${plyName} (${
-						ctx.options.steamid
-					})\` until \`${unbanDate.toUTCString()}\``
+					`Banned \`${plyName} (${ctx.options.steamid})\` expires in: <t:${unbanDate}:R>`
 				);
 				return;
 			}
 
 			await ctx.send(
-				`Could not ban \`${plyName}(${
-					ctx.options.steamid
-				})\` until \`${unbanDate.toUTCString()}\``
+				`Could not ban \`${plyName}(${ctx.options.steamid})\` expires in: <t:${unbanDate}:R>`
 			);
 		} catch (err) {
 			const errMsg = (err as Error)?.message ?? err;
