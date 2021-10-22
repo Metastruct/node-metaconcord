@@ -10,7 +10,7 @@ export default class NotificationPayload extends Payload {
 	static async handle(payload: NotificationResponse, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
-		const { message, color } = payload.data;
+		const { title, message, color } = payload.data;
 		const { bridge, discord: discordClient } = server;
 
 		if (!discordClient.isReady()) return;
@@ -22,7 +22,8 @@ export default class NotificationPayload extends Payload {
 		if (!notificationsChannel) return;
 
 		const embed = new Discord.MessageEmbed()
-			.setDescription(message)
+			.setTitle(title.substring(0, 256))
+			.setDescription(message.substring(0, 4096))
 			.setColor(color ?? 0xc4af21);
 		await (notificationsChannel as TextChannel).send({
 			embeds: [embed],
