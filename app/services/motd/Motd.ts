@@ -90,6 +90,7 @@ export default class Motd extends Service {
 			);
 
 			this.container.getService("Twitter").postStatus("Image of the day", url);
+			this.container.getService("DiscordBot").setServerBanner(url);
 
 			// remove images from album after posting
 			const data = new FormData();

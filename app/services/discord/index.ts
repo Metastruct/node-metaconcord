@@ -1,6 +1,7 @@
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
 import Discord from "discord.js";
+import axios from "axios";
 import config from "@/config/discord.json";
 import modules from "./modules";
 
@@ -52,6 +53,15 @@ export class DiscordBot extends Service {
 			],
 			status: "online",
 		});
+	}
+
+	async setServerBanner(url: string): Promise<void> {
+		const guild = this.discord.guilds.cache.get(config.guildId);
+		if (guild.premiumTier < "TIER_2") return;
+		const response = await axios.get(url, { responseType: "arraybuffer" });
+		if (!response) return;
+		const base64 = Buffer.from(response.data, "binary").toString("base64");
+		guild.setBanner(base64, "motd");
 	}
 
 	// async feedMarkov(msg: Discord.Message): Promise<void> {
