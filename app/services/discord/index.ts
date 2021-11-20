@@ -60,8 +60,7 @@ export class DiscordBot extends Service {
 		if (guild.premiumTier < "TIER_2") return;
 		const response = await axios.get(url, { responseType: "arraybuffer" });
 		if (!response) return;
-		const base64 = Buffer.from(response.data, "binary").toString("base64");
-		guild.setBanner(base64, "motd");
+		guild.setBanner(response.data, "motd");
 	}
 
 	// async feedMarkov(msg: Discord.Message): Promise<void> {
