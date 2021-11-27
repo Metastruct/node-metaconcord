@@ -116,6 +116,8 @@ export default class DiscordClient extends Discord.Client {
 
 			if (res.length <= 0) return;
 
+			if (!this.isReady()) return;
+
 			const guild = this.guilds.cache.get(config.guildId);
 			const chan = (await guild.channels.fetch(config.notificationsChannelId)) as TextChannel;
 			for (const id of res) {
@@ -129,10 +131,10 @@ export default class DiscordClient extends Discord.Client {
 
 	private async isAllowed(bot: DiscordClient, user: User): Promise<boolean> {
 		try {
-			const guild = await bot.guilds.resolve(config.guildId)?.fetch();
+			const guild = bot.guilds.cache.get(config.guildId);
 			if (!guild) return false;
 
-			const member = await guild.members.resolve(user.id)?.fetch();
+			const member = await guild.members.fetch(user.id);
 			if (!member) return false;
 
 			return member.roles.cache.has(config.developerRoleId);
