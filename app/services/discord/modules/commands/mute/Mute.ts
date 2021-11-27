@@ -9,8 +9,6 @@ import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../../..";
 import { GuildAuditLogs, GuildMember, User } from "discord.js";
 import { TextChannel } from "discord.js";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 
 const unitSecondsMap = {
 	second: 1,
@@ -69,8 +67,6 @@ export class SlashMuteCommand extends SlashCommand {
 		this.filePath = __filename;
 		this.bot = bot;
 		this.data = this.bot.container.getService("Data");
-
-		dayjs.extend(relativeTime);
 
 		const { config } = this.bot,
 			client = this.bot.discord,
@@ -146,6 +142,7 @@ export class SlashMuteCommand extends SlashCommand {
 		const userId = ctx.options.user.toString();
 		const time = ctx.options.time as string;
 		const reason = ctx.options.reason as string;
+		const now = Date.now();
 
 		// Calculate time if any is specified
 		let until: number;
@@ -155,13 +152,13 @@ export class SlashMuteCommand extends SlashCommand {
 			} of time.matchAll(
 				/(?<amount>\d+)\s*(?<unit>year|month|week|day|hour|minute|second)/gi
 			)) {
-				if (!until) until = Date.now();
+				if (!until) until = now;
 				until += +amount * unitSecondsMap[unit] * 1000;
 			}
 		}
 
 		if (!muted) muted = this.data.muted = {};
-		muted[userId] = { until, reason, muter: ctx.user.id };
+		muted[userId] = { at: now, until, reason, muter: ctx.user.id };
 		await this.data.save();
 
 		const guild = discord.guilds.cache.get(this.bot.config.guildId);
@@ -175,7 +172,7 @@ export class SlashMuteCommand extends SlashCommand {
 
 		const content =
 			`${ctx.user.mention}, ${member} has been muted` +
-			(until ? ` for *${dayjs(until).fromNow()}*` : "") +
+			(until ? ` for <t:${until}:R>` : "") +
 			(reason ? ` with reason:\n\n${reason}` : "") +
 			`.`;
 		return content;

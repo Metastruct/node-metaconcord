@@ -42,9 +42,10 @@ export class UIMuteCommand extends SlashCommand {
 		const { discord, config } = this.bot;
 		let { muted } = this.data;
 		const userId = ctx.targetID;
+		const now = Date.now();
 
 		if (!muted) muted = this.data.muted = {};
-		muted[userId] = { until: undefined, reason: undefined, muter: ctx.user.id };
+		muted[userId] = { at: now, muter: ctx.user.id };
 		await this.data.save();
 
 		const guild = discord.guilds.cache.get(this.bot.config.guildId);

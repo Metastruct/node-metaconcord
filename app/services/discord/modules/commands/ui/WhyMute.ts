@@ -25,14 +25,15 @@ export class UIWhyMuteCommand extends SlashCommand {
 		const userId = (ctx.targetID ?? ctx.user.id).toString();
 		const { muted } = this.bot.container.getService("Data");
 		if (muted && muted[userId]) {
-			const { until, reason, muter } = muted[userId];
+			const { at, until, reason, muter } = muted[userId];
 			const guild = this.bot.discord.guilds.cache.get(ctx.guildID);
 			if (guild) {
 				const content =
 					(ctx.user.id == userId ? `you remain muted` : `<@${userId}> remains muted`) +
-					(until ? ` for *${dayjs(until).fromNow()}*` : "") +
+					(until ? ` expires <t:${until}:R> from now` : "") +
 					(muter ? ` by <@${muter}>` : "") +
 					(reason ? ` with reason:\n\n${reason}` : " without a reason") +
+					(at ? `muted since: <t:${at}:R>` : "") +
 					`.`;
 				return EphemeralResponse(content);
 			} else {
