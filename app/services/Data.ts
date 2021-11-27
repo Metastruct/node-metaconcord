@@ -7,7 +7,14 @@ export class Data extends Service {
 	name = "Data";
 	private dataPath = path.join(process.cwd(), "data");
 
-	muted: { [userId: string]: { until: number; reason?: string; muter?: string } } = {};
+	muted: {
+		[userId: string]: {
+			until?: number;
+			at?: number;
+			reason?: string;
+			muter?: string;
+		};
+	} = {};
 	lastDiscordGuildIcon: "None";
 	toSave = ["muted", "lastDiscordGuildIcon"];
 

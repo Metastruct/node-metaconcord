@@ -1,8 +1,6 @@
 import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 
 export class SlashWhyMuteCommand extends SlashCommand {
 	private bot: DiscordBot;
@@ -25,7 +23,6 @@ export class SlashWhyMuteCommand extends SlashCommand {
 
 		this.filePath = __filename;
 		this.bot = bot;
-		dayjs.extend(relativeTime);
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
@@ -33,15 +30,16 @@ export class SlashWhyMuteCommand extends SlashCommand {
 		const userId = (ctx.options.user ?? ctx.user.id).toString();
 		const { muted } = this.bot.container.getService("Data");
 		if (muted && muted[userId]) {
-			const { until, reason, muter } = muted[userId];
+			const { at, until, reason, muter } = muted[userId];
 			const guild = await this.bot.discord.guilds.resolve(ctx.guildID)?.fetch();
 			if (guild) {
 				const content =
 					`${ctx.user.mention}, ` +
 					(ctx.user.id == userId ? `you remain muted` : `<@${userId}> remains muted`) +
-					(until ? ` for *${dayjs(until).fromNow()}*` : "") +
+					(until ? ` expires <t:${until}:R> from now` : "") +
 					(muter ? ` by <@${muter}>` : "") +
 					(reason ? ` with reason:\n\n${reason}` : " without a reason") +
+					(at ? `muted since: <t:${at}:R>` : "") +
 					`.`;
 				return EphemeralResponse(content);
 			} else {
