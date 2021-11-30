@@ -66,9 +66,8 @@ export default class AdminNotifyPayload extends Payload {
 			},
 		]);
 
-		let discordMsg: Discord.Message;
 		try {
-			discordMsg = await (notificationsChannel as TextChannel).send({
+			await (notificationsChannel as TextChannel).send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
 				embeds: [embed],
 				components: [row],
@@ -82,7 +81,7 @@ export default class AdminNotifyPayload extends Payload {
 				fs.writeFile(reportPath, message, err => (err ? reject(err.message) : resolve()))
 			);
 
-			discordMsg = await (notificationsChannel as TextChannel).send({
+			await (notificationsChannel as TextChannel).send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
 				files: [reportPath],
 				embeds: [embed],
@@ -93,19 +92,5 @@ export default class AdminNotifyPayload extends Payload {
 				fs.unlink(reportPath, err => (err ? reject(err.message) : resolve()))
 			);
 		}
-
-		const sql = bridge.container.getService("Sql");
-		const db = await sql.getDatabase();
-		const hasTable = await sql.tableExists("reports");
-		if (!hasTable) {
-			await db.exec(`CREATE TABLE reports (id VARCHAR(1000), server INT, date DATETIME);`);
-		}
-
-		await db.run(
-			"INSERT INTO reports (id, server, date) VALUES(?, ?, ?);",
-			discordMsg.id,
-			server.config.id,
-			Date.now() / 1000 // unix timestamp
-		);
 	}
 }

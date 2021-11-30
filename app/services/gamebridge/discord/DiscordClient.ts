@@ -1,7 +1,5 @@
 import { ChatPayload } from "../payloads";
 import { ChatResponse } from "../payloads/structures";
-import { scheduleJob } from "node-schedule";
-import { sleep } from "@/utils";
 import Discord, { ButtonInteraction, TextChannel, User } from "discord.js";
 import GameServer from "../GameServer";
 import SteamID from "steamid";
@@ -99,39 +97,6 @@ export default class DiscordClient extends Discord.Client {
 
 			await interactionCtx.update({ components: [] });
 		});
-
-		scheduleJob(
-			"0 12 * * *",
-			async function () {
-				const sql = gameServer.bridge.container.getService("Sql");
-				const db = await sql.getDatabase();
-				const hasTable = await sql.tableExists("reports");
-				if (!hasTable) return;
-
-				const today = new Date();
-				today.setDate(today.getDate() - 1);
-				const res = await db.all(
-					`SELECT id FROM reports WHERE date < '${today.getFullYear()}-${today.getMonth()}-${today.getDay()}' AND server = ${
-						gameServer.config.id
-					};`
-				);
-
-				if (res.length <= 0) return;
-
-				if (!this.isReady()) return;
-
-				const guild = this.guilds.cache.get(config.guildId);
-				const chan = (await guild.channels.fetch(
-					config.notificationsChannelId
-				)) as TextChannel;
-				for (const id of res) {
-					const msg = await chan.messages.fetch(id);
-					await msg.edit({ components: [] });
-					await sleep(5000); // sleep 5 seconds between each edits so we don't end up
-					// abusing discord API somehow
-				}
-			}.bind(this)
-		);
 	}
 
 	private async isAllowed(bot: DiscordClient, user: User): Promise<boolean> {
