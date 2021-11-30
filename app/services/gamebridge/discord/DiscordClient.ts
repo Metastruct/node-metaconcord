@@ -95,7 +95,7 @@ export default class DiscordClient extends Discord.Client {
 				});
 			}
 
-			await interactionCtx.update({ components: [] });
+			await interactionCtx.update({});
 		});
 	}
 
