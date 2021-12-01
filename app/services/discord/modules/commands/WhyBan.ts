@@ -35,42 +35,6 @@ export class SlashWhyBanCommand extends SlashCommand {
 		this.bot = bot;
 	}
 
-	private pluralizeString(str: string, quantity: number): string {
-		return str + (quantity != 1 ? "s" : "");
-	}
-
-	private niceTime(seconds: number): string {
-		if (!seconds) return "a few seconds";
-
-		if (seconds < 60) {
-			const t = Math.floor(seconds);
-			return t + this.pluralizeString(" second", t);
-		}
-
-		if (seconds < 60 * 60) {
-			const t = Math.floor(seconds / 60);
-			return t + this.pluralizeString(" minute", t);
-		}
-
-		if (seconds < 60 * 60 * 24) {
-			const t = Math.floor(seconds / (60 * 60));
-			return t + this.pluralizeString(" hour", t);
-		}
-
-		if (seconds < 60 * 60 * 24 * 7) {
-			const t = Math.floor(seconds / (60 * 60 * 24));
-			return t + this.pluralizeString(" day", t);
-		}
-
-		if (seconds < 60 * 60 * 24 * 365) {
-			const t = Math.floor(seconds / (60 * 60 * 24 * 7));
-			return t + this.pluralizeString(" week", t);
-		}
-
-		const t = Math.floor(seconds / (60 * 60 * 24 * 365));
-		return t + this.pluralizeString(" year", t);
-	}
-
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer(true);
 		const res = await axios.get<Array<MetaBan>>("http://g2.metastruct.net/bans");
