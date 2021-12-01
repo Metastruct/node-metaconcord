@@ -77,12 +77,14 @@ export class SlashWhyBanCommand extends SlashCommand {
 
 		if (res.status === 200) {
 			const ban = res.data.find(ban => ban.sid === ctx.options.steamid.toString());
-			if (!ban || (ban && !ban.b))
-				return EphemeralResponse("You are not currently banned on our servers");
+			if (!ban) return EphemeralResponse("That SteamID has never been banned before.");
+			if (!ban.b)
+				return EphemeralResponse(
+					`\`${ban.name}\` is currently not banned but was banned ${ban.numbans} times before.\nLast ban reason: \`${ban.banreason}\``
+				);
 
-			const remainingTime = this.niceTime(ban.whenunban - Date.now() / 1000);
 			return EphemeralResponse(
-				`You are currently banned under the name \`${ban.name}\` for: \`${ban.banreason}\`\nYou will be unbanned in: \`${remainingTime}\`\nYou have been banned \`${ban.numbans} times\` so far`
+				`User \`${ban.name}\` is currently banned for: \`${ban.banreason}\`\n expires in: <t:${ban.whenunban}:R>\n\`${ban.name}\` was banned \`${ban.numbans} times\` so far`
 			);
 		} else {
 			return EphemeralResponse("Could not fetch ban data");
