@@ -80,7 +80,9 @@ export class SlashWhyBanCommand extends SlashCommand {
 			if (!ban) return EphemeralResponse("That SteamID has never been banned before.");
 			if (!ban.b)
 				return EphemeralResponse(
-					`\`${ban.name}\` is currently not banned but was banned ${ban.numbans} times before.\nLast ban reason: \`${ban.banreason}\``
+					`\`${ban.name}\` is currently not banned but was banned ${
+						ban.numbans ? ` ${ban.numbans} times ` : ""
+					}before.\nLast ban reason: \`${ban.banreason}\``
 				);
 
 			return EphemeralResponse(
