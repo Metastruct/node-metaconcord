@@ -19,7 +19,7 @@ export class SlashWhyBanCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
 			name: "whyban",
-			description: "Gives you the reason as to why you are banned in-game",
+			description: "Display in-game ban information",
 			deferEphemeral: true,
 			guildIDs: [bot.config.guildId],
 			options: [
