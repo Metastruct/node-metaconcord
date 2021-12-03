@@ -13,11 +13,12 @@ import axios from "axios";
 class MetaBan {
 	public sid: string;
 	public bannersid: string;
+	public unbannersid?: string;
+	public b: boolean;
 	public banreason: string;
 	public unbanreason?: string;
-	public b: boolean;
-	public whenunban: number;
 	public whenbanned: number;
+	public whenunban: number;
 	public whenunbanned?: number;
 	public numbans?: number;
 	public name: string;
