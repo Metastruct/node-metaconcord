@@ -69,7 +69,7 @@ export class SlashWhyBanCommand extends SlashCommand {
 				{ limit: 0 }
 			)
 			.map(ban => {
-				return { name: ban.sid, value: ban.sid };
+				return { name: ban.name, value: ban.sid };
 			});
 	}
 
