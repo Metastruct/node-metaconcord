@@ -26,7 +26,7 @@ export class SlashWhyMuteCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
-		await ctx.defer();
+		await ctx.defer(true);
 		const userId = (ctx.options.user ?? ctx.user.id).toString();
 		const { muted } = this.bot.container.getService("Data");
 		if (muted && muted[userId]) {
