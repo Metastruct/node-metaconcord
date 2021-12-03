@@ -12,11 +12,14 @@ import axios from "axios";
 
 class MetaBan {
 	public sid: string;
+	public bannersid: string;
 	public banreason: string;
+	public unbanreason?: string;
 	public b: boolean;
 	public whenunban: number;
 	public whenbanned: number;
-	public numbans: number;
+	public whenunbanned?: number;
+	public numbans?: number;
 	public name: string;
 }
 
@@ -80,8 +83,8 @@ export class SlashWhyBanCommand extends SlashCommand {
 		if (!ban.b)
 			return EphemeralResponse(
 				`\`${ban.name}\` is currently not banned but was banned ${
-					ban.numbans !== undefined && ban.numbans > 1 ? `${ban.numbans} times ` : ""
-				}before.\nLast ban reason: \`${ban.banreason}\``
+					ban.numbans && ban.numbans > 1 ? `${ban.numbans} times ` : ""
+				}before.\nLast ban reason:\n\`\`\`${ban.banreason.replace("`", "\\`")}\`\`\``
 			);
 
 		return EphemeralResponse(
