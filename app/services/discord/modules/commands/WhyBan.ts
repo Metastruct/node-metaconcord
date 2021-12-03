@@ -45,6 +45,7 @@ export class SlashWhyBanCommand extends SlashCommand {
 			],
 		});
 		this.filePath = __filename;
+		this.updateCache();
 	}
 
 	async updateCache(): Promise<void> {
