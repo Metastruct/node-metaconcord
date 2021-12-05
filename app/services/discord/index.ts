@@ -38,10 +38,12 @@ export class DiscordBot extends Service {
 	}
 
 	async getTextChannel(channelId: string): Promise<Discord.TextChannel> {
+		if (!this.discord.isReady()) return;
 		return this.discord.channels.cache.get(channelId) as Discord.TextChannel;
 	}
 
 	async setStatus(status: string): Promise<void> {
+		if (!this.discord.isReady()) return;
 		if (status.length > 127) status = status.substring(0, 120) + "...";
 
 		this.discord.user.setPresence({
@@ -56,6 +58,7 @@ export class DiscordBot extends Service {
 	}
 
 	async setServerBanner(url: string): Promise<void> {
+		if (!this.discord.isReady()) return;
 		const guild = this.discord.guilds.cache.get(config.guildId);
 		if (guild.premiumTier < "TIER_2") return;
 		const response = await axios.get(url, { responseType: "arraybuffer" });
@@ -76,6 +79,7 @@ export class DiscordBot extends Service {
 	// 		this.container.getService("Markov").addLine(content);
 	// }
 	async fixTwitterEmbeds(msg: Discord.Message): Promise<void> {
+		if (!this.discord.isReady()) return;
 		const statusUrls = msg.content.match(
 			/https?:\/\/twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g
 		);
@@ -96,6 +100,7 @@ export class DiscordBot extends Service {
 	}
 
 	async handleMediaUrls(msg: Discord.Message): Promise<void> {
+		if (!this.discord.isReady()) return;
 		// https://media.discordapp.net/attachments/769875739817410562/867369588014448650/video.mp4
 		// https://cdn.discordapp.com/attachments/769875739817410562/867369588014448650/video.mp4
 
