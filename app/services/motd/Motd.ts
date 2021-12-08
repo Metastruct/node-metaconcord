@@ -1,7 +1,6 @@
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
 import { scheduleJob } from "node-schedule";
-import FormData from "form-data";
 import axios from "axios";
 import config from "@/config/motd.json";
 import dayjs from "dayjs";
@@ -9,10 +8,12 @@ import dayjs from "dayjs";
 export default class Motd extends Service {
 	name = "Motd";
 	messages: Array<string>;
+	lastimage?: string;
 
 	constructor(container: Container) {
 		super(container);
 		this.messages = [];
+		this.lastimage = undefined;
 		scheduleJob("0 12 * * *", this.executeMessageJob.bind(this));
 		scheduleJob("0 20 * * *", this.executeImageJob.bind(this));
 	}
@@ -59,7 +60,7 @@ export default class Motd extends Service {
 		this.container.getService("Twitter").postStatus(msg);
 	}
 
-	private async executeImageJob(): Promise<void> {
+	private async executeImageJob(patch?: boolean, msgId?: string): Promise<void> {
 		const res = await axios.get(`https://api.imgur.com/3/album/${config.imgurAlbumId}/images`, {
 			headers: {
 				Authorization: `Client-ID ${config.imgurClientId}`,
@@ -75,31 +76,54 @@ export default class Motd extends Service {
 			const url: string = urls[Math.floor(Math.random() * urls.length)];
 			if (!url) return;
 
-			await axios.post(
-				config.webhook,
-				JSON.stringify({
-					content: "Image of the day:\n" + url,
-					username: "Meta Construct",
-					avatar_url: "https://pbs.twimg.com/profile_images/1503242277/meta4_crop.png",
-				}),
-				{
-					headers: {
-						"Content-Type": "application/json",
-					},
-				}
-			);
-
+			if (patch) {
+				await axios.patch(
+					`${config.webhook}/messages/${msgId}`,
+					JSON.stringify({
+						content: "Image of the day:\n" + url,
+						username: "Meta Construct",
+						avatar_url:
+							"https://pbs.twimg.com/profile_images/1503242277/meta4_crop.png",
+					}),
+					{
+						headers: {
+							"Content-Type": "application/json",
+						},
+					}
+				);
+			} else {
+				await axios.post(
+					config.webhook,
+					JSON.stringify({
+						content: "Image of the day:\n" + url,
+						username: "Meta Construct",
+						avatar_url:
+							"https://pbs.twimg.com/profile_images/1503242277/meta4_crop.png",
+					}),
+					{
+						headers: {
+							"Content-Type": "application/json",
+						},
+					}
+				);
+			}
 			this.container.getService("Twitter").postStatus("Image of the day", url);
 			this.container.getService("DiscordBot").setServerBanner(url);
 
-			// remove images from album after posting
-			const data = new FormData();
-			data.append("deletehashes[]", ""); // this will return 403 but delete the images anyway because????
-			await axios.post(`https://api.imgur.com/3/album/${config.imgurDeleteHash}`, data, {
-				headers: {
-					Authorization: `Client-ID ${config.imgurClientId}`,
-				},
-			});
+			this.lastimage = url;
 		}
+	}
+	public async rerollImageJob(): Promise<void> {
+		if (!this.lastimage) return;
+		const lastmsg = await this.container.getService("DiscordBot").getLastMotdMsg();
+		if (!lastmsg) {
+			console.error("could not get last motd msg?");
+			return;
+		}
+		await this.container.getService("Twitter").deleteLastStatus(); // todo: fix this after we have markov or something else working also could be troublesome if it was triggered after the messagejob
+
+		await this.executeImageJob(true, lastmsg);
+		await this.container.getService("DiscordBot").removeMotdReactions();
+		this.lastimage = undefined; // don't reroll again
 	}
 }

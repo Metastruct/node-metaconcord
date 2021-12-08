@@ -129,6 +129,14 @@ export class Twitter extends Service {
 		}
 	}
 
+	public async deleteLastStatus(): Promise<void> {
+		const res = await this.twit.get("statuses/home_timeline", { count: 1 });
+		if ((res.data as Array<twit.Twitter.Status>).length === 0) return;
+		const statuses = res.data as Array<twit.Twitter.Status>;
+		const msgId = statuses[0].id_str;
+		await this.twit.post("statuses/destroy/:id", { id: msgId });
+	}
+
 	public async getStatusMediaURLs(url: string): Promise<Array<string>> {
 		try {
 			const matches = url.match(/[0-9]+$/);

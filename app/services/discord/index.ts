@@ -116,6 +116,14 @@ export class DiscordBot extends Service {
 
 		msg.reply(urls.join("\n"));
 	}
+	async getLastMotdMsg(): Promise<string> {
+		if (!this.discord.isReady()) return;
+		return (await this.getTextChannel("324685126699188224")).lastMessageId; // I could get the channel from the webhook but woefhwoaegfrh
+	}
+	async removeMotdReactions(): Promise<void> {
+		const chan = await this.getTextChannel("324685126699188224");
+		await (await chan.lastMessage.fetch()).reactions.removeAll();
+	}
 }
 
 export default (container: Container): Service => {
