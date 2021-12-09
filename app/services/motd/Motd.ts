@@ -76,7 +76,7 @@ export default class Motd extends Service {
 			const url: string = urls[Math.floor(Math.random() * urls.length)];
 			if (!url) return;
 
-			if (patch) {
+			if (patch !== undefined && msgId) {
 				await axios.patch(
 					`${config.webhook}/messages/${msgId}`,
 					JSON.stringify({
