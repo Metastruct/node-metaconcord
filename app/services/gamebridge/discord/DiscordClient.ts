@@ -106,6 +106,9 @@ export default class DiscordClient extends Discord.Client {
 
 			await interactionCtx.update({});
 		});
+
+		this.on("warn", console.log);
+		this.on("debug", console.log);
 	}
 
 	private async isAllowed(bot: DiscordClient, user: User): Promise<boolean> {

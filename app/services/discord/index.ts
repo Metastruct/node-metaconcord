@@ -30,6 +30,9 @@ export class DiscordBot extends Service {
 			// }, 1000 * 60 * 10); // change status every 10mins
 		});
 
+		this.discord.on("warn", console.log);
+		this.discord.on("debug", console.log);
+
 		for (const loadModule of modules) {
 			loadModule(this);
 		}
