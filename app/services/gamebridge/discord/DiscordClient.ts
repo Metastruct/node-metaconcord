@@ -16,7 +16,6 @@ export default class DiscordClient extends Discord.Client {
 		const steam = gameServer.bridge.container.getService("Steam");
 
 		this.on("messageCreate", async ctx => {
-			if (!this.isReady()) return;
 			if (ctx.channel.id != this.gameServer.bridge.config.relayChannelId) return;
 			if (ctx.author.bot || !ctx.author.client) return;
 
