@@ -31,7 +31,6 @@ export class DiscordBot extends Service {
 		});
 
 		this.discord.on("warn", console.log);
-		this.discord.on("debug", console.log);
 
 		for (const loadModule of modules) {
 			loadModule(this);
