@@ -49,12 +49,14 @@ export default class DiscordClient extends Discord.Client {
 				}
 			} catch {} // dont care
 
+			const avatar = ctx.author.avatarURL({ dynamic: true });
+
 			const payload: ChatResponse = {
 				user: {
 					id: ctx.author.id,
 					nick: nickname,
 					color: ctx.member.displayColor,
-					avatar_url: ctx.author.avatarURL({ dynamic: true }),
+					avatar_url: avatar ?? ctx.author.defaultAvatarURL,
 				},
 				msgID: ctx.id,
 				content: content,
