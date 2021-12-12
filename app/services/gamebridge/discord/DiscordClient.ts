@@ -40,10 +40,18 @@ export default class DiscordClient extends Discord.Client {
 				reply = await ctx.fetchReference();
 			}
 
+			let nickname = ctx.author.username;
+			try {
+				const author = await ctx.guild.members.fetch(ctx.author.id);
+				if (author && author.nickname && author.nickname.length > 0) {
+					nickname = author.nickname;
+				}
+			} catch {} // dont care
+
 			const payload: ChatResponse = {
 				user: {
 					id: ctx.author.id,
-					nick: ctx.author.username,
+					nick: nickname,
 					color: ctx.member.displayColor,
 					avatar_url: ctx.author.avatarURL({ dynamic: true }),
 				},
