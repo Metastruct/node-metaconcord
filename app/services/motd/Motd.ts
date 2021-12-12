@@ -116,13 +116,10 @@ export default class Motd extends Service {
 	public async rerollImageJob(): Promise<void> {
 		if (!this.lastimage) return;
 		const lastmsg = await this.container.getService("DiscordBot").getLastMotdMsg();
-		if (!lastmsg) {
-			console.error("could not get last motd msg?");
-			return;
-		}
+		if (!lastmsg) return;
 		await this.container.getService("Twitter").deleteLastStatus(); // todo: fix this after we have markov or something else working also could be troublesome if it was triggered after the messagejob
 
-		await this.executeImageJob(true, lastmsg);
+		await this.executeImageJob(true, lastmsg.id);
 		await this.container.getService("DiscordBot").removeMotdReactions();
 		this.lastimage = undefined; // don't reroll again
 	}

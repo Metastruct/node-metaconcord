@@ -16,7 +16,9 @@ export default (bot: DiscordBot): void => {
 		)
 			return;
 		const lastmsg = await bot.getLastMotdMsg();
-		if (reaction.message.id !== lastmsg) return;
+		if (!lastmsg) return; // could be undefined if the bot was just launched and the msg is not cached
+		if (reaction.message.id !== lastmsg.id) return;
+		if (!lastmsg.content.includes("Image of the day:")) return;
 		await bot.container.getService("Motd").rerollImageJob();
 	});
 };
