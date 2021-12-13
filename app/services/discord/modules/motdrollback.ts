@@ -1,4 +1,5 @@
 import { DiscordBot } from "..";
+import config from "@/config/motd.json";
 
 export default (bot: DiscordBot): void => {
 	bot.discord.on("messageReactionAdd", async reaction => {
@@ -10,7 +11,7 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 		if (
-			reaction.message.channel.id !== "324685126699188224" &&
+			reaction.message.channel.id !== config.channelId &&
 			reaction.emoji.name !== "♻" &&
 			reaction.count >= 10
 		)

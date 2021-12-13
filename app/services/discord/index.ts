@@ -4,6 +4,7 @@ import Discord from "discord.js";
 import axios from "axios";
 import config from "@/config/discord.json";
 import modules from "./modules";
+import motdConfig from "@/config/motd.json";
 
 export const EMBED_FIELD_LIMIT = 1024;
 
@@ -120,10 +121,10 @@ export class DiscordBot extends Service {
 	}
 	async getLastMotdMsg(): Promise<Discord.Message> {
 		if (!this.discord.isReady()) return;
-		return (await this.getTextChannel("324685126699188224")).lastMessage; // I could get the channel from the webhook but woefhwoaegfrh
+		return (await this.getTextChannel(motdConfig.channelId)).lastMessage; // I could get the channel from the webhook but woefhwoaegfrh
 	}
 	async removeMotdReactions(): Promise<void> {
-		const chan = await this.getTextChannel("324685126699188224");
+		const chan = await this.getTextChannel(motdConfig.channelId);
 		await (await chan.lastMessage.fetch()).reactions.removeAll();
 	}
 }
