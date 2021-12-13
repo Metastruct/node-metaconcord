@@ -2,5 +2,6 @@
     "webhook": "",
     "imgurClientId": "",
 	"imgurAlbumId": "",
-    "imgurDeleteHash":""
+    "imgurDeleteHash":"",
+    "channelID":""
 }
