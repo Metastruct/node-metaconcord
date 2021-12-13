@@ -12,7 +12,7 @@ export default (bot: DiscordBot): void => {
 		if (
 			reaction.message.channel.id !== "324685126699188224" &&
 			reaction.emoji.name !== "♻" &&
-			reaction.count < 10
+			reaction.count >= 10
 		)
 			return;
 		const lastmsg = await bot.getLastMotdMsg();
