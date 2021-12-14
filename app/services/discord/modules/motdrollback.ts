@@ -11,8 +11,8 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 		if (
-			reaction.message.channel.id !== config.channelId &&
-			reaction.emoji.name !== "♻" &&
+			reaction.message.channel.id !== config.channelId ||
+			reaction.emoji.name !== "♻" ||
 			reaction.count < 10
 		)
 			return;
