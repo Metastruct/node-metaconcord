@@ -130,10 +130,19 @@ export class Twitter extends Service {
 	}
 
 	public async deleteLastStatus(): Promise<void> {
-		const res = await this.twit.get("statuses/home_timeline", { count: 1 });
+		const res = await this.twit.get("statuses/home_timeline");
 		if ((res.data as Array<twit.Twitter.Status>).length === 0) return;
 		const statuses = res.data as Array<twit.Twitter.Status>;
-		const msgId = statuses[0].id_str;
+		const lastIotd = statuses
+			.filter(
+				status =>
+					status.user.id_str === config.id && status.text.includes("Image of the day")
+			)
+			.sort((a, b) =>
+				a.created_at > b.created_at ? -1 : a.created_at < b.created_at ? 1 : 0
+			)[0];
+		if (!lastIotd) return;
+		const msgId = lastIotd.id_str;
 		await this.twit.post("statuses/destroy/:id", { id: msgId });
 	}
 
