@@ -129,7 +129,7 @@ export class Twitter extends Service {
 		}
 	}
 
-	public async deleteLastStatus(): Promise<void> {
+	public async deleteLastIotd(): Promise<void> {
 		const res = await this.twit.get("statuses/home_timeline");
 		if ((res.data as Array<twit.Twitter.Status>).length === 0) return;
 		const statuses = res.data as Array<twit.Twitter.Status>;
