@@ -117,7 +117,7 @@ export default class Motd extends Service {
 		if (!this.lastimage) return;
 		const lastmsg = await this.container.getService("DiscordBot").getLastMotdMsg();
 		if (!lastmsg) return;
-		await this.container.getService("Twitter").deleteLastStatus(); // todo: fix this after we have markov or something else working also could be troublesome if it was triggered after the messagejob
+		await this.container.getService("Twitter").deleteLastIotd(); // todo: fix this after we have markov or something else working also could be troublesome if it was triggered after the messagejob
 
 		await this.executeImageJob(true, lastmsg.id);
 		await this.container.getService("DiscordBot").removeMotdReactions();
