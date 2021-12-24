@@ -139,7 +139,7 @@ export class Twitter extends Service {
 					status.user.id_str === config.id && status.text.includes("Image of the day")
 			)
 			.sort((a, b) =>
-				a.created_at > b.created_at ? -1 : a.created_at < b.created_at ? 1 : 0
+				a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : 0
 			)[0];
 		if (!lastIotd) return;
 		const msgId = lastIotd.id_str;
