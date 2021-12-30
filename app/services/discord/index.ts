@@ -61,9 +61,8 @@ export class DiscordBot extends Service {
 	}
 
 	async setServerBanner(url: string): Promise<void> {
-		if (!this.discord.isReady()) return;
+		if (!this.discord.isReady() || !this.overLvl2()) return;
 		const guild = this.discord.guilds.cache.get(config.guildId);
-		if (guild.premiumTier < "TIER_2") return;
 		const response = await axios.get(url, { responseType: "arraybuffer" });
 		if (!response) return;
 		guild.setBanner(response.data, "motd");
@@ -122,6 +121,10 @@ export class DiscordBot extends Service {
 	async getLastMotdMsg(): Promise<Discord.Message> {
 		if (!this.discord.isReady()) return;
 		return (await this.getTextChannel(motdConfig.channelId)).lastMessage; // I could get the channel from the webhook but woefhwoaegfrh
+	}
+	async overLvl2(): Promise<boolean> {
+		const guild = this.discord.guilds.cache.get(config.guildId);
+		return guild.premiumTier > "TIER_1";
 	}
 	async removeMotdReactions(): Promise<void> {
 		const chan = await this.getTextChannel(motdConfig.channelId);
