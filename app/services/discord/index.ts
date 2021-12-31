@@ -61,7 +61,7 @@ export class DiscordBot extends Service {
 	}
 
 	async setServerBanner(url: string): Promise<void> {
-		if (!this.discord.isReady() || !this.overLvl2()) return;
+		if (!this.discord.isReady() || !(await this.overLvl2())) return;
 		const guild = this.discord.guilds.cache.get(config.guildId);
 		const response = await axios.get(url, { responseType: "arraybuffer" });
 		if (!response) return;
