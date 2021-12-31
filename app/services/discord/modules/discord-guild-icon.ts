@@ -18,12 +18,12 @@ const events = [
 		range: ["01/12", "26/12"],
 	},
 	{
-		icon: "new-years-eve",
-		range: ["27/12", "31/12"],
+		icon: "new-year",
+		range: ["30/12", "31/12"],
 	},
 	{
-		icon: "new-years-eve",
-		range: ["01/01", "07/01"], // We do a little cheating
+		icon: "new-year",
+		range: ["01/01", "03/01"], // We do a little cheating
 	},
 ];
 const iconsPath = join(require.main.path, "resources/discord-guild-icons");
