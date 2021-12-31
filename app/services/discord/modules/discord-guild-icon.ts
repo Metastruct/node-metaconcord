@@ -19,7 +19,11 @@ const events = [
 	},
 	{
 		icon: "new-years-eve",
-		range: ["27/12", "07/01"],
+		range: ["27/12", "31/12"],
+	},
+	{
+		icon: "new-years-eve",
+		range: ["01/01", "07/01"], // We do a little cheating
 	},
 ];
 const iconsPath = join(require.main.path, "resources/discord-guild-icons");
@@ -76,7 +80,7 @@ export default (bot: DiscordBot): void => {
 
 				if (inMonth && correctDay) {
 					let filePath = join(iconsPath, `${icon}.gif`);
-					if (!(await fileExists(filePath)) || guild.premiumTier === "NONE") {
+					if (guild.premiumTier === "NONE" || !(await fileExists(filePath))) {
 						filePath = join(iconsPath, `${icon}.png`);
 					}
 					if (!(await fileExists(filePath))) {
@@ -101,7 +105,6 @@ export default (bot: DiscordBot): void => {
 			changeIcon(filePath, eventName);
 		};
 
-		// doIt();
 		scheduleJob("0 0 * * *", doIt);
 	});
 };
