@@ -13,6 +13,7 @@ const WHC = new Discord.WebhookClient(
 
 export class Starboard extends Service {
 	name = "Starboard";
+	private isPosting = false;
 
 	private async isMsgStarred(msgId: string): Promise<boolean> {
 		const sql = this.container.getService("Sql");
@@ -33,6 +34,8 @@ export class Starboard extends Service {
 
 	public async handleReactionAdded(reaction: MessageReaction): Promise<void> {
 		if (reaction.emoji.id === config.emoteId) {
+			if (this.isPosting) return;
+			this.isPosting = true;
 			const ego = reaction.users.cache.has(reaction.message.author.id);
 			const count = ego ? reaction.count - 1 : reaction.count;
 			if (count >= AMOUNT) {
@@ -68,6 +71,7 @@ export class Starboard extends Service {
 					username: `${msg.author.username}`,
 				});
 				await this.starMsg(msg.id);
+				this.isPosting = false;
 			}
 		}
 	}
