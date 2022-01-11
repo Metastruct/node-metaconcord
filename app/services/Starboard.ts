@@ -34,11 +34,10 @@ export class Starboard extends Service {
 
 	public async handleReactionAdded(reaction: MessageReaction): Promise<void> {
 		if (reaction.emoji.id === config.emoteId) {
-			if (this.isPosting) return;
-			this.isPosting = true;
 			const ego = reaction.users.cache.has(reaction.message.author.id);
 			const count = ego ? reaction.count - 1 : reaction.count;
-			if (count >= AMOUNT) {
+			if (count >= AMOUNT && !this.isPosting) {
+				this.isPosting = true;
 				const client = reaction.client;
 				const msg = await reaction.message.fetch();
 
