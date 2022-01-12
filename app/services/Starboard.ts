@@ -37,7 +37,6 @@ export class Starboard extends Service {
 			const ego = reaction.users.cache.has(reaction.message.author.id);
 			const count = ego ? reaction.count - 1 : reaction.count;
 			if (count >= AMOUNT && !this.isPosting) {
-				this.isPosting = true;
 				const client = reaction.client;
 				const msg = await reaction.message.fetch();
 
@@ -63,7 +62,7 @@ export class Starboard extends Service {
 				text += msg.stickers.size > 0 ? msg.stickers.first().url : "";
 
 				if (text === "") return;
-
+				this.isPosting = true;
 				await WHC.send({
 					content: text,
 					avatarURL: msg.author.avatarURL(),
