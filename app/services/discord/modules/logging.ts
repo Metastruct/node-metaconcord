@@ -1,5 +1,5 @@
 import { DiscordBot, EMBED_FIELD_LIMIT } from "..";
-import Discord, { GuildMember } from "discord.js";
+import Discord from "discord.js";
 
 const RED_COLOR: Discord.ColorResolvable = [255, 0, 0];
 const YELLOW_COLOR: Discord.ColorResolvable = [220, 150, 0];
