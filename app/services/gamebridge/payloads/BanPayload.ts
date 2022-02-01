@@ -42,11 +42,11 @@ export default class BanPayload extends Payload {
 
 		const embed = new Discord.MessageEmbed();
 		if (avatar) {
-			embed.setAuthor(
-				`${player.nick || "<-"} banned a player`,
-				avatar,
-				`https://steamcommunity.com/profiles/${steamId64}`
-			);
+			embed.setAuthor({
+				name: `${player.nick || "<-"} banned a player`,
+				iconURL: avatar,
+				url: `https://steamcommunity.com/profiles/${steamId64}`,
+			});
 		} else {
 			if (bannerName.startsWith("Discord")) {
 				const chunks = bannerName

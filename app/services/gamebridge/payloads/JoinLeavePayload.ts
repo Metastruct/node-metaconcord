@@ -23,11 +23,11 @@ export default class JoinLeavePayload extends Payload {
 
 		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
 		const embed = new Discord.MessageEmbed()
-			.setAuthor(
-				`${player.nick} has ${spawned ? "spawned" : "left"}`,
-				avatar,
-				`https://steamcommunity.com/profiles/${player.steamId64}`
-			)
+			.setAuthor({
+				name: `${player.nick} has ${spawned ? "spawned" : "left"}`,
+				iconURL: avatar,
+				url: `https://steamcommunity.com/profiles/${player.steamId64}`,
+			})
 			.setColor(spawned ? 0x4bb543 : 0xb54343);
 		if (reason) embed.setDescription(`Reason: ${reason}`);
 		(relayChannel as TextChannel).send({ embeds: [embed] });

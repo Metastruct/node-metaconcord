@@ -80,7 +80,7 @@ export class SlashLuaCommand extends SlashDeveloperCommand {
 			embed.setTitle("Metastruct #" + server);
 			embed.setDescription(`\`\`\`lua\n${code.substring(0, 1999)}\`\`\``);
 			embed.setColor(res.data.errors.length > 0 ? [255, 0, 0] : [0, 255, 0]);
-			embed.setFooter(realm);
+			embed.setFooter({ text: realm });
 
 			if (res.data.stdout.length > 0) {
 				embed.addField("Stdout", res.data.stdout.substring(0, 1999));

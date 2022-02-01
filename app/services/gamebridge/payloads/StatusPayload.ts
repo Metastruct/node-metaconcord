@@ -73,7 +73,9 @@ export default class StatusPayload extends Payload {
 					.setImage(
 						`http://${host}:${port}/server-status/${server.config.id}/${Date.now()}`
 					)
-					.setFooter("Middle-click the player list to open an interactive version");
+					.setFooter({
+						text: "Middle-click the player list to open an interactive version",
+					});
 			}
 			if (workshopMap) {
 				const res = await Steam.getPublishedFileDetails([workshopMap.id]).catch(

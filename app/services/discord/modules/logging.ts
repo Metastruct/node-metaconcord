@@ -1,18 +1,12 @@
 import { DiscordBot, EMBED_FIELD_LIMIT } from "..";
-import Discord from "discord.js";
+import Discord, { GuildMember } from "discord.js";
 
-const DELETE_COLOR: Discord.ColorResolvable = [255, 0, 0];
-const EDIT_COLOR: Discord.ColorResolvable = [220, 150, 0];
+const RED_COLOR: Discord.ColorResolvable = [255, 0, 0];
+const YELLOW_COLOR: Discord.ColorResolvable = [220, 150, 0];
 
 export default (bot: DiscordBot): void => {
 	bot.discord.on("messageCreate", async msg => {
-		if (msg.partial) {
-			try {
-				msg = await msg.fetch();
-			} catch {
-				return;
-			}
-		}
+		msg = await bot.fetchPartial(msg);
 		await Promise.all([
 			bot.fixTwitterEmbeds(msg),
 			// bot.feedMarkov(msg),
@@ -21,13 +15,7 @@ export default (bot: DiscordBot): void => {
 	});
 
 	bot.discord.on("messageDelete", async msg => {
-		if (msg.partial) {
-			try {
-				msg = await msg.fetch();
-			} catch {
-				return;
-			}
-		}
+		msg = await bot.fetchPartial(msg);
 		if (msg.author.bot) return;
 
 		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
@@ -41,24 +29,18 @@ export default (bot: DiscordBot): void => {
 				: "???";
 
 		const embed = new Discord.MessageEmbed()
-			.setAuthor(msg.author.username, msg.author.avatarURL())
-			.setColor(DELETE_COLOR)
+			.setAuthor({ name: msg.author.username, iconURL: msg.author.avatarURL() })
+			.setColor(RED_COLOR)
 			.addField("Channel", `<#${msg.channel.id}>`)
 			.addField("Mention", msg.author.mention)
 			.addField("Message", message.substring(0, EMBED_FIELD_LIMIT), true)
-			.setFooter("Message Deleted")
+			.setFooter({ text: "Message Deleted" })
 			.setTimestamp(Date.now());
 		await logChannel.send({ embeds: [embed] });
 	});
 
 	bot.discord.on("messageUpdate", async (oldMsg, newMsg) => {
-		if (oldMsg.partial) {
-			try {
-				oldMsg = await oldMsg.fetch();
-			} catch {
-				return;
-			}
-		}
+		oldMsg = await bot.fetchPartial(oldMsg);
 		if (oldMsg.content === newMsg.content) return; // discord manages embeds by updating user messages
 		if (oldMsg.author.bot) return;
 
@@ -66,14 +48,27 @@ export default (bot: DiscordBot): void => {
 		if (!logChannel) return;
 
 		const embed = new Discord.MessageEmbed()
-			.setAuthor(oldMsg.author.username, oldMsg.author.avatarURL())
-			.setColor(EDIT_COLOR)
+			.setAuthor({ name: oldMsg.author.username, iconURL: oldMsg.author.avatarURL() })
+			.setColor(YELLOW_COLOR)
 			.addField("Channel", `<#${oldMsg.channel.id}>`)
 			.addField("Mention", oldMsg.author.mention)
 			.addField("New Message", newMsg.content.substring(0, EMBED_FIELD_LIMIT) ?? "???", true)
 			.addField("Old Message", oldMsg.content.substring(0, EMBED_FIELD_LIMIT) ?? "???", true)
-			.setFooter("Message Edited")
+			.setFooter({ text: "Message Edited" })
 			.setTimestamp(newMsg.editedTimestamp);
+		await logChannel.send({ embeds: [embed] });
+	});
+	bot.discord.on("guildMemberRemove", async user => {
+		user = await bot.fetchPartial(user);
+		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
+		if (!logChannel) return;
+
+		const embed = new Discord.MessageEmbed()
+			.setAuthor({ name: user.displayName, iconURL: user.avatarURL() })
+			.setColor(RED_COLOR)
+			.addField("Mention", user.mention)
+			.setFooter({ text: "Member Left/Kicked" })
+			.setTimestamp(Date.now());
 		await logChannel.send({ embeds: [embed] });
 	});
 };
