@@ -130,6 +130,13 @@ export class DiscordBot extends Service {
 		const chan = await this.getTextChannel(motdConfig.channelId);
 		await (await chan.lastMessage.fetch()).reactions.removeAll();
 	}
+	// how the fuck do I type this
+	async fetchPartial(obj): Promise<any> {
+		if (obj.partial) {
+			return await obj.fetch();
+		}
+		return obj;
+	}
 }
 
 export default (container: Container): Service => {

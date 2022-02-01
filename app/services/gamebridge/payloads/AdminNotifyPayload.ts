@@ -35,11 +35,11 @@ export default class AdminNotifyPayload extends Payload {
 		if (message.trim().length < 1) message = "No message provided..?";
 
 		const embed = new Discord.MessageEmbed()
-			.setAuthor(
-				`${player.nick} reported a player`,
-				avatar,
-				`https://steamcommunity.com/profiles/${steamId64}`
-			)
+			.setAuthor({
+				name: `${player.nick} reported a player`,
+				iconURL: avatar,
+				url: `https://steamcommunity.com/profiles/${steamId64}`,
+			})
 			.addField("Nick", reported.nick)
 			.addField("Message", message)
 			.addField(
