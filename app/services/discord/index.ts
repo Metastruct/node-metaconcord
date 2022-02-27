@@ -83,7 +83,7 @@ export class DiscordBot extends Service {
 	async fixTwitterEmbeds(msg: Discord.Message): Promise<void> {
 		if (!this.discord.isReady()) return;
 		const statusUrls = msg.content.match(
-			/https?:\/\/twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g
+			/https?:\/\/(?:mobile.)?twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g
 		);
 		if (!statusUrls) return;
 
