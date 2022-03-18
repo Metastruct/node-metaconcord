@@ -27,7 +27,7 @@ export default class ChatPayload extends Payload {
 
 		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
 
-		const matches = content.match(/@(\S*)/g);
+		const matches = content.match(/@!?(\S*)/g);
 		const cachedMembers = new Discord.Collection<string, Discord.GuildMember>();
 
 		if (matches) {
