@@ -1,6 +1,6 @@
 import { ChatPayload } from "../payloads";
 import { ChatResponse } from "../payloads/structures";
-import Discord, { ButtonInteraction, TextChannel, User } from "discord.js";
+import Discord, { ButtonInteraction, GuildMember, TextChannel, User } from "discord.js";
 import GameServer from "../GameServer";
 import SteamID from "steamid";
 import config from "@/config/discord.json";
@@ -30,7 +30,21 @@ export default class DiscordClient extends Discord.Client {
 			});
 			content = content.replace(
 				/<#([\d]+)>/g,
-				(_, id) => `#${(ctx.client.channels.cache.get(id) as TextChannel).name}`
+				(_, id) =>
+					`#${
+						ctx.guild.channels.cache.has(id)
+							? (ctx.guild.channels.cache.get(id) as TextChannel).name
+							: "(uncached channel)"
+					}`
+			);
+			content = content.replace(
+				/<@!?(\d+)>/g,
+				(_, id) =>
+					`@${
+						ctx.guild.members.cache.has(id)
+							? (ctx.guild.members.cache.get(id) as GuildMember).displayName
+							: "(uncached user)"
+					}`
 			);
 			for (const [, attachment] of ctx.attachments) {
 				content += "\n" + attachment.url;
