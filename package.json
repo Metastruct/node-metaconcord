@@ -17,7 +17,7 @@
 	},
 	"dependencies": {
 		"ajv": "^6.12.2",
-		"axios": "^0.24.0",
+		"axios": "^0.26.1",
 		"bad-words": "^3.0.4",
 		"dayjs": "^1.10.6",
 		"discord.js": "^13.6.0",
@@ -64,7 +64,7 @@
 		"sass": "^1.30.0",
 		"ts-node": "^10.1.0",
 		"ts-node-dev": "^1.1.8",
-		"tsconfig-paths": "^3.9.0",
+		"tsconfig-paths": "^3.14.1",
 		"tsconfig-replace-paths": "^0.0.5",
 		"typescript": "^4.3.5",
 		"typescript-json-schema": "^0.42.0"
