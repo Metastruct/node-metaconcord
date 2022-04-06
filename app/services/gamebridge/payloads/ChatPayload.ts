@@ -2,7 +2,7 @@ import * as requestSchema from "./structures/ChatRequest.json";
 import * as responseSchema from "./structures/ChatResponse.json";
 import { ChatRequest, ChatResponse } from "./structures";
 import { GameServer } from "..";
-import Discord, { User } from "discord.js";
+import Discord from "discord.js";
 import Payload from "./Payload";
 
 export default class ChatPayload extends Payload {
