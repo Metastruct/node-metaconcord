@@ -2,7 +2,7 @@ import * as requestSchema from "./structures/ChatRequest.json";
 import * as responseSchema from "./structures/ChatResponse.json";
 import { ChatRequest, ChatResponse } from "./structures";
 import { GameServer } from "..";
-import Discord from "discord.js";
+import Discord, { User } from "discord.js";
 import Payload from "./Payload";
 
 export default class ChatPayload extends Payload {
@@ -27,25 +27,20 @@ export default class ChatPayload extends Payload {
 
 		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
 
-		const matches = content.match(/@(\S*)/g);
-		const cachedMembers = new Discord.Collection<string, Discord.GuildMember>();
+		const matches = content.matchAll(/@(\S*)/g);
 
 		if (matches) {
 			for (const match of matches) {
-				const name = match.substr(1);
-				if (cachedMembers.has(name)) continue; // don't fetch if it's already cached
-				const members = await guild.members.fetch({ query: name, limit: 1 });
-				const foundMember = members.first();
-				if (!foundMember) continue;
-
-				cachedMembers.set(name, foundMember);
+				const name = match[1];
+				const users = await guild.members.fetch({ query: name, limit: 1 });
+				const user = users.first();
+				if (user) {
+					content = content.replace(match[0], `<@${user.id}>`);
+				}
 			}
-			content = content.replace(/@(\S*)/g, (match, name) => {
-				if (cachedMembers.has(name)) return `<@${cachedMembers.get(name).id}>`;
-				return match;
-			});
-			content = content.substring(0, 2000);
 		}
+
+		content = content.substring(0, 2000);
 
 		const motd = bridge.container.getService("Motd");
 		if (motd.isValidMsg(content)) {
