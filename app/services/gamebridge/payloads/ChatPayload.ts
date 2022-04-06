@@ -41,7 +41,7 @@ export default class ChatPayload extends Payload {
 				cachedMembers.set(name, foundMember);
 			}
 			content = content.replace(/@(\S*)/g, (match, name) => {
-				if (cachedMembers.has(name)) return `<@!${cachedMembers.get(name).id}>`;
+				if (cachedMembers.has(name)) return `<@${cachedMembers.get(name).id}>`;
 				return match;
 			});
 			content = content.substring(0, 2000);
