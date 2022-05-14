@@ -30,13 +30,8 @@ export default (webApp: WebApp): void => {
 		});
 
 		let output = "";
-		await ssh.exec("gserv", ["merge_repos", "rehash"], {
-			stream: "stderr",
-			onStdout: buff => (output += buff),
-			onStderr: buff => (output += buff),
-		});
 
-		await ssh.exec("gserv", ["qu", "rehash"], {
+		await ssh.exec("gserv", ["update_repos", "rehash"], {
 			stream: "stderr",
 			onStdout: buff => (output += buff),
 			onStderr: buff => (output += buff),
