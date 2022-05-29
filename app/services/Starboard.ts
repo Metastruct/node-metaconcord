@@ -46,10 +46,13 @@ export class Starboard extends Service {
 				// check against our local db first
 				if (await this.isMsgStarred(msg.id)) return;
 
+				// skip messages older than 3 months
+				if (Date.now() - msg.createdTimestamp > 3 * 28 * 24 * 60 * 60 * 1000) return;
+
 				let text = "";
 				const reference = msg.reference;
 				if (reference) {
-					const refMsg = await (
+					const refMsg = await(
 						client.channels.cache.get(reference.channelId) as TextChannel
 					).messages.fetch(reference.messageId);
 					text += `${
