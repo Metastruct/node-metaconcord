@@ -43,7 +43,7 @@ export class Steam extends Service {
 					qs.stringify(query)
 				)
 				.catch(err => {
-					console.error(err);
+					//console.error(err); // I swear no one cares
 					return { data: { response: {} } };
 				})
 		).data.response;

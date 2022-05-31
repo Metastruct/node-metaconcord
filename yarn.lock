@@ -869,6 +869,11 @@ character-parser@^2.2.0:
   dependencies:
     is-regex "^1.0.3"
 
+chardet@^1.2.1:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/chardet/-/chardet-1.4.0.tgz#278748f260219990fb2167dbfb1b253ca26b41ea"
+  integrity sha512-NpwMDdSIprbYx1CLnfbxEIarI0Z+s9MssEgggMNheGM+WD68yOhV7IEA/3r6tr0yTRgQD0HuZJDw32s99i6L+A==
+
 "chokidar@>=3.0.0 <4.0.0", chokidar@^3.5.1:
   version "3.5.2"
   resolved "https://registry.npmjs.org/chokidar/-/chokidar-3.5.2.tgz"
@@ -2198,6 +2203,21 @@ ipaddr.js@1.9.1:
   version "1.9.1"
   resolved "https://registry.npmjs.org/ipaddr.js/-/ipaddr.js-1.9.1.tgz"
   integrity sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==
+
+irc-colors@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/irc-colors/-/irc-colors-1.5.0.tgz#08834c01ead88b0fd88386a5f2af8f2b0bb963fb"
+  integrity sha512-HtszKchBQTcqw1DC09uD7i7vvMayHGM1OCo6AHt5pkgZEyo99ClhHTMJdf+Ezc9ovuNNxcH89QfyclGthjZJOw==
+
+irc-upd@^0.11.0:
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/irc-upd/-/irc-upd-0.11.0.tgz#a1842b9b09962d1040a998baded491e366470027"
+  integrity sha512-A1hV5cUkl5HZsKWRYcszD2Usfz33hB8igSSox8dEmrMyfy8/Ra6T/o4jwzs7jYMZ7ljLquSIWzcvSZHZ/bEAZA==
+  dependencies:
+    irc-colors "^1.5.0"
+  optionalDependencies:
+    chardet "^1.2.1"
+    iconv-lite "^0.6.2"
 
 is-arrayish@^0.2.1:
   version "0.2.1"

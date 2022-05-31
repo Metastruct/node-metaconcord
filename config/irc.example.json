@@ -1,0 +1,13 @@
+{
+	"host": "irc.example.com",
+	"port": 6697,
+	"channels": ["#channel1", "channel2"],
+	"relayIRCChannel": "#channel",
+	"relayDiscordChannel": "",
+	"nick": "",
+	"username": "",
+	"realname": "",
+	"password": "",
+	"webhookId": "",
+	"webhookToken": ""
+}
