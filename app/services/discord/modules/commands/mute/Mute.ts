@@ -1,10 +1,4 @@
-import {
-	ApplicationCommandPermissionType,
-	CommandContext,
-	CommandOptionType,
-	SlashCommand,
-	SlashCreator,
-} from "slash-create";
+import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
 import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../../..";
 import { GuildAuditLogs, GuildMember, User } from "discord.js";
@@ -31,16 +25,7 @@ export class SlashMuteCommand extends SlashCommand {
 			name: "mute",
 			description: "Mutes an user.",
 			guildIDs: [bot.config.guildId],
-			defaultPermission: false,
-			permissions: {
-				[bot.config.guildId]: [
-					{
-						type: ApplicationCommandPermissionType.ROLE,
-						id: bot.config.developerRoleId,
-						permission: true,
-					},
-				],
-			},
+			requiredPermissions: ["MANAGE_ROLES"],
 			options: [
 				{
 					type: CommandOptionType.USER,
