@@ -12,6 +12,7 @@ export class Service {
 import DataProvider, { Data } from "./Data";
 import DiscordBotProvider, { DiscordBot } from "./discord";
 import GameBridgeProvider, { GameBridge } from "./gamebridge";
+import IRCProvider, { IRC } from "./IRC";
 // import MarkovProvider, { MarkovService } from "./Markov";
 import MotdProvider, { Motd } from "./motd";
 import SqlProvider, { Sql } from "./Sql";
@@ -31,8 +32,9 @@ export default [
 	MotdProvider,
 	TwitterProvider,
 	StarboardProvider,
+	IRCProvider,
 ]; // The order is important
-export { SqlProvider, Data, DiscordBot, GameBridge, Steam, WebApp, Motd, Twitter };
+export { SqlProvider, Data, DiscordBot, GameBridge, Steam, WebApp, Motd, Twitter, IRC };
 export type ServiceMap = {
 	[key: string]: Service;
 	Data?: Data;
@@ -45,4 +47,5 @@ export type ServiceMap = {
 	// Markov?: MarkovService;
 	Starboard?: Starboard;
 	Sql?: Sql;
+	IRC?: IRC;
 };
