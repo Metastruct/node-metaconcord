@@ -17,7 +17,6 @@ export class UIUnmuteCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
 			name: "Unmute User",
-			description: "Unmutes an user.",
 			type: ApplicationCommandType.USER,
 			guildIDs: [bot.config.guildId],
 			defaultPermission: false,
