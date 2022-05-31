@@ -10,7 +10,6 @@ export class UIWhyMuteCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
 			name: "Mute Reason",
-			description: "Prints the reason and duration for a muted user.",
 			guildIDs: [bot.config.guildId],
 			type: ApplicationCommandType.USER,
 		});

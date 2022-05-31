@@ -17,7 +17,6 @@ export class UIMuteCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
 			name: "Mute User",
-			description: "Mutes an user.",
 			type: ApplicationCommandType.USER,
 			guildIDs: [bot.config.guildId],
 			defaultPermission: false,
