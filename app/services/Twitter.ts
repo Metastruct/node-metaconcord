@@ -124,9 +124,9 @@ export class Twitter extends Service {
 	}
 
 	public async deleteLastIotd(): Promise<void> {
-		const res = await this.twit.v1.get("statuses/home_timeline.json");
-		if ((res.data as Array<TweetV1>).length === 0) return;
-		const statuses = res.data as Array<TweetV1>;
+		const paginator = await this.twit.v1.homeTimeline();
+		if (paginator.tweets.length === 0) return;
+		const statuses = paginator.tweets;
 		const lastIotd = statuses
 			.filter(
 				status =>
@@ -137,16 +137,14 @@ export class Twitter extends Service {
 			)[0];
 		if (!lastIotd) return;
 		const msgId = lastIotd.id_str;
-		await this.twit.v1.post("statuses/destroy/:id.json", { id: msgId });
+		await this.twit.v1.deleteTweet(msgId);
 	}
 
 	public async getStatusMediaURLs(url: string): Promise<Array<string>> {
 		try {
 			const matches = url.match(/[0-9]+$/);
 			const statusId = matches[0];
-			const res = await this.twit.v1.get("statuses/show.json", {
-				id: statusId,
-			});
+			const res = await this.twit.v1.singleTweet(statusId);
 
 			const status = res as { extended_entities: TweetExtendedEntitiesV1 };
 			if (!status.extended_entities.media) return [];
