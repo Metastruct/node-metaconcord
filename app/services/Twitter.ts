@@ -1,10 +1,10 @@
 import { Container } from "@/app/Container";
 import { Service } from ".";
+import { TweetExtendedEntitiesV1, TweetV1, TwitterApi } from "twitter-api-v2";
 import Filter from "bad-words";
 import axios from "axios";
 import config from "@/config/twitter.json";
 import jwt from "jsonwebtoken";
-import twit from "twit";
 
 const FOLLOWER_REFRESH_RATE = 600000; // 10 mins
 const RATE_LIMIT_REFRESH_RATE = 7200000; // 2 hours
@@ -13,49 +13,43 @@ const RANDOM_REPLY_PERC = 5 / 100;
 export class Twitter extends Service {
 	name = "Twitter";
 	filter = new Filter();
-	twit = new twit({
-		consumer_key: config.consumer_key,
-		consumer_secret: config.consumer_secret,
-		access_token: config.access_token,
-		access_token_secret: config.access_token_secret,
+	twit = new TwitterApi({
+		appKey: config.consumer_key,
+		appSecret: config.consumer_secret,
+		accessToken: config.access_token,
+		accessSecret: config.access_token_secret,
 	});
 	followerIds: Array<string> = [];
-	followerStream: twit.Stream;
+	//followerStream: twit.Stream;
 	tweetCount = 0;
 
 	constructor(container: Container) {
 		super(container);
-		this.refreshFollowers();
-		setInterval(this.refreshFollowers.bind(this), FOLLOWER_REFRESH_RATE);
-		setInterval(() => (this.tweetCount = 0), RATE_LIMIT_REFRESH_RATE);
+		// this.refreshFollowers();
+		// setInterval(this.refreshFollowers.bind(this), FOLLOWER_REFRESH_RATE);
+		// setInterval(() => (this.tweetCount = 0), RATE_LIMIT_REFRESH_RATE);
 	}
 
-	private refreshFollowers(): void {
-		this.twit.get(
-			"followers/ids",
-			{ screen_name: "metastruct" },
-			(err, res: { ids: Array<number> }) => {
-				if (err) {
-					console.error(err);
-					return;
-				}
+	// private async refreshFollowers() {
+	// 	const res = (await this.twit.get("followers/ids.json", {
+	// 		screen_name: "metastruct",
+	// 	})) as Array<number>;
+	// 	if (res) {
+	// 		this.followerIds = res.map(id => id.toString());
+	// 		// this.initializeFollowerStream();
+	// 	}
+	// }
 
-				this.followerIds = res.ids.map(id => id.toString());
-				// this.initializeFollowerStream();
-			}
-		);
-	}
+	// private canReply(data: TweetV1): boolean {
+	// 	if (data.user.protected) return false; // don't reply to users that are "protected"
+	// 	if (data.user.id_str === config.id) return false; // don't answer yourself :v
 
-	private canReply(data: twit.Twitter.Status): boolean {
-		if (data.user.protected) return false; // don't reply to users that are "protected"
-		if (data.user.id_str === config.id) return false; // don't answer yourself :v
+	// 	// make sure we don't reply to retweets of our own stuff
+	// 	if (data.retweeted && data.retweeted_status?.user?.id_str === config.id) return false;
+	// 	if (data.is_quote_status && data.quoted_status?.user?.id_str === config.id) return false;
 
-		// make sure we don't reply to retweets of our own stuff
-		if (data.retweeted && data.retweeted_status?.user?.id_str === config.id) return false;
-		if (data.is_quote_status && data.quoted_status?.user?.id_str === config.id) return false;
-
-		return true;
-	}
+	// 	return true;
+	// }
 
 	// private initializeFollowerStream(): void {
 	// 	this.followerStream?.stop(); // just in case it already exists
@@ -130,9 +124,9 @@ export class Twitter extends Service {
 	}
 
 	public async deleteLastIotd(): Promise<void> {
-		const res = await this.twit.get("statuses/home_timeline");
-		if ((res.data as Array<twit.Twitter.Status>).length === 0) return;
-		const statuses = res.data as Array<twit.Twitter.Status>;
+		const res = await this.twit.get("statuses/home_timeline.json");
+		if ((res.data as Array<TweetV1>).length === 0) return;
+		const statuses = res.data as Array<TweetV1>;
 		const lastIotd = statuses
 			.filter(
 				status =>
@@ -143,21 +137,21 @@ export class Twitter extends Service {
 			)[0];
 		if (!lastIotd) return;
 		const msgId = lastIotd.id_str;
-		await this.twit.post("statuses/destroy/:id", { id: msgId });
+		await this.twit.post("statuses/destroy/:id.json", { id: msgId });
 	}
 
 	public async getStatusMediaURLs(url: string): Promise<Array<string>> {
 		try {
 			const matches = url.match(/[0-9]+$/);
 			const statusId = matches[0];
-			const res = await this.twit.get("statuses/show", {
+			const res = await this.twit.get("statuses/show.json", {
 				id: statusId,
 				tweet_mode: "extended",
 			});
 
 			if (res.resp.statusCode !== 200) return [];
 
-			const status = res.data as { extended_entities: twit.Twitter.Entities };
+			const status = res.data as { extended_entities: TweetExtendedEntitiesV1 };
 			if (!status.extended_entities.media) return [];
 
 			return status.extended_entities.media
