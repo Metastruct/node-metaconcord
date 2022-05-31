@@ -24,7 +24,6 @@ export class Steam extends Service {
 		if (!userCache.summary) {
 			userCache.summary = await this.steam.getUserSummary(steamId64).catch(err => {
 				err.message += ` - ${steamId64}`;
-				console.error(err);
 			});
 		}
 		return userCache.summary;
@@ -42,15 +41,14 @@ export class Steam extends Service {
 					`https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1`,
 					qs.stringify(query)
 				)
-				.catch(err => {
-					//console.error(err); // I swear no one cares
+				.catch(() => {
 					return { data: { response: {} } };
 				})
 		).data.response;
 	}
 
 	async getUserAvatar(steamId64: string): Promise<any> {
-		return (await this.getUserSummaries(steamId64).catch(console.error))?.avatar?.large;
+		return (await this.getUserSummaries(steamId64).catch())?.avatar?.large;
 	}
 
 	private getUserCache(steamId64: string): UserCache {
