@@ -47,6 +47,11 @@ export class IRC extends Service {
 			})
 			.catch(console.error);
 	}
+
+	private relayIRC(text: string): void {
+		this.client.say(config.relayIRCChannel, `\u000314[Discord]\u000f ${text}`);
+	}
+
 	constructor(container: Container) {
 		super(container);
 		const bot = this.container.getService("DiscordBot");
@@ -84,9 +89,6 @@ export class IRC extends Service {
 		);
 
 		this.client.on("error", msg => console.error(msg));
-	}
-	private relayIRC(text: string): void {
-		this.client.say(config.relayIRCChannel, `\u000314[Discord]\u000f ${text}`);
 	}
 }
 
