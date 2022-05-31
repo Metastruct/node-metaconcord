@@ -124,7 +124,7 @@ export class Twitter extends Service {
 	}
 
 	public async deleteLastIotd(): Promise<void> {
-		const res = await this.twit.get("statuses/home_timeline.json");
+		const res = await this.twit.v1.get("statuses/home_timeline.json");
 		if ((res.data as Array<TweetV1>).length === 0) return;
 		const statuses = res.data as Array<TweetV1>;
 		const lastIotd = statuses
@@ -137,21 +137,18 @@ export class Twitter extends Service {
 			)[0];
 		if (!lastIotd) return;
 		const msgId = lastIotd.id_str;
-		await this.twit.post("statuses/destroy/:id.json", { id: msgId });
+		await this.twit.v1.post("statuses/destroy/:id.json", { id: msgId });
 	}
 
 	public async getStatusMediaURLs(url: string): Promise<Array<string>> {
 		try {
 			const matches = url.match(/[0-9]+$/);
 			const statusId = matches[0];
-			const res = await this.twit.get("statuses/show.json", {
+			const res = await this.twit.v1.get("statuses/show.json", {
 				id: statusId,
-				tweet_mode: "extended",
 			});
 
-			if (res.resp.statusCode !== 200) return [];
-
-			const status = res.data as { extended_entities: TweetExtendedEntitiesV1 };
+			const status = res as { extended_entities: TweetExtendedEntitiesV1 };
 			if (!status.extended_entities.media) return [];
 
 			return status.extended_entities.media
@@ -174,7 +171,8 @@ export class Twitter extends Service {
 
 					return media.media_url_https;
 				});
-		} catch {
+		} catch (err) {
+			console.error(err);
 			return [];
 		}
 	}
