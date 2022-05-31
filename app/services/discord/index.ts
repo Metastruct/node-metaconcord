@@ -133,7 +133,9 @@ export class DiscordBot extends Service {
 	// how the fuck do I type this
 	async fetchPartial(obj): Promise<any> {
 		if (obj.partial) {
-			return await obj.fetch();
+			try {
+				return await obj.fetch();
+			} catch {}
 		}
 		return obj;
 	}
