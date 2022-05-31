@@ -1,10 +1,4 @@
-import {
-	ApplicationCommandPermissionType,
-	ApplicationCommandType,
-	CommandContext,
-	SlashCommand,
-	SlashCreator,
-} from "slash-create";
+import { ApplicationCommandType, CommandContext, SlashCommand, SlashCreator } from "slash-create";
 import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../../..";
 import { EphemeralResponse } from "..";
@@ -19,16 +13,7 @@ export class UIUnmuteCommand extends SlashCommand {
 			name: "Unmute User",
 			type: ApplicationCommandType.USER,
 			guildIDs: [bot.config.guildId],
-			defaultPermission: false,
-			permissions: {
-				[bot.config.guildId]: [
-					{
-						type: ApplicationCommandPermissionType.ROLE,
-						id: bot.config.developerRoleId,
-						permission: true,
-					},
-				],
-			},
+			requiredPermissions: ["MANAGE_ROLES"],
 		});
 
 		this.filePath = __filename;

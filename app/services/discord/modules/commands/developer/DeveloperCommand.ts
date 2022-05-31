@@ -1,5 +1,4 @@
 import {
-	ApplicationCommandPermissionType,
 	CommandContext,
 	SlashCommand,
 	SlashCommandOptions,
@@ -18,18 +17,9 @@ export class SlashDeveloperCommand extends SlashCommand {
 			description: opts.description,
 			deferEphemeral: opts.deferEphemeral,
 			guildIDs: [bot.config.guildId],
-			defaultPermission: false,
-			permissions: {
-				[bot.config.guildId]: [
-					{
-						type: ApplicationCommandPermissionType.ROLE,
-						id: bot.config.developerRoleId,
-						permission: true,
-					},
-				],
-			},
+			forcePermissions: true,
 			options: opts.options,
-			requiredPermissions: opts.requiredPermissions,
+			requiredPermissions: ["MANAGE_ROLES"],
 			throttling: opts.throttling,
 			unknown: opts.unknown,
 		});
