@@ -1,6 +1,6 @@
+import { ApiResponseError, TweetExtendedEntitiesV1, TweetV1, TwitterApi } from "twitter-api-v2";
 import { Container } from "@/app/Container";
 import { Service } from ".";
-import { TweetExtendedEntitiesV1, TweetV1, TwitterApi } from "twitter-api-v2";
 import Filter from "bad-words";
 import axios from "axios";
 import config from "@/config/twitter.json";
@@ -144,7 +144,17 @@ export class Twitter extends Service {
 		try {
 			const matches = url.match(/[0-9]+$/);
 			const statusId = matches[0];
-			const res = await this.twit.v1.singleTweet(statusId);
+			let res: TweetV1;
+			try {
+				res = await this.twit.v1.singleTweet(statusId);
+			} catch (err) {
+				if (err instanceof ApiResponseError && err.code !== 403) {
+					console.error(err);
+				}
+				return [];
+			}
+
+			if (!res) return [];
 
 			const status = res as { extended_entities: TweetExtendedEntitiesV1 };
 			if (!status.extended_entities.media) return [];
