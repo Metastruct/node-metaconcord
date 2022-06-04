@@ -130,7 +130,8 @@ export class Twitter extends Service {
 		const lastIotd = statuses
 			.filter(
 				status =>
-					status.user.id_str === config.id && status.text.includes("Image of the day")
+					status.user.id_str === config.id &&
+					status.full_text.includes("Image of the day")
 			)
 			.sort((a, b) =>
 				a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : 0
