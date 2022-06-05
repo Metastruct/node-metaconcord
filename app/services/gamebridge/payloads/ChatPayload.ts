@@ -25,7 +25,7 @@ export default class ChatPayload extends Payload {
 			token: bridge.config.chatWebhookToken,
 		});
 
-		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
+		const avatar = await bridge.container.getService("Steam")?.getUserAvatar(player.steamId64);
 
 		const matches = content.matchAll(/@(\S*)/g);
 
@@ -43,9 +43,11 @@ export default class ChatPayload extends Payload {
 		content = content.substring(0, 2000);
 
 		const motd = bridge.container.getService("Motd");
-		if (motd.isValidMsg(content)) {
+		if (motd?.isValidMsg(content)) {
 			motd.pushMessage(content);
-			// bridge.container.getService("Markov").addLine(content);
+			bridge.container
+				.getService("Markov")
+				?.learn({ authorName: payload.name, message: content });
 		}
 
 		await webhook

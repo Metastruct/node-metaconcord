@@ -42,8 +42,8 @@ export class SlashSqlCommand extends SlashDeveloperCommand {
 			switch (ctx.options.target) {
 				case "metaconcord":
 					const sql = this.bot.container.getService("Sql");
-					const db = await sql.getDatabase();
-					const res = await db.all(ctx.options.query);
+					const db = await sql?.getDatabase();
+					const res = await db?.all(ctx.options.query);
 
 					await ctx.send({
 						content: "Results:",

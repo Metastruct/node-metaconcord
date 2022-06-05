@@ -30,10 +30,10 @@ export class SlashDeveloperCommand extends SlashCommand {
 
 	private async isAllowed(user: User): Promise<boolean> {
 		try {
-			const guild = await this.bot.discord.guilds.resolve(this.bot.config.guildId)?.fetch();
+			const guild = await this.bot.discord.guilds.fetch(this.bot.config.guildId);
 			if (!guild) return false;
 
-			const member = await guild.members.resolve(user.id)?.fetch();
+			const member = await guild.members.fetch(user.id);
 			if (!member) return false;
 
 			return member.roles.cache.has(this.bot.config.developerRoleId);

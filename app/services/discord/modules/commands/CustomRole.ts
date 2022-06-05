@@ -199,15 +199,17 @@ export class SlashCustomRoleCommand extends SlashCommand {
 		return EphemeralResponse("that doesn't seem to be a vaild emoji 🤔");
 	}
 
-	async hasRole(ctx: CommandContext): Promise<Discord.Role> {
+	async hasRole(ctx: CommandContext): Promise<Discord.Role | undefined> {
+		if (!ctx.guildID) return;
 		const guild = await this.bot.discord.guilds.fetch(ctx.guildID);
-		const member = await guild.members.fetch(ctx.member.id);
+		const member = await guild.members.fetch(ctx.user.id);
 		return member.roles.cache.find(r => r.name.endsWith(ROLE_IDENTIFIER));
 	}
 
 	async removeRole(ctx: CommandContext): Promise<any> {
+		if (!ctx.guildID) return;
 		const guild = await this.bot.discord.guilds.fetch(ctx.guildID);
-		const member = await guild.members.fetch(ctx.member.id);
+		const member = await guild.members.fetch(ctx.user.id);
 		const role = await this.hasRole(ctx);
 		if (role) {
 			await member.roles.remove(role, "Removed role via command");
@@ -231,13 +233,14 @@ export class SlashCustomRoleCommand extends SlashCommand {
 			? [parseInt(r), parseInt(g), parseInt(b)]
 			: ctx.options.add_hex?.hex;
 
+		if (!ctx.guildID) return;
 		const guild = await this.bot.discord.guilds.fetch(ctx.guildID);
 		if (!guild) {
 			return EphemeralResponse("Not in a guild");
 		}
 
 		const roles = guild.roles;
-		const member = await guild.members.fetch(ctx.member.id);
+		const member = await guild.members.fetch(ctx.user.id);
 		let targetRole = roles.cache.find(r => r.name === roleName);
 		if (!targetRole) {
 			// if we have an another existing role, remove it

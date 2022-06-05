@@ -6,10 +6,10 @@ import axios from "axios";
 import config from "@/config/twitter.json";
 import jwt from "jsonwebtoken";
 
-const FOLLOWER_REFRESH_RATE = 600000; // 10 mins
-const RATE_LIMIT_REFRESH_RATE = 7200000; // 2 hours
-const TWEET_COUNT_LIMIT = 100;
-const RANDOM_REPLY_PERC = 5 / 100;
+// const FOLLOWER_REFRESH_RATE = 600000; // 10 mins
+// const RATE_LIMIT_REFRESH_RATE = 7200000; // 2 hours
+// const TWEET_COUNT_LIMIT = 100;
+// const RANDOM_REPLY_PERC = 5 / 100;
 export class Twitter extends Service {
 	name = "Twitter";
 	filter = new Filter();
@@ -131,7 +131,7 @@ export class Twitter extends Service {
 			.filter(
 				status =>
 					status.user.id_str === config.id &&
-					status.full_text.includes("Image of the day")
+					status.full_text?.includes("Image of the day")
 			)
 			.sort((a, b) =>
 				a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : 0
@@ -144,6 +144,7 @@ export class Twitter extends Service {
 	public async getStatusMediaURLs(url: string): Promise<Array<string>> {
 		try {
 			const matches = url.match(/[0-9]+$/);
+			if (!matches) return [];
 			const statusId = matches[0];
 			let res: TweetV1;
 			try {

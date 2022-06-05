@@ -49,6 +49,7 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 
 	public async runProtected(ctx: CommandContext): Promise<any> {
 		const bridge = this.bot.container.getService("GameBridge");
+		if (!bridge) return;
 		const server = ctx.options.server as number;
 		const reason = ctx.options.reason ?? "byebye!!!";
 		const code =

@@ -23,7 +23,9 @@ export default class GameBridge extends Service {
 	constructor(container: Container) {
 		super(container);
 
-		this.webApp = container.getService("WebApp");
+		const webApp = container.getService("WebApp");
+		if (!webApp) return;
+		this.webApp = webApp;
 		this.ws = new WebSocketServer({
 			httpServer: this.webApp.http,
 			autoAcceptConnections: false,
@@ -48,7 +50,7 @@ export default class GameBridge extends Service {
 			}
 		}
 
-		let serverConfig: GameServerConfig;
+		let serverConfig: GameServerConfig | undefined;
 		for (const config of servers) {
 			if (ip === config.ip) {
 				serverConfig = config;

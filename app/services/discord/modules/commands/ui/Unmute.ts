@@ -18,12 +18,15 @@ export class UIUnmuteCommand extends SlashCommand {
 
 		this.filePath = __filename;
 		this.bot = bot;
-		this.data = this.bot.container.getService("Data");
+		const data = this.bot.container.getService("Data");
+		if (!data) return;
+		this.data = data;
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer(true);
 		const userId = ctx.targetID;
+		if (!userId) return;
 
 		const { config } = this.bot;
 		let { muted } = this.data;
@@ -32,7 +35,7 @@ export class UIUnmuteCommand extends SlashCommand {
 		delete muted[userId];
 		await this.data.save();
 
-		const guild = this.bot.discord.guilds.cache.get(ctx.guildID);
+		const guild = this.bot.discord.guilds.cache.get(ctx.guildID ?? this.bot.config.guildId);
 		if (guild) {
 			let member: GuildMember;
 			try {

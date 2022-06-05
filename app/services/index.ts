@@ -13,7 +13,7 @@ import DataProvider, { Data } from "./Data";
 import DiscordBotProvider, { DiscordBot } from "./discord";
 import GameBridgeProvider, { GameBridge } from "./gamebridge";
 import IRCProvider, { IRC } from "./IRC";
-// import MarkovProvider, { MarkovService } from "./Markov";
+import MarkovProvider, { MarkovService } from "./Markov";
 import MotdProvider, { Motd } from "./motd";
 import SqlProvider, { Sql } from "./Sql";
 import StarboardProvider, { Starboard } from "./Starboard";
@@ -23,7 +23,7 @@ import WebAppProvider, { WebApp } from "./webapp";
 
 export default [
 	SqlProvider,
-	// MarkovProvider,
+	MarkovProvider,
 	SteamProvider,
 	DataProvider,
 	DiscordBotProvider,
@@ -36,7 +36,7 @@ export default [
 ]; // The order is important
 export { SqlProvider, Data, DiscordBot, GameBridge, Steam, WebApp, Motd, Twitter, IRC };
 export type ServiceMap = {
-	[key: string]: Service;
+	[key: string]: Service | undefined;
 	Data?: Data;
 	DiscordBot?: DiscordBot;
 	GameBridge?: GameBridge;
@@ -44,7 +44,7 @@ export type ServiceMap = {
 	WebApp?: WebApp;
 	Motd?: Motd;
 	Twitter?: Twitter;
-	// Markov?: MarkovService;
+	Markov?: MarkovService;
 	Starboard?: Starboard;
 	Sql?: Sql;
 	IRC?: IRC;

@@ -24,18 +24,18 @@ export default class BanPayload extends Payload {
 		if (!notificationsChannel) return;
 
 		const steam = bridge.container.getService("Steam");
-		let steamId64 = undefined;
+		let steamId64 = "";
 		let bannerName = "";
 		let avatar = undefined;
 		try {
 			steamId64 = new SteamID(player.steamId).getSteamID64();
-			avatar = await steam.getUserAvatar(steamId64);
+			avatar = await steam?.getUserAvatar(steamId64);
 		} catch {
 			bannerName = player.steamId;
 		}
 
 		const bannedSteamId64 = new SteamID(banned.steamId).getSteamID64();
-		const bannedAvatar = await steam.getUserAvatar(bannedSteamId64);
+		const bannedAvatar = await steam?.getUserAvatar(bannedSteamId64);
 		const unixTime = parseInt(unbanTime);
 		if (!unixTime || isNaN(unixTime))
 			throw new Error(`Unban time is not a number? Supplied time: ${unbanTime}`);

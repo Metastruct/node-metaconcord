@@ -1,7 +1,9 @@
 import { WebApp } from "..";
 
 export default (webApp: WebApp): void => {
-	const { discord, config } = webApp.container.getService("DiscordBot");
+	const bot = webApp.container.getService("DiscordBot");
+	if (!bot) return;
+	const { discord, config } = bot;
 
 	webApp.app.get("/discord/guild/emojis", async (_, res) => {
 		if (!discord.readyAt)

@@ -56,10 +56,11 @@ export class SlashWhyBanCommand extends SlashCommand {
 		this.lastUpdate = Date.now();
 	}
 
-	async getBan(steamid: string): Promise<MetaBan> {
+	async getBan(steamid: string): Promise<MetaBan | undefined> {
 		if (Date.now() - this.lastUpdate > 5 * 60 * 1000) await this.updateCache();
 		const cached = this.banCache.find(ban => ban.sid === steamid);
 		if (cached) return cached;
+		return undefined;
 	}
 
 	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[]> {

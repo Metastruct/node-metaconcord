@@ -44,6 +44,7 @@ export class SlashRefreshLuaCommand extends SlashDeveloperCommand {
 
 	public async runProtected(ctx: CommandContext): Promise<any> {
 		const bridge = this.bot.container.getService("GameBridge");
+		if (!bridge) return;
 		const code = `if not RefreshLua then return false, "Couldn't refresh file" end return RefreshLua([[${ctx.options.filepath}]])`;
 		const server = ctx.options.server as number;
 

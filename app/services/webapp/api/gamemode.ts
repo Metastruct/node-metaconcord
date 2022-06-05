@@ -38,7 +38,7 @@ export default (webApp: WebApp): void => {
 		});
 
 		const failed = output.includes("GSERV FAILED");
-		if (failed) {
+		if (failed && bot) {
 			const guild = await bot.discord.guilds.resolve(bot.config.guildId)?.fetch();
 			if (guild) {
 				const channel = await guild.channels

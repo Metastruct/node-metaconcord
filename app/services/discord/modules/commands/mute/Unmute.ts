@@ -26,7 +26,9 @@ export class SlashUnmuteCommand extends SlashCommand {
 
 		this.filePath = __filename;
 		this.bot = bot;
-		this.data = this.bot.container.getService("Data");
+		const data = this.bot.container.getService("Data");
+		if (!data) return;
+		this.data = data;
 	}
 
 	async run(ctx: CommandContext): Promise<any> {

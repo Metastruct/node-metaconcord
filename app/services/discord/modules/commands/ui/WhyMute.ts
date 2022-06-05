@@ -1,11 +1,12 @@
 import { ApplicationCommandType, CommandContext, SlashCommand, SlashCreator } from "slash-create";
-import { DiscordBot } from "@/app/services";
+import { Data, DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 export class UIWhyMuteCommand extends SlashCommand {
 	private bot: DiscordBot;
+	private data: Data;
 
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
@@ -16,16 +17,19 @@ export class UIWhyMuteCommand extends SlashCommand {
 
 		this.filePath = __filename;
 		this.bot = bot;
+		const data = this.bot.container.getService("Data");
+		if (!data) return;
+		this.data = data;
 		dayjs.extend(relativeTime);
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer(true);
 		const userId = (ctx.targetID ?? ctx.user.id).toString();
-		const { muted } = this.bot.container.getService("Data");
+		const { muted } = this.data;
 		if (muted && muted[userId]) {
 			const { at, until, reason, muter } = muted[userId];
-			const guild = this.bot.discord.guilds.cache.get(ctx.guildID);
+			const guild = this.bot.discord.guilds.cache.get(ctx.guildID ?? this.bot.config.guildId);
 			if (guild) {
 				const content =
 					(ctx.user.id == userId ? `you remain muted` : `<@${userId}> remains muted`) +

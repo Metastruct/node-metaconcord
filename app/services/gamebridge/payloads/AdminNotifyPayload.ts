@@ -30,8 +30,8 @@ export default class AdminNotifyPayload extends Payload {
 		const steamId64 = new SteamID(player.steamId).getSteamID64();
 		const reportedSteamId64 = new SteamID(reported.steamId).getSteamID64();
 		const steam = bridge.container.getService("Steam");
-		const avatar = await steam.getUserAvatar(steamId64);
-		const reportedAvatar = await steam.getUserAvatar(reportedSteamId64);
+		const avatar = await steam?.getUserAvatar(steamId64);
+		const reportedAvatar = await steam?.getUserAvatar(reportedSteamId64);
 		if (message.trim().length < 1) message = "No message provided..?";
 
 		const embed = new Discord.MessageEmbed()

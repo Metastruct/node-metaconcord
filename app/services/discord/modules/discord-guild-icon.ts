@@ -26,7 +26,7 @@ const events = [
 		range: ["01/01", "03/01"], // We do a little cheating
 	},
 ];
-const iconsPath = join(require.main.path, "resources/discord-guild-icons");
+const iconsPath = join(require.main?.path ?? ".", "resources/discord-guild-icons");
 const defaultIconPath = join(iconsPath, "default.png");
 
 const fileExists = async filePath =>
@@ -36,6 +36,7 @@ const fileExists = async filePath =>
 
 export default (bot: DiscordBot): void => {
 	const data = bot.container.getService("Data");
+	if (!data) return;
 
 	bot.discord.on("ready", async () => {
 		const guild = await bot.discord.guilds.fetch(bot.config.guildId);

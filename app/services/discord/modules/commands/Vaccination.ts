@@ -24,10 +24,10 @@ export class SlashVaccinatedCommand extends SlashCommand {
 	}
 
 	async addRole(ctx: CommandContext): Promise<string> {
-		const guild = await this.bot.discord.guilds.resolve(ctx.guildID)?.fetch();
-		if (!guild) return;
+		const guild = await this.bot.discord.guilds.fetch(ctx.guildID ?? this.bot.config.guildId);
+		if (!guild) return "Something went wrong! Try again...";
 
-		const member = await guild.members.fetch(ctx.member.id);
+		const member = await guild.members.fetch(ctx.user.id);
 
 		if (member.roles.cache.get(VACCINATION_ROLE)) {
 			return "You are already vaccinated!";

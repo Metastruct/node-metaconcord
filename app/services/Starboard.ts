@@ -1,6 +1,7 @@
 import { Container } from "../Container";
 import { MessageReaction } from "discord.js";
 import { Service } from ".";
+import { Sql } from "./Sql";
 import { TextChannel } from "discord.js";
 import Discord from "discord.js";
 import config from "@/config/starboard.json";
@@ -14,11 +15,17 @@ const WHC = new Discord.WebhookClient(
 export class Starboard extends Service {
 	name = "Starboard";
 	private isPosting = false;
+	private sql: Sql | undefined;
+
+	constructor(container: Container) {
+		super(container);
+		this.sql = this.container.getService("Sql");
+	}
 
 	private async isMsgStarred(msgId: string): Promise<boolean> {
-		const sql = this.container.getService("Sql");
-		const db = await sql.getDatabase();
-		if (!(await sql.tableExists("starboard"))) {
+		if (!this.sql) return true;
+		const db = await this.sql.getDatabase();
+		if (!(await this.sql.tableExists("starboard"))) {
 			await db.exec(`CREATE TABLE starboard (MessageId VARCHAR(1000));`);
 		}
 
@@ -27,18 +34,22 @@ export class Starboard extends Service {
 	}
 
 	private async starMsg(msgId: string): Promise<void> {
-		const sql = this.container.getService("Sql");
-		const db = await sql.getDatabase();
+		if (!this.sql) return;
+		const db = await this.sql.getDatabase();
 		await db.run("INSERT INTO starboard(MessageId) VALUES(?)", msgId);
 	}
 
 	public async handleReactionAdded(reaction: MessageReaction): Promise<void> {
 		if (reaction.emoji.id === config.emoteId) {
-			const ego = reaction.users.cache.has(reaction.message.author.id);
+			let ego = false;
+			if (reaction.message.author) {
+				ego = reaction.users.cache.has(reaction.message.author?.id);
+			}
 			const count = ego ? reaction.count - 1 : reaction.count;
 			if (count >= AMOUNT && !this.isPosting) {
 				const client = reaction.client;
 				const msg = await reaction.message.fetch();
+				if (!msg) return;
 
 				// don't loop
 				if (msg.channel.id === config.channelId) return;
@@ -51,24 +62,25 @@ export class Starboard extends Service {
 
 				let text = "";
 				const reference = msg.reference;
-				if (reference) {
-					const refMsg = await(
+				if (reference && reference.messageId) {
+					const refMsg = await (
 						client.channels.cache.get(reference.channelId) as TextChannel
 					).messages.fetch(reference.messageId);
+
 					text += `${
 						reference ? `[replying to ${refMsg.author.username}](${refMsg.url})\n` : ""
 					}`;
 				}
 
 				text += msg.content;
-				text += msg.attachments.size > 0 ? "\n" + msg.attachments.first().url : "";
-				text += msg.stickers.size > 0 ? msg.stickers.first().url : "";
+				text += msg.attachments.size > 0 ? "\n" + msg.attachments.first()?.url : "";
+				text += msg.stickers.size > 0 ? msg.stickers.first()?.url : "";
 
 				if (text === "") return;
 				this.isPosting = true;
 				await WHC.send({
 					content: text,
-					avatarURL: msg.author.avatarURL(),
+					avatarURL: msg.author.avatarURL() ?? "",
 					username: `${msg.author.username}`,
 				});
 				await this.starMsg(msg.id);
