@@ -10,6 +10,13 @@ export class SlashMarkovCommand extends SlashCommand {
 			name: "mk",
 			description: "Funny text generation based off the gmod and discord chats.",
 			guildIDs: [bot.config.guildId],
+			options: [
+				{
+					name: "sentence",
+					description: "sentence to use",
+					type: CommandOptionType.STRING,
+				},
+			],
 		});
 		this.filePath = __filename;
 		this.bot = bot;
@@ -21,7 +28,7 @@ export class SlashMarkovCommand extends SlashCommand {
 	async run(ctx: CommandContext): Promise<void> {
 		await ctx.defer();
 		try {
-			const res = await this.markov.generate();
+			const res = await this.markov.generate(ctx.options.sentence);
 			await ctx.send(res);
 		} catch (err) {
 			await ctx.delete();
