@@ -147,7 +147,7 @@ export class Twitter extends Service {
 			const statusId = matches[0];
 			let res: TweetV1;
 			try {
-				res = await this.twit.v1.singleTweet(statusId);
+				res = await this.twit.v1.singleTweet(statusId, { tweet_mode: "extended" });
 			} catch (err) {
 				if (err instanceof ApiResponseError && err.code !== 403) {
 					console.error(err);
