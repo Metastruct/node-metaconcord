@@ -47,7 +47,7 @@ export default class ChatPayload extends Payload {
 			motd.pushMessage(content);
 			bridge.container
 				.getService("Markov")
-				?.learn({ authorName: payload.name, message: content });
+				?.learn({ authorName: payload.data.player.nick, message: content });
 		}
 
 		await webhook
