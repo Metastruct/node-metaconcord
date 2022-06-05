@@ -65,8 +65,16 @@ export default (bot: DiscordBot): void => {
 			.setColor(YELLOW_COLOR)
 			.addField("Channel", `<#${oldMsg.channel.id}>`)
 			.addField("Mention", oldMsg.author?.mention ?? "???")
-			.addField("New Message", newMsg.content?.substring(0, EMBED_FIELD_LIMIT) ?? "???", true)
-			.addField("Old Message", oldMsg.content?.substring(0, EMBED_FIELD_LIMIT) ?? "???", true)
+			.addField(
+				"New Message",
+				newMsg.content ? newMsg.content.substring(0, EMBED_FIELD_LIMIT) : "???",
+				true
+			)
+			.addField(
+				"Old Message",
+				oldMsg.content ? oldMsg.content.substring(0, EMBED_FIELD_LIMIT) : "???",
+				true
+			)
 			.setFooter({ text: "Message Edited" })
 			.setTimestamp(newMsg.editedTimestamp);
 		await logChannel.send({ embeds: [embed] });
