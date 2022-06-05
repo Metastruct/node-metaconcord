@@ -9,7 +9,7 @@ export default class DiscordClient extends Discord.Client {
 	gameServer: GameServer;
 	config = config;
 
-	constructor(gameServer: GameServer, options?: Discord.ClientOptions) {
+	constructor(gameServer: GameServer, options: Discord.ClientOptions) {
 		super(options);
 
 		this.gameServer = gameServer;
@@ -32,7 +32,7 @@ export default class DiscordClient extends Discord.Client {
 				/<#([\d]+)>/g,
 				(_, id) =>
 					`#${
-						ctx.guild.channels.cache.has(id)
+						ctx.guild?.channels.cache.has(id)
 							? (ctx.guild.channels.cache.get(id) as TextChannel).name
 							: "(uncached channel)"
 					}`
@@ -41,7 +41,7 @@ export default class DiscordClient extends Discord.Client {
 				/<@!?(\d+)>/g,
 				(_, id) =>
 					`@${
-						ctx.guild.members.cache.has(id)
+						ctx.guild?.members.cache.has(id)
 							? (ctx.guild.members.cache.get(id) as GuildMember).displayName
 							: "(uncached user)"
 					}`
@@ -49,14 +49,14 @@ export default class DiscordClient extends Discord.Client {
 			for (const [, attachment] of ctx.attachments) {
 				content += "\n" + attachment.url;
 			}
-			let reply: Discord.Message;
+			let reply: Discord.Message | undefined;
 			if (ctx.reference) {
 				reply = await ctx.fetchReference();
 			}
 
 			let nickname = ctx.author.username;
 			try {
-				const author = await ctx.guild.members.fetch(ctx.author.id);
+				const author = await ctx.guild?.members.fetch(ctx.author.id);
 				if (author && author.nickname && author.nickname.length > 0) {
 					nickname = author.nickname;
 				}
@@ -68,7 +68,7 @@ export default class DiscordClient extends Discord.Client {
 				user: {
 					id: ctx.author.id,
 					nick: nickname,
-					color: ctx.member.displayColor,
+					color: ctx.member?.displayColor ?? 0,
 					avatar_url: avatar ?? ctx.author.defaultAvatarURL,
 				},
 				msgID: ctx.id,
@@ -104,7 +104,7 @@ export default class DiscordClient extends Discord.Client {
 				);
 
 				if (res.data.returns[0] !== "false") {
-					const summary = await steam.getUserSummaries(interactionId64);
+					const summary = await steam?.getUserSummaries(interactionId64);
 					await interactionCtx.editReply({
 						content: `${interactionCtx.user.mention} kicked player \`${summary.nickname}\``,
 					});

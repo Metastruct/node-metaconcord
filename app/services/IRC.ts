@@ -56,6 +56,7 @@ export class IRC extends Service {
 		super(container);
 		const bot = this.container.getService("DiscordBot");
 
+		if (!bot) return;
 		// discord
 		bot.discord.on("messageCreate", async msg => {
 			if (msg.channelId === config.relayDiscordChannel) {
@@ -66,13 +67,14 @@ export class IRC extends Service {
 				for (const [, attachment] of msg.attachments) {
 					content += "\n" + attachment.url;
 				}
-				let reply: Discord.Message;
+				let repliedUser;
 				if (msg.reference) {
-					reply = await msg.fetchReference();
+					const ref = await msg.fetchReference();
+					repliedUser = ref.author.username;
 				}
 				this.relayIRC(
 					`\u000312${msg.author.username}${
-						msg.reference ? ` (replying to ${reply.author.username})` : ""
+						msg.reference ? ` (replying to ${repliedUser})` : ""
 					}\u000f: ${content}`
 				);
 			}

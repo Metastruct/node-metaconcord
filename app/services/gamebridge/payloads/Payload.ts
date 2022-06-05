@@ -10,7 +10,7 @@ export default abstract class Payload {
 	protected static isInvalid(
 		schema: Record<string, unknown>,
 		payload: PayloadRequest | unknown
-	): Ajv.ErrorObject[] {
+	): any {
 		const ajv = new Ajv();
 		const validate = ajv.compile(schema);
 		if (!validate(payload)) {

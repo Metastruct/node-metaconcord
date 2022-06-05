@@ -18,7 +18,9 @@ export class UIMuteCommand extends SlashCommand {
 
 		this.filePath = __filename;
 		this.bot = bot;
-		this.data = this.bot.container.getService("Data");
+		const data = this.bot.container.getService("Data");
+		if (!data) return;
+		this.data = data;
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
@@ -26,6 +28,7 @@ export class UIMuteCommand extends SlashCommand {
 		const { discord, config } = this.bot;
 		let { muted } = this.data;
 		const userId = ctx.targetID;
+		if (!userId) return;
 		const now = Date.now();
 
 		if (!muted) muted = this.data.muted = {};
@@ -33,6 +36,7 @@ export class UIMuteCommand extends SlashCommand {
 		await this.data.save();
 
 		const guild = discord.guilds.cache.get(this.bot.config.guildId);
+		if (!guild) return;
 		let member: GuildMember;
 		try {
 			member = await guild.members.fetch(userId);

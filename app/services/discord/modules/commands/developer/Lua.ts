@@ -64,6 +64,7 @@ export class SlashLuaCommand extends SlashDeveloperCommand {
 
 	public async runProtected(ctx: CommandContext): Promise<any> {
 		const bridge = this.bot.container.getService("GameBridge");
+		if (!bridge) return;
 		const code = ctx.options.code.replace("```", "") as string;
 		const server = ctx.options.server as number;
 		const realm = (ctx.options.realm ?? "sv") as string;

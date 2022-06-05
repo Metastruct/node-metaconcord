@@ -1,18 +1,19 @@
-import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
+import {
+	AutocompleteChoice,
+	AutocompleteContext,
+	CommandContext,
+	CommandOptionType,
+	SlashCommand,
+	SlashCreator,
+} from "slash-create";
 import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../../..";
 import { GuildAuditLogs, GuildMember, User } from "discord.js";
 import { TextChannel } from "discord.js";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-const unitSecondsMap = {
-	second: 1,
-	minute: 60,
-	hour: 60 * 60,
-	day: 60 * 60 * 24,
-	week: 60 * 60 * 24 * 7,
-	month: 60 * 60 * 24 * 30,
-	year: 60 * 60 * 24 * 365,
-};
+const DEFAULT_MUTE_LENGTHS = ["1 day", "1 week", "4 weeks", "6 months", "1 year"];
 
 const manualMuteReminderTimeouts: string[] = [];
 
@@ -43,15 +44,19 @@ export class SlashMuteCommand extends SlashCommand {
 					type: CommandOptionType.STRING,
 					name: "time",
 					description:
-						"The amount of time you want to mute the user for. Input none for indefinite",
+						"The amount of time you want to mute the user for. Input none for indefinite\nFor example: `2 weeks`",
 					required: false,
+					autocomplete: true,
 				},
 			],
 		});
 
 		this.filePath = __filename;
 		this.bot = bot;
-		this.data = this.bot.container.getService("Data");
+		dayjs.extend(relativeTime);
+		const data = this.bot.container.getService("Data");
+		if (!data) return;
+		this.data = data;
 
 		const { config } = this.bot,
 			client = this.bot.discord,
@@ -72,9 +77,10 @@ export class SlashMuteCommand extends SlashCommand {
 				for (const [, entry] of auditLogs.entries) {
 					const target = entry.target as User;
 					const user = entry.executor;
-					if (user.id == user.client.user.id) continue;
+					if (!user?.id) return;
+					if (user?.id == user?.client?.user?.id) continue;
 					if (target.id == member.id && !manualMuteReminderTimeouts.includes(user.id)) {
-						const notificationsChannel = user.client.channels.cache.get(
+						const notificationsChannel = user?.client.channels.cache.get(
 							config.notificationsChannelId
 						) as TextChannel;
 						notificationsChannel.send(
@@ -111,13 +117,25 @@ export class SlashMuteCommand extends SlashCommand {
 			for (const [userId, data] of Object.entries(muted)) {
 				if (typeof data.until == "number" && data.until < Date.now()) {
 					delete muted[userId];
-					const member = await guild.members.fetch(userId);
+					const member = await guild?.members.fetch(userId);
+					if (!member) return;
 					member.roles.remove(config.mutedRoleId);
 					changes = true;
 				}
 			}
 			if (changes) this.data.save();
 		}, 1000);
+	}
+
+	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[] | undefined> {
+		switch (ctx.focused) {
+			case "time":
+				return DEFAULT_MUTE_LENGTHS.map(entry => {
+					return { name: entry, value: entry } as AutocompleteChoice;
+				});
+			default:
+				return undefined;
+		}
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
@@ -130,16 +148,11 @@ export class SlashMuteCommand extends SlashCommand {
 		const now = Date.now();
 
 		// Calculate time if any is specified
-		let until: number;
+		let until = now;
 		if (time) {
-			for (const {
-				groups: { amount, unit },
-			} of time.matchAll(
-				/(?<amount>\d+)\s*(?<unit>year|month|week|day|hour|minute|second)/gi
-			)) {
-				if (!until) until = now;
-				until += +amount * unitSecondsMap[unit] * 1000;
-			}
+			const amount = time.substring(0, 1); // lol
+			const unit = time.substring(2) as dayjs.ManipulateType;
+			until += dayjs().add(Number(amount), unit).millisecond();
 		}
 
 		if (!muted) muted = this.data.muted = {};
@@ -147,6 +160,7 @@ export class SlashMuteCommand extends SlashCommand {
 		await this.data.save();
 
 		const guild = discord.guilds.cache.get(this.bot.config.guildId);
+		if (!guild) return;
 		let member: GuildMember;
 		try {
 			member = await guild.members.fetch(userId);

@@ -20,15 +20,13 @@ export class DiscordBot extends Service {
 		super(container);
 
 		this.discord.on("ready", async () => {
-			console.log(`'${this.discord.user.username}' Discord Bot has logged in`);
-			await this.setStatus(`Crashing the source engine`);
-
-			// setInterval(() => {
-			// 	try {
-			// 		const newStatus = this.container.getService("Markov").generate();
-			// 		this.setStatus(newStatus);
-			// 	} catch {} // who cares
-			// }, 1000 * 60 * 10); // change status every 10mins
+			console.log(`'${this.discord.user?.username}' Discord Bot has logged in`);
+			setInterval(async () => {
+				try {
+					const newStatus = await this.container.getService("Markov")?.generate();
+					this.setStatus(newStatus ?? "Crashing the source engine");
+				} catch {} // who cares
+			}, 1000 * 60 * 10); // change status every 10mins
 		});
 
 		this.discord.on("warn", console.log);
@@ -40,7 +38,7 @@ export class DiscordBot extends Service {
 		this.discord.login(config.token);
 	}
 
-	async getTextChannel(channelId: string): Promise<Discord.TextChannel> {
+	async getTextChannel(channelId: string): Promise<Discord.TextChannel | undefined> {
 		if (!this.discord.isReady()) return;
 		return this.discord.channels.cache.get(channelId) as Discord.TextChannel;
 	}
@@ -65,21 +63,25 @@ export class DiscordBot extends Service {
 		const guild = this.discord.guilds.cache.get(config.guildId);
 		const response = await axios.get(url, { responseType: "arraybuffer" });
 		if (!response) return;
-		guild.setBanner(response.data, "motd");
+		guild?.setBanner(response.data, "motd");
 	}
 
-	// async feedMarkov(msg: Discord.Message): Promise<void> {
-	// 	if (msg.author.bot || msg.guild?.id !== config.guildId) return;
+	async feedMarkov(msg: Discord.Message): Promise<void> {
+		if (msg.author.bot || msg.guild?.id !== config.guildId) return;
 
-	// 	const channel = msg.channel as Discord.GuildChannel;
-	// 	const guild = channel.guild;
-	// 	const perms = channel.permissionsFor(guild.roles.everyone);
-	// 	if (!perms.has("SEND_MESSAGES", false)) return; // don't get text from channels that are not "public"
+		const channel = msg.channel as Discord.GuildChannel;
+		const guild = channel.guild;
+		const perms = channel.permissionsFor(guild.roles.everyone);
+		if (!perms.has("SEND_MESSAGES", false)) return; // don't get text from channels that are not "public"
 
-	// 	const content = msg.content;
-	// 	if (this.container.getService("Motd").isValidMsg(content))
-	// 		this.container.getService("Markov").addLine(content);
-	// }
+		const content = msg.content;
+		if (this.container.getService("Motd")?.isValidMsg(content))
+			this.container.getService("Markov")?.learn({
+				authorName: msg.author.username,
+				authorID: msg.author.id,
+				message: msg.content,
+			});
+	}
 	async fixTwitterEmbeds(msg: Discord.Message): Promise<void> {
 		if (!this.discord.isReady()) return;
 		const statusUrls = msg.content.match(
@@ -91,8 +93,8 @@ export class DiscordBot extends Service {
 		for (const statusUrl of statusUrls) {
 			const mediaUrls = await this.container
 				.getService("Twitter")
-				.getStatusMediaURLs(statusUrl);
-			urls = urls.concat(mediaUrls);
+				?.getStatusMediaURLs(statusUrl);
+			urls = urls.concat(mediaUrls ?? "");
 		}
 
 		if (urls.length === 0) return;
@@ -118,22 +120,28 @@ export class DiscordBot extends Service {
 
 		msg.reply(urls.join("\n"));
 	}
-	async getLastMotdMsg(): Promise<Discord.Message> {
+	async getLastMotdMsg(): Promise<Discord.Message | undefined> {
 		if (!this.discord.isReady()) return;
-		return (await this.getTextChannel(motdConfig.channelId)).lastMessage; // I could get the channel from the webhook but woefhwoaegfrh
+		return (await this.getTextChannel(motdConfig.channelId))?.lastMessage ?? undefined; // I could get the channel from the webhook but woefhwoaegfrh
 	}
 	async overLvl2(): Promise<boolean> {
 		const guild = this.discord.guilds.cache.get(config.guildId);
-		return guild.premiumTier > "TIER_1";
+		if (!guild) return false;
+		return guild.premiumTier > "TIER_1" ?? false;
 	}
 	async removeMotdReactions(): Promise<void> {
 		const chan = await this.getTextChannel(motdConfig.channelId);
+		if (!chan?.lastMessage) return;
 		await (await chan.lastMessage.fetch()).reactions.removeAll();
 	}
-	// how the fuck do I type this
+
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	async fetchPartial(obj): Promise<any> {
 		if (obj && obj.partial) {
-			return await obj.fetch();
+			try {
+				await obj.fetch(true);
+			} catch {}
+			return obj;
 		}
 		return obj;
 	}

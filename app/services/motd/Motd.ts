@@ -57,7 +57,7 @@ export default class Motd extends Service {
 				},
 			}
 		);
-		this.container.getService("Twitter").postStatus(msg);
+		this.container.getService("Twitter")?.postStatus(msg);
 	}
 
 	private async executeImageJob(patch?: boolean, msgId?: string): Promise<void> {
@@ -107,19 +107,19 @@ export default class Motd extends Service {
 					}
 				);
 			}
-			this.container.getService("Twitter").postStatus("Image of the day", url);
-			this.container.getService("DiscordBot").setServerBanner(url);
+			this.container.getService("Twitter")?.postStatus("Image of the day", url);
+			this.container.getService("DiscordBot")?.setServerBanner(url);
 
 			this.lastimage = url;
 		}
 	}
 	public async rerollImageJob(): Promise<void> {
-		if (!(await this.container.getService("DiscordBot").overLvl2())) return;
-		const lastmsg = await this.container.getService("DiscordBot").getLastMotdMsg();
+		if (!(await this.container.getService("DiscordBot")?.overLvl2())) return;
+		const lastmsg = await this.container.getService("DiscordBot")?.getLastMotdMsg();
 		if (!lastmsg) return;
-		await this.container.getService("Twitter").deleteLastIotd(); // todo: fix this after we have markov or something else working also could be troublesome if it was triggered after the messagejob
+		await this.container.getService("Twitter")?.deleteLastIotd(); // todo: fix this after we have markov or something else working also could be troublesome if it was triggered after the messagejob
 
 		await this.executeImageJob(true, lastmsg.id);
-		await this.container.getService("DiscordBot").removeMotdReactions();
+		await this.container.getService("DiscordBot")?.removeMotdReactions();
 	}
 }

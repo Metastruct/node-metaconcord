@@ -4,6 +4,7 @@ import { EphemeralResponse } from "..";
 
 export class SlashWhyMuteCommand extends SlashCommand {
 	private bot: DiscordBot;
+	private data;
 
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
@@ -23,15 +24,20 @@ export class SlashWhyMuteCommand extends SlashCommand {
 
 		this.filePath = __filename;
 		this.bot = bot;
+		const data = this.bot.container.getService("Data");
+		if (!data) return;
+		this.data = data;
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer(true);
 		const userId = (ctx.options.user ?? ctx.user.id).toString();
-		const { muted } = this.bot.container.getService("Data");
+		const { muted } = this.data;
 		if (muted && muted[userId]) {
 			const { at, until, reason, muter } = muted[userId];
-			const guild = await this.bot.discord.guilds.resolve(ctx.guildID)?.fetch();
+			const guild = await this.bot.discord.guilds.fetch(
+				ctx.guildID ?? this.bot.config.guildId
+			);
 			if (guild) {
 				const content =
 					`${ctx.user.mention}, ` +

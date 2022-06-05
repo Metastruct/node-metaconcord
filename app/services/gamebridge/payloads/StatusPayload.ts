@@ -14,16 +14,19 @@ export default class StatusPayload extends Payload {
 
 		const { players, map, workshopMap, gamemode, serverUptime, mapUptime } = payload.data;
 		const { bridge, discord } = server;
+		const webApp = bridge.container.getService("WebApp");
+		if (!webApp) return;
 		const {
 			config: { host, port },
-		} = bridge.container.getService("WebApp");
+		} = webApp;
 		const Steam = bridge.container.getService("Steam");
 
 		const updateStatus = async () => {
 			const count = players.length;
 
 			// Presence
-			discord.user.setPresence({
+			if (!discord) return;
+			discord.user?.setPresence({
 				activities: [
 					{
 						name: `${count} player${count != 1 ? "s" : ""}`,
@@ -37,9 +40,10 @@ export default class StatusPayload extends Payload {
 			if (!guild) return;
 
 			// Nick
-			const me = guild.members.cache.get(discord.user.id);
-			if (me.nickname !== server.config.name) me.setNickname(server.config.name);
-
+			if (discord.user) {
+				const me = guild.members.cache.get(discord.user.id);
+				if (me?.nickname !== server.config.name) me?.setNickname(server.config.name);
+			}
 			// Permanent status message
 			let desc = `:busts_in_silhouette: **${count > 0 ? count : "no"} player${
 				count > 1 || count == 0 ? "s" : ""
@@ -78,7 +82,7 @@ export default class StatusPayload extends Payload {
 					});
 			}
 			if (workshopMap) {
-				const res = await Steam.getPublishedFileDetails([workshopMap.id]).catch(
+				const res = await Steam?.getPublishedFileDetails([workshopMap.id]).catch(
 					console.error
 				);
 
@@ -92,9 +96,9 @@ export default class StatusPayload extends Payload {
 			server.status.players = players;
 			for (const [k, player] of Object.entries(server.status.players)) {
 				if (!player.avatar) {
-					let avatar: string;
+					let avatar: string | undefined;
 					if (player.accountId) {
-						avatar = await Steam.getUserAvatar(
+						avatar = await Steam?.getUserAvatar(
 							new SteamID(`[U:1:${player.accountId}]`).getSteamID64()
 						);
 					}
@@ -112,7 +116,6 @@ export default class StatusPayload extends Payload {
 				if (a.nick.toLowerCase() < b.nick.toLowerCase()) i--;
 				return i;
 			});
-			server.playerListImage = null;
 
 			const channel = guild.channels.cache.get(
 				bridge.config.serverInfoChannelId
@@ -121,7 +124,7 @@ export default class StatusPayload extends Payload {
 
 			const messages = await channel.messages.fetch();
 			const message = messages
-				.filter((msg: Discord.Message) => msg.author.id == discord.user.id)
+				.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
 				.first();
 			if (message) {
 				message.edit({ embeds: [embed] });

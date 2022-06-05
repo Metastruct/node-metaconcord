@@ -66,7 +66,7 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 		this.bot = bot;
 	}
 
-	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[]> {
+	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[] | undefined> {
 		switch (ctx.focused) {
 			case "length":
 				return DEFAULT_BAN_LENGTHS.map(entry => {
@@ -76,6 +76,8 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 				return DEFAULT_BAN_REASONS.map(entry => {
 					return { name: entry, value: entry } as AutocompleteChoice;
 				});
+			default:
+				return undefined;
 		}
 	}
 
@@ -122,13 +124,16 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 
 	public async runProtected(ctx: CommandContext): Promise<any> {
 		const steam = this.bot.container.getService("Steam");
-		const summary = await steam.getUserSummaries(steam.steamIDToSteamID64(ctx.options.steamid));
+		const summary = await steam?.getUserSummaries(
+			steam?.steamIDToSteamID64(ctx.options.steamid)
+		);
 		if (!summary) {
 			await ctx.send("Unable to gather player data");
 			return;
 		}
 
 		const bridge = this.bot.container.getService("GameBridge");
+		if (!bridge) return;
 		const server = (ctx.options.server as number) ?? 2;
 		const plyName = summary.nickname ?? `???`;
 		const length = Math.round(Date.now() / 1000 + this.parseLength(ctx.options.length));
@@ -137,7 +142,7 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 			`local data = banni.Ban("${ctx.options.steamid}", "${plyName}", "Discord (${ctx.user.username}|${ctx.user.mention})", [[${ctx.options.reason}]], ${length}) ` +
 			`if istable(data) then return data.b else return data end`;
 		try {
-			const res = await bridge.payloads.RconPayload.callLua(
+			const res = await bridge?.payloads.RconPayload.callLua(
 				code,
 				"sv",
 				bridge.servers[server],
