@@ -7,11 +7,7 @@ const YELLOW_COLOR: Discord.ColorResolvable = [220, 150, 0];
 export default (bot: DiscordBot): void => {
 	bot.discord.on("messageCreate", async msg => {
 		msg = await bot.fetchPartial(msg);
-		await Promise.all([
-			bot.fixTwitterEmbeds(msg),
-			bot.feedMarkov(msg),
-			bot.handleMediaUrls(msg),
-		]);
+		await Promise.all([bot.fixTwitterEmbeds(msg), bot.feedMarkov(msg)]);
 	});
 
 	bot.discord.on("messageDelete", async msg => {
