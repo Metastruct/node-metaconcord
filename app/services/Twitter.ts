@@ -158,8 +158,8 @@ export class Twitter extends Service {
 
 			if (!res) return [];
 
-			const status = res as { extended_entities: TweetExtendedEntitiesV1 };
-			if (!status.extended_entities.media) return [];
+			const status = res;
+			if (!status.extended_entities || !status.extended_entities.media) return [];
 
 			return status.extended_entities.media
 				.filter(media => media.type !== "photo")
