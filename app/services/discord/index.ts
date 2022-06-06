@@ -82,6 +82,7 @@ export class DiscordBot extends Service {
 				message: msg.content,
 			});
 	}
+
 	async fixTwitterEmbeds(msg: Discord.Message): Promise<void> {
 		if (!this.discord.isReady()) return;
 		const statusUrls = msg.content.match(
@@ -103,32 +104,17 @@ export class DiscordBot extends Service {
 		await msg.reply({ content: fix, allowedMentions: { repliedUser: false } });
 	}
 
-	async handleMediaUrls(msg: Discord.Message): Promise<void> {
-		if (!this.discord.isReady()) return;
-		// https://media.discordapp.net/attachments/769875739817410562/867369588014448650/video.mp4
-		// https://cdn.discordapp.com/attachments/769875739817410562/867369588014448650/video.mp4
-
-		const mediaUrls = msg.content.matchAll(
-			/https?:\/\/media.discordapp.net\/attachments(\/\d+\/\d+\/\S+\.(webm|mp4))$/g
-		);
-
-		let urls: Array<string> = [];
-		for (const [, mediaUrl] of mediaUrls) {
-			urls = urls.concat(`https://cdn.discordapp.com/attachments${mediaUrl}`);
-		}
-		if (urls.length === 0) return;
-
-		msg.reply(urls.join("\n"));
-	}
 	async getLastMotdMsg(): Promise<Discord.Message | undefined> {
 		if (!this.discord.isReady()) return;
 		return (await this.getTextChannel(motdConfig.channelId))?.lastMessage ?? undefined; // I could get the channel from the webhook but woefhwoaegfrh
 	}
+
 	async overLvl2(): Promise<boolean> {
 		const guild = this.discord.guilds.cache.get(config.guildId);
 		if (!guild) return false;
 		return guild.premiumTier > "TIER_1" ?? false;
 	}
+
 	async removeMotdReactions(): Promise<void> {
 		const chan = await this.getTextChannel(motdConfig.channelId);
 		if (!chan?.lastMessage) return;
