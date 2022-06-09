@@ -37,7 +37,7 @@ export default (bot: DiscordBot): void => {
 				"Message",
 				message.length > 0
 					? message.substring(0, EMBED_FIELD_LIMIT)
-					: "(not fetchable/cached)",
+					: "`not fetchable/cached`",
 				true
 			)
 			.setFooter({ text: "Message Deleted" })
@@ -48,27 +48,29 @@ export default (bot: DiscordBot): void => {
 	bot.discord.on("messageUpdate", async (oldMsg, newMsg) => {
 		oldMsg = await bot.fetchPartial(oldMsg);
 		if (oldMsg.content === newMsg.content) return; // discord manages embeds by updating user messages
-		if (oldMsg.author?.bot) return;
+		const user = oldMsg.author ?? newMsg.author;
+		if (user?.bot) return;
 
 		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
 		if (!logChannel) return;
 
 		const embed = new Discord.MessageEmbed()
 			.setAuthor({
-				name: oldMsg.author?.username ?? "unknown user",
-				iconURL: oldMsg.author?.avatarURL() ?? "",
+				name: user?.username ?? user?.username ?? "unknown user",
+				iconURL: user?.avatarURL() ?? user?.avatarURL() ?? "",
 			})
 			.setColor(YELLOW_COLOR)
 			.addField("Channel", `<#${oldMsg.channel.id}>`)
-			.addField("Mention", oldMsg.author?.mention ?? "???")
+			.addField("Mention", user?.mention ?? "???")
 			.addField(
 				"New Message",
-				newMsg.content ? newMsg.content.substring(0, EMBED_FIELD_LIMIT) : "???",
+				`${newMsg.content ? newMsg.content.substring(0, EMBED_FIELD_LIMIT) : ""}
+				${newMsg.embeds.length > 0 ? "\n`Modified Attachment`" : ""}`,
 				true
 			)
 			.addField(
 				"Old Message",
-				oldMsg.content ? oldMsg.content.substring(0, EMBED_FIELD_LIMIT) : "???",
+				oldMsg.content ? oldMsg.content.substring(0, EMBED_FIELD_LIMIT) : "",
 				true
 			)
 			.setFooter({ text: "Message Edited" })
