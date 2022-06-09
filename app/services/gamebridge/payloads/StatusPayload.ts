@@ -24,17 +24,7 @@ export default class StatusPayload extends Payload {
 		const updateStatus = async () => {
 			const count = players.length;
 
-			// Presence
 			if (!discord) return;
-			discord.user?.setPresence({
-				activities: [
-					{
-						name: `${count} player${count != 1 ? "s" : ""}`,
-						type: 3,
-					},
-				],
-				status: "online",
-			});
 
 			const guild = discord.guilds.cache.get(discord.config.guildId);
 			if (!guild) return;
@@ -43,6 +33,17 @@ export default class StatusPayload extends Payload {
 			if (discord.user) {
 				const me = guild.members.cache.get(discord.user.id);
 				if (me?.nickname !== server.config.name) me?.setNickname(server.config.name);
+
+				// Presence
+				discord.user.setPresence({
+					activities: [
+						{
+							name: `${count} player${count != 1 ? "s" : ""}`,
+							type: 3,
+						},
+					],
+					status: "online",
+				});
 			}
 			// Permanent status message
 			let desc = `:busts_in_silhouette: **${count > 0 ? count : "no"} player${
