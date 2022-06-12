@@ -58,8 +58,8 @@ export default (bot: DiscordBot): void => {
 		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
 		if (!logChannel) return;
 
-		const oldText = oldMsg.content ? oldMsg.content.substring(0, EMBED_FIELD_LIMIT) : "";
-		const newText = newMsg.content ? newMsg.content.substring(0, EMBED_FIELD_LIMIT) : "";
+		const oldText = oldMsg.content ? oldMsg.content.substring(0, EMBED_FIELD_LIMIT - 10) : "";
+		const newText = newMsg.content ? newMsg.content.substring(0, EMBED_FIELD_LIMIT - 10) : "";
 
 		const embeds: [boolean, boolean] = // I think this can be done better somehow lol
 			newMsg.embeds.length > 0
