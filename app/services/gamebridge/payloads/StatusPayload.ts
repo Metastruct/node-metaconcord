@@ -128,7 +128,8 @@ export default class StatusPayload extends Payload {
 				.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
 				.first();
 			if (message) {
-				message.edit({ embeds: [embed] });
+				await message.edit({ embeds: [{ description: "tmp" }] });
+				await message.edit({ embeds: [embed] });
 			} else {
 				channel.send({ embeds: [embed] });
 			}
