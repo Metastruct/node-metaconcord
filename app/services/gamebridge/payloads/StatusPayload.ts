@@ -96,7 +96,7 @@ export default class StatusPayload extends Payload {
 			// Server status image endpoint
 			server.status.mapThumbnail = mapThumbnail;
 			server.status.players = players;
-			for (const [k, player] of Object.entries(server.status.players)) {
+			for (const [, player] of Object.entries(server.status.players)) {
 				if (!player.avatar) {
 					let avatar: string | undefined;
 					if (player.accountId) {
@@ -104,8 +104,7 @@ export default class StatusPayload extends Payload {
 							new SteamID(`[U:1:${player.accountId}]`).getSteamID64()
 						);
 					}
-					if (!avatar) avatar = `https://robohash.org/${Date.now() + k}`;
-					player.avatar = avatar;
+					player.avatar = avatar ?? `https://robohash.org/${player.accountId}`;
 				}
 
 				player.nick = player.nick.trim();
