@@ -5,6 +5,7 @@ import Discord, { TextChannel } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
 import dayjs from "dayjs";
+import { sleep } from "@/utils";
 
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -129,6 +130,7 @@ export default class StatusPayload extends Payload {
 				.first();
 			if (message) {
 				await message.edit({ embeds: [{ description: "tmp" }] });
+				await sleep(5000);
 				await message.edit({ embeds: [embed] });
 			} else {
 				channel.send({ embeds: [embed] });
