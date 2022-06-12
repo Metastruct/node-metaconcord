@@ -35,9 +35,12 @@ export default (bot: DiscordBot): void => {
 			.setColor(RED_COLOR)
 			.addField("Channel", `<#${msg.channel.id}>`)
 			.addField("Mention", msg.author?.mention ?? "???")
-			.addField("Message", message ?? "`empty message`", true)
 			.setFooter({ text: "Message Deleted" })
 			.setTimestamp(Date.now());
+
+		if (message) {
+			embed.addField("Message", message, true);
+		}
 
 		if (attachments) {
 			embed.addField("Attachment", attachments.join(" "));
@@ -57,6 +60,13 @@ export default (bot: DiscordBot): void => {
 
 		const oldText = oldMsg.content ? oldMsg.content.substring(0, EMBED_FIELD_LIMIT) : "";
 		const newText = newMsg.content ? newMsg.content.substring(0, EMBED_FIELD_LIMIT) : "";
+
+		const embeds: [boolean, boolean] = // I think this can be done better somehow lol
+			newMsg.embeds.length > 0
+				? [true, true]
+				: oldMsg.embeds.length > 0
+				? [true, false]
+				: [false, false];
 
 		let diff = "";
 		if (oldText.length > 0 || newText.length > 0) {
@@ -82,6 +92,11 @@ export default (bot: DiscordBot): void => {
 			.addField("Difference", `\`\`\`ml\n${diff}\n\`\`\``)
 			.setFooter({ text: "Message Edited" })
 			.setTimestamp(newMsg.editedTimestamp);
+
+		if (embeds[0]) {
+			embed.addField("Embeds", `Embed ${embeds[1] ? "added/modified" : "removed"}`);
+		}
+
 		await logChannel.send({ embeds: [embed] });
 	});
 	bot.discord.on("guildMemberRemove", async user => {
