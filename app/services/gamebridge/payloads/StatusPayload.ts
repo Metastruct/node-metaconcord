@@ -1,11 +1,11 @@
 import * as requestSchema from "./structures/StatusRequest.json";
 import { GameServer } from "..";
 import { StatusRequest } from "./structures";
+import { sleep } from "@/utils";
 import Discord, { TextChannel } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
 import dayjs from "dayjs";
-import { sleep } from "@/utils";
 
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
