@@ -1,4 +1,5 @@
 import { DiscordBot, EMBED_FIELD_LIMIT } from "..";
+import { diffWords } from "diff";
 import Discord from "discord.js";
 
 const RED_COLOR: Discord.ColorResolvable = [255, 0, 0];
@@ -17,13 +18,14 @@ export default (bot: DiscordBot): void => {
 		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
 		if (!logChannel) return;
 
-		const message = msg.content
-			? msg.content.length > 0
-				? msg.content
-				: msg.attachments.size > 0
-				? `[${msg.attachments.values().next().value.name}]`
-				: "???"
-			: "";
+		const message = msg.content && msg.content.length > 0 ? msg.content : undefined;
+
+		const attachments =
+			msg.attachments.size > 0
+				? msg.attachments.map(a => {
+						return `[${a.name}](${a.url})`;
+				  })
+				: undefined;
 
 		const embed = new Discord.MessageEmbed()
 			.setAuthor({
@@ -33,15 +35,14 @@ export default (bot: DiscordBot): void => {
 			.setColor(RED_COLOR)
 			.addField("Channel", `<#${msg.channel.id}>`)
 			.addField("Mention", msg.author?.mention ?? "???")
-			.addField(
-				"Message",
-				message.length > 0
-					? message.substring(0, EMBED_FIELD_LIMIT)
-					: "`not fetchable/cached`",
-				true
-			)
+			.addField("Message", message ?? "`empty message`", true)
 			.setFooter({ text: "Message Deleted" })
 			.setTimestamp(Date.now());
+
+		if (attachments) {
+			embed.addField("Attachment", attachments.join(" "));
+		}
+
 		await logChannel.send({ embeds: [embed] });
 	});
 
@@ -54,6 +55,22 @@ export default (bot: DiscordBot): void => {
 		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
 		if (!logChannel) return;
 
+		const oldText = oldMsg.content ? oldMsg.content.substring(0, EMBED_FIELD_LIMIT) : "";
+		const newText = newMsg.content ? newMsg.content.substring(0, EMBED_FIELD_LIMIT) : "";
+
+		let diff = "";
+		if (oldText.length > 0 || newText.length > 0) {
+			const diffList = diffWords(oldText, newText);
+
+			for (const part of diffList) {
+				diff += part.added
+					? `"${part.value}"`
+					: part.removed
+					? `'${part.value}'`
+					: part.value;
+			}
+		}
+
 		const embed = new Discord.MessageEmbed()
 			.setAuthor({
 				name: user?.username ?? user?.username ?? "unknown user",
@@ -62,17 +79,7 @@ export default (bot: DiscordBot): void => {
 			.setColor(YELLOW_COLOR)
 			.addField("Channel", `<#${oldMsg.channel.id}>`)
 			.addField("Mention", user?.mention ?? "???")
-			.addField(
-				"New Message",
-				`${newMsg.content ? newMsg.content.substring(0, EMBED_FIELD_LIMIT) : ""}
-				${newMsg.embeds.length > 0 ? "\n`Modified Attachment`" : ""}`,
-				true
-			)
-			.addField(
-				"Old Message",
-				oldMsg.content ? oldMsg.content.substring(0, EMBED_FIELD_LIMIT) : "",
-				true
-			)
+			.addField("Difference", `\`\`\`ml\n${diff}\n\`\`\``)
 			.setFooter({ text: "Message Edited" })
 			.setTimestamp(newMsg.editedTimestamp);
 		await logChannel.send({ embeds: [embed] });
