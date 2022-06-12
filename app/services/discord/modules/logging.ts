@@ -77,7 +77,7 @@ export default (bot: DiscordBot): void => {
 					? `"${part.value}"`
 					: part.removed
 					? `'${part.value}'`
-					: part.value.replace("`", "\\`");
+					: part.value.replace("```", "\\`\\`\\`");
 			}
 		}
 
