@@ -129,7 +129,7 @@ export default class StatusPayload extends Payload {
 				.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
 				.first();
 			if (message) {
-				await message.edit({ embeds: [{ description: "tmp" }] });
+				await message.edit({ embeds: [{ description: "updating status..." }] });
 				await sleep(5000);
 				await message.edit({ embeds: [embed] });
 			} else {
