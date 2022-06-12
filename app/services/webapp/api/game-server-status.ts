@@ -1,4 +1,5 @@
 import { GameBridge } from "@/app/services";
+import { GameServer } from "../../gamebridge";
 import { WebApp } from "..";
 import nodeHtmlToImage from "node-html-to-image";
 import path from "path";
@@ -14,7 +15,7 @@ export default (webApp: WebApp): void => {
 			return res.sendStatus(503);
 		}
 
-		const server = gameBridge.servers[req.params.id];
+		const server: GameServer = gameBridge.servers[req.params.id];
 		if (!Array.isArray(server?.status?.players) && server?.status?.mapThumbnail != "") {
 			return res.sendStatus(204);
 		}
@@ -31,13 +32,11 @@ export default (webApp: WebApp): void => {
 		);
 		if (discordBot) {
 			try {
-				if (!server.playerListImage) {
-					server.playerListImage = (await nodeHtmlToImage({
-						html,
-						transparent: true,
-						selector: "main",
-					})) as Buffer;
-				}
+				server.playerListImage = (await nodeHtmlToImage({
+					html,
+					transparent: true,
+					selector: "main",
+				})) as Buffer;
 
 				res.set({
 					"content-type": "image/png",
