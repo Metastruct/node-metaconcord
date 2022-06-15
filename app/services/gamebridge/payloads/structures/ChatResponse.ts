@@ -8,7 +8,7 @@ export default interface ChatResponse {
 	replied_message?: {
 		msgID: string;
 		content: string;
-		ingame: boolean;
+		ingameName: string;
 	};
 	msgID: string;
 	content: string;
