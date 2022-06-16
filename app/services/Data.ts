@@ -15,8 +15,11 @@ export class Data extends Service {
 			muter?: string;
 		};
 	} = {};
+	timesReported: {
+		[steamId64: string]: number;
+	} = {};
 	lastDiscordGuildIcon: "None";
-	toSave = ["muted", "lastDiscordGuildIcon"];
+	toSave = ["muted", "lastDiscordGuildIcon", "timesReported"];
 
 	async init(): Promise<void> {
 		try {

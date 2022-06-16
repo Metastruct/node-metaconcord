@@ -29,6 +29,11 @@ export default class AdminNotifyPayload extends Payload {
 
 		const steamId64 = new SteamID(player.steamId).getSteamID64();
 		const reportedSteamId64 = new SteamID(reported.steamId).getSteamID64();
+		const data = bridge.container.getService("Data");
+		if (data) {
+			if (data.timesReported[reportedSteamId64]) data.timesReported[reportedSteamId64] = 0;
+			data.timesReported[reportedSteamId64]++;
+		}
 		const steam = bridge.container.getService("Steam");
 		const avatar = await steam?.getUserAvatar(steamId64);
 		const reportedAvatar = await steam?.getUserAvatar(reportedSteamId64);
@@ -45,6 +50,10 @@ export default class AdminNotifyPayload extends Payload {
 			.addField(
 				"SteamID",
 				`[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64}) (${reported.steamId})`
+			)
+			.addField(
+				"Report Amount",
+				data?.timesReported[reportedSteamId64].toString() || "No Data"
 			)
 			.setThumbnail(reportedAvatar)
 			.setColor(0xc4af21);
