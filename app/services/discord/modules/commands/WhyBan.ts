@@ -76,7 +76,10 @@ export class SlashWhyBanCommand extends SlashCommand {
 			)
 			.map(ban => {
 				const namefix = ban.name.replace(/(\u180C|\u0020)/g, ""); // that one ban I swear on me mum is driving me insane
-				return { name: namefix.length > 0 ? namefix : "invalid name", value: ban.sid };
+				return {
+					name: `${ban.sid} (${namefix.length > 0 ? namefix : "invalid name"})`,
+					value: ban.sid,
+				};
 			});
 	}
 
