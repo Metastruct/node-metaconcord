@@ -31,7 +31,7 @@ export default class AdminNotifyPayload extends Payload {
 		const reportedSteamId64 = new SteamID(reported.steamId).getSteamID64();
 		const data = bridge.container.getService("Data");
 		if (data) {
-			if (data.timesReported[reportedSteamId64]) data.timesReported[reportedSteamId64] = 0;
+			if (!data.timesReported[reportedSteamId64]) data.timesReported[reportedSteamId64] = 0;
 			data.timesReported[reportedSteamId64]++;
 		}
 		const steam = bridge.container.getService("Steam");
