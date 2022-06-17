@@ -49,8 +49,8 @@ export class Data extends Service {
 	}
 
 	async save(): Promise<void> {
-		for (const [moduleName, data] of Object.entries(this)) {
-			if (!this.toSave.includes(moduleName)) continue;
+		for (const moduleName of this.toSave) {
+			const data = this[moduleName];
 			// if (typeof data !== "object") continue;
 			const filePath = path.join(this.dataPath, moduleName + ".json");
 			console.log(`Saved ${filePath} with`, data);
