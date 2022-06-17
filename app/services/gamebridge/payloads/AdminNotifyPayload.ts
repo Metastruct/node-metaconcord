@@ -33,6 +33,7 @@ export default class AdminNotifyPayload extends Payload {
 		if (data) {
 			if (!data.timesReported[reportedSteamId64]) data.timesReported[reportedSteamId64] = 0;
 			data.timesReported[reportedSteamId64]++;
+			await data.save();
 		}
 		const steam = bridge.container.getService("Steam");
 		const avatar = await steam?.getUserAvatar(steamId64);
