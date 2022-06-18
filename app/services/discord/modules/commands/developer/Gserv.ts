@@ -167,7 +167,10 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 				}
 				servers = selected.values;
 				selected.editParent(
-					`Running ${commands.join(" and ")} on ${servers.join(",")} please wait...`,
+					`Running ${commands.join(" and ")} on ${servers
+						.slice()
+						.sort()
+						.join(", ")} please wait...`,
 					{ components: [] }
 				);
 				const promises = config.servers
