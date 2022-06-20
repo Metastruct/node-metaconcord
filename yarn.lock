@@ -368,6 +368,11 @@
     "@types/node" "*"
     "@types/ssh2-streams" "*"
 
+"@types/steamapi@^2.2.2":
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/@types/steamapi/-/steamapi-2.2.2.tgz#4f9f7c6adce8a67207e89b5af2f427b92336f564"
+  integrity sha512-I64sxNOaTtp8/pFqhgz1niI8sIEgnRLv1xF8juq7nNRiyWiCWMm+bnwD4oo06nhzQH0xZt6pG0RQipmBWMFxPg==
+
 "@types/steamid@^2.0.1":
   version "2.0.1"
   resolved "https://registry.npmjs.org/@types/steamid/-/steamid-2.0.1.tgz"
