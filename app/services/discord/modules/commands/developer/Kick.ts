@@ -57,7 +57,7 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[] | undefined> {
 		if (ctx.focused && ctx.focused == "name") {
 			const players = await this.getPlayers(ctx.options.server ?? 2);
-			if (!players) return undefined;
+			if (!players) return;
 			return players.map(player => {
 				return {
 					name: player.nick,
