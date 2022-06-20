@@ -7,7 +7,16 @@ import {
 } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
+import SteamID from "steamid";
 
+type Player = {
+	accountId?: number;
+	nick: string;
+	avatar?: string | false;
+	isAdmin?: boolean;
+	isBanned?: boolean;
+	isAfk?: boolean;
+};
 export class SlashDeveloperCommand extends SlashCommand {
 	protected bot: DiscordBot;
 
@@ -39,6 +48,33 @@ export class SlashDeveloperCommand extends SlashCommand {
 			return member.roles.cache.has(this.bot.config.developerRoleId);
 		} catch {
 			return false;
+		}
+	}
+
+	public async getPlayers(server: number): Promise<Player[] | undefined> {
+		const bridge = this.bot.container.getService("GameBridge");
+		if (!bridge) return undefined;
+		const where = server ?? 2;
+		if (!bridge.servers[where]) return undefined;
+		return bridge.servers[where].status.players;
+	}
+
+	public async getPlayer(steamID64: string, server?: number): Promise<Player | undefined> {
+		const bridge = this.bot.container.getService("GameBridge");
+		if (!bridge) return undefined;
+		const accountId = SteamID.fromIndividualAccountID(steamID64).accountid;
+		if (server) {
+			if (!bridge.servers[server]) return undefined;
+			return bridge.servers[server].status.players.find(
+				player => player.accountId === accountId
+			);
+		} else {
+			const server = bridge.servers.find(server =>
+				server.status.players.find(player => player.accountId === accountId)
+			);
+			if (server) return server.status.players.find(player => player.accountId === accountId);
+			return undefined;
+			// there has to be an online for this right?????
 		}
 	}
 

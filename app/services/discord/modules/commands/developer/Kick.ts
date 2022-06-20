@@ -56,11 +56,9 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 
 	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[] | undefined> {
 		if (ctx.focused && ctx.focused == "name") {
-			const bridge = this.bot.container.getService("GameBridge");
-			if (!bridge) return undefined;
-			const where = ctx.options.server ?? 2;
-			if (!bridge.servers[where]) return undefined;
-			return bridge.servers[where].status.players.map(player => {
+			const players = await this.getPlayers(ctx.options.server ?? 2);
+			if (!players) return undefined;
+			return players.map(player => {
 				return {
 					name: player.nick,
 					value: player.nick,
