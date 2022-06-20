@@ -80,7 +80,7 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 								const steamID64 = SteamID.fromIndividualAccountID(
 									player.accountId
 								).getSteamID64();
-								return steamID64 == ctx.options[ctx.focused];
+								return steamID64.includes(ctx.options[ctx.focused]);
 							}
 						},
 						{ limit: 0 }

@@ -63,7 +63,7 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 					function (player) {
 						if (this.limit < 25) {
 							this.limit++;
-							return player.nick === ctx.options[ctx.focused];
+							return player.nick.includes(ctx.options[ctx.focused]);
 						}
 					},
 					{ limit: 0 }
