@@ -15,12 +15,12 @@ import config from "@/config/ssh.json";
 
 // order matters for the menu
 const VALID_GSERV_COMMANDS: [string, string][] = [
-	["qu", "quick updates the repos"],
-	["rehash", "rehashes the server"],
-	["merge_repos", "prepares all repos for rehash"],
-	["rehashskeleton", "commits skeleton changes (call rehash afterwards!)"],
-	["update_repos", "updates all svns/git repositories"],
-	["status", "show server status"],
+	["qu", "Quickly updates repositories"],
+	["rehash", "Rehashes the server"],
+	["merge_repos", "Prepares all repositories for rehash"],
+	["rehashskeleton", "Commits skeleton changes (call rehash afterwards!)"],
+	["update_repos", "Updates all SVN/Git repositories"],
+	["status", "Shows server status"],
 ];
 
 export class SlashGservCommand extends SlashDeveloperCommand {
