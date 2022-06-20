@@ -9,7 +9,6 @@ import qs from "qs";
 type UserCache = {
 	expireTime: number;
 	summary?: PlayerSummary;
-	validAvatar: boolean;
 };
 const validTime = 30 * 60 * 1000;
 const avatarRegExp = /<avatarFull>\s*<!\[CDATA\[\s*([^\s]*)\s*\]\]>\s*<\/avatarFull>/;
@@ -34,10 +33,7 @@ export class Steam extends Service {
 					const results = avatarRegExp.exec(data);
 					if (results && results[1].trim().length) {
 						summary.avatar.large = results[1];
-						userCache.validAvatar = true;
 					}
-				} else {
-					userCache.validAvatar = true;
 				}
 				userCache.summary = summary;
 			} catch (err) {
@@ -73,7 +69,6 @@ export class Steam extends Service {
 		if (!this.userCache[steamId64] || this.userCache[steamId64].expireTime < Date.now()) {
 			this.userCache[steamId64] = {
 				expireTime: Date.now() + validTime,
-				validAvatar: false,
 			};
 		}
 		return this.userCache[steamId64];
