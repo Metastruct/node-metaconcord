@@ -67,13 +67,15 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 		this.bot = bot;
 	}
 
-	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[] | undefined> {
+	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[]> {
 		switch (ctx.focused) {
 			case "steamid": {
 				const players = await this.getPlayers(ctx.options.server ?? 2);
-				if (!players) return undefined;
+				if (!players) return [];
 				return players.map(player => {
-					const steamID64 = new SteamID(`[U:1:${player.accountId}]`).getSteamID64();
+					const steamID64 = SteamID.fromIndividualAccountID(
+						player.accountId
+					).getSteamID64();
 					return {
 						name: `${steamID64} (${player.nick})`,
 						value: steamID64,
@@ -89,7 +91,7 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 					return { name: entry, value: entry } as AutocompleteChoice;
 				});
 			default:
-				return undefined;
+				return [];
 		}
 	}
 

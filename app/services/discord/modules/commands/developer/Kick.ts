@@ -54,10 +54,10 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 		this.bot = bot;
 	}
 
-	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[] | undefined> {
+	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[]> {
 		if (ctx.focused && ctx.focused == "name") {
 			const players = await this.getPlayers(ctx.options.server ?? 2);
-			if (!players) return;
+			if (!players) return [];
 			return players.map(player => {
 				return {
 					name: player.nick,
@@ -65,6 +65,7 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 				} as AutocompleteChoice;
 			});
 		}
+		return [];
 	}
 
 	public async runProtected(ctx: CommandContext): Promise<any> {
