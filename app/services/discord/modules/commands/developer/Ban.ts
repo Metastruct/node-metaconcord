@@ -72,15 +72,28 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 			case "steamid": {
 				const players = await this.getPlayers(ctx.options.server ?? 2);
 				if (!players) return [];
-				return players.map(player => {
-					const steamID64 = SteamID.fromIndividualAccountID(
-						player.accountId
-					).getSteamID64();
-					return {
-						name: `${steamID64} (${player.nick})`,
-						value: steamID64,
-					} as AutocompleteChoice;
-				});
+				return players
+					.filter(
+						function (player) {
+							if (this.limit < 25) {
+								this.limit++;
+								const steamID64 = SteamID.fromIndividualAccountID(
+									player.accountId
+								).getSteamID64();
+								return steamID64 == ctx.options[ctx.focused];
+							}
+						},
+						{ limit: 0 }
+					)
+					.map(player => {
+						const steamID64 = SteamID.fromIndividualAccountID(
+							player.accountId
+						).getSteamID64();
+						return {
+							name: `${steamID64} (${player.nick})`,
+							value: steamID64,
+						} as AutocompleteChoice;
+					});
 			}
 			case "length":
 				return DEFAULT_BAN_LENGTHS.map(entry => {

@@ -58,12 +58,22 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 		if (ctx.focused && ctx.focused == "name") {
 			const players = await this.getPlayers(ctx.options.server ?? 2);
 			if (!players) return [];
-			return players.map(player => {
-				return {
-					name: player.nick,
-					value: player.nick,
-				} as AutocompleteChoice;
-			});
+			return players
+				.filter(
+					function (player) {
+						if (this.limit < 25) {
+							this.limit++;
+							return player.nick === ctx.options[ctx.focused];
+						}
+					},
+					{ limit: 0 }
+				)
+				.map(player => {
+					return {
+						name: player.nick,
+						value: player.nick,
+					} as AutocompleteChoice;
+				});
 		}
 		return [];
 	}
