@@ -1,4 +1,10 @@
-import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
+import {
+	AutocompleteChoice,
+	AutocompleteContext,
+	CommandContext,
+	CommandOptionType,
+	SlashCreator,
+} from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
 
@@ -8,12 +14,6 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 			name: "kick",
 			description: "Kick a player in-game",
 			options: [
-				{
-					type: CommandOptionType.STRING,
-					name: "name",
-					description: "The name of the player to kick",
-					required: true,
-				},
 				{
 					type: CommandOptionType.INTEGER,
 					name: "server",
@@ -36,6 +36,13 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 				},
 				{
 					type: CommandOptionType.STRING,
+					name: "name",
+					description: "The name of the player to kick",
+					required: true,
+					autocomplete: true,
+				},
+				{
+					type: CommandOptionType.STRING,
 					name: "reason",
 					description: "The reason for the ban",
 					required: false,
@@ -45,6 +52,21 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 
 		this.filePath = __filename;
 		this.bot = bot;
+	}
+
+	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[] | undefined> {
+		if (ctx.focused && ctx.focused == "name") {
+			const bridge = this.bot.container.getService("GameBridge");
+			if (!bridge) return undefined;
+			const where = ctx.options.server ?? 2;
+			if (!bridge.servers[where]) return undefined;
+			return bridge.servers[where].status.players.map(player => {
+				return {
+					name: player.nick,
+					value: player.nick,
+				} as AutocompleteChoice;
+			});
+		}
 	}
 
 	public async runProtected(ctx: CommandContext): Promise<any> {

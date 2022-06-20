@@ -6,6 +6,7 @@ import {
 	SlashCreator,
 } from "slash-create";
 import { DiscordBot } from "@/app/services";
+import { GameBridge } from "@/app/services/gamebridge";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
 
 const DEFAULT_BAN_LENGTHS = ["1d", "1w", "4w", "6mo", "1y"];
@@ -18,27 +19,6 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 			description: "Bans a player in-game",
 			deferEphemeral: true,
 			options: [
-				{
-					type: CommandOptionType.STRING,
-					name: "steamid",
-					description:
-						"The steamid of the banned player in this format STEAM_0:0:000000000",
-					required: true,
-				},
-				{
-					type: CommandOptionType.STRING,
-					name: "length",
-					description: "The length of the ban",
-					required: true,
-					autocomplete: true,
-				},
-				{
-					type: CommandOptionType.STRING,
-					name: "reason",
-					description: "The reason for the ban",
-					required: true,
-					autocomplete: true,
-				},
 				{
 					type: CommandOptionType.INTEGER,
 					name: "server",
@@ -57,7 +37,28 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 							value: 3,
 						},
 					],
-					required: false,
+					required: true,
+				},
+				{
+					type: CommandOptionType.STRING,
+					name: "steamid",
+					description: "The steamid64 of the banned player",
+					required: true,
+					autocomplete: true,
+				},
+				{
+					type: CommandOptionType.STRING,
+					name: "length",
+					description: "The length of the ban",
+					required: true,
+					autocomplete: true,
+				},
+				{
+					type: CommandOptionType.STRING,
+					name: "reason",
+					description: "The reason for the ban",
+					required: true,
+					autocomplete: true,
 				},
 			],
 		});
@@ -68,6 +69,18 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 
 	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[] | undefined> {
 		switch (ctx.focused) {
+			case "steamid": {
+				const bridge = this.bot.container.getService("GameBridge");
+				if (!bridge) return undefined;
+				const where = ctx.options.server ?? 2;
+				if (!bridge.servers[where]) return undefined;
+				return bridge.servers[where].status.players.map(player => {
+					return {
+						name: `${player.accountId?.toString()} (${player.nick})`,
+						value: player.accountId?.toString(),
+					} as AutocompleteChoice;
+				});
+			}
 			case "length":
 				return DEFAULT_BAN_LENGTHS.map(entry => {
 					return { name: entry, value: entry } as AutocompleteChoice;
@@ -124,9 +137,7 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 
 	public async runProtected(ctx: CommandContext): Promise<any> {
 		const steam = this.bot.container.getService("Steam");
-		const summary = await steam?.getUserSummaries(
-			steam?.steamIDToSteamID64(ctx.options.steamid)
-		);
+		const summary = await steam?.getUserSummaries(ctx.options.steamid);
 		if (!summary) {
 			await ctx.send("Unable to gather player data");
 			return;
@@ -134,7 +145,7 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 
 		const bridge = this.bot.container.getService("GameBridge");
 		if (!bridge) return;
-		const server = (ctx.options.server as number) ?? 2;
+		const server = ctx.options.server ?? 2;
 		const plyName = summary.nickname ?? `???`;
 		const length = Math.round(Date.now() / 1000 + this.parseLength(ctx.options.length));
 		const code =
