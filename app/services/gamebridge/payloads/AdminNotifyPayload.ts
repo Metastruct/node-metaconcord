@@ -79,7 +79,12 @@ export default class AdminNotifyPayload extends Payload {
 		try {
 			await (notificationsChannel as TextChannel).send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
-				files: [Buffer.from(message, "utf8")], // TEMP
+				files: [
+					{
+						name: "Report.txt",
+						attachment: Buffer.from(message, "utf8"),
+					},
+				],
 				embeds: [embed],
 				components: [row],
 			});
@@ -92,7 +97,12 @@ export default class AdminNotifyPayload extends Payload {
 
 			await (notificationsChannel as TextChannel).send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
-				files: [Buffer.from(message, "utf8")],
+				files: [
+					{
+						name: "Report.txt",
+						attachment: Buffer.from(message, "utf8"),
+					},
+				],
 				embeds: [embed],
 				components: [row],
 			});
