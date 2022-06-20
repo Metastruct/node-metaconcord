@@ -7,24 +7,27 @@ import {
 } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
-import { GameServer } from "@/app/services/gamebridge";
-import { Player } from "@/app/services/gamebridge/GameServer";
+import { GameServer, Player } from "@/app/services/gamebridge";
 import SteamID from "steamid";
 
 export class SlashDeveloperCommand extends SlashCommand {
 	protected bot: DiscordBot;
 
-	constructor(bot: DiscordBot, creator: SlashCreator, opts: SlashCommandOptions) {
+	constructor(
+		bot: DiscordBot,
+		creator: SlashCreator,
+		{ name, description, deferEphemeral, options, throttling, unknown }: SlashCommandOptions
+	) {
 		super(creator, {
-			name: opts.name,
-			description: opts.description,
-			deferEphemeral: opts.deferEphemeral,
+			name,
+			description,
+			deferEphemeral,
 			guildIDs: [bot.config.guildId],
 			forcePermissions: true,
-			options: opts.options,
+			options,
 			requiredPermissions: ["MANAGE_ROLES"],
-			throttling: opts.throttling,
-			unknown: opts.unknown,
+			throttling,
+			unknown,
 		});
 
 		this.filePath = __filename;
