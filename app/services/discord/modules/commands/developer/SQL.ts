@@ -2,7 +2,7 @@ import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
 
-export class SlashSqlCommand extends SlashDeveloperCommand {
+export class SlashSQLCommand extends SlashDeveloperCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(bot, creator, {
 			name: "sql",
@@ -41,7 +41,7 @@ export class SlashSqlCommand extends SlashDeveloperCommand {
 		try {
 			switch (ctx.options.target) {
 				case "metaconcord":
-					const sql = this.bot.container.getService("Sql");
+					const sql = this.bot.container.getService("SQL");
 					const db = await sql?.getDatabase();
 					const res = await db?.all(ctx.options.query);
 

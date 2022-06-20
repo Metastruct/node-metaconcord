@@ -1,7 +1,7 @@
 import { Container } from "../Container";
 import { MessageReaction } from "discord.js";
 import { Service } from ".";
-import { Sql } from "./Sql";
+import { SQL } from "./SQL";
 import { TextChannel } from "discord.js";
 import Discord from "discord.js";
 import config from "@/config/starboard.json";
@@ -15,11 +15,11 @@ const WHC = new Discord.WebhookClient(
 export class Starboard extends Service {
 	name = "Starboard";
 	private isPosting = false;
-	private sql: Sql | undefined;
+	private sql: SQL | undefined;
 
 	constructor(container: Container) {
 		super(container);
-		this.sql = this.container.getService("Sql");
+		this.sql = this.container.getService("SQL");
 	}
 
 	private async isMsgStarred(msgId: string): Promise<boolean> {
