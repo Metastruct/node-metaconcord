@@ -7,6 +7,7 @@ import {
 } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
+import SteamID from "steamid";
 
 const DEFAULT_BAN_LENGTHS = ["1d", "1w", "4w", "6mo", "1y"];
 const DEFAULT_BAN_REASONS = ["Mingebag", "Prop Spam", "Harassment"];
@@ -69,14 +70,13 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[] | undefined> {
 		switch (ctx.focused) {
 			case "steamid": {
-				const bridge = this.bot.container.getService("GameBridge");
-				if (!bridge) return undefined;
-				const where = ctx.options.server ?? 2;
-				if (!bridge.servers[where]) return undefined;
-				return bridge.servers[where].status.players.map(player => {
+				const players = await this.getPlayers(ctx.options.server ?? 2);
+				if (!players) return undefined;
+				return players.map(player => {
+					const steamID64 = new SteamID(`[U:1:${player.accountId}]`).getSteamID64();
 					return {
-						name: `${player.accountId?.toString()} (${player.nick})`,
-						value: player.accountId?.toString(),
+						name: `${steamID64} (${player.nick})`,
+						value: steamID64,
 					} as AutocompleteChoice;
 				});
 			}
