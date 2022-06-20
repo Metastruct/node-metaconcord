@@ -1,6 +1,6 @@
 import { Container } from "@/app/Container";
 import { Service } from ".";
-import SteamAPI from "steamapi";
+import SteamAPI, { PlayerSummary } from "steamapi";
 import SteamID from "steamid";
 import axios from "axios";
 import config from "@/config/steam.json";
@@ -8,9 +8,11 @@ import qs from "qs";
 
 type UserCache = {
 	expireTime: number;
-	summary: any; // From Steam, cba
+	summary?: PlayerSummary;
+	validAvatar: boolean;
 };
 const validTime = 30 * 60 * 1000;
+const avatarRegExp = /<avatarFull>\s*<!\[CDATA\[\s*([^\s]*)\s*\]\]>\s*<\/avatarFull>/;
 
 export class Steam extends Service {
 	name = "Steam";
@@ -22,9 +24,25 @@ export class Steam extends Service {
 	async getUserSummaries(steamId64: string): Promise<any> {
 		const userCache = this.getUserCache(steamId64);
 		if (!userCache.summary) {
-			userCache.summary = await this.steam.getUserSummary(steamId64).catch(err => {
-				err.message += ` - ${steamId64}`;
-			});
+			try {
+				const summary = await this.steam.getUserSummary(steamId64);
+				const { status } = await axios.head(summary.avatar.large);
+				if (status >= 400) {
+					const { data } = await axios.get(
+						`https://steamcommunity.com/profiles/${steamId64}?xml=1`
+					);
+					const results = avatarRegExp.exec(data);
+					if (results && results[1].trim().length) {
+						summary.avatar.large = results[1];
+						userCache.validAvatar = true;
+					}
+				} else {
+					userCache.validAvatar = true;
+				}
+				userCache.summary = summary;
+			} catch (err) {
+				// do nothing
+			}
 		}
 		return userCache.summary;
 	}
@@ -55,7 +73,7 @@ export class Steam extends Service {
 		if (!this.userCache[steamId64] || this.userCache[steamId64].expireTime < Date.now()) {
 			this.userCache[steamId64] = {
 				expireTime: Date.now() + validTime,
-				summary: null,
+				validAvatar: false,
 			};
 		}
 		return this.userCache[steamId64];
