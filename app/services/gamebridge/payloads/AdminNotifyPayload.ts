@@ -4,8 +4,8 @@ import { GameServer } from "..";
 import Discord, { TextChannel } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
-import fs from "fs";
-import path from "path";
+// import fs from "fs/promises";
+// import path from "path";
 
 export default class AdminNotifyPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -79,28 +79,25 @@ export default class AdminNotifyPayload extends Payload {
 		try {
 			await (notificationsChannel as TextChannel).send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
+				files: [Buffer.from(message, "utf8")], // TEMP
 				embeds: [embed],
 				components: [row],
 			});
 		} catch {
 			embed.fields = embed.fields.filter(f => f.name !== "Message");
-			const reportPath = path.resolve(
-				`${Date.now()}_${player.nick}_report.txt`.toLocaleLowerCase()
-			);
-			await new Promise<void>((resolve, reject) =>
-				fs.writeFile(reportPath, message, err => (err ? reject(err.message) : resolve()))
-			);
+			// const reportPath = path.resolve(
+			// 	`${Date.now()}_${player.nick}_report.txt`.toLocaleLowerCase()
+			// );
+			// await fs.writeFile(reportPath, message);
 
 			await (notificationsChannel as TextChannel).send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
-				files: [reportPath],
+				files: [Buffer.from(message, "utf8")],
 				embeds: [embed],
 				components: [row],
 			});
 
-			await new Promise<void>((resolve, reject) =>
-				fs.unlink(reportPath, err => (err ? reject(err.message) : resolve()))
-			);
+			// await fs.unlink(reportPath);
 		}
 	}
 }
