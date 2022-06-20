@@ -53,18 +53,18 @@ export class SlashDeveloperCommand extends SlashCommand {
 
 	public async getPlayers(server: number): Promise<Player[] | undefined> {
 		const bridge = this.bot.container.getService("GameBridge");
-		if (!bridge) return undefined;
+		if (!bridge) return;
 		const where = server ?? 2;
-		if (!bridge.servers[where]) return undefined;
+		if (!bridge.servers[where]) return;
 		return bridge.servers[where].status.players;
 	}
 
 	public async getPlayer(steamID64: string, server?: number): Promise<Player | undefined> {
 		const bridge = this.bot.container.getService("GameBridge");
-		if (!bridge) return undefined;
+		if (!bridge) return;
 		const accountId = SteamID.fromIndividualAccountID(steamID64).accountid;
 		if (server) {
-			if (!bridge.servers[server]) return undefined;
+			if (!bridge.servers[server]) return;
 			return bridge.servers[server].status.players.find(
 				player => player.accountId === accountId
 			);
@@ -73,7 +73,7 @@ export class SlashDeveloperCommand extends SlashCommand {
 				server.status.players.find(player => player.accountId === accountId)
 			);
 			if (server) return server.status.players.find(player => player.accountId === accountId);
-			return undefined;
+			return;
 			// there has to be an online for this right?????
 		}
 	}
