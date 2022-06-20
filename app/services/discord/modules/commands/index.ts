@@ -11,7 +11,7 @@ import { SlashMarkovCommand } from "./Markov";
 import { SlashMuteCommand } from "./mute/Mute";
 import { SlashRconCommand } from "./developer/Rcon";
 import { SlashRefreshLuaCommand } from "./developer/RefreshLua";
-import { SlashSqlCommand } from "./developer/Sql";
+import { SlashSQLCommand } from "./developer/SQL";
 import { SlashUnBanCommand } from "./developer/UnBan";
 import { SlashUnmuteCommand } from "./mute/Unmute";
 import { SlashVaccinatedCommand } from "./Vaccination";
@@ -41,7 +41,7 @@ export const commands = [
 	SlashBanCommand,
 	SlashUnBanCommand,
 	SlashKickCommand,
-	SlashSqlCommand,
+	SlashSQLCommand,
 	UIMuteCommand,
 	UIUnmuteCommand,
 	UIWhyMuteCommand,

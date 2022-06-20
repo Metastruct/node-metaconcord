@@ -15,14 +15,14 @@ import GameBridgeProvider, { GameBridge } from "./gamebridge";
 import IRCProvider, { IRC } from "./IRC";
 import MarkovProvider, { MarkovService } from "./Markov";
 import MotdProvider, { Motd } from "./motd";
-import SqlProvider, { Sql } from "./Sql";
+import SQLProvider, { SQL } from "./SQL";
 import StarboardProvider, { Starboard } from "./Starboard";
 import SteamProvider, { Steam } from "./Steam";
 import TwitterProvider, { Twitter } from "./Twitter";
 import WebAppProvider, { WebApp } from "./webapp";
 
 export default [
-	SqlProvider,
+	SQLProvider,
 	MarkovProvider,
 	SteamProvider,
 	DataProvider,
@@ -34,7 +34,7 @@ export default [
 	StarboardProvider,
 	IRCProvider,
 ]; // The order is important
-export { SqlProvider, Data, DiscordBot, GameBridge, Steam, WebApp, Motd, Twitter, IRC };
+export { SQLProvider, Data, DiscordBot, GameBridge, Steam, WebApp, Motd, Twitter, IRC };
 export type ServiceMap = {
 	[key: string]: Service | undefined;
 	Data?: Data;
@@ -46,6 +46,6 @@ export type ServiceMap = {
 	Twitter?: Twitter;
 	Markov?: MarkovService;
 	Starboard?: Starboard;
-	Sql?: Sql;
+	SQL?: SQL;
 	IRC?: IRC;
 };

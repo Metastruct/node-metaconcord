@@ -3,8 +3,8 @@ import { Database, open } from "sqlite";
 import { Service } from ".";
 import sqlite3 from "sqlite3";
 
-export class Sql extends Service {
-	name = "Sql";
+export class SQL extends Service {
+	name = "SQL";
 
 	private database: Database;
 
@@ -30,5 +30,5 @@ export class Sql extends Service {
 }
 
 export default (container: Container): Service => {
-	return new Sql(container);
+	return new SQL(container);
 };

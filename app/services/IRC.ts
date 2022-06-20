@@ -18,6 +18,7 @@ type message = {
 
 export class IRC extends Service {
 	name = "IRC";
+
 	client = new nIRC.Client(config.host, config.nick, {
 		port: config.port,
 		password: config.password,
@@ -57,7 +58,7 @@ export class IRC extends Service {
 		const bot = this.container.getService("DiscordBot");
 
 		if (!bot) return;
-		// discord
+		// Discord
 		bot.discord.on("messageCreate", async msg => {
 			if (msg.channelId === config.relayDiscordChannel) {
 				if (msg.author.discriminator === "0000") return;
