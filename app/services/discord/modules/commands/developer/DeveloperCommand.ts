@@ -7,16 +7,10 @@ import {
 } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
+import { GameServer } from "@/app/services/gamebridge";
+import { Player } from "@/app/services/gamebridge/GameServer";
 import SteamID from "steamid";
 
-type Player = {
-	accountId?: number;
-	nick: string;
-	avatar?: string | false;
-	isAdmin?: boolean;
-	isBanned?: boolean;
-	isAfk?: boolean;
-};
 export class SlashDeveloperCommand extends SlashCommand {
 	protected bot: DiscordBot;
 
@@ -51,7 +45,7 @@ export class SlashDeveloperCommand extends SlashCommand {
 		}
 	}
 
-	public async getPlayers(server: number): Promise<Player[] | undefined> {
+	public async getPlayers(server: number): Promise<GameServer["status"]["players"] | undefined> {
 		const bridge = this.bot.container.getService("GameBridge");
 		if (!bridge) return;
 		const where = server ?? 2;

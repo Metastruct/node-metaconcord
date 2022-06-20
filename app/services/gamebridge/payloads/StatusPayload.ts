@@ -100,7 +100,7 @@ export default class StatusPayload extends Payload {
 					let avatar: string | undefined;
 					if (player.accountId) {
 						avatar = await Steam?.getUserAvatar(
-							new SteamID(`[U:1:${player.accountId}]`).getSteamID64()
+							SteamID.fromIndividualAccountID(player.accountId).getSteamID64()
 						);
 					}
 					player.avatar = avatar ?? `https://robohash.org/${player.accountId}`;

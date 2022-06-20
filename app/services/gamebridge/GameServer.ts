@@ -14,6 +14,15 @@ export type GameServerConfig = {
 	discordToken: string;
 };
 
+export type Player = {
+	accountId: number;
+	nick: string;
+	avatar?: string | false;
+	isAdmin: boolean;
+	isBanned: boolean;
+	isAfk?: boolean;
+};
+
 export default class GameServer {
 	connection: WebSocketConnection;
 	config: GameServerConfig;
@@ -21,14 +30,7 @@ export default class GameServer {
 	discord: DiscordClient;
 	status: {
 		mapThumbnail: string;
-		players: {
-			accountId?: number;
-			nick: string;
-			avatar?: string | false;
-			isAdmin?: boolean;
-			isBanned?: boolean;
-			isAfk?: boolean;
-		}[];
+		players: Player[];
 	} = { mapThumbnail: "", players: [] };
 	playerListImage: Buffer;
 
