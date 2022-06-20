@@ -6,7 +6,6 @@ import {
 	SlashCreator,
 } from "slash-create";
 import { DiscordBot } from "@/app/services";
-import { GameBridge } from "@/app/services/gamebridge";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
 
 const DEFAULT_BAN_LENGTHS = ["1d", "1w", "4w", "6mo", "1y"];
