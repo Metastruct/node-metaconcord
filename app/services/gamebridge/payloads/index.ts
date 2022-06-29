@@ -7,14 +7,16 @@ import NotificationPayload from "./NotificationPayload";
 import Payload from "./Payload";
 import RconPayload from "./RconPayload";
 import StatusPayload from "./StatusPayload";
+import VoteKickPayload from "./VoteKickPayload";
 export {
 	Payload,
+	AdminNotifyPayload,
+	BanPayload,
 	ChatPayload,
 	ErrorPayload,
-	StatusPayload,
 	JoinLeavePayload,
 	NotificationPayload,
-	BanPayload,
-	AdminNotifyPayload,
 	RconPayload,
+	StatusPayload,
+	VoteKickPayload,
 };

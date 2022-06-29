@@ -2,12 +2,86 @@ import * as requestSchema from "./structures/ChatRequest.json";
 import * as responseSchema from "./structures/ChatResponse.json";
 import { ChatRequest, ChatResponse } from "./structures";
 import { GameServer } from "..";
-import Discord from "discord.js";
+import Discord, { GuildMember, TextChannel } from "discord.js";
 import Payload from "./Payload";
 
 export default class ChatPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	protected static responseSchema = responseSchema;
+
+	static async initialize(server: GameServer): Promise<void> {
+		const discord = server.discord;
+		discord.on("messageCreate", async ctx => {
+			if (ctx.channel.id != server.bridge.config.relayChannelId) return;
+			if (ctx.author.bot || !ctx.author.client) return;
+
+			if (ctx.partial) {
+				ctx = await ctx.fetch();
+			}
+
+			let content = ctx.content;
+			content = content.replace(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
+				const extension = !!animated ? "gif" : "png";
+				return `https://media.discordapp.net/emojis/${id}.${extension}?v=1&size=64 `;
+			});
+			content = content.replace(
+				/<#([\d]+)>/g,
+				(_, id) =>
+					`#${
+						ctx.guild?.channels.cache.has(id)
+							? (ctx.guild.channels.cache.get(id) as TextChannel).name
+							: "(uncached channel)"
+					}`
+			);
+			content = content.replace(
+				/<@!?(\d+)>/g,
+				(_, id) =>
+					`@${
+						ctx.guild?.members.cache.has(id)
+							? (ctx.guild.members.cache.get(id) as GuildMember).displayName
+							: "(uncached user)"
+					}`
+			);
+			for (const [, attachment] of ctx.attachments) {
+				content += "\n" + attachment.url;
+			}
+			let reply: Discord.Message | undefined;
+			if (ctx.reference) {
+				reply = await ctx.fetchReference();
+			}
+
+			let nickname = ctx.author.username;
+			try {
+				const author = await ctx.guild?.members.fetch(ctx.author.id);
+				if (author && author.nickname && author.nickname.length > 0) {
+					nickname = author.nickname;
+				}
+			} catch {} // dont care
+
+			const avatar = ctx.author.avatarURL({ dynamic: true });
+
+			const payload: ChatResponse = {
+				user: {
+					id: ctx.author.id,
+					nick: nickname,
+					color: ctx.member?.displayColor ?? 0,
+					avatar_url: avatar ?? ctx.author.defaultAvatarURL,
+				},
+				msgID: ctx.id,
+				content: content,
+			};
+
+			if (reply) {
+				payload.replied_message = {
+					msgID: reply.id,
+					content: reply.content,
+					ingameName: reply.author.discriminator === "0000" ? reply.author.username : "",
+				};
+			}
+
+			ChatPayload.send(payload, server);
+		});
+	}
 
 	static async handle(payload: ChatRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
