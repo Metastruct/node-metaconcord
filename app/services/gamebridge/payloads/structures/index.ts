@@ -9,6 +9,7 @@ import PayloadRequest from "./PayloadRequest";
 import RconRequest from "./RconRequest";
 import RconResponse from "./RconResponse";
 import StatusRequest from "./StatusRequest";
+import VoteKickRequest from "./VoteKickRequest";
 export {
 	PayloadRequest,
 	ChatRequest,
@@ -21,4 +22,5 @@ export {
 	AdminNotifyRequest,
 	RconResponse,
 	RconRequest,
+	VoteKickRequest,
 };
