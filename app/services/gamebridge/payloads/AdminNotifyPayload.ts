@@ -10,9 +10,10 @@ export default class AdminNotifyPayload extends Payload {
 
 	static async initialize(server: GameServer): Promise<void> {
 		const discord = server.discord;
-		const notificationsChannel = (await discord.channels.fetch(
+		const notificationsChannel = discord.channels.cache.get(
 			server.discord.config.notificationsChannelId
-		)) as TextChannel;
+		) as TextChannel;
+		if (!notificationsChannel) return;
 		const steam = server.bridge.container.getService("Steam");
 
 		const filter = (btn: MessageComponentInteraction) => btn.customId.endsWith("_REPORT_KICK");

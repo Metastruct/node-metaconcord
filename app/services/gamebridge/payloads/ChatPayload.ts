@@ -11,15 +11,15 @@ export default class ChatPayload extends Payload {
 
 	static async initialize(server: GameServer): Promise<void> {
 		const discord = server.discord;
-		discord.on("messageCreate", async ctx => {
-			if (ctx.channel.id != server.bridge.config.relayChannelId) return;
-			if (ctx.author.bot || !ctx.author.client) return;
+		discord.on("messageCreate", async msg => {
+			if (msg.channel.id != server.bridge.config.relayChannelId) return;
+			if (msg.author.bot || !msg.author.client) return;
 
-			if (ctx.partial) {
-				ctx = await ctx.fetch();
+			if (msg.partial) {
+				msg = await msg.fetch();
 			}
 
-			let content = ctx.content;
+			let content = msg.content;
 			content = content.replace(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
 				const extension = !!animated ? "gif" : "png";
 				return `https://media.discordapp.net/emojis/${id}.${extension}?v=1&size=64 `;
@@ -28,8 +28,8 @@ export default class ChatPayload extends Payload {
 				/<#([\d]+)>/g,
 				(_, id) =>
 					`#${
-						ctx.guild?.channels.cache.has(id)
-							? (ctx.guild.channels.cache.get(id) as TextChannel).name
+						msg.guild?.channels.cache.has(id)
+							? (msg.guild.channels.cache.get(id) as TextChannel).name
 							: "(uncached channel)"
 					}`
 			);
@@ -37,37 +37,37 @@ export default class ChatPayload extends Payload {
 				/<@!?(\d+)>/g,
 				(_, id) =>
 					`@${
-						ctx.guild?.members.cache.has(id)
-							? (ctx.guild.members.cache.get(id) as GuildMember).displayName
+						msg.guild?.members.cache.has(id)
+							? (msg.guild.members.cache.get(id) as GuildMember).displayName
 							: "(uncached user)"
 					}`
 			);
-			for (const [, attachment] of ctx.attachments) {
+			for (const [, attachment] of msg.attachments) {
 				content += "\n" + attachment.url;
 			}
 			let reply: Discord.Message | undefined;
-			if (ctx.reference) {
-				reply = await ctx.fetchReference();
+			if (msg.reference) {
+				reply = await msg.fetchReference();
 			}
 
-			let nickname = ctx.author.username;
+			let nickname = msg.author.username;
 			try {
-				const author = await ctx.guild?.members.fetch(ctx.author.id);
+				const author = await msg.guild?.members.fetch(msg.author.id);
 				if (author && author.nickname && author.nickname.length > 0) {
 					nickname = author.nickname;
 				}
 			} catch {} // dont care
 
-			const avatar = ctx.author.avatarURL({ dynamic: true });
+			const avatar = msg.author.avatarURL({ dynamic: true });
 
 			const payload: ChatResponse = {
 				user: {
-					id: ctx.author.id,
+					id: msg.author.id,
 					nick: nickname,
-					color: ctx.member?.displayColor ?? 0,
-					avatar_url: avatar ?? ctx.author.defaultAvatarURL,
+					color: msg.member?.displayColor ?? 0,
+					avatar_url: avatar ?? msg.author.defaultAvatarURL,
 				},
-				msgID: ctx.id,
+				msgID: msg.id,
 				content: content,
 			};
 
@@ -79,7 +79,7 @@ export default class ChatPayload extends Payload {
 				};
 			}
 
-			ChatPayload.send(payload, server);
+			this.send(payload, server);
 		});
 	}
 

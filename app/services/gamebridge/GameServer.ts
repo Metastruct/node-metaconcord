@@ -44,7 +44,7 @@ export default class GameServer {
 
 		this.discord.run(this.config.discordToken);
 
-		req.on("requestAccepted", async () => {
+		this.discord.on("ready", () => {
 			for (const [, payload] of Object.entries(bridge.payloads)) {
 				payload.initialize(this);
 			}

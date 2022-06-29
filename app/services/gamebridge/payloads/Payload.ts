@@ -37,9 +37,8 @@ export default abstract class Payload {
 		this.validate(this.requestSchema, payload);
 	}
 
-	static async initialize(server: GameServer): Promise<void> {
-		this.initialize(server);
-	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	static async initialize(server: GameServer): Promise<void> {}
 
 	static async send(payload: unknown, server: GameServer): Promise<void> {
 		this.validate(this.responseSchema, payload);
