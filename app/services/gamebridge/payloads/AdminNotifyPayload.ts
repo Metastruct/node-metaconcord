@@ -8,6 +8,52 @@ import SteamID from "steamid";
 export default class AdminNotifyPayload extends Payload {
 	protected static requestSchema = requestSchema;
 
+	static async initialize(server: GameServer): Promise<void> {
+		const discord = server.discord;
+		const notificationsChannel = (await discord.channels.fetch(
+			server.discord.config.notificationsChannelId
+		)) as TextChannel;
+		const steam = server.bridge.container.getService("Steam");
+
+		const filter = (btn: MessageComponentInteraction) => btn.customId.endsWith("_REPORT_KICK");
+
+		const collector = notificationsChannel.createMessageComponentCollector({ filter });
+
+		collector.on("collect", async (ctx: ButtonInteraction) => {
+			await ctx.deferReply();
+			if (!(await DiscordClient.isAllowed(server, ctx.user))) return;
+
+			try {
+				const interactionId64 = new SteamID(
+					ctx.customId.replace("_REPORT_KICK", "")
+				).getSteamID64();
+				const res = await server.bridge.payloads.RconPayload.callLua(
+					`local ply = player.GetBySteamID64("${interactionId64}") if not ply then return false end ply:Kick("Kicked by Discord (${ctx.user.username}) for a related report.")`,
+					"sv",
+					server,
+					ctx.user.username
+				);
+
+				if (res.data.returns[0] !== "false") {
+					const summary = await steam?.getUserSummaries(interactionId64);
+					await ctx.editReply({
+						content: `${ctx.user.mention} kicked player \`${summary.nickname}\``,
+					});
+				} else {
+					await ctx.editReply({
+						content: `${ctx.user.mention}, could not kick player: not on server`,
+					});
+				}
+			} catch (err) {
+				await ctx.editReply({
+					content: `${ctx.user.mention}, could not kick player: ${err}`,
+				});
+			}
+
+			await ctx.update({ components: [] });
+		});
+	}
+
 	static async handle(payload: AdminNotifyRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
@@ -95,50 +141,5 @@ export default class AdminNotifyPayload extends Payload {
 				components: [row],
 			});
 		}
-	}
-	static async initialize(server: GameServer): Promise<void> {
-		const discord = server.discord;
-		const notificationsChannel = (await discord.channels.fetch(
-			server.discord.config.notificationsChannelId
-		)) as TextChannel;
-		const steam = server.bridge.container.getService("Steam");
-
-		const filter = (btn: MessageComponentInteraction) => btn.customId.endsWith("_REPORT_KICK");
-
-		const collector = notificationsChannel.createMessageComponentCollector({ filter });
-
-		collector.on("collect", async (ctx: ButtonInteraction) => {
-			await ctx.deferReply();
-			if (!(await DiscordClient.isAllowed(server, ctx.user))) return;
-
-			try {
-				const interactionId64 = new SteamID(
-					ctx.customId.replace("_REPORT_KICK", "")
-				).getSteamID64();
-				const res = await server.bridge.payloads.RconPayload.callLua(
-					`local ply = player.GetBySteamID64("${interactionId64}") if not ply then return false end ply:Kick("Kicked by Discord (${ctx.user.username}) for a related report.")`,
-					"sv",
-					server,
-					ctx.user.username
-				);
-
-				if (res.data.returns[0] !== "false") {
-					const summary = await steam?.getUserSummaries(interactionId64);
-					await ctx.editReply({
-						content: `${ctx.user.mention} kicked player \`${summary.nickname}\``,
-					});
-				} else {
-					await ctx.editReply({
-						content: `${ctx.user.mention}, could not kick player: not on server`,
-					});
-				}
-			} catch (err) {
-				await ctx.editReply({
-					content: `${ctx.user.mention}, could not kick player: ${err}`,
-				});
-			}
-
-			await ctx.update({ components: [] });
-		});
 	}
 }
