@@ -44,6 +44,12 @@ export default class GameServer {
 
 		this.discord.run(this.config.discordToken);
 
+		req.on("requestAccepted", async () => {
+			for (const [, payload] of Object.entries(bridge.payloads)) {
+				payload.initialize(this);
+			}
+		});
+
 		this.connection.on("message", async (msg: IUtf8Message) => {
 			// if (received.utf8Data == "") console.log("Heartbeat");
 			if (!msg || msg.utf8Data == "") return;

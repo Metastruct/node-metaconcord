@@ -37,6 +37,10 @@ export default abstract class Payload {
 		this.validate(this.requestSchema, payload);
 	}
 
+	static async initialize(server: GameServer): Promise<void> {
+		this.initialize(server);
+	}
+
 	static async send(payload: unknown, server: GameServer): Promise<void> {
 		this.validate(this.responseSchema, payload);
 
