@@ -100,6 +100,7 @@ export default class NotificationPayload extends Payload {
 					)
 			)
 			.sort()
+			.reverse()
 			.first();
 	}
 }
