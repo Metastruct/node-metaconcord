@@ -77,6 +77,21 @@ export default class NotificationPayload extends Payload {
 			)
 			.setThumbnail(offenderAvatar)
 			.setColor(0xc4af21);
+
+		const data = bridge.container.getService("Data");
+		if (data) {
+			if (!data.timesVoteKicked[offenderSteamId64])
+				data.timesVoteKicked[offenderSteamId64] = 0;
+			data.timesVoteKicked[offenderSteamId64]++;
+			await data.save();
+			if (data.timesVoteKicked[offenderSteamId64] > 0) {
+				embed.addField(
+					"Total Votekick Amount",
+					data.timesVoteKicked[offenderSteamId64].toString()
+				);
+			}
+		}
+
 		await (notificationsChannel as TextChannel).send({
 			embeds: [embed],
 		});

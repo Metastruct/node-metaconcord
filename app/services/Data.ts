@@ -18,8 +18,11 @@ export class Data extends Service {
 	timesReported: {
 		[steamId64: string]: number;
 	} = {};
+	timesVoteKicked: {
+		[steamId64: string]: number;
+	} = {};
 	lastDiscordGuildIcon: "None";
-	toSave = ["muted", "lastDiscordGuildIcon", "timesReported"];
+	toSave = ["muted", "timesReported", "timesVoteKicked", "lastDiscordGuildIcon"];
 
 	async init(): Promise<void> {
 		try {
