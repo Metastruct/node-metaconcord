@@ -106,7 +106,7 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 		if (sent instanceof Message) {
 			const channel = (await this.bot.discord.channels.fetch(sent.channelID)) as TextChannel;
 			const msg = await channel.messages.fetch(sent.id);
-			await msg.react(success ? "👍" : "👎");
+			await msg.react(success ? "✅" : "❌");
 		}
 		return success;
 	}
