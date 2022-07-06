@@ -22,6 +22,7 @@ export default class AdminNotifyPayload extends Payload {
 
 		collector.on("collect", async (ctx: ButtonInteraction) => {
 			await ctx.deferReply();
+			await ctx.deferUpdate();
 			if (!(await DiscordClient.isAllowed(server, ctx.user))) return;
 
 			try {
