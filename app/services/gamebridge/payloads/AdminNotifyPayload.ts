@@ -22,7 +22,6 @@ export default class AdminNotifyPayload extends Payload {
 
 		collector.on("collect", async (ctx: ButtonInteraction) => {
 			await ctx.deferReply();
-			await ctx.deferUpdate();
 			if (!(await DiscordClient.isAllowed(server, ctx.user))) return;
 
 			try {
@@ -38,21 +37,19 @@ export default class AdminNotifyPayload extends Payload {
 
 				if (res.data.returns[0] !== "false") {
 					const summary = await steam?.getUserSummaries(interactionId64);
-					await ctx.editReply({
+					await ctx.followUp({
 						content: `${ctx.user.mention} kicked player \`${summary.nickname}\``,
 					});
 				} else {
-					await ctx.editReply({
+					await ctx.followUp({
 						content: `${ctx.user.mention}, could not kick player: not on server`,
 					});
 				}
 			} catch (err) {
-				await ctx.editReply({
+				await ctx.followUp({
 					content: `${ctx.user.mention}, could not kick player: ${err}`,
 				});
 			}
-
-			await ctx.update({ components: [] });
 		});
 	}
 
