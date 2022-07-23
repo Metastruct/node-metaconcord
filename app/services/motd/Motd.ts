@@ -4,6 +4,7 @@ import { scheduleJob } from "node-schedule";
 import axios from "axios";
 import config from "@/config/motd.json";
 import dayjs from "dayjs";
+import FormData from "form-data";
 
 export default class Motd extends Service {
 	name = "Motd";
@@ -18,6 +19,7 @@ export default class Motd extends Service {
 		this.lastimage = undefined;
 		scheduleJob("0 12 * * *", this.executeMessageJob.bind(this));
 		scheduleJob("0 20 * * *", this.executeImageJob.bind(this));
+		scheduleJob("0 0 1 * *", this.clearImageAlbum.bind(this));
 	}
 
 	public pushMessage(msg: string): void {
@@ -37,6 +39,21 @@ export default class Motd extends Service {
 		if (msg.indexOf(" ") === -1) return false;
 
 		return true;
+	}
+
+	private clearImageAlbum(): void {
+		const data = new FormData();
+		data.append("deletehashes[]", "");
+		// this errors but works ?
+		axios.post(
+			`https://api.imgur.com/3/album/${config.imgurDeleteHash}?deletehashes=${config.imgurDeleteHash}`,
+			data,
+			{
+				headers: {
+					Authorization: `Client-ID ${config.imgurClientId}`,
+				},
+			}
+		);
 	}
 
 	private executeMessageJob(): void {
