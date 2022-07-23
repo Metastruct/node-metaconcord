@@ -1,4 +1,5 @@
 import AdminNotifyRequest from "./AdminNotifyRequest";
+import BanAppealRequest from "./BanAppealRequest";
 import BanRequest from "./BanRequest";
 import ChatRequest from "./ChatRequest";
 import ChatResponse from "./ChatResponse";
@@ -9,18 +10,21 @@ import PayloadRequest from "./PayloadRequest";
 import RconRequest from "./RconRequest";
 import RconResponse from "./RconResponse";
 import StatusRequest from "./StatusRequest";
+import UnbanRequest from "./UnbanRequest";
 import VoteKickRequest from "./VoteKickRequest";
 export {
-	PayloadRequest,
+	AdminNotifyRequest,
+	BanAppealRequest,
+	BanRequest,
 	ChatRequest,
 	ChatResponse,
 	ErrorResponse,
-	StatusRequest,
 	JoinLeaveRequest,
 	NotificationResponse,
-	BanRequest,
-	AdminNotifyRequest,
-	RconResponse,
+	PayloadRequest,
 	RconRequest,
+	RconResponse,
+	StatusRequest,
+	UnbanRequest,
 	VoteKickRequest,
 };

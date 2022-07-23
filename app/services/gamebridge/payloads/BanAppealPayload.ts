@@ -1,5 +1,5 @@
 import * as requestSchema from "./structures/BanRequest.json";
-import { BanRequest } from "./structures";
+import { BanAppealRequest } from "./structures";
 import { GameServer } from "..";
 import { PlayerSummary } from "steamapi";
 import { TextChannel } from "discord.js";
@@ -7,13 +7,13 @@ import Discord from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
 
-export default class BanPayload extends Payload {
+export default class UnbanPayload extends Payload {
 	protected static requestSchema = requestSchema;
 
-	static async handle(payload: BanRequest, server: GameServer): Promise<void> {
+	static async handle(payload: BanAppealRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
-		const { player, banned, reason, unbanTime } = payload.data;
+		const { player, banned, banReason, appeal, unbanTime } = payload.data;
 		const { bridge, discord: discordClient } = server;
 
 		if (!discordClient.isReady()) return;
@@ -47,37 +47,22 @@ export default class BanPayload extends Payload {
 
 		const embed = new Discord.MessageEmbed();
 		if (avatar) {
-			embed.setAuthor({
-				name: `${player.nick} banned a player`,
-				iconURL: avatar,
-				url: `https://steamcommunity.com/profiles/${steamId64}`,
-			});
-		} else {
-			if (bannerName.startsWith("Discord")) {
-				const chunks = bannerName
-					.replace("Discord ", "")
-					.replace(")", "")
-					.replace("(", "")
-					.split("|");
-
-				const name = chunks[0].trim();
-				const mention = chunks[1].trim();
-				embed.setTitle(`${name} banned a player`);
-				embed.addField("Mention", mention);
-			} else {
-				embed.setTitle(`${bannerName} banned a player`);
-			}
+			embed.setThumbnail(avatar);
 		}
-
+		embed.setAuthor({
+			name: `${banned.nick} appealed a ban`,
+			iconURL: bannedAvatar,
+			url: `https://steamcommunity.com/profiles/${bannedSteamId64}`,
+		});
 		if (banned.nick) embed.addField("Nick", banned.nick, true);
-		embed.addField("Expiration", `<t:${unixTime}:R>`, true);
-		embed.addField("Reason", reason.substring(0, 1900));
+		embed.addField("Banned by", bannerName, true);
+		embed.addField("Ban Reason", banReason.substring(0, 1900), true);
+		embed.addField("Ban Expiration", `<t:${unixTime}:R>`, true);
+		embed.addField("Appeal", `\`\`\`${appeal.substring(0, 1900).replace("`", "")}\`\`\``);
 		embed.addField(
 			"SteamID",
 			`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
 		);
-		embed.setThumbnail(bannedAvatar);
-		embed.setColor(0xc42144);
 		(notificationsChannel as TextChannel).send({ embeds: [embed] });
 	}
 }

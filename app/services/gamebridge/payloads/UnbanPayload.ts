@@ -1,19 +1,19 @@
 import * as requestSchema from "./structures/BanRequest.json";
-import { BanRequest } from "./structures";
 import { GameServer } from "..";
 import { PlayerSummary } from "steamapi";
 import { TextChannel } from "discord.js";
+import { UnbanRequest } from "./structures";
 import Discord from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
 
-export default class BanPayload extends Payload {
+export default class UnbanPayload extends Payload {
 	protected static requestSchema = requestSchema;
 
-	static async handle(payload: BanRequest, server: GameServer): Promise<void> {
+	static async handle(payload: UnbanRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
-		const { player, banned, reason, unbanTime } = payload.data;
+		const { player, banned, banReason, unbanReason, unbanTime } = payload.data;
 		const { bridge, discord: discordClient } = server;
 
 		if (!discordClient.isReady()) return;
@@ -48,7 +48,7 @@ export default class BanPayload extends Payload {
 		const embed = new Discord.MessageEmbed();
 		if (avatar) {
 			embed.setAuthor({
-				name: `${player.nick} banned a player`,
+				name: `${player.nick} unbanned a player`,
 				iconURL: avatar,
 				url: `https://steamcommunity.com/profiles/${steamId64}`,
 			});
@@ -62,22 +62,23 @@ export default class BanPayload extends Payload {
 
 				const name = chunks[0].trim();
 				const mention = chunks[1].trim();
-				embed.setTitle(`${name} banned a player`);
+				embed.setTitle(`${name} unbanned a player`);
 				embed.addField("Mention", mention);
 			} else {
-				embed.setTitle(`${bannerName} banned a player`);
+				embed.setTitle(`${bannerName} unbanned a player`);
 			}
 		}
 
 		if (banned.nick) embed.addField("Nick", banned.nick, true);
 		embed.addField("Expiration", `<t:${unixTime}:R>`, true);
-		embed.addField("Reason", reason.substring(0, 1900));
+		embed.addField("Ban Reason", banReason.substring(0, 1900));
+		embed.addField("Unban Reason", unbanReason.substring(0, 1900));
 		embed.addField(
 			"SteamID",
 			`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
 		);
 		embed.setThumbnail(bannedAvatar);
-		embed.setColor(0xc42144);
+		embed.setColor("GREEN");
 		(notificationsChannel as TextChannel).send({ embeds: [embed] });
 	}
 }
