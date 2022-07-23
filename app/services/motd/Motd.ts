@@ -10,6 +10,8 @@ export default class Motd extends Service {
 	messages: Array<string>;
 	lastimage?: string;
 
+	private ignorelist: Array<string> = ["STEAM_0:0:25648317"];
+
 	constructor(container: Container) {
 		super(container);
 		this.messages = [];
@@ -70,7 +72,11 @@ export default class Motd extends Service {
 		if (res.status === 200) {
 			const yesterday = dayjs().subtract(1, "d").unix();
 			const urls = res.data.data
-				.filter((img: { datetime: number }) => img.datetime >= yesterday) // keep only recent images
+				.filter(
+					(img: { datetime: number; title: string }) =>
+						img.datetime >= yesterday &&
+						!this.ignorelist.some(id => img.title.includes(id))
+				) // keep only recent images
 				.map((img: { link: string }) => img.link);
 
 			const url: string = urls[Math.floor(Math.random() * urls.length)];
