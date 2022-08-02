@@ -24,6 +24,12 @@ const VALID_GSERV_COMMANDS: [string, string][] = [
 	["status", "Shows server status."],
 ];
 
+const SERVER_EMOJI_MAP = {
+	1: "1️⃣",
+	2: "2️⃣",
+	3: "3️⃣",
+};
+
 export class SlashGservCommand extends SlashDeveloperCommand {
 	private commandOptions: ComponentSelectOption[] = [];
 	private serverOptions: ComponentSelectOption[] = [];
@@ -45,8 +51,8 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 		}
 		for (const server of config.servers) {
 			this.serverOptions.push({
-				label: server.host.substr(0, 2), // [g1].metastruct.net
-				value: server.host.substr(1, 1), // g[1].metastruct.net
+				label: server.host.slice(0, 2), // [g1].metastruct.net
+				value: server.host.slice(1, 1), // g[1].metastruct.net
 				description: server.host, // g1.metastruct.net
 			} as ComponentSelectOption);
 		}
@@ -116,7 +122,7 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 		} else {
 			const channel = (await this.bot.discord.channels.fetch(ctx.channelID)) as TextChannel;
 			const msg = await channel.messages.fetch(ctx.message.id);
-			await msg.react(success ? "✅" : "❌");
+			await msg.react(SERVER_EMOJI_MAP[host.slice(1, 1)]);
 		}
 		return success;
 	}
