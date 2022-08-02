@@ -122,7 +122,7 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 		} else {
 			const channel = (await this.bot.discord.channels.fetch(ctx.channelID)) as TextChannel;
 			const msg = await channel.messages.fetch(ctx.message.id);
-			await msg.react(SERVER_EMOJI_MAP[host.slice(1, 2)]);
+			await msg.react(SERVER_EMOJI_MAP[host.slice(1, 2)] ?? "❓");
 		}
 		return success;
 	}
