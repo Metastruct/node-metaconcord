@@ -1,4 +1,5 @@
 import {
+	ButtonStyle,
 	CommandContext,
 	ComponentContext,
 	ComponentSelectOption,
@@ -69,7 +70,8 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 		username: string,
 		port: number,
 		commands: string[],
-		solo: boolean
+		solo: boolean,
+		output: boolean
 	): Promise<boolean> {
 		const ssh = new NodeSSH();
 		await ssh.connect({
@@ -79,15 +81,15 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 			privateKey: config.keyPath,
 		});
 
-		let output = "";
+		let buffer = "";
 		await ssh.exec("gserv", commands, {
 			stream: "stderr",
-			onStdout: buff => (output += buff),
-			onStderr: buff => (output += buff),
+			onStdout: buff => (buffer += buff),
+			onStderr: buff => (buffer += buff),
 		});
 
-		output = this.stripControlChars(output);
-		const success = !output.includes("GSERV FAILED");
+		buffer = this.stripControlChars(buffer);
+		const success = !buffer.includes("GSERV FAILED");
 
 		const fileName = `${commands.join("_")}_${host}_${Date.now()}.txt`;
 		let msgContent = host;
@@ -96,20 +98,61 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 		const response = {
 			content: msgContent,
 			file: {
-				file: Buffer.from(output, "utf8"),
+				file: Buffer.from(buffer, "utf8"),
 				name: fileName,
 			},
 		};
 
-		const sent = solo ? await ctx.editParent(response) : await ctx.send(response);
+		if (output || success === false) {
+			const sent = solo ? await ctx.editParent(response) : await ctx.send(response);
 
-		if (sent instanceof Message) {
-			const channel = (await this.bot.discord.channels.fetch(sent.channelID)) as TextChannel;
-			const msg = await channel.messages.fetch(sent.id);
+			if (sent instanceof Message) {
+				const channel = (await this.bot.discord.channels.fetch(
+					sent.channelID
+				)) as TextChannel;
+				const msg = await channel.messages.fetch(sent.id);
+				await msg.react(success ? "✅" : "❌");
+			}
+		} else {
+			const channel = (await this.bot.discord.channels.fetch(ctx.channelID)) as TextChannel;
+			const msg = await channel.messages.fetch(ctx.message.id);
 			await msg.react(success ? "✅" : "❌");
 		}
 		return success;
 	}
+
+	private async send(
+		ctx: ComponentContext,
+		commands: string[],
+		servers: string[],
+		output: boolean
+	) {
+		ctx.editParent(
+			`Running ${commands.join(" and ")} on ${servers
+				.slice()
+				.sort()
+				.join(", ")} please wait...`,
+			{ components: [] }
+		);
+		const promises = config.servers
+			.filter(
+				(srvConfig: { host: string }) =>
+					servers.find(srv => srvConfig.host.substr(1, 1) === srv) != undefined
+			)
+			.map((srvConfig: { host: string; username: string; port: number }) =>
+				this.gserv(
+					ctx,
+					srvConfig.host,
+					srvConfig.username,
+					srvConfig.port,
+					commands,
+					servers.length === 1,
+					output
+				)
+			);
+		await Promise.all(promises);
+	}
+
 	private deny(ctx: CommandContext) {
 		return EphemeralResponse(`This command can only be used by ${ctx.user.username}`);
 	}
@@ -160,35 +203,41 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 					},
 				],
 			});
+
 			ctx.registerComponent("gserv_server", async (selected: ComponentContext) => {
 				if (selected.user.id !== user.id) {
 					selected.send(this.deny(ctx));
 					return;
 				}
 				servers = selected.values;
-				selected.editParent(
-					`Running ${commands.join(" and ")} on ${servers
-						.slice()
-						.sort()
-						.join(", ")} please wait...`,
-					{ components: [] }
-				);
-				const promises = config.servers
-					.filter(
-						(srvConfig: { host: string }) =>
-							servers.find(srv => srvConfig.host.substr(1, 1) === srv) != undefined
-					)
-					.map((srvConfig: { host: string; username: string; port: number }) =>
-						this.gserv(
-							selected,
-							srvConfig.host,
-							srvConfig.username,
-							srvConfig.port,
-							commands,
-							servers.length === 1
-						)
-					);
-				await Promise.all(promises);
+
+				await selected.editParent("Display output?", {
+					components: [
+						{
+							type: ComponentType.ACTION_ROW,
+							components: [
+								{
+									type: ComponentType.BUTTON,
+									custom_id: "gserv_output_n",
+									label: "No",
+									style: ButtonStyle.DESTRUCTIVE,
+								},
+								{
+									type: ComponentType.BUTTON,
+									custom_id: "gserv_output_y",
+									label: "Yes",
+									style: ButtonStyle.SUCCESS,
+								},
+							],
+						},
+					],
+				});
+				ctx.registerComponent("gserv_output_n", async (selected: ComponentContext) => {
+					this.send(selected, commands, servers, false);
+				});
+				ctx.registerComponent("gserv_output_y", async (selected: ComponentContext) => {
+					this.send(selected, commands, servers, true);
+				});
 			});
 		});
 	}
