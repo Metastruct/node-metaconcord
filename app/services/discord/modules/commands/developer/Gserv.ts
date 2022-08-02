@@ -25,9 +25,9 @@ const VALID_GSERV_COMMANDS: [string, string][] = [
 ];
 
 const SERVER_EMOJI_MAP = {
-	1: "1️⃣",
-	2: "2️⃣",
-	3: "3️⃣",
+	"1": "1️⃣",
+	"2": "2️⃣",
+	"3": "3️⃣",
 };
 
 export class SlashGservCommand extends SlashDeveloperCommand {
