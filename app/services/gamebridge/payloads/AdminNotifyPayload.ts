@@ -21,9 +21,8 @@ export default class AdminNotifyPayload extends Payload {
 		const collector = notificationsChannel.createMessageComponentCollector({ filter });
 
 		collector.on("collect", async (ctx: ButtonInteraction) => {
-			await ctx.deferReply();
 			if (!(await DiscordClient.isAllowed(server, ctx.user))) return;
-
+			await ctx.deferReply();
 			try {
 				const interactionId64 = new SteamID(
 					ctx.customId.replace("_REPORT_KICK", "")
