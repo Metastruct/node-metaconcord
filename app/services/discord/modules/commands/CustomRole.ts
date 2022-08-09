@@ -14,7 +14,6 @@ export class SlashCustomRoleCommand extends SlashCommand {
 			name: "role",
 			description: "Gives you a Custom Role.",
 			deferEphemeral: true,
-			guildIDs: [bot.config.guildId],
 			options: [
 				{
 					type: CommandOptionType.SUB_COMMAND,
