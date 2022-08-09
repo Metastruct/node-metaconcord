@@ -55,6 +55,10 @@ export default (bot: DiscordBot): void => {
 		const user = oldMsg.author ?? newMsg.author;
 		if (user?.bot) return;
 
+		if (!newMsg.partial) {
+			await bot.fixTwitterEmbeds(newMsg);
+		}
+
 		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
 		if (!logChannel) return;
 
