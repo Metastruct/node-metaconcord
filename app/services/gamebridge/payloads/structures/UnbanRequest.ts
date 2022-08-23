@@ -9,6 +9,6 @@ export default interface UnbanRequest extends PayloadRequest {
 		banned: { nick: string; steamId: string };
 		banReason: string;
 		unbanReason: string;
-		unbanTime: string;
+		banTime: string;
 	};
 }

@@ -13,7 +13,7 @@ export default class UnbanPayload extends Payload {
 	static async handle(payload: UnbanRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
-		const { player, banned, banReason, unbanReason, unbanTime } = payload.data;
+		const { player, banned, banReason, unbanReason, banTime } = payload.data;
 		const { bridge, discord: discordClient } = server;
 
 		if (!discordClient.isReady()) return;
@@ -41,9 +41,9 @@ export default class UnbanPayload extends Payload {
 
 		const bannedSteamId64 = new SteamID(banned.steamId).getSteamID64();
 		const bannedAvatar = await steam?.getUserAvatar(bannedSteamId64);
-		const unixTime = parseInt(unbanTime);
+		const unixTime = parseInt(banTime);
 		if (!unixTime || isNaN(unixTime))
-			throw new Error(`Unban time is not a number? Supplied time: ${unbanTime}`);
+			throw new Error(`ban time is not a number? Supplied time: ${banTime}`);
 
 		const embed = new Discord.MessageEmbed();
 		if (avatar) {
