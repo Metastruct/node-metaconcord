@@ -1,7 +1,7 @@
 import { Container } from "../Container";
 import { MessageReaction } from "discord.js";
-import { Service } from ".";
 import { SQL } from "./SQL";
+import { Service } from ".";
 import { TextChannel } from "discord.js";
 import Discord from "discord.js";
 import config from "@/config/starboard.json";
@@ -90,6 +90,6 @@ export class Starboard extends Service {
 	}
 }
 
-export default (container: Container): Service => {
+export default function StarboardProvider(container: Container): Service {
 	return new Starboard(container);
-};
+}

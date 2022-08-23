@@ -1,13 +1,5 @@
-import { Container } from "@/app/Container";
-
-export class Service {
-	readonly name: string;
-	container: Container;
-
-	constructor(container: Container) {
-		this.container = container;
-	}
-}
+import Service from "./Service";
+export { Service };
 
 import DataProvider, { Data } from "./Data";
 import DiscordBotProvider, { DiscordBot } from "./discord";
@@ -34,7 +26,7 @@ export default [
 	StarboardProvider,
 	IRCProvider,
 ]; // The order is important
-export { SQLProvider, Data, DiscordBot, GameBridge, Steam, WebApp, Motd, Twitter, IRC };
+export { SQL, Data, DiscordBot, GameBridge, Steam, WebApp, Motd, Twitter, IRC };
 export type ServiceMap = {
 	[key: string]: Service | undefined;
 	Data?: Data;

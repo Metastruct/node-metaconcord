@@ -1,4 +1,4 @@
-import { ApiResponseError, TweetExtendedEntitiesV1, TweetV1, TwitterApi } from "twitter-api-v2";
+import { ApiResponseError, TweetV1, TwitterApi } from "twitter-api-v2";
 import { Container } from "@/app/Container";
 import { Service } from ".";
 import Filter from "bad-words";
@@ -188,6 +188,6 @@ export class Twitter extends Service {
 	}
 }
 
-export default (container: Container): Service => {
+export default function TwitterProvider(container: Container): Service {
 	return new Twitter(container);
-};
+}

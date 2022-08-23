@@ -21,10 +21,7 @@ export class Container {
 		return this.services;
 	}
 
-	async addService(service: Service | Promise<Service>): Promise<void> {
-		if (service instanceof Promise) {
-			service = await service;
-		}
+	addService(service: Service): void {
 		this.services[service.name] = service;
 	}
 

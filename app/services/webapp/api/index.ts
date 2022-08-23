@@ -1,7 +1,15 @@
+import addCI from "./ci";
+import addChangeGamemode from "./gamemode";
 import addEmojiAPI from "./emojis";
 import addGameServerStatusAPI from "./game-server-status";
 import addMapThumbnails from "./map-thumbnails";
-import changeGamemode from "./gamemode";
-import ci from "./ci";
+import addNuxt from "./nuxt";
 
-export default [addEmojiAPI, addGameServerStatusAPI, addMapThumbnails, changeGamemode, ci];
+export default [
+	addEmojiAPI,
+	addGameServerStatusAPI,
+	addMapThumbnails,
+	addChangeGamemode,
+	addCI,
+	addNuxt,
+];
