@@ -29,6 +29,6 @@ export class SQL extends Service {
 	}
 }
 
-export default (container: Container): Service => {
+export default function SQLProvider(container: Container): Service {
 	return new SQL(container);
-};
+}

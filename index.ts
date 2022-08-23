@@ -8,6 +8,6 @@ import "@/extensions";
 // Main
 import { App } from "./app";
 const MetaConcord = new App();
-(global as any).MetaConcord = MetaConcord;
+globalThis.MetaConcord = MetaConcord;
 
 export default MetaConcord;

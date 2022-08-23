@@ -5,6 +5,6 @@ export { DiscordClient, GameServer, GameBridge, GameServerConfig, Player };
 
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
-export default (container: Container): Service => {
+export default function GameBridgeProvider(container: Container): Service {
 	return new GameBridge(container);
-};
+}

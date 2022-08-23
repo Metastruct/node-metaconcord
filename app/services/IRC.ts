@@ -95,6 +95,6 @@ export class IRC extends Service {
 	}
 }
 
-export default (container: Container): Service => {
+export default function IRCProvider(container: Container): Service {
 	return new IRC(container);
-};
+}

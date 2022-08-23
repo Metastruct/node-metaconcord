@@ -62,9 +62,9 @@ export class Data extends Service {
 	}
 }
 
-export default async (container: Container): Promise<Service> => {
+export default async function DataProvider(container: Container): Promise<Service> {
 	const data = new Data(container);
 	await data.init();
 	await data.load();
 	return data;
-};
+}

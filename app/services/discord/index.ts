@@ -133,6 +133,6 @@ export class DiscordBot extends Service {
 	}
 }
 
-export default (container: Container): Service => {
+export default function DiscordBotProvider(container: Container): Service {
 	return new DiscordBot(container);
-};
+}

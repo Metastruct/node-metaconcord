@@ -12,7 +12,22 @@ export class App {
 
 	async init(): Promise<void> {
 		for (const provider of this.container.getProviders()) {
-			await this.container.addService(provider(this.container));
+			let providersToLoad;
+			if (process.env.METACONCORD_LOAD_SERVICES) {
+				const splitServices = process.env.METACONCORD_LOAD_SERVICES.split(" ");
+				if (splitServices) {
+					providersToLoad = Object.fromEntries(
+						splitServices.filter(x => x).map(provider => [provider.toLowerCase(), true])
+					);
+				}
+			}
+
+			const providerName = provider.name.replace(/Provider$/, "").toLowerCase(); // Hack lol
+			const load = providersToLoad ? providersToLoad[providerName] : true;
+			if (load) {
+				const service = await provider(this.container);
+				this.container.addService(service);
+			}
 		}
 	}
 }

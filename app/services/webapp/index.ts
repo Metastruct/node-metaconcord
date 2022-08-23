@@ -14,16 +14,18 @@ export class WebApp extends Service {
 	constructor(container: Container) {
 		super(container);
 
-		for (const addAPI of APIs) {
-			addAPI(this);
-		}
+		(async () => {
+			for (const addAPI of APIs) {
+				await addAPI(this);
+			}
 
-		this.http = this.app.listen(this.config.port, "0.0.0.0", () => {
-			console.log(`HTTP server listening on ${this.config.port}`);
-		});
+			this.http = this.app.listen(this.config.port, "0.0.0.0", () => {
+				console.log(`HTTP server listening on ${this.config.port}`);
+			});
+		})();
 	}
 }
 
-export default (container: Container): Service => {
+export default function WebAppProvider(container: Container): Service {
 	return new WebApp(container);
-};
+}
