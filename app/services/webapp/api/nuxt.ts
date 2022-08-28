@@ -1,24 +1,50 @@
 import { WebApp } from "..";
+import { join } from "path";
 
 export default async (webApp: WebApp): Promise<void> => {
-	const { buildNuxt, loadNuxt } = await import("@nuxt/kit");
-
-	// TODO: Find a way to live build but disallow reloading?
-	// Maybe you have to build before?
-
 	// Check if we need to run Nuxt in development mode
-	const isDev = true; // process.env.NODE_ENV !== "production";
+	const isDev = process.env.NODE_ENV !== "production";
+	let handler;
 
-	// Get a ready to use Nuxt instance
-	const nuxt = await loadNuxt({ dev: isDev, ready: false });
-	await nuxt.ready();
-
-	// Enable live build & reloading
 	if (isDev) {
-		buildNuxt(nuxt);
+		// ! Just fucking use nuxt dev lmao.
+		// ? I'll fix this later
+		// const { buildNuxt, loadNuxt } = await import("@nuxt/kit");
+		// const writeTypes = () => {
+		// 	return new Promise(resolve => {
+		// 		const prepare = spawn("nuxt", ["prepare"], { shell: true });
+		// 		prepare.on("close", resolve);
+		// 	});
+		// };
+		// let currentNuxt;
+		// const load = async () => {
+		// 	if (currentNuxt) {
+		// 		await currentNuxt.close();
+		// 	}
+		// 	// Get a ready to use Nuxt instance
+		// 	currentNuxt = await loadNuxt({ dev: isDev, ready: false });
+		// 	await currentNuxt.ready();
+		// 	// Enable live build & reloading
+		// 	await writeTypes();
+		// 	await buildNuxt(currentNuxt);
+		// 	handler = currentNuxt.server.app;
+		// };
+		// const dLoad = debounce(load);
+		// // Maybe use chokidar?
+		// // https://github.com/nuxt/framework/blob/main/packages/nuxi/src/commands/dev.ts#L115
+		// watch(join(process.cwd(), "nuxt"), { recursive: true }, () => {
+		// 	if (!currentNuxt) {
+		// 		return;
+		// 	}
+		// 	console.log(currentNuxt.options.vite);
+		// 	console.log("Restarting Nuxt...");
+		// 	dLoad(true);
+		// });
+		// await load();
+	} else {
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		handler = require(join(process.cwd(), ".output", "server", "node")).handler;
 	}
 
-	// Probably need to do more stuff here, look at nuxi dev / nuxi build
-
-	webApp.app.use(nuxt.server.app);
+	if (handler) webApp.app.use(handler);
 };
