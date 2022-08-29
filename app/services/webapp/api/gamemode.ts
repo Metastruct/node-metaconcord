@@ -9,11 +9,10 @@ export default (webApp: WebApp): void => {
 	const bot = webApp.container.getService("DiscordBot");
 
 	webApp.app.get("/gamemode/:id/", async (req, res) => {
-		const isOkIp =
-			servers.find(srv => srv.ip == req.ip.toString()) || req.ip.toString() === "127.0.0.1";
-		if (!isOkIp) {
-			return res.sendStatus(403);
-		}
+		const ip = req.header("x-forwarded-for");
+		if (!ip) return res.sendStatus(403);
+		const isOkIp = servers.find(srv => srv.ip === ip);
+		if (!isOkIp) return res.sendStatus(403);
 
 		const id = parseInt(req.params.id);
 		if (isNaN(id) || !HOSTING_IDS[id]) {
