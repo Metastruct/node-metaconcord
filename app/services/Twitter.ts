@@ -133,9 +133,7 @@ export class Twitter extends Service {
 					status.user.id_str === config.id &&
 					status.full_text?.includes("Image of the day")
 			)
-			.sort((a, b) =>
-				a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : 0
-			)[0];
+			.sort()[0];
 		if (!lastIotd) return;
 		const msgId = lastIotd.id_str;
 		await this.twit.v1.deleteTweet(msgId);
