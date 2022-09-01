@@ -28,7 +28,7 @@ export default class NotificationPayload extends Payload {
 	static async handle(payload: VoteKickRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
-		const { offender, reporter, reason, success } = payload.data;
+		const { offender, reporter, reason, result } = payload.data;
 		const { bridge, discord: discordClient } = server;
 		const steam = bridge.container.getService("Steam");
 
@@ -40,19 +40,25 @@ export default class NotificationPayload extends Payload {
 		const notificationsChannel = guild.channels.cache.get(bridge.config.notificationsChannelId);
 		if (!notificationsChannel) return;
 
-		switch (success) {
-			case true:
-				await this.getLastReport(payload.data, notificationsChannel as TextChannel).then(
-					msg => msg?.react("✅")
-				);
-				return;
-			case false:
-				await this.getLastReport(payload.data, notificationsChannel as TextChannel).then(
-					msg => msg?.react("❌")
-				);
-				return;
-			case undefined:
-			default:
+		if (result) {
+			const success = result.success;
+			const reason = result.reason;
+			switch (success) {
+				case true:
+					await this.getLastReport(
+						payload.data,
+						notificationsChannel as TextChannel
+					).then(msg => msg?.react("✅"));
+					return;
+				case false:
+					await this.getLastReport(
+						payload.data,
+						notificationsChannel as TextChannel
+					).then(msg => msg?.react(reason?.includes("Player left") ? "💀" : "❌"));
+					return;
+				case undefined:
+				default:
+			}
 		}
 
 		let message = reason;

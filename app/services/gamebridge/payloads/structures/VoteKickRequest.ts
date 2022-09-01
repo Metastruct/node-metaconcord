@@ -12,6 +12,9 @@ export default interface VoteKickRequest extends PayloadRequest {
 			steamID: string;
 		};
 		reason: string;
-		success?: boolean;
+		result?: {
+			success: boolean;
+			reason?: string;
+		};
 	};
 }
