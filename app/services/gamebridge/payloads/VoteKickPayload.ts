@@ -109,9 +109,9 @@ export default class NotificationPayload extends Payload {
 		return channel.messages.cache
 			.filter(
 				msg =>
-					msg.embeds.length > 0 &&
-					msg.embeds.some(x =>
-						x.fields.filter(field => field.value === data.offender.steamID)
+					msg.author.id === msg.client.user?.id &&
+					msg.embeds.some(e =>
+						e.fields.some(f => f.value.includes(data.offender.steamID))
 					)
 			)
 			.sort()
