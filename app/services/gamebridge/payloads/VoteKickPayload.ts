@@ -116,8 +116,10 @@ export default class NotificationPayload extends Payload {
 			.filter(
 				msg =>
 					msg.author.id === msg.client.user?.id &&
-					msg.embeds.some(e =>
-						e.fields.some(f => f.value.includes(data.offender.steamID))
+					msg.embeds.some(
+						e =>
+							e.author?.name?.includes("votekick") &&
+							e.fields.some(f => f.value.includes(data.offender.steamID))
 					)
 			)
 			.sort()
