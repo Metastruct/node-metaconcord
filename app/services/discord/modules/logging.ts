@@ -13,7 +13,6 @@ export default (bot: DiscordBot): void => {
 
 	bot.discord.on("messageDelete", async msg => {
 		msg = await bot.fetchPartial(msg);
-		if (msg.author?.bot) return;
 
 		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
 		if (!logChannel) return;

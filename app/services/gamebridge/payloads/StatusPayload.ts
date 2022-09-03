@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
+	private static retryCount = 0;
 
 	static async handle(payload: StatusRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
@@ -133,8 +134,13 @@ export default class StatusPayload extends Payload {
 			}
 		};
 
-		if (discord.isReady()) {
-			updateStatus().catch(console.error);
+		if (discord.isReady() && this.retryCount < 5) {
+			try {
+				updateStatus();
+			} catch (e) {
+				this.retryCount++;
+				console.error(e);
+			}
 		}
 	}
 }
