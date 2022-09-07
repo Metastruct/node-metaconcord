@@ -4,6 +4,7 @@ import { MessageOptions } from "slash-create";
 import { SlashActivitiesCommand } from "./Activities";
 import { SlashBanCommand } from "./developer/Ban";
 import { SlashCustomRoleCommand } from "./CustomRole";
+import { SlashGservAllCommand } from "./developer/GservAll";
 import { SlashGservCommand } from "./developer/Gserv";
 import { SlashKickCommand } from "./developer/Kick";
 import { SlashLuaCommand } from "./developer/Lua";
@@ -31,6 +32,7 @@ export const commands = [
 	SlashMuteCommand,
 	SlashUnmuteCommand,
 	SlashWhyMuteCommand,
+	SlashGservAllCommand,
 	SlashGservCommand,
 	SlashCustomRoleCommand,
 	SlashVaccinatedCommand,
