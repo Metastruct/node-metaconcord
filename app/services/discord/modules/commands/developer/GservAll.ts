@@ -30,7 +30,7 @@ const SERVER_EMOJI_MAP = {
 	"3": "3️⃣",
 };
 
-export class SlashGservCommand extends SlashDeveloperCommand {
+export class SlashGservAllCommand extends SlashDeveloperCommand {
 	private commandOptions: ComponentSelectOption[] = [];
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(bot, creator, {
