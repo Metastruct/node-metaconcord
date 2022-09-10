@@ -45,6 +45,11 @@ export default (bot: DiscordBot): void => {
 			embed.addField("Attachment", attachments.join(" "));
 		}
 
+		if (!msg.author?.mention && !msg.author?.username) {
+			// what the fuck is that
+			console.log(msg);
+		}
+
 		await logChannel.send({ embeds: [embed] });
 	});
 
