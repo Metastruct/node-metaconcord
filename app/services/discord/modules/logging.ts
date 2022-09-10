@@ -65,10 +65,12 @@ export default (bot: DiscordBot): void => {
 		const newText = newMsg.content ? newMsg.content.substring(0, EMBED_FIELD_LIMIT - 10) : "";
 
 		const embeds: [boolean, boolean] = // I think this can be done better somehow lol
-			newMsg.embeds.length > 0
+			newMsg.embeds.length > 0 && oldMsg.embeds.length > 0
 				? [true, true]
-				: oldMsg.embeds.length > 0
+				: newMsg.embeds.length > 0 && oldMsg.embeds.length === 0
 				? [true, false]
+				: newMsg.embeds.length === 0 && oldMsg.embeds.length > 0
+				? [false, true]
 				: [false, false];
 
 		let diff = "";
@@ -96,8 +98,17 @@ export default (bot: DiscordBot): void => {
 			.setFooter({ text: "Message Edited" })
 			.setTimestamp(newMsg.editedTimestamp);
 
-		if (embeds[0]) {
-			embed.addField("Embeds", `Embed ${embeds[1] ? "added/modified" : "removed"}`);
+		if (!(embeds[0] === false && embeds[1] === false)) {
+			embed.addField(
+				"Embeds",
+				`Embed ${
+					embeds[0] && embeds[1]
+						? "modified"
+						: embeds[0] && !embeds[1]
+						? "added"
+						: "removed"
+				}`
+			);
 		}
 
 		await logChannel.send({ embeds: [embed] });
