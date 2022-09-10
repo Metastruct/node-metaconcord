@@ -45,7 +45,7 @@ export class SlashWhyMuteCommand extends SlashCommand {
 					(until ? ` expires <t:${until}:R> from now` : "") +
 					(muter ? ` by <@${muter}>` : "") +
 					(reason ? ` with reason:\n\n${reason}` : " without a reason") +
-					(at ? `muted since: <t:${at}:R>` : "") +
+					(at ? `\n\nmuted since: <t:${at.toString().substring(0, 10)}:R>` : "") +
 					`.`;
 				return EphemeralResponse(content);
 			} else {
