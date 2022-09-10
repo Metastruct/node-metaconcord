@@ -1,7 +1,7 @@
 import { Container } from "../Container";
 import { MessageReaction } from "discord.js";
-import { Service } from ".";
 import { SQL } from "./SQL";
+import { Service } from ".";
 import { TextChannel } from "discord.js";
 import Discord from "discord.js";
 import config from "@/config/starboard.json";
@@ -73,7 +73,10 @@ export class Starboard extends Service {
 				}
 
 				text += msg.content;
-				text += msg.attachments.size > 0 ? "\n" + msg.attachments.first()?.url : "";
+				text +=
+					msg.attachments.size > 0
+						? "\n" + msg.attachments.map(a => a.url).join("\n")
+						: "";
 				text += msg.stickers.size > 0 ? msg.stickers.first()?.url : "";
 
 				if (text === "") return;
