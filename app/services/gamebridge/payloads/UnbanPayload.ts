@@ -80,5 +80,8 @@ export default class UnbanPayload extends Payload {
 		embed.setThumbnail(bannedAvatar);
 		embed.setColor("GREEN");
 		(notificationsChannel as TextChannel).send({ embeds: [embed] });
+		(guild.channels.cache.get(bridge.config.relayChannelId) as TextChannel).send({
+			embeds: [embed],
+		});
 	}
 }
