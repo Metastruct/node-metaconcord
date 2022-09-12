@@ -64,8 +64,5 @@ export default class UnbanPayload extends Payload {
 			`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
 		);
 		(notificationsChannel as TextChannel).send({ embeds: [embed] });
-		(guild.channels.cache.get(bridge.config.relayChannelId) as TextChannel).send({
-			embeds: [embed],
-		});
 	}
 }
