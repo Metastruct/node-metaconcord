@@ -129,7 +129,7 @@ export default class ChatPayload extends Payload {
 		await webhook
 			.send({
 				content: content,
-				username: `${serverId} ${player.nick.substring(0, 77)}`,
+				username: `${serverId} ${player.nick.replace(/@/g, "(at)").substring(0, 77)}`,
 				avatarURL: avatar,
 				allowedMentions: { parse: ["users", "roles"] },
 			})
