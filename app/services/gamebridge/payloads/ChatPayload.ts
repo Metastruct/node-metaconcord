@@ -125,7 +125,7 @@ export default class ChatPayload extends Payload {
 		}
 
 		// 9312 = ①, 9313 = ②, and so on until 20
-		const serverId = String.fromCodePoint(9311 + +(server.config.id ?? 0));
+		const serverId = `[${server.config.id}]`; // String.fromCodePoint(9311 + +(server.config.id ?? 0));
 		await webhook
 			.send({
 				content: content,
