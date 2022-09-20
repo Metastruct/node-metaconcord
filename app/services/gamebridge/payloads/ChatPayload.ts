@@ -124,10 +124,12 @@ export default class ChatPayload extends Payload {
 				?.learn({ authorName: payload.data.player.nick, message: content });
 		}
 
+		// 9312 = ①, 9313 = ②, and so on until 20
+		const serverId = String.fromCodePoint(9311 + +(server.config.id ?? 0));
 		await webhook
 			.send({
 				content: content,
-				username: `#${server.config.id} ${player.nick.substring(0, 77)}`,
+				username: `${serverId} ${player.nick.substring(0, 77)}`,
 				avatarURL: avatar,
 				allowedMentions: { parse: ["users", "roles"] },
 			})
