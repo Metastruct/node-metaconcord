@@ -1,7 +1,12 @@
 import * as requestSchema from "./structures/AdminNotifyRequest.json";
 import { AdminNotifyRequest } from "./structures";
 import { DiscordClient, GameServer } from "..";
-import Discord, { ButtonInteraction, MessageComponentInteraction, TextChannel } from "discord.js";
+import Discord, {
+	ButtonInteraction,
+	EmbedFieldData,
+	MessageComponentInteraction,
+	TextChannel,
+} from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
 
@@ -37,16 +42,16 @@ export default class AdminNotifyPayload extends Payload {
 				if (res.data.returns[0] !== "false") {
 					const summary = await steam?.getUserSummaries(interactionId64);
 					await ctx.followUp({
-						content: `${ctx.user.mention} kicked player \`${summary.nickname}\``,
+						content: `${ctx.user.toString()} kicked player \`${summary.nickname}\``,
 					});
 				} else {
 					await ctx.followUp({
-						content: `${ctx.user.mention}, could not kick player: not on server`,
+						content: `${ctx.user.toString()}, could not kick player: not on server`,
 					});
 				}
 			} catch (err) {
 				await ctx.followUp({
-					content: `${ctx.user.mention}, could not kick player: ${err}`,
+					content: `${ctx.user.toString()}, could not kick player: ${err}`,
 				});
 			}
 		});
@@ -76,20 +81,14 @@ export default class AdminNotifyPayload extends Payload {
 		const reportedAvatar = await steam?.getUserAvatar(reportedSteamId64);
 		if (message.trim().length < 1) message = "No message provided..?";
 
-		const embed = new Discord.MessageEmbed()
-			.setAuthor({
-				name: `${player.nick} reported a player`,
-				iconURL: avatar,
-				url: `https://steamcommunity.com/profiles/${steamId64}`,
-			})
-			.addField("Nick", reported.nick)
-			.addField("Message", message)
-			.addField(
-				"SteamID",
-				`[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64}) (${reported.steamId})`
-			)
-			.setThumbnail(reportedAvatar)
-			.setColor(0xc4af21);
+		const fields: EmbedFieldData[] = [
+			{ name: "Nick", value: reported.nick },
+			{ name: "Message", value: message },
+			{
+				name: "SteamID",
+				value: `[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64}) (${reported.steamId})`,
+			},
+		];
 
 		const data = bridge.container.getService("Data");
 		if (data) {
@@ -97,12 +96,23 @@ export default class AdminNotifyPayload extends Payload {
 			data.timesReported[reportedSteamId64]++;
 			await data.save();
 			if (data.timesReported[reportedSteamId64] > 0) {
-				embed.addField(
-					"Total Report Amount",
-					data.timesReported[reportedSteamId64].toString()
-				);
+				fields.push({
+					name: "Total Report Amount",
+					value: data.timesReported[reportedSteamId64].toString(),
+				});
 			}
 		}
+
+		const embed = new Discord.MessageEmbed()
+			.setAuthor({
+				name: `${player.nick} reported a player`,
+				iconURL: avatar,
+				url: `https://steamcommunity.com/profiles/${steamId64}`,
+			})
+			.addFields(fields)
+			.setColor(0xc4af21);
+		if (reportedAvatar) embed.setThumbnail(reportedAvatar);
+
 		// You can have a maximum of five ActionRows per message, and five buttons within an ActionRow.
 		const row = new Discord.MessageActionRow().addComponents([
 			{

@@ -55,7 +55,7 @@ export class SlashUnBanCommand extends SlashDeveloperCommand {
 		const server = (ctx.options.server as number) ?? 2;
 		const code =
 			`if not banni then return false end ` +
-			`local data = banni.UnBan("${ctx.options.steamid}", "Discord (${ctx.user.username}|${ctx.user.mention})", [[${ctx.options.reason}]]) ` +
+			`local data = banni.UnBan("${ctx.options.steamid}", "Discord (${ctx.user.username}|${ctx.user.toString()})", [[${ctx.options.reason}]]) ` +
 			`if istable(data) then return data.b == false else return data end`;
 		try {
 			const res = await bridge.payloads.RconPayload.callLua(

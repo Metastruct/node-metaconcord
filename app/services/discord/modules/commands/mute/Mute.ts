@@ -84,7 +84,7 @@ export class SlashMuteCommand extends SlashCommand {
 							config.notificationsChannelId
 						) as TextChannel;
 						notificationsChannel.send(
-							`${user.mention}, this role can only be managed by me. Sorry! Use /mute, or rightclick an user > apps > mute.`
+							`${user.toString()}, this role can only be managed by me. Sorry! Use /mute, or rightclick an user > apps > mute.`
 						);
 
 						manualMuteReminderTimeouts.push(user.id);
@@ -170,7 +170,7 @@ export class SlashMuteCommand extends SlashCommand {
 		await member.roles.add(config.mutedRoleId, "muted via slash command");
 
 		const content =
-			`${ctx.user.mention}, ${member} has been muted` +
+			`${ctx.user.toString()}, ${member} has been muted` +
 			(until ? ` for <t:${until}:R>` : "") +
 			(reason ? ` with reason:\n\n${reason}` : "") +
 			`.`;

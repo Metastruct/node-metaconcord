@@ -40,7 +40,7 @@ export class SlashWhyMuteCommand extends SlashCommand {
 			);
 			if (guild) {
 				const content =
-					`${ctx.user.mention}, ` +
+					`${ctx.user.toString()}, ` +
 					(ctx.user.id == userId ? `you remain muted` : `<@${userId}> remains muted`) +
 					(until ? ` expires <t:${until}:R> from now` : "") +
 					(muter ? ` by <@${muter}>` : "") +

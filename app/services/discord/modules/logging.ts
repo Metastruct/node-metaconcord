@@ -1,6 +1,6 @@
 import { DiscordBot, EMBED_FIELD_LIMIT } from "..";
 import { diffWords } from "diff";
-import Discord from "discord.js";
+import Discord, { EmbedFieldData } from "discord.js";
 
 const RED_COLOR: Discord.ColorResolvable = [255, 0, 0];
 const YELLOW_COLOR: Discord.ColorResolvable = [220, 150, 0];
@@ -19,7 +19,6 @@ export default (bot: DiscordBot): void => {
 		if (!logChannel) return;
 
 		const message = msg.content && msg.content.length > 0 ? msg.content : undefined;
-
 		const attachments =
 			msg.attachments.size > 0
 				? msg.attachments.map(a => {
@@ -27,24 +26,22 @@ export default (bot: DiscordBot): void => {
 				  })
 				: undefined;
 
+		const fields: EmbedFieldData[] = [
+			{ name: "Channel", value: `<#${msg.channel.id}>` },
+			{ name: "Mention", value: msg.author?.toString() ?? "???" },
+		];
+		if (message) fields.push({ name: "Message", value: message, inline: true });
+		if (attachments) fields.push({ name: "Attachments", value: attachments.join("\n") });
+
 		const embed = new Discord.MessageEmbed()
 			.setAuthor({
 				name: msg.author?.username ?? "unknown user",
 				iconURL: msg.author?.avatarURL() ?? "",
 			})
+			.addFields(fields)
 			.setColor(RED_COLOR)
-			.addField("Channel", `<#${msg.channel.id}>`)
-			.addField("Mention", msg.author?.mention ?? "???")
 			.setFooter({ text: "Message Deleted" })
 			.setTimestamp(Date.now());
-
-		if (message) {
-			embed.addField("Message", message, true);
-		}
-
-		if (attachments) {
-			embed.addField("Attachment", attachments.join(" "));
-		}
 
 		await logChannel.send({ embeds: [embed] });
 	});
@@ -85,21 +82,23 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 
+		const fields: EmbedFieldData[] = [
+			{ name: "Channel", value: `<#${oldMsg.channel.id}>` },
+			{ name: "Mention", value: user?.toString() ?? "???" },
+			{ name: "Difference", value: `\`\`\`ml\n${diff}\n\`\`\`` },
+		];
+		if (embeds[0])
+			fields.push({ name: "Embeds", value: `Embed ${embeds[1] ? "added/modified" : "removed"}` });
+
 		const embed = new Discord.MessageEmbed()
 			.setAuthor({
 				name: user?.username ?? user?.username ?? "unknown user",
 				iconURL: user?.avatarURL() ?? user?.avatarURL() ?? "",
 			})
 			.setColor(YELLOW_COLOR)
-			.addField("Channel", `<#${oldMsg.channel.id}>`)
-			.addField("Mention", user?.mention ?? "???")
-			.addField("Difference", `\`\`\`ml\n${diff}\n\`\`\``)
+			.addFields(fields)
 			.setFooter({ text: "Message Edited" })
 			.setTimestamp(newMsg.editedTimestamp);
-
-		if (embeds[0]) {
-			embed.addField("Embeds", `Embed ${embeds[1] ? "added/modified" : "removed"}`);
-		}
 
 		await logChannel.send({ embeds: [embed] });
 	});
@@ -111,7 +110,7 @@ export default (bot: DiscordBot): void => {
 		const embed = new Discord.MessageEmbed()
 			.setAuthor({ name: user.displayName, iconURL: user.avatarURL() ?? "" })
 			.setColor(RED_COLOR)
-			.addField("Mention", user.mention)
+			.addFields({ name: "Mention", value: user.toString() })
 			.setFooter({ text: "Member Left/Kicked" })
 			.setTimestamp(Date.now());
 		await logChannel.send({ embeds: [embed] });

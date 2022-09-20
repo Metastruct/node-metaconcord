@@ -63,20 +63,23 @@ export default class BanPayload extends Payload {
 				const name = chunks[0].trim();
 				const mention = chunks[1].trim();
 				embed.setTitle(`${name} banned a player`);
-				embed.addField("Mention", mention);
+				embed.addFields([{ name: "Mention", value: mention }]);
 			} else {
 				embed.setTitle(`${bannerName} banned a player`);
 			}
 		}
 
-		if (banned.nick) embed.addField("Nick", banned.nick, true);
-		embed.addField("Expiration", `<t:${unixTime}:R>`, true);
-		embed.addField("Reason", reason.substring(0, 1900));
-		embed.addField(
-			"SteamID",
-			`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
-		);
-		embed.setThumbnail(bannedAvatar);
+		const fields = [
+			{ name: "Expiration", value: `<t:${unixTime}:R>`, inline: true },
+			{ name: "Reason", value: reason.substring(0, 1900) },
+			{
+				name: "SteamID",
+				value: `[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`,
+			},
+		];
+		if (banned.nick) fields.push({ name: "Nick", value: banned.nick, inline: true });
+		embed.addFields(fields);
+		if (bannedAvatar) embed.setThumbnail(bannedAvatar);
 		embed.setColor(0xc42144);
 		(notificationsChannel as TextChannel).send({ embeds: [embed] });
 	}

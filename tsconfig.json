@@ -12,6 +12,5 @@
 		"moduleResolution": "node16",
 		"outDir": "./dist",
 		"strictNullChecks": true
-	},
-	"extends": "./.nuxt/tsconfig.json"
+	}
 }

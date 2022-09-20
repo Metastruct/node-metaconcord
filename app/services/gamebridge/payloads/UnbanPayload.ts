@@ -1,7 +1,7 @@
 import * as requestSchema from "./structures/BanRequest.json";
+import { EmbedFieldData, TextChannel } from "discord.js";
 import { GameServer } from "..";
 import { PlayerSummary } from "steamapi";
-import { TextChannel } from "discord.js";
 import { UnbanRequest } from "./structures";
 import Discord from "discord.js";
 import Payload from "./Payload";
@@ -45,6 +45,8 @@ export default class UnbanPayload extends Payload {
 		if (!unixTime || isNaN(unixTime))
 			throw new Error(`Unban time is not a number? Supplied time: ${unbanTime}`);
 
+		const fields: EmbedFieldData[] = [];
+
 		const embed = new Discord.MessageEmbed();
 		if (avatar) {
 			embed.setAuthor({
@@ -63,21 +65,23 @@ export default class UnbanPayload extends Payload {
 				const name = chunks[0].trim();
 				const mention = chunks[1].trim();
 				embed.setTitle(`${name} unbanned a player`);
-				embed.addField("Mention", mention);
+				fields.push({ name: "Mention", value: mention });
 			} else {
 				embed.setTitle(`${bannerName} unbanned a player`);
 			}
 		}
 
-		if (banned.nick) embed.addField("Nick", banned.nick, true);
-		embed.addField("Expiration", `<t:${unixTime}:R>`, true);
-		embed.addField("Ban Reason", banReason.substring(0, 1900));
-		embed.addField("Unban Reason", unbanReason.substring(0, 1900));
-		embed.addField(
-			"SteamID",
-			`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
+		if (banned.nick) fields.push({ name: "Nick", value: banned.nick, inline: true });
+		fields.push(
+			{ name: "Expiration", value: `<t:${unixTime}:R>`, inline: true },
+			{ name: "Ban Reason", value: banReason.substring(0, 1900) },
+			{ name: "Unban Reason", value: unbanReason.substring(0, 1900) },
+			{
+				name: "SteamID",
+				value: `[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`,
+			}
 		);
-		embed.setThumbnail(bannedAvatar);
+		if (bannedAvatar) embed.setThumbnail(bannedAvatar);
 		embed.setColor("GREEN");
 		(notificationsChannel as TextChannel).send({ embeds: [embed] });
 	}
