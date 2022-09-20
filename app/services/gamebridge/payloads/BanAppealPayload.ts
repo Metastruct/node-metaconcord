@@ -1,8 +1,8 @@
 import * as requestSchema from "./structures/BanRequest.json";
 import { BanAppealRequest } from "./structures";
+import { EmbedFieldData, TextChannel } from "discord.js";
 import { GameServer } from "..";
 import { PlayerSummary } from "steamapi";
-import { TextChannel } from "discord.js";
 import Discord from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
@@ -45,6 +45,18 @@ export default class UnbanPayload extends Payload {
 		if (!unixTime || isNaN(unixTime))
 			throw new Error(`Unban time is not a number? Supplied time: ${unbanTime}`);
 
+		const fields: EmbedFieldData[] = [
+			{ name: "Banned by", value: bannerName, inline: true },
+			{ name: "Ban Reason", value: banReason.substring(0, 1900), inline: true },
+			{ name: "Ban Expiration", value: `<t:${unixTime}:R>`, inline: true },
+			{ name: "Appeal", value: `\`\`\`${appeal.substring(0, 1900).replace("`", "")}\`\`\`` },
+			{
+				name: "SteamID",
+				value: `[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`,
+			},
+		];
+		if (banned.nick) fields.unshift({ name: "Nick", value: banned.nick, inline: true });
+
 		const embed = new Discord.MessageEmbed();
 		if (avatar) {
 			embed.setThumbnail(avatar);
@@ -54,15 +66,7 @@ export default class UnbanPayload extends Payload {
 			iconURL: bannedAvatar,
 			url: `https://steamcommunity.com/profiles/${bannedSteamId64}`,
 		});
-		if (banned.nick) embed.addField("Nick", banned.nick, true);
-		embed.addField("Banned by", bannerName, true);
-		embed.addField("Ban Reason", banReason.substring(0, 1900), true);
-		embed.addField("Ban Expiration", `<t:${unixTime}:R>`, true);
-		embed.addField("Appeal", `\`\`\`${appeal.substring(0, 1900).replace("`", "")}\`\`\``);
-		embed.addField(
-			"SteamID",
-			`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
-		);
+		embed.addFields(fields);
 		(notificationsChannel as TextChannel).send({ embeds: [embed] });
 	}
 }

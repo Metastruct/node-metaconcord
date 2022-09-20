@@ -1,7 +1,7 @@
 import * as requestSchema from "./structures/VoteKickRequest.json";
 import { GameServer } from "..";
 import { VoteKickRequest } from "./structures";
-import Discord, { Message, TextChannel } from "discord.js";
+import Discord, { EmbedFieldData, Message, TextChannel } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
 
@@ -42,13 +42,13 @@ export default class NotificationPayload extends Payload {
 
 		switch (success) {
 			case true:
-				await this.getLastReport(payload.data, notificationsChannel as TextChannel).then(
-					msg => msg?.react("✅")
+				await this.getLastReport(payload.data, notificationsChannel as TextChannel).then(msg =>
+					msg?.react("✅")
 				);
 				return;
 			case false:
-				await this.getLastReport(payload.data, notificationsChannel as TextChannel).then(
-					msg => msg?.react("❌")
+				await this.getLastReport(payload.data, notificationsChannel as TextChannel).then(msg =>
+					msg?.react("❌")
 				);
 				return;
 			case undefined:
@@ -63,32 +63,35 @@ export default class NotificationPayload extends Payload {
 		const reporterAvatar = await steam?.getUserAvatar(reporterSteamId64);
 		const offenderAvatar = await steam?.getUserAvatar(offenderSteamId64);
 
+		const fields: EmbedFieldData[] = [
+			{ name: "Nick", value: offender.nick },
+			{ name: "Message", value: message },
+			{
+				name: "SteamID",
+				value: `[${offenderSteamId64}](https://steamcommunity.com/profiles/${offenderSteamId64}) (${offender.steamID})`,
+			},
+		];
+
 		const embed = new Discord.MessageEmbed()
 			.setAuthor({
 				name: `${reporter.nick} started a votekick`,
 				iconURL: reporterAvatar,
 				url: `https://steamcommunity.com/profiles/${reporterSteamId64}`,
 			})
-			.addField("Nick", offender.nick)
-			.addField("Message", message)
-			.addField(
-				"SteamID",
-				`[${offenderSteamId64}](https://steamcommunity.com/profiles/${offenderSteamId64}) (${offender.steamID})`
-			)
-			.setThumbnail(offenderAvatar)
+			.addFields(fields)
 			.setColor(0xc4af21);
+		if (offenderAvatar) embed.setThumbnail(offenderAvatar);
 
 		const data = bridge.container.getService("Data");
 		if (data) {
-			if (!data.timesVoteKicked[offenderSteamId64])
-				data.timesVoteKicked[offenderSteamId64] = 0;
+			if (!data.timesVoteKicked[offenderSteamId64]) data.timesVoteKicked[offenderSteamId64] = 0;
 			data.timesVoteKicked[offenderSteamId64]++;
 			await data.save();
 			if (data.timesVoteKicked[offenderSteamId64] > 0) {
-				embed.addField(
-					"Total Votekick Amount",
-					data.timesVoteKicked[offenderSteamId64].toString()
-				);
+				fields.push({
+					name: "Total Votekick Amount",
+					value: data.timesVoteKicked[offenderSteamId64].toString(),
+				});
 			}
 		}
 
@@ -110,9 +113,7 @@ export default class NotificationPayload extends Payload {
 			.filter(
 				msg =>
 					msg.embeds.length > 0 &&
-					msg.embeds.some(x =>
-						x.fields.filter(field => field.value === data.offender.steamID)
-					)
+					msg.embeds.some(x => x.fields.filter(field => field.value === data.offender.steamID))
 			)
 			.sort()
 			.reverse()

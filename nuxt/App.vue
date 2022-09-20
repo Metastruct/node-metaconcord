@@ -1,15 +1,15 @@
 <script>
-export default {
-	head() {
-		return {
-			script: [
-				{
-					src: "https://d3js.org/d3.v5.js"
-				}
-			]
-		}
-	}
-}
+// export default {
+// 	head() {
+// 		return {
+// 			script: [
+// 				{
+// 					src: "https://d3js.org/d3.v5.js"
+// 				}
+// 			]
+// 		}
+// 	}
+// }
 </script>
 
 <template>

@@ -1,7 +1,7 @@
 import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
-import Discord from "discord.js";
+import Discord, { EmbedFieldData } from "discord.js";
 
 export class SlashLuaCommand extends SlashDeveloperCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
@@ -77,23 +77,23 @@ export class SlashLuaCommand extends SlashDeveloperCommand {
 				ctx.member?.displayName ?? "???"
 			);
 
+			const fields: EmbedFieldData[] = [];
+			if (res.data.stdout.length > 0) {
+				fields.push({ name: "stdout", value: res.data.stdout.substring(0, 1999) });
+			}
+			if (res.data.returns.length > 0) {
+				fields.push({ name: "returns", value: res.data.returns.join("\n") });
+			}
+			if (res.data.errors.length > 0) {
+				fields.push({ name: "Errors", value: res.data.errors.join("\n") });
+			}
+
 			const embed = new Discord.MessageEmbed();
 			embed.setTitle("Metastruct #" + server);
 			embed.setDescription(`\`\`\`lua\n${code.substring(0, 1999)}\`\`\``);
 			embed.setColor(res.data.errors.length > 0 ? [255, 0, 0] : [0, 255, 0]);
+			embed.addFields(fields);
 			embed.setFooter({ text: realm });
-
-			if (res.data.stdout.length > 0) {
-				embed.addField("Stdout", res.data.stdout.substring(0, 1999));
-			}
-
-			if (res.data.returns.length > 0) {
-				embed.addField("Returns", res.data.returns.join("\n"));
-			}
-
-			if (res.data.errors.length > 0) {
-				embed.addField("Errors", res.data.errors.join("\n"));
-			}
 
 			await ctx.send({
 				embeds: [embed.toJSON()],

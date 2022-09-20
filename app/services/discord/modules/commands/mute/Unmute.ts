@@ -54,7 +54,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 			}
 
 			await member.roles.remove(config.mutedRoleId);
-			return `${member.mention} has been unmuted by ${ctx.user.mention}.`;
+			return `${member.toString()} has been unmuted by ${ctx.user.toString()}.`;
 		} else {
 			return EphemeralResponse("how#3");
 		}

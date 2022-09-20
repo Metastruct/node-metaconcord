@@ -4,6 +4,7 @@ import addEmojiAPI from "./emojis";
 import addGameServerStatusAPI from "./game-server-status";
 import addMapThumbnails from "./map-thumbnails";
 import addNuxt from "./nuxt";
+import addSteamfriendsGraphAPI from "./steamfriends-graph";
 
 export default [
 	addEmojiAPI,
@@ -11,5 +12,6 @@ export default [
 	addMapThumbnails,
 	addChangeGamemode,
 	addCI,
-	addNuxt,
+	addSteamfriendsGraphAPI,
+	addNuxt, // Keep this at last
 ];

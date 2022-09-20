@@ -15,7 +15,7 @@ const avatarRegExp = /<avatarFull>\s*<!\[CDATA\[\s*([^\s]*)\s*\]\]>\s*<\/avatarF
 
 export class Steam extends Service {
 	name = "Steam";
-	steam: SteamAPI = new SteamAPI(config.apiKey);
+	api: SteamAPI = new SteamAPI(config.apiKey);
 	private userCache: {
 		[steamId64: string]: UserCache;
 	} = {};
@@ -24,7 +24,7 @@ export class Steam extends Service {
 		const userCache = this.getUserCache(steamId64);
 		if (!userCache.summary) {
 			try {
-				const summary = await this.steam.getUserSummary(steamId64);
+				const summary = await this.api.getUserSummary(steamId64);
 				const { status } = await axios.head(summary.avatar.large);
 				if (status >= 400) {
 					const { data } = await axios.get(
@@ -61,7 +61,7 @@ export class Steam extends Service {
 		).data.response;
 	}
 
-	async getUserAvatar(steamId64: string): Promise<any> {
+	async getUserAvatar(steamId64: string): Promise<string> {
 		return (await this.getUserSummaries(steamId64).catch())?.avatar?.large;
 	}
 
