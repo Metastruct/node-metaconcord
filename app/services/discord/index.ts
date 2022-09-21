@@ -12,7 +12,13 @@ export class DiscordBot extends Service {
 	name = "DiscordBot";
 	config = config;
 	discord: Discord.Client = new Discord.Client({
-		intents: ["Guilds", "GuildMembers", "GuildMessages", "GuildMessageReactions"],
+		intents: [
+			"Guilds",
+			"GuildMembers",
+			"GuildMessages",
+			"GuildMessageReactions",
+			"MessageContent",
+		],
 		partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 	});
 
