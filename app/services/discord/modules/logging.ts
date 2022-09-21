@@ -127,7 +127,7 @@ export default (bot: DiscordBot): void => {
 		if (!logChannel) return;
 
 		const embed = new Discord.EmbedBuilder()
-			.setAuthor({ name: user.displayName, iconURL: user.avatarURL() ?? "" })
+			.setAuthor({ name: user.displayName, iconURL: user.avatarURL() ?? undefined })
 			.setColor(RED_COLOR)
 			.addFields(f("Mention", user.mention))
 			.setFooter({ text: "Member Left/Kicked" })
