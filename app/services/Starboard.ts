@@ -3,12 +3,12 @@ import { MessageReaction } from "discord.js";
 import { SQL } from "./SQL";
 import { Service } from ".";
 import { TextChannel } from "discord.js";
-import Discord from "discord.js";
+import { WebhookClient } from "discord.js";
 import config from "@/config/starboard.json";
 
 const AMOUNT = config.amount;
-const WHC = new Discord.WebhookClient(
-	{ id: config.webhookId, token: config.webhookToken },
+const webhook = new WebhookClient(
+	{ url: `https://discord.com/api/v10/webhooks/${config.webhookId}/${config.webhookToken}` },
 	{ allowedMentions: { parse: ["users", "roles"] } }
 );
 
@@ -81,7 +81,7 @@ export class Starboard extends Service {
 
 				if (text === "") return;
 				this.isPosting = true;
-				await WHC.send({
+				await webhook.send({
 					content: text,
 					avatarURL: msg.author.avatarURL() ?? "",
 					username: `${msg.author.username}`,
