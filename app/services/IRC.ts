@@ -33,8 +33,7 @@ export class IRC extends Service {
 	});
 
 	private webhook = new Discord.WebhookClient({
-		id: config.webhookId,
-		token: config.webhookToken,
+		url: `https://discord.com/api/v10/webhooks/${config.webhookId}/${config.webhookToken}`,
 	});
 
 	private async relayDiscord(nick: string, text: string, message: message) {

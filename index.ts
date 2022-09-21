@@ -2,6 +2,8 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 
+// console.log(process.version);
+
 // Load module extensions
 import "@/extensions";
 
