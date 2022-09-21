@@ -64,7 +64,7 @@ export default class StatusPayload extends Payload {
 				mapThumbnail = `http://${host}:${port}/map-thumbnails/rp_unioncity.jpg`;
 			}
 
-			const embed = new Discord.MessageEmbed()
+			const embed = new Discord.EmbedBuilder()
 				.setColor(0x4bf5ca)
 				.setTitle(map)
 				.setDescription(desc)

@@ -1,7 +1,14 @@
 import * as requestSchema from "./structures/AdminNotifyRequest.json";
 import { AdminNotifyRequest } from "./structures";
 import { DiscordClient, GameServer } from "..";
-import Discord, { ButtonInteraction, MessageComponentInteraction, TextChannel } from "discord.js";
+import { f } from "@/utils";
+import Discord, {
+	ButtonBuilder,
+	ButtonInteraction,
+	ButtonStyle,
+	MessageComponentInteraction,
+	TextChannel,
+} from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
 
@@ -76,17 +83,19 @@ export default class AdminNotifyPayload extends Payload {
 		const reportedAvatar = await steam?.getUserAvatar(reportedSteamId64);
 		if (message.trim().length < 1) message = "No message provided..?";
 
-		const embed = new Discord.MessageEmbed()
+		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
 				name: `${player.nick} reported a player`,
 				iconURL: avatar,
 				url: `https://steamcommunity.com/profiles/${steamId64}`,
 			})
-			.addField("Nick", reported.nick)
-			.addField("Message", message)
-			.addField(
-				"SteamID",
-				`[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64}) (${reported.steamId})`
+			.addFields(f("Nick", reported.nick))
+			.addFields(f("Message", message))
+			.addFields(
+				f(
+					"SteamID",
+					`[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64}) (${reported.steamId})`
+				)
 			)
 			.setThumbnail(reportedAvatar)
 			.setColor(0xc4af21);
@@ -97,29 +106,24 @@ export default class AdminNotifyPayload extends Payload {
 			data.timesReported[reportedSteamId64]++;
 			await data.save();
 			if (data.timesReported[reportedSteamId64] > 0) {
-				embed.addField(
-					"Total Report Amount",
-					data.timesReported[reportedSteamId64].toString()
+				embed.addFields(
+					f("Total Report Amount", data.timesReported[reportedSteamId64].toString())
 				);
 			}
 		}
 		// You can have a maximum of five ActionRows per message, and five buttons within an ActionRow.
-		const row = new Discord.MessageActionRow().addComponents([
-			{
-				label: "KICK Offender",
-				type: 2,
-				style: "SECONDARY",
-				emoji: "🥾",
-				customId: `${reportedSteamId64}_REPORT_KICK`,
-			},
-			{
-				label: "KICK Reporter",
-				type: 2,
-				style: "SECONDARY",
-				emoji: "🥾",
-				customId: `${steamId64}_REPORT_KICK`,
-			},
-		]);
+		const row = new Discord.ActionRowBuilder<ButtonBuilder>().addComponents(
+			new ButtonBuilder()
+				.setStyle(ButtonStyle.Secondary)
+				.setCustomId(`${reportedSteamId64}_REPORT_KICK`)
+				.setEmoji("🥾")
+				.setLabel("KICK Offender"),
+			new ButtonBuilder()
+				.setStyle(ButtonStyle.Secondary)
+				.setCustomId(`${steamId64}_REPORT_KICK`)
+				.setEmoji("🥾")
+				.setLabel("KICK Reporter")
+		);
 
 		try {
 			await (notificationsChannel as TextChannel).send({
@@ -128,7 +132,8 @@ export default class AdminNotifyPayload extends Payload {
 				components: [row],
 			});
 		} catch {
-			embed.fields = embed.fields.filter(f => f.name !== "Message");
+			embed.spliceFields(1, 1);
+			// embed.data.fields = embed.data.fields.filter(f => f.name !== "Message");
 
 			await (notificationsChannel as TextChannel).send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,

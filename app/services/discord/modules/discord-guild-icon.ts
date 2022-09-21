@@ -1,4 +1,5 @@
 import { DiscordBot } from "..";
+import { GuildPremiumTier } from "discord.js";
 import { join } from "path";
 import { scheduleJob } from "node-schedule";
 import { stat } from "fs/promises";
@@ -81,7 +82,10 @@ export default (bot: DiscordBot): void => {
 
 				if (inMonth && correctDay) {
 					let filePath = join(iconsPath, `${icon}.gif`);
-					if (guild.premiumTier === "NONE" || !(await fileExists(filePath))) {
+					if (
+						guild.premiumTier === GuildPremiumTier.None ||
+						!(await fileExists(filePath))
+					) {
 						filePath = join(iconsPath, `${icon}.png`);
 					}
 					if (!(await fileExists(filePath))) {

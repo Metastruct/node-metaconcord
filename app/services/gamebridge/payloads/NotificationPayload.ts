@@ -21,7 +21,7 @@ export default class NotificationPayload extends Payload {
 		const notificationsChannel = guild.channels.cache.get(bridge.config.notificationsChannelId);
 		if (!notificationsChannel) return;
 
-		const embed = new Discord.MessageEmbed()
+		const embed = new Discord.EmbedBuilder()
 			.setTitle(title.substring(0, 256))
 			.setDescription(message.substring(0, 4096))
 			.setColor(color ?? 0xc4af21);

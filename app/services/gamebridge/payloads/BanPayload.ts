@@ -3,6 +3,7 @@ import { BanRequest } from "./structures";
 import { GameServer } from "..";
 import { PlayerSummary } from "steamapi";
 import { TextChannel } from "discord.js";
+import { f } from "@/utils";
 import Discord from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
@@ -45,7 +46,7 @@ export default class BanPayload extends Payload {
 		if (!unixTime || isNaN(unixTime))
 			throw new Error(`Unban time is not a number? Supplied time: ${unbanTime}`);
 
-		const embed = new Discord.MessageEmbed();
+		const embed = new Discord.EmbedBuilder();
 		if (avatar) {
 			embed.setAuthor({
 				name: `${player.nick} banned a player`,
@@ -63,18 +64,20 @@ export default class BanPayload extends Payload {
 				const name = chunks[0].trim();
 				const mention = chunks[1].trim();
 				embed.setTitle(`${name} banned a player`);
-				embed.addField("Mention", mention);
+				embed.addFields(f("Mention", mention));
 			} else {
 				embed.setTitle(`${bannerName} banned a player`);
 			}
 		}
 
-		if (banned.nick) embed.addField("Nick", banned.nick, true);
-		embed.addField("Expiration", `<t:${unixTime}:R>`, true);
-		embed.addField("Reason", reason.substring(0, 1900));
-		embed.addField(
-			"SteamID",
-			`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
+		if (banned.nick) embed.addFields(f("Nick", banned.nick, true));
+		embed.addFields(f("Expiration", `<t:${unixTime}:R>`, true));
+		embed.addFields(f("Reason", reason.substring(0, 1900)));
+		embed.addFields(
+			f(
+				"SteamID",
+				`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
+			)
 		);
 		embed.setThumbnail(bannedAvatar);
 		embed.setColor(0xc42144);

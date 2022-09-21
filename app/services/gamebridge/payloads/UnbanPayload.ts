@@ -3,6 +3,7 @@ import { GameServer } from "..";
 import { PlayerSummary } from "steamapi";
 import { TextChannel } from "discord.js";
 import { UnbanRequest } from "./structures";
+import { f } from "@/utils";
 import Discord from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
@@ -45,7 +46,7 @@ export default class UnbanPayload extends Payload {
 		if (!unixTime || isNaN(unixTime))
 			throw new Error(`ban time is not a number? Supplied time: ${banTime}`);
 
-		const embed = new Discord.MessageEmbed();
+		const embed = new Discord.EmbedBuilder();
 		if (avatar) {
 			embed.setAuthor({
 				name: `${player.nick} unbanned a player`,
@@ -63,22 +64,24 @@ export default class UnbanPayload extends Payload {
 				const name = chunks[0].trim();
 				const mention = chunks[1].trim();
 				embed.setTitle(`${name} unbanned a player`);
-				embed.addField("Mention", mention);
+				embed.addFields(f("Mention", mention));
 			} else {
 				embed.setTitle(`${bannerName} unbanned a player`);
 			}
 		}
 
-		if (banned.nick) embed.addField("Nick", banned.nick, true);
-		embed.addField("Expiration", `<t:${unixTime}:R>`, true);
-		embed.addField("Ban Reason", banReason.substring(0, 1900));
-		embed.addField("Unban Reason", unbanReason.substring(0, 1900));
-		embed.addField(
-			"SteamID",
-			`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
+		if (banned.nick) embed.addFields(f("Nick", banned.nick, true));
+		embed.addFields(f("Expiration", `<t:${unixTime}:R>`, true));
+		embed.addFields(f("Ban Reason", banReason.substring(0, 1900)));
+		embed.addFields(f("Unban Reason", unbanReason.substring(0, 1900)));
+		embed.addFields(
+			f(
+				"SteamID",
+				`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
+			)
 		);
 		embed.setThumbnail(bannedAvatar);
-		embed.setColor("GREEN");
+		embed.setColor("Green");
 		(notificationsChannel as TextChannel).send({ embeds: [embed] });
 		(guild.channels.cache.get(bridge.config.relayChannelId) as TextChannel).send({
 			embeds: [embed],

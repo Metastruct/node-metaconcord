@@ -58,7 +58,7 @@ export default class ChatPayload extends Payload {
 				}
 			} catch {} // dont care
 
-			const avatar = msg.author.avatarURL({ dynamic: true });
+			const avatar = msg.author.avatarURL({ forceStatic: true });
 
 			const payload: ChatResponse = {
 				user: {
@@ -130,8 +130,8 @@ export default class ChatPayload extends Payload {
 			.send({
 				content: content,
 				username: `${serverId} ${player.nick
-					.replace(/@/g, "(at)")
-					.replace(/#/g, "")
+					// .replace(/@/g, "(at)")
+					// .replace(/#/g, "")
 					.substring(0, 77)}`,
 				avatarURL: avatar,
 				allowedMentions: { parse: ["users", "roles"] },
