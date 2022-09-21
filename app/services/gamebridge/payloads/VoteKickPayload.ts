@@ -1,6 +1,7 @@
 import * as requestSchema from "./structures/VoteKickRequest.json";
 import { GameServer } from "..";
 import { VoteKickRequest } from "./structures";
+import { f } from "@/utils";
 import Discord, { Message, TextChannel } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
@@ -69,17 +70,19 @@ export default class NotificationPayload extends Payload {
 		const reporterAvatar = await steam?.getUserAvatar(reporterSteamId64);
 		const offenderAvatar = await steam?.getUserAvatar(offenderSteamId64);
 
-		const embed = new Discord.MessageEmbed()
+		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
 				name: `${reporter.nick} started a votekick`,
 				iconURL: reporterAvatar,
 				url: `https://steamcommunity.com/profiles/${reporterSteamId64}`,
 			})
-			.addField("Nick", offender.nick)
-			.addField("Message", message)
-			.addField(
-				"SteamID",
-				`[${offenderSteamId64}](https://steamcommunity.com/profiles/${offenderSteamId64}) (${offender.steamID})`
+			.addFields(f("Nick", offender.nick))
+			.addFields(f("Message", message))
+			.addFields(
+				f(
+					"SteamID",
+					`[${offenderSteamId64}](https://steamcommunity.com/profiles/${offenderSteamId64}) (${offender.steamID})`
+				)
 			)
 			.setThumbnail(offenderAvatar)
 			.setColor(0xc4af21);
@@ -91,9 +94,8 @@ export default class NotificationPayload extends Payload {
 			data.timesVoteKicked[offenderSteamId64]++;
 			await data.save();
 			if (data.timesVoteKicked[offenderSteamId64] > 0) {
-				embed.addField(
-					"Total Votekick Amount",
-					data.timesVoteKicked[offenderSteamId64].toString()
+				embed.addFields(
+					f("Total Votekick Amount", data.timesVoteKicked[offenderSteamId64].toString())
 				);
 			}
 		}

@@ -1,4 +1,5 @@
 import { DiscordBot } from "../..";
+import { GatewayDispatchEvents } from "discord.js";
 import { GatewayServer, SlashCreator } from "slash-create";
 import { MessageOptions } from "slash-create";
 import { SlashActivitiesCommand } from "./Activities";
@@ -66,7 +67,9 @@ export default (bot: DiscordBot): void => {
 	// creator.on("unverifiedRequest", console.log);
 	// creator.on("synced", console.log);
 	creator.withServer(
-		new GatewayServer(handler => bot.discord.ws.on("INTERACTION_CREATE", handler))
+		new GatewayServer(handler =>
+			bot.discord.ws.on(GatewayDispatchEvents.InteractionCreate, handler)
+		)
 	);
 	for (const slashCmd of commands) {
 		creator.registerCommand(new slashCmd(bot, creator));

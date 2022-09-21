@@ -1,5 +1,6 @@
 import { DiscordBot, EMBED_FIELD_LIMIT } from "..";
 import { diffWords } from "diff";
+import { f } from "@/utils";
 import Discord from "discord.js";
 
 const RED_COLOR: Discord.ColorResolvable = [255, 0, 0];
@@ -26,23 +27,23 @@ export default (bot: DiscordBot): void => {
 				  })
 				: undefined;
 
-		const embed = new Discord.MessageEmbed()
+		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
 				name: msg.author?.username ?? "unknown user",
 				iconURL: msg.author?.avatarURL() ?? "",
 			})
 			.setColor(RED_COLOR)
-			.addField("Channel", `<#${msg.channel.id}>`)
-			.addField("Mention", msg.author?.mention ?? "???")
+			.addFields(f("Channel", `<#${msg.channel.id}>`))
+			.addFields(f("Mention", msg.author?.mention ?? "???"))
 			.setFooter({ text: "Message Deleted" })
 			.setTimestamp(Date.now());
 
 		if (message) {
-			embed.addField("Message", message, true);
+			embed.addFields(f("Message", message, true));
 		}
 
 		if (attachments) {
-			embed.addField("Attachment", attachments.join(" "));
+			embed.addFields(f("Attachment", attachments.join(" ")));
 		}
 
 		if (!msg.author?.mention && !msg.author?.username) {
@@ -91,28 +92,30 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 
-		const embed = new Discord.MessageEmbed()
+		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
 				name: user?.username ?? user?.username ?? "unknown user",
 				iconURL: user?.avatarURL() ?? user?.avatarURL() ?? "",
 			})
 			.setColor(YELLOW_COLOR)
-			.addField("Channel", `<#${oldMsg.channel.id}>`)
-			.addField("Mention", user?.mention ?? "???")
-			.addField("Difference", `\`\`\`ml\n${diff}\n\`\`\``)
+			.addFields(f("Channel", `<#${oldMsg.channel.id}>`))
+			.addFields(f("Mention", user?.mention ?? "???"))
+			.addFields(f("Difference", `\`\`\`ml\n${diff}\n\`\`\``))
 			.setFooter({ text: "Message Edited" })
 			.setTimestamp(newMsg.editedTimestamp);
 
 		if (!(embeds[0] === false && embeds[1] === false)) {
-			embed.addField(
-				"Embeds",
-				`Embed ${
-					embeds[0] && embeds[1]
-						? "modified"
-						: embeds[0] && !embeds[1]
-						? "added"
-						: "removed"
-				}`
+			embed.addFields(
+				f(
+					"Embeds",
+					`Embed ${
+						embeds[0] && embeds[1]
+							? "modified"
+							: embeds[0] && !embeds[1]
+							? "added"
+							: "removed"
+					}`
+				)
 			);
 		}
 
@@ -123,10 +126,10 @@ export default (bot: DiscordBot): void => {
 		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
 		if (!logChannel) return;
 
-		const embed = new Discord.MessageEmbed()
+		const embed = new Discord.EmbedBuilder()
 			.setAuthor({ name: user.displayName, iconURL: user.avatarURL() ?? "" })
 			.setColor(RED_COLOR)
-			.addField("Mention", user.mention)
+			.addFields(f("Mention", user.mention))
 			.setFooter({ text: "Member Left/Kicked" })
 			.setTimestamp(Date.now());
 		await logChannel.send({ embeds: [embed] });

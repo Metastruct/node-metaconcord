@@ -7,8 +7,7 @@ import {
 	SlashCreator,
 } from "slash-create";
 import { DiscordBot } from "../..";
-import { InviteTargetType } from "discord.js/typings/enums";
-import Discord from "discord.js";
+import Discord, { InviteTargetType } from "discord.js";
 
 const ActivitiyChoices: ApplicationCommandOptionChoice[] = [
 	{ name: "Poker Night", value: "755827207812677713" },
@@ -63,7 +62,7 @@ export class SlashActivitiesCommand extends SlashCommand {
 			return { content: "could not fetch the channel, sorry...", ephemeral: true };
 		}
 		const invite = await channel.createInvite({
-			targetType: InviteTargetType.EMBEDDED_APPLICATION,
+			targetType: InviteTargetType.EmbeddedApplication,
 			targetApplication: ctx.options.activity,
 		});
 		if (!invite) {

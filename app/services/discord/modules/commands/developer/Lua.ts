@@ -1,6 +1,7 @@
 import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
+import { f } from "@/utils";
 import Discord from "discord.js";
 
 export class SlashLuaCommand extends SlashDeveloperCommand {
@@ -77,22 +78,22 @@ export class SlashLuaCommand extends SlashDeveloperCommand {
 				ctx.member?.displayName ?? "???"
 			);
 
-			const embed = new Discord.MessageEmbed();
+			const embed = new Discord.EmbedBuilder();
 			embed.setTitle("Metastruct #" + server);
 			embed.setDescription(`\`\`\`lua\n${code.substring(0, 1999)}\`\`\``);
 			embed.setColor(res.data.errors.length > 0 ? [255, 0, 0] : [0, 255, 0]);
 			embed.setFooter({ text: realm });
 
 			if (res.data.stdout.length > 0) {
-				embed.addField("Stdout", res.data.stdout.substring(0, 1999));
+				embed.addFields(f("Stdout", res.data.stdout.substring(0, 1999)));
 			}
 
 			if (res.data.returns.length > 0) {
-				embed.addField("Returns", res.data.returns.join("\n"));
+				embed.addFields(f("Returns", res.data.returns.join("\n")));
 			}
 
 			if (res.data.errors.length > 0) {
-				embed.addField("Errors", res.data.errors.join("\n"));
+				embed.addFields(f("Errors", res.data.errors.join("\n")));
 			}
 
 			await ctx.send({

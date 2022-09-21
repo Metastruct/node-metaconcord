@@ -1,6 +1,6 @@
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
-import Discord from "discord.js";
+import Discord, { ActivityType, GuildPremiumTier, Partials } from "discord.js";
 import axios from "axios";
 import config from "@/config/discord.json";
 import modules from "./modules";
@@ -12,8 +12,8 @@ export class DiscordBot extends Service {
 	name = "DiscordBot";
 	config = config;
 	discord: Discord.Client = new Discord.Client({
-		intents: ["GUILDS", "GUILD_MEMBERS", "GUILD_MESSAGES", "GUILD_MESSAGE_REACTIONS"],
-		partials: ["MESSAGE", "CHANNEL", "REACTION"],
+		intents: ["Guilds", "GuildMembers", "GuildMessages", "GuildMessageReactions"],
+		partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 	});
 
 	constructor(container: Container) {
@@ -51,7 +51,7 @@ export class DiscordBot extends Service {
 			activities: [
 				{
 					name: status.trim().substring(0, 100),
-					type: "PLAYING",
+					type: ActivityType.Playing,
 				},
 			],
 			status: "online",
@@ -72,7 +72,7 @@ export class DiscordBot extends Service {
 		const channel = msg.channel as Discord.GuildChannel;
 		const guild = channel.guild;
 		const perms = channel.permissionsFor(guild.roles.everyone);
-		if (!perms.has("SEND_MESSAGES", false)) return; // don't get text from channels that are not "public"
+		if (!perms.has("SendMessages", false)) return; // don't get text from channels that are not "public"
 
 		const content = msg.content;
 		if (this.container.getService("Motd")?.isValidMsg(content))
@@ -112,7 +112,7 @@ export class DiscordBot extends Service {
 	async overLvl2(): Promise<boolean> {
 		const guild = this.discord.guilds.cache.get(config.guildId);
 		if (!guild) return false;
-		return guild.premiumTier > "TIER_1" ?? false;
+		return guild.premiumTier > GuildPremiumTier.Tier1 ?? false;
 	}
 
 	async removeMotdReactions(): Promise<void> {

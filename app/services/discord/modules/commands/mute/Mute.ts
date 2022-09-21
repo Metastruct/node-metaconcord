@@ -1,3 +1,4 @@
+import { AuditLogEvent, GuildMember, User } from "discord.js";
 import {
 	AutocompleteChoice,
 	AutocompleteContext,
@@ -8,7 +9,6 @@ import {
 } from "slash-create";
 import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../../..";
-import { GuildAuditLogs, GuildMember, User } from "discord.js";
 import { TextChannel } from "discord.js";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -72,7 +72,7 @@ export class SlashMuteCommand extends SlashCommand {
 			// This is sort of really ugly... See who's trying to mess with the role and notify them
 			const warn = async () => {
 				const auditLogs = await member.guild.fetchAuditLogs({
-					type: GuildAuditLogs.Actions.MEMBER_ROLE_UPDATE,
+					type: AuditLogEvent.MemberRoleUpdate,
 				});
 				for (const [, entry] of auditLogs.entries) {
 					const target = entry.target as User;
