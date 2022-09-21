@@ -30,7 +30,7 @@ export default (bot: DiscordBot): void => {
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
 				name: msg.author?.username ?? "unknown user",
-				iconURL: msg.author?.avatarURL() ?? "",
+				iconURL: msg.author?.avatarURL() ?? undefined,
 			})
 			.setColor(RED_COLOR)
 			.addFields(f("Channel", `<#${msg.channel.id}>`))
@@ -95,7 +95,7 @@ export default (bot: DiscordBot): void => {
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
 				name: user?.username ?? user?.username ?? "unknown user",
-				iconURL: user?.avatarURL() ?? user?.avatarURL() ?? "",
+				iconURL: user?.avatarURL() ?? user?.avatarURL() ?? undefined,
 			})
 			.setColor(YELLOW_COLOR)
 			.addFields(f("Channel", `<#${oldMsg.channel.id}>`))
