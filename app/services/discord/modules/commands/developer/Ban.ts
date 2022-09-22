@@ -111,14 +111,16 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 	private parseLength(input: string): number {
 		const res = {
 			y: 0, // year
+			mo: 0, // month
 			w: 0, // week
 			d: 0, // day
+			h: 0, // hour
 			m: 0, // minutes
 			s: 0, // seconds
 		};
 
 		input = input.trim().toLowerCase().replace(/\s+/g, "");
-		for (const match of input.matchAll(/(\d+)([ywdms])/g)) {
+		for (const match of input.matchAll(/(\d+)(y|mo|w|d|h|m|s)/g)) {
 			const amount = parseInt(match[1]);
 			if (!isNaN(amount) && amount > 0) {
 				res[match[2]] += amount;
@@ -130,6 +132,10 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 			len += res.y * 31556926;
 		}
 
+		if (res.mo > 0) {
+			len += res.mo * 2628000;
+		}
+
 		if (res.w > 0) {
 			len += res.w * 604800;
 		}
@@ -138,8 +144,12 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 			len += res.d * 86400;
 		}
 
+		if (res.h > 0) {
+			len += res.h * 3600;
+		}
+
 		if (res.m > 0) {
-			len += res.m * 3600;
+			len += res.m * 60;
 		}
 
 		if (res.s > 0) {
