@@ -49,7 +49,7 @@ export default class Motd extends Service {
 		this.lastimage = undefined;
 		scheduleJob("0 12 * * *", this.executeMessageJob.bind(this));
 		scheduleJob("0 20 * * *", this.executeImageJob.bind(this));
-		scheduleJob("0 0 1 * *", this.clearImageAlbum.bind(this));
+		scheduleJob("0 0 * * 0", this.clearImageAlbum.bind(this));
 	}
 
 	public pushMessage(msg: string): void {
