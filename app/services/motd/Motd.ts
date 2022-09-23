@@ -6,12 +6,42 @@ import axios from "axios";
 import config from "@/config/motd.json";
 import dayjs from "dayjs";
 
+type ImgurImage = {
+	id: string;
+	title: string;
+	description: string;
+	datetime: number;
+	type: string;
+	animated: boolean;
+	width: number;
+	height: number;
+	size: number;
+	views: number;
+	bandwidth: number;
+	vote: boolean | null;
+	favorite: boolean;
+	nsfw: boolean | null;
+	section: string | null;
+	account_url: string | null;
+	account_id: string | null;
+	is_ad: boolean;
+	in_most_viral: boolean;
+	has_sound: boolean;
+	tags: Array<string>;
+	ad_type: number;
+	ad_url: string;
+	edited: string;
+	in_gallery: boolean;
+	link: string;
+};
+
 export default class Motd extends Service {
 	name = "Motd";
 	messages: Array<string>;
 	lastimage?: string;
 
 	private ignorelist: Array<string> = ["STEAM_0:0:25648317"];
+	private lastauthor: string;
 
 	constructor(container: Container) {
 		super(container);
@@ -88,15 +118,14 @@ export default class Motd extends Service {
 
 		if (res.status === 200) {
 			const yesterday = dayjs().subtract(1, "d").unix();
-			const urls = res.data.data
-				.filter(
-					(img: { datetime: number; title: string }) =>
-						img.datetime >= yesterday &&
-						!this.ignorelist.some(id => img.title.includes(id))
-				) // keep only recent images
-				.map((img: { link: string }) => img.link);
-
-			const url: string = urls[Math.floor(Math.random() * urls.length)];
+			const urls: Array<ImgurImage> = res.data.data.filter(
+				(img: ImgurImage) =>
+					img.datetime >= yesterday &&
+					img.title !== this.lastauthor &&
+					!this.ignorelist.some(id => img.title.includes(id))
+			); // keep only recent images
+			const image = urls[Math.floor(Math.random() * urls.length)];
+			const url: string = image.link;
 			if (!url) return;
 
 			if (patch !== undefined && msgId) {
@@ -134,6 +163,7 @@ export default class Motd extends Service {
 			this.container.getService("DiscordBot")?.setServerBanner(url);
 
 			this.lastimage = url;
+			this.lastauthor = image.title;
 		}
 	}
 	public async rerollImageJob(): Promise<void> {
