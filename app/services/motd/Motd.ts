@@ -41,7 +41,6 @@ export default class Motd extends Service {
 	lastimage?: string;
 
 	private ignorelist: Array<string> = ["STEAM_0:0:25648317"];
-	private lastauthor: string;
 
 	constructor(container: Container) {
 		super(container);
@@ -116,12 +115,15 @@ export default class Motd extends Service {
 			},
 		});
 
+		const data = this.container.getService("Data");
+		if (!data) return;
+
 		if (res.status === 200) {
 			const yesterday = dayjs().subtract(1, "d").unix();
 			const urls: Array<ImgurImage> = res.data.data.filter(
 				(img: ImgurImage) =>
 					img.datetime >= yesterday &&
-					img.title !== this.lastauthor &&
+					img.title !== data.lastIotdAuthor &&
 					!this.ignorelist.some(id => img.title.includes(id))
 			); // keep only recent images
 			const image = urls[Math.floor(Math.random() * urls.length)];
@@ -163,7 +165,8 @@ export default class Motd extends Service {
 			this.container.getService("DiscordBot")?.setServerBanner(url);
 
 			this.lastimage = url;
-			this.lastauthor = image.title;
+			data.lastIotdAuthor = image.title;
+			await data.save();
 		}
 	}
 	public async rerollImageJob(): Promise<void> {
