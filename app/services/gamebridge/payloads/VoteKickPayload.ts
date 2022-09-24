@@ -44,18 +44,14 @@ export default class NotificationPayload extends Payload {
 		if (result) {
 			const success = result.success;
 			const reason = result.reason;
-			switch (success) {
-				case true:
-					await this.getLastReport(
-						payload.data,
-						notificationsChannel as TextChannel
-					).then(msg => msg?.react("✅"));
-					return;
-				case false:
-					await this.getLastReport(
-						payload.data,
-						notificationsChannel as TextChannel
-					).then(msg =>
+			if (success) {
+				await this.getLastReport(payload.data, notificationsChannel as TextChannel)
+					.then(msg => msg?.react("✅"))
+					.catch(err => console.error(err));
+				return;
+			} else {
+				await this.getLastReport(payload.data, notificationsChannel as TextChannel).then(
+					msg =>
 						msg?.react(
 							reason?.includes("Player left")
 								? "💀"
@@ -65,10 +61,7 @@ export default class NotificationPayload extends Payload {
 								? "🤦‍♂️"
 								: "❌"
 						)
-					);
-					return;
-				case undefined:
-				default:
+				);
 			}
 		}
 
