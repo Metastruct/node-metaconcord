@@ -1,5 +1,5 @@
 import { Container } from "@/app/Container";
-import { Service } from "@/app/services";
+import { Data, Service } from "@/app/services";
 import { scheduleJob } from "node-schedule";
 import FormData from "form-data";
 import axios from "axios";
@@ -41,6 +41,7 @@ export default class Motd extends Service {
 	lastimage?: string;
 
 	private ignorelist: Array<string> = ["STEAM_0:0:25648317"];
+	private data: Data;
 
 	constructor(container: Container) {
 		super(container);
@@ -48,7 +49,10 @@ export default class Motd extends Service {
 		this.lastimage = undefined;
 		scheduleJob("0 12 * * *", this.executeMessageJob.bind(this));
 		scheduleJob("0 20 * * *", this.executeImageJob.bind(this));
-		scheduleJob("0 0 * * 0", this.clearImageAlbum.bind(this));
+		scheduleJob("0 0 * * 0", this.clearImageAlbumAndHistory.bind(this));
+		const data = this.container.getService("Data");
+		if (!data) return;
+		this.data = data;
 	}
 
 	public pushMessage(msg: string): void {
@@ -70,7 +74,7 @@ export default class Motd extends Service {
 		return true;
 	}
 
-	private clearImageAlbum(): void {
+	private clearImageAlbumAndHistory(): void {
 		const data = new FormData();
 		data.append("deletehashes[]", "");
 		// this errors but works ?
@@ -83,6 +87,10 @@ export default class Motd extends Service {
 				},
 			}
 		);
+		if (this.data) {
+			this.data.lastIotdAuthors = [];
+			this.data.save();
+		}
 	}
 
 	private executeMessageJob(): void {
@@ -115,15 +123,13 @@ export default class Motd extends Service {
 			},
 		});
 
-		const data = this.container.getService("Data");
-		if (!data) return;
-
 		if (res.status === 200) {
 			const yesterday = dayjs().subtract(1, "d").unix();
+			const lastAuthors = this.data?.lastIotdAuthors;
 			const urls: Array<ImgurImage> = res.data.data.filter(
 				(img: ImgurImage) =>
 					img.datetime >= yesterday &&
-					img.title !== data.lastIotdAuthor &&
+					!lastAuthors[img.title] &&
 					!this.ignorelist.some(id => img.title.includes(id))
 			); // keep only recent images
 			const image = urls[Math.floor(Math.random() * urls.length)];
@@ -165,8 +171,8 @@ export default class Motd extends Service {
 			this.container.getService("DiscordBot")?.setServerBanner(url);
 
 			this.lastimage = url;
-			data.lastIotdAuthor = image.title;
-			await data.save();
+			this.data.lastIotdAuthors.push(image.title);
+			await this.data.save();
 		}
 	}
 	public async rerollImageJob(): Promise<void> {

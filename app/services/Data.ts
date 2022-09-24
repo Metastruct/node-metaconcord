@@ -22,13 +22,13 @@ export class Data extends Service {
 		[steamId64: string]: number;
 	} = {};
 	lastDiscordGuildIcon: "None";
-	lastIotdAuthor: string;
+	lastIotdAuthors: Array<string>;
 	toSave = [
 		"muted",
 		"timesReported",
 		"timesVoteKicked",
 		"lastDiscordGuildIcon",
-		"lastIotdAuthor",
+		"lastIotdAuthors",
 	];
 
 	async init(): Promise<void> {
