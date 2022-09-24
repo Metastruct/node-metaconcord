@@ -55,7 +55,17 @@ export default class NotificationPayload extends Payload {
 					await this.getLastReport(
 						payload.data,
 						notificationsChannel as TextChannel
-					).then(msg => msg?.react(reason?.includes("Player left") ? "💀" : "❌"));
+					).then(msg =>
+						msg?.react(
+							reason?.includes("Player left")
+								? "💀"
+								: reason?.includes("not enough coins")
+								? "💲"
+								: reason?.includes("caller has left")
+								? "🤦‍♂️"
+								: "❌"
+						)
+					);
 					return;
 				case undefined:
 				default:
