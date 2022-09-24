@@ -64,7 +64,7 @@ export class Data extends Service {
 			// if (typeof data !== "object") continue;
 			const filePath = path.join(this.dataPath, moduleName + ".json");
 			console.log(`Saved ${filePath} with`, data);
-			await fs.writeFile(filePath, JSON.stringify(data));
+			await fs.writeFile(filePath, JSON.stringify(data ?? {}));
 		}
 	}
 }
