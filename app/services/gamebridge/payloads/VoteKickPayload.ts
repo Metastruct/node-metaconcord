@@ -59,6 +59,8 @@ export default class NotificationPayload extends Payload {
 								? "💲"
 								: reason?.includes("caller has left")
 								? "🤦‍♂️"
+								: reason?.includes("Vote was aborted")
+								? "⛔"
 								: "❌"
 						)
 				);
