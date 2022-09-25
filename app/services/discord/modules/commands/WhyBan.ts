@@ -91,7 +91,7 @@ export class SlashWhyBanCommand extends SlashCommand {
 			return EphemeralResponse(
 				`\`${ban.name}\` is currently not banned but was banned ${
 					ban.numbans && ban.numbans > 1 ? `\`${ban.numbans} times\`` : ""
-				}before.\nLast ban reason:\n\`\`\`${ban.banreason.replace("`", "\\`")}\`\`\``
+				} before.\nLast ban reason:\n\`\`\`${ban.banreason.replace("`", "\\`")}\`\`\``
 			);
 
 		return EphemeralResponse(
