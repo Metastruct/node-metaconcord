@@ -62,6 +62,7 @@ export default class NotificationPayload extends Payload {
 								: "❌"
 						)
 				);
+				return;
 			}
 		}
 
