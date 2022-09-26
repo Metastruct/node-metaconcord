@@ -87,16 +87,14 @@ export default class ChatPayload extends Payload {
 		super.handle(payload, server);
 		const { player } = payload.data;
 		let { content } = payload.data;
-		const { bridge, discord } = server;
+		const { bridge, discord, discordWH } = server;
 
 		if (!discord.isReady()) return;
 
 		const guild = discord.guilds.cache.get(discord.config.guildId);
 		if (!guild) return;
 
-		const webhook = new Discord.WebhookClient({
-			url: `https://discord.com/api/v10/webhooks/${bridge.config.chatWebhookId}/${bridge.config.chatWebhookToken}`,
-		});
+		const webhook = discordWH;
 
 		const avatar = await bridge.container.getService("Steam")?.getUserAvatar(player.steamId64);
 

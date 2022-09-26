@@ -5,6 +5,7 @@ import {
 	connection as WebSocketConnection,
 	request as WebSocketRequest,
 } from "websocket";
+import { WebhookClient } from "discord.js";
 
 export type GameServerConfig = {
 	id: number;
@@ -28,6 +29,7 @@ export default class GameServer {
 	config: GameServerConfig;
 	bridge: GameBridge;
 	discord: DiscordClient;
+	discordWH: WebhookClient;
 	status: {
 		mapThumbnail: string;
 		players: Player[];
@@ -40,6 +42,9 @@ export default class GameServer {
 		this.bridge = bridge;
 		this.discord = new DiscordClient(this, {
 			intents: ["Guilds", "GuildMessages", "MessageContent"],
+		});
+		this.discordWH = new WebhookClient({
+			url: `https://discord.com/api/v10/webhooks/${bridge.config.chatWebhookId}/${bridge.config.chatWebhookToken}`,
 		});
 
 		this.discord.run(this.config.discordToken);
