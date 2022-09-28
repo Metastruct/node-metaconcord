@@ -57,7 +57,7 @@ export default class StatusPayload extends Payload {
 			desc += `\n:repeat: <t:${maptime}:R>`;
 			desc += `\n:file_cabinet: <t:${servertime}:R>`;
 			if (gamemode && gamemode.name != "QBox") desc += `\n:game_die: ${gamemode.name}`;
-			let mapThumbnail = "";
+			let mapThumbnail: string | null = null;
 			if (/^gm_construct_m/i.test(map)) {
 				mapThumbnail = `http://${host}:${port}/map-thumbnails/gm_construct_m.jpg`;
 			} else if (map.toLowerCase().trim() == "rp_unioncity") {

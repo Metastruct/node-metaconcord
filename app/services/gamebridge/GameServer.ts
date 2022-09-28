@@ -31,9 +31,9 @@ export default class GameServer {
 	discord: DiscordClient;
 	discordWH: WebhookClient;
 	status: {
-		mapThumbnail: string;
+		mapThumbnail: string | null;
 		players: Player[];
-	} = { mapThumbnail: "", players: [] };
+	} = { mapThumbnail: null, players: [] };
 	playerListImage: Buffer;
 
 	constructor(req: WebSocketRequest, bridge: GameBridge, config: GameServerConfig) {
