@@ -5,7 +5,7 @@
 			"@/*": ["./*"]
 		},
 		"target": "es2019",
-		"lib": ["es2020.string"],
+		"lib": ["es2020.string", "dom"],
 		"module": "commonjs",
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
