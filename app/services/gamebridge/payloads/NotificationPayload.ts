@@ -1,4 +1,4 @@
-import * as requestSchema from "./structures/AdminNotifyRequest.json";
+import * as requestSchema from "./structures/NotificationResponse.json";
 import { GameServer } from "..";
 import { NotificationResponse } from "./structures";
 import Discord, { TextChannel } from "discord.js";
