@@ -25,7 +25,7 @@ export default (webApp: WebApp): void => {
 			username: srvConfig.username,
 			host: srvConfig.host,
 			port: srvConfig.port,
-			privateKey: config.keyPath,
+			privateKeyPath: config.keyPath,
 		});
 
 		let output = "";
