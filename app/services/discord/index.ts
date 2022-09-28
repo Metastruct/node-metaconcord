@@ -120,8 +120,7 @@ export class DiscordBot extends Service {
 				await channel?.messages.fetch({
 					limit: 1,
 				})
-			).first() ??
-			undefined
+			).first()
 		);
 	}
 
