@@ -84,7 +84,7 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 			username: username,
 			host: host,
 			port: port,
-			privateKey: config.keyPath,
+			privateKeyPath: config.keyPath,
 		});
 
 		let buffer = "";
