@@ -1,4 +1,4 @@
-import * as requestSchema from "./structures/BanRequest.json";
+import * as requestSchema from "./structures/UnbanRequest.json";
 import { GameServer } from "..";
 import { PlayerSummary } from "steamapi";
 import { TextChannel } from "discord.js";

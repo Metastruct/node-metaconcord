@@ -1,4 +1,4 @@
-import * as requestSchema from "./structures/BanRequest.json";
+import * as requestSchema from "./structures/BanAppealRequest.json";
 import { BanAppealRequest } from "./structures";
 import { GameServer } from "..";
 import { PlayerSummary } from "steamapi";
