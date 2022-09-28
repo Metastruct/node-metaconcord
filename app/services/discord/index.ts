@@ -112,7 +112,17 @@ export class DiscordBot extends Service {
 
 	async getLastMotdMsg(): Promise<Discord.Message | undefined> {
 		if (!this.discord.isReady()) return;
-		return (await this.getTextChannel(motdConfig.channelId))?.lastMessage ?? undefined; // I could get the channel from the webhook but woefhwoaegfrh
+		const channel = await this.getTextChannel(motdConfig.channelId);
+		if (!channel) return;
+		return (
+			channel?.lastMessage ??
+			(
+				await channel?.messages.fetch({
+					limit: 1,
+				})
+			).first() ??
+			undefined
+		);
 	}
 
 	async overLvl2(): Promise<boolean> {
