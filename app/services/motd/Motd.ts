@@ -125,7 +125,7 @@ export default class Motd extends Service {
 
 		if (res.status === 200) {
 			const yesterday = dayjs().subtract(1, "d").unix();
-			const lastAuthors = this.data?.lastIotdAuthors;
+			const lastAuthors = this.data.lastIotdAuthors;
 			const urls: Array<ImgurImage> = res.data.data.filter(
 				(img: ImgurImage) =>
 					img.datetime >= yesterday &&
