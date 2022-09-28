@@ -129,7 +129,7 @@ export default class Motd extends Service {
 			const urls: Array<ImgurImage> = res.data.data.filter(
 				(img: ImgurImage) =>
 					img.datetime >= yesterday &&
-					!lastAuthors[img.title] &&
+					!lastAuthors.includes(img.title) &&
 					!this.ignorelist.some(id => img.title.includes(id))
 			); // keep only recent images
 			const image = urls[Math.floor(Math.random() * urls.length)];
