@@ -16,6 +16,12 @@ export default (webApp: WebApp): void => {
 		}
 
 		const server: GameServer = gameBridge.servers[req.params.id];
+
+		if (!server){
+			res.status(404).send("ServerID does not exist");
+			return
+		}
+
 		if (!Array.isArray(server?.status?.players) && server?.status?.mapThumbnail != null) {
 			return res.sendStatus(204);
 		}
