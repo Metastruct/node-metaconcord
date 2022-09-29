@@ -4,11 +4,7 @@ module.exports = {
 	env: {
 		node: true,
 	},
-	extends: [
-		"plugin:@typescript-eslint/recommended",
-		"prettier/@typescript-eslint",
-		"plugin:prettier/recommended",
-	],
+	extends: ["plugin:@typescript-eslint/recommended", "plugin:prettier/recommended", "prettier"],
 	plugins: ["sort-imports-es6-autofix"],
 	// add your custom rules here
 	rules: {
