@@ -40,7 +40,6 @@ export default class Motd extends Service {
 	messages: Array<string>;
 	lastimage?: string;
 
-	private ignorelist: Array<string> = ["STEAM_0:0:25648317"];
 	private data: Data;
 
 	constructor(container: Container) {
@@ -127,10 +126,7 @@ export default class Motd extends Service {
 			const yesterday = dayjs().subtract(1, "d").unix();
 			const lastAuthors = this.data.lastIotdAuthors;
 			const urls: Array<ImgurImage> = res.data.data.filter(
-				(img: ImgurImage) =>
-					img.datetime >= yesterday &&
-					!lastAuthors.includes(img.title) &&
-					!this.ignorelist.some(id => img.title.includes(id))
+				(img: ImgurImage) => img.datetime >= yesterday && !lastAuthors.includes(img.title)
 			); // keep only recent images
 			const image = urls[Math.floor(Math.random() * urls.length)];
 			const url: string = image.link;
