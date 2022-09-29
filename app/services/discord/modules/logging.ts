@@ -96,6 +96,7 @@ export default (bot: DiscordBot): void => {
 			.setAuthor({
 				name: user?.username ?? user?.username ?? "unknown user",
 				iconURL: user?.avatarURL() ?? user?.avatarURL() ?? undefined,
+				url: newMsg.url,
 			})
 			.setColor(YELLOW_COLOR)
 			.addFields(f("Channel", `<#${oldMsg.channel.id}>`))
