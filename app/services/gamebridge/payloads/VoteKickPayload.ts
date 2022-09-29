@@ -54,7 +54,7 @@ export default class NotificationPayload extends Payload {
 					msg =>
 						msg?.react(
 							reason?.includes("Player left")
-								? "💀"
+								? "🏃‍♂️"
 								: reason?.includes("not enough coins")
 								? "💲"
 								: reason?.includes("caller has left")
