@@ -6,6 +6,16 @@ import Payload from "./Payload";
 import SteamID from "steamid";
 import dayjs from "dayjs";
 
+const GamemodeIcons = {
+	qbox: "https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
+	mta: "https://gitlab.com/metastruct/mta_projects/mta_gm/-/raw/master/gamemodes/mta/icon24.png?inline=false",
+	jazztronauts:
+		"https://github.com/Foohy/jazztronauts/blob/master/gamemodes/jazztronauts/icon24.png?raw=true",
+};
+
+const GamemodeAlias = {
+	qbox: "metastruct",
+};
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	private static retryCount = 0;
@@ -69,6 +79,10 @@ export default class StatusPayload extends Payload {
 				.setTitle(map)
 				.setDescription(desc)
 				.setThumbnail(mapThumbnail)
+				.setAuthor({
+					name: GamemodeAlias[gamemode.name.toLowerCase()],
+					iconURL: GamemodeIcons[gamemode.name.toLowerCase()],
+				})
 				.setURL(
 					`https://metastruct.net/${
 						server.config.label ? "join/" + server.config.label : ""
