@@ -92,15 +92,15 @@ export default class Motd extends Service {
 		}
 	}
 
-	private executeMessageJob(): void {
+	private async executeMessageJob(): Promise<void> {
 		if (this.messages.length <= 0) return;
 
 		const msg: string = this.messages[Math.floor(Math.random() * this.messages.length)];
 		this.messages = [];
 		if (msg == null || msg.length === 0) return;
 
-		axios.post(
-			config.webhook,
+		await axios.post(
+			config.webhook + "?wait=true",
 			JSON.stringify({
 				content: msg,
 				username: "Meta Construct",
@@ -113,6 +113,13 @@ export default class Motd extends Service {
 			}
 		);
 		this.container.getService("Twitter")?.postStatus(msg);
+		const discord = this.container.getService("DiscordBot");
+		if (discord) {
+			const msg = await discord.getLastMotdMsg();
+			msg?.reply({
+				content: await this.container.getService("Markov")?.generate(msg.content),
+			});
+		}
 	}
 
 	private async executeImageJob(patch?: boolean, msgId?: string): Promise<void> {
