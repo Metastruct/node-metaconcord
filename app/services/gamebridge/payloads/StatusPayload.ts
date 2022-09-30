@@ -46,15 +46,19 @@ export default class StatusPayload extends Payload {
 				if (me?.nickname !== server.config.name) me?.setNickname(server.config.name);
 
 				// Presence
-				discord.user.setPresence({
-					activities: [
-						{
-							name: `${count} player${count != 1 ? "s" : ""}`,
-							type: 3,
-						},
-					],
-					status: "online",
-				});
+				discord.user.setPresence(
+					count > 0
+						? {
+								activities: [
+									{
+										name: `${count} player${count != 1 ? "s" : ""}`,
+										type: 3,
+									},
+								],
+								status: "online",
+						  }
+						: { afk: true, status: "idle" }
+				);
 			}
 			// Permanent status message
 			let desc = `:busts_in_silhouette: **${count > 0 ? count : "no"} player${
