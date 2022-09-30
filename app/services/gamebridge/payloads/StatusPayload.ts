@@ -84,7 +84,7 @@ export default class StatusPayload extends Payload {
 				.setDescription(desc)
 				.setThumbnail(mapThumbnail)
 				.setFooter({
-					text: GamemodeAlias[gamemode.name.toLowerCase()],
+					text: GamemodeAlias[gamemode.name.toLowerCase()] ?? gamemode.name,
 					iconURL: GamemodeIcons[gamemode.name.toLowerCase()],
 				})
 				.setURL(
