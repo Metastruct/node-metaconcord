@@ -83,8 +83,8 @@ export default class StatusPayload extends Payload {
 				.setTitle(map)
 				.setDescription(desc)
 				.setThumbnail(mapThumbnail)
-				.setAuthor({
-					name: GamemodeAlias[gamemode.name.toLowerCase()],
+				.setFooter({
+					text: GamemodeAlias[gamemode.name.toLowerCase()],
 					iconURL: GamemodeIcons[gamemode.name.toLowerCase()],
 				})
 				.setURL(
@@ -98,7 +98,10 @@ export default class StatusPayload extends Payload {
 						`http://${host}:${port}/server-status/${server.config.id}/${Date.now()}`
 					)
 					.setFooter({
-						text: "Middle-click the player list to open an interactive version",
+						text: `${
+							embed.data.footer ? `${embed.data.footer.text} | ` : ""
+						}Middle-click the player list to open an interactive version`,
+						iconURL: embed.data.footer?.icon_url,
 					});
 			}
 			if (workshopMap) {
