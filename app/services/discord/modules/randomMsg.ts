@@ -12,8 +12,14 @@ export default (bot: DiscordBot): void => {
 				return;
 			}
 		}
-		if (msg.channelId !== bot.config.chatChannelId || msg.author.bot) return;
+		if (
+			msg.channelId !== bot.config.chatChannelId ||
+			msg.author.bot ||
+			msg.content.length === 0
+		)
+			return;
 		if (Date.now() > nextMkTime) {
+			if (!bot.container.getService("Motd")?.isValidMsg(msg.content)) return;
 			const reply = await bot.container.getService("Markov")?.generate(msg.content);
 			if (reply) {
 				await msg.reply(reply);
