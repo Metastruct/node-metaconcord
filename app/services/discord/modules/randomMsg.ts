@@ -19,11 +19,10 @@ export default (bot: DiscordBot): void => {
 		)
 			return;
 		if (Date.now() > nextMkTime) {
-			if (!bot.container.getService("Motd")?.isValidMsg(msg.content)) return;
-			const reply = await bot.container.getService("Markov")?.generate(msg.content);
+			const reply = await bot.container.getService("Markov")?.generate();
 			if (reply) {
-				await msg.reply(reply);
-				const nextTime = Math.floor(Date.now() + Math.random() * 60 * 60 * 10 * 1000);
+				await msg.channel.send(reply);
+				const nextTime = Math.floor(Date.now() + Math.random() * 60 * 60 * 5 * 1000);
 				data.nextMkTime = nextTime;
 				nextMkTime = nextTime;
 				await data.save();
