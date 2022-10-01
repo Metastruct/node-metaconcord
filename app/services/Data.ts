@@ -15,6 +15,7 @@ export class Data extends Service {
 			muter?: string;
 		};
 	} = {};
+	nextMkTime: number;
 	timesReported: {
 		[steamId64: string]: number;
 	} = {};
@@ -25,6 +26,7 @@ export class Data extends Service {
 	lastIotdAuthors: Array<string>;
 	toSave = [
 		"muted",
+		"nextMkTime",
 		"timesReported",
 		"timesVoteKicked",
 		"lastDiscordGuildIcon",

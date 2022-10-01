@@ -113,13 +113,6 @@ export default class Motd extends Service {
 			}
 		);
 		this.container.getService("Twitter")?.postStatus(msg);
-		const discord = this.container.getService("DiscordBot");
-		if (discord) {
-			const msg = await discord.getLastMotdMsg();
-			msg?.reply({
-				content: await this.container.getService("Markov")?.generate(msg.content),
-			});
-		}
 	}
 
 	private async executeImageJob(patch?: boolean, msgId?: string): Promise<void> {
