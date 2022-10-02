@@ -77,15 +77,17 @@ export default class Motd extends Service {
 		const data = new FormData();
 		data.append("deletehashes[]", "");
 		// this errors but works ?
-		axios.post(
-			`https://api.imgur.com/3/album/${config.imgurDeleteHash}?deletehashes=${config.imgurDeleteHash}`,
-			data,
-			{
-				headers: {
-					Authorization: `Client-ID ${config.imgurClientId}`,
-				},
-			}
-		);
+		axios
+			.post(
+				`https://api.imgur.com/3/album/${config.imgurDeleteHash}?deletehashes=${config.imgurDeleteHash}`,
+				data,
+				{
+					headers: {
+						Authorization: `Client-ID ${config.imgurClientId}`,
+					},
+				}
+			)
+			.catch();
 		if (this.data) {
 			this.data.lastIotdAuthors = [];
 			this.data.save();
