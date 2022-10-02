@@ -1,6 +1,4 @@
 import { DiscordBot } from "..";
-import axios from "axios";
-import motdConfig from "@/config/motd.json";
 
 export default (bot: DiscordBot): void => {
 	bot.discord.on("messageCreate", async msg => {
@@ -30,17 +28,9 @@ export default (bot: DiscordBot): void => {
 			if (mk) reply = mk;
 		} else {
 			// todo: make an image cache from Motd.ts when it fetches the images instead.
-			const res = await axios.get(
-				`https://api.imgur.com/3/album/${motdConfig.imgurAlbumId}/images`,
-				{
-					headers: {
-						Authorization: `Client-ID ${motdConfig.imgurClientId}`,
-					},
-				}
-			);
-			if (res.status === 200) {
-				const urls: Array<any> = res.data.data;
-				const image = urls[Math.floor(Math.random() * urls.length)];
+			const images = bot.container.getService("Motd")?.images;
+			if (images) {
+				const image = images[Math.floor(Math.random() * images.length)];
 				reply = image.link;
 			}
 		}
