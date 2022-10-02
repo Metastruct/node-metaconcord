@@ -15,9 +15,12 @@ export default (bot: DiscordBot): void => {
 		if (!id) return;
 		if (!(msg.mentions.repliedUser?.id === id) && !(msg.mentions.users.first()?.id === id))
 			return;
-		if (!bot.config.allowedShitpostingChannels.includes(msg.channelId) || msg.author.bot)
+		if (
+			!bot.config.allowedShitpostingChannels.includes(msg.channelId) ||
+			msg.author.bot ||
+			msg.content.length < 2
+		)
 			return;
-		if (!bot.container.getService("Motd")?.isValidMsg(msg.content)) return;
 		const rng = Math.random();
 
 		let reply = "";
