@@ -11,13 +11,12 @@ export default (bot: DiscordBot): void => {
 		}
 		const id = bot.discord.user?.id;
 		if (!id) return;
-		if (!(msg.mentions.repliedUser?.id === id) && !(msg.mentions.users.first()?.id === id))
-			return;
+		if (!(msg.mentions.users.first()?.id === id)) return;
 		if (
 			!bot.config.allowedShitpostingChannels.includes(msg.channelId) ||
 			msg.author.bot ||
 			msg.content.length <
-				(msg.mentions.users.size > 0 ? (bot.discord.user?.username.length ?? 14) + 2 : 2)
+				(msg.mentions.repliedUser ? (bot.discord.user?.username.length ?? 14) + 2 : 2)
 		)
 			return;
 		const rng = Math.random();
