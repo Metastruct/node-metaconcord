@@ -38,6 +38,7 @@ type ImgurImage = {
 export default class Motd extends Service {
 	name = "Motd";
 	messages: Array<string>;
+	images: Array<ImgurImage>;
 	lastimage?: string;
 
 	private data: Data;
@@ -52,6 +53,17 @@ export default class Motd extends Service {
 		const data = this.container.getService("Data");
 		if (!data) return;
 		this.data = data;
+		axios
+			.get(`https://api.imgur.com/3/album/${config.imgurAlbumId}/images`, {
+				headers: {
+					Authorization: `Client-ID ${config.imgurClientId}`,
+				},
+			})
+			.then(res => {
+				if (res.status === 200) {
+					this.images = res.data.data;
+				}
+			});
 	}
 
 	public pushMessage(msg: string): void {
@@ -127,6 +139,7 @@ export default class Motd extends Service {
 		if (res.status === 200) {
 			const yesterday = dayjs().subtract(1, "d").unix();
 			const lastAuthors = this.data.lastIotdAuthors;
+			this.images = res.data.data;
 			const urls: Array<ImgurImage> = res.data.data.filter(
 				(img: ImgurImage) => img.datetime >= yesterday && !lastAuthors.includes(img.title)
 			); // keep only recent images
