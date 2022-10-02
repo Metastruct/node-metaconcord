@@ -15,8 +15,7 @@ export default (bot: DiscordBot): void => {
 		if (
 			!bot.config.allowedShitpostingChannels.includes(msg.channelId) ||
 			msg.author.bot ||
-			msg.content.length <
-				(msg.mentions.repliedUser ? 2 : (bot.discord.user?.username.length ?? 14) + 2)
+			msg.content.length < (msg.mentions.repliedUser ? 2 : 21)
 		)
 			return;
 		const rng = Math.random();
