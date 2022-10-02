@@ -27,7 +27,6 @@ export default (bot: DiscordBot): void => {
 			const mk = await bot.container.getService("Markov")?.generate();
 			if (mk) reply = mk;
 		} else {
-			// todo: make an image cache from Motd.ts when it fetches the images instead.
 			const images = bot.container.getService("Motd")?.images;
 			if (images) {
 				const image = images[Math.floor(Math.random() * images.length)];
