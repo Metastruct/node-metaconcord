@@ -17,6 +17,7 @@ export default (bot: DiscordBot): void => {
 			return;
 		if (!bot.config.allowedShitpostingChannels.includes(msg.channelId) || msg.author.bot)
 			return;
+		if (!bot.container.getService("Motd")?.isValidMsg(msg.content)) return;
 		const rng = Math.random();
 
 		let reply = "";
