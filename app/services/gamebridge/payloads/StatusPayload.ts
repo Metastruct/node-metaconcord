@@ -57,7 +57,7 @@ export default class StatusPayload extends Payload {
 								],
 								status: "online",
 						  }
-						: { afk: true, status: "idle" }
+						: { afk: true, status: "idle", activities: [] }
 				);
 			}
 			// Permanent status message
