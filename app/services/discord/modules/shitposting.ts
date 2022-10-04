@@ -22,7 +22,7 @@ export default (bot: DiscordBot): void => {
 
 		let reply = "";
 
-		if (rng > 0.2) {
+		if (rng > 0.1) {
 			const mk = await bot.container.getService("Markov")?.generate();
 			if (mk) reply = mk;
 		} else {
