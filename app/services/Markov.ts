@@ -79,7 +79,7 @@ abstract class MarkovChainBase {
 	}
 
 	async generate(
-		depth = 2,
+		depth = 3,
 		maxLength = 50,
 		sentence = "",
 		callback?: (word: string) => void
