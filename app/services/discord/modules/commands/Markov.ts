@@ -1,6 +1,7 @@
 import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "../..";
 import { MarkovService } from "../../../Markov";
+import { clamp } from "@/utils";
 export class SlashMarkovCommand extends SlashCommand {
 	private bot: DiscordBot;
 	private markov: MarkovService;
@@ -41,7 +42,7 @@ export class SlashMarkovCommand extends SlashCommand {
 			const res = await this.markov.generate(
 				ctx.options.sentence,
 				ctx.options.crazy ? 1 : undefined,
-				ctx.options.length > 50 ? 50 : ctx.options.length ?? 50
+				ctx.options.length ? clamp(ctx.options.length, 1, 50) : undefined
 			);
 			await ctx.send(res);
 		} catch (err) {
