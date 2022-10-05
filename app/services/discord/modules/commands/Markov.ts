@@ -21,6 +21,11 @@ export class SlashMarkovCommand extends SlashCommand {
 					description: "more crazy output",
 					type: CommandOptionType.BOOLEAN,
 				},
+				{
+					name: "length",
+					description: "length of the chain",
+					type: CommandOptionType.INTEGER,
+				},
 			],
 		});
 		this.filePath = __filename;
@@ -35,7 +40,8 @@ export class SlashMarkovCommand extends SlashCommand {
 		try {
 			const res = await this.markov.generate(
 				ctx.options.sentence,
-				ctx.options.crazy ? 2 : undefined
+				ctx.options.crazy ? 1 : undefined,
+				ctx.options.length > 50 ? 50 : ctx.options.length ?? 50
 			);
 			await ctx.send(res);
 		} catch (err) {

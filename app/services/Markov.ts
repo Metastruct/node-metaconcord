@@ -96,7 +96,7 @@ abstract class MarkovChainBase {
 			}
 		}
 
-		let lastChain;
+		let lastChain: string[];
 
 		while (out.length < maxLength) {
 			const data = await this.queryDB(chain);
@@ -233,9 +233,9 @@ export class MarkovService extends Service {
 		await this.markov.learn(data);
 	}
 
-	async generate(sentence?: string, depth?: number): Promise<string> {
+	async generate(sentence?: string, depth?: number, length?: number): Promise<string> {
 		try {
-			return await this.markov.generate(depth, undefined, sentence);
+			return await this.markov.generate(depth, length, sentence);
 		} catch (err) {
 			console.error(err);
 			return "";
