@@ -233,9 +233,9 @@ export class MarkovService extends Service {
 		await this.markov.learn(data);
 	}
 
-	async generate(sentence?: string): Promise<string> {
+	async generate(sentence?: string, depth?: number): Promise<string> {
 		try {
-			return await this.markov.generate(undefined, undefined, sentence);
+			return await this.markov.generate(depth, undefined, sentence);
 		} catch (err) {
 			console.error(err);
 			return "";

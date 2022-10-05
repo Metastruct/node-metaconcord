@@ -16,6 +16,11 @@ export class SlashMarkovCommand extends SlashCommand {
 					description: "sentence to use",
 					type: CommandOptionType.STRING,
 				},
+				{
+					name: "crazy",
+					description: "more crazy output",
+					type: CommandOptionType.BOOLEAN,
+				},
 			],
 		});
 		this.filePath = __filename;
@@ -28,7 +33,10 @@ export class SlashMarkovCommand extends SlashCommand {
 	async run(ctx: CommandContext): Promise<void> {
 		await ctx.defer();
 		try {
-			const res = await this.markov.generate(ctx.options.sentence);
+			const res = await this.markov.generate(
+				ctx.options.sentence,
+				ctx.options.crazy ? 2 : undefined
+			);
 			await ctx.send(res);
 		} catch (err) {
 			await ctx.delete();
