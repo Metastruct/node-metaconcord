@@ -24,7 +24,7 @@ export class SlashMarkovCommand extends SlashCommand {
 				},
 				{
 					name: "length",
-					description: "length of the chain",
+					description: "length of the chain 1 - 50",
 					type: CommandOptionType.INTEGER,
 				},
 			],
