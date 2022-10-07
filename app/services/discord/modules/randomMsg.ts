@@ -26,7 +26,7 @@ export default (bot: DiscordBot): void => {
 			const reply = await bot.container.getService("Markov")?.generate(search);
 			if (reply) {
 				await msg.channel.send(reply);
-				const nextTime = Math.floor(Date.now() + Math.random() * 60 * 60 * 2 * 1000);
+				const nextTime = Math.floor(Date.now() + Math.random() * 60 * 60 * 1.5 * 1000);
 				data.nextMkTime = nextTime;
 				nextMkTime = nextTime;
 				await data.save();
