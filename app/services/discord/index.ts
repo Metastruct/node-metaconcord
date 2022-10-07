@@ -36,7 +36,9 @@ export class DiscordBot extends Service {
 				try {
 					const data = this.container.getService("Data");
 					const mv = await this.container.getService("Markov")?.generate();
-					const newStatus = `🕰 <t:${data?.nextMkTime}:R>\n${mv}`;
+					const newStatus = `🕰 <t:${data?.nextMkTime
+						.toString()
+						.substring(0, 10)}:R>\n${mv}`;
 					this.setStatus(newStatus ?? "Crashing the source engine");
 				} catch {} // who cares
 			}, 1000 * 60 * 10); // change status every 10mins
