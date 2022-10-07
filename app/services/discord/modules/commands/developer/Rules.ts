@@ -16,7 +16,6 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 		super(bot, creator, {
 			name: "rule",
 			description: "Adds, removes or edits a Rule.",
-			deferEphemeral: true,
 			options: [
 				{
 					type: CommandOptionType.SUB_COMMAND,

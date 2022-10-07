@@ -7,7 +7,6 @@ export class SlashRefreshLuaCommand extends SlashDeveloperCommand {
 		super(bot, creator, {
 			name: "refreshlua",
 			description: "Refreshes a lua file on one of the servers",
-			deferEphemeral: true,
 			options: [
 				{
 					type: CommandOptionType.STRING,

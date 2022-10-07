@@ -8,7 +8,6 @@ export class SlashRconCommand extends SlashDeveloperCommand {
 		super(bot, creator, {
 			name: "rcon",
 			description: "Executes a command on one of the gmod servers",
-			deferEphemeral: true,
 			options: [
 				{
 					type: CommandOptionType.STRING,

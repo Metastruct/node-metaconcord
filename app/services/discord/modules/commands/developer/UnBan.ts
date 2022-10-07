@@ -7,7 +7,6 @@ export class SlashUnBanCommand extends SlashDeveloperCommand {
 		super(bot, creator, {
 			name: "unban",
 			description: "Unbans a player in-game",
-			deferEphemeral: true,
 			options: [
 				{
 					type: CommandOptionType.STRING,

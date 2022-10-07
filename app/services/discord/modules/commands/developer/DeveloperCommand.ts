@@ -95,7 +95,7 @@ export class SlashDeveloperCommand extends SlashCommand {
 	}
 
 	public async run(ctx: CommandContext): Promise<any> {
-		await ctx.defer(true);
+		await ctx.defer(this.deferEphemeral);
 
 		if (!this.isAllowed(ctx.user)) {
 			return EphemeralResponse("You are not allowed to use this command.");

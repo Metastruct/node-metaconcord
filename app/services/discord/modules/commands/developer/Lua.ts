@@ -9,7 +9,6 @@ export class SlashLuaCommand extends SlashDeveloperCommand {
 		super(bot, creator, {
 			name: "l",
 			description: "Executes lua on one of the gmod servers",
-			deferEphemeral: true,
 			options: [
 				{
 					type: CommandOptionType.STRING,
