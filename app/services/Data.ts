@@ -1,4 +1,5 @@
 import { Container } from "@/app/Container";
+import { Rule } from "./discord";
 import { Service } from ".";
 import { promises as fs } from "fs";
 import path from "path";
@@ -16,6 +17,7 @@ export class Data extends Service {
 		};
 	} = {};
 	nextMkTime: number;
+	rules: Array<Rule>;
 	timesReported: {
 		[steamId64: string]: number;
 	} = {};
@@ -27,6 +29,7 @@ export class Data extends Service {
 	toSave = [
 		"muted",
 		"nextMkTime",
+		"rules",
 		"timesReported",
 		"timesVoteKicked",
 		"lastDiscordGuildIcon",
