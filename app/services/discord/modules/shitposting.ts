@@ -23,7 +23,14 @@ export default (bot: DiscordBot): void => {
 		let reply = "";
 
 		if (rng > 0.15) {
-			const mk = await bot.container.getService("Markov")?.generate();
+			let search: string | undefined;
+			if (!msg.content.startsWith("http")) {
+				search = msg.content
+					.replace(`<@${id}>`, "")
+					.split(" ")
+					.slice(rng > 0.5 ? -1 : 0)[0];
+			}
+			const mk = await bot.container.getService("Markov")?.generate(search);
 			if (mk) reply = mk;
 		} else {
 			const images = bot.container.getService("Motd")?.images;
