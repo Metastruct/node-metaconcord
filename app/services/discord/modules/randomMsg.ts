@@ -19,7 +19,11 @@ export default (bot: DiscordBot): void => {
 		)
 			return;
 		if (Date.now() > nextMkTime) {
-			const reply = await bot.container.getService("Markov")?.generate();
+			let search: string | undefined;
+			if (!msg.content.startsWith("http")) {
+				search = msg.content.split(" ").slice(Math.random() > 0.5 ? -1 : 0)[0];
+			}
+			const reply = await bot.container.getService("Markov")?.generate(search);
 			if (reply) {
 				await msg.channel.send(reply);
 				const nextTime = Math.floor(Date.now() + Math.random() * 60 * 60 * 2 * 1000);
