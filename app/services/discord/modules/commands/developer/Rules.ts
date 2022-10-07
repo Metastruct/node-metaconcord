@@ -205,7 +205,7 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 			if (exists) {
 				//arr.splice(index + 1, 0, arr.splice(index, 1)[0]);
 				this.ruleCache.splice(
-					options.position,
+					options.position - 1,
 					0,
 					this.ruleCache.splice(options.rule, 1)[0]
 				);
