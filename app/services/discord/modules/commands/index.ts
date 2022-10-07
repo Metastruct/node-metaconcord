@@ -13,6 +13,7 @@ import { SlashMarkovCommand } from "./Markov";
 import { SlashMuteCommand } from "./mute/Mute";
 import { SlashRconCommand } from "./developer/Rcon";
 import { SlashRefreshLuaCommand } from "./developer/RefreshLua";
+import { SlashRuleCommand } from "./developer/Rules";
 import { SlashSQLCommand } from "./developer/SQL";
 import { SlashUnBanCommand } from "./developer/UnBan";
 import { SlashUnmuteCommand } from "./mute/Unmute";
@@ -40,6 +41,7 @@ export const commands = [
 	SlashLuaCommand,
 	SlashRconCommand,
 	SlashRefreshLuaCommand,
+	SlashRuleCommand,
 	SlashWhyBanCommand,
 	SlashBanCommand,
 	SlashUnBanCommand,

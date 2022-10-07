@@ -8,6 +8,7 @@ import {
 import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
 import { GameServer, Player } from "@/app/services/gamebridge";
+import { Rule } from "../../..";
 import SteamID from "steamid";
 
 export class SlashDeveloperCommand extends SlashCommand {
@@ -75,13 +76,26 @@ export class SlashDeveloperCommand extends SlashCommand {
 		}
 	}
 
+	public async getRules(): Promise<Array<Rule>> {
+		const data = this.bot.container.getService("Data");
+		return data?.rules ?? [];
+	}
+
+	public async saveRules(rules: Array<Rule>): Promise<void> {
+		const data = this.bot.container.getService("Data");
+		if (data) {
+			data.rules = rules;
+			await data.save();
+		}
+	}
+
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async runProtected(ctx: CommandContext): Promise<any> {
 		throw new Error("runProtected is not defined");
 	}
 
 	public async run(ctx: CommandContext): Promise<any> {
-		await ctx.defer();
+		await ctx.defer(true);
 
 		if (!this.isAllowed(ctx.user)) {
 			return EphemeralResponse("You are not allowed to use this command.");

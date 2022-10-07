@@ -6,6 +6,11 @@ import config from "@/config/discord.json";
 import modules from "./modules";
 import motdConfig from "@/config/motd.json";
 
+export type Rule = {
+	title: string;
+	description?: string;
+};
+
 export const EMBED_FIELD_LIMIT = 1024;
 
 export class DiscordBot extends Service {
@@ -42,6 +47,14 @@ export class DiscordBot extends Service {
 		}
 
 		this.discord.login(config.token);
+	}
+
+	async isElevatedUser(userId: string): Promise<boolean> {
+		if (!this.discord.isReady()) return false;
+		const guild = this.discord.guilds.cache.get(config.guildId);
+		if (!guild) return false;
+		const user = await guild.members.fetch(userId);
+		return user.roles.cache.has(this.config.elevatedRoleId);
 	}
 
 	async getTextChannel(channelId: string): Promise<Discord.TextChannel | undefined> {
