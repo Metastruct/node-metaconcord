@@ -17,7 +17,6 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 		super(bot, creator, {
 			name: "ban",
 			description: "Bans a player in-game",
-			deferEphemeral: true,
 			options: [
 				{
 					type: CommandOptionType.INTEGER,
