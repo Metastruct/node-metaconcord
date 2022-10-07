@@ -22,7 +22,6 @@ const VALID_GSERV_COMMANDS: [string, string][] = [
 	["rehashskeleton", "Commits skeleton changes. Call rehash afterwards!"],
 	["update_repos", "Updates all SVN/Git repositories."],
 	["status", "Shows server status."],
-	["maps", "Lists all maps."],
 ];
 
 const SERVER_EMOJI_MAP = {
