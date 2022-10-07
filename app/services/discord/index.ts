@@ -34,7 +34,9 @@ export class DiscordBot extends Service {
 			console.log(`'${this.discord.user?.username}' Discord Bot has logged in`);
 			setInterval(async () => {
 				try {
-					const newStatus = await this.container.getService("Markov")?.generate();
+					const data = this.container.getService("Data");
+					const mv = await this.container.getService("Markov")?.generate();
+					const newStatus = `🕰 <t:${data?.nextMkTime}:R>\n${mv}`;
 					this.setStatus(newStatus ?? "Crashing the source engine");
 				} catch {} // who cares
 			}, 1000 * 60 * 10); // change status every 10mins
