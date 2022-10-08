@@ -1,5 +1,7 @@
 import { DiscordBot } from "..";
 
+let posting = false;
+
 export default (bot: DiscordBot): void => {
 	const data = bot.container.getService("Data");
 	if (!data) return;
@@ -24,12 +26,14 @@ export default (bot: DiscordBot): void => {
 				search = msg.content.split(" ").slice(Math.random() > 0.5 ? -1 : 0)[0];
 			}
 			const reply = await bot.container.getService("Markov")?.generate(search);
-			if (reply) {
+			if (reply && !posting) {
+				posting = true;
 				await msg.channel.send(reply);
 				const nextTime = Math.floor(Date.now() + Math.random() * 60 * 60 * 1.5 * 1000);
 				data.nextMkTime = nextTime;
 				nextMkTime = nextTime;
 				await data.save();
+				posting = false;
 			}
 		}
 	});
