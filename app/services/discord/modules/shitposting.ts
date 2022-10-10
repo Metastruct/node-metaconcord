@@ -25,10 +25,8 @@ export default (bot: DiscordBot): void => {
 		if (rng > 0.15) {
 			let search: string | undefined;
 			if (!msg.content.startsWith("http")) {
-				search = msg.content
-					.replace(`<@${id}>`, "")
-					.split(" ")
-					.slice(rng > 0.5 ? -1 : 0)[0];
+				const words = msg.content.replace(`<@${id}>`, "").split(" ");
+				search = words[Math.floor(Math.random() * words.length)];
 			}
 			const mk = await bot.container.getService("Markov")?.generate(search);
 			if (mk) reply = mk;
