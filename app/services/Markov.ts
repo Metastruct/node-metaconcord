@@ -11,7 +11,7 @@ interface ILearnData {
 
 abstract class MarkovChainBase {
 	abstract learn(data: ILearnData): Promise<void>;
-	abstract queryDB(chain: string[]): Promise<ILearnData | null>;
+	abstract queryDB(chain: string[], authorID?: string): Promise<ILearnData | null>;
 
 	private getWords(sentence: string) {
 		if (sentence.match(/^\s*$/)) {
@@ -82,6 +82,7 @@ abstract class MarkovChainBase {
 		depth = 3,
 		maxLength = 50,
 		sentence = "",
+		authorID = "",
 		callback?: (word: string) => void
 	): Promise<string> {
 		let words = this.getWords(sentence);
@@ -99,7 +100,7 @@ abstract class MarkovChainBase {
 		let lastChain: string[];
 
 		while (out.length < maxLength) {
-			const data = await this.queryDB(chain);
+			const data = await this.queryDB(chain, authorID);
 
 			if (!data || !data.message) {
 				break;
@@ -133,7 +134,6 @@ abstract class MarkovChainBase {
 
 class MarkovChain extends MarkovChainBase {
 	db: sqlite.Database;
-	baseQuery: string;
 
 	constructor(public location: string) {
 		super();
@@ -143,18 +143,6 @@ class MarkovChain extends MarkovChainBase {
 		this.db.serialize(() => {
 			this.ready();
 		});
-
-		// wtf was this tho
-		const query: string[] = [];
-
-		query.push("SELECT * FROM markov WHERE (");
-		query.push("message LIKE $sentence1 ");
-		// query.push("OR [message] Like $sentence2 ");
-		query.push("OR [message] Like $sentence3 ");
-		// query.push("OR [message] = $sentence4");
-		query.push(") ORDER BY RANDOM() LIMIT 1");
-
-		this.baseQuery = query.join("\n");
 	}
 
 	ready(): void {
@@ -186,21 +174,28 @@ class MarkovChain extends MarkovChainBase {
 		});
 	}
 
-	queryDB(chain: string[]): Promise<ILearnData | null> {
+	queryDB(chain: string[], authorID: string): Promise<ILearnData | null> {
 		return new Promise((resolve, reject) => {
 			const sentence = chain.join(" ");
 
-			if (sentence.trim() == "") {
-				this.db.get("SELECT * FROM markov ORDER BY RANDOM() LIMIT 1", (err, res) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve(res);
+			if (sentence.trim() === "") {
+				this.db.get(
+					`SELECT * FROM markov ${
+						authorID ? `WHERE authorID = ${authorID}` : ""
+					} ORDER BY RANDOM() LIMIT 1`,
+					(err, res) => {
+						if (err) {
+							reject(err);
+						} else {
+							resolve(res);
+						}
 					}
-				});
+				);
 			} else {
 				this.db.all(
-					this.baseQuery,
+					`SELECT * FROM markov WHERE ${
+						authorID ? `authorID = ${authorID} AND` : ""
+					}(message LIKE $sentence1 OR [message] Like $sentence3 ) ORDER BY RANDOM() LIMIT 1`,
 					{
 						$sentence1: `_% ${sentence} %_`,
 						// $sentence2: `% ${sentence}`,
@@ -233,9 +228,14 @@ export class MarkovService extends Service {
 		await this.markov.learn(data);
 	}
 
-	async generate(sentence?: string, depth?: number, length?: number): Promise<string> {
+	async generate(
+		sentence?: string,
+		depth?: number,
+		length?: number,
+		authorID?: string
+	): Promise<string> {
 		try {
-			return await this.markov.generate(depth, length, sentence);
+			return await this.markov.generate(depth, length, sentence, authorID);
 		} catch (err) {
 			console.error(err);
 			return "";
