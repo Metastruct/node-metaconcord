@@ -6,6 +6,8 @@ export default (bot: DiscordBot): void => {
 	const data = bot.container.getService("Data");
 	if (!data) return;
 	let nextMkTime = data.nextMkTime ?? Date.now();
+	let lastMkMsgId = data.lastMkMsgId;
+	let lastMkReplyMsgId = data.lastMkReplyMsgId;
 	bot.discord.on("messageCreate", async msg => {
 		if (msg.partial) {
 			try {
@@ -26,16 +28,22 @@ export default (bot: DiscordBot): void => {
 				const words = msg.content.split(" ");
 				search = words[Math.floor(Math.random() * words.length)];
 			}
-			const reply = await bot.container.getService("Markov")?.generate(search);
-			if (reply && !posting) {
+			const shat = await bot.container.getService("Markov")?.generate(search);
+			if (shat && !posting) {
 				posting = true;
-				await msg.channel.send(reply);
+				const reply = await msg.channel.send(shat);
 				const nextTime = Math.floor(Date.now() + Math.random() * 60 * 60 * 1.5 * 1000);
-				data.nextMkTime = nextTime;
-				nextMkTime = nextTime;
+				data.nextMkTime = nextMkTime = nextTime;
+				data.lastMkMsgId = lastMkMsgId = msg.id;
+				data.lastMkReplyMsgId = lastMkReplyMsgId = reply.id;
 				await data.save();
 				posting = false;
 			}
+		}
+	});
+	bot.discord.on("messageDelete", async msg => {
+		if (msg.id === lastMkMsgId) {
+			await (await msg.channel.messages.fetch(lastMkReplyMsgId)).delete();
 		}
 	});
 };
