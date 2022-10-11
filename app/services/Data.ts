@@ -26,6 +26,8 @@ export class Data extends Service {
 	} = {};
 	lastDiscordGuildIcon: "None";
 	lastIotdAuthors: Array<string>;
+	lastMkMsgId: string;
+	lastMkReplyMsgId: string;
 	toSave = [
 		"muted",
 		"nextMkTime",
@@ -34,6 +36,8 @@ export class Data extends Service {
 		"timesVoteKicked",
 		"lastDiscordGuildIcon",
 		"lastIotdAuthors",
+		"lastMkMsgId",
+		"lastMkReplyMsgId",
 	];
 
 	async init(): Promise<void> {
