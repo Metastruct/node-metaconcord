@@ -84,7 +84,7 @@ export default class StatusPayload extends Payload {
 			}
 
 			const embed = new Discord.EmbedBuilder()
-				.setColor(GamemodeColors[gamemode.name] ?? 0x4bf5ca)
+				.setColor(GamemodeColors[gamemode.name])
 				.setTitle(map)
 				.setDescription(desc)
 				.setThumbnail(mapThumbnail)
