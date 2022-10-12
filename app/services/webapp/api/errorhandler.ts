@@ -76,14 +76,13 @@ export default (webApp: WebApp): void => {
 			});
 
 			const embed: APIEmbed = {
-				title: body.realm,
 				description: stack.replace("`", "\\`"),
-				footer: { text: body.gamemode },
+				footer: { text: `${body.gamemode}@${body.realm}` },
 			};
 			if (body.v === "test") return;
 			webhook
 				.send({
-					allowedMentions: {},
+					allowedMentions: { parse: [] },
 					content: `**${body.error.replace("*", "\\*")}**`,
 					embeds: [embed],
 				})
