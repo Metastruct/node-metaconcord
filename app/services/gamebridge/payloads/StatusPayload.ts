@@ -16,6 +16,12 @@ const GamemodeIcons = {
 const GamemodeAlias = {
 	qbox: "metastruct",
 };
+
+const GamemodeColors = {
+	qbox: 0x4bf5ca,
+	mta: 0xf48702,
+	jazztronauts: 0x320032,
+};
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	private static retryCount = 0;
@@ -78,7 +84,7 @@ export default class StatusPayload extends Payload {
 			}
 
 			const embed = new Discord.EmbedBuilder()
-				.setColor(0x4bf5ca)
+				.setColor(GamemodeColors[gamemode.name] ?? 0x4bf5ca)
 				.setTitle(map)
 				.setDescription(desc)
 				.setThumbnail(mapThumbnail)
