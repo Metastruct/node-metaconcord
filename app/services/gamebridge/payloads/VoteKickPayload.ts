@@ -41,15 +41,37 @@ export default class NotificationPayload extends Payload {
 		const notificationsChannel = guild.channels.cache.get(bridge.config.notificationsChannelId);
 		if (!notificationsChannel) return;
 
+		const relayChannel = guild.channels.cache.get(bridge.config.relayChannelId);
+
 		if (result) {
 			const success = result.success;
 			const reason = result.reason;
 			if (success) {
+				if (relayChannel) {
+					await this.getLastReport(payload.data, relayChannel as TextChannel)
+						.then(msg => msg?.react("✅"))
+						.catch(err => console.error(err));
+				}
 				await this.getLastReport(payload.data, notificationsChannel as TextChannel)
 					.then(msg => msg?.react("✅"))
 					.catch(err => console.error(err));
 				return;
 			} else {
+				if (relayChannel) {
+					await this.getLastReport(payload.data, relayChannel as TextChannel).then(msg =>
+						msg?.react(
+							reason?.includes("Player left")
+								? "🏃‍♂️"
+								: reason?.includes("not enough coins")
+								? "💲"
+								: reason?.includes("caller has left")
+								? "🤦‍♂️"
+								: reason?.includes("Vote was aborted")
+								? "⛔"
+								: "❌"
+						)
+					);
+				}
 				await this.getLastReport(payload.data, notificationsChannel as TextChannel).then(
 					msg =>
 						msg?.react(
@@ -109,6 +131,11 @@ export default class NotificationPayload extends Payload {
 		await (notificationsChannel as TextChannel).send({
 			embeds: [embed],
 		});
+		if (relayChannel) {
+			await (relayChannel as TextChannel).send({
+				embeds: [embed],
+			});
+		}
 	}
 
 	static async getLastReport(
