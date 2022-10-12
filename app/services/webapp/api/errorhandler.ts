@@ -41,7 +41,7 @@ export default (webApp: WebApp): void => {
 	webApp.app.post("/gmod/errors", express.urlencoded({ extended: false }), async (req, res) => {
 		const ip = req.header("x-forwarded-for");
 		if (!ip) return res.sendStatus(403);
-		const isOkIp = servers.find(srv => srv.ip === ip) || "77.182.128.90";
+		const isOkIp = servers.find(srv => srv.ip === ip);
 		if (!isOkIp) {
 			console.log(ip);
 			return res.sendStatus(403);
@@ -50,8 +50,6 @@ export default (webApp: WebApp): void => {
 		if (!body) return res.status(400).end();
 		res.status(204);
 		res.end();
-		console.log(req);
-		if (!body) console.log(req);
 
 		//gameBridge = gameBridge || webApp.container.getService("GameBridge");
 
@@ -60,7 +58,6 @@ export default (webApp: WebApp): void => {
 
 		if (body.stack) {
 			if (body.error.startsWith("@repl_")) return;
-			console.log(body.stack.match(megaRex));
 			const stack = body.stack.replaceAll(megaRex, (match, ...args) => {
 				const groups = args[args.length - 1];
 				return `${groups.stacknr}. ${groups.fn} - ${
