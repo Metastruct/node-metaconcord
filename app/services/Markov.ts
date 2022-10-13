@@ -84,7 +84,7 @@ abstract class MarkovChainBase {
 		sentence = "",
 		authorID = "",
 		callback?: (word: string) => void
-	): Promise<string> {
+	): Promise<string | undefined> {
 		let words = this.getWords(sentence);
 		let chain = this.getCurrentChain(words, depth);
 
@@ -98,6 +98,7 @@ abstract class MarkovChainBase {
 		}
 
 		let lastChain: string[];
+		const startCount = out.length;
 
 		while (out.length < maxLength) {
 			const data = await this.queryDB(chain, authorID);
@@ -128,7 +129,7 @@ abstract class MarkovChainBase {
 			}
 		}
 
-		return out.join(" ");
+		return out.length > startCount ? out.join(" ") : undefined;
 	}
 }
 
@@ -233,7 +234,7 @@ export class MarkovService extends Service {
 		depth?: number,
 		length?: number,
 		authorID?: string
-	): Promise<string> {
+	): Promise<string | undefined> {
 		try {
 			return await this.markov.generate(depth, length, sentence, authorID);
 		} catch (err) {

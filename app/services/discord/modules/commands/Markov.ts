@@ -69,7 +69,11 @@ export class SlashMarkovCommand extends SlashCommand {
 				ctx.options.length ? clamp(ctx.options.length, 1, 50) : undefined,
 				ctx.options.user
 			);
-			await ctx.send(res);
+			if (res) {
+				await ctx.send(res);
+			} else {
+				ctx.delete();
+			}
 		} catch (err) {
 			await ctx.delete();
 		}
