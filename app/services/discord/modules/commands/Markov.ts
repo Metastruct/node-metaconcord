@@ -62,20 +62,18 @@ export class SlashMarkovCommand extends SlashCommand {
 
 	async run(ctx: CommandContext): Promise<void> {
 		await ctx.defer();
-		try {
-			const res = await this.markov.generate(
-				ctx.options.sentence,
-				ctx.options.insanity ? clamp(ctx.options.insanity, 1, 3) : undefined,
-				ctx.options.length ? clamp(ctx.options.length, 1, 50) : undefined,
-				ctx.options.user
-			);
-			if (res) {
-				await ctx.send(res);
-			} else {
-				ctx.delete();
-			}
-		} catch (err) {
-			await ctx.delete();
+
+		const res = await this.markov.generate(
+			ctx.options.sentence,
+			ctx.options.insanity ? clamp(ctx.options.insanity, 1, 3) : undefined,
+			ctx.options.length ? clamp(ctx.options.length, 1, 50) : undefined,
+			ctx.options.user
+		);
+
+		if (res) {
+			await ctx.send(res);
+		} else {
+			ctx.delete();
 		}
 	}
 }
