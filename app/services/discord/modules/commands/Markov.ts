@@ -73,7 +73,7 @@ export class SlashMarkovCommand extends SlashCommand {
 		if (res) {
 			await ctx.send(res);
 		} else {
-			ctx.delete();
+			await ctx.delete();
 		}
 	}
 }
