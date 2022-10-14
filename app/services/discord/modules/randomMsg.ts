@@ -22,23 +22,23 @@ export default (bot: DiscordBot): void => {
 			msg.content.length === 0
 		)
 			return;
-		if (Date.now() > nextMkTime) {
+		if (Date.now() > nextMkTime && !posting) {
+			posting = true;
 			let search: string | undefined;
 			if (!msg.content.startsWith("http")) {
 				const words = msg.content.split(" ");
 				search = words[Math.floor(Math.random() * words.length)];
 			}
 			const shat = await bot.container.getService("Markov")?.generate(search);
-			if (shat && !posting) {
-				posting = true;
+			if (shat) {
 				const reply = await msg.channel.send(shat);
 				const nextTime = Math.floor(Date.now() + Math.random() * 60 * 60 * 1.5 * 1000);
 				data.nextMkTime = nextMkTime = nextTime;
 				data.lastMkMsgId = lastMkMsgId = msg.id;
 				data.lastMkReplyMsgId = lastMkReplyMsgId = reply.id;
 				await data.save();
-				posting = false;
 			}
+			posting = false;
 		}
 	});
 	bot.discord.on("messageDelete", async msg => {
