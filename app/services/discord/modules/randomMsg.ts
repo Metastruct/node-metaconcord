@@ -24,10 +24,11 @@ export default (bot: DiscordBot): void => {
 			return;
 		if (Date.now() > nextMkTime && !posting) {
 			posting = true;
+			const rng = Math.random();
 			let search: string | undefined;
-			if (!msg.content.startsWith("http")) {
+			if (!msg.content.startsWith("http") && rng >= 0.5) {
 				const words = msg.content.split(" ");
-				search = words[Math.floor(Math.random() * words.length)];
+				search = words[Math.floor(rng * words.length)];
 			}
 			const shat = await bot.container.getService("Markov")?.generate(search);
 			if (shat) {

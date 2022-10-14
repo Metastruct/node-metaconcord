@@ -24,16 +24,16 @@ export default (bot: DiscordBot): void => {
 
 		if (rng > 0.15) {
 			let search: string | undefined;
-			if (!msg.content.startsWith("http")) {
+			if (!msg.content.startsWith("http") && rng >= 0.5) {
 				const words = msg.content.replace(`<@${id}>`, "").split(" ");
-				search = words[Math.floor(Math.random() * words.length)];
+				search = words[Math.floor(rng * words.length)];
 			}
 			const mk = await bot.container.getService("Markov")?.generate(search);
 			if (mk) reply = mk;
 		} else {
 			const images = bot.container.getService("Motd")?.images;
 			if (images) {
-				const image = images[Math.floor(Math.random() * images.length)];
+				const image = images[Math.floor(rng * images.length)];
 				reply = image.link;
 			}
 		}
