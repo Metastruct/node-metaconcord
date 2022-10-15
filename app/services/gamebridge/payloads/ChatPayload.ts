@@ -129,7 +129,8 @@ export default class ChatPayload extends Payload {
 				username: `${serverId} ${player.nick
 					// .replace(/@/g, "(at)")
 					// .replace(/#/g, "")
-					.substring(0, 77)}`,
+					.substring(0, 77)
+					.replace("discord", "discоrd")}`,
 				avatarURL: avatar,
 				allowedMentions: { parse: ["users", "roles"] },
 			})
