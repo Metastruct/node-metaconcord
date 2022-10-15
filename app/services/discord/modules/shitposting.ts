@@ -28,7 +28,9 @@ export default (bot: DiscordBot): void => {
 				const words = msg.content.replace(`<@${id}>`, "").split(" ");
 				search = words[Math.floor(rng * words.length)];
 			}
-			const mk = await bot.container.getService("Markov")?.generate(search);
+			const mk = await bot.container.getService("Markov")?.generate(search, {
+				continuation: false,
+			});
 			if (mk) reply = mk;
 		} else {
 			const images = bot.container.getService("Motd")?.images;

@@ -40,6 +40,11 @@ export class SlashMarkovCommand extends SlashCommand {
 					description: "does exactly what you think it does.",
 					type: CommandOptionType.USER,
 				},
+				{
+					name: "continuation",
+					description: "should it include your sentence in the response?",
+					type: CommandOptionType.BOOLEAN,
+				},
 			],
 		});
 		this.filePath = __filename;
@@ -63,12 +68,12 @@ export class SlashMarkovCommand extends SlashCommand {
 	async run(ctx: CommandContext): Promise<void> {
 		await ctx.defer();
 
-		const res = await this.markov.generate(
-			ctx.options.sentence,
-			ctx.options.insanity ? clamp(ctx.options.insanity, 1, 3) : undefined,
-			ctx.options.length ? clamp(ctx.options.length, 1, 50) : undefined,
-			ctx.options.user
-		);
+		const res = await this.markov.generate(ctx.options.sentence, {
+			depth: ctx.options.insanity ? clamp(ctx.options.insanity, 1, 3) : undefined,
+			length: ctx.options.length ? clamp(ctx.options.length, 1, 50) : undefined,
+			authorID: ctx.options.user,
+			continuation: ctx.options.continuation,
+		});
 
 		if (res) {
 			await ctx.send(res);
