@@ -9,6 +9,13 @@ interface ILearnData {
 	authorName: string;
 }
 
+interface IGenerateOptions {
+	depth?: number;
+	length?: number;
+	authorID?: string;
+	continuation?: boolean;
+}
+
 abstract class MarkovChainBase {
 	abstract learn(data: ILearnData): Promise<void>;
 	abstract queryDB(chain: string[], authorID?: string): Promise<ILearnData | null>;
@@ -83,6 +90,7 @@ abstract class MarkovChainBase {
 		maxLength = 50,
 		sentence = "",
 		authorID = "",
+		continuation = true,
 		callback?: (word: string) => void
 	): Promise<string | undefined> {
 		let words = this.getWords(sentence);
@@ -90,10 +98,12 @@ abstract class MarkovChainBase {
 
 		const out: string[] = [];
 
-		for (const word of words) {
-			out.push(word);
-			if (callback) {
-				callback(word);
+		if (continuation) {
+			for (const word of words) {
+				out.push(word);
+				if (callback) {
+					callback(word);
+				}
 			}
 		}
 
@@ -229,17 +239,18 @@ export class MarkovService extends Service {
 		await this.markov.learn(data);
 	}
 
-	async generate(
-		sentence?: string,
-		depth?: number,
-		length?: number,
-		authorID?: string
-	): Promise<string | undefined> {
+	async generate(sentence?: string, options?: IGenerateOptions): Promise<string | undefined> {
 		try {
-			return await this.markov.generate(depth, length, sentence, authorID);
+			return await this.markov.generate(
+				options?.depth,
+				options?.length,
+				sentence,
+				options?.authorID,
+				options?.continuation
+			);
 		} catch (err) {
 			console.error(err);
-			return "";
+			return;
 		}
 	}
 

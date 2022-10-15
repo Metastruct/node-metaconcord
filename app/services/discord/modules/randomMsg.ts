@@ -30,7 +30,9 @@ export default (bot: DiscordBot): void => {
 				const words = msg.content.split(" ");
 				search = words[Math.floor(rng * words.length)];
 			}
-			const shat = await bot.container.getService("Markov")?.generate(search);
+			const shat = await bot.container
+				.getService("Markov")
+				?.generate(search, { continuation: false });
 			if (shat) {
 				const reply = await msg.channel.send(shat);
 				const nextTime = Math.floor(Date.now() + Math.random() * 60 * 60 * 1.5 * 1000);
