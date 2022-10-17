@@ -17,7 +17,7 @@ export const f = (
 export const makeSpeechBubble = async (
 	link: string,
 	strokecolor = "rgba(0, 0, 0, 0)",
-	linewidth = 1
+	linewidth = 4
 ): Promise<Buffer> => {
 	const image = await loadImage(link);
 	const canvas = createCanvas(image.width, image.height);
