@@ -9,7 +9,7 @@ export const Shat = async (
 	msg: string
 ): Promise<MessageCreateOptions | undefined> => {
 	const rng = Math.random();
-	if (rng > 0.15) {
+	if (false) {
 		let search: string | undefined;
 		let islast = false;
 		let reply: string | undefined;
@@ -43,9 +43,9 @@ export const Shat = async (
 			ctx.globalCompositeOperation = "destination-out";
 			ctx.beginPath();
 			ctx.moveTo(0, 0);
-			ctx.quadraticCurveTo(0, 0.1 * h, 0.55 * w, 0.1 * h);
-			ctx.quadraticCurveTo(0.7 * w, 0.1 * h, 0.5 * w, 0.2 * h);
-			ctx.quadraticCurveTo(0.7 * w, 0.2 * h, 0.7 * w, 0.1 * h);
+			ctx.quadraticCurveTo(0, 0.1 * h, 0.6 * w, 0.1 * h);
+			ctx.quadraticCurveTo(0.6 * w, 0.15 * h, 0.5 * w, 0.2 * h);
+			ctx.quadraticCurveTo(0.75 * w, 0.2 * h, 0.75 * w, 0.1 * h);
 			ctx.quadraticCurveTo(w, 0.1 * h, w, 0);
 			ctx.fill();
 
