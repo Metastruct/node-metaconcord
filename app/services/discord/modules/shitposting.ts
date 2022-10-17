@@ -42,11 +42,11 @@ export const Shat = async (
 			ctx.drawImage(image, 0, 0);
 			ctx.globalCompositeOperation = "destination-out";
 			ctx.beginPath();
-			ctx.moveTo(0.05 * w, 0);
-			ctx.quadraticCurveTo(0.05 * w, 0.1 * h, 0.55 * w, 0.1 * h);
-			ctx.quadraticCurveTo(0.6 * w, 0.1 * h, 0.5 * w, 0.2 * h);
+			ctx.moveTo(0, 0);
+			ctx.quadraticCurveTo(0, 0.1 * h, 0.55 * w, 0.1 * h);
+			ctx.quadraticCurveTo(0.7 * w, 0.1 * h, 0.5 * w, 0.2 * h);
 			ctx.quadraticCurveTo(0.7 * w, 0.2 * h, 0.7 * w, 0.1 * h);
-			ctx.quadraticCurveTo(0.95 * w, 0.1 * h, 0.95 * w, 0);
+			ctx.quadraticCurveTo(w, 0.1 * h, w, 0);
 			ctx.fill();
 
 			const result = canvas.toBuffer();
