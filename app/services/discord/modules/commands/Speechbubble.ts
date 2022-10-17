@@ -36,15 +36,19 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<MessageOptions | undefined> {
-		if (ctx.options.link && ctx.options.image)
+		const link: string | undefined = ctx.options.link;
+		const image: string | undefined = ctx.options.image;
+		if (link && image)
 			return EphemeralResponse("can't do shit with both, either one or the other");
-		if (!ctx.options.link && !ctx.options.image)
+		if (!link && !image)
 			return EphemeralResponse("I can't read your mind, specify a file or link");
+		if (link && !link.match(/^https?:\/\/.+\..+$/g))
+			return EphemeralResponse("link seems to be invalid");
 		try {
 			await ctx.defer();
-			const buffer = await makeSpeechBubble(
-				ctx.options.link ? ctx.options.link : ctx.attachments.first()?.url
-			);
+			const attachment = ctx.attachments.first();
+			if (!attachment) return EphemeralResponse("couldn't read attachment?");
+			const buffer = await makeSpeechBubble(link ? link : attachment.url);
 			ctx.send({
 				file: {
 					name: "funny.gif",
