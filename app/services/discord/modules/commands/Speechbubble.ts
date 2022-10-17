@@ -27,7 +27,7 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 				{
 					type: CommandOptionType.ATTACHMENT,
 					name: "image",
-					description: "file on your pc",
+					description: "file on your device",
 				},
 			],
 		});
