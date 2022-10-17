@@ -16,7 +16,7 @@ export const Shat = async (
 		if (!msg.startsWith("http") && rng >= 0.5) {
 			const words = msg.replace(`<@${bot.discord.user?.id}>`, "").split(" ");
 			const index = Math.floor(rng * words.length);
-			islast = index === words.length;
+			islast = index + 1 === words.length;
 			search = words[index];
 		}
 		const mk = await bot.container.getService("Markov")?.generate(search, {
