@@ -15,6 +15,7 @@ import { SlashRconCommand } from "./developer/Rcon";
 import { SlashRefreshLuaCommand } from "./developer/RefreshLua";
 import { SlashRuleCommand } from "./developer/Rules";
 import { SlashSQLCommand } from "./developer/SQL";
+import { SlashSpeechbubbleCommand } from "./Speechbubble";
 import { SlashUnBanCommand } from "./developer/UnBan";
 import { SlashUnmuteCommand } from "./mute/Unmute";
 import { SlashVaccinatedCommand } from "./Vaccination";
@@ -46,6 +47,7 @@ export const commands = [
 	SlashBanCommand,
 	SlashUnBanCommand,
 	SlashKickCommand,
+	SlashSpeechbubbleCommand,
 	SlashSQLCommand,
 	UIMuteCommand,
 	UIUnmuteCommand,
