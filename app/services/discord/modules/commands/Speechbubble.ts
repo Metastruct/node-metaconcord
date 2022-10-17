@@ -29,6 +29,17 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 					name: "image",
 					description: "file on your device",
 				},
+				{
+					type: CommandOptionType.STRING,
+					name: "line_color",
+					description:
+						"CSS style color for the speech bubble (default = transparent rba(0,0,0,0))",
+				},
+				{
+					type: CommandOptionType.NUMBER,
+					name: "line_width",
+					description: "how thicc the line is (default = 1)",
+				},
 			],
 		});
 		this.filePath = __filename;
@@ -47,8 +58,11 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 		try {
 			await ctx.defer();
 			const attachment = ctx.attachments.first();
-			if (!attachment) return EphemeralResponse("couldn't read attachment?");
-			const buffer = await makeSpeechBubble(link ? link : attachment.url);
+			const buffer = await makeSpeechBubble(
+				link ? link : attachment?.url ?? "",
+				ctx.options.line_color,
+				ctx.options.line_width
+			);
 			ctx.send({
 				file: {
 					name: "funny.gif",
