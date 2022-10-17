@@ -23,7 +23,7 @@ export const Shat = async (
 			continuation: !islast,
 		});
 
-		if (mk && search && rng < 0.15 && !islast) {
+		if (mk && search && rng < 0.2 && !islast) {
 			reply = `${search}? ${prefixes[Math.floor(rng * prefixes.length)]} "${mk}"`;
 		} else {
 			reply = mk;
