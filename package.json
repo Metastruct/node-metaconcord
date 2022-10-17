@@ -33,7 +33,7 @@
 		"node-ssh": "^13.0.0",
 		"pug": "^3.0.2",
 		"qs": "^6.11.0",
-		"slash-create": "^5.9.0",
+		"slash-create": "^5.10.0",
 		"sqlite": "^4.1.2",
 		"sqlite3": "^5.1.1",
 		"steamapi": "^2.2.0",
