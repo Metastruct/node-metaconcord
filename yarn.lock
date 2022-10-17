@@ -3272,10 +3272,10 @@ simple-get@^3.0.3:
     once "^1.3.1"
     simple-concat "^1.0.0"
 
-slash-create@^5.9.0:
-  version "5.9.0"
-  resolved "https://registry.npmjs.org/slash-create/-/slash-create-5.9.0.tgz"
-  integrity sha512-dvfrPW4i/sCEerVzBiYyl28zjHY6hoVBTmWeVlNRQrWb47Kfp5o9zSJOkjGfKmxiwyOjPdnFwWCogXmBtldNkA==
+slash-create@^5.10.0:
+  version "5.10.0"
+  resolved "https://registry.yarnpkg.com/slash-create/-/slash-create-5.10.0.tgz#0211bd58ba59d00ae0cb50864131a8f5e93ce0c4"
+  integrity sha512-rQQa3xuI6Q2Pi0NJ8/3hhMKT7Dqh1izGEV2+4ZCh3uO8W+RhQV2zMfcQ8XfNxuSMxD+wH7rB8FQaoCSARU2H6A==
   dependencies:
     eventemitter3 "^4.0.7"
     lodash.isequal "^4.5.0"

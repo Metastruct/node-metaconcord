@@ -30,6 +30,15 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 					description: "file on your device",
 				},
 				{
+					type: CommandOptionType.INTEGER,
+					name: "direction",
+					description: "tail direction",
+					choices: [
+						{ name: "left", value: 0 },
+						{ name: "right", value: 1 },
+					],
+				},
+				{
 					type: CommandOptionType.STRING,
 					name: "line_color",
 					description:
@@ -60,6 +69,7 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 			const attachment = ctx.attachments.first();
 			const buffer = await makeSpeechBubble(
 				link ? link : attachment?.url ?? "",
+				ctx.options.direction === 0 ? false : true,
 				ctx.options.line_color,
 				ctx.options.line_width
 			);
