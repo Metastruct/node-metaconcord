@@ -1,4 +1,5 @@
 import { DiscordBot } from "..";
+import { Shat } from "./shitposting";
 
 let posting = false;
 
@@ -24,15 +25,7 @@ export default (bot: DiscordBot): void => {
 			return;
 		if (Date.now() > nextMkTime && !posting) {
 			posting = true;
-			const rng = Math.random();
-			let search: string | undefined;
-			if (!msg.content.startsWith("http") && rng >= 0.5) {
-				const words = msg.content.split(" ");
-				search = words[Math.floor(rng * words.length)];
-			}
-			const shat = await bot.container
-				.getService("Markov")
-				?.generate(search, { continuation: false });
+			const shat = await Shat(bot, msg.content);
 			if (shat) {
 				const reply = await msg.channel.send(shat);
 				const nextTime = Math.floor(Date.now() + Math.random() * 60 * 60 * 1.5 * 1000);
