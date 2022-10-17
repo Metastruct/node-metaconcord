@@ -69,7 +69,7 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 			const attachment = ctx.attachments.first();
 			const buffer = await makeSpeechBubble(
 				link ? link : attachment?.url ?? "",
-				ctx.options.direction === 0 ? false : true,
+				ctx.options.direction === 1 ? true : false,
 				ctx.options.line_color,
 				ctx.options.line_width
 			);
