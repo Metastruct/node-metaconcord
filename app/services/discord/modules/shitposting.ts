@@ -9,7 +9,7 @@ export const Shat = async (
 	msg: string
 ): Promise<MessageCreateOptions | undefined> => {
 	const rng = Math.random();
-	if (false) {
+	if (rng > 0.15) {
 		let search: string | undefined;
 		let islast = false;
 		let reply: string | undefined;
