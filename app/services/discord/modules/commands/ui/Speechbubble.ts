@@ -36,12 +36,7 @@ export class UISpeechbubbleCommand extends SlashCommand {
 			return EphemeralResponse("that message doesn't have a link or attachment I can use!");
 		try {
 			await ctx.defer();
-			const buffer = await makeSpeechBubble(
-				link,
-				ctx.options.direction === 1 ? true : false,
-				ctx.options.line_color,
-				ctx.options.line_width
-			);
+			const buffer = await makeSpeechBubble(link);
 			ctx.send({
 				file: {
 					name: "funny.gif",
