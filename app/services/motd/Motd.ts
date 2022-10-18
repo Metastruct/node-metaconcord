@@ -148,9 +148,7 @@ export default class Motd extends Service {
 			const url: string = image.link;
 			if (!url) return;
 
-			const msg = `Image of the day (No. ${index + 1} out of ${
-				urls.length
-			} total this week):`;
+			const msg = `Image of the day (No. ${index + 1} out of ${urls.length}):`;
 
 			if (patch !== undefined && msgId) {
 				await axios.patch(
