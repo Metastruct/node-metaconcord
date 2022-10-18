@@ -143,15 +143,20 @@ export default class Motd extends Service {
 			const urls: Array<ImgurImage> = res.data.data.filter(
 				(img: ImgurImage) => img.datetime >= yesterday && !lastAuthors.includes(img.title)
 			); // keep only recent images
-			const image = urls[Math.floor(Math.random() * urls.length)];
+			const index = Math.floor(Math.random() * urls.length);
+			const image = urls[index];
 			const url: string = image.link;
 			if (!url) return;
+
+			const msg = `Image of the day (No. ${index + 1} out of ${
+				urls.length
+			} total this week):`;
 
 			if (patch !== undefined && msgId) {
 				await axios.patch(
 					`${config.webhook}/messages/${msgId}`,
 					JSON.stringify({
-						content: "Image of the day:\n" + url,
+						content: msg + `\n${url}`,
 						username: "Meta Construct",
 						avatar_url:
 							"https://pbs.twimg.com/profile_images/1503242277/meta4_crop.png",
@@ -166,7 +171,7 @@ export default class Motd extends Service {
 				await axios.post(
 					config.webhook,
 					JSON.stringify({
-						content: "Image of the day:\n" + url,
+						content: msg + `\n${url}`,
 						username: "Meta Construct",
 						avatar_url:
 							"https://pbs.twimg.com/profile_images/1503242277/meta4_crop.png",
@@ -178,7 +183,7 @@ export default class Motd extends Service {
 					}
 				);
 			}
-			this.container.getService("Twitter")?.postStatus("Image of the day", url);
+			this.container.getService("Twitter")?.postStatus(msg, url);
 			this.container.getService("DiscordBot")?.setServerBanner(url);
 
 			this.lastimage = url;
