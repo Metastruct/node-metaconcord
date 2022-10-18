@@ -27,6 +27,13 @@ export default (bot: DiscordBot): void => {
 				  })
 				: undefined;
 
+		const embeds =
+			msg.embeds.length > 0
+				? msg.embeds.map(e => {
+						return `\`\`\`json\n${JSON.stringify(e.data)}\`\`\``;
+				  })
+				: undefined;
+
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
 				name: msg.author?.username ?? "unknown user",
@@ -44,6 +51,10 @@ export default (bot: DiscordBot): void => {
 
 		if (attachments) {
 			embed.addFields(f("Attachment", attachments.join(" ")));
+		}
+
+		if (embeds) {
+			embed.addFields(f("Embed", embeds.join("\n")));
 		}
 
 		await logChannel.send({ embeds: [embed] });
