@@ -65,7 +65,6 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 		if (link && !link.match(/^https?:\/\/.+\..+$/g))
 			return EphemeralResponse("link seems to be invalid");
 		try {
-			await ctx.defer();
 			const attachment = ctx.attachments.first();
 			const buffer = await makeSpeechBubble(
 				link ? link : attachment?.url ?? "",
