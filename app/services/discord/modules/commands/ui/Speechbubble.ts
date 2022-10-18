@@ -24,7 +24,22 @@ export class UISpeechbubbleCommand extends SlashCommand {
 
 	async run(ctx: CommandContext): Promise<MessageOptions | undefined> {
 		const msg = ctx.targetMessage;
-		const link: string | undefined = msg?.content.match(/^https?:\/\/.+\..+$/g)
+
+		const hack = ctx.data.data.resolved?.messages as any;
+		const sticker =
+			ctx.targetID && hack
+				? hack[ctx.targetID].sticker_items
+					? hack[ctx.targetID].sticker_items.length > 0
+						? hack[ctx.targetID].sticker_items[0]
+						: undefined
+					: undefined
+				: undefined;
+
+		const link: string | undefined = sticker
+			? sticker.format_type < 3
+				? `https://cdn.discordapp.com/stickers/${sticker.id}.png`
+				: undefined
+			: msg?.content.match(/^https?:\/\/.+\..+$/g)
 			? msg.content
 			: msg?.attachments
 			? msg.attachments.length > 0
