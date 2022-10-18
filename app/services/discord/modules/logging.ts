@@ -30,7 +30,7 @@ export default (bot: DiscordBot): void => {
 		const embeds =
 			msg.embeds.length > 0
 				? msg.embeds.map(e => {
-						return `\`\`\`json\n${JSON.stringify(e.data)}\`\`\``;
+						return `\`\`\`json\n${JSON.stringify(e.data).replace("`", "\\`")}\`\`\``;
 				  })
 				: undefined;
 
