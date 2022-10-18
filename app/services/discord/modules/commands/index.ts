@@ -22,6 +22,7 @@ import { SlashVaccinatedCommand } from "./Vaccination";
 import { SlashWhyBanCommand } from "./WhyBan";
 import { SlashWhyMuteCommand } from "./mute/WhyMute";
 import { UIMuteCommand } from "./ui/Mute";
+import { UISpeechbubbleCommand } from "./ui/Speechbubble";
 import { UIUnmuteCommand } from "./ui/Unmute";
 import { UIWhyMuteCommand } from "./ui/WhyMute";
 
@@ -50,6 +51,7 @@ export const commands = [
 	SlashSpeechbubbleCommand,
 	SlashSQLCommand,
 	UIMuteCommand,
+	UISpeechbubbleCommand,
 	UIUnmuteCommand,
 	UIWhyMuteCommand,
 ];
