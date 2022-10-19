@@ -42,6 +42,7 @@ export default class Motd extends Service {
 	lastimage?: string;
 
 	private data: Data;
+	private rerolls = 0;
 
 	constructor(container: Container) {
 		super(container);
@@ -143,14 +144,21 @@ export default class Motd extends Service {
 			const urls: Array<ImgurImage> = res.data.data.filter(
 				(img: ImgurImage) => img.datetime >= yesterday && !lastAuthors.includes(img.title)
 			); // keep only recent images
+			const authors = [...new Set(urls.map(image => image.title))];
 			const index = Math.floor(Math.random() * urls.length);
 			const image = urls[index];
 			const url: string = image.link;
 			if (!url) return;
 
-			const msg = `Image of the day (No. ${index + 1} out of ${urls.length}):`;
+			let msg = `Image of the day\n(No. ${index + 1} out of ${urls.length} total from ${
+				authors.length
+			} user${authors.length > 1 ? "s" : ""})`;
 
 			if (patch !== undefined && msgId) {
+				this.rerolls++;
+				msg = `Image of the day\n(No. ${index + 1} out of ${urls.length} total from ${
+					authors.length
+				} users)\n(♻ rerolled ${this.rerolls} time${this.rerolls > 1 ? "s" : ""})`;
 				await axios.patch(
 					`${config.webhook}/messages/${msgId}`,
 					JSON.stringify({
@@ -166,6 +174,7 @@ export default class Motd extends Service {
 					}
 				);
 			} else {
+				this.rerolls = 0;
 				await axios.post(
 					config.webhook,
 					JSON.stringify({
