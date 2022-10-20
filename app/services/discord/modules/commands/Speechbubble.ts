@@ -47,7 +47,7 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 				{
 					type: CommandOptionType.NUMBER,
 					name: "line_width",
-					description: "how thicc the line is (default = 1)",
+					description: "how thicc the line is (default = 4)",
 				},
 			],
 		});
