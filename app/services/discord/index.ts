@@ -13,6 +13,7 @@ export type Rule = {
 
 export const EMBED_FIELD_LIMIT = 1024;
 
+let lastTwMessageId: string;
 export class DiscordBot extends Service {
 	name = "DiscordBot";
 	config = config;
@@ -101,13 +102,15 @@ export class DiscordBot extends Service {
 				message: msg.content,
 			});
 	}
-
 	async fixTwitterEmbeds(msg: Discord.Message): Promise<void> {
-		if (!this.discord.isReady()) return;
+		if (!this.discord.isReady() || msg.id === lastTwMessageId) return;
+
 		const statusUrls = msg.content.match(
 			/https?:\/\/(?:mobile.)?twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g
 		);
 		if (!statusUrls) return;
+
+		lastTwMessageId = msg.id;
 
 		let urls: Array<string> = [];
 		for (const statusUrl of statusUrls) {
@@ -116,7 +119,6 @@ export class DiscordBot extends Service {
 				?.getStatusMediaURLs(statusUrl);
 			urls = urls.concat(mediaUrls ?? "");
 		}
-
 		if (urls.length === 0) return;
 
 		const fix = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
