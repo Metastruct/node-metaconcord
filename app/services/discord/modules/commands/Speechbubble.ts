@@ -42,13 +42,13 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 					type: CommandOptionType.STRING,
 					name: "fill_color",
 					description:
-						"CSS style color for the speech bubble (default = transparent rba(0,0,0,0))",
+						"CSS style color for the speech bubble (default = transparent example: rba(255,0,0,0.5))",
 				},
 				{
 					type: CommandOptionType.STRING,
 					name: "line_color",
 					description:
-						"CSS style color for the speech bubble outline (default = transparent rba(0,0,0,0))",
+						"CSS style color for the speech bubble outline (default = transparent example: rba(255,0,0,0.5))",
 				},
 				{
 					type: CommandOptionType.NUMBER,
