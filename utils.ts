@@ -17,6 +17,7 @@ export const f = (
 export const makeSpeechBubble = async (
 	link: string,
 	flip?: boolean,
+	fillcolor?: string,
 	strokecolor?: string,
 	linewidth?: number
 ): Promise<Buffer> => {
@@ -33,12 +34,13 @@ export const makeSpeechBubble = async (
 		ctx.translate(w, 0);
 		ctx.scale(-1, 1);
 	}
-	ctx.globalCompositeOperation = "destination-out";
+	ctx.globalCompositeOperation = fillcolor ? "source-over" : "destination-out";
 	ctx.moveTo(0, 0);
 	ctx.quadraticCurveTo(0, 0.1 * h, 0.6 * w, 0.1 * h);
 	ctx.quadraticCurveTo(0.6 * w, 0.15 * h, 0.5 * w, 0.2 * h);
 	ctx.quadraticCurveTo(0.75 * w, 0.2 * h, 0.75 * w, 0.1 * h);
 	ctx.quadraticCurveTo(w, 0.1 * h, w, 0);
+	ctx.fillStyle = fillcolor ?? "rgba(0, 0, 0, 0)";
 	ctx.fill();
 
 	ctx.globalCompositeOperation = "source-over";
