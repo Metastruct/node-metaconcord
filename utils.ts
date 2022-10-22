@@ -35,15 +35,17 @@ export const makeSpeechBubble = async (
 		ctx.scale(-1, 1);
 	}
 	ctx.globalCompositeOperation = fillcolor ? "source-over" : "destination-out";
+	ctx.beginPath();
 	ctx.moveTo(0, 0);
 	ctx.quadraticCurveTo(0, 0.1 * h, 0.6 * w, 0.1 * h);
 	ctx.quadraticCurveTo(0.6 * w, 0.15 * h, 0.5 * w, 0.2 * h);
 	ctx.quadraticCurveTo(0.75 * w, 0.2 * h, 0.75 * w, 0.1 * h);
 	ctx.quadraticCurveTo(w, 0.1 * h, w, 0);
-	ctx.fillStyle = fillcolor ?? "rgba(0, 0, 0, 0)";
+	if (fillcolor) ctx.fillStyle = fillcolor;
 	ctx.fill();
 
 	ctx.globalCompositeOperation = "source-over";
+	ctx.beginPath();
 	ctx.moveTo(0, 0);
 	ctx.quadraticCurveTo(0, 0.1 * h, 0.6 * w, 0.1 * h);
 	ctx.quadraticCurveTo(0.6 * w, 0.15 * h, 0.5 * w, 0.2 * h);
@@ -51,6 +53,7 @@ export const makeSpeechBubble = async (
 	ctx.quadraticCurveTo(w, 0.1 * h, w, 0);
 	ctx.strokeStyle = strokecolor ?? "rgba(0, 0, 0, 0)";
 	ctx.lineWidth = linewidth ?? 4;
+	ctx.closePath();
 	ctx.stroke();
 
 	return canvas.toBuffer();
