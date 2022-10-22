@@ -53,7 +53,6 @@ export const makeSpeechBubble = async (
 	ctx.quadraticCurveTo(w, 0.1 * h, w, 0);
 	ctx.strokeStyle = strokecolor ?? "rgba(0, 0, 0, 0)";
 	ctx.lineWidth = linewidth ?? 4;
-	ctx.closePath();
 	ctx.stroke();
 
 	return canvas.toBuffer();
