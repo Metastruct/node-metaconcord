@@ -40,9 +40,15 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 				},
 				{
 					type: CommandOptionType.STRING,
-					name: "line_color",
+					name: "fill_color",
 					description:
 						"CSS style color for the speech bubble (default = transparent rba(0,0,0,0))",
+				},
+				{
+					type: CommandOptionType.STRING,
+					name: "line_color",
+					description:
+						"CSS style color for the speech bubble outline (default = transparent rba(0,0,0,0))",
 				},
 				{
 					type: CommandOptionType.NUMBER,
@@ -69,6 +75,7 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 			const buffer = await makeSpeechBubble(
 				link ? link : attachment?.url ?? "",
 				ctx.options.direction === 1 ? true : false,
+				ctx.options.fill_color,
 				ctx.options.line_color,
 				ctx.options.line_width
 			);
