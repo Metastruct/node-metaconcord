@@ -8,6 +8,9 @@ export class Data extends Service {
 	name = "Data";
 	private dataPath = path.join(process.cwd(), "data");
 
+	lastDiscordGuildIcon: "None";
+	lastIotdAuthors: Array<string>;
+	lastMkTime: number;
 	muted: {
 		[userId: string]: {
 			until?: number;
@@ -16,7 +19,6 @@ export class Data extends Service {
 			muter?: string;
 		};
 	} = {};
-	nextMkTime: number;
 	rules: Array<Rule>;
 	timesReported: {
 		[steamId64: string]: number;
@@ -24,20 +26,14 @@ export class Data extends Service {
 	timesVoteKicked: {
 		[steamId64: string]: number;
 	} = {};
-	lastDiscordGuildIcon: "None";
-	lastIotdAuthors: Array<string>;
-	lastMkMsgId: string;
-	lastMkReplyMsgId: string;
 	toSave = [
+		"lastDiscordGuildIcon",
+		"lastIotdAuthors",
+		"lastMkTime",
 		"muted",
-		"nextMkTime",
 		"rules",
 		"timesReported",
 		"timesVoteKicked",
-		"lastDiscordGuildIcon",
-		"lastIotdAuthors",
-		"lastMkMsgId",
-		"lastMkReplyMsgId",
 	];
 
 	async init(): Promise<void> {
