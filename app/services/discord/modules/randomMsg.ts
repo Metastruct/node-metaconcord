@@ -1,14 +1,29 @@
 import { DiscordBot } from "..";
 import { Shat } from "./shitposting";
 
-let posting = false;
+const MSG_IDLE_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
+const MSG_INTERVAL = 1000 * 60 * 60 * 0.25; // 15 min
 
 export default (bot: DiscordBot): void => {
 	const data = bot.container.getService("Data");
 	if (!data) return;
-	let nextMkTime = data.nextMkTime ?? Date.now();
-	let lastMkMsgId = data.lastMkMsgId;
-	let lastMkReplyMsgId = data.lastMkReplyMsgId;
+	let lastMkTime = data.lastMkTime ?? 0;
+
+	const sendShat = async (find?: string) => {
+		const shat = await Shat(bot, find);
+		if (shat) {
+			await (await bot.getTextChannel(bot.config.chatChannelId))?.send(shat);
+			data.lastMkTime = lastMkTime = Date.now();
+			await data.save();
+		}
+	};
+
+	setInterval(async () => {
+		if (Date.now() - lastMkTime > MSG_IDLE_INTERVAL) {
+			await sendShat();
+		}
+	}, 1000 * 60 * 15);
+
 	bot.discord.on("messageCreate", async msg => {
 		if (msg.partial) {
 			try {
@@ -23,23 +38,8 @@ export default (bot: DiscordBot): void => {
 			msg.content.length === 0
 		)
 			return;
-		if (Date.now() > nextMkTime && !posting) {
-			posting = true;
-			const shat = await Shat(bot, msg.content);
-			if (shat) {
-				const reply = await msg.channel.send(shat);
-				const nextTime = Math.floor(Date.now() + Math.random() * 60 * 60 * 1.5 * 1000);
-				data.nextMkTime = nextMkTime = nextTime;
-				data.lastMkMsgId = lastMkMsgId = msg.id;
-				data.lastMkReplyMsgId = lastMkReplyMsgId = reply.id;
-				await data.save();
-			}
-			posting = false;
-		}
-	});
-	bot.discord.on("messageDelete", async msg => {
-		if (msg.id === lastMkMsgId) {
-			await (await msg.channel.messages.fetch(lastMkReplyMsgId)).delete();
+		if (Date.now() - lastMkTime > MSG_INTERVAL) {
+			await sendShat(msg.content);
 		}
 	});
 };

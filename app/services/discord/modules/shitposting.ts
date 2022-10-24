@@ -2,18 +2,15 @@ import { DiscordBot } from "..";
 import { MessageCreateOptions } from "discord.js";
 import { makeSpeechBubble } from "@/utils";
 
-const prefixes = ["more like", "you mean"];
-
 export const Shat = async (
 	bot: DiscordBot,
-	msg: string
+	msg?: string
 ): Promise<MessageCreateOptions | undefined> => {
 	const rng = Math.random();
 	if (rng > 0.15) {
 		let search: string | undefined;
 		let islast = false;
-		let reply: string | undefined;
-		if (!msg.startsWith("http") && rng >= 0.5) {
+		if (msg && !msg.startsWith("http") && rng >= 0.5) {
 			const words = msg.replace(`<@${bot.discord.user?.id}>`, "").split(" ");
 			const index = Math.floor(rng * words.length);
 			islast = index + 1 === words.length;
@@ -23,12 +20,7 @@ export const Shat = async (
 			continuation: !islast,
 		});
 
-		if (mk && search && rng < 0.2 && !islast) {
-			reply = `${search}? ${prefixes[Math.floor(rng * prefixes.length)]} "${mk}"`;
-		} else {
-			reply = mk;
-		}
-		return mk ? { content: reply } : undefined;
+		return mk ? { content: mk } : undefined;
 	} else {
 		const images = bot.container.getService("Motd")?.images;
 		if (images) {
