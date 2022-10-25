@@ -24,7 +24,7 @@ export const Shat = async (
 	} else {
 		const images = bot.container.getService("Motd")?.images;
 		if (images) {
-			const imgur = images[Math.floor(rng * images.length)];
+			const imgur = images[Math.floor(Math.random() * images.length)];
 			const result = await makeSpeechBubble(imgur.link, rng > 0.5);
 			return result ? { files: [result] } : undefined;
 		}
