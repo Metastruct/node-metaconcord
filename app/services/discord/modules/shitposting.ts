@@ -46,11 +46,7 @@ export default (bot: DiscordBot): void => {
 		const id = bot.discord.user?.id;
 		if (!id) return;
 		if (!(msg.mentions.users.first()?.id === id)) return;
-		if (
-			!bot.config.allowedShitpostingChannels.includes(msg.channelId) ||
-			msg.author.bot ||
-			msg.content.length < (msg.mentions.repliedUser ? 2 : 20)
-		)
+		if (!bot.config.allowedShitpostingChannels.includes(msg.channelId) || msg.author.bot)
 			return;
 		const shat = await Shat(bot, msg.content);
 		if (shat) await msg.reply(shat);
