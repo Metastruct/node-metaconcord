@@ -4,10 +4,11 @@ import { makeSpeechBubble } from "@/utils";
 
 export const Shat = async (
 	bot: DiscordBot,
-	msg?: string
+	msg?: string,
+	forceImage?: boolean
 ): Promise<MessageCreateOptions | undefined> => {
 	const rng = Math.random();
-	if (rng > 0.1) {
+	if (rng > 0.1 && !forceImage) {
 		let search: string | undefined;
 		let islast = false;
 		if (msg && !msg.startsWith("http") && rng >= 0.5) {
@@ -18,6 +19,7 @@ export const Shat = async (
 		}
 		const mk = await bot.container.getService("Markov")?.generate(search, {
 			continuation: !(islast && rng >= 0.75),
+			depth: rng > 0.9 ? 2 : 3,
 		});
 
 		return mk ? { content: mk } : undefined;
