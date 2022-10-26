@@ -7,7 +7,7 @@ export const Shat = async (
 	msg?: string
 ): Promise<MessageCreateOptions | undefined> => {
 	const rng = Math.random();
-	if (rng > 0.15) {
+	if (rng > 0.1) {
 		let search: string | undefined;
 		let islast = false;
 		if (msg && !msg.startsWith("http") && rng >= 0.5) {
