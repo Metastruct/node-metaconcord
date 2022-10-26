@@ -22,10 +22,11 @@ export const Shat = async (
 
 		return mk ? { content: mk } : undefined;
 	} else {
+		const rng2 = Math.random();
 		const images = bot.container.getService("Motd")?.images;
 		if (images) {
-			const imgur = images[Math.floor(Math.random() * images.length)];
-			const result = await makeSpeechBubble(imgur.link, rng > 0.5);
+			const imgur = images[Math.floor(rng2 * images.length)];
+			const result = await makeSpeechBubble(imgur.link, rng2 >= 0.5);
 			return result ? { files: [result] } : undefined;
 		}
 	}
