@@ -19,7 +19,6 @@ export const Shat = async (
 		}
 		const mk = await bot.container.getService("Markov")?.generate(search, {
 			continuation: !(islast && rng >= 0.75),
-			depth: rng > 0.2 ? 3 : 2,
 		});
 
 		return mk ? { content: mk } : undefined;
