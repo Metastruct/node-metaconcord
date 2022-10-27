@@ -56,7 +56,7 @@ export class SlashRefreshLuaCommand extends SlashDeveloperCommand {
 			);
 
 			if (res.data.returns.length > 0 && res.data.returns[0] === "false") {
-				await ctx.send(res.data[1] ?? "Unknown error");
+				await ctx.send(res.data.returns[1] ?? "Unknown error");
 				return;
 			}
 
