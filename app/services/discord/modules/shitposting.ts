@@ -28,7 +28,9 @@ export const Shat = async (
 		if (images) {
 			const imgur = images[Math.floor(rng2 * images.length)];
 			const result = await makeSpeechBubble(imgur.link, rng2 >= 0.5);
-			return result ? { files: [result] } : undefined;
+			return result
+				? { files: [{ attachment: result, description: imgur.title }] }
+				: undefined;
 		}
 	}
 };
