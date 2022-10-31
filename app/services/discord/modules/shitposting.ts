@@ -17,9 +17,11 @@ export const Shat = async (
 			islast = index + 1 === words.length;
 			search = words[index];
 		}
-		const mk = await bot.container.getService("Markov")?.generate(search, {
+		let mk = await bot.container.getService("Markov")?.generate(search, {
 			continuation: !(islast && rng >= 0.75),
 		});
+
+		if (!mk) mk = await bot.container.getService("Markov")?.generate();
 
 		return mk ? { content: mk } : undefined;
 	} else {
@@ -49,8 +51,7 @@ export default (bot: DiscordBot): void => {
 		if (!(msg.mentions.users.first()?.id === id)) return;
 		if (!bot.config.allowedShitpostingChannels.includes(msg.channelId) || msg.author.bot)
 			return;
-		let shat = await Shat(bot, msg.content);
-		if (!shat) shat = await Shat(bot);
+		const shat = await Shat(bot, msg.content);
 		if (shat) await msg.reply(shat);
 	});
 };
