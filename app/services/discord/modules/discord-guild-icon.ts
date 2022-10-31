@@ -53,6 +53,8 @@ export default (bot: DiscordBot): void => {
 						: "Back to regularly scheduled activities."
 				);
 
+				await bot.discord.user?.setAvatar(filePath);
+
 				data.lastDiscordGuildIcon = eventName;
 				await data.save();
 
