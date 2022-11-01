@@ -45,7 +45,7 @@ export default (bot: DiscordBot): void => {
 			.addFields(f("Channel", `<#${msg.channel.id}>`))
 			.addFields(f("Mention", msg.author?.mention ?? "???"))
 			.setFooter({ text: "Message Deleted" })
-			.setTimestamp(Date.now());
+			.setTimestamp(msg.createdTimestamp);
 
 		if (message) {
 			embed.addFields(f("Message", message, true));
