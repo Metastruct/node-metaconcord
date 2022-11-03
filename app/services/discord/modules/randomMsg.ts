@@ -41,8 +41,10 @@ export default (bot: DiscordBot): void => {
 			msg.content.length === 0
 		)
 			return;
-		if (Date.now() - lastMkTime > MSG_INTERVAL) {
+		if (Date.now() - lastMkTime > MSG_INTERVAL && !posting) {
+			posting = true;
 			await sendShat(msg.content);
+			posting = false;
 		}
 	});
 };
