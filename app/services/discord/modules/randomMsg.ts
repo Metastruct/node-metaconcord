@@ -8,6 +8,7 @@ export default (bot: DiscordBot): void => {
 	const data = bot.container.getService("Data");
 	if (!data) return;
 	let lastMkTime = data.lastMkTime ?? 0;
+	let posting = false;
 
 	const sendShat = async (find?: string) => {
 		const shat = await Shat(bot, find);
@@ -19,8 +20,10 @@ export default (bot: DiscordBot): void => {
 	};
 
 	setInterval(async () => {
-		if (Date.now() - lastMkTime > MSG_IDLE_INTERVAL) {
+		if (Date.now() - lastMkTime > MSG_IDLE_INTERVAL && !posting) {
+			posting = true;
 			await sendShat();
+			posting = false;
 		}
 	}, 1000 * 60 * 15);
 
