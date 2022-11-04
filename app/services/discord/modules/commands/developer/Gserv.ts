@@ -156,7 +156,9 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 					output
 				)
 			);
-		await Promise.all(promises);
+		await Promise.all(promises).catch(err =>
+			ctx.send(`something went wrong!\`\`\`\n${err}\`\`\``)
+		);
 	}
 
 	private deny(ctx: CommandContext) {
