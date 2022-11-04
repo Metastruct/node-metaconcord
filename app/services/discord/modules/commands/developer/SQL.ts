@@ -29,7 +29,6 @@ export class SlashSQLCommand extends SlashDeveloperCommand {
 							value: "metastruct",
 						},
 					],
-					required: true,
 				},
 			],
 		});
@@ -65,7 +64,8 @@ export class SlashSQLCommand extends SlashDeveloperCommand {
 
 					break;
 				}
-				case "metastruct": {
+				case "metastruct":
+				default:
 					const sql = this.bot.container.getService("SQL");
 					if (sql) {
 						const res = await sql.queryPool(ctx.options.query);
@@ -73,10 +73,6 @@ export class SlashSQLCommand extends SlashDeveloperCommand {
 					} else {
 						return EphemeralResponse("SQL service not running");
 					}
-					break;
-				}
-				default:
-					await ctx.send("Unsupported or un-implemented target");
 					break;
 			}
 		} catch (err) {
