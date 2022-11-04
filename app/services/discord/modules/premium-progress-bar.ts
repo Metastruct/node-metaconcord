@@ -15,6 +15,6 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 	};
-	setProgressBar();
+	bot.discord.on("ready", setProgressBar);
 	setInterval(setProgressBar, 1000 * 60 * 60 * 24);
 };
