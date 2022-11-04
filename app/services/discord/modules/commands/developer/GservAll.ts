@@ -80,43 +80,55 @@ export class SlashGservAllCommand extends SlashDeveloperCommand {
 		});
 
 		let buffer = "";
-		await ssh.exec("gserv", commands, {
-			stream: "stderr",
-			onStdout: buff => (buffer += buff),
-			onStderr: buff => (buffer += buff),
-		});
+		try {
+			await ssh.exec("gserv", commands, {
+				stream: "stderr",
+				onStdout: buff => (buffer += buff),
+				onStderr: buff => (buffer += buff),
+			});
 
-		buffer = this.stripControlChars(buffer);
-		const success = !buffer.includes("GSERV FAILED");
+			buffer = this.stripControlChars(buffer);
+			const success = !buffer.includes("GSERV FAILED");
 
-		const fileName = `${commands.join("_")}_${host}_${Date.now()}.txt`;
-		let msgContent = host;
-		if (!success) msgContent += " FAILED";
+			const fileName = `${commands.join("_")}_${host}_${Date.now()}.txt`;
+			let msgContent = host;
+			if (!success) msgContent += " FAILED";
 
-		const response = {
-			content: msgContent,
-			file: {
-				file: Buffer.from(buffer, "utf8"),
-				name: fileName,
-			},
-		};
+			const response = {
+				content: msgContent,
+				file: {
+					file: Buffer.from(buffer, "utf8"),
+					name: fileName,
+				},
+			};
 
-		if (output || success === false) {
-			const sent = solo ? await ctx.editParent(response) : await ctx.send(response);
+			if (output || success === false) {
+				const sent = solo ? await ctx.editParent(response) : await ctx.send(response);
 
-			if (sent instanceof Message) {
+				if (sent instanceof Message) {
+					const channel = (await this.bot.discord.channels.fetch(
+						sent.channelID
+					)) as TextChannel;
+					const msg = await channel.messages.fetch(sent.id);
+					await msg.react(success ? "✅" : "❌");
+				}
+			} else {
 				const channel = (await this.bot.discord.channels.fetch(
-					sent.channelID
+					ctx.channelID
 				)) as TextChannel;
-				const msg = await channel.messages.fetch(sent.id);
-				await msg.react(success ? "✅" : "❌");
+				const msg = await channel.messages.fetch(ctx.message.id);
+				await msg.react(SERVER_EMOJI_MAP[host.slice(1, 2)] ?? "❓");
 			}
-		} else {
-			const channel = (await this.bot.discord.channels.fetch(ctx.channelID)) as TextChannel;
-			const msg = await channel.messages.fetch(ctx.message.id);
-			await msg.react(SERVER_EMOJI_MAP[host.slice(1, 2)] ?? "❓");
+			return success;
+		} catch (err) {
+			const msg = host + `\nssh failed!\`\`\`\n${err}\`\`\``;
+			if (solo) {
+				await ctx.editParent(msg);
+			} else {
+				await ctx.send(msg);
+			}
+			return false;
 		}
-		return success;
 	}
 
 	private async send(
