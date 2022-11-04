@@ -129,7 +129,7 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 			}
 			return success;
 		} catch (err) {
-			const msg = host + `\nssh failed!\`\`\`\n${err}\`\`\``;
+			const msg = host + `\ngserv failed!\`\`\`\n${err}\`\`\``;
 			if (solo) {
 				await ctx.editParent(msg);
 			} else {
