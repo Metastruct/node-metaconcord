@@ -80,15 +80,16 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 		output: boolean
 	): Promise<boolean> {
 		const ssh = new NodeSSH();
-		await ssh.connect({
-			username: username,
-			host: host,
-			port: port,
-			privateKeyPath: config.keyPath,
-		});
-
-		let buffer = "";
 		try {
+			await ssh.connect({
+				username: username,
+				host: host,
+				port: port,
+				privateKeyPath: config.keyPath,
+			});
+
+			let buffer = "";
+
 			await ssh.exec("gserv", commands, {
 				stream: "stderr",
 				onStdout: buff => (buffer += buff),
