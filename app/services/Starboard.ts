@@ -24,7 +24,7 @@ export class Starboard extends Service {
 
 	private async isMsgStarred(msgId: string): Promise<boolean> {
 		if (!this.sql) return true;
-		const db = await this.sql.getDatabase();
+		const db = await this.sql.getLocalDatabase();
 		if (!(await this.sql.tableExists("starboard"))) {
 			await db.exec(`CREATE TABLE starboard (MessageId VARCHAR(1000));`);
 		}
@@ -35,7 +35,7 @@ export class Starboard extends Service {
 
 	private async starMsg(msgId: string): Promise<void> {
 		if (!this.sql) return;
-		const db = await this.sql.getDatabase();
+		const db = await this.sql.getLocalDatabase();
 		await db.run("INSERT INTO starboard(MessageId) VALUES(?)", msgId);
 	}
 

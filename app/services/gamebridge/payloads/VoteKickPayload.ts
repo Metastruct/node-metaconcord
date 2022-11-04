@@ -8,6 +8,9 @@ import SteamID from "steamid";
 
 export default class NotificationPayload extends Payload {
 	protected static requestSchema = requestSchema;
+	private static votekickCache: {
+		[steamId64: string]: number;
+	} = {};
 
 	// static async initialize(server: GameServer): Promise<void> {
 	// 	const discord = server.discord;
@@ -115,15 +118,24 @@ export default class NotificationPayload extends Payload {
 			.setThumbnail(offenderAvatar)
 			.setColor(0xc4af21);
 
-		const data = bridge.container.getService("Data");
-		if (data) {
-			if (!data.timesVoteKicked[offenderSteamId64])
-				data.timesVoteKicked[offenderSteamId64] = 0;
-			data.timesVoteKicked[offenderSteamId64]++;
-			await data.save();
-			if (data.timesVoteKicked[offenderSteamId64] > 0) {
+		const sql = bridge.container.getService("SQL");
+		if (sql) {
+			if (!this.votekickCache[offenderSteamId64]) {
+				const res = await sql.queryPool(
+					`SELECT votekick_amount FROM playerstats WHERE accountid = ${
+						new SteamID(offender.steamID).accountid
+					}`
+				)[0];
+				if (res) {
+					this.votekickCache[offenderSteamId64] = res.votekick_amount;
+				} else {
+					await (notificationsChannel as TextChannel).send("investigate this shit");
+				}
+			}
+			this.votekickCache[offenderSteamId64]++;
+			if (this.votekickCache[offenderSteamId64] > 0) {
 				embed.addFields(
-					f("Total Votekick Amount", data.timesVoteKicked[offenderSteamId64].toString())
+					f("Total Votekick Amount", this.votekickCache[offenderSteamId64].toString())
 				);
 			}
 		}
