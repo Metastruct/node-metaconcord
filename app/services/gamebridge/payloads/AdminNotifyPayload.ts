@@ -114,7 +114,7 @@ export default class AdminNotifyPayload extends Payload {
 				if (res) {
 					this.reportCache[reportedSteamId64] = res.report_amount;
 				} else {
-					await (notificationsChannel as TextChannel).send("investigate this shit");
+					this.reportCache[reportedSteamId64] = 0;
 				}
 			}
 			this.reportCache[reportedSteamId64]++;

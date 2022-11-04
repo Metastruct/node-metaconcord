@@ -129,7 +129,7 @@ export default class NotificationPayload extends Payload {
 				if (res) {
 					this.votekickCache[offenderSteamId64] = res.votekick_amount;
 				} else {
-					await (notificationsChannel as TextChannel).send("investigate this shit");
+					this.votekickCache[offenderSteamId64] = 0;
 				}
 			}
 			this.votekickCache[offenderSteamId64]++;
