@@ -20,21 +20,7 @@ export class Data extends Service {
 		};
 	} = {};
 	rules: Array<Rule>;
-	timesReported: {
-		[steamId64: string]: number;
-	} = {};
-	timesVoteKicked: {
-		[steamId64: string]: number;
-	} = {};
-	toSave = [
-		"lastDiscordGuildIcon",
-		"lastIotdAuthors",
-		"lastMkTime",
-		"muted",
-		"rules",
-		"timesReported",
-		"timesVoteKicked",
-	];
+	toSave = ["lastDiscordGuildIcon", "lastIotdAuthors", "lastMkTime", "muted", "rules"];
 
 	async init(): Promise<void> {
 		try {
