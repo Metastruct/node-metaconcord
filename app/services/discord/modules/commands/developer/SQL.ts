@@ -1,5 +1,6 @@
 import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
+import { EphemeralResponse } from "..";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
 
 export class SlashSQLCommand extends SlashDeveloperCommand {
@@ -24,8 +25,8 @@ export class SlashSQLCommand extends SlashDeveloperCommand {
 							value: "metaconcord",
 						},
 						{
-							name: "3k",
-							value: "3k",
+							name: "metastruct",
+							value: "metastruct",
 						},
 					],
 					required: true,
@@ -37,22 +38,43 @@ export class SlashSQLCommand extends SlashDeveloperCommand {
 		this.bot = bot;
 	}
 
+	private async sendResult(ctx: CommandContext, result: unknown) {
+		await ctx.send({
+			file: {
+				file: Buffer.from(JSON.stringify(result, null, 2), "utf-8"),
+				name: "sql_result.json",
+			},
+		});
+	}
 	public async runProtected(ctx: CommandContext): Promise<any> {
 		try {
 			switch (ctx.options.target) {
-				case "metaconcord":
+				case "metaconcord": {
+					if (!this.bot.isElevatedUser(ctx.user.id))
+						return EphemeralResponse(
+							`You need the <@&${this.bot.config.elevatedRoleId}> role to run SQL commands on me!`
+						);
 					const sql = this.bot.container.getService("SQL");
-					const db = await sql?.getDatabase();
-					const res = await db?.all(ctx.options.query);
+					if (sql) {
+						const db = await sql?.getLocalDatabase();
+						const res = await db?.all(ctx.options.query);
+						await this.sendResult(ctx, res);
+					} else {
+						return EphemeralResponse("SQL service not running");
+					}
 
-					await ctx.send({
-						content: "Results:",
-						file: {
-							file: Buffer.from(JSON.stringify(res), "utf-8"),
-							name: "sql_result.txt",
-						},
-					});
 					break;
+				}
+				case "metastruct": {
+					const sql = this.bot.container.getService("SQL");
+					if (sql) {
+						const res = await sql.queryPool(ctx.options.query);
+						await this.sendResult(ctx, res);
+					} else {
+						return EphemeralResponse("SQL service not running");
+					}
+					break;
+				}
 				default:
 					await ctx.send("Unsupported or un-implemented target");
 					break;

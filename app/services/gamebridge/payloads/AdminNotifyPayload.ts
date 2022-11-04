@@ -14,6 +14,9 @@ import SteamID from "steamid";
 
 export default class AdminNotifyPayload extends Payload {
 	protected static requestSchema = requestSchema;
+	private static reportCache: {
+		[steamId64: string]: number;
+	} = {};
 
 	static async initialize(server: GameServer): Promise<void> {
 		const discord = server.discord;
@@ -100,14 +103,25 @@ export default class AdminNotifyPayload extends Payload {
 			.setThumbnail(reportedAvatar)
 			.setColor(0xc4af21);
 
-		const data = bridge.container.getService("Data");
-		if (data) {
-			if (!data.timesReported[reportedSteamId64]) data.timesReported[reportedSteamId64] = 0;
-			data.timesReported[reportedSteamId64]++;
-			await data.save();
-			if (data.timesReported[reportedSteamId64] > 0) {
+		const sql = bridge.container.getService("SQL");
+		if (sql) {
+			if (!this.reportCache[reportedSteamId64]) {
+				const res = await sql.queryPool(
+					`SELECT votekick_amount FROM playerstats WHERE accountid = ${
+						new SteamID(reported.steamId).accountid
+					}`
+				)[0];
+				if (res) {
+					this.reportCache[reportedSteamId64] = res.votekick_amount;
+				} else {
+					await (notificationsChannel as TextChannel).send("investigate this shit");
+				}
+			}
+			this.reportCache[reportedSteamId64]++;
+
+			if (this.reportCache[reportedSteamId64] > 0) {
 				embed.addFields(
-					f("Total Report Amount", data.timesReported[reportedSteamId64].toString())
+					f("Total Report Amount", this.reportCache[reportedSteamId64].toString())
 				);
 			}
 		}
