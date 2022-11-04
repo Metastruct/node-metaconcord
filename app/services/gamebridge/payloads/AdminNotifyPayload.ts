@@ -107,12 +107,12 @@ export default class AdminNotifyPayload extends Payload {
 		if (sql) {
 			if (!this.reportCache[reportedSteamId64]) {
 				const res = await sql.queryPool(
-					`SELECT votekick_amount FROM playerstats WHERE accountid = ${
+					`SELECT report_amount FROM playerstats WHERE accountid = ${
 						new SteamID(reported.steamId).accountid
 					}`
 				)[0];
 				if (res) {
-					this.reportCache[reportedSteamId64] = res.votekick_amount;
+					this.reportCache[reportedSteamId64] = res.report_amount;
 				} else {
 					await (notificationsChannel as TextChannel).send("investigate this shit");
 				}
