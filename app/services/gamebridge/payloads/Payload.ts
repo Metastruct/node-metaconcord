@@ -43,7 +43,7 @@ export default abstract class Payload {
 	static async send(payload: unknown, server: GameServer): Promise<void> {
 		this.validate(this.responseSchema, payload);
 
-		if (server.connection.state === "open") {
+		if (server.connection && server.connection.state === "open") {
 			server.connection.send(
 				JSON.stringify({
 					payload: {
