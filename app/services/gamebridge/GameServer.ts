@@ -30,6 +30,7 @@ export default class GameServer {
 	bridge: GameBridge;
 	discord: DiscordClient;
 	discordWH: WebhookClient;
+	discordEWH: WebhookClient;
 	status: {
 		mapThumbnail: string | null;
 		players: Player[];
@@ -44,7 +45,10 @@ export default class GameServer {
 			intents: ["Guilds", "GuildMessages", "MessageContent"],
 		});
 		this.discordWH = new WebhookClient({
-			url: `https://discord.com/api/v10/webhooks/${bridge.config.chatWebhookId}/${bridge.config.chatWebhookToken}`,
+			url: bridge.config.chatWebhookUrl,
+		});
+		this.discordEWH = new WebhookClient({
+			url: bridge.config.errorWebhookUrl,
 		});
 
 		this.discord.run(this.config.discordToken);
