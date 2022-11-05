@@ -41,8 +41,8 @@ export default (webApp: WebApp): void => {
 	});
 
 	webApp.app.post("/gmod/errors", express.urlencoded({ extended: false }), async (req, res) => {
-		// const ip = req.header("x-forwarded-for")?.split(",")[0];
-		// if (!ip) return res.sendStatus(403);
+		const ip = req.header("x-forwarded-for")?.split(",")[0];
+		if (!ip) return res.sendStatus(403);
 		// const isOkIp = servers.find(srv => srv.ip === ip);
 		// if (!isOkIp) {
 		// 	console.log(ip);
@@ -84,7 +84,13 @@ export default (webApp: WebApp): void => {
 				return;
 			const embed: APIEmbed = {
 				description: stack.replace("`", "\\`"),
-				footer: { text: `${body.gamemode}@${body.realm}` },
+				footer: {
+					text: `${body.gamemode}@${
+						body.realm === "server"
+							? servers.find(srv => srv.ip === ip)?.name
+							: body.realm
+					}`,
+				},
 			};
 			if (body.v === "test") return;
 			webhook
