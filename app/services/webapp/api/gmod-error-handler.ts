@@ -57,19 +57,25 @@ export default (webApp: WebApp): void => {
 		//gameBridge = gameBridge || webApp.container.getService("GameBridge");
 
 		const megaRex =
-			/(?<stacknr>\d+)\. (?<fn>\S+) - (<(?<steamid>\d:\d:\d+)\|(?<nick>.+)><(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>\w+?)(?:\/.*)?\/(?<filename>\w+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
+			/(?<stacknr>\d+)\. (?<fn>\S+) - (<(?<steamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+>))?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>\w+?)(?:\/.*)?\/(?<filename>\w+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
 
 		if (body.stack) {
 			if (body.error.startsWith("@repl_")) return;
 			const stack = body.stack.replaceAll(megaRex, (match, ...args) => {
 				const groups = args[args.length - 1];
-				return `${groups.stacknr}. ${groups.fn} - ${
+				return `${" ".repeat(groups.stacknr - 1)}${groups.stacknr}. ${groups.fn} - ${
 					groups.steamid
-						? `<[${groups.steamid} |${
-								groups.nick
-						  }](http://steamcommunity.com/profiles/${new SteamID(
-								`STEAM_${groups.steamid}`
-						  ).getSteamID64()})><${groups.cmdname}:${groups.cmdrealm}>`
+						? groups.rfilename
+							? `<[${groups.steamid} |${
+									groups.nick
+							  }](http://steamcommunity.com/profiles/${new SteamID(
+									`STEAM_${groups.steamid}`
+							  ).getSteamID64()})><${groups.rfilname}>`
+							: `<[${groups.steamid} |${
+									groups.nick
+							  }](http://steamcommunity.com/profiles/${new SteamID(
+									`STEAM_${groups.steamid}`
+							  ).getSteamID64()})><${groups.cmdname}:${groups.cmdrealm}>`
 						: groups.path
 						? AddonURIS[groups.addon]
 							? `[${groups.path}](${AddonURIS[groups.addon] + groups.path}#L${
