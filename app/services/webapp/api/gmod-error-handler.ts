@@ -66,9 +66,9 @@ export default (webApp: WebApp): void => {
 					groups.steamid
 						? `<[${groups.steamid} |${
 								groups.nick
-						  })]>(http://steamcommunity.com/profiles/${new SteamID(
+						  }](http://steamcommunity.com/profiles/${new SteamID(
 								`STEAM_${groups.steamid}`
-						  ).getSteamID64()})<${groups.cmdname}:${groups.cmdrealm}>`
+						  ).getSteamID64()})><${groups.cmdname}:${groups.cmdrealm}>`
 						: groups.path
 						? AddonURIS[groups.addon]
 							? `[${groups.path}](${AddonURIS[groups.addon] + groups.path}#L${
