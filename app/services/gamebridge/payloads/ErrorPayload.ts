@@ -14,20 +14,20 @@ export default class ErrorPayload extends Payload {
 
 	static async handle(payload: ErrorRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
-		const { bridge, discord, discordEWH } = server;
+		const { discordEWH } = server;
 
 		const { hook_error } = payload.data;
 
 		const webhook = discordEWH;
 
 		const embed: APIEmbed = {
-			title: hook_error.identifier,
+			title: hook_error.name,
 			description: `\`\`\`\n${hook_error.error.replace("`", "\\`")}\`\`\``,
 		};
 
 		webhook.send({
 			allowedMentions: { parse: [] },
-			content: `**${hook_error.name} Hook Failed!**`,
+			content: `**${hook_error.identifier} Hook Failed!**`,
 			embeds: [embed],
 		});
 	}
