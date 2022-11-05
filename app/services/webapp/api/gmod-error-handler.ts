@@ -32,6 +32,7 @@ const AddonURIS = {
 	mta: "https://gitlab.com/metastruct/mta_projects/mta/-/blob/master/",
 	gcompute: "https://github.com/Metastruct/gcompute/blob/master/",
 	epoe: "https://github.com/Metastruct/EPOE/blob/master/",
+	wire: "https://github.com/Metastruct/wire/blob/master/",
 };
 
 export default (webApp: WebApp): void => {
