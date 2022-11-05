@@ -161,9 +161,9 @@ export class SlashGservAllCommand extends SlashDeveloperCommand {
 					output
 				)
 			);
-		await Promise.all(promises).catch(err =>
-			ctx.send(`something went wrong!\`\`\`\n${err}\`\`\``)
-		);
+		await Promise.all(promises)
+			.then(() => ctx.editOriginal("All servers rehashed sucessfully!"))
+			.catch(err => ctx.send(`something went wrong!\`\`\`\n${err}\`\`\``));
 	}
 
 	private deny(ctx: CommandContext) {
