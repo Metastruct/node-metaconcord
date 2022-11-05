@@ -158,9 +158,7 @@ export default class Motd extends Service {
 				this.rerolls++;
 				msg = `Image of the day\n(No. ${index + 1} out of ${urls.length} total from ${
 					authors.length
-				} user${authors.length > 1 ? "s" : ""})\n(♻ rerolled ${this.rerolls} time${
-					this.rerolls > 1 ? "s" : ""
-				})`;
+				} user${authors.length > 1 ? "s" : ""})\n(♻ rerolled ${this.rerolls}x)`;
 				await axios.patch(
 					`${config.webhook}/messages/${msgId}`,
 					JSON.stringify({
