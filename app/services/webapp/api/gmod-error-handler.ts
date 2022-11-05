@@ -105,6 +105,7 @@ export default (webApp: WebApp): void => {
 							: body.realm
 					}`,
 				},
+				color: server ? 0x03a9f4 : 0xdea909,
 			};
 			if (body.v === "test") return;
 			webhook
