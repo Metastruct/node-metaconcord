@@ -21,17 +21,18 @@ type GmodResponse = {
 };
 
 const AddonURIS = {
-	aowl: "https://gitlab.com/metastruct/internal/aowl/-/blob/master/",
-	metastruct: "https://gitlab.com/metastruct/internal/metastruct/-/blob/master/",
-	fast_addons: "https://gitlab.com/metastruct/internal/fast_addons/-/blob/master/",
-	sandbox_modded: "https://gitlab.com/metastruct/internal/qbox/-/blob/master/",
-	pac3: "https://github.com/CapsAdmin/pac3/blob/develop/",
 	advdupe2: "https://github.com/wiremod/advdupe2/blob/master/",
+	aowl: "https://gitlab.com/metastruct/internal/aowl/-/blob/master/",
+	epoe: "https://github.com/Metastruct/EPOE/blob/master/",
+	fast_addons: "https://gitlab.com/metastruct/internal/fast_addons/-/blob/master/",
+	gcompute: "https://github.com/Metastruct/gcompute/blob/master/",
 	luadev: "https://github.com/Metastruct/luadev/blob/master/",
 	metaconcord: "https://github.com/metastruct/gmod-metaconcord/blob/master/",
+	metastruct: "https://gitlab.com/metastruct/internal/metastruct/-/blob/master/",
 	mta: "https://gitlab.com/metastruct/mta_projects/mta/-/blob/master/",
-	gcompute: "https://github.com/Metastruct/gcompute/blob/master/",
-	epoe: "https://github.com/Metastruct/EPOE/blob/master/",
+	pac3: "https://github.com/CapsAdmin/pac3/blob/develop/",
+	sandbox_modded: "https://gitlab.com/metastruct/internal/qbox/-/blob/master/",
+	swcs: "https://gitlab.com/cynhole/swcs/-/blob/master",
 	wire: "https://github.com/Metastruct/wire/blob/master/",
 };
 
