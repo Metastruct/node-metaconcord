@@ -57,7 +57,7 @@ export default (webApp: WebApp): void => {
 		//gameBridge = gameBridge || webApp.container.getService("GameBridge");
 
 		const megaRex =
-			/(?<stacknr>\d+)\. (?<fn>\S+) - (<(?<steamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+>))?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>\w+?)(?:\/.*)?\/(?<filename>\w+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
+			/(?<stacknr>\d+)\. (?<fn>\S+) - (<(?<steamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>\w+?)(?:\/.*)?\/(?<filename>\w+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
 
 		if (body.stack) {
 			if (body.error.startsWith("@repl_")) return;
