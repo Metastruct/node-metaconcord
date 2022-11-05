@@ -1,7 +1,8 @@
 {
+	"callAdminRoleId": "",
 	"token": "",
-	"chatWebhookId": "",
-	"chatWebhookToken": "",
+	"chatWebhookUrl": "",
+	"errorWebhookUrl": "",
 	"serverInfoChannelId": "",
 	"relayChannelId": "",
 	"notificationsChannelId": "",
