@@ -44,6 +44,7 @@ export default (webApp: WebApp): void => {
 
 	webApp.app.post("/gmod/errors", express.urlencoded({ extended: false }), async (req, res) => {
 		const ip = req.header("x-forwarded-for")?.split(",")[0];
+		const server = servers.find(srv => srv.ip === ip);
 		if (!ip) return res.sendStatus(403);
 		// const isOkIp = servers.find(srv => srv.ip === ip);
 		// if (!isOkIp) {
@@ -55,6 +56,13 @@ export default (webApp: WebApp): void => {
 		res.status(204);
 		res.end();
 
+		if (
+			body.realm === "client" &&
+			body.gamemode !== "sandbox_modded" &&
+			body.gamemode !== "mta"
+		)
+			return;
+		if (body.realm === "server" && !server) return;
 		//gameBridge = gameBridge || webApp.container.getService("GameBridge");
 
 		const megaRex =
@@ -86,18 +94,12 @@ export default (webApp: WebApp): void => {
 						: groups.engine
 				}:${groups.lino}`;
 			});
-			if (
-				body.realm === "client" &&
-				body.gamemode !== "sandbox_modded" &&
-				body.gamemode !== "mta"
-			)
-				return;
 			const embed: APIEmbed = {
 				description: stack.replace("`", "\\`"),
 				footer: {
 					text: `${body.gamemode}@${
 						body.realm === "server"
-							? servers.find(srv => srv.ip === ip)?.name
+							? server?.name ?? `unkown server(${ip})`
 							: body.realm
 					}`,
 				},
