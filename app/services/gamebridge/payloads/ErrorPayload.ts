@@ -22,7 +22,7 @@ export default class ErrorPayload extends Payload {
 
 		const embed: APIEmbed = {
 			title: hook_error.identifier,
-			description: hook_error.error.replace("`", "\\`"),
+			description: `\`\`\`\n${hook_error.error.replace("`", "\\`")}\`\`\``,
 		};
 
 		webhook.send({
