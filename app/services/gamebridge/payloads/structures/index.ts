@@ -3,6 +3,7 @@ import BanAppealRequest from "./BanAppealRequest";
 import BanRequest from "./BanRequest";
 import ChatRequest from "./ChatRequest";
 import ChatResponse from "./ChatResponse";
+import ErrorRequest from "./ErrorRequest";
 import ErrorResponse from "./ErrorResponse";
 import JoinLeaveRequest from "./JoinLeaveRequest";
 import NotificationResponse from "./NotificationResponse";
@@ -18,6 +19,7 @@ export {
 	BanRequest,
 	ChatRequest,
 	ChatResponse,
+	ErrorRequest,
 	ErrorResponse,
 	JoinLeaveRequest,
 	NotificationResponse,
