@@ -64,9 +64,11 @@ export default (webApp: WebApp): void => {
 				const groups = args[args.length - 1];
 				return `${groups.stacknr}. ${groups.fn} - ${
 					groups.steamid
-						? `<[${groups.steamid}](http://steamcommunity.com/profiles/${new SteamID(
+						? `<[${groups.steamid} |${
+								groups.nick
+						  })]>(http://steamcommunity.com/profiles/${new SteamID(
 								`STEAM_${groups.steamid}`
-						  ).getSteamID64()})|${groups.nick})><${groups.cmdname}:${groups.cmdrealm}>`
+						  ).getSteamID64()})<${groups.cmdname}:${groups.cmdrealm}>`
 						: groups.path
 						? AddonURIS[groups.addon]
 							? `[${groups.path}](${AddonURIS[groups.addon] + groups.path}#L${
