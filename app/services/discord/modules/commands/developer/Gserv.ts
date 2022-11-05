@@ -170,7 +170,7 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 				)
 			);
 		await Promise.all(promises)
-			.then(() => ctx.send("All servers rehashed sucessfully!"))
+			.then(() => ctx.editOriginal("All servers rehashed sucessfully!"))
 			.catch(err => ctx.send(`something went wrong!\`\`\`\n${err}\`\`\``));
 	}
 
