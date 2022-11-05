@@ -76,7 +76,12 @@ export default (webApp: WebApp): void => {
 						: groups.engine
 				}:${groups.lino}`;
 			});
-			if (body.realm === "client" && body.gamemode !== "sandbox_modded") return;
+			if (
+				body.realm === "client" &&
+				body.gamemode !== "sandbox_modded" &&
+				body.gamemode !== "mta"
+			)
+				return;
 			const embed: APIEmbed = {
 				description: stack.replace("`", "\\`"),
 				footer: { text: `${body.gamemode}@${body.realm}` },
