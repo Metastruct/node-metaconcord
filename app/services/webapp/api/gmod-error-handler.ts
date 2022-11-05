@@ -21,6 +21,7 @@ type GmodResponse = {
 };
 
 const AddonURIS = {
+	acf: "https://github.com/metastruct/ACF/blob/master/",
 	advdupe2: "https://github.com/wiremod/advdupe2/blob/master/",
 	aowl: "https://gitlab.com/metastruct/internal/aowl/-/blob/master/",
 	epoe: "https://github.com/Metastruct/EPOE/blob/master/",
