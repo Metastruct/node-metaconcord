@@ -32,7 +32,8 @@ const AddonURIS = {
 	mta: "https://gitlab.com/metastruct/mta_projects/mta/-/blob/master/",
 	pac3: "https://github.com/CapsAdmin/pac3/blob/develop/",
 	sandbox_modded: "https://gitlab.com/metastruct/internal/qbox/-/blob/master/",
-	swcs: "https://gitlab.com/cynhole/swcs/-/blob/master",
+	swcs: "https://gitlab.com/cynhole/swcs/-/blob/master/",
+	vrmod: "https://github.com/Metastruct/vrmod-addon/blob/master/",
 	wire: "https://github.com/Metastruct/wire/blob/master/",
 };
 
