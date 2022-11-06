@@ -82,11 +82,11 @@ export default (webApp: WebApp): void => {
 		let gameserver: GameServer | undefined;
 		let player: Player | undefined;
 		if (server) {
-			gameserver = gameBridge.servers.find(server => server.config.ip === ip);
+			gameserver = gameBridge.servers.filter(server => server.config.ip === ip)[0];
 		} else {
-			gameserver = gameBridge.servers.find(server =>
+			gameserver = gameBridge.servers.filter(server =>
 				server.status.players.some(pl => pl.ip.split(":")[0] === ip)
-			);
+			)[0];
 			player = gameserver?.status.players.find(pl => pl.ip.split(":")[0] === ip); // idk if you can combine that into one call
 		}
 
