@@ -5,7 +5,7 @@ export default interface ErrorRequest extends PayloadRequest {
 		hook_error: {
 			name: string;
 			identifier: string;
-			error: string;
+			errormsg: string;
 		};
 	};
 }
