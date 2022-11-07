@@ -76,29 +76,26 @@ export default (webApp: WebApp): void => {
 	webApp.app.post("/gmod/errors", express.urlencoded({ extended: false }), async (req, res) => {
 		const ip = req.header("x-forwarded-for")?.split(",")[0];
 		if (!ip) return res.sendStatus(403);
-		gameBridge = gameBridge || webApp.container.getService("GameBridge");
-		const server = servers.find(srv => srv.ip === ip);
 
+		const body = req.body as GmodResponse;
+		if (!body) return res.status(400).end();
+		res.status(204);
+		res.end();
+
+		gameBridge = gameBridge || webApp.container.getService("GameBridge");
+
+		const server = servers.find(srv => srv.ip === ip);
 		let gameserver: GameServer | undefined;
 		let player: Player | undefined;
 		if (server) {
 			gameserver = gameBridge.servers.filter(server => server.config.ip === ip)[0];
 		} else {
-			gameserver = gameBridge.servers.filter(server =>
-				server.status.players.some(pl => pl.ip.split(":")[0] === ip)
-			)[0];
-			player = gameserver?.status.players.find(pl => pl.ip.split(":")[0] === ip); // idk if you can combine that into one call
+			const allplayers = gameBridge.servers.reduce(
+				(ps, cs) => ps.concat(cs.status.players),
+				new Array<Player>()
+			);
+			player = allplayers.find(pl => pl.ip.split(":")[0] === ip); // idk if you can combine that into one call
 		}
-
-		// const isOkIp = servers.find(srv => srv.ip === ip);
-		// if (!isOkIp) {
-		// 	console.log(ip);
-		// 	return res.sendStatus(403);
-		// }
-		const body = req.body as GmodResponse;
-		if (!body) return res.status(400).end();
-		res.status(204);
-		res.end();
 
 		if (body.realm === "client" && !gamemodes[body.gamemode]) return; // external players?
 		if (body.realm === "server" && !server) return; // external servers?
