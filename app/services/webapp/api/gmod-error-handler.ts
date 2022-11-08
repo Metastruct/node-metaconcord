@@ -95,6 +95,9 @@ export default (webApp: WebApp): void => {
 				new Array<Player>()
 			);
 			player = allplayers.find(pl => pl.ip.split(":")[0] === ip); // idk if you can combine that into one call
+			gameserver = gameBridge.servers.find(srv =>
+				srv.status.players.includes(player as Player)
+			);
 		}
 
 		if (body.realm === "client" && !gamemodes.includes(body.gamemode)) return; // external players?
