@@ -97,7 +97,7 @@ export default (webApp: WebApp): void => {
 			player = allplayers.find(pl => pl.ip.split(":")[0] === ip); // idk if you can combine that into one call
 		}
 
-		if (body.realm === "client" && !gamemodes[body.gamemode]) return; // external players?
+		if (body.realm === "client" && !gamemodes.includes(body.gamemode)) return; // external players?
 		if (body.realm === "server" && !server) return; // external servers?
 
 		if (body.stack) {
