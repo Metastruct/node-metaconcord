@@ -88,7 +88,7 @@ export default (webApp: WebApp): void => {
 		let gameserver: GameServer | undefined;
 		let player: Player | undefined;
 		if (server) {
-			gameserver = gameBridge.servers.filter(server => server.config.ip === ip)[0];
+			gameserver = gameBridge.servers.find(server => server.config.ip === ip);
 		} else {
 			const allplayers = gameBridge.servers.reduce(
 				(ps, cs) => ps.concat(cs.status.players),
