@@ -2,8 +2,8 @@ import { Container } from "@/app/Container";
 import { Service } from ".";
 import SteamAPI, { PlayerSummary } from "steamapi";
 import SteamID from "steamid";
+import apikeys from "@/config/apikeys.json";
 import axios from "axios";
-import config from "@/config/steam.json";
 import qs from "qs";
 
 type UserCache = {
@@ -15,7 +15,7 @@ const avatarRegExp = /<avatarFull>\s*<!\[CDATA\[\s*([^\s]*)\s*\]\]>\s*<\/avatarF
 
 export class Steam extends Service {
 	name = "Steam";
-	steam: SteamAPI = new SteamAPI(config.apiKey);
+	steam: SteamAPI = new SteamAPI(apikeys.steam);
 	private userCache: {
 		[steamId64: string]: UserCache;
 	} = {};
@@ -47,7 +47,7 @@ export class Steam extends Service {
 		const query = {
 			publishedfileids: ids,
 			itemcount: ids.length,
-			key: config.apiKey,
+			key: apikeys.steam,
 		};
 		return (
 			await axios

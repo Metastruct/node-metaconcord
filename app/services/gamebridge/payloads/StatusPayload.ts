@@ -122,9 +122,15 @@ export default class StatusPayload extends Payload {
 				}
 			}
 
-			// Server status image endpoint
+			// Server status metadata
 			server.status.mapThumbnail = mapThumbnail;
 			server.status.players = players;
+			server.gamemode = gamemode;
+			server.map = map;
+			server.mapUptime = maptime;
+			server.serverUptime = servertime;
+			server.workshopMap = workshopMap;
+
 			for (const [, player] of Object.entries(server.status.players)) {
 				if (!player.avatar) {
 					let avatar: string | undefined;
