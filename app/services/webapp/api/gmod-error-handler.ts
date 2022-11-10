@@ -1,9 +1,11 @@
 import { APIEmbed } from "discord.js";
 import { GameBridge, GameServer, Player } from "../../gamebridge";
+import { PathLike, promises as fs } from "fs";
 import { WebApp } from "..";
 import { clamp } from "@/utils";
 import Discord from "discord.js";
 import SteamID from "steamid";
+import apikeys from "@/config/apikeys.json";
 import config from "@/config/webapp.json";
 import express from "express";
 import request, { gql } from "graphql-request";
@@ -86,22 +88,47 @@ const SuperReplacer = (_: string, ...args: any[]) => {
 
 const gamemodes = ["sandbox_modded", "mta", "jazztronauts"]; //proper gamemode support when???
 
-async function getFrame(
-	provider: string,
-	smg: StackMatchGroups,
-	url: string
-): Promise<string | undefined> {
-	const isGithub = provider === "github";
-	const endpoint = isGithub ? "https://api.github.com/graphql" : "https://gitlab.com/api/graphql";
-	const repo = smg.addon;
-	const owner = url.match(/\.com\/(.+?)\//);
-	const branch = url.split("/").at(-2);
+const LINES = 10;
+const LOOKUP_PATH = config.lookupPath;
 
-	if (!owner) return;
-	const query = isGithub
-		? gql`{
-		repository(owner:${owner[1]}, name:${repo}) {
-			content: object(expression: "${branch}:${smg.path}") {
+async function exists(path: PathLike): Promise<boolean> {
+	return fs
+		.access(path)
+		.then(() => true)
+		.catch(() => false);
+}
+
+async function getSnippet(smg: StackMatchGroups): Promise<string | undefined> {
+	const path = LOOKUP_PATH + smg.path;
+	if (await exists(path)) {
+		const file = await fs.readFile(path, "utf8");
+		const lines = file.split(/\r?\n/);
+		const line = Number(smg.lino) - 1;
+		return lines
+			.slice(
+				clamp(line - LINES / 2, 0, lines.length),
+				clamp(line + LINES / 2, 0, lines.length)
+			)
+			.join("\n");
+	} else {
+		const url: string | undefined = smg.addon ? AddonURIS[smg.addon] : undefined;
+
+		if (url) {
+			const provider = url.match(/([^\.\/]+)\.com/);
+			if (!provider) return;
+			const isGithub = provider[1] === "github";
+			const endpoint = isGithub
+				? "https://api.github.com/graphql"
+				: "https://gitlab.com/api/graphql";
+			const repo = smg.addon;
+			const owner = url.match(/\.com\/(.+?)\//);
+			const branch = url.split("/").at(-2);
+
+			if (!owner) return;
+			const query = isGithub
+				? gql`{
+		repository(owner:"${owner[1]}", name:"${repo}") {
+			content: object(expression:"${branch}:${smg.path}") {
 				... on Blob {
 					text
 				}
@@ -109,33 +136,40 @@ async function getFrame(
 		}
 }
 `
-		: gql`{
-	project(fullpath:${url.match(/\.com\/(.+?)\/\-/)}) {
+				: gql`{
+	project(fullpath:"${url.match(/\.com\/(.+?)\/\-/)}") {
 		repository {
-			blobs(paths: ${smg.path}){
+			blobs(paths:"${smg.path}"){
 				nodes{rawTextBlob}
 			}
 		}
 	}
 }
 `;
-	try {
-		const res = await request(endpoint, query);
-		if (res) {
-			const filecontent = isGithub
-				? (res.data.repository.content.text as string)
-				: (res.data.project.repository.blobs.nodes[0].rawTextBlob as string);
-			const line = Number(smg.lino);
-			const lines = filecontent.split(/\r?\n/);
-			return lines
-				.slice(clamp(line - 3, 0, lines.length), clamp(line + 3, 0, lines.length))
-				.join();
+			try {
+				const res = await request(endpoint, query, undefined, {
+					authorization: `Bearer ${isGithub ? apikeys.github : apikeys.gitlab}`,
+				});
+				if (res) {
+					const filecontent = isGithub
+						? (res.data.repository.content.text as string)
+						: (res.data.project.repository.blobs.nodes[0].rawTextBlob as string);
+					const line = Number(smg.lino) - 1;
+					const lines = filecontent.split(/\r?\n/);
+					return lines
+						.slice(
+							clamp(line - LINES / 2, 0, lines.length),
+							clamp(line + LINES / 2, 0, lines.length)
+						)
+						.join("\n");
+				}
+				console.error(res);
+				return;
+			} catch (err) {
+				console.error(JSON.stringify(err, undefined, 2));
+				return;
+			}
 		}
-		console.error(res);
-		return;
-	} catch (err) {
-		console.error(JSON.stringify(err, undefined, 2));
-		return;
 	}
 }
 
@@ -232,16 +266,11 @@ export default (webApp: WebApp): void => {
 			);
 			if (filematch.length > 0) {
 				const smg = filematch[0].groups as StackMatchGroups;
-				const url: string | undefined = smg.addon ? AddonURIS[smg.addon] : undefined;
-				if (url) {
-					const provider = url.match(/([^\.\/]+)\.com/);
-					if (!provider) return;
-					await getFrame(provider[1], smg, url).then(res => {
-						if (res) {
-							embeds.push({ description: `\`\`\`lua\n${res}\`\`\`` });
-						}
-					});
-				}
+				await getSnippet(smg).then(res => {
+					if (res) {
+						embeds.push({ description: `\`\`\`lua\n${res}\`\`\`` });
+					}
+				});
 			}
 			if (body.v === "test") return;
 			webhook
