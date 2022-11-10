@@ -8,21 +8,23 @@ import {
 import { WebhookClient } from "discord.js";
 
 export type GameServerConfig = {
+	defaultGamemode?: string;
+	discordToken: string;
 	id: number;
 	ip: string;
-	name: string;
 	label?: string;
-	discordToken: string;
+	name: string;
 };
 
 export type Player = {
 	accountId: number;
-	nick: string;
 	avatar?: string | false; // Metastruct SteamCache can return false...
 	ip: string;
 	isAdmin: boolean;
-	isBanned: boolean;
 	isAfk?: boolean;
+	isBanned: boolean;
+	isLinux?: boolean;
+	nick: string;
 };
 
 export default class GameServer {
@@ -32,11 +34,22 @@ export default class GameServer {
 	discord: DiscordClient;
 	discordWH: WebhookClient;
 	discordEWH: WebhookClient;
+	gamemode: {
+		folderName: string;
+		name: string;
+	};
+	playerListImage: Buffer;
+	serverUptime: number;
 	status: {
 		mapThumbnail: string | null;
 		players: Player[];
 	} = { mapThumbnail: null, players: [] };
-	playerListImage: Buffer;
+	map: string;
+	mapUptime: number;
+	workshopMap?: {
+		name: string;
+		id: string;
+	};
 
 	constructor(req: WebSocketRequest, bridge: GameBridge, config: GameServerConfig) {
 		this.connection = req.accept();
