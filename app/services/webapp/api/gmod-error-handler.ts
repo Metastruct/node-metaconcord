@@ -98,18 +98,20 @@ async function exists(path: PathLike): Promise<boolean> {
 		.catch(() => false);
 }
 
+const getLines = (input: string, lino: number) => {
+	const lines = input.split(/\r?\n/);
+	const line = lino - 1;
+	lines[line] = ">> " + lines[line];
+	return lines
+		.slice(clamp(line - LINES / 2, 0, lines.length), clamp(line + LINES / 2, 0, lines.length))
+		.join("\n");
+};
+
 async function getSnippet(smg: StackMatchGroups): Promise<string | undefined> {
 	const path = LOOKUP_PATH + smg.path;
 	if (await exists(path)) {
 		const file = await fs.readFile(path, "utf8");
-		const lines = file.split(/\r?\n/);
-		const line = Number(smg.lino) - 1;
-		return lines
-			.slice(
-				clamp(line - LINES / 2, 0, lines.length),
-				clamp(line + LINES / 2, 0, lines.length)
-			)
-			.join("\n");
+		return getLines(file, Number(smg.lino));
 	} else {
 		const url: string | undefined = smg.addon ? AddonURIS[smg.addon] : undefined;
 
@@ -154,14 +156,7 @@ async function getSnippet(smg: StackMatchGroups): Promise<string | undefined> {
 					const filecontent = isGithub
 						? (res.data.repository.content.text as string)
 						: (res.data.project.repository.blobs.nodes[0].rawTextBlob as string);
-					const line = Number(smg.lino) - 1;
-					const lines = filecontent.split(/\r?\n/);
-					return lines
-						.slice(
-							clamp(line - LINES / 2, 0, lines.length),
-							clamp(line + LINES / 2, 0, lines.length)
-						)
-						.join("\n");
+					return getLines(filecontent, Number(smg.lino));
 				}
 				console.error(res);
 				return;
