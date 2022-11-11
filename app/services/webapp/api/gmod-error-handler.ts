@@ -210,7 +210,11 @@ export default (webApp: WebApp): void => {
 			if (body.error.startsWith("SF:")) return; // starfall
 
 			const stack = body.stack.replaceAll(megaRex, SuperReplacer);
+			const matches = [...body.stack.matchAll(megaRex)];
+			if (body.realm === "client" && matches.find(m => !m.groups?.steamid)) return; // player (self) errors
 			const embeds: APIEmbed[] = [];
+
+			// main embed
 			const embed: APIEmbed = {
 				description: stack.replace("`", "\\`"),
 				footer: {
@@ -226,12 +230,6 @@ export default (webApp: WebApp): void => {
 			};
 			if (player) {
 				if (player.isPirate) return; // dont care about pirates
-
-				const steam = gameBridge.container.getService("Steam");
-				if (steam) {
-					const steamid = steam.accountIDToSteamID(player.accountId);
-					if (body.error.includes(steamid.replace(/^STEAM_/, ""))) return; // custom scripts by player ran with luadev
-				}
 
 				embed.author = {
 					name: player.nick,
@@ -265,7 +263,9 @@ export default (webApp: WebApp): void => {
 				}
 			}
 			embeds.push(embed);
-			const matches = [...body.stack.matchAll(megaRex)];
+
+			// code embed
+
 			const filematch = matches.filter(
 				m => !m.groups?.engine && Number(m.groups?.stacknr) < 3
 			);
@@ -277,6 +277,7 @@ export default (webApp: WebApp): void => {
 					}
 				});
 			}
+
 			if (body.v === "test") return;
 			webhook
 				.send({
