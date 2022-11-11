@@ -25,6 +25,7 @@ export type Player = {
 	isBanned: boolean;
 	isLinux?: boolean;
 	nick: string;
+	isPirate?: boolean;
 };
 
 export default class GameServer {
