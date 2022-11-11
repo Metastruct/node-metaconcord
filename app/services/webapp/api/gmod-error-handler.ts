@@ -101,7 +101,7 @@ async function exists(path: PathLike): Promise<boolean> {
 const getLines = (input: string, lino: number) => {
 	const lines = input.split(/\r?\n/).map(str => "  " + str);
 	const line = lino - 1;
-	lines[line] = ">>" + lines[line];
+	lines[line] = ">>" + lines[line].substring(2);
 	return lines
 		.slice(clamp(line - LINES / 2, 0, lines.length), clamp(line + LINES / 2, 0, lines.length))
 		.join("\n");
