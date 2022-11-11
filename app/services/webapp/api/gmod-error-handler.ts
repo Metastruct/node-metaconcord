@@ -211,7 +211,9 @@ export default (webApp: WebApp): void => {
 		if (body.realm === "server" && !server) return; // external servers?
 
 		if (body.stack) {
-			if (body.error.startsWith("@repl_")) return;
+			if (body.error.startsWith("@repl_")) return; // gcompute
+			if (body.error.startsWith("SF:")) return; // starfall
+
 			const stack = body.stack.replaceAll(megaRex, SuperReplacer);
 			const embeds: APIEmbed[] = [];
 			const embed: APIEmbed = {
@@ -228,6 +230,14 @@ export default (webApp: WebApp): void => {
 				color: server ? 0x03a9f4 : 0xdea909,
 			};
 			if (player) {
+				if (player.isPirate) return; // dont care about pirates
+
+				const steam = gameBridge.container.getService("Steam");
+				if (steam) {
+					const steamid = steam.accountIDToSteamID(player.accountId);
+					if (body.error.includes(steamid.replace(/^STEAM_/, ""))) return; // custom scripts by player ran with luadev
+				}
+
 				embed.author = {
 					name: player.nick,
 					icon_url: (player.avatar as string) ?? undefined,

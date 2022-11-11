@@ -77,6 +77,10 @@ export class Steam extends Service {
 	public steamIDToSteamID64(steamid: string): string {
 		return new SteamID(steamid).getSteamID64();
 	}
+
+	public accountIDToSteamID(accountid: number): string {
+		return SteamID.fromIndividualAccountID(accountid).getSteam2RenderedID();
+	}
 }
 
 export default (container: Container): Service => {

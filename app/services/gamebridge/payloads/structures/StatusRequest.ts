@@ -12,6 +12,7 @@ export default interface StatusRequest extends PayloadRequest {
 			isBanned: boolean;
 			isLinux?: boolean;
 			nick: string;
+			isPirate?: boolean;
 		}[];
 		map: string;
 		workshopMap?: {
