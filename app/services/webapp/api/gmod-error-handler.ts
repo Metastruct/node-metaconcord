@@ -99,9 +99,9 @@ async function exists(path: PathLike): Promise<boolean> {
 }
 
 const getLines = (input: string, lino: number) => {
-	const lines = input.split(/\r?\n/);
+	const lines = input.split(/\r?\n/).map(str => "  " + str);
 	const line = lino - 1;
-	lines[line] = ">> " + lines[line];
+	lines[line] = ">>" + lines[line];
 	return lines
 		.slice(clamp(line - LINES / 2, 0, lines.length), clamp(line + LINES / 2, 0, lines.length))
 		.join("\n");
@@ -158,7 +158,6 @@ async function getSnippet(smg: StackMatchGroups): Promise<string | undefined> {
 						: (res.data.project.repository.blobs.nodes[0].rawTextBlob as string);
 					return getLines(filecontent, Number(smg.lino));
 				}
-				console.error(res);
 				return;
 			} catch (err) {
 				console.error(JSON.stringify(err, undefined, 2));
@@ -228,6 +227,7 @@ export default (webApp: WebApp): void => {
 				},
 				color: server ? 0x03a9f4 : 0xdea909,
 			};
+			embed.fields = [];
 			if (player) {
 				if (player.isPirate) return; // dont care about pirates
 
@@ -243,13 +243,13 @@ export default (webApp: WebApp): void => {
 					name: server.name,
 				};
 				if (gameserver) {
-					embed.fields = [
-						{
-							name: "Map Uptime:",
+					if (gameserver?.mapUptime) {
+						embed.fields.push({
+							name: "Map running since:",
 							value: `<t:${gameserver?.mapUptime.toString()}:R>`,
 							inline: true,
-						},
-					];
+						});
+					}
 					if (
 						gameserver.config.defaultGamemode &&
 						body.gamemode !== gameserver.config.defaultGamemode
