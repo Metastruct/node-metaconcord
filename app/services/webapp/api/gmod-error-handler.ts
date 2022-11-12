@@ -1,7 +1,7 @@
 import { APIEmbed } from "discord.js";
 import { GameBridge, GameServer, Player } from "../../gamebridge";
 import { WebApp } from "..";
-import { getOrFetchLuaFile } from "@/utils";
+import { AddonURIS, getOrFetchLuaFile } from "@/utils";
 import Discord from "discord.js";
 import SteamID from "steamid";
 import config from "@/config/webapp.json";
@@ -35,26 +35,6 @@ type StackMatchGroups = {
 	rfilename?: string;
 	stacknr: string;
 	steamid: string;
-};
-
-const AddonURIS = {
-	acf: "https://github.com/metastruct/ACF/blob/master/",
-	advdupe2: "https://github.com/wiremod/advdupe2/blob/master/",
-	aowl: "https://gitlab.com/metastruct/internal/aowl/-/blob/master/",
-	easychat: "https://github.com/Earu/EasyChat/blob/master/",
-	epoe: "https://github.com/Metastruct/EPOE/blob/master/",
-	fast_addons: "https://gitlab.com/metastruct/internal/fast_addons/-/blob/master/",
-	gcompute: "https://github.com/Metastruct/gcompute/blob/master/",
-	luadev: "https://github.com/Metastruct/luadev/blob/master/",
-	metaconcord: "https://github.com/metastruct/gmod-metaconcord/blob/master/",
-	metastruct: "https://gitlab.com/metastruct/internal/metastruct/-/blob/master/",
-	metaworks: "https://gitlab.com/metastruct/metaworks/MetaWorks/-/blob/master",
-	mta: "https://gitlab.com/metastruct/mta_projects/mta/-/blob/master/",
-	pac3: "https://github.com/CapsAdmin/pac3/blob/develop/",
-	sandbox_modded: "https://gitlab.com/metastruct/internal/qbox/-/blob/master/",
-	swcs: "https://gitlab.com/cynhole/swcs/-/blob/master/",
-	vrmod: "https://github.com/Metastruct/vrmod-addon/blob/master/",
-	wire: "https://github.com/Metastruct/wire/blob/master/",
 };
 
 const megaRex =
