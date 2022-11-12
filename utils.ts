@@ -23,10 +23,11 @@ export const exists = async (path: PathLike): Promise<boolean> =>
 		.access(path)
 		.then(() => true)
 		.catch(() => false);
-export const getStackLines = (input: string, linenr: number): string => {
+export const getStackLines = (input: string, linestart: number, lineend?: number): string => {
 	const lines = input.split(/\r?\n/).map(str => "  " + str);
-	const line = linenr - 1;
-	lines[line] = ">>" + lines[line].substring(2);
+	const line = linestart - 1;
+	const replace = lines.slice(line, lineend ?? line + 1).map(line => ">>" + line);
+	lines.splice(line, lineend ? lineend - linestart : 1, ...replace);
 	return lines
 		.slice(clamp(line - 10 / 2, 0, lines.length), clamp(line + 10 / 2, 0, lines.length))
 		.join("\n");
