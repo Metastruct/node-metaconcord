@@ -7,11 +7,27 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: HTTP Request Action
-        uses: fjogeleit/http-request-action@v1.8.0
-        with:
-          # Request URL
-          url: https://g2.metastruct.net/metaconcord/ci/reload
-          # Request Method
-          method: GET
-          bearerToken: ${{secrets.TOKEN}}
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          payloads:
+            - 'app/services/gamebridge/payloads/structures/**'
+    - name: normal deploy
+      if: steps.filter.outputs.payloads == 'false'
+      uses: fjogeleit/http-request-action@v1.8.0
+      with:
+        # Request URL
+        url: https://g2.metastruct.net/metaconcord/ci/reload
+        # Request Method
+        method: GET
+        bearerToken: ${{secrets.TOKEN}}
+    - name: deploy all
+      if: steps.filter.outputs.payloads == 'true'
+      uses: fjogeleit/http-request-action@v1.8.0
+      with:
+        # Request URL
+        url: https://g2.metastruct.net/metaconcord/ci/reload?all=true
+        # Request Method
+        method: GET
+        bearerToken: ${{secrets.TOKEN}}
