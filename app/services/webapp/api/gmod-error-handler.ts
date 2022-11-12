@@ -1,7 +1,7 @@
 import { APIEmbed } from "discord.js";
+import { AddonURIS, getOrFetchLuaFile } from "@/utils";
 import { GameBridge, GameServer, Player } from "../../gamebridge";
 import { WebApp } from "..";
-import { AddonURIS, getOrFetchLuaFile } from "@/utils";
 import Discord from "discord.js";
 import SteamID from "steamid";
 import config from "@/config/webapp.json";
@@ -38,7 +38,7 @@ type StackMatchGroups = {
 };
 
 const megaRex =
-	/(?<stacknr>\d+)\. (?<fn>\S+) - (<(?<steamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>\w+?)(?:\/.*)?\/(?<filename>\w+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
+	/(?<stacknr>\d+)\. (?<fn>\S+) - (<(?<steamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
 
 const SuperReplacer = (_: string, ...args: any[]) => {
 	const groups = args.at(-1);
