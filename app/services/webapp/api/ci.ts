@@ -16,7 +16,7 @@ export default (webApp: WebApp): void => {
 
 		try {
 			res.status(SUCCESS).send();
-			spawn("sh", ["deploy.sh"]);
+			spawn("sh", [req.params["all"] ? "deploy.sh all" : "deploy.sh"]);
 			return;
 		} catch (err) {
 			return res.status(ERROR).send(err.message);
