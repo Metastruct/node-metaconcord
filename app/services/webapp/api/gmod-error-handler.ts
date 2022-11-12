@@ -1,14 +1,11 @@
 import { APIEmbed } from "discord.js";
 import { GameBridge, GameServer, Player } from "../../gamebridge";
-import { PathLike, promises as fs } from "fs";
 import { WebApp } from "..";
-import { clamp } from "@/utils";
+import { getOrFetchLuaFile } from "@/utils";
 import Discord from "discord.js";
 import SteamID from "steamid";
-import apikeys from "@/config/apikeys.json";
 import config from "@/config/webapp.json";
 import express from "express";
-import request, { gql } from "graphql-request";
 import servers from "@/config/gamebridge.servers.json";
 
 type GmodResponse = {
@@ -88,85 +85,6 @@ const SuperReplacer = (_: string, ...args: any[]) => {
 
 const gamemodes = ["sandbox_modded", "mta", "jazztronauts"]; //proper gamemode support when???
 
-const LINES = 10;
-const LOOKUP_PATH = config.lookupPath;
-
-async function exists(path: PathLike): Promise<boolean> {
-	return fs
-		.access(path)
-		.then(() => true)
-		.catch(() => false);
-}
-
-const getLines = (input: string, lino: number) => {
-	const lines = input.split(/\r?\n/).map(str => "  " + str);
-	const line = lino - 1;
-	lines[line] = ">>" + lines[line].substring(2);
-	return lines
-		.slice(clamp(line - LINES / 2, 0, lines.length), clamp(line + LINES / 2, 0, lines.length))
-		.join("\n");
-};
-
-async function getSnippet(smg: StackMatchGroups): Promise<string | undefined> {
-	const path = LOOKUP_PATH + smg.path;
-	if (await exists(path)) {
-		const file = await fs.readFile(path, "utf8");
-		return getLines(file, Number(smg.lino));
-	} else {
-		const url: string | undefined = smg.addon ? AddonURIS[smg.addon] : undefined;
-
-		if (url) {
-			const provider = url.match(/([^\.\/]+)\.com/);
-			if (!provider) return;
-			const isGithub = provider[1] === "github";
-			const endpoint = isGithub
-				? "https://api.github.com/graphql"
-				: "https://gitlab.com/api/graphql";
-			const repo = smg.addon;
-			const owner = url.match(/\.com\/(.+?)\//);
-			const branch = url.split("/").at(-2);
-
-			if (!owner) return;
-			const query = isGithub
-				? gql`{
-		repository(owner:"${owner[1]}", name:"${repo}") {
-			content: object(expression:"${branch}:${smg.path}") {
-				... on Blob {
-					text
-				}
-			}
-		}
-}
-`
-				: gql`{
-	project(fullpath:"${url.match(/\.com\/(.+?)\/\-/)}") {
-		repository {
-			blobs(paths:"${smg.path}"){
-				nodes{rawTextBlob}
-			}
-		}
-	}
-}
-`;
-			try {
-				const res = await request(endpoint, query, undefined, {
-					authorization: `Bearer ${isGithub ? apikeys.github : apikeys.gitlab}`,
-				});
-				if (res) {
-					const filecontent = isGithub
-						? (res.data.repository.content.text as string)
-						: (res.data.project.repository.blobs.nodes[0].rawTextBlob as string);
-					return getLines(filecontent, Number(smg.lino));
-				}
-				return;
-			} catch (err) {
-				console.error(JSON.stringify(err, undefined, 2));
-				return;
-			}
-		}
-	}
-}
-
 export default (webApp: WebApp): void => {
 	let gameBridge: GameBridge;
 	const webhook = new Discord.WebhookClient({
@@ -239,9 +157,6 @@ export default (webApp: WebApp): void => {
 				if (player.isLinux) embed.fields = [{ name: "OS:", value: "UNIX", inline: true }];
 			}
 			if (server) {
-				embed.author = {
-					name: server.name,
-				};
 				if (gameserver) {
 					if (gameserver?.mapUptime) {
 						embed.fields.push({
@@ -271,7 +186,8 @@ export default (webApp: WebApp): void => {
 			);
 			if (filematch.length > 0) {
 				const smg = filematch[0].groups as StackMatchGroups;
-				await getSnippet(smg).then(res => {
+				if (!smg.path) return;
+				await getOrFetchLuaFile(smg.path, Number(smg.lino), smg.addon).then(res => {
 					if (res) {
 						embeds.push({ description: `\`\`\`lua\n${res}\`\`\`` });
 					}
