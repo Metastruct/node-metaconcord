@@ -33,7 +33,7 @@ export const getStackLines = (input: string, linestart: number, lineend?: number
 		.join("\n");
 };
 
-const AddonURIS = {
+export const AddonURIS = {
 	acf: "https://github.com/metastruct/ACF/blob/master/",
 	advdupe2: "https://github.com/wiremod/advdupe2/blob/master/",
 	aowl: "https://gitlab.com/metastruct/internal/aowl/-/blob/master/",
@@ -45,6 +45,7 @@ const AddonURIS = {
 	metaconcord: "https://github.com/metastruct/gmod-metaconcord/blob/master/",
 	metastruct: "https://gitlab.com/metastruct/internal/metastruct/-/blob/master/",
 	metaworks: "https://gitlab.com/metastruct/metaworks/MetaWorks/-/blob/master",
+	"neo-chatsounds": "https://github.com/Earu/neo-chatsounds/blob/main/",
 	mta: "https://gitlab.com/metastruct/mta_projects/mta/-/blob/master/",
 	pac3: "https://github.com/CapsAdmin/pac3/blob/develop/",
 	sandbox_modded: "https://gitlab.com/metastruct/internal/qbox/-/blob/master/",
