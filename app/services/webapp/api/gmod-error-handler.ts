@@ -31,32 +31,38 @@ type StackMatchGroups = {
 	fn: string;
 	lino: string;
 	nick?: string;
+	partialsteamid?: string;
 	path?: string;
 	rfilename?: string;
 	stacknr: string;
 	steamid: string;
+	steamnick?: string;
 };
 
 const megaRex =
-	/(?<stacknr>\d+)\. (?<fn>\S+) - (<(?<steamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
+	/(?<stacknr>\d+)\. (?<fn>\S+) - (\[(?<steamid>STEAM_\d:\d:\d+)\](?<steamnick>.+))?(<(?<partialsteamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
 
 const SuperReplacer = (_: string, ...args: any[]) => {
-	const groups = args.at(-1);
+	const groups = args.at(-1) as StackMatchGroups;
 	return `${groups.stacknr}. ${groups.fn} - ${
 		groups.steamid
+			? `\[[${groups.steamid}\]${
+					groups.steamnick
+			  }](http://steamcommunity.com/profiles/${new SteamID(groups.steamid).getSteamID64()})`
+			: groups.partialsteamid
 			? groups.rfilename
 				? `<[${groups.steamid} |${
 						groups.nick
 				  }](http://steamcommunity.com/profiles/${new SteamID(
 						`STEAM_${groups.steamid}`
-				  ).getSteamID64()})><${groups.rfilname}>`
+				  ).getSteamID64()})><${groups.rfilename}>`
 				: `<[${groups.steamid} |${
 						groups.nick
 				  }](http://steamcommunity.com/profiles/${new SteamID(
 						`STEAM_${groups.steamid}`
 				  ).getSteamID64()})><${groups.cmdname}:${groups.cmdrealm}>`
 			: groups.path
-			? AddonURIS[groups.addon]
+			? groups.addon && AddonURIS[groups.addon]
 				? `[${groups.path}](${AddonURIS[groups.addon] + groups.path}#L${groups.lino})`
 				: groups.path
 			: groups.engine
@@ -109,6 +115,7 @@ export default (webApp: WebApp): void => {
 			const stack = body.stack.replaceAll(megaRex, SuperReplacer);
 			const matches = [...body.stack.matchAll(megaRex)];
 			if (body.realm === "client" && matches.find(m => !m.groups?.steamid)) return; // player (self) errors
+			if (body.realm === "client" && matches.find(m => !m.groups?.partialsteamid)) return; // ditto
 			const embeds: APIEmbed[] = [];
 
 			// main embed
