@@ -3,6 +3,7 @@ import * as responseSchema from "./structures/ErrorResponse.json";
 import { APIEmbed } from "discord.js";
 import { ErrorRequest, ErrorResponse } from "./structures";
 import { GameServer } from "..";
+import { getOrFetchLuaFile } from "@/utils";
 import Payload from "./Payload";
 
 export default class ErrorPayload extends Payload {
@@ -20,18 +21,38 @@ export default class ErrorPayload extends Payload {
 
 		const webhook = discordEWH;
 
-		const embed: APIEmbed = {
+		const lines = hook_error.errormsg.split(/\r?\n/);
+		const err = lines[0];
+		const path = err.split(":")[0];
+		const linenr = err.split(":")[1];
+		const stack = lines.splice(2).map((l, i) => `${i + 1}. ${l}`);
+		const file = await getOrFetchLuaFile(path, Number(linenr));
+		const embeds: APIEmbed[] = [];
+		const embed = {
 			title: hook_error.name,
-			description: `\`\`\`lua\n${hook_error.errormsg.replace("`", "\\`")}\`\`\``,
-			author: {
-				name: server.config.name,
+			description: stack.join("\n").replace("`", "\\`"),
+			footer: {
+				text: `${server.gamemode.name}@${server.config.name}`,
 			},
+			fields: [{ name: "Map running since:", value: `<t:${server.mapUptime.toString()}:R>` }],
+			color: 0x03a9f4,
 		};
+
+		if (file) {
+			embed.title = "";
+			embeds.push(embed);
+			embeds.push({
+				title: hook_error.name,
+				description: `\`\`\`lua\n${file}\`\`\``,
+			});
+		} else {
+			embeds.push(embed);
+		}
 
 		webhook.send({
 			allowedMentions: { parse: [] },
-			content: `**${hook_error.identifier} Hook Failed!**`,
-			embeds: [embed],
+			content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
+			embeds: embeds,
 		});
 	}
 
