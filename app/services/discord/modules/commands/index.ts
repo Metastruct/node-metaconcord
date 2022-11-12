@@ -5,6 +5,7 @@ import { MessageOptions } from "slash-create";
 import { SlashActivitiesCommand } from "./Activities";
 import { SlashBanCommand } from "./developer/Ban";
 import { SlashCustomRoleCommand } from "./CustomRole";
+import { SlashEvalCommand } from "./developer/Eval";
 import { SlashGservAllCommand } from "./developer/GservAll";
 import { SlashGservCommand } from "./developer/Gserv";
 import { SlashKickCommand } from "./developer/Kick";
@@ -31,25 +32,26 @@ export function EphemeralResponse(content: string): MessageOptions {
 }
 
 export const commands = [
-	SlashMarkovCommand,
 	SlashActivitiesCommand,
-	SlashMuteCommand,
-	SlashUnmuteCommand,
-	SlashWhyMuteCommand,
+	SlashBanCommand,
+	SlashCustomRoleCommand,
+	SlashEvalCommand,
 	SlashGservAllCommand,
 	SlashGservCommand,
-	SlashCustomRoleCommand,
-	SlashVaccinatedCommand,
+	SlashKickCommand,
 	SlashLuaCommand,
+	SlashMarkovCommand,
+	SlashMuteCommand,
 	SlashRconCommand,
 	SlashRefreshLuaCommand,
 	SlashRuleCommand,
-	SlashWhyBanCommand,
-	SlashBanCommand,
-	SlashUnBanCommand,
-	SlashKickCommand,
 	SlashSpeechbubbleCommand,
 	SlashSQLCommand,
+	SlashUnBanCommand,
+	SlashUnmuteCommand,
+	SlashVaccinatedCommand,
+	SlashWhyBanCommand,
+	SlashWhyMuteCommand,
 	UIMuteCommand,
 	UISpeechbubbleCommand,
 	UIUnmuteCommand,
