@@ -14,11 +14,12 @@ export default (webApp: WebApp): void => {
 		const token = bearer.split("Bearer ")[1];
 		if (token !== config.token) return res.status(FORBIDDEN).send();
 
+		res.status(SUCCESS).send();
+
 		try {
 			const args = ["deploy.sh"];
-			if (req.params["all"]) args.push("all");
-			res.status(SUCCESS).send();
-			spawn("sh", args);
+			if (req.query.all) args.push("all");
+			spawn("bash", args);
 			return;
 		} catch (err) {
 			return res.status(ERROR).send(err.message);
