@@ -9,12 +9,12 @@ export class SlashEvalCommand extends SlashDeveloperCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(bot, creator, {
 			name: "eval",
-			description: "Executes typescript on the bot",
+			description: "Executes javascript or typescript on the bot",
 			options: [
 				{
 					type: CommandOptionType.STRING,
 					name: "code",
-					description: "The typescript code to execute",
+					description: "The javascript or typescript code to execute",
 					required: true,
 				},
 			],
