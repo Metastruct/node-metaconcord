@@ -15,8 +15,10 @@ export default (webApp: WebApp): void => {
 		if (token !== config.token) return res.status(FORBIDDEN).send();
 
 		try {
+			const args = ["deploy.sh"];
+			if (req.params["all"]) args.push("all");
 			res.status(SUCCESS).send();
-			spawn("sh", [req.params["all"] ? "deploy.sh all" : "deploy.sh"]);
+			spawn("sh", args);
 			return;
 		} catch (err) {
 			return res.status(ERROR).send(err.message);
