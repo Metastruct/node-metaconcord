@@ -189,7 +189,7 @@ export default (webApp: WebApp): void => {
 					if (res && smg.filename) {
 						payload.files = [
 							{
-								attachment: res,
+								attachment: Buffer.from(res),
 								name: smg.filename + smg.ext,
 							},
 						];
