@@ -1,4 +1,4 @@
-import { APIEmbed } from "discord.js";
+import { APIEmbed, WebhookCreateMessageOptions } from "discord.js";
 import { AddonURIS, getOrFetchLuaFile } from "@/utils";
 import { GameBridge, GameServer, Player } from "../../gamebridge";
 import { WebApp } from "..";
@@ -165,6 +165,11 @@ export default (webApp: WebApp): void => {
 				}
 			}
 			embeds.push(embed);
+			const payload: WebhookCreateMessageOptions = {
+				allowedMentions: { parse: [] },
+				content: `**${body.error.replace("*", "\\*")}**`,
+				embeds: embeds,
+			};
 
 			// code embed
 
@@ -175,20 +180,18 @@ export default (webApp: WebApp): void => {
 				const smg = filematch[0].groups as StackMatchGroups;
 				if (!smg.path) return;
 				await getOrFetchLuaFile(smg.path, Number(smg.lino), smg.addon).then(res => {
-					if (res) {
-						embeds.push({ description: `\`\`\`lua\n${res}\`\`\`` });
+					if (res && smg.filename) {
+						payload.files = [
+							{
+								attachment: res,
+								name: smg.filename + smg.ext,
+							},
+						];
 					}
 				});
 			}
-
 			if (body.v === "test") return;
-			webhook
-				.send({
-					allowedMentions: { parse: [] },
-					content: `**${body.error.replace("*", "\\*")}**`,
-					embeds: embeds,
-				})
-				.catch(console.error);
+			webhook.send(payload).catch(console.error);
 		}
 	});
 };
