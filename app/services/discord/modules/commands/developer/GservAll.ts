@@ -123,7 +123,7 @@ export class SlashGservAllCommand extends SlashDeveloperCommand {
 			return success;
 		} catch (err) {
 			const msg = host + `\ngserv failed!\`\`\`\n${err}\`\`\``;
-			if (!solo) {
+			if (solo) {
 				await ctx.editParent(msg);
 			} else {
 				await ctx.send(msg);
@@ -162,7 +162,11 @@ export class SlashGservAllCommand extends SlashDeveloperCommand {
 				)
 			);
 		await Promise.all(promises)
-			.then(() => ctx.editOriginal("sent command(s) successfully!"))
+			.then(() =>
+				servers.length === 1
+					? ctx.send("sent command(s) successfully!")
+					: ctx.editOriginal("sent command(s) successfully!")
+			)
 			.catch(err => ctx.send(`something went wrong!\`\`\`\n${err}\`\`\``));
 	}
 
