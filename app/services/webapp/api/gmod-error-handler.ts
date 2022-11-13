@@ -33,6 +33,7 @@ type StackMatchGroups = {
 	nick?: string;
 	partialsteamid?: string;
 	path?: string;
+	runstring?: string;
 	rfilename?: string;
 	stacknr: string;
 	steamid: string;
@@ -40,7 +41,7 @@ type StackMatchGroups = {
 };
 
 const megaRex =
-	/(?<stacknr>\d+)\. (?<fn>\S+) - (\[(?<steamid>STEAM_\d:\d:\d+)\](?<steamnick>.+))?(<(?<partialsteamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
+	/(?<stacknr>\d+)\. (?<fn>\S+) - (?<runstring>RunString)?(\[(?<steamid>STEAM_\d:\d:\d+)\](?<steamnick>.+))?(<(?<partialsteamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
 
 const SuperReplacer = (_: string, ...args: any[]) => {
 	const groups = args.at(-1) as StackMatchGroups;
@@ -114,8 +115,13 @@ export default (webApp: WebApp): void => {
 
 			const stack = body.stack.replaceAll(megaRex, SuperReplacer);
 			const matches = [...body.stack.matchAll(megaRex)];
-			if (body.realm === "client" && matches.find(m => !m.groups?.steamid)) return; // player (self) errors
-			if (body.realm === "client" && matches.find(m => !m.groups?.partialsteamid)) return; // ditto
+			if (
+				body.realm === "client" &&
+				matches.some(
+					m => m.groups?.steamid || m.groups?.partialsteamid || m.groups?.runstring
+				)
+			)
+				return; // player (self) errors
 			const embeds: APIEmbed[] = [];
 
 			// main embed
