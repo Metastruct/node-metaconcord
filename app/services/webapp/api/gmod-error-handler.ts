@@ -71,7 +71,7 @@ const SuperReplacer = (_: string, ...args: any[]) => {
 };
 
 const gamemodes = ["sandbox_modded", "mta", "jazztronauts"]; //proper gamemode support when???
-const funcIgnore = ["CreateFont"];
+const funcIgnore = ["CreateFont", "require"];
 // const fileIgnore = [];
 
 export default (webApp: WebApp): void => {
@@ -129,6 +129,13 @@ export default (webApp: WebApp): void => {
 				)
 			)
 				return; // player (self) errors
+			if (
+				matches.some(
+					m => m.groups?.fn && funcIgnore.includes(m.groups?.fn) //||
+					// (m.groups?.filename && fileIgnore.includes(m.groups?.filename))
+				)
+			)
+				return;
 			const embeds: APIEmbed[] = [];
 
 			// main embed
