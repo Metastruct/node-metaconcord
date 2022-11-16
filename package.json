@@ -46,7 +46,7 @@
 		"websocket": "^1.0.34"
 	},
 	"resolutions": {
-			"discord.js/discord-api-types": "0.37.14"
+		"discord.js/discord-api-types": "0.37.14"
 	},
 	"devDependencies": {
 		"@types/bad-words": "^3.0.0",
