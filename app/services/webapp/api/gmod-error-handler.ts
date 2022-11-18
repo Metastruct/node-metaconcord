@@ -33,7 +33,7 @@ type StackMatchGroups = {
 	nick?: string;
 	partialsteamid?: string;
 	path?: string;
-	runstring?: string;
+	runnables?: string;
 	rfilename?: string;
 	stacknr: string;
 	steamid: string;
@@ -41,7 +41,7 @@ type StackMatchGroups = {
 };
 
 const megaRex =
-	/(?<stacknr>\d+)\. (?<fn>\S+) - (?<runstring>RunString)?(\[(?<steamid>STEAM_\d:\d:\d+)\](?<steamnick>.+))?(<(?<partialsteamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
+	/(?<stacknr>\d+)\. (?<fn>\S+) - (?<runnables>RunString|LuaCmd)?(\[(?<steamid>STEAM_\d:\d:\d+)\](?<steamnick>.+))?(<(?<partialsteamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
 
 const SuperReplacer = (_: string, ...args: any[]) => {
 	const groups = args.at(-1) as StackMatchGroups;
@@ -72,7 +72,7 @@ const SuperReplacer = (_: string, ...args: any[]) => {
 
 const gamemodes = ["sandbox_modded", "mta", "jazztronauts"]; //proper gamemode support when???
 const funcIgnore = ["CreateFont", "require"];
-const fileIgnore = ["LuaCmd"];
+//const fileIgnore = [];
 
 export default (webApp: WebApp): void => {
 	let gameBridge: GameBridge;
@@ -123,9 +123,9 @@ export default (webApp: WebApp): void => {
 					m =>
 						m.groups?.steamid ||
 						m.groups?.partialsteamid ||
-						m.groups?.runstring ||
-						(m.groups?.fn && funcIgnore.includes(m.groups?.fn)) ||
-						(m.groups?.filename && fileIgnore.includes(m.groups?.filename))
+						m.groups?.runnables ||
+						(m.groups?.fn && funcIgnore.includes(m.groups?.fn)) //||
+					//	(m.groups?.filename && fileIgnore.includes(m.groups?.filename))
 				)
 			)
 				return; // player (self) errors
