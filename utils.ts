@@ -44,7 +44,7 @@ export const AddonURIS = {
 	luadev: "https://github.com/Metastruct/luadev/blob/master/",
 	metaconcord: "https://github.com/metastruct/gmod-metaconcord/blob/master/",
 	metastruct: "https://gitlab.com/metastruct/internal/metastruct/-/blob/master/",
-	metaworks: "https://gitlab.com/metastruct/metaworks/MetaWorks/-/blob/master",
+	metaworks: "https://gitlab.com/metastruct/metaworks/MetaWorks/-/blob/master/",
 	"neo-chatsounds": "https://github.com/Earu/neo-chatsounds/blob/main/",
 	mta: "https://gitlab.com/metastruct/mta_projects/mta/-/blob/master/",
 	pac3: "https://github.com/CapsAdmin/pac3/blob/develop/",
