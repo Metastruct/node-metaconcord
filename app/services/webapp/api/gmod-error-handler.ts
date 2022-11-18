@@ -72,7 +72,7 @@ const SuperReplacer = (_: string, ...args: any[]) => {
 
 const gamemodes = ["sandbox_modded", "mta", "jazztronauts"]; //proper gamemode support when???
 const funcIgnore = ["CreateFont", "require"];
-// const fileIgnore = [];
+const fileIgnore = ["LuaCmd"];
 
 export default (webApp: WebApp): void => {
 	let gameBridge: GameBridge;
@@ -124,8 +124,8 @@ export default (webApp: WebApp): void => {
 						m.groups?.steamid ||
 						m.groups?.partialsteamid ||
 						m.groups?.runstring ||
-						(m.groups?.fn && funcIgnore.includes(m.groups?.fn)) //||
-					// (m.groups?.filename && fileIgnore.includes(m.groups?.filename))
+						(m.groups?.fn && funcIgnore.includes(m.groups?.fn)) ||
+						(m.groups?.filename && fileIgnore.includes(m.groups?.filename))
 				)
 			)
 				return; // player (self) errors

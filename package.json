@@ -39,7 +39,6 @@
 		"slash-create": "^5.10.0",
 		"sqlite": "^4.1.2",
 		"sqlite3": "^5.1.1",
-		"ssh2-1200-fix": "^1.11.1",
 		"steamapi": "^2.2.0",
 		"steamid": "^2.0.0",
 		"twitter-api-v2": "^1.12.7",
