@@ -1,5 +1,6 @@
+import * as randomUnicodeEmoji from "random-unicode-emoji";
 import { DiscordBot } from "..";
-import { Message } from "discord.js";
+import { EmojiIdentifierResolvable, Message } from "discord.js";
 import { Shat } from "./shitposting";
 
 const MSG_IDLE_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
@@ -37,6 +38,11 @@ export default (bot: DiscordBot): void => {
 		}
 	}, 1000 * 60 * 15);
 
+	bot.discord.on("messageReactionAdd", async reaction => {
+		if (reaction.message.channelId !== bot.config.chatChannelId) return;
+		if (Math.random() >= 0.5) reaction.react();
+	});
+
 	bot.discord.on("messageCreate", async msg => {
 		if (msg.partial) {
 			try {
@@ -51,6 +57,14 @@ export default (bot: DiscordBot): void => {
 			msg.content.length === 0
 		)
 			return;
+
+		const rng = Math.random();
+		if (rng <= 0.1) {
+			let emoji: EmojiIdentifierResolvable;
+			if (rng <= 0.05) emoji = msg.guild?.emojis.cache.random() as EmojiIdentifierResolvable;
+			else emoji = randomUnicodeEmoji.random({ count: 1 })[0];
+			msg.react(emoji);
+		}
 		const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
 		if (its_posting_time && !posting) {
 			await sendShat(msg);
