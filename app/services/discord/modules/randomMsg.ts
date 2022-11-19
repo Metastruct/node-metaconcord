@@ -19,7 +19,7 @@ export default (bot: DiscordBot): void => {
 			if (msg) {
 				await msg.reply({
 					...shat,
-					allowedMentions: ping ? { parse: ["users"] } : { parse: [] },
+					allowedMentions: ping ? { repliedUser: true } : { repliedUser: false },
 				});
 			} else {
 				await (await bot.getTextChannel(bot.config.chatChannelId))?.send(shat);
