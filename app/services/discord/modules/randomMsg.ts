@@ -46,7 +46,12 @@ export default (bot: DiscordBot): void => {
 		if (its_posting_time && !posting) {
 			await sendShat(msg.content);
 			replied = false;
-		} else if (!its_posting_time && !replied && !posting) {
+		} else if (
+			!its_posting_time &&
+			!replied &&
+			!posting &&
+			msg.mentions.users.first()?.id === bot.discord.user?.id
+		) {
 			await sendShat(msg.content);
 			replied = true;
 		}
