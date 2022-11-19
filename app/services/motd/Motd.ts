@@ -91,15 +91,11 @@ export default class Motd extends Service {
 		data.append("deletehashes[]", "");
 		// this errors but works ?
 		axios
-			.post(
-				`https://api.imgur.com/3/album/${config.imgurDeleteHash}?deletehashes=${config.imgurDeleteHash}`,
-				data,
-				{
-					headers: {
-						Authorization: `Client-ID ${config.imgurClientId}`,
-					},
-				}
-			)
+			.post(`https://api.imgur.com/3/album/${config.imgurDeleteHash}?deletehashes[]=`, data, {
+				headers: {
+					Authorization: `Client-ID ${config.imgurClientId}`,
+				},
+			})
 			.catch();
 		if (this.data) {
 			this.data.lastIotdAuthors = [];
