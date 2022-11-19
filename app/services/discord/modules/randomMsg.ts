@@ -12,12 +12,15 @@ export default (bot: DiscordBot): void => {
 	let posting = false;
 	let replied = false;
 
-	const sendShat = async (msg?: Message, forceReply?: boolean) => {
+	const sendShat = async (msg?: Message, forceReply?: boolean, ping?: boolean) => {
 		posting = true;
 		const shat = await Shat(bot, msg?.content, undefined, forceReply);
 		if (shat) {
 			if (msg) {
-				await msg.reply(shat);
+				await msg.reply({
+					...shat,
+					allowedMentions: ping ? { parse: ["users"] } : { parse: [] },
+				});
 			} else {
 				await (await bot.getTextChannel(bot.config.chatChannelId))?.send(shat);
 			}
@@ -58,7 +61,7 @@ export default (bot: DiscordBot): void => {
 			!posting &&
 			msg.mentions.users.first()?.id === bot.discord.user?.id
 		) {
-			await sendShat(msg, true);
+			await sendShat(msg, true, true);
 			replied = true;
 		}
 	});
