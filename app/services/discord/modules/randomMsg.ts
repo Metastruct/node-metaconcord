@@ -9,21 +9,22 @@ export default (bot: DiscordBot): void => {
 	if (!data) return;
 	let lastMkTime = data.lastMkTime ?? 0;
 	let posting = false;
+	let replied = false;
 
 	const sendShat = async (find?: string) => {
+		posting = true;
 		const shat = await Shat(bot, find);
 		if (shat) {
 			await (await bot.getTextChannel(bot.config.chatChannelId))?.send(shat);
 			data.lastMkTime = lastMkTime = Date.now();
 			await data.save();
 		}
+		posting = false;
 	};
 
 	setInterval(async () => {
 		if (Date.now() - lastMkTime > MSG_IDLE_INTERVAL && !posting) {
-			posting = true;
 			await sendShat();
-			posting = false;
 		}
 	}, 1000 * 60 * 15);
 
@@ -41,10 +42,13 @@ export default (bot: DiscordBot): void => {
 			msg.content.length === 0
 		)
 			return;
-		if (Date.now() - lastMkTime > MSG_INTERVAL && !posting) {
-			posting = true;
+		const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
+		if (its_posting_time && !posting) {
 			await sendShat(msg.content);
-			posting = false;
+			replied = false;
+		} else if (!its_posting_time && !replied && !posting) {
+			await sendShat(msg.content);
+			replied = true;
 		}
 	});
 };
