@@ -1,4 +1,5 @@
 import { DiscordBot } from "..";
+import { Message } from "discord.js";
 import { Shat } from "./shitposting";
 
 const MSG_IDLE_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
@@ -11,11 +12,16 @@ export default (bot: DiscordBot): void => {
 	let posting = false;
 	let replied = false;
 
-	const sendShat = async (find?: string) => {
+	const sendShat = async (msg?: Message) => {
 		posting = true;
-		const shat = await Shat(bot, find);
+		const shat = await Shat(bot, msg?.content);
 		if (shat) {
-			await (await bot.getTextChannel(bot.config.chatChannelId))?.send(shat);
+			if (msg) {
+				await msg.reply(shat);
+			} else {
+				await (await bot.getTextChannel(bot.config.chatChannelId))?.send(shat);
+			}
+
 			data.lastMkTime = lastMkTime = Date.now();
 			await data.save();
 		}
@@ -44,7 +50,7 @@ export default (bot: DiscordBot): void => {
 			return;
 		const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
 		if (its_posting_time && !posting) {
-			await sendShat(msg.content);
+			await sendShat(msg);
 			replied = false;
 		} else if (
 			!its_posting_time &&
@@ -52,7 +58,7 @@ export default (bot: DiscordBot): void => {
 			!posting &&
 			msg.mentions.users.first()?.id === bot.discord.user?.id
 		) {
-			await sendShat(msg.content);
+			await sendShat(msg);
 			replied = true;
 		}
 	});
