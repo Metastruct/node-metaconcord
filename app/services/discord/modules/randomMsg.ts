@@ -12,9 +12,9 @@ export default (bot: DiscordBot): void => {
 	let posting = false;
 	let replied = false;
 
-	const sendShat = async (msg?: Message) => {
+	const sendShat = async (msg?: Message, forceReply?: boolean) => {
 		posting = true;
-		const shat = await Shat(bot, msg?.content);
+		const shat = await Shat(bot, msg?.content, undefined, forceReply);
 		if (shat) {
 			if (msg) {
 				await msg.reply(shat);
@@ -58,7 +58,7 @@ export default (bot: DiscordBot): void => {
 			!posting &&
 			msg.mentions.users.first()?.id === bot.discord.user?.id
 		) {
-			await sendShat(msg);
+			await sendShat(msg, true);
 			replied = true;
 		}
 	});

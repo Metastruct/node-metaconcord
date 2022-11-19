@@ -5,13 +5,14 @@ import { makeSpeechBubble } from "@/utils";
 export const Shat = async (
 	bot: DiscordBot,
 	msg?: string,
-	forceImage?: boolean
+	forceImage?: boolean,
+	forceReply?: boolean
 ): Promise<MessageCreateOptions | undefined> => {
 	const rng = Math.random();
 	if (rng > 0.05 && !forceImage) {
 		let search: string | undefined;
 		let islast = false;
-		if (msg && !msg.startsWith("http") && rng >= 0.5) {
+		if (msg && !msg.startsWith("http") && (rng >= 0.5 || forceReply)) {
 			const words = msg.replace(`<@${bot.discord.user?.id}>`, "").split(" ");
 			const index = Math.floor(rng * words.length);
 			islast = index + 1 === words.length;
