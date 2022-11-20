@@ -110,9 +110,9 @@ export default class AdminNotifyPayload extends Payload {
 					`SELECT report_amount FROM playerstats WHERE accountid = ${
 						new SteamID(reported.steamId).accountid
 					}`
-				)[0];
-				if (res) {
-					this.reportCache[reportedSteamId64] = res.report_amount;
+				);
+				if (res[0]) {
+					this.reportCache[reportedSteamId64] = res[0].report_amount;
 				} else {
 					this.reportCache[reportedSteamId64] = 0;
 				}

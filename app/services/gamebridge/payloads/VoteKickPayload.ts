@@ -125,9 +125,9 @@ export default class NotificationPayload extends Payload {
 					`SELECT votekick_amount FROM playerstats WHERE accountid = ${
 						new SteamID(offender.steamID).accountid
 					}`
-				)[0];
-				if (res) {
-					this.votekickCache[offenderSteamId64] = res.votekick_amount;
+				);
+				if (res[0]) {
+					this.votekickCache[offenderSteamId64] = res[0].votekick_amount;
 				} else {
 					this.votekickCache[offenderSteamId64] = 0;
 				}
