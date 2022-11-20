@@ -71,12 +71,13 @@ export default (bot: DiscordBot): void => {
 
 	const getRandomEmoji = () => {
 		let emoji: EmojiIdentifierResolvable;
-		if (Math.random() <= 0.5)
-			emoji =
-				(bot.discord.guilds.cache
-					.get(bot.config.guildId)
-					?.emojis.cache.random() as EmojiIdentifierResolvable) ?? "😩";
-		else emoji = EmojiList[Math.floor(Math.random() * EmojiList.length)].toString();
+		if (Math.random() <= 0.5) {
+			emoji = bot.discord.guilds.cache
+				.get(bot.config.guildId)
+				?.emojis.cache.random() as EmojiIdentifierResolvable;
+		} else {
+			emoji = EmojiList[Math.floor(Math.random() * EmojiList.length)];
+		}
 		return emoji;
 	};
 
@@ -93,7 +94,7 @@ export default (bot: DiscordBot): void => {
 		}
 		const id = bot.discord.user?.id;
 		if (!id) return;
-		if (Math.random() <= 0.1 || msg.mentions.users.first()?.id === bot.discord.user?.id) {
+		if (Math.random() <= 0.05 || msg.mentions.users.first()?.id === bot.discord.user?.id) {
 			msg.react(getRandomEmoji());
 		}
 		if (!(msg.mentions.users.first()?.id === id)) return;
@@ -131,7 +132,7 @@ export default (bot: DiscordBot): void => {
 		)
 			return;
 
-		if (Math.random() <= 0.1 || msg.mentions.users.first()?.id === bot.discord.user?.id) {
+		if (Math.random() <= 0.05 || msg.mentions.users.first()?.id === bot.discord.user?.id) {
 			msg.react(getRandomEmoji());
 		}
 
