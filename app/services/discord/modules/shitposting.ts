@@ -108,7 +108,7 @@ export default (bot: DiscordBot): void => {
 
 	bot.discord.on("messageReactionAdd", async reaction => {
 		if (
-			reaction.message.channelId !== bot.config.chatChannelId ||
+			reaction.message.channelId !== bot.config.chatChannelId &&
 			!bot.config.allowedShitpostingChannels.includes(reaction.message.channelId)
 		)
 			return;
