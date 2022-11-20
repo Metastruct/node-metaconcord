@@ -72,9 +72,10 @@ export default (bot: DiscordBot): void => {
 	const getRandomEmoji = () => {
 		let emoji: EmojiIdentifierResolvable;
 		if (Math.random() <= 0.5)
-			emoji = bot.discord.guilds.cache
-				.get(bot.config.guildId)
-				?.emojis.cache.random() as EmojiIdentifierResolvable;
+			emoji =
+				(bot.discord.guilds.cache
+					.get(bot.config.guildId)
+					?.emojis.cache.random() as EmojiIdentifierResolvable) ?? "😩";
 		else emoji = EmojiList[Math.floor(Math.random() * EmojiList.length)].toString();
 		return emoji;
 	};
