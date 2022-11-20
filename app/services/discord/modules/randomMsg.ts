@@ -40,7 +40,7 @@ export default (bot: DiscordBot): void => {
 
 	bot.discord.on("messageReactionAdd", async reaction => {
 		if (reaction.message.channelId !== bot.config.chatChannelId) return;
-		if (Math.random() >= 0.5) reaction.react();
+		if (Math.random() >= 0.75) reaction.react();
 	});
 
 	bot.discord.on("messageCreate", async msg => {
