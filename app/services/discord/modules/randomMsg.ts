@@ -1,4 +1,4 @@
-import * as randomUnicodeEmoji from "random-unicode-emoji";
+import * as EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 import { DiscordBot } from "..";
 import { EmojiIdentifierResolvable, Message } from "discord.js";
 import { Shat } from "./shitposting";
@@ -62,7 +62,7 @@ export default (bot: DiscordBot): void => {
 		if (rng <= 0.1 || msg.mentions.users.first()?.id === bot.discord.user?.id) {
 			let emoji: EmojiIdentifierResolvable;
 			if (rng <= 0.05) emoji = msg.guild?.emojis.cache.random() as EmojiIdentifierResolvable;
-			else emoji = randomUnicodeEmoji.random({ count: 1 })[0];
+			else emoji = EmojiList[Math.random() * EmojiList.length];
 			msg.react(emoji);
 		}
 		const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
