@@ -72,6 +72,9 @@ const SuperReplacer = (_: string, ...args: any[]) => {
 
 const gamemodes = ["sandbox_modded", "mta", "jazztronauts"]; //proper gamemode support when???
 const funcIgnore = ["CreateFont", "require"];
+const ignoreRegex = [
+	/Warning! A net message \(.+\) is already started! Discarding in favor of the new message! \(.+\)/g,
+];
 //const fileIgnore = [];
 
 export default (webApp: WebApp): void => {
@@ -114,6 +117,12 @@ export default (webApp: WebApp): void => {
 		if (body.stack) {
 			if (body.error.startsWith("@repl_")) return; // gcompute
 			if (body.error.startsWith("SF:")) return; // starfall
+
+			for (const regex of ignoreRegex) {
+				if (body.error.match(regex)) {
+					return;
+				}
+			}
 
 			const stack = body.stack.replaceAll(megaRex, SuperReplacer);
 			const matches = [...body.stack.matchAll(megaRex)];
