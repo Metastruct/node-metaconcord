@@ -59,7 +59,7 @@ export default (bot: DiscordBot): void => {
 			return;
 
 		const rng = Math.random();
-		if (rng <= 0.1) {
+		if (rng <= 0.1 || msg.mentions.users.first()?.id === bot.discord.user?.id) {
 			let emoji: EmojiIdentifierResolvable;
 			if (rng <= 0.05) emoji = msg.guild?.emojis.cache.random() as EmojiIdentifierResolvable;
 			else emoji = randomUnicodeEmoji.random({ count: 1 })[0];
