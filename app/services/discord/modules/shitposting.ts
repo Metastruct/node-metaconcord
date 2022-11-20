@@ -50,24 +50,6 @@ export default (bot: DiscordBot): void => {
 	let posting = false;
 	let replied = false;
 
-	// shitpost channel
-	bot.discord.on("messageCreate", async msg => {
-		if (msg.partial) {
-			try {
-				msg = await msg.fetch();
-			} catch {
-				return;
-			}
-		}
-		const id = bot.discord.user?.id;
-		if (!id) return;
-		if (!(msg.mentions.users.first()?.id === id)) return;
-		if (!bot.config.allowedShitpostingChannels.includes(msg.channelId) || msg.author.bot)
-			return;
-		const shat = await Shat(bot, msg.content);
-		if (shat) await msg.reply(shat);
-	});
-	// chat channel
 	const sendShat = async (msg?: Message, forceReply?: boolean, ping?: boolean) => {
 		posting = true;
 		const shat = await Shat(bot, msg?.content, undefined, forceReply);
@@ -87,6 +69,37 @@ export default (bot: DiscordBot): void => {
 		posting = false;
 	};
 
+	const getRandomEmoji = () => {
+		let emoji: EmojiIdentifierResolvable;
+		if (Math.random() <= 0.5)
+			emoji = bot.discord.guilds.cache
+				.get(bot.config.guildId)
+				?.emojis.cache.random() as EmojiIdentifierResolvable;
+		else emoji = EmojiList[Math.random() * EmojiList.length];
+		return emoji;
+	};
+
+	// shitpost channel
+	bot.discord.on("messageCreate", async msg => {
+		if (!bot.config.allowedShitpostingChannels.includes(msg.channelId) || msg.author.bot)
+			return;
+		if (msg.partial) {
+			try {
+				msg = await msg.fetch();
+			} catch {
+				return;
+			}
+		}
+		const id = bot.discord.user?.id;
+		if (!id) return;
+		if (Math.random() <= 0.1 || msg.mentions.users.first()?.id === bot.discord.user?.id) {
+			msg.react(getRandomEmoji());
+		}
+		if (!(msg.mentions.users.first()?.id === id)) return;
+		const shat = await Shat(bot, msg.content);
+		if (shat) await msg.reply(shat);
+	});
+	// chat channel
 	setInterval(async () => {
 		if (Date.now() - lastMkTime > MSG_IDLE_INTERVAL && !posting) {
 			await sendShat();
@@ -117,13 +130,10 @@ export default (bot: DiscordBot): void => {
 		)
 			return;
 
-		const rng = Math.random();
-		if (rng <= 0.1 || msg.mentions.users.first()?.id === bot.discord.user?.id) {
-			let emoji: EmojiIdentifierResolvable;
-			if (rng <= 0.05) emoji = msg.guild?.emojis.cache.random() as EmojiIdentifierResolvable;
-			else emoji = EmojiList[Math.random() * EmojiList.length];
-			msg.react(emoji);
+		if (Math.random() <= 0.1 || msg.mentions.users.first()?.id === bot.discord.user?.id) {
+			msg.react(getRandomEmoji());
 		}
+
 		const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
 		if (its_posting_time && !posting) {
 			await sendShat(msg);
