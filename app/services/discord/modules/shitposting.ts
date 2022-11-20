@@ -75,7 +75,7 @@ export default (bot: DiscordBot): void => {
 			emoji = bot.discord.guilds.cache
 				.get(bot.config.guildId)
 				?.emojis.cache.random() as EmojiIdentifierResolvable;
-		else emoji = EmojiList[Math.floor(Math.random() * EmojiList.length)];
+		else emoji = EmojiList[Math.floor(Math.random() * EmojiList.length)].toString();
 		return emoji;
 	};
 
