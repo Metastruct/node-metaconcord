@@ -74,6 +74,7 @@ const gamemodes = ["sandbox_modded", "mta", "jazztronauts"]; //proper gamemode s
 const funcIgnore = ["CreateFont", "require"];
 const ignoreRegex = [
 	/Warning! A net message \(.+\) is already started! Discarding in favor of the new message! \(.+\)/g,
+	/unsuccessful/,
 ];
 //const fileIgnore = [];
 
