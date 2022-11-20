@@ -41,7 +41,7 @@ type StackMatchGroups = {
 };
 
 const megaRex =
-	/(?<stacknr>\d+)\. (?<fn>\S+) - (?<runnables>RunString|LuaCmd)?(\[(?<steamid>STEAM_\d:\d:\d+)\](?<steamnick>.+))?(<(?<partialsteamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
+	/(?<stacknr>\d+)\. (?<fn>\S+) - (?<runnables>RunString|LuaCmd|LUACMD)?(\[(?<steamid>STEAM_\d:\d:\d+)\](?<steamnick>.+))?(<(?<partialsteamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
 
 const SuperReplacer = (_: string, ...args: any[]) => {
 	const groups = args.at(-1) as StackMatchGroups;
