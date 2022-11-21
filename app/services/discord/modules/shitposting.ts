@@ -117,6 +117,15 @@ export default (bot: DiscordBot): void => {
 		if (Math.random() >= 0.75) reaction.react();
 	});
 
+	bot.discord.on("messageReactionRemove", async reaction => {
+		if (
+			reaction.message.channelId !== bot.config.chatChannelId &&
+			!bot.config.allowedShitpostingChannels.includes(reaction.message.channelId)
+		)
+			return;
+		if (reaction.me) reaction.remove();
+	});
+
 	bot.discord.on("messageCreate", async msg => {
 		if (msg.partial) {
 			try {
