@@ -1,8 +1,8 @@
-import * as EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 import { DiscordBot } from "..";
 import { EmojiIdentifierResolvable, Message } from "discord.js";
 import { MessageCreateOptions } from "discord.js";
 import { makeSpeechBubble } from "@/utils";
+import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
 const MSG_IDLE_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
 const MSG_INTERVAL = 1000 * 60 * 60 * 0.25; // 15 min
@@ -76,6 +76,7 @@ export default (bot: DiscordBot): void => {
 				.get(bot.config.guildId)
 				?.emojis.cache.random() as EmojiIdentifierResolvable;
 		} else {
+			console.log(EmojiList);
 			emoji = EmojiList[Math.floor(Math.random() * EmojiList.length)];
 		}
 		return emoji;
@@ -138,7 +139,7 @@ export default (bot: DiscordBot): void => {
 
 		const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
 		if (its_posting_time && !posting) {
-			await sendShat(msg);
+			await sendShat(msg, true);
 			replied = false;
 		} else if (
 			!its_posting_time &&
