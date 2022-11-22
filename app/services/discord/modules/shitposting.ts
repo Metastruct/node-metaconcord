@@ -123,7 +123,8 @@ export default (bot: DiscordBot): void => {
 			!bot.config.allowedShitpostingChannels.includes(reaction.message.channelId)
 		)
 			return;
-		if (reaction.me && reaction.count === 2) reaction.users.remove(reaction.client.user);
+		if (reaction.me && reaction.count && reaction.count <= 2)
+			reaction.users.remove(reaction.client.user);
 	});
 
 	bot.discord.on("messageCreate", async msg => {
