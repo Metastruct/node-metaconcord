@@ -6,6 +6,7 @@ import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
 const MSG_IDLE_INTERVAL = 1000 * 60 * 60 * 1; // 60 min
 const MSG_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
+const REACTION_FREQ = 0.025;
 
 export const Shat = async (
 	bot: DiscordBot,
@@ -94,7 +95,10 @@ export default (bot: DiscordBot): void => {
 		}
 		const id = bot.discord.user?.id;
 		if (!id) return;
-		if (Math.random() <= 0.05 || msg.mentions.users.first()?.id === bot.discord.user?.id) {
+		if (
+			Math.random() <= REACTION_FREQ ||
+			msg.mentions.users.first()?.id === bot.discord.user?.id
+		) {
 			msg.react(getRandomEmoji());
 		}
 		if (!(msg.mentions.users.first()?.id === id)) return;
@@ -142,7 +146,10 @@ export default (bot: DiscordBot): void => {
 		)
 			return;
 
-		if (Math.random() <= 0.05 || msg.mentions.users.first()?.id === bot.discord.user?.id) {
+		if (
+			Math.random() <= REACTION_FREQ ||
+			msg.mentions.users.first()?.id === bot.discord.user?.id
+		) {
 			msg.react(getRandomEmoji());
 		}
 
