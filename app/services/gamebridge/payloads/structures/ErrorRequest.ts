@@ -1,6 +1,6 @@
 import PayloadRequest from "./PayloadRequest";
 export default interface ErrorRequest extends PayloadRequest {
-	name: "ErrorRequest";
+	name: "ErrorPayload";
 	data: {
 		hook_error: {
 			name: string;
