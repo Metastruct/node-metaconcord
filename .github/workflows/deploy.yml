@@ -16,7 +16,7 @@ jobs:
             - 'app/services/gamebridge/payloads/structures/**'
     - name: normal deploy
       if: steps.filter.outputs.payloads == 'false'
-      uses: fjogeleit/http-request-action@v1.8.0
+      uses: fjogeleit/http-request-action@v1
       with:
         # Request URL
         url: https://g2.metastruct.net/metaconcord/ci/reload
@@ -25,7 +25,7 @@ jobs:
         bearerToken: ${{secrets.TOKEN}}
     - name: deploy all
       if: steps.filter.outputs.payloads == 'true'
-      uses: fjogeleit/http-request-action@v1.8.0
+      uses: fjogeleit/http-request-action@v1
       with:
         # Request URL
         url: https://g2.metastruct.net/metaconcord/ci/reload?all=true
