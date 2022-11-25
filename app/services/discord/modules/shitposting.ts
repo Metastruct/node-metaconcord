@@ -147,6 +147,13 @@ export default (bot: DiscordBot): void => {
 			return;
 
 		const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
+		if (
+			!its_posting_time &&
+			(Math.random() <= REACTION_FREQ ||
+				(replied && msg.mentions.users.first()?.id === bot.discord.user?.id))
+		) {
+			msg.react(getRandomEmoji());
+		}
 		if (its_posting_time && !posting) {
 			await sendShat(msg, true);
 			replied = false;
@@ -158,14 +165,6 @@ export default (bot: DiscordBot): void => {
 		) {
 			await sendShat(msg, true, true);
 			replied = true;
-		}
-
-		if (
-			!its_posting_time &&
-			(Math.random() <= REACTION_FREQ ||
-				(replied && msg.mentions.users.first()?.id === bot.discord.user?.id))
-		) {
-			msg.react(getRandomEmoji());
 		}
 	});
 };
