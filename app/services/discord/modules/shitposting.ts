@@ -162,9 +162,8 @@ export default (bot: DiscordBot): void => {
 
 		if (
 			!its_posting_time &&
-			replied &&
 			(Math.random() <= REACTION_FREQ ||
-				msg.mentions.users.first()?.id === bot.discord.user?.id)
+				(replied && msg.mentions.users.first()?.id === bot.discord.user?.id))
 		) {
 			msg.react(getRandomEmoji());
 		}
