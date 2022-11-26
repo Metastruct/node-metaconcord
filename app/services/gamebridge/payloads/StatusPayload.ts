@@ -29,7 +29,8 @@ export default class StatusPayload extends Payload {
 	static async handle(payload: StatusRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
-		const { players, map, workshopMap, gamemode, serverUptime, mapUptime } = payload.data;
+		const { countdown, defcon, players, map, workshopMap, gamemode, serverUptime, mapUptime } =
+			payload.data;
 		const { bridge, discord } = server;
 		const webApp = bridge.container.getService("WebApp");
 		if (!webApp) return;
@@ -84,7 +85,11 @@ export default class StatusPayload extends Payload {
 			}
 
 			const embed = new Discord.EmbedBuilder()
-				.setColor(GamemodeColors[gamemode.name.toLowerCase()] ?? null)
+				.setColor(
+					defcon === 1 || countdown
+						? 0xff0000
+						: GamemodeColors[gamemode.name.toLowerCase()] ?? null
+				)
 				.setTitle(map)
 				.setDescription(desc)
 				.setThumbnail(mapThumbnail)
@@ -125,6 +130,7 @@ export default class StatusPayload extends Payload {
 			// Server status metadata
 			server.status.mapThumbnail = mapThumbnail;
 			server.status.players = players;
+			server.defcon = defcon;
 			server.gamemode = gamemode;
 			server.map = map;
 			server.mapUptime = maptime;

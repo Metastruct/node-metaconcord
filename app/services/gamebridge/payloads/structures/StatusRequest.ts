@@ -2,6 +2,8 @@ import PayloadRequest from "./PayloadRequest";
 export default interface StatusRequest extends PayloadRequest {
 	name: "StatusPayload";
 	data: {
+		countdown: boolean;
+		defcon: number;
 		hostname: string;
 		players: {
 			accountId: number;
