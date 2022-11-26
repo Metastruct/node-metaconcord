@@ -32,6 +32,7 @@ export default class GameServer {
 	connection: WebSocketConnection;
 	config: GameServerConfig;
 	bridge: GameBridge;
+	defcon: number;
 	discord: DiscordClient;
 	discordWH: WebhookClient;
 	discordEWH: WebhookClient;
