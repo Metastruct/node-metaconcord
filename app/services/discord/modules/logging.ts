@@ -111,7 +111,7 @@ export default (bot: DiscordBot): void => {
 			.setColor(YELLOW_COLOR)
 			.addFields(f("Channel", `<#${oldMsg.channel.id}>`))
 			.addFields(f("Mention", user?.mention ?? "???"))
-			.addFields(f("Difference", `\`\`\`ml\n${diff.substring(0, 1024)}\n\`\`\``))
+			.addFields(f("Difference", `\`\`\`ml\n${diff.substring(0, 1010)}\n\`\`\``))
 			.setFooter({ text: "Message Edited" })
 			.setTimestamp(newMsg.editedTimestamp);
 
