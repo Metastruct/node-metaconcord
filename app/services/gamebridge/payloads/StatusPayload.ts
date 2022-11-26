@@ -86,7 +86,7 @@ export default class StatusPayload extends Payload {
 				) {
 					presence.activities.push({
 						name: `${current_countdown.text} in ${current_countdown.time} seconds`,
-						type: 5,
+						type: 3,
 					});
 				}
 				if (current_defcon !== 5 && presence.activities) {
