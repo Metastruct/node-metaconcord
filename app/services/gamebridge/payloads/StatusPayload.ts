@@ -1,4 +1,5 @@
 import * as requestSchema from "./structures/StatusRequest.json";
+import { CountdownType } from "./structures/StatusRequest";
 import { GameServer } from "..";
 import { StatusRequest } from "./structures";
 import Discord, { TextChannel } from "discord.js";
@@ -40,7 +41,15 @@ export default class StatusPayload extends Payload {
 		const Steam = bridge.container.getService("Steam");
 
 		const updateStatus = async () => {
-			const count = players.length;
+			const current_countdown = countdown;
+			const current_defcon = defcon ?? 5;
+			const current_players = players ?? server.status.players;
+			const current_map = map ?? server.map;
+			const current_gamemode = gamemode ?? server.gamemode;
+			const current_serverUptime = serverUptime ?? server.serverUptime;
+			const current_mapUptime = mapUptime ?? server.mapUptime;
+
+			const count = current_players.length;
 
 			if (!discord) return;
 
@@ -53,7 +62,7 @@ export default class StatusPayload extends Payload {
 				if (me?.nickname !== server.config.name) me?.setNickname(server.config.name);
 
 				// Presence
-				discord.user.setPresence(
+				const presence: Discord.PresenceData =
 					count > 0
 						? {
 								activities: [
@@ -62,40 +71,64 @@ export default class StatusPayload extends Payload {
 										type: 3,
 									},
 								],
-								status: "online",
+								status:
+									current_defcon === 1 || current_countdown ? "dnd" : "online",
 						  }
-						: { afk: true, status: "idle", activities: [] }
-				);
+						: {
+								afk: true,
+								status: current_defcon === 1 || current_countdown ? "dnd" : "idle",
+								activities: [],
+						  };
+				if (
+					current_countdown &&
+					current_countdown.typ !== CountdownType.AOWL_COUNTDOWN_CUSTOM &&
+					presence.activities
+				) {
+					presence.activities.push({
+						name: `${current_countdown.text} in ${current_countdown.time} seconds`,
+						type: 5,
+					});
+				}
+				if (current_defcon !== 5 && presence.activities) {
+					presence.activities.push({ name: "DEFCON " + current_defcon, type: 5 });
+				}
+				discord.user.setPresence(presence);
 			}
 			// Permanent status message
 			let desc = `:busts_in_silhouette: **${count > 0 ? count : "no"} player${
 				count > 1 || count == 0 ? "s" : ""
 			}**`;
 			// Time, kinda sucks we need to calculate but that's just how it is.
-			const servertime = dayjs().subtract(serverUptime, "s").unix();
-			const maptime = dayjs().subtract(mapUptime, "s").unix();
+			const servertime = dayjs().subtract(current_serverUptime, "s").unix();
+			const maptime = dayjs().subtract(current_mapUptime, "s").unix();
 
 			desc += `\n:repeat: <t:${maptime}:R>`;
 			desc += `\n:file_cabinet: <t:${servertime}:R>`;
+			if (current_countdown && current_countdown.typ !== CountdownType.AOWL_COUNTDOWN_CUSTOM)
+				desc += `\n<a:ALERTA:843518761160015933> \`${current_countdown.text} in ${current_countdown.time} seconds\` <a:ALERTA:843518761160015933>`;
+			if (current_defcon && current_defcon !== 5)
+				desc += `\n<a:ALERTA:843518761160015933> \`DEFCON ${current_defcon}\` <a:ALERTA:843518761160015933>`;
+
 			let mapThumbnail: string | null = null;
-			if (/^gm_construct_m/i.test(map)) {
+			if (/^gm_construct_m/i.test(current_map)) {
 				mapThumbnail = `http://${host}:${port}/map-thumbnails/gm_construct_m.jpg`;
-			} else if (map.toLowerCase().trim() == "rp_unioncity") {
+			} else if (current_map.toLowerCase().trim() == "rp_unioncity") {
 				mapThumbnail = `http://${host}:${port}/map-thumbnails/rp_unioncity.jpg`;
 			}
 
 			const embed = new Discord.EmbedBuilder()
 				.setColor(
-					defcon === 1 || countdown
+					current_defcon === 1 || current_countdown
 						? 0xff0000
-						: GamemodeColors[gamemode.name.toLowerCase()] ?? null
+						: GamemodeColors[current_gamemode.name.toLowerCase()] ?? null
 				)
-				.setTitle(map)
+				.setTitle(current_map)
 				.setDescription(desc)
 				.setThumbnail(mapThumbnail)
 				.setFooter({
-					text: GamemodeAlias[gamemode.name.toLowerCase()] ?? gamemode.name,
-					iconURL: GamemodeIcons[gamemode.name.toLowerCase()],
+					text:
+						GamemodeAlias[current_gamemode.name.toLowerCase()] ?? current_gamemode.name,
+					iconURL: GamemodeIcons[current_gamemode.name.toLowerCase()],
 				})
 				.setURL(
 					`https://metastruct.net/${
@@ -129,10 +162,10 @@ export default class StatusPayload extends Payload {
 
 			// Server status metadata
 			server.status.mapThumbnail = mapThumbnail;
-			server.status.players = players;
-			server.defcon = defcon;
-			server.gamemode = gamemode;
-			server.map = map;
+			server.status.players = current_players;
+			server.defcon = current_defcon;
+			server.gamemode = current_gamemode;
+			server.map = current_map;
 			server.mapUptime = maptime;
 			server.serverUptime = servertime;
 			server.workshopMap = workshopMap;
