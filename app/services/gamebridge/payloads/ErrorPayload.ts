@@ -19,6 +19,8 @@ export default class ErrorPayload extends Payload {
 
 		const { hook_error } = payload.data;
 
+		if (hook_error.name.includes("@repl_")) return;
+
 		const webhook = discordEWH;
 
 		const lines = hook_error.errormsg.split(/\r?\n/);
