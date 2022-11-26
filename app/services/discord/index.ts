@@ -56,7 +56,10 @@ export class DiscordBot extends Service {
 
 		this.discord.on("ready", async () => {
 			console.log(`'${this.discord.user?.username}' Discord Bot has logged in`);
-			setInterval(getRandomStatus, 1000 * 60 * 10); // change status every 10mins
+			setInterval(
+				async () => this.setActivity(undefined, await getRandomStatus()),
+				1000 * 60 * 10
+			); // change status every 10mins
 			this.setActivity(undefined, await getRandomStatus());
 		});
 
