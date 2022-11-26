@@ -36,7 +36,7 @@ export class DiscordBot extends Service {
 				{ type: 0, ctx: "playing" },
 				{ type: 1, ctx: "streaming" },
 				{ type: 2, ctx: "listening to" },
-				{ type: 3, ctx: "watching for" },
+				{ type: 3, ctx: "watching" },
 				{ type: 5, ctx: "in" },
 			];
 
