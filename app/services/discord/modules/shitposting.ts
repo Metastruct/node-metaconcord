@@ -154,14 +154,15 @@ export default (bot: DiscordBot): void => {
 		) {
 			msg.react(getRandomEmoji());
 		}
-		if (its_posting_time && !posting && msg.content !== "<@427261532284387329>") {
+		if (its_posting_time && !posting) {
 			await sendShat(msg, true);
 			replied = false;
 		} else if (
 			!its_posting_time &&
 			!replied &&
 			!posting &&
-			msg.mentions.users.first()?.id === bot.discord.user?.id
+			msg.mentions.users.first()?.id === bot.discord.user?.id &&
+			msg.content !== "<@427261532284387329>"
 		) {
 			await sendShat(msg, true, true);
 			replied = true;
