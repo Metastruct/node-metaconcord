@@ -35,8 +35,8 @@ export class DiscordBot extends Service {
 			const validActivities = [
 				{ type: 0, ctx: "playing" },
 				{ type: 1, ctx: "streaming" },
-				{ type: 2, ctx: "listening" },
-				{ type: 3, ctx: "watching" },
+				{ type: 2, ctx: "listening to" },
+				{ type: 3, ctx: "watching for" },
 				{ type: 5, ctx: "in" },
 			];
 
