@@ -42,11 +42,16 @@ export class DiscordBot extends Service {
 
 			const selection = validActivities[Math.floor(Math.random() * validActivities.length)];
 
-			const theFunny = await this.container
+			let status = "crashing the source engine";
+
+			const sentence = await this.container
 				.getService("Markov")
 				?.generate(selection.ctx, { continuation: false });
+			if (sentence) {
+				status = sentence.length > 127 ? sentence.substring(0, 120) + "..." : sentence;
+			}
 
-			return { name: theFunny, type: selection.type } as Discord.ActivitiesOptions; // who cares
+			return { name: status, type: selection.type } as Discord.ActivitiesOptions; // who cares
 		};
 
 		this.discord.on("ready", async () => {
