@@ -1,6 +1,6 @@
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
-import Discord, { ActivityType, GuildPremiumTier, Partials } from "discord.js";
+import Discord, { GuildPremiumTier, Partials } from "discord.js";
 import axios from "axios";
 import config from "@/config/discord.json";
 import modules from "./modules";
@@ -74,7 +74,7 @@ export class DiscordBot extends Service {
 			activities: [
 				{
 					name: status.trim().substring(0, 100),
-					type: Math.floor(validActivities[Math.random() * validActivities.length]),
+					type: validActivities[Math.floor(Math.random() * validActivities.length)],
 				},
 			],
 			status: "online",
