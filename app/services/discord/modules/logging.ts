@@ -50,7 +50,7 @@ export default (bot: DiscordBot): void => {
 			embed.addFields(f("Mention", msg.author?.mention));
 		}
 		if (message) {
-			embed.addFields(f("Message", message, true));
+			embed.addFields(f("Message", message.substring(0, 1024), true));
 		}
 
 		if (attachments) {
