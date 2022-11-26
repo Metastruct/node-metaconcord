@@ -31,15 +31,28 @@ export class DiscordBot extends Service {
 	constructor(container: Container) {
 		super(container);
 
+		const getRandomStatus = async () => {
+			const validActivities = [
+				{ type: 0, ctx: "playing" },
+				{ type: 1, ctx: "streaming" },
+				{ type: 2, ctx: "listening" },
+				{ type: 3, ctx: "watching" },
+				{ type: 5, ctx: "in" },
+			];
+
+			const selection = validActivities[Math.floor(Math.random() * validActivities.length)];
+
+			const theFunny = await this.container
+				.getService("Markov")
+				?.generate(selection.ctx, { continuation: false });
+
+			return { name: theFunny, type: selection.type } as Discord.ActivitiesOptions; // who cares
+		};
+
 		this.discord.on("ready", async () => {
 			console.log(`'${this.discord.user?.username}' Discord Bot has logged in`);
-			setInterval(async () => {
-				try {
-					const newStatus = await this.container.getService("Markov")?.generate();
-					this.setStatus(newStatus ?? "Crashing the source engine");
-				} catch {} // who cares
-			}, 1000 * 60 * 10); // change status every 10mins
-			this.setStatus("Crashing the source engine");
+			setInterval(getRandomStatus, 1000 * 60 * 10); // change status every 10mins
+			this.setActivity(undefined, await getRandomStatus());
 		});
 
 		this.discord.on("warn", console.log);
@@ -64,21 +77,15 @@ export class DiscordBot extends Service {
 		return this.discord.channels.cache.get(channelId) as Discord.TextChannel;
 	}
 
-	async setStatus(status: string): Promise<void> {
+	async setActivity(
+		status: string | undefined,
+		options?: Discord.ActivitiesOptions
+	): Promise<void> {
 		if (!this.discord.isReady()) return;
-		if (status.length > 127) status = status.substring(0, 120) + "...";
-
-		const validActivities = [0, 1, 2, 3, 5];
-
-		this.discord.user.setPresence({
-			activities: [
-				{
-					name: status.trim().substring(0, 100),
-					type: validActivities[Math.floor(Math.random() * validActivities.length)],
-				},
-			],
-			status: "online",
-		});
+		if (status && status.length > 127) status = status.substring(0, 120) + "...";
+		const activity = { ...options };
+		if (status) activity.name = status;
+		this.discord.user.setActivity(activity);
 	}
 
 	async setServerBanner(url: string): Promise<void> {
