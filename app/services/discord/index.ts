@@ -39,6 +39,7 @@ export class DiscordBot extends Service {
 					this.setStatus(newStatus ?? "Crashing the source engine");
 				} catch {} // who cares
 			}, 1000 * 60 * 10); // change status every 10mins
+			this.setStatus("Crashing the source engine");
 		});
 
 		this.discord.on("warn", console.log);
@@ -67,11 +68,13 @@ export class DiscordBot extends Service {
 		if (!this.discord.isReady()) return;
 		if (status.length > 127) status = status.substring(0, 120) + "...";
 
+		const validActivities = [0, 1, 2, 3, 5];
+
 		this.discord.user.setPresence({
 			activities: [
 				{
 					name: status.trim().substring(0, 100),
-					type: ActivityType.Playing,
+					type: Math.floor(validActivities[Math.random() * validActivities.length]),
 				},
 			],
 			status: "online",
