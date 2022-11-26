@@ -49,6 +49,9 @@ export default class StatusPayload extends Payload {
 			const current_serverUptime = serverUptime ?? server.serverUptime;
 			const current_mapUptime = mapUptime ?? server.mapUptime;
 
+			if (current_countdown && current_countdown.typ === CountdownType.AOWL_COUNTDOWN_CUSTOM)
+				return;
+
 			const count = current_players.length;
 
 			if (!discord) return;
@@ -79,11 +82,7 @@ export default class StatusPayload extends Payload {
 								status: current_defcon === 1 || current_countdown ? "dnd" : "idle",
 								activities: [],
 						  };
-				if (
-					current_countdown &&
-					current_countdown.typ !== CountdownType.AOWL_COUNTDOWN_CUSTOM &&
-					presence.activities
-				) {
+				if (current_countdown && presence.activities) {
 					presence.activities.push({
 						name: `${current_countdown.text} in ${current_countdown.time} seconds`,
 						type: 3,
@@ -104,7 +103,7 @@ export default class StatusPayload extends Payload {
 
 			desc += `\n:repeat: <t:${maptime}:R>`;
 			desc += `\n:file_cabinet: <t:${servertime}:R>`;
-			if (current_countdown && current_countdown.typ !== CountdownType.AOWL_COUNTDOWN_CUSTOM)
+			if (current_countdown)
 				desc += `\n<a:ALERTA:843518761160015933> \`${current_countdown.text} in ${current_countdown.time} seconds\` <a:ALERTA:843518761160015933>`;
 			if (current_defcon && current_defcon !== 5)
 				desc += `\n<a:ALERTA:843518761160015933> \`DEFCON ${current_defcon}\` <a:ALERTA:843518761160015933>`;
