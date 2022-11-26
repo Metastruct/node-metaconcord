@@ -12,7 +12,7 @@ import { makeSpeechBubble } from "@/utils";
 export class UISpeechbubbleRightCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
-			name: "create rightfacing speechbubble",
+			name: "speechbubble right",
 			deferEphemeral: true,
 			type: ApplicationCommandType.MESSAGE,
 		});
@@ -62,7 +62,7 @@ export class UISpeechbubbleRightCommand extends SlashCommand {
 export class UISpeechbubbleLeftCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
-			name: "create leftfacing speechbubble",
+			name: "speechbubble left",
 			deferEphemeral: true,
 			type: ApplicationCommandType.MESSAGE,
 		});
