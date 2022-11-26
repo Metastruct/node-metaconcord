@@ -22,13 +22,7 @@ export default abstract class Payload {
 		const invalid = this.isInvalid(schema, payload);
 		if (invalid) {
 			console.warn(util.inspect(payload, { showHidden: false, depth: null }));
-			let msg = "";
-			for (let i = 0; i < invalid.length; i++) {
-				msg += `${invalid[i].dataPath} ${invalid[i].message}${
-					i == invalid.length - 1 ? "" : "\n"
-				}`;
-			}
-			throw new Error(msg);
+			console.warn(invalid);
 		}
 	}
 
