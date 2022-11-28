@@ -17,17 +17,24 @@ export const Shat = async (
 	const rng = Math.random();
 	if (rng > 0.05 && !forceImage) {
 		let search: string | undefined;
+		let fallback: string | undefined;
 		let islast = false;
 		if (msg && !msg.startsWith("http") && (rng >= 0.5 || forceReply)) {
-			const words = msg.replace(`<@${bot.discord.user?.id}>`, "").split(" ");
+			const words = msg.replace(`<@${bot.discord.user?.id}> `, "").split(" ");
 			const index = Math.floor(rng * words.length);
 			islast = index + 1 === words.length;
-			search = words[index];
+			if (!islast) {
+				search = words.slice(index, index + 1).join(" ");
+				fallback = words[index];
+			} else {
+				search = words[index];
+			}
 		}
 		let mk = await bot.container.getService("Markov")?.generate(search, {
 			continuation: !(islast && rng >= 0.75),
 		});
 
+		if (!mk && fallback) mk = await bot.container.getService("Markov")?.generate(fallback);
 		if (!mk) mk = await bot.container.getService("Markov")?.generate();
 
 		return mk ? { content: mk } : undefined;
