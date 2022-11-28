@@ -24,7 +24,7 @@ export const Shat = async (
 			const index = Math.floor(rng * words.length);
 			islast = index + 1 === words.length;
 			if (!islast) {
-				search = words.slice(index, index + 1).join(" ");
+				search = words.slice(index, index + 2).join(" ");
 				fallback = words[index];
 			} else {
 				search = words[index];
