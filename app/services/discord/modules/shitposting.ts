@@ -106,7 +106,7 @@ export default (bot: DiscordBot): void => {
 			Math.random() <= REACTION_FREQ &&
 			msg.mentions.users.first()?.id !== bot.discord.user?.id
 		) {
-			msg.react(getRandomEmoji());
+			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
 		if (!(msg.mentions.users.first()?.id === id)) return;
 		const shat = await Shat(bot, msg.content);
@@ -159,7 +159,7 @@ export default (bot: DiscordBot): void => {
 			(Math.random() <= REACTION_FREQ ||
 				(replied && msg.mentions.users.first()?.id === bot.discord.user?.id))
 		) {
-			msg.react(getRandomEmoji());
+			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
 		if (its_posting_time && !posting) {
 			await sendShat(msg, true);
