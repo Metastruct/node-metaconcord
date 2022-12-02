@@ -1,5 +1,5 @@
+import { ActivitiesOptions, EmojiIdentifierResolvable, Message } from "discord.js";
 import { DiscordBot } from "..";
-import { EmojiIdentifierResolvable, Message } from "discord.js";
 import { MessageCreateOptions } from "discord.js";
 import { makeSpeechBubble } from "@/utils";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
@@ -89,6 +89,39 @@ export default (bot: DiscordBot): void => {
 		return emoji;
 	};
 
+	const getRandomStatus = async () => {
+		const validActivities = [
+			{ type: 0, ctx: ["playing"] },
+			{ type: 1, ctx: ["streaming", "sending", "delivering", "transporting"] },
+			{ type: 2, ctx: ["listening to", "hearing", "hear that"] },
+			{ type: 3, ctx: ["watching", "watch", "looking at"] },
+			{ type: 5, ctx: ["in", "participate in", "go in", "enter in"] },
+		];
+
+		const rng = Math.random();
+		const selection = validActivities[Math.floor(rng * validActivities.length)];
+
+		let status = "crashing the source engine";
+
+		const sentence = await bot.container
+			.getService("Markov")
+			?.generate(selection.ctx[Math.floor(rng * selection.ctx.length)], {
+				continuation: false,
+			});
+		if (sentence) {
+			status = sentence.length > 127 ? sentence.substring(0, 120) + "..." : sentence;
+		}
+
+		return { name: status, type: selection.type } as ActivitiesOptions; // who cares
+	};
+
+	bot.discord.on("ready", async () => {
+		setInterval(
+			async () => bot.setActivity(undefined, await getRandomStatus()),
+			1000 * 60 * 10
+		); // change status every 10mins
+		bot.setActivity(undefined, await getRandomStatus());
+	});
 	// shitpost channel
 	bot.discord.on("messageCreate", async msg => {
 		if (!bot.config.allowedShitpostingChannels.includes(msg.channelId) || msg.author.bot)

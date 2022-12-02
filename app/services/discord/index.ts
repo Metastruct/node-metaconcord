@@ -31,36 +31,8 @@ export class DiscordBot extends Service {
 	constructor(container: Container) {
 		super(container);
 
-		const getRandomStatus = async () => {
-			const validActivities = [
-				{ type: 0, ctx: "playing" },
-				{ type: 1, ctx: "streaming" },
-				{ type: 2, ctx: "listening to" },
-				{ type: 3, ctx: "watching" },
-				{ type: 5, ctx: "in" },
-			];
-
-			const selection = validActivities[Math.floor(Math.random() * validActivities.length)];
-
-			let status = "crashing the source engine";
-
-			const sentence = await this.container
-				.getService("Markov")
-				?.generate(selection.ctx, { continuation: false });
-			if (sentence) {
-				status = sentence.length > 127 ? sentence.substring(0, 120) + "..." : sentence;
-			}
-
-			return { name: status, type: selection.type } as Discord.ActivitiesOptions; // who cares
-		};
-
 		this.discord.on("ready", async () => {
 			console.log(`'${this.discord.user?.username}' Discord Bot has logged in`);
-			setInterval(
-				async () => this.setActivity(undefined, await getRandomStatus()),
-				1000 * 60 * 10
-			); // change status every 10mins
-			this.setActivity(undefined, await getRandomStatus());
 		});
 
 		this.discord.on("warn", console.log);
