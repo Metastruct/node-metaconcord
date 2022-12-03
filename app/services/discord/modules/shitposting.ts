@@ -98,14 +98,13 @@ export default (bot: DiscordBot): void => {
 			{ type: 5, ctx: ["in", "participate in", "go in", "enter in"] },
 		];
 
-		const rng = Math.random();
-		const selection = validActivities[Math.floor(rng * validActivities.length)];
+		const selection = validActivities[Math.floor(Math.random() * validActivities.length)];
 
 		let status = "crashing the source engine";
 
 		const sentence = await bot.container
 			.getService("Markov")
-			?.generate(selection.ctx[Math.floor(rng * selection.ctx.length)], {
+			?.generate(selection.ctx[Math.floor(Math.random() * selection.ctx.length)], {
 				continuation: false,
 			});
 		if (sentence) {
