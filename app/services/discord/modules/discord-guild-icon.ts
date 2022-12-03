@@ -1,5 +1,6 @@
 import { DiscordBot } from "..";
 import { GuildPremiumTier } from "discord.js";
+import { PathLike } from "fs";
 import { join } from "path";
 import { scheduleJob } from "node-schedule";
 import { stat } from "fs/promises";
@@ -8,29 +9,34 @@ import dayjs from "dayjs";
 const events = [
 	{
 		icon: "summer",
+		nick: ["Sunny"],
 		range: ["01/06", "07/09"],
 	},
 	{
 		icon: "halloween",
+		nick: ["Spooky", "Scary"],
 		range: ["01/10", "07/11"],
 	},
 	{
 		icon: "christmas",
+		nick: ["Merry", "Jingle", "Snowy"],
 		range: ["01/12", "26/12"],
 	},
 	{
 		icon: "new-year",
+		nick: ["Happy", "Firework"],
 		range: ["30/12", "31/12"],
 	},
 	{
 		icon: "new-year",
+		nick: ["Happy", "Firework"],
 		range: ["01/01", "03/01"], // We do a little cheating
 	},
 ];
 const iconsPath = join(require.main?.path ?? ".", "resources/discord-guild-icons");
 const defaultIconPath = join(iconsPath, "default.png");
 
-const fileExists = async filePath =>
+const fileExists = async (filePath: PathLike) =>
 	await stat(filePath)
 		.then(stats => stats.isFile())
 		.catch(() => false);
@@ -42,7 +48,7 @@ export default (bot: DiscordBot): void => {
 	bot.discord.on("ready", async () => {
 		const guild = await bot.discord.guilds.fetch(bot.config.guildId);
 
-		const changeIcon = async (filePath, eventName) => {
+		const changeIcon = async (filePath: string, eventName: string, nickName: string) => {
 			if (data.lastDiscordGuildIcon === eventName) return;
 
 			try {
@@ -54,6 +60,7 @@ export default (bot: DiscordBot): void => {
 				);
 
 				await bot.discord.user?.setAvatar(filePath);
+				await bot.discord.user?.setUsername(nickName + " Construct");
 
 				data.lastDiscordGuildIcon = eventName;
 				await data.save();
@@ -68,7 +75,7 @@ export default (bot: DiscordBot): void => {
 		};
 
 		const checkDate = async () => {
-			for (const { icon, range } of events) {
+			for (const { icon, range, nick } of events) {
 				const [start, end] = range;
 				const [startDay, startMonth] = start.split("/").map(n => +n);
 				const [endDay, endMonth] = end.split("/").map(n => +n);
@@ -100,16 +107,17 @@ export default (bot: DiscordBot): void => {
 							.split("-")
 							.map(str => str.charAt(0).toUpperCase() + str.slice(1))
 							.join(" "),
+						nickName: nick[Math.random() * nick.length],
 					};
 				}
 			}
 
-			return { filePath: defaultIconPath, eventName: "None" };
+			return { filePath: defaultIconPath, eventName: "None", nickName: "Meta" };
 		};
 
 		const doIt = async () => {
-			const { filePath, eventName } = await checkDate();
-			changeIcon(filePath, eventName);
+			const { filePath, eventName, nickName } = await checkDate();
+			changeIcon(filePath, eventName, nickName);
 		};
 
 		scheduleJob("0 0 * * *", doIt);
