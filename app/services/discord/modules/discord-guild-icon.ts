@@ -121,5 +121,6 @@ export default (bot: DiscordBot): void => {
 		};
 
 		scheduleJob("0 0 * * *", doIt);
+		doIt();
 	});
 };
