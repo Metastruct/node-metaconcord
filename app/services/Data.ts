@@ -8,7 +8,7 @@ export class Data extends Service {
 	name = "Data";
 	private dataPath = path.join(process.cwd(), "data");
 
-	lastDiscordGuildIcon: "None";
+	lastDiscordGuildIcon: string;
 	lastIotdAuthors: Array<string>;
 	lastMkTime: number;
 	muted: {
