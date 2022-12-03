@@ -8,6 +8,8 @@ const MSG_IDLE_INTERVAL = 1000 * 60 * 60 * 1; // 60 min
 const MSG_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
 const REACTION_FREQ = 0.025;
 
+const TRIGGER_WORDS = ["meta", "metastruct", "meta construct", "meta bot"];
+
 export const Shat = async (
 	bot: DiscordBot,
 	msg?: string,
@@ -135,8 +137,9 @@ export default (bot: DiscordBot): void => {
 		const id = bot.discord.user?.id;
 		if (!id) return;
 		if (
-			Math.random() <= REACTION_FREQ &&
-			msg.mentions.users.first()?.id !== bot.discord.user?.id
+			(Math.random() <= REACTION_FREQ &&
+				msg.mentions.users.first()?.id !== bot.discord.user?.id) ||
+			TRIGGER_WORDS.some(str => msg.content.includes(str))
 		) {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
@@ -187,9 +190,10 @@ export default (bot: DiscordBot): void => {
 
 		const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
 		if (
-			!its_posting_time &&
-			(Math.random() <= REACTION_FREQ ||
-				(replied && msg.mentions.users.first()?.id === bot.discord.user?.id))
+			(!its_posting_time &&
+				(Math.random() <= REACTION_FREQ ||
+					(replied && msg.mentions.users.first()?.id === bot.discord.user?.id))) ||
+			TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))
 		) {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
