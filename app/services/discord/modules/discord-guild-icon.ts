@@ -107,7 +107,7 @@ export default (bot: DiscordBot): void => {
 							.split("-")
 							.map(str => str.charAt(0).toUpperCase() + str.slice(1))
 							.join(" "),
-						nickName: nick[Math.random() * nick.length],
+						nickName: nick[Math.floor(Math.random() * nick.length)],
 					};
 				}
 			}
