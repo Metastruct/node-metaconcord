@@ -63,7 +63,12 @@ const SuperReplacer = (_: string, ...args: any[]) => {
 						`STEAM_${groups.steamid}`
 				  ).getSteamID64()})><${groups.cmdname}:${groups.cmdrealm}>`
 			: groups.path
-			? groups.addon && AddonURIS[groups.addon]
+			? groups.addon &&
+			  AddonURIS[
+					groups.addon === "mta" && groups.path.split("/", 1)[0] === "gamemodes"
+						? "mta_gamemode"
+						: groups.addon
+			  ]
 				? `[${groups.path}](${AddonURIS[groups.addon] + groups.path}#L${groups.lino})`
 				: groups.path
 			: groups.engine
