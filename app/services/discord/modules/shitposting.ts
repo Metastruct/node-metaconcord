@@ -125,8 +125,7 @@ export default (bot: DiscordBot): void => {
 	});
 	// shitpost channel
 	bot.discord.on("messageCreate", async msg => {
-		if (!bot.config.allowedShitpostingChannels.includes(msg.channelId) || msg.author.bot)
-			return;
+		if (msg.author.bot) return;
 		if (msg.partial) {
 			try {
 				msg = await msg.fetch();
@@ -143,7 +142,11 @@ export default (bot: DiscordBot): void => {
 		) {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
-		if (!(msg.mentions.users.first()?.id === id)) return;
+		if (
+			!(msg.mentions.users.first()?.id === id) &&
+			!bot.config.allowedShitpostingChannels.includes(msg.channelId)
+		)
+			return;
 		const shat = await Shat(bot, msg.content);
 		if (shat) await msg.reply(shat);
 	});
