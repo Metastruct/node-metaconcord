@@ -143,7 +143,7 @@ export default (bot: DiscordBot): void => {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
 		if (
-			!(msg.mentions.users.first()?.id === id) &&
+			!(msg.mentions.users.first()?.id === id) ||
 			!bot.config.allowedShitpostingChannels.includes(msg.channelId)
 		)
 			return;
