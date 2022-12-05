@@ -192,14 +192,6 @@ export default (bot: DiscordBot): void => {
 			return;
 
 		const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
-		if (
-			(!its_posting_time &&
-				(Math.random() <= REACTION_FREQ ||
-					(replied && msg.mentions.users.first()?.id === bot.discord.user?.id))) ||
-			TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))
-		) {
-			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
-		}
 		if (its_posting_time && !posting) {
 			await sendShat(msg, true);
 			replied = false;
