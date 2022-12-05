@@ -58,10 +58,10 @@ const SuperReplacer = (_: string, ...args: any[]) => {
 				  }](http://steamcommunity.com/profiles/${new SteamID(
 						`STEAM_${groups.partialsteamid}`
 				  ).getSteamID64()})><${groups.rfilename}>`
-				: `<[${groups.steamid} |${
+				: `<[${groups.partialsteamid} |${
 						groups.nick
 				  }](http://steamcommunity.com/profiles/${new SteamID(
-						`STEAM_${groups.steamid}`
+						`STEAM_${groups.partialsteamid}`
 				  ).getSteamID64()})><${groups.cmdname}:${groups.cmdrealm}>`
 			: groups.path
 			? groups.addon &&
