@@ -12,22 +12,21 @@ import { SlashGservCommand } from "./developer/Gserv";
 import { SlashKickCommand } from "./developer/Kick";
 import { SlashLuaCommand } from "./developer/Lua";
 import { SlashMarkovCommand } from "./Markov";
-import { SlashMuteCommand } from "./mute/Mute";
+import { SlashMuteCommand, UIMuteCommand } from "./mute/Mute";
 import { SlashRconCommand } from "./developer/Rcon";
 import { SlashRefreshLuaCommand } from "./developer/RefreshLua";
 import { SlashRuleCommand } from "./developer/Rules";
 import { SlashSQLCommand } from "./developer/SQL";
-import { SlashSpeechbubbleCommand } from "./Speechbubble";
+import {
+	SlashSpeechbubbleCommand,
+	UISpeechbubbleLeftCommand,
+	UISpeechbubbleRightCommand,
+} from "./Speechbubble";
 import { SlashUnBanCommand } from "./developer/UnBan";
-import { SlashUnmuteCommand } from "./mute/Unmute";
+import { SlashUnmuteCommand, UIUnmuteCommand } from "./mute/Unmute";
 import { SlashVaccinatedCommand } from "./Vaccination";
 import { SlashWhyBanCommand } from "./WhyBan";
-import { SlashWhyMuteCommand } from "./mute/WhyMute";
-import { UIMuteCommand } from "./ui/Mute";
-import { UISpeechbubbleLeftCommand } from "./ui/Speechbubble";
-import { UISpeechbubbleRightCommand } from "./ui/Speechbubble";
-import { UIUnmuteCommand } from "./ui/Unmute";
-import { UIWhyMuteCommand } from "./ui/WhyMute";
+import { SlashWhyMuteCommand, UIWhyMuteCommand } from "./mute/WhyMute";
 
 export function EphemeralResponse(content: string): MessageOptions {
 	return { content, ephemeral: true };
