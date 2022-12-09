@@ -5,6 +5,7 @@ import { MessageOptions } from "slash-create";
 import { SlashActivitiesCommand } from "./Activities";
 import { SlashBanCommand } from "./developer/Ban";
 import { SlashCustomRoleCommand } from "./CustomRole";
+import { SlashDeeplCommand, UIDeeplCommand } from "./Deepl";
 import { SlashEvalCommand } from "./developer/Eval";
 import { SlashGservAllCommand } from "./developer/GservAll";
 import { SlashGservCommand } from "./developer/Gserv";
@@ -36,6 +37,7 @@ export const commands = [
 	SlashActivitiesCommand,
 	SlashBanCommand,
 	SlashCustomRoleCommand,
+	SlashDeeplCommand,
 	SlashEvalCommand,
 	SlashGservAllCommand,
 	SlashGservCommand,
@@ -53,6 +55,7 @@ export const commands = [
 	SlashVaccinatedCommand,
 	SlashWhyBanCommand,
 	SlashWhyMuteCommand,
+	UIDeeplCommand,
 	UIMuteCommand,
 	UISpeechbubbleLeftCommand,
 	UISpeechbubbleRightCommand,
