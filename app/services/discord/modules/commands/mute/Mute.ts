@@ -1,5 +1,5 @@
-import { AuditLogEvent, GuildMember, User } from "discord.js";
 import {
+	ApplicationCommandType,
 	AutocompleteChoice,
 	AutocompleteContext,
 	CommandContext,
@@ -7,8 +7,10 @@ import {
 	SlashCommand,
 	SlashCreator,
 } from "slash-create";
+import { AuditLogEvent, GuildMember, User } from "discord.js";
 import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../../..";
+import { EphemeralResponse } from "..";
 import { TextChannel } from "discord.js";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -175,5 +177,52 @@ export class SlashMuteCommand extends SlashCommand {
 			(reason ? ` with reason:\n\n${reason}` : "") +
 			`.`;
 		return content;
+	}
+}
+
+// UI Commands
+export class UIMuteCommand extends SlashCommand {
+	private bot: DiscordBot;
+	private data: Data;
+
+	constructor(bot: DiscordBot, creator: SlashCreator) {
+		super(creator, {
+			name: "Mute User",
+			type: ApplicationCommandType.USER,
+			guildIDs: [bot.config.guildId],
+			requiredPermissions: ["MANAGE_ROLES"],
+		});
+
+		this.filePath = __filename;
+		this.bot = bot;
+		const data = this.bot.container.getService("Data");
+		if (!data) return;
+		this.data = data;
+	}
+
+	async run(ctx: CommandContext): Promise<any> {
+		await ctx.defer(true);
+		const { discord, config } = this.bot;
+		let { muted } = this.data;
+		const userId = ctx.targetID;
+		if (!userId) return;
+		const now = Date.now();
+
+		if (!muted) muted = this.data.muted = {};
+		muted[userId] = { at: now, muter: ctx.user.id };
+		await this.data.save();
+
+		const guild = discord.guilds.cache.get(this.bot.config.guildId);
+		if (!guild) return;
+		let member: GuildMember;
+		try {
+			member = await guild.members.fetch(userId);
+		} catch {
+			return EphemeralResponse("Couldn't get that User, probably left the guild already...");
+		}
+		await member.roles.add(config.mutedRoleId, "muted via rightclick menu command");
+
+		const content = `${member} has been muted.`;
+		return EphemeralResponse(content);
 	}
 }
