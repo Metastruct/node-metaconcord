@@ -5,8 +5,6 @@ import {
 	AutocompleteContext,
 	CommandContext,
 	CommandOptionType,
-	MessageData,
-	MessageEmbed,
 	MessageOptions,
 	SlashCommand,
 	SlashCreator,
@@ -99,6 +97,16 @@ export class SlashDeeplCommand extends SlashCommand {
 					type: CommandOptionType.STRING,
 					autocomplete: true,
 				},
+				{
+					name: "formal",
+					description:
+						"try to get a more formal version if possible for now (DE,FR,IT,ES,NL,PL,PT,RU)",
+					type: CommandOptionType.STRING,
+					choices: [
+						{ name: "more_formal", value: "prefer_more" },
+						{ name: "less_formal", value: "prefer_less" },
+					],
+				},
 			],
 		});
 		this.filePath = __filename;
@@ -125,10 +133,15 @@ export class SlashDeeplCommand extends SlashCommand {
 				text: ctx.options.text,
 				target_lang: ctx.options.to ?? "EN",
 				source_lang: ctx.options.from,
+				formality: ctx.options.formal ? ctx.options.formal : "default",
 			});
 			if (res) {
 				return `**${res.data.translations[0].detected_source_language} -> ${
 					ctx.options.to ?? "EN"
+				}${
+					ctx.options.formal
+						? ` (${ctx.options.formal === "prefer_more" ? "formal" : "less formal"})`
+						: ""
 				}**\`\`\`\n${res.data.translations[0].text}\`\`\``;
 			} else {
 				return EphemeralResponse("Something went wrong while trying to translate.");
@@ -171,7 +184,7 @@ export class UIDeeplCommand extends SlashCommand {
 						icon_url: "https://avatars.githubusercontent.com/u/83310993?s=200&v=4",
 					},
 					description: `
-					\`\`\`\n${msg.content}\`\`\`**${res.data.translations[0].detected_source_language} -> ${
+					\`\`\`\n${msg.content}\`\`\`\n**${res.data.translations[0].detected_source_language} -> ${
 						ctx.options.to ?? "EN"
 					}**\n\`\`\`\n${res.data.translations[0].text}\`\`\``,
 				};
