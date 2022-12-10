@@ -1,9 +1,13 @@
+import { APIEmbed } from "discord.js";
 import {
 	ApplicationCommandOptionChoice,
 	ApplicationCommandType,
 	AutocompleteContext,
 	CommandContext,
 	CommandOptionType,
+	MessageData,
+	MessageEmbed,
+	MessageOptions,
 	SlashCommand,
 	SlashCreator,
 } from "slash-create";
@@ -73,7 +77,7 @@ export class SlashDeeplCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
 			name: "deepl",
-			description: "translate using deepl.",
+			description: "translate using DeepL.",
 			deferEphemeral: true,
 			guildIDs: [bot.config.guildId],
 			options: [
@@ -138,7 +142,7 @@ export class SlashDeeplCommand extends SlashCommand {
 export class UIDeeplCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
-			name: "deepl translate",
+			name: "DeepL translate",
 			deferEphemeral: true,
 			guildIDs: [bot.config.guildId],
 			type: ApplicationCommandType.MESSAGE,
@@ -147,7 +151,8 @@ export class UIDeeplCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
-		const text = ctx.targetMessage?.content;
+		const msg = ctx.targetMessage;
+		const text = msg?.content;
 		if (text && Buffer.from(text).length < 128 * 1024) {
 			const res = await translate({
 				auth_key: config.key,
@@ -155,9 +160,22 @@ export class UIDeeplCommand extends SlashCommand {
 				target_lang: "EN",
 			});
 			if (res) {
-				return `**${res.data.translations[0].detected_source_language} -> ${
-					ctx.options.to ?? "EN"
-				}**\`\`\`\n${res.data.translations[0].text}\`\`\``;
+				const embed: APIEmbed = {
+					author: {
+						name: msg.author.username,
+						icon_url: msg.author.avatarURL,
+						url: `https://discord.com/channels/${ctx.guildID}/${msg.channelID}/${msg.id}`,
+					},
+					footer: {
+						text: "DeepL translate",
+						icon_url: "https://avatars.githubusercontent.com/u/83310993?s=200&v=4",
+					},
+					description: `
+					\`\`\`\n${msg.content}\`\`\`**${res.data.translations[0].detected_source_language} -> ${
+						ctx.options.to ?? "EN"
+					}**\n\`\`\`\n${res.data.translations[0].text}\`\`\``,
+				};
+				return { embeds: [embed] } as MessageOptions;
 			} else {
 				return EphemeralResponse("Something went wrong while trying to translate.");
 			}
