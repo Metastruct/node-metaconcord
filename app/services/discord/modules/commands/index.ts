@@ -5,7 +5,7 @@ import { MessageOptions } from "slash-create";
 import { SlashActivitiesCommand } from "./Activities";
 import { SlashBanCommand } from "./developer/Ban";
 import { SlashCustomRoleCommand } from "./CustomRole";
-import { SlashDeeplCommand, UIDeeplCommand } from "./Deepl";
+import { SlashDeeplCommand, UIDeeplCommand } from "./DeepL";
 import { SlashEvalCommand } from "./developer/Eval";
 import { SlashGservAllCommand } from "./developer/GservAll";
 import { SlashGservCommand } from "./developer/Gserv";
