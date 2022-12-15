@@ -6,7 +6,7 @@ import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
 const MSG_IDLE_INTERVAL = 1000 * 60 * 60 * 1; // 60 min
 const MSG_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
-const REACTION_FREQ = 0.025;
+const REACTION_FREQ = 0.01;
 
 const TRIGGER_WORDS = ["meta", "metastruct", "meta construct", "meta bot", "the bot"];
 
