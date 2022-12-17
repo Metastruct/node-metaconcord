@@ -32,8 +32,9 @@ export const Shat = async (
 				search = words[index];
 			}
 		}
+		// continuation: !(islast && rng >= 0.75),
 		let mk = await bot.container.getService("Markov")?.generate(search, {
-			continuation: !(islast && rng >= 0.75),
+			continuation: true,
 		});
 
 		if (!mk && fallback) mk = await bot.container.getService("Markov")?.generate(fallback);
