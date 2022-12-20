@@ -9,27 +9,27 @@ import dayjs from "dayjs";
 const events = [
 	{
 		icon: "summer",
-		nick: ["Sunny"],
+		nick: ["Sunny", "Summer", "Beach"],
 		range: ["01/06", "07/09"],
 	},
 	{
 		icon: "halloween",
-		nick: ["Spooky", "Scary"],
+		nick: ["Spooky", "Scary", "Ghost", "Skeleton", "Vampire"],
 		range: ["01/10", "07/11"],
 	},
 	{
 		icon: "christmas",
-		nick: ["Merry", "Jingle", "Snowy"],
+		nick: ["Merry", "Jingle", "Snowy", "Winter"],
 		range: ["01/12", "26/12"],
 	},
 	{
 		icon: "new-year",
-		nick: ["Happy", "Firework"],
+		nick: ["Party", "Firework", "Sparkly"],
 		range: ["30/12", "31/12"],
 	},
 	{
 		icon: "new-year",
-		nick: ["Happy", "Firework"],
+		nick: ["Party", "Firework", "Sparkly"],
 		range: ["01/01", "03/01"], // We do a little cheating
 	},
 ];
