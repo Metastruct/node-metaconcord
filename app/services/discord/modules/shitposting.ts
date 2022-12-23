@@ -152,6 +152,7 @@ export default (bot: DiscordBot): void => {
 		const id = bot.discord.user?.id;
 		if (!id) return;
 
+		// Reactions
 		if (
 			(Math.random() <= REACTION_FREQ &&
 				msg.mentions.users.first()?.id !== bot.discord.user?.id) ||
@@ -160,6 +161,7 @@ export default (bot: DiscordBot): void => {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
 
+		// #shitpost channel
 		if (
 			(msg.mentions.users.first()?.id === id ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))) &&
@@ -169,14 +171,17 @@ export default (bot: DiscordBot): void => {
 			if (shat) await msg.reply(shat);
 		}
 
+		// #chat channel
+		if (bot.config.chatChannelId === msg.channelId) {
+			data.lastMsgTime = lastMsgTime = Date.now();
+			await data.save();
+		}
+
 		if (
 			(msg.mentions.users.first()?.id === id ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))) &&
 			bot.config.chatChannelId === msg.channelId
 		) {
-			data.lastMsgTime = lastMsgTime = Date.now();
-			await data.save();
-
 			const its_posting_time = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
 			if (its_posting_time && !posting) {
 				await sendShat({ msg: msg, forceReply: true });
