@@ -123,6 +123,11 @@ export default (bot: DiscordBot): void => {
 			1000 * 60 * 10
 		); // change status every 10mins
 		bot.setActivity(undefined, await getRandomStatus());
+		setInterval(async () => {
+			if (Date.now() - lastMkTime > MSG_IDLE_INTERVAL && !posting) {
+				await sendShat();
+			}
+		}, 1000 * 60 * 15); // chat channel msgs
 	});
 	// shitpost channel
 	bot.discord.on("messageCreate", async msg => {
@@ -144,20 +149,32 @@ export default (bot: DiscordBot): void => {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
 		if (
-			!(msg.mentions.users.first()?.id === id) ||
-			!bot.config.allowedShitpostingChannels.includes(msg.channelId)
-		)
-			return;
-		const shat = await Shat(bot, msg.content);
-		if (shat) await msg.reply(shat);
-	});
-	// chat channel
-	setInterval(async () => {
-		if (Date.now() - lastMkTime > MSG_IDLE_INTERVAL && !posting) {
-			await sendShat();
+			(msg.mentions.users.first()?.id === id ||
+				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))) &&
+			bot.config.allowedShitpostingChannels.includes(msg.channelId)
+		) {
+			const shat = await Shat(bot, msg.content);
+			if (shat) await msg.reply(shat);
+		} else if (
+			msg.mentions.users.first()?.id === id &&
+			bot.config.chatChannelId == msg.channelId
+		) {
+			const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
+			if (its_posting_time && !posting) {
+				await sendShat(msg, true);
+				replied = false;
+			} else if (
+				!its_posting_time &&
+				!replied &&
+				!posting &&
+				msg.mentions.users.first()?.id === bot.discord.user?.id &&
+				msg.content !== "<@427261532284387329>"
+			) {
+				await sendShat(msg, true, true);
+				replied = true;
+			}
 		}
-	}, 1000 * 60 * 15);
-
+	});
 	bot.discord.on("messageReactionAdd", async reaction => {
 		if (
 			reaction.message.channelId !== bot.config.chatChannelId &&
@@ -175,36 +192,5 @@ export default (bot: DiscordBot): void => {
 			return;
 		if (reaction.me && reaction.count && reaction.count <= 2)
 			reaction.users.remove(reaction.client.user);
-	});
-
-	bot.discord.on("messageCreate", async msg => {
-		if (msg.partial) {
-			try {
-				msg = await msg.fetch();
-			} catch {
-				return;
-			}
-		}
-		if (
-			msg.channelId !== bot.config.chatChannelId ||
-			msg.author.bot ||
-			msg.content.length === 0
-		)
-			return;
-
-		const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
-		if (its_posting_time && !posting) {
-			await sendShat(msg, true);
-			replied = false;
-		} else if (
-			!its_posting_time &&
-			!replied &&
-			!posting &&
-			msg.mentions.users.first()?.id === bot.discord.user?.id &&
-			msg.content !== "<@427261532284387329>"
-		) {
-			await sendShat(msg, true, true);
-			replied = true;
-		}
 	});
 };
