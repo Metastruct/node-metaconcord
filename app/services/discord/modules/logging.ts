@@ -54,11 +54,15 @@ export default (bot: DiscordBot): void => {
 		}
 
 		if (attachments) {
-			embed.addFields(f("Attachment", attachments.join(" ")));
+			embed.addFields(f("Attachment/s", attachments.join(" ")));
 		}
 
 		if (embeds) {
-			embed.addFields(f("Embed", embeds.join("\n")));
+			embed.addFields(f("Embed/s", embeds.join("\n")));
+		}
+
+		if (msg.stickers.size > 0) {
+			embed.addFields(f("Sticker/s", msg.stickers.map(sticker => sticker.url).join("\n")));
 		}
 
 		await logChannel.send({ embeds: [embed] });
