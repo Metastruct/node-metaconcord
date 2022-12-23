@@ -4,8 +4,8 @@ import { MessageCreateOptions } from "discord.js";
 import { makeSpeechBubble } from "@/utils";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
-const MSG_IDLE_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
-const MSG_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
+const MSG_INTERVAL = 1000 * 60 * 15; // 15 min msg check
+const MSG_REPLY_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
 const REACTION_FREQ = 0.01;
 
 const TRIGGER_WORDS = ["meta bot", "the bot", "metaconcord"];
@@ -58,6 +58,7 @@ export default (bot: DiscordBot): void => {
 	const data = bot.container.getService("Data");
 	if (!data) return;
 	let lastMkTime = data.lastMkTime ?? 0;
+	let lastMsgTime = data.lastMsgTime ?? 0;
 	let posting = false;
 	let replied = false;
 
@@ -132,10 +133,10 @@ export default (bot: DiscordBot): void => {
 		); // change status every 10mins
 		bot.setActivity(undefined, await getRandomStatus());
 		setInterval(async () => {
-			if (Date.now() - lastMkTime > MSG_IDLE_INTERVAL && !posting) {
+			if (Date.now() - lastMsgTime > 1000 * 60 * 60 * Math.random() && !posting) {
 				await sendShat({ dont_save: true });
 			}
-		}, 1000 * 60 * 15); // chat channel msgs
+		}, MSG_INTERVAL); // chat channel msgs
 	});
 	// shitpost channel
 	bot.discord.on("messageCreate", async msg => {
@@ -173,7 +174,10 @@ export default (bot: DiscordBot): void => {
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))) &&
 			bot.config.chatChannelId === msg.channelId
 		) {
-			const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
+			data.lastMsgTime = lastMsgTime = Date.now();
+			await data.save();
+
+			const its_posting_time = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
 			if (its_posting_time && !posting) {
 				await sendShat({ msg: msg, forceReply: true });
 				replied = false;

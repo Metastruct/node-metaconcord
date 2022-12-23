@@ -11,6 +11,7 @@ export class Data extends Service {
 	lastDiscordGuildIcon: string;
 	lastIotdAuthors: Array<string>;
 	lastMkTime: number;
+	lastMsgTime: number;
 	muted: {
 		[userId: string]: {
 			until?: number;
@@ -20,7 +21,14 @@ export class Data extends Service {
 		};
 	} = {};
 	rules: Array<Rule>;
-	toSave = ["lastDiscordGuildIcon", "lastIotdAuthors", "lastMkTime", "muted", "rules"];
+	toSave = [
+		"lastDiscordGuildIcon",
+		"lastIotdAuthors",
+		"lastMkTime",
+		"lastMsgTime",
+		"muted",
+		"rules",
+	];
 
 	async init(): Promise<void> {
 		try {
