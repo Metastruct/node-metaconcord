@@ -133,7 +133,7 @@ export default (bot: DiscordBot): void => {
 		bot.setActivity(undefined, await getRandomStatus());
 		setInterval(async () => {
 			if (Date.now() - lastMkTime > MSG_IDLE_INTERVAL && !posting) {
-				await sendShat();
+				await sendShat({ dont_save: true });
 			}
 		}, 1000 * 60 * 15); // chat channel msgs
 	});
@@ -175,7 +175,7 @@ export default (bot: DiscordBot): void => {
 		) {
 			const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
 			if (its_posting_time && !posting) {
-				await sendShat({ msg: msg, forceReply: true, dont_save: true });
+				await sendShat({ msg: msg, forceReply: true });
 				replied = false;
 			} else if (
 				!its_posting_time &&
