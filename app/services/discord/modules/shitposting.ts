@@ -156,7 +156,8 @@ export default (bot: DiscordBot): void => {
 			const shat = await Shat(bot, msg.content);
 			if (shat) await msg.reply(shat);
 		} else if (
-			msg.mentions.users.first()?.id === id &&
+			(msg.mentions.users.first()?.id === id ||
+				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))) &&
 			bot.config.chatChannelId === msg.channelId
 		) {
 			const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
