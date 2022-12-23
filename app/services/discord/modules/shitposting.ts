@@ -83,7 +83,6 @@ export default (bot: DiscordBot): void => {
 			}
 			if (!options.dont_save) {
 				data.lastMkTime = lastMkTime = Date.now();
-				await data.save();
 			}
 		}
 		posting = false;
@@ -136,6 +135,7 @@ export default (bot: DiscordBot): void => {
 			if (Date.now() - lastMsgTime > 1000 * 60 * 60 * Math.random() && !posting) {
 				await sendShat({ dont_save: true });
 			}
+			await data.save();
 		}, MSG_INTERVAL); // chat channel msgs
 	});
 	// shitpost channel
@@ -174,7 +174,6 @@ export default (bot: DiscordBot): void => {
 		// #chat channel
 		if (bot.config.chatChannelId === msg.channelId) {
 			data.lastMsgTime = lastMsgTime = Date.now();
-			await data.save();
 		}
 
 		if (
