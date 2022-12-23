@@ -2,7 +2,6 @@ import { DiscordBot } from "../..";
 import { GatewayDispatchEvents } from "discord.js";
 import { GatewayServer, SlashCreator } from "slash-create";
 import { MessageOptions } from "slash-create";
-import { SlashActivitiesCommand } from "./Activities";
 import { SlashBanCommand } from "./developer/Ban";
 import { SlashCustomRoleCommand } from "./CustomRole";
 import { SlashDeeplCommand, UIDeeplCommand } from "./DeepL";
@@ -33,7 +32,6 @@ export function EphemeralResponse(content: string): MessageOptions {
 }
 
 export const commands = [
-	SlashActivitiesCommand,
 	SlashBanCommand,
 	SlashCustomRoleCommand,
 	SlashDeeplCommand,

@@ -137,6 +137,7 @@ export default (bot: DiscordBot): void => {
 			}
 			await data.save();
 		}, MSG_INTERVAL); // chat channel msgs
+		await sendShat({ dont_save: true });
 	});
 	// shitpost channel
 	bot.discord.on("messageCreate", async msg => {
