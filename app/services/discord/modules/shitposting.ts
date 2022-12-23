@@ -157,7 +157,7 @@ export default (bot: DiscordBot): void => {
 			if (shat) await msg.reply(shat);
 		} else if (
 			msg.mentions.users.first()?.id === id &&
-			bot.config.chatChannelId == msg.channelId
+			bot.config.chatChannelId === msg.channelId
 		) {
 			const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
 			if (its_posting_time && !posting) {
