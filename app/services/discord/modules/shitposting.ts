@@ -139,8 +139,10 @@ export default (bot: DiscordBot): void => {
 				return;
 			}
 		}
+
 		const id = bot.discord.user?.id;
 		if (!id) return;
+
 		if (
 			(Math.random() <= REACTION_FREQ &&
 				msg.mentions.users.first()?.id !== bot.discord.user?.id) ||
@@ -148,6 +150,7 @@ export default (bot: DiscordBot): void => {
 		) {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
+
 		if (
 			(msg.mentions.users.first()?.id === id ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))) &&
@@ -155,7 +158,9 @@ export default (bot: DiscordBot): void => {
 		) {
 			const shat = await Shat(bot, msg.content);
 			if (shat) await msg.reply(shat);
-		} else if (
+		}
+
+		if (
 			(msg.mentions.users.first()?.id === id ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))) &&
 			bot.config.chatChannelId === msg.channelId
@@ -173,6 +178,8 @@ export default (bot: DiscordBot): void => {
 			) {
 				await sendShat(msg, true, true);
 				replied = true;
+			} else {
+				setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 			}
 		}
 	});
