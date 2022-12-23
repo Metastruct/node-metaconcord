@@ -61,21 +61,29 @@ export default (bot: DiscordBot): void => {
 	let posting = false;
 	let replied = false;
 
-	const sendShat = async (msg?: Message, forceReply?: boolean, ping?: boolean) => {
+	const sendShat = async (
+		options: {
+			msg?: Message;
+			forceReply?: boolean;
+			ping?: boolean;
+			dont_save?: boolean;
+		} = {}
+	) => {
 		posting = true;
-		const shat = await Shat(bot, msg?.content, undefined, forceReply);
+		const shat = await Shat(bot, options.msg?.content, undefined, options.forceReply);
 		if (shat) {
-			if (msg) {
-				await msg.reply({
+			if (options.msg) {
+				await options.msg.reply({
 					...shat,
-					allowedMentions: ping ? { repliedUser: true } : { repliedUser: false },
+					allowedMentions: options.ping ? { repliedUser: true } : { repliedUser: false },
 				});
 			} else {
 				await (await bot.getTextChannel(bot.config.chatChannelId))?.send(shat);
 			}
-
-			data.lastMkTime = lastMkTime = Date.now();
-			await data.save();
+			if (!options.dont_save) {
+				data.lastMkTime = lastMkTime = Date.now();
+				await data.save();
+			}
 		}
 		posting = false;
 	};
@@ -167,7 +175,7 @@ export default (bot: DiscordBot): void => {
 		) {
 			const its_posting_time = Date.now() - lastMkTime > MSG_INTERVAL;
 			if (its_posting_time && !posting) {
-				await sendShat(msg, true);
+				await sendShat({ msg: msg, forceReply: true, dont_save: true });
 				replied = false;
 			} else if (
 				!its_posting_time &&
@@ -176,7 +184,7 @@ export default (bot: DiscordBot): void => {
 				msg.mentions.users.first()?.id === bot.discord.user?.id &&
 				msg.content !== "<@427261532284387329>"
 			) {
-				await sendShat(msg, true, true);
+				await sendShat({ msg: msg, forceReply: true, ping: true, dont_save: true });
 				replied = true;
 			} else {
 				setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
