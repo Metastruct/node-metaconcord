@@ -6,6 +6,7 @@ import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
 const MSG_INTERVAL = 1000 * 60 * 2; // msg check
 const MSG_TRIGGER_COUNT = 10; // how many msgs in msg check until a msg is posted
+const MSG_CHAT_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
 const MSG_REPLY_INTERVAL = 1000 * 60 * 5; // 5 mins
 const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.75; // 45 min
 const MSG_RNG = 0.01; // random messges that defy intervals
@@ -63,6 +64,7 @@ export default (bot: DiscordBot): void => {
 	if (!data) return;
 	let lastMkTime = (data.lastMkTime = data.lastMkTime ?? Date.now());
 	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? Date.now());
+	let lastChatTime = Date.now();
 	const lastMsgs: Message<boolean>[] = [];
 	let posting = false;
 	let replied = false;
@@ -145,14 +147,16 @@ export default (bot: DiscordBot): void => {
 			if (
 				lastMsgs.length > 0 &&
 				lastMsgs.slice(-1)[0].author.id !== bot.discord.user?.id &&
-				(Date.now() - lastMsgTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
-					lastMsgs.length - 4 >= MSG_TRIGGER_COUNT) &&
+				(Date.now() - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
+					lastMsgs.length - 4 >= MSG_TRIGGER_COUNT ||
+					Date.now() - lastMsgTime > MSG_CHAT_INTERVAL) &&
 				!posting
 			) {
 				await sendShat({
 					dont_save: true,
 					msg: Math.random() >= 0.5 ? lastMsgs.slice(-1)[0] : undefined,
 				});
+				data.lastMsgTime = lastMsgTime = Date.now();
 			}
 			lastMsgs.splice(0, lastMsgs.length - 4); // delete lastmsg cache except the last four msgs
 		}, MSG_INTERVAL);
@@ -196,7 +200,7 @@ export default (bot: DiscordBot): void => {
 
 		// #chat channel
 		if (bot.config.chatChannelId === msg.channelId) {
-			data.lastMsgTime = lastMsgTime = Date.now();
+			lastChatTime = Date.now();
 			lastMsgs.push(msg);
 		}
 
@@ -218,6 +222,7 @@ export default (bot: DiscordBot): void => {
 						: { msg: msg, forceReply: true }
 				);
 				replied = false;
+				data.lastMsgTime = lastMsgTime = Date.now();
 			} else if (
 				!its_posting_time &&
 				(!replied || Math.random() <= MSG_RNG) &&
