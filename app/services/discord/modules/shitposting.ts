@@ -61,8 +61,8 @@ export const Shat = async (
 export default (bot: DiscordBot): void => {
 	const data = bot.container.getService("Data");
 	if (!data) return;
-	let lastMkTime = data.lastMkTime ?? Date.now();
-	let lastMsgTime = data.lastMsgTime ?? Date.now();
+	let lastMkTime = (data.lastMkTime = data.lastMkTime ?? Date.now());
+	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? Date.now());
 	const lastMsgs: Message<boolean>[] = [];
 	let posting = false;
 	let replied = false;
@@ -153,7 +153,6 @@ export default (bot: DiscordBot): void => {
 					dont_save: true,
 					msg: Math.random() >= 0.5 ? lastMsgs.slice(-1)[0] : undefined,
 				});
-				data.lastMsgTime = lastMsgTime = Date.now();
 			}
 			lastMsgs.splice(0, lastMsgs.length - 4); // delete lastmsg cache except the last four msgs
 		}, MSG_INTERVAL);
@@ -194,6 +193,7 @@ export default (bot: DiscordBot): void => {
 
 		// #chat channel
 		if (bot.config.chatChannelId === msg.channelId) {
+			data.lastMsgTime = lastMsgTime = Date.now();
 			lastMsgs.push(msg);
 		}
 
