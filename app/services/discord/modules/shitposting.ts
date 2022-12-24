@@ -7,9 +7,10 @@ import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 const MSG_INTERVAL = 1000 * 60 * 2; // msg check
 const MSG_TRIGGER_COUNT = 10; // how many msgs in msg check until a msg is posted
 const MSG_REPLY_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
+const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.75; // 45 min
+const MSG_RNG = 0.01; // random messges that defy intervals
 const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 10; // also saves lastmsg/mk at that interval
 const REACTION_FREQ = 0.01;
-const MSG_RNG = 0.01; // random messges that defy intervals
 
 const TRIGGER_WORDS = ["meta bot", "the bot", "metaconcord"];
 
@@ -141,17 +142,16 @@ export default (bot: DiscordBot): void => {
 		bot.setActivity(undefined, await getRandomStatus());
 
 		setInterval(async () => {
-			const rng = Math.random();
 			if (
 				lastMsgs.length > 0 &&
 				lastMsgs.slice(-1)[0].author.id !== bot.discord.user?.id &&
-				(Date.now() - lastMsgTime > 1000 * 60 * 60 * rng ||
+				(Date.now() - lastMsgTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
 					lastMsgs.length >= MSG_TRIGGER_COUNT) &&
 				!posting
 			) {
 				await sendShat({
 					dont_save: true,
-					msg: rng >= 0.5 ? lastMsgs.slice(-1)[0] : undefined,
+					msg: Math.random() >= 0.5 ? lastMsgs.slice(-1)[0] : undefined,
 				});
 				data.lastMsgTime = lastMsgTime = Date.now();
 			}
