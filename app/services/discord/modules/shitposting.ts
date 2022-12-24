@@ -154,7 +154,7 @@ export default (bot: DiscordBot): void => {
 				});
 				data.lastMsgTime = lastMsgTime = Date.now();
 			}
-			lastMsgs.splice(0, lastMsgs.length - 2); // delete lastmsg cache except the last two msgs
+			lastMsgs.splice(0, lastMsgs.length - 4); // delete lastmsg cache except the last four msgs
 		}, MSG_INTERVAL);
 	});
 	// shitpost channel
