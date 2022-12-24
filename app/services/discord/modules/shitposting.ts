@@ -237,7 +237,7 @@ export default (bot: DiscordBot): void => {
 				);
 				replied = true;
 			} else {
-				setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
+				msg.react(getRandomEmoji());
 			}
 		}
 	});
