@@ -207,8 +207,8 @@ export default (bot: DiscordBot): void => {
 			if (its_posting_time && !posting) {
 				await sendShat(
 					msg.stickers.size > 0
-						? { forceImage: true, forceReply: true }
-						: { msg: msg, forceReply: true }
+						? { forceImage: true, forceReply: true, dont_save: true }
+						: { msg: msg, forceReply: true, dont_save: true }
 				);
 				replied = false;
 			} else if (
@@ -220,8 +220,8 @@ export default (bot: DiscordBot): void => {
 			) {
 				await sendShat(
 					msg.stickers.size > 0
-						? { forceImage: true, ping: true, dont_save: true }
-						: { msg: msg, forceImage: true, ping: true, dont_save: true }
+						? { forceImage: true, ping: true }
+						: { msg: msg, forceImage: true, ping: true }
 				);
 				replied = true;
 			} else {
