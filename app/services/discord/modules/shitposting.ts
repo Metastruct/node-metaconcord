@@ -143,7 +143,7 @@ export default (bot: DiscordBot): void => {
 			const rng = Math.random();
 			if (
 				lastMsgs.length > 0 &&
-				lastMsgs.slice(-1)[0].id !== bot.discord.user?.id &&
+				lastMsgs.slice(-1)[0].author.id !== bot.discord.user?.id &&
 				(Date.now() - lastMsgTime > 1000 * 60 * 60 * rng ||
 					lastMsgs.length >= MSG_TRIGGER_COUNT) &&
 				!posting
