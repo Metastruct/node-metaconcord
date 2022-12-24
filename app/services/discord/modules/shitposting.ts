@@ -103,10 +103,13 @@ export default (bot: DiscordBot): void => {
 	const getRandomStatus = async () => {
 		const validActivities = [
 			{ type: 0, ctx: ["playing"] },
-			{ type: 1, ctx: ["streaming", "sending", "delivering", "transporting"] },
+			{
+				type: 1,
+				ctx: ["streaming", "sending", "delivering", "transporting", "transmitting"],
+			},
 			{ type: 2, ctx: ["listening to", "hearing", "hear that"] },
-			{ type: 3, ctx: ["watching", "watch", "looking at"] },
-			{ type: 5, ctx: ["in", "participate in", "go in", "enter in"] },
+			{ type: 3, ctx: ["watching", "watch", "looking at", "observing"] },
+			{ type: 5, ctx: ["in", "participate in", "go in", "enter in", "take part in"] },
 		];
 
 		const selection = validActivities[Math.floor(Math.random() * validActivities.length)];
