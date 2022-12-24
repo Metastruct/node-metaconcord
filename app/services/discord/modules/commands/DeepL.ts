@@ -188,7 +188,7 @@ export class UIDeeplCommand extends SlashCommand {
 						ctx.options.to ?? "EN"
 					}**\n\`\`\`\n${res.data.translations[0].text}\`\`\``,
 				};
-				return { embeds: [embed] } as MessageOptions;
+				return { embeds: [embed], ephemeral: true } as MessageOptions;
 			} else {
 				return EphemeralResponse("Something went wrong while trying to translate.");
 			}
