@@ -6,9 +6,9 @@ import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
 const MSG_INTERVAL = 1000 * 60 * 2; // msg check
 const MSG_TRIGGER_COUNT = 10; // how many msgs in msg check until a msg is posted
-const MSG_CHAT_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
+const MSG_CHAT_INTERVAL = 1000 * 60 * 60; // 1 hr
 const MSG_REPLY_INTERVAL = 1000 * 60 * 5; // 5 mins
-const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.75; // 45 min
+const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
 const MSG_RNG = 0.01; // random messges that defy intervals
 const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 10; // also saves lastmsg/mk at that interval
 const REACTION_FREQ = 0.01;
