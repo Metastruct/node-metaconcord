@@ -206,7 +206,8 @@ export default (bot: DiscordBot): void => {
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
 				(lastMsgs.length > 1 &&
 					lastMsgs.slice(-2)[0].author.id === id &&
-					lastMsgs.slice(-3)[0].author.id !== id)) &&
+					lastMsgs.slice(-3)[0].author.id !== id &&
+					msg.mentions.repliedUser?.id !== id)) &&
 			bot.config.chatChannelId === msg.channelId
 		) {
 			const its_posting_time = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
