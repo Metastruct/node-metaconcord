@@ -59,8 +59,8 @@ export const Shat = async (
 export default (bot: DiscordBot): void => {
 	const data = bot.container.getService("Data");
 	if (!data) return;
-	let lastMkTime = data.lastMkTime ?? 0;
-	let lastMsgTime = data.lastMsgTime ?? 0;
+	let lastMkTime = data.lastMkTime ?? Date.now();
+	let lastMsgTime = data.lastMsgTime ?? Date.now();
 	const lastMsgs: Message<boolean>[] = [];
 	let posting = false;
 	let replied = false;
