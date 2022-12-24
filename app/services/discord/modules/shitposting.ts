@@ -200,7 +200,9 @@ export default (bot: DiscordBot): void => {
 			msg.author.id !== id &&
 			(msg.mentions.users.first()?.id === id ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
-				(lastMsgs.length > 1 && lastMsgs.slice(-2)[0].author.id === id)) &&
+				(lastMsgs.length > 1 &&
+					lastMsgs.slice(-2)[0].author.id === id &&
+					lastMsgs.slice(-4)[0].author.id !== id)) &&
 			bot.config.chatChannelId === msg.channelId
 		) {
 			const its_posting_time = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
