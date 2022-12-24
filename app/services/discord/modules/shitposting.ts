@@ -61,6 +61,7 @@ export default (bot: DiscordBot): void => {
 	const data = bot.container.getService("Data");
 	if (!data) return;
 	let lastMkTime = data.lastMkTime ?? Date.now();
+	let lastMsgTime = data.lastMsgTime ?? Date.now();
 	const lastMsgs: Message<boolean>[] = [];
 	let posting = false;
 	let replied = false;
@@ -144,13 +145,15 @@ export default (bot: DiscordBot): void => {
 			if (
 				lastMsgs.length > 0 &&
 				lastMsgs.slice(-1)[0].author.id !== bot.discord.user?.id &&
-				lastMsgs.length >= MSG_TRIGGER_COUNT &&
+				(Date.now() - lastMsgTime > 1000 * 60 * 60 * rng ||
+					lastMsgs.length >= MSG_TRIGGER_COUNT) &&
 				!posting
 			) {
 				await sendShat({
 					dont_save: true,
 					msg: rng >= 0.5 ? lastMsgs.slice(-1)[0] : undefined,
 				});
+				data.lastMsgTime = lastMsgTime = Date.now();
 			}
 			lastMsgs.splice(0, lastMsgs.length - 4); // delete lastmsg cache except the last four msgs
 		}, MSG_INTERVAL);
