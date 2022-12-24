@@ -9,6 +9,7 @@ const MSG_TRIGGER_COUNT = 10; // how many msgs in msg check until a msg is poste
 const MSG_REPLY_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
 const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 10; // also saves lastmsg/mk at that interval
 const REACTION_FREQ = 0.01;
+const MSG_RNG = 0.01; // random messges that defy intervals
 
 const TRIGGER_WORDS = ["meta bot", "the bot", "metaconcord"];
 
@@ -206,24 +207,24 @@ export default (bot: DiscordBot): void => {
 			bot.config.chatChannelId === msg.channelId
 		) {
 			const its_posting_time = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
-			if (its_posting_time && !posting) {
+			if ((its_posting_time || Math.random() <= MSG_RNG) && !posting) {
 				await sendShat(
 					msg.stickers.size > 0
-						? { forceImage: true, forceReply: true, dont_save: true }
-						: { msg: msg, forceReply: true, dont_save: true }
+						? { forceImage: true, forceReply: true }
+						: { msg: msg, forceReply: true }
 				);
 				replied = false;
 			} else if (
 				!its_posting_time &&
-				!replied &&
+				(!replied || Math.random() <= MSG_RNG) &&
 				!posting &&
 				msg.mentions.users.first()?.id === bot.discord.user?.id &&
 				msg.content !== "<@427261532284387329>"
 			) {
 				await sendShat(
 					msg.stickers.size > 0
-						? { forceImage: true, ping: true }
-						: { msg: msg, forceImage: true, ping: true }
+						? { forceImage: true, ping: true, dont_save: true }
+						: { msg: msg, forceImage: true, ping: true, dont_save: true }
 				);
 				replied = true;
 			} else {
