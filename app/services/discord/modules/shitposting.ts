@@ -146,7 +146,7 @@ export default (bot: DiscordBot): void => {
 				lastMsgs.length > 0 &&
 				lastMsgs.slice(-1)[0].author.id !== bot.discord.user?.id &&
 				(Date.now() - lastMsgTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
-					lastMsgs.length >= MSG_TRIGGER_COUNT) &&
+					lastMsgs.length - 4 >= MSG_TRIGGER_COUNT) &&
 				!posting
 			) {
 				await sendShat({
