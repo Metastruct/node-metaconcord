@@ -175,7 +175,8 @@ export default (bot: DiscordBot): void => {
 		if (
 			(Math.random() <= REACTION_FREQ &&
 				msg.mentions.users.first()?.id !== bot.discord.user?.id) ||
-			TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))
+			(bot.config.chatChannelId !== msg.channelId &&
+				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)))
 		) {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
