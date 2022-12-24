@@ -4,8 +4,10 @@ import { MessageCreateOptions } from "discord.js";
 import { makeSpeechBubble } from "@/utils";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
-const MSG_INTERVAL = 1000 * 60 * 15; // 15 min msg check
+const MSG_INTERVAL = 1000 * 60 * 2; // msg check
+const MSG_TRIGGER_COUNT = 10; // how many msgs in msg check until a msg is posted
 const MSG_REPLY_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
+const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 10; // also saves lastmsg/mk at that interval
 const REACTION_FREQ = 0.01;
 
 const TRIGGER_WORDS = ["meta bot", "the bot", "metaconcord"];
@@ -59,19 +61,21 @@ export default (bot: DiscordBot): void => {
 	if (!data) return;
 	let lastMkTime = data.lastMkTime ?? 0;
 	let lastMsgTime = data.lastMsgTime ?? 0;
+	const lastMsgs: Message<boolean>[] = [];
 	let posting = false;
 	let replied = false;
 
 	const sendShat = async (
 		options: {
 			msg?: Message;
+			forceImage?: boolean;
 			forceReply?: boolean;
 			ping?: boolean;
 			dont_save?: boolean;
 		} = {}
 	) => {
 		posting = true;
-		const shat = await Shat(bot, options.msg?.content, undefined, options.forceReply);
+		const shat = await Shat(bot, options.msg?.content, options.forceImage, options.forceReply);
 		if (shat) {
 			if (options.msg) {
 				await options.msg.reply({
@@ -129,22 +133,36 @@ export default (bot: DiscordBot): void => {
 	};
 
 	bot.discord.on("ready", async () => {
-		setInterval(
-			async () => bot.setActivity(undefined, await getRandomStatus()),
-			1000 * 60 * 10
-		); // change status every 10mins
-		bot.setActivity(undefined, await getRandomStatus());
 		setInterval(async () => {
-			if (Date.now() - lastMsgTime > 1000 * 60 * 60 * Math.random() && !posting) {
-				await sendShat({ dont_save: true });
-			}
+			bot.setActivity(undefined, await getRandomStatus());
 			await data.save();
-		}, MSG_INTERVAL); // chat channel msgs
-		await sendShat({ dont_save: true });
+		}, ACTIVITY_CHANGE_INTERVAL); // change status every 10mins and save data
+		bot.setActivity(undefined, await getRandomStatus());
+
+		setInterval(async () => {
+			const rng = Math.random();
+			if (
+				lastMsgs.length > 0 &&
+				lastMsgs.slice(-1)[0].id !== bot.discord.user?.id &&
+				(Date.now() - lastMsgTime > 1000 * 60 * 60 * rng ||
+					lastMsgs.length >= MSG_TRIGGER_COUNT) &&
+				!posting
+			) {
+				await sendShat({
+					dont_save: true,
+					msg: rng >= 0.5 ? lastMsgs.slice(-1)[0] : undefined,
+				});
+				data.lastMsgTime = lastMsgTime = Date.now();
+			}
+			lastMsgs.splice(0, lastMsgs.length); // delete lastmsg cache
+		}, MSG_INTERVAL);
 	});
 	// shitpost channel
 	bot.discord.on("messageCreate", async msg => {
-		if (msg.author.bot) return;
+		const id = bot.discord.user?.id;
+		if (!id) return;
+
+		if (msg.author.bot && msg.author.id !== id) return;
 		if (msg.partial) {
 			try {
 				msg = await msg.fetch();
@@ -152,9 +170,6 @@ export default (bot: DiscordBot): void => {
 				return;
 			}
 		}
-
-		const id = bot.discord.user?.id;
-		if (!id) return;
 
 		// Reactions
 		if (
@@ -167,6 +182,7 @@ export default (bot: DiscordBot): void => {
 
 		// #shitpost channel
 		if (
+			msg.author.id !== id &&
 			(msg.mentions.users.first()?.id === id ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))) &&
 			bot.config.allowedShitpostingChannels.includes(msg.channelId)
@@ -177,17 +193,23 @@ export default (bot: DiscordBot): void => {
 
 		// #chat channel
 		if (bot.config.chatChannelId === msg.channelId) {
-			data.lastMsgTime = lastMsgTime = Date.now();
+			lastMsgs.push(msg);
 		}
 
 		if (
+			msg.author.id !== id &&
 			(msg.mentions.users.first()?.id === id ||
-				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))) &&
+				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
+				(lastMsgs.length > 1 && lastMsgs.slice(-2)[0].author.id === id)) &&
 			bot.config.chatChannelId === msg.channelId
 		) {
 			const its_posting_time = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
 			if (its_posting_time && !posting) {
-				await sendShat({ msg: msg, forceReply: true });
+				await sendShat(
+					msg.stickers.size > 0
+						? { forceImage: true, forceReply: true }
+						: { msg: msg, forceReply: true }
+				);
 				replied = false;
 			} else if (
 				!its_posting_time &&
@@ -196,7 +218,11 @@ export default (bot: DiscordBot): void => {
 				msg.mentions.users.first()?.id === bot.discord.user?.id &&
 				msg.content !== "<@427261532284387329>"
 			) {
-				await sendShat({ msg: msg, forceReply: true, ping: true, dont_save: true });
+				await sendShat(
+					msg.stickers.size > 0
+						? { forceImage: true, ping: true, dont_save: true }
+						: { msg: msg, forceImage: true, ping: true, dont_save: true }
+				);
 				replied = true;
 			} else {
 				setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
