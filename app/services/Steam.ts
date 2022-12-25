@@ -20,7 +20,7 @@ export class Steam extends Service {
 		[steamId64: string]: UserCache;
 	} = {};
 
-	async getUserSummaries(steamId64: string): Promise<any> {
+	async getUserSummaries(steamId64: string): Promise<SteamAPI.PlayerSummary | undefined> {
 		const userCache = this.getUserCache(steamId64);
 		if (!userCache.summary) {
 			try {
