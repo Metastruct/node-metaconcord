@@ -31,7 +31,7 @@ export default class UnbanPayload extends Payload {
 		let avatar = "";
 		try {
 			steamId64 = new SteamID(player.steamId).getSteamID64();
-			const summary: PlayerSummary = await steam?.getUserSummaries(steamId64);
+			const summary: PlayerSummary | undefined = await steam?.getUserSummaries(steamId64);
 			if (summary) {
 				bannerName = summary.nickname;
 				avatar = summary.avatar.large;
