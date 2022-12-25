@@ -211,7 +211,9 @@ export default (bot: DiscordBot): void => {
 				(lastMsgs.length > 1 &&
 					lastMsgs.slice(-2)[0].author.id === id &&
 					lastMsgs.slice(-3)[0].author.id !== id &&
-					(msg.mentions.repliedUser ? msg.mentions.repliedUser.id === id : true))) &&
+					(msg.mentions.repliedUser
+						? msg.mentions.repliedUser.id === id
+						: true && msg.mentions.users.first()?.id === id))) &&
 			bot.config.chatChannelId === msg.channelId
 		) {
 			const its_posting_time = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
