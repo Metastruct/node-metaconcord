@@ -3,7 +3,9 @@ import {
 	AutocompleteContext,
 	CommandContext,
 	CommandOptionType,
+	ComponentType,
 	SlashCreator,
+	TextInputStyle,
 } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
@@ -158,18 +160,11 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 		return len;
 	}
 
-	public async runProtected(ctx: CommandContext): Promise<any> {
-		const steam = this.bot.container.getService("Steam");
-		const summary = await steam?.getUserSummaries(ctx.options.steamid);
-		if (!summary) {
-			await ctx.send("Unable to gather player data");
-			return;
-		}
-
+	async Ban(nickname: string, ctx: CommandContext) {
 		const bridge = this.bot.container.getService("GameBridge");
 		if (!bridge) return;
 		const server = ctx.options.server ?? 2;
-		const plyName = summary.nickname ?? `???`;
+		const plyName = nickname ?? `???`;
 		const length = Math.round(Date.now() / 1000 + this.parseLength(ctx.options.length));
 		const code =
 			`if not banni then return false end ` +
@@ -198,5 +193,34 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 			const errMsg = (err as Error)?.message ?? err;
 			await ctx.send(errMsg);
 		}
+	}
+
+	public async runProtected(ctx: CommandContext): Promise<any> {
+		const steam = this.bot.container.getService("Steam");
+		const summary = await steam?.getUserSummaries(ctx.options.steamid);
+		if (!summary) {
+			await ctx.sendModal(
+				{
+					title: "Profile is private, please enter Nick manually:",
+					components: [
+						{
+							type: ComponentType.ACTION_ROW,
+							components: [
+								{
+									type: ComponentType.TEXT_INPUT,
+									label: "Nickname of user to ban",
+									style: TextInputStyle.SHORT,
+									placeholder: "Player Name",
+									custom_id: "nickname_input",
+								},
+							],
+						},
+					],
+				},
+				async mctx => this.Ban(mctx.values.nickname_input, ctx)
+			);
+			return;
+		}
+		await this.Ban(summary.nickname, ctx);
 	}
 }
