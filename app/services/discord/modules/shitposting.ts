@@ -161,7 +161,13 @@ export default (bot: DiscordBot): void => {
 			lastMsgs.splice(0, lastMsgs.length - 4); // delete lastmsg cache except the last four msgs
 		}, MSG_INTERVAL);
 	});
-	// shitpost channel
+
+	bot.discord.on("messageDelete", async msg => {
+		if (msg.channelId !== bot.config.chatChannelId) return;
+		const idx = lastMsgs.indexOf(msg as Message);
+		if (idx !== -1) lastMsgs.splice(idx, 1);
+	});
+
 	bot.discord.on("messageCreate", async msg => {
 		const id = bot.discord.user?.id;
 		if (!id) return;
@@ -175,7 +181,7 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 
-		// Reactions
+		// Message Reactions
 		if (
 			(msg.author.id !== id &&
 				Math.random() <= REACTION_FREQ &&
