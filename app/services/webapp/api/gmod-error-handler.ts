@@ -8,6 +8,7 @@ import SteamID from "steamid";
 import config from "@/config/webapp.json";
 import express from "express";
 import servers from "@/config/gamebridge.servers.json";
+import dayjs from "dayjs";
 
 type GmodResponse = {
 	addon: string;
@@ -248,7 +249,7 @@ export default (webApp: WebApp): void => {
 					if (gameserver?.mapUptime) {
 						embed.fields.push({
 							name: "Map running since:",
-							value: `<t:${gameserver?.mapUptime.toString()}:R>`,
+							value: `<t:${dayjs().subtract(gameserver?.mapUptime, "s").unix()}:R>`,
 							inline: true,
 						});
 					}
