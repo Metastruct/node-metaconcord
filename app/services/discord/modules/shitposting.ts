@@ -115,9 +115,9 @@ export default (bot: DiscordBot): void => {
 				type: 1,
 				ctx: ["streaming", "sending", "delivering", "transporting", "transmitting"],
 			},
-			{ type: 2, ctx: ["listening to", "hearing", "hear that"] },
+			{ type: 2, ctx: ["listening to", "hearing"] },
 			{ type: 3, ctx: ["watching", "watch", "looking at", "observing"] },
-			{ type: 5, ctx: ["in", "participate in", "go in", "enter in", "take part in"] },
+			{ type: 5, ctx: ["in", "participate in", "enter in", "take part in"] },
 		];
 
 		const selection = validActivities[Math.floor(Math.random() * validActivities.length)];
