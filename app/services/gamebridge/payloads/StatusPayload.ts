@@ -170,8 +170,8 @@ export default class StatusPayload extends Payload {
 			server.defcon = current_defcon;
 			server.gamemode = current_gamemode;
 			server.map = current_map;
-			server.mapUptime = maptime;
-			server.serverUptime = servertime;
+			server.mapUptime = current_mapUptime;
+			server.serverUptime = current_serverUptime;
 			server.workshopMap = workshopMap;
 
 			for (const [, player] of Object.entries(server.status.players)) {
