@@ -239,8 +239,9 @@ export default (bot: DiscordBot): void => {
 				!its_posting_time &&
 				(!replied || Math.random() <= MSG_RNG) &&
 				!posting &&
-				msg.mentions.users.first()?.id === bot.discord.user?.id &&
-				msg.content !== "<@427261532284387329>"
+				((msg.mentions.users.first()?.id === bot.discord.user?.id &&
+					msg.content !== "<@427261532284387329>") ||
+					TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)))
 			) {
 				await sendShat(
 					msg.stickers.size > 0
