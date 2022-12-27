@@ -45,7 +45,8 @@ export default class GameServer {
 	status: {
 		mapThumbnail: string | null;
 		players: Player[];
-	} = { mapThumbnail: null, players: [] };
+		image: string | null;
+	} = { mapThumbnail: null, players: [], image: null };
 	map: string;
 	mapUptime: number;
 	workshopMap?: {

@@ -137,7 +137,11 @@ export default class StatusPayload extends Payload {
 			if (count > 0) {
 				embed
 					.setImage(
-						`http://${host}:${port}/server-status/${server.config.id}/${Date.now()}`
+						players
+							? `http://${host}:${port}/server-status/${
+									server.config.id
+							  }/${Date.now()}`
+							: server.status.image
 					)
 					.setFooter({
 						text: `${
@@ -161,6 +165,7 @@ export default class StatusPayload extends Payload {
 
 			// Server status metadata
 			server.status.mapThumbnail = mapThumbnail;
+			server.status.image = embed.data.image?.url ?? null;
 			server.status.players = current_players;
 			server.defcon = current_defcon;
 			server.gamemode = current_gamemode;
