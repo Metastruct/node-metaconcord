@@ -20,11 +20,15 @@ export class SlashForceIotdRerollCommand extends SlashDeveloperCommand {
 			return EphemeralResponse(
 				`You need the <@&${this.bot.config.elevatedRoleId}> role to run this command!`
 			);
-		const lastmsg = await this.bot.getLastMotdMsg();
-		if (!lastmsg) return EphemeralResponse("Could not find last message");
-		if (!lastmsg.content.includes("Image of the day"))
-			return EphemeralResponse("Last message isn't an iotd");
-		await this.bot.container.getService("Motd")?.rerollImageJob();
-		return EphemeralResponse("👍");
+		try {
+			const lastmsg = await this.bot.getLastMotdMsg();
+			if (!lastmsg) return EphemeralResponse("Could not find last message");
+			if (!lastmsg.content.includes("Image of the day"))
+				return EphemeralResponse("Last message isn't an iotd");
+			await this.bot.container.getService("Motd")?.rerollImageJob();
+			return EphemeralResponse("👍");
+		} catch (err) {
+			return EphemeralResponse("Error: " + err);
+		}
 	}
 }
