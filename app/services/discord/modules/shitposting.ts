@@ -23,7 +23,7 @@ export const Shat = async (
 	forceReply?: boolean
 ): Promise<MessageCreateOptions | undefined> => {
 	const rng = Math.random();
-	if (rng > 0.05 && (!forceImage || !msg?.startsWith("http"))) {
+	if (rng > 0.05 && !forceImage && !msg?.startsWith("http")) {
 		let search: string | undefined;
 		let fallback: string | undefined;
 		let islast = false;
