@@ -27,6 +27,7 @@ import { SlashUnmuteCommand, UIUnmuteCommand } from "./mute/Unmute";
 import { SlashVaccinatedCommand } from "./Vaccination";
 import { SlashWhyBanCommand } from "./WhyBan";
 import { SlashWhyMuteCommand, UIWhyMuteCommand } from "./mute/WhyMute";
+import { UIStickerYankCommand } from "./StickerYank";
 
 export function EphemeralResponse(content: string): MessageOptions {
 	return { content, ephemeral: true };
@@ -56,6 +57,7 @@ export const commands = [
 	SlashWhyMuteCommand,
 	UIDeeplCommand,
 	UIMuteCommand,
+	UIStickerYankCommand,
 	UISpeechbubbleLeftCommand,
 	UISpeechbubbleRightCommand,
 	UIUnmuteCommand,
