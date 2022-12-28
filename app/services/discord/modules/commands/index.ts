@@ -6,6 +6,7 @@ import { SlashBanCommand } from "./developer/Ban";
 import { SlashCustomRoleCommand } from "./CustomRole";
 import { SlashDeeplCommand, UIDeeplCommand } from "./DeepL";
 import { SlashEvalCommand } from "./developer/Eval";
+import { SlashForceIotdRerollCommand } from "./developer/ForceIotdReroll";
 import { SlashGservAllCommand } from "./developer/GservAll";
 import { SlashGservCommand } from "./developer/Gserv";
 import { SlashKickCommand } from "./developer/Kick";
@@ -36,6 +37,7 @@ export const commands = [
 	SlashCustomRoleCommand,
 	SlashDeeplCommand,
 	SlashEvalCommand,
+	SlashForceIotdRerollCommand,
 	SlashGservAllCommand,
 	SlashGservCommand,
 	SlashKickCommand,
