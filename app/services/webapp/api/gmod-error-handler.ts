@@ -247,10 +247,9 @@ export default (webApp: WebApp): void => {
 			if (server) {
 				if (gameserver) {
 					if (gameserver.mapUptime) {
-						const maptime = dayjs().subtract(gameserver.mapUptime, "s").unix();
 						embed.fields.push({
 							name: "Map running since:",
-							value: `<t:${maptime}:R>`,
+							value: `<t:${dayjs().subtract(gameserver.mapUptime, "s").unix()}:R>`,
 							inline: true,
 						});
 					}

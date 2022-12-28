@@ -5,6 +5,7 @@ import { ErrorRequest, ErrorResponse } from "./structures";
 import { GameServer } from "..";
 import { getOrFetchLuaFile } from "@/utils";
 import Payload from "./Payload";
+import dayjs from "dayjs";
 
 export default class ErrorPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -36,7 +37,12 @@ export default class ErrorPayload extends Payload {
 			footer: {
 				text: `${server.gamemode.name}@${server.config.name}`,
 			},
-			fields: [{ name: "Map running since:", value: `<t:${server.mapUptime.toString()}:R>` }],
+			fields: [
+				{
+					name: "Map running since:",
+					value: `<t:${dayjs().subtract(server.mapUptime, "s").unix()}:R>`,
+				},
+			],
 			color: 0x03a9f4,
 		};
 
