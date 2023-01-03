@@ -8,7 +8,6 @@ const MSG_INTERVAL = 1000 * 60 * 1; // msg check
 const MSG_TRIGGER_COUNT = 10; // how many msgs in msg check until a msg is posted
 const MSG_CHAT_INTERVAL = 1000 * 60 * 60; // 1 hr
 const MSG_REPLY_INTERVAL = 1000 * 60 * 2;
-const MSG_REPLY_TO_SELF_TIME = 1000 * 60 * 5; // time until ignoring replies to itself
 const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
 const MSG_RNG = 0.1; // random messges that defy intervals
 const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 10; // also saves lastmsg/mk at that interval
@@ -216,8 +215,6 @@ export default (bot: DiscordBot): void => {
 			(msg.mentions.users.first()?.id === id ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
 				(lastMsgs.length > 1 &&
-					lastMsgs.slice(-2)[0].author.id === id &&
-					Date.now() - lastMsgs.slice(-2)[0].createdTimestamp <= MSG_REPLY_TO_SELF_TIME &&
 					lastMsgs.slice(-4)[0].author.id !== id &&
 					(msg.mentions.repliedUser
 						? msg.mentions.repliedUser.id === id
