@@ -161,7 +161,7 @@ export default (bot: DiscordBot): void => {
 				lastMsgs.length > 0 &&
 				lastMsgs.slice(-1)[0].author.id !== bot.discord.user?.id &&
 				(now - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
-					lastMsgs.length - 4 >= MSG_TRIGGER_COUNT ||
+					lastMsgs.length - 2 >= MSG_TRIGGER_COUNT ||
 					now - lastMsgTime > MSG_CHAT_INTERVAL) &&
 				!posting
 			) {
