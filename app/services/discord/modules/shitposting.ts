@@ -65,8 +65,8 @@ export default (bot: DiscordBot): void => {
 	if (!data) return;
 	const now = Date.now();
 	let lastActivityChange = now;
-	let lastAPIActivity: Discord.Activity;
-	let lastSetActivity: Discord.ActivitiesOptions;
+	let lastAPIActivity: Discord.Activity | undefined;
+	let lastSetActivity: Discord.ActivitiesOptions | undefined;
 	let lastMkTime = (data.lastMkTime = data.lastMkTime ?? now);
 	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? now);
 	let lastChatTime = now;
@@ -76,7 +76,7 @@ export default (bot: DiscordBot): void => {
 
 	const sendShat = async (
 		options: {
-			msg?: Message;
+			msg?: Discord.Message;
 			forceImage?: boolean;
 			forceReply?: boolean;
 			ping?: boolean;
@@ -102,11 +102,11 @@ export default (bot: DiscordBot): void => {
 	};
 
 	const getRandomEmoji = () => {
-		let emoji: EmojiIdentifierResolvable;
+		let emoji: Discord.EmojiIdentifierResolvable;
 		if (Math.random() <= 0.5) {
 			emoji = bot.discord.guilds.cache
 				.get(bot.config.guildId)
-				?.emojis.cache.random() as EmojiIdentifierResolvable;
+				?.emojis.cache.random() as Discord.EmojiIdentifierResolvable;
 		} else {
 			emoji = EmojiList[Math.floor(Math.random() * EmojiList.length)];
 		}
@@ -174,7 +174,7 @@ export default (bot: DiscordBot): void => {
 			if (now - lastActivityChange > ACTIVITY_CHANGE_INTERVAL) {
 				bot.setActivity(undefined, await getRandomStatus());
 				lastActivityChange = now;
-			} else if (lastSetActivity.name !== lastAPIActivity.name) {
+			} else if (lastSetActivity?.name !== lastAPIActivity?.name) {
 				bot.setActivity(undefined, lastSetActivity);
 			}
 			lastMsgs.splice(0, lastMsgs.length - 4); // delete lastmsg cache except the last four msgs
