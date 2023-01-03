@@ -4,7 +4,7 @@ import { makeSpeechBubble } from "@/utils";
 import Discord from "discord.js";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
-const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 10;
+const ACTIVITY_CHANGE_INTERVAL = 1000 * 60;
 const MSG_INTERVAL = 1000 * 60 * 1; // msg check
 const MSG_TRIGGER_COUNT = 15; // how many msgs in msg check until a msg is posted
 const MSG_CHAT_INTERVAL = 1000 * 60 * 60; // 1 hr
