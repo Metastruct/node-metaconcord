@@ -230,9 +230,9 @@ export default (bot: DiscordBot): void => {
 			lastMsgs.push(msg);
 			if (
 				lastMsgs.length - 2 < MSG_TRIGGER_COUNT &&
-				lastMsgs.length - 2 / MSG_TRIGGER_COUNT >= 0.75
+				(lastMsgs.length - 2) / MSG_TRIGGER_COUNT >= 0.75
 			)
-				bot.setActivity(`${lastMsgs.length}/${MSG_TRIGGER_COUNT}`);
+				bot.setActivity(`${lastMsgs.length - 2}/${MSG_TRIGGER_COUNT}`);
 		}
 
 		if (
