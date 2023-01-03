@@ -1,6 +1,6 @@
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
-import Discord, { GuildPremiumTier, Partials } from "discord.js";
+import Discord, { Activity, GuildPremiumTier, Partials } from "discord.js";
 import axios from "axios";
 import config from "@/config/discord.json";
 import modules from "./modules";
@@ -24,6 +24,7 @@ export class DiscordBot extends Service {
 			"GuildMessages",
 			"GuildMessageReactions",
 			"MessageContent",
+			"GuildPresences",
 		],
 		partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 	});
@@ -58,13 +59,24 @@ export class DiscordBot extends Service {
 	}
 
 	async setActivity(
-		status: string | undefined,
+		status: string | Activity | undefined,
 		options?: Discord.ActivitiesOptions
 	): Promise<void> {
 		if (!this.discord.isReady()) return;
-		if (status && status.length > 127) status = status.substring(0, 120) + "...";
-		const activity = { ...options };
-		if (status) activity.name = status;
+		const activity: Discord.ActivitiesOptions = { ...options };
+		switch (status !== undefined) {
+			case status instanceof Activity: {
+				status = status as Activity;
+				activity.name = status.name;
+			}
+
+			case status instanceof String: {
+				status = status as string; // ??? this seems kinda weird
+				if (status && status.length > 127) status = status.substring(0, 120) + "...";
+				activity.name = status;
+			}
+		}
+
 		this.discord.user.setActivity(activity);
 	}
 
