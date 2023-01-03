@@ -1,6 +1,6 @@
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
-import Discord, { Activity, GuildPremiumTier, Partials } from "discord.js";
+import Discord from "discord.js";
 import axios from "axios";
 import config from "@/config/discord.json";
 import modules from "./modules";
@@ -26,7 +26,7 @@ export class DiscordBot extends Service {
 			"MessageContent",
 			"GuildPresences",
 		],
-		partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+		partials: [Discord.Partials.Message, Discord.Partials.Channel, Discord.Partials.Reaction],
 	});
 
 	constructor(container: Container) {
@@ -59,22 +59,26 @@ export class DiscordBot extends Service {
 	}
 
 	async setActivity(
-		status: string | Activity | undefined,
+		status: string | Discord.Activity | undefined,
 		options?: Discord.ActivitiesOptions
 	): Promise<void> {
 		if (!this.discord.isReady()) return;
 		const activity: Discord.ActivitiesOptions = { ...options };
-		switch (status !== undefined) {
-			case status instanceof Activity: {
-				status = status as Activity;
+		switch (true) {
+			case status instanceof Discord.Activity: {
+				status = status as Discord.Activity;
 				activity.name = status.name;
+				break;
 			}
 
-			case status instanceof String: {
-				status = status as string; // ??? this seems kinda weird
+			case typeof status === "string": {
+				status = status as string;
 				if (status && status.length > 127) status = status.substring(0, 120) + "...";
 				activity.name = status;
+				break;
 			}
+			case typeof status === "undefined":
+			default:
 		}
 
 		this.discord.user.setActivity(activity);
@@ -144,7 +148,7 @@ export class DiscordBot extends Service {
 	async overLvl2(): Promise<boolean> {
 		const guild = this.discord.guilds.cache.get(config.guildId);
 		if (!guild) return false;
-		return guild.premiumTier > GuildPremiumTier.Tier1 ?? false;
+		return guild.premiumTier > Discord.GuildPremiumTier.Tier1 ?? false;
 	}
 
 	async removeMotdReactions(): Promise<void> {

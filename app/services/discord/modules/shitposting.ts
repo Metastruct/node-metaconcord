@@ -140,7 +140,7 @@ export default (bot: DiscordBot): void => {
 
 		lastSetActivity = { name: status, type: selection.type } as Discord.ActivitiesOptions;
 
-		return lastSetActivity; // who cares
+		return lastSetActivity;
 	};
 
 	bot.discord.on("presenceUpdate", async (old, now) => {
@@ -149,10 +149,11 @@ export default (bot: DiscordBot): void => {
 	});
 
 	bot.discord.on("ready", async () => {
+		bot.setActivity(undefined, await getRandomStatus());
+
 		setInterval(async () => {
 			await data.save();
 		}, SAVE_INTERVAL); // save data
-		bot.setActivity(undefined, await getRandomStatus());
 
 		setInterval(async () => {
 			const now = Date.now();
