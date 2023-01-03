@@ -1,7 +1,7 @@
-import { ActivitiesOptions, EmojiIdentifierResolvable, Message } from "discord.js";
 import { DiscordBot } from "..";
 import { MessageCreateOptions } from "discord.js";
 import { makeSpeechBubble } from "@/utils";
+import Discord from "discord.js";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
 const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 10;
@@ -65,12 +65,12 @@ export default (bot: DiscordBot): void => {
 	if (!data) return;
 	const now = Date.now();
 	let lastActivityChange = now;
-	let lastActivityAPITitle: string;
-	let lastActivitySetTitle: string;
+	let lastAPIActivity: Discord.Activity;
+	let lastSetActivity: Discord.ActivitiesOptions;
 	let lastMkTime = (data.lastMkTime = data.lastMkTime ?? now);
 	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? now);
 	let lastChatTime = now;
-	const lastMsgs: Message<boolean>[] = [];
+	const lastMsgs: Discord.Message<boolean>[] = [];
 	let posting = false;
 	let replied = false;
 
@@ -138,14 +138,14 @@ export default (bot: DiscordBot): void => {
 			status = sentence.length > 127 ? sentence.substring(0, 120) + "..." : sentence;
 		}
 
-		lastActivitySetTitle = status;
+		lastSetActivity = { name: status, type: selection.type } as Discord.ActivitiesOptions;
 
-		return { name: status, type: selection.type } as ActivitiesOptions; // who cares
+		return lastSetActivity; // who cares
 	};
 
 	bot.discord.on("presenceUpdate", async (old, now) => {
 		if (now.userId !== bot.discord.user?.id) return;
-		lastActivityAPITitle = now.activities[0].name;
+		lastAPIActivity = now.activities[0];
 	});
 
 	bot.discord.on("ready", async () => {
@@ -174,8 +174,8 @@ export default (bot: DiscordBot): void => {
 			if (now - lastActivityChange > ACTIVITY_CHANGE_INTERVAL) {
 				bot.setActivity(undefined, await getRandomStatus());
 				lastActivityChange = now;
-			} else if (lastActivitySetTitle !== lastActivityAPITitle) {
-				bot.setActivity(lastActivitySetTitle);
+			} else if (lastSetActivity.name !== lastAPIActivity.name) {
+				bot.setActivity(undefined, lastSetActivity);
 			}
 			lastMsgs.splice(0, lastMsgs.length - 4); // delete lastmsg cache except the last four msgs
 		}, MSG_INTERVAL);
@@ -183,7 +183,7 @@ export default (bot: DiscordBot): void => {
 
 	bot.discord.on("messageDelete", async msg => {
 		if (msg.channelId !== bot.config.chatChannelId) return;
-		const idx = lastMsgs.indexOf(msg as Message);
+		const idx = lastMsgs.indexOf(msg as Discord.Message);
 		if (idx !== -1) lastMsgs.splice(idx, 1);
 	});
 
