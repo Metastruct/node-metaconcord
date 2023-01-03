@@ -8,6 +8,11 @@ import dayjs from "dayjs";
 
 const events = [
 	{
+		icon: "haaugh",
+		nick: ["Haaugh"],
+		range: ["27/03", "28/03"],
+	},
+	{
 		icon: "summer",
 		nick: ["Sunny", "Summer", "Beach"],
 		range: ["01/06", "07/09"],
