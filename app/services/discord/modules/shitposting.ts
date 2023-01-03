@@ -4,14 +4,15 @@ import { MessageCreateOptions } from "discord.js";
 import { makeSpeechBubble } from "@/utils";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
+const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 10;
 const MSG_INTERVAL = 1000 * 60 * 1; // msg check
 const MSG_TRIGGER_COUNT = 10; // how many msgs in msg check until a msg is posted
 const MSG_CHAT_INTERVAL = 1000 * 60 * 60; // 1 hr
 const MSG_REPLY_INTERVAL = 1000 * 60 * 2;
 const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
 const MSG_RNG = 0.1; // random messges that defy intervals
-const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 10; // also saves lastmsg/mk at that interval
 const REACTION_FREQ = 0.01;
+const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
 
 const TRIGGER_WORDS = ["meta bot", "the bot", "metaconcord"];
 
@@ -62,9 +63,13 @@ export const Shat = async (
 export default (bot: DiscordBot): void => {
 	const data = bot.container.getService("Data");
 	if (!data) return;
-	let lastMkTime = (data.lastMkTime = data.lastMkTime ?? Date.now());
-	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? Date.now());
-	let lastChatTime = Date.now();
+	const now = Date.now();
+	let lastActivityChange = now;
+	let lastActivityAPITitle: string;
+	let lastActivitySetTitle: string;
+	let lastMkTime = (data.lastMkTime = data.lastMkTime ?? now);
+	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? now);
+	let lastChatTime = now;
 	const lastMsgs: Message<boolean>[] = [];
 	let posting = false;
 	let replied = false;
@@ -133,30 +138,44 @@ export default (bot: DiscordBot): void => {
 			status = sentence.length > 127 ? sentence.substring(0, 120) + "..." : sentence;
 		}
 
+		lastActivitySetTitle = status;
+
 		return { name: status, type: selection.type } as ActivitiesOptions; // who cares
 	};
 
+	bot.discord.on("presenceUpdate", async (old, now) => {
+		if (now.userId !== bot.discord.user?.id) return;
+		lastActivityAPITitle = now.activities[0].name;
+	});
+
 	bot.discord.on("ready", async () => {
 		setInterval(async () => {
-			bot.setActivity(undefined, await getRandomStatus());
 			await data.save();
-		}, ACTIVITY_CHANGE_INTERVAL); // change status every 10mins and save data
+		}, SAVE_INTERVAL); // save data
 		bot.setActivity(undefined, await getRandomStatus());
 
 		setInterval(async () => {
+			const now = Date.now();
 			if (
 				lastMsgs.length > 0 &&
 				lastMsgs.slice(-1)[0].author.id !== bot.discord.user?.id &&
-				(Date.now() - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
+				(now - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
 					lastMsgs.length - 4 >= MSG_TRIGGER_COUNT ||
-					Date.now() - lastMsgTime > MSG_CHAT_INTERVAL) &&
+					now - lastMsgTime > MSG_CHAT_INTERVAL) &&
 				!posting
 			) {
 				await sendShat({
 					dont_save: true,
 					msg: Math.random() >= 0.5 ? lastMsgs.slice(-1)[0] : undefined,
 				});
-				data.lastMsgTime = lastMsgTime = Date.now();
+				data.lastMsgTime = lastMsgTime = now;
+				bot.setActivity(undefined, await getRandomStatus());
+			}
+			if (now - lastActivityChange > ACTIVITY_CHANGE_INTERVAL) {
+				bot.setActivity(undefined, await getRandomStatus());
+				lastActivityChange = now;
+			} else if (lastActivitySetTitle !== lastActivityAPITitle) {
+				bot.setActivity(lastActivitySetTitle);
 			}
 			lastMsgs.splice(0, lastMsgs.length - 4); // delete lastmsg cache except the last four msgs
 		}, MSG_INTERVAL);
@@ -208,6 +227,8 @@ export default (bot: DiscordBot): void => {
 		if (bot.config.chatChannelId === msg.channelId) {
 			lastChatTime = Date.now();
 			lastMsgs.push(msg);
+			if (lastMsgs.length < MSG_TRIGGER_COUNT && lastMsgs.length / MSG_TRIGGER_COUNT >= 0.75)
+				bot.setActivity(`${lastMsgs.length}/${MSG_TRIGGER_COUNT}`);
 		}
 
 		if (
