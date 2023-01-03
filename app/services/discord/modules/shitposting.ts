@@ -211,17 +211,12 @@ export default (bot: DiscordBot): void => {
 		}
 
 		if (
+			bot.config.chatChannelId === msg.channelId &&
 			msg.author.id !== id &&
+			lastMsgs.length > 1 &&
+			lastMsgs.slice(-2)[0].author.id !== id &&
 			(msg.mentions.users.first()?.id === id ||
-				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
-				(lastMsgs.length > 1 &&
-					lastMsgs.slice(-4)[0].author.id !== id &&
-					(msg.mentions.repliedUser
-						? msg.mentions.repliedUser.id === id
-						: true && msg.mentions.users.size > 0
-						? msg.mentions.users.first()?.id === id
-						: true))) &&
-			bot.config.chatChannelId === msg.channelId
+				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)))
 		) {
 			const its_posting_time = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
 			if ((its_posting_time || Math.random() <= MSG_RNG) && !posting) {
