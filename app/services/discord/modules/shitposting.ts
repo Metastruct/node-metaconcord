@@ -150,7 +150,6 @@ export default (bot: DiscordBot): void => {
 
 	bot.discord.on("ready", async () => {
 		bot.setActivity(undefined, await getRandomStatus());
-		await data.save();
 
 		setInterval(async () => {
 			await data.save();
