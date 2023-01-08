@@ -232,7 +232,7 @@ export default (bot: DiscordBot): void => {
 			lastMsgs.push(msg);
 			if (
 				lastMsgs.length - 2 < MSG_TRIGGER_COUNT &&
-				(lastMsgs.length - 2) / MSG_TRIGGER_COUNT >= 0.75
+				(lastMsgs.length - 2) / MSG_TRIGGER_COUNT >= 0.8
 			) {
 				msg.channel.sendTyping();
 			}
