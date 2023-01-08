@@ -16,7 +16,7 @@ const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
 
 const TRIGGER_WORDS = ["meta bot", "the bot", "metaconcord"];
 const MAYBE_TRIGGER_WORDS = ["metastruct", "metaconstruct", "meta", "bot"]; // not directly the bot but maybe
-const MAYBE_TROGGER_FREQ = 0.1;
+const MAYBE_TROGGER_FREQ = 0.25;
 
 export const Shat = async (
 	bot: DiscordBot,
