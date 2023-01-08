@@ -86,6 +86,7 @@ export default (bot: DiscordBot): void => {
 		} = {}
 	) => {
 		posting = true;
+		if (options.msg) options.msg.channel.sendTyping();
 		const shat = await Shat(bot, options.msg?.content, options.forceImage, options.forceReply);
 		if (shat) {
 			if (options.msg) {
@@ -222,6 +223,7 @@ export default (bot: DiscordBot): void => {
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))) &&
 			bot.config.allowedShitpostingChannels.includes(msg.channelId)
 		) {
+			msg.channel.sendTyping();
 			const shat = await Shat(bot, msg.content);
 			if (shat) await msg.reply(shat);
 		}
