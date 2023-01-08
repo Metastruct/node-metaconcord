@@ -109,9 +109,9 @@ export default class StatusPayload extends Payload {
 				desc += `\n<a:ALERTA:843518761160015933> \`DEFCON ${current_defcon}\` <a:ALERTA:843518761160015933>`;
 
 			let mapThumbnail: string | null = null;
-			if (/^gm_construct_m/i.test(current_map)) {
+			if (current_map && /^gm_construct_m/i.test(current_map)) {
 				mapThumbnail = `http://${host}:${port}/map-thumbnails/gm_construct_m.jpg`;
-			} else if (current_map.toLowerCase().trim() == "rp_unioncity") {
+			} else if (current_map && current_map.toLowerCase().trim() == "rp_unioncity") {
 				mapThumbnail = `http://${host}:${port}/map-thumbnails/rp_unioncity.jpg`;
 			}
 
