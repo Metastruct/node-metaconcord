@@ -16,7 +16,7 @@ const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
 
 const TRIGGER_WORDS = ["meta bot", "the bot", "metaconcord"];
 const MAYBE_TRIGGER_WORDS = ["metastruct", "metaconstruct", "meta", "bot"]; // not directly the bot but maybe
-const MAYBE_TROGGER_FREQ = 0.25;
+const MAYBE_TRIGGER_FREQ = 0.25;
 
 export const Shat = async (
 	bot: DiscordBot,
@@ -244,7 +244,7 @@ export default (bot: DiscordBot): void => {
 			lastMsgs.slice(-2)[0].author.id !== id &&
 			(msg.mentions.users.first()?.id === id ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
-				(Math.random() <= MAYBE_TROGGER_FREQ &&
+				(Math.random() <= MAYBE_TRIGGER_FREQ &&
 					MAYBE_TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))))
 		) {
 			const its_posting_time = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
