@@ -85,7 +85,6 @@ export default (bot: DiscordBot): void => {
 			dont_save?: boolean;
 		} = {}
 	) => {
-		if (options.msg) options.msg.channel.sendTyping();
 		posting = true;
 		const shat = await Shat(bot, options.msg?.content, options.forceImage, options.forceReply);
 		if (shat) {
@@ -234,8 +233,9 @@ export default (bot: DiscordBot): void => {
 			if (
 				lastMsgs.length - 2 < MSG_TRIGGER_COUNT &&
 				(lastMsgs.length - 2) / MSG_TRIGGER_COUNT >= 0.75
-			)
-				bot.setActivity(`${lastMsgs.length - 2}/${MSG_TRIGGER_COUNT}`);
+			) {
+				msg.channel.sendTyping();
+			}
 		}
 
 		if (
