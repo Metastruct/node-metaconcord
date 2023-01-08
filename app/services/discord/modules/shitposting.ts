@@ -85,6 +85,7 @@ export default (bot: DiscordBot): void => {
 			dont_save?: boolean;
 		} = {}
 	) => {
+		if (options.msg) options.msg.channel.sendTyping();
 		posting = true;
 		const shat = await Shat(bot, options.msg?.content, options.forceImage, options.forceReply);
 		if (shat) {
