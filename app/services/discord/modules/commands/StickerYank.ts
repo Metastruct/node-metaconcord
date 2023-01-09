@@ -31,7 +31,7 @@ export class UIStickerYankCommand extends SlashCommand {
 				link += ".png";
 				break;
 			case 3:
-				link += ".lottie";
+				link += ".json";
 				break;
 			case 4:
 				link += ".gif";
