@@ -119,6 +119,8 @@ export class UISpeechbubbleRightCommand extends SlashCommand {
 		const link: string | undefined = sticker
 			? sticker.format_type < 3
 				? `https://cdn.discordapp.com/stickers/${sticker.id}.png`
+				: sticker.format_type === 4
+				? `https://cdn.discordapp.com/stickers/${sticker.id}.gif`
 				: undefined
 			: msg?.content.match(/^https?:\/\/.+\..+$/g)
 			? msg.content
@@ -169,6 +171,8 @@ export class UISpeechbubbleLeftCommand extends SlashCommand {
 		const link: string | undefined = sticker
 			? sticker.format_type < 3
 				? `https://cdn.discordapp.com/stickers/${sticker.id}.png`
+				: sticker.format_type === 4
+				? `https://cdn.discordapp.com/stickers/${sticker.id}.gif`
 				: undefined
 			: msg?.content.match(/^https?:\/\/.+\..+$/g)
 			? msg.content
