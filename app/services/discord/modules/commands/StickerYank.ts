@@ -23,15 +23,22 @@ export class UIStickerYankCommand extends SlashCommand {
 						: undefined
 					: undefined
 				: undefined;
-		const link: string | undefined = sticker
-			? sticker.format_type < 3
-				? `https://cdn.discordapp.com/stickers/${sticker.id}.png`
-				: sticker.format_type === 4
-				? `https://cdn.discordapp.com/stickers/${sticker.id}.gif`
-				: undefined
-			: undefined;
+		let link: string | undefined = `https://cdn.discordapp.com/stickers/${sticker.id}`;
 
-		if (!link) return EphemeralResponse("that message doesn't have a sticker!");
+		switch (sticker.format_type) {
+			case 1:
+			case 2:
+				link += ".png";
+				break;
+			case 3:
+				link += ".lottie";
+				break;
+			case 4:
+				link += ".gif";
+				break;
+		}
+
+		if (!link) return EphemeralResponse("that message doesn't have a (supported) sticker!");
 		return EphemeralResponse(link);
 	}
 }
