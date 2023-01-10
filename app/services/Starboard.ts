@@ -82,13 +82,15 @@ export class Starboard extends Service {
 				const webhooks = await (channel as TextChannel).fetchWebhooks();
 				const webhook = webhooks.find(h => h.token);
 
-				await webhook?.send({
-					content: text,
-					avatarURL: msg.author.avatarURL() ?? "",
-					username: `${msg.author.username}`,
-					allowedMentions: { parse: ["users", "roles"] },
-				});
-				await this.starMsg(msg.id);
+				if (webhook) {
+					await webhook.send({
+						content: text,
+						avatarURL: msg.author.avatarURL() ?? "",
+						username: `${msg.author.username}`,
+						allowedMentions: { parse: ["users", "roles"] },
+					});
+					await this.starMsg(msg.id);
+				}
 				this.isPosting = false;
 			}
 		}
