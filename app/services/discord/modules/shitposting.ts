@@ -4,19 +4,28 @@ import { makeSpeechBubble } from "@/utils";
 import Discord from "discord.js";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
-const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 10;
-const MSG_INTERVAL = 1000 * 60; // msg check
-const MSG_TRIGGER_COUNT = 13; // how many msgs in msg check until a msg is posted
-const MSG_CHAT_INTERVAL = 1000 * 60 * 60; // 1 hr
-const MSG_REPLY_INTERVAL = 1000 * 60 * 2;
-const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.5; // 30 min
-const MSG_RNG = 0.1; // random messges that defy intervals
-const REACTION_FREQ = 0.01;
+// #chat and #shat constants
+const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 10; // interval for changing the bot status to a random message
+const MSG_INTERVAL = 1000 * 60; // interval for checking messages for below trigger count, also resets activity if it was set manually or by other means
+const MSG_TRIGGER_COUNT = 13; // how many msgs in above interval until a msg is posted
+const MSG_CHAT_INTERVAL = 1000 * 60 * 60; // total time until a message is forced if below interval wasn't met (active chatters)
+const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.5; // idle (no active chatters) time until post, can be delayed by chatting - 30 min
+const MSG_REPLY_INTERVAL = 1000 * 60 * 2; // limit how often people can reply to the bot and get a response
+const MSG_RNG = 0.1; // random messges that defy intervals and limits
+const REACTION_FREQ = 0.01; // how often to react on messages;
 const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
+const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
+const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
+const REACTION_BOOST_FREQ = 0.75; // how often to add the same reaction as someone else did
 
-const TRIGGER_WORDS = ["meta bot", "the bot", "metaconcord"];
+// trigger word constants
+const TRIGGER_WORDS = ["meta bot", "the bot", "metaconcord"]; // these will always count like a normal reply/ping
 const MAYBE_TRIGGER_WORDS = ["metastruct", "metaconstruct", "meta", "bot"]; // not directly the bot but maybe
-const MAYBE_TRIGGER_FREQ = 0.25;
+const MAYBE_TRIGGER_FREQ = 0.25; // frequency of out of order replies (not limited) tied to the triggers above
+
+// shat constants
+const IMAGE_FREQ = 0.05; // how often the bot will respond with an image instead of text
+const REPLY_FREQ = 0.25; // when to take a word from a previous discord message if provided
 
 export const Shat = async (
 	bot: DiscordBot,
@@ -25,11 +34,11 @@ export const Shat = async (
 	forceReply?: boolean
 ): Promise<MessageCreateOptions | undefined> => {
 	const rng = Math.random();
-	if (rng > 0.05 && !forceImage && !msg?.startsWith("http")) {
+	if (rng > IMAGE_FREQ && !forceImage && !msg?.startsWith("http")) {
 		let search: string | undefined;
 		let fallback: string | undefined;
 		let islast = false;
-		if (msg && !msg.startsWith("http") && (rng >= 0.5 || forceReply)) {
+		if (msg && !msg.startsWith("http") && (rng <= REPLY_FREQ || forceReply)) {
 			const words = msg.replace(`<@${bot.discord.user?.id}> `, "").split(" ");
 			const index = Math.floor(rng * words.length);
 			islast = index + 1 === words.length;
@@ -106,7 +115,7 @@ export default (bot: DiscordBot): void => {
 
 	const getRandomEmoji = () => {
 		let emoji: Discord.EmojiIdentifierResolvable;
-		if (Math.random() <= 0.5) {
+		if (Math.random() <= GUILD_EMOJI_RATIO) {
 			emoji = bot.discord.guilds.cache
 				.get(bot.config.guildId)
 				?.emojis.cache.random() as Discord.EmojiIdentifierResolvable;
@@ -170,7 +179,7 @@ export default (bot: DiscordBot): void => {
 			) {
 				await sendShat({
 					dont_save: true,
-					msg: Math.random() >= 0.5 ? lastMsgs.slice(-1)[0] : undefined,
+					msg: Math.random() >= MSG_REPLY_FREQ ? lastMsgs.slice(-1)[0] : undefined,
 				});
 				data.lastMsgTime = lastMsgTime = now;
 				bot.setActivity(undefined, await getRandomStatus());
@@ -284,7 +293,7 @@ export default (bot: DiscordBot): void => {
 			!bot.config.allowedShitpostingChannels.includes(reaction.message.channelId)
 		)
 			return;
-		if (Math.random() >= 0.75) reaction.react();
+		if (Math.random() >= REACTION_BOOST_FREQ) reaction.react();
 	});
 
 	bot.discord.on("messageReactionRemove", async reaction => {
