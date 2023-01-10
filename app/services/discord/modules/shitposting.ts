@@ -21,7 +21,7 @@ const REACTION_BOOST_FREQ = 0.75; // how often to add the same reaction as someo
 // trigger word constants
 const TRIGGER_WORDS = ["meta bot", "the bot", "metaconcord"]; // these will always count like a normal reply/ping
 const MAYBE_TRIGGER_WORDS = ["metastruct", "metaconstruct", "meta", "bot"]; // not directly the bot but maybe
-const MAYBE_TRIGGER_FREQ = 0.25; // frequency of out of order replies (not limited) tied to the triggers above
+const MAYBE_TRIGGER_FREQ = 0.25; // frequency of triggers above
 
 // shat constants
 const IMAGE_FREQ = 0.05; // how often the bot will respond with an image instead of text
