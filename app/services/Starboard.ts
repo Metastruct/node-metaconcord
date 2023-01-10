@@ -3,15 +3,9 @@ import { MessageReaction } from "discord.js";
 import { SQL } from "./SQL";
 import { Service } from ".";
 import { TextChannel } from "discord.js";
-import { WebhookClient } from "discord.js";
 import config from "@/config/starboard.json";
 
 const AMOUNT = config.amount;
-const webhook = new WebhookClient(
-	{ url: `https://discord.com/api/v10/webhooks/${config.webhookId}/${config.webhookToken}` },
-	{ allowedMentions: { parse: ["users", "roles"] } }
-);
-
 export class Starboard extends Service {
 	name = "Starboard";
 	private isPosting = false;
@@ -81,10 +75,18 @@ export class Starboard extends Service {
 
 				if (text === "") return;
 				this.isPosting = true;
-				await webhook.send({
+				const isMetaBot = msg.author.id === client.user.id;
+				const channel = client.channels.cache.get(
+					isMetaBot ? config.extraChannelId : config.channelId
+				);
+				const webhooks = await (channel as TextChannel).fetchWebhooks();
+				const webhook = webhooks.find(h => h.token);
+
+				await webhook?.send({
 					content: text,
 					avatarURL: msg.author.avatarURL() ?? "",
 					username: `${msg.author.username}`,
+					allowedMentions: { parse: ["users", "roles"] },
 				});
 				await this.starMsg(msg.id);
 				this.isPosting = false;
