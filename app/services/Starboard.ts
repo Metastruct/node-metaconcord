@@ -8,7 +8,7 @@ import config from "@/config/starboard.json";
 const AMOUNT = config.amount;
 export class Starboard extends Service {
 	name = "Starboard";
-	private isPosting = false;
+	private isBusy = false;
 	private sql: SQL | undefined;
 
 	constructor(container: Container) {
@@ -36,11 +36,12 @@ export class Starboard extends Service {
 	public async handleReactionAdded(reaction: MessageReaction): Promise<void> {
 		if (reaction.emoji.id === config.emoteId) {
 			let ego = false;
-			if (reaction.message.author) {
+			if (reaction.message.author)
 				ego = reaction.users.cache.has(reaction.message.author?.id);
-			}
+
 			const count = ego ? reaction.count - 1 : reaction.count;
-			if (count >= AMOUNT && !this.isPosting) {
+			if (count >= AMOUNT && !this.isBusy) {
+				this.isBusy = true;
 				const client = reaction.client;
 				const msg = await reaction.message.fetch();
 				if (!msg) return;
@@ -74,7 +75,7 @@ export class Starboard extends Service {
 				text += msg.stickers.size > 0 ? msg.stickers.first()?.url : "";
 
 				if (text === "") return;
-				this.isPosting = true;
+
 				const isMetaBot = msg.author.id === client.user.id;
 				const channel = client.channels.cache.get(
 					isMetaBot ? config.extraChannelId : config.channelId
@@ -91,7 +92,7 @@ export class Starboard extends Service {
 					});
 					await this.starMsg(msg.id);
 				}
-				this.isPosting = false;
+				this.isBusy = false;
 			}
 		}
 	}
