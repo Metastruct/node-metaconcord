@@ -119,21 +119,25 @@ export default class StatusPayload extends Payload {
 				.setColor(
 					current_defcon === 1 || current_countdown
 						? 0xff0000
-						: GamemodeColors[current_gamemode.name.toLowerCase()] ?? null
+						: current_gamemode
+						? GamemodeColors[current_gamemode.name.toLowerCase()]
+						: null
 				)
 				.setTitle(current_map)
 				.setDescription(desc)
 				.setThumbnail(mapThumbnail)
-				.setFooter({
-					text:
-						GamemodeAlias[current_gamemode.name.toLowerCase()] ?? current_gamemode.name,
-					iconURL: GamemodeIcons[current_gamemode.name.toLowerCase()],
-				})
 				.setURL(
 					`https://metastruct.net/${
 						server.config.label ? "join/" + server.config.label : ""
 					}`
 				);
+			if (current_gamemode) {
+				embed.setFooter({
+					text:
+						GamemodeAlias[current_gamemode.name.toLowerCase()] ?? current_gamemode.name,
+					iconURL: GamemodeIcons[current_gamemode.name.toLowerCase()],
+				});
+			}
 			if (count > 0) {
 				embed
 					.setImage(
