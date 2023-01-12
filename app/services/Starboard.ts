@@ -1,5 +1,5 @@
 import { Container } from "../Container";
-import { MessageReaction } from "discord.js";
+import { GuildChannel, MessageReaction } from "discord.js";
 import { SQL } from "./SQL";
 import { Service } from ".";
 import { TextChannel } from "discord.js";
@@ -34,6 +34,11 @@ export class Starboard extends Service {
 	}
 
 	public async handleReactionAdded(reaction: MessageReaction): Promise<void> {
+		const channel = reaction.message.channel as GuildChannel;
+		const category = channel.parentId;
+		if (config.channelIgnores.includes(channel.id)) return;
+		if (category && config.categoryIgnores.includes(category)) return;
+
 		if (reaction.emoji.id === config.emoteId) {
 			let ego = false;
 			if (reaction.message.author)
