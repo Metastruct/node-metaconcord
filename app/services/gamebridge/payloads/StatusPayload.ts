@@ -42,10 +42,11 @@ export default class StatusPayload extends Payload {
 
 		const updateStatus = async () => {
 			const current_countdown = countdown;
-			const current_defcon = defcon ?? 5;
-			const current_players = players ?? server.status.players;
-			const current_map = map ?? server.map;
-			const current_gamemode = gamemode ?? server.gamemode;
+			const current_defcon = defcon ?? server.defcon ?? 5;
+			const current_players = players ?? server.status.players ?? [];
+			const current_map = map ?? server.map ?? "unknown map";
+			const current_gamemode = gamemode ??
+				server.gamemode ?? { folderName: "???", name: "unknown gamemode" };
 			const current_serverUptime = serverUptime ?? server.serverUptime;
 			const current_mapUptime = mapUptime ?? server.mapUptime;
 
@@ -123,6 +124,11 @@ export default class StatusPayload extends Payload {
 						? GamemodeColors[current_gamemode.name.toLowerCase()]
 						: null
 				)
+				.setFooter({
+					text:
+						GamemodeAlias[current_gamemode.name.toLowerCase()] ?? current_gamemode.name,
+					iconURL: GamemodeIcons[current_gamemode.name.toLowerCase()],
+				})
 				.setTitle(current_map)
 				.setDescription(desc)
 				.setThumbnail(mapThumbnail)
@@ -131,13 +137,7 @@ export default class StatusPayload extends Payload {
 						server.config.label ? "join/" + server.config.label : ""
 					}`
 				);
-			if (current_gamemode) {
-				embed.setFooter({
-					text:
-						GamemodeAlias[current_gamemode.name.toLowerCase()] ?? current_gamemode.name,
-					iconURL: GamemodeIcons[current_gamemode.name.toLowerCase()],
-				});
-			}
+
 			if (count > 0) {
 				embed
 					.setImage(
