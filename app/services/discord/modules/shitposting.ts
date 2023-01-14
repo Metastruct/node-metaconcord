@@ -17,6 +17,8 @@ const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
 const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
 const REACTION_BOOST_FREQ = 0.75; // how often to add the same reaction as someone else did
+const MSG_CACHE_AMOUNT = 4; // how many messages to save to look up backwards
+const TYPING_TRIGGER_THRESHOLD = 0.8; // at how much msgs to trigger the typing (related to MSG_TRIGGER_COUNT)
 
 // trigger word constants
 const TRIGGER_WORDS = ["meta bot", "the bot", "metaconcord"]; // these will always count like a normal reply/ping
@@ -173,7 +175,7 @@ export default (bot: DiscordBot): void => {
 				lastMsgs.length > 0 &&
 				lastMsgs.slice(-1)[0].author.id !== bot.discord.user?.id &&
 				(now - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
-					lastMsgs.length - 2 >= MSG_TRIGGER_COUNT ||
+					lastMsgs.length - MSG_CACHE_AMOUNT >= MSG_TRIGGER_COUNT ||
 					now - lastMsgTime > MSG_CHAT_INTERVAL) &&
 				!posting
 			) {
@@ -190,7 +192,7 @@ export default (bot: DiscordBot): void => {
 			} else if (lastSetActivity?.name !== lastAPIActivity?.name) {
 				bot.setActivity(undefined, lastSetActivity);
 			}
-			lastMsgs.splice(0, lastMsgs.length - 2); // delete lastmsg cache except the last two messages used for lookups
+			lastMsgs.splice(0, lastMsgs.length - MSG_CACHE_AMOUNT); // delete lastmsg cache except the last two messages used for lookups
 		}, MSG_INTERVAL);
 	});
 
@@ -242,8 +244,8 @@ export default (bot: DiscordBot): void => {
 			lastChatTime = Date.now();
 			lastMsgs.push(msg);
 			if (
-				lastMsgs.length - 2 < MSG_TRIGGER_COUNT &&
-				(lastMsgs.length - 2) / MSG_TRIGGER_COUNT >= 0.8
+				lastMsgs.length - MSG_CACHE_AMOUNT < MSG_TRIGGER_COUNT &&
+				(lastMsgs.length - MSG_CACHE_AMOUNT) / MSG_TRIGGER_COUNT >= TYPING_TRIGGER_THRESHOLD
 			) {
 				msg.channel.sendTyping();
 			}
@@ -253,7 +255,7 @@ export default (bot: DiscordBot): void => {
 			bot.config.chatChannelId === msg.channelId &&
 			msg.author.id !== id &&
 			lastMsgs.length > 1 &&
-			lastMsgs.slice(-2)[0].author.id !== id &&
+			lastMsgs.slice(-4)[0].author.id !== id &&
 			(msg.mentions.users.first()?.id === id ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
 				(Math.random() <= MAYBE_TRIGGER_FREQ &&
