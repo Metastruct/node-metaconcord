@@ -16,7 +16,7 @@ const REACTION_FREQ = 0.01; // how often to react on messages;
 const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
 const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
-const REACTION_BOOST_FREQ = 0.75; // how often to add the same reaction as someone else did
+const REACTION_BOOST_FREQ = 0.15; // how often to add the same reaction as someone else did
 const MSG_CACHE_AMOUNT = 4; // how many messages to save to look up backwards
 const TYPING_TRIGGER_THRESHOLD = 0.8; // at how much msgs to trigger the typing (related to MSG_TRIGGER_COUNT)
 
@@ -65,7 +65,7 @@ export const Shat = async (
 		const images = bot.container.getService("Motd")?.images;
 		if (images) {
 			const imgur = images[Math.floor(rng2 * images.length)];
-			const result = await makeSpeechBubble(imgur.link, rng2 >= 0.5);
+			const result = await makeSpeechBubble(imgur.link, rng2 <= 0.5);
 			return result
 				? { files: [{ attachment: result, description: imgur.title }] }
 				: undefined;
@@ -181,7 +181,7 @@ export default (bot: DiscordBot): void => {
 			) {
 				await sendShat({
 					dont_save: true,
-					msg: Math.random() >= MSG_REPLY_FREQ ? lastMsgs.slice(-1)[0] : undefined,
+					msg: Math.random() <= MSG_REPLY_FREQ ? lastMsgs.slice(-1)[0] : undefined,
 				});
 				data.lastMsgTime = lastMsgTime = now;
 				bot.setActivity(undefined, await getRandomStatus());
@@ -295,7 +295,7 @@ export default (bot: DiscordBot): void => {
 			!bot.config.allowedShitpostingChannels.includes(reaction.message.channelId)
 		)
 			return;
-		if (Math.random() >= REACTION_BOOST_FREQ) reaction.react();
+		if (Math.random() <= REACTION_BOOST_FREQ) reaction.react();
 	});
 
 	bot.discord.on("messageReactionRemove", async reaction => {
