@@ -121,7 +121,7 @@ export default class StatusPayload extends Payload {
 					current_defcon === 1 || current_countdown
 						? 0xff0000
 						: current_gamemode
-						? GamemodeColors[current_gamemode.name.toLowerCase()]
+						? GamemodeColors[current_gamemode.name.toLowerCase()] ?? null
 						: null
 				)
 				.setFooter({
