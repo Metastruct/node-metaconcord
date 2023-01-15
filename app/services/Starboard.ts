@@ -97,8 +97,8 @@ export class Starboard extends Service {
 					});
 					await this.starMsg(msg.id);
 				}
-				this.isBusy = false;
 			}
+			this.isBusy = false;
 		}
 	}
 }
