@@ -78,7 +78,7 @@ export const getOrFetchLuaFile = async (path: PathLike, linenr: number, addon?: 
 			const query = isGithub
 				? gql`{
 			repository(owner:"${owner[1]}", name:"${repo}") {
-				content: object(expression:"${branch}:${fullpath}") {
+				content: object(expression:"${branch}:${path}") {
 					... on Blob {
 						text
 					}
@@ -87,9 +87,9 @@ export const getOrFetchLuaFile = async (path: PathLike, linenr: number, addon?: 
 	}
 	`
 				: gql`{
-		project(fullpath:"${url.match(/\.com\/(.+?)\/\-/)}") {
+		project(fullPath:"${url.match(/\.com\/(.+?)\/\-/)?.[1]}") {
 			repository {
-				blobs(paths:"${fullpath}"){
+				blobs(paths:"${path}"){
 					nodes{rawTextBlob}
 				}
 			}
