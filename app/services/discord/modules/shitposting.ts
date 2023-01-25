@@ -39,12 +39,12 @@ export const Shat = async (
 	if (rng > IMAGE_FREQ && !forceImage) {
 		let search: string | undefined;
 		let fallback: string | undefined;
-		let islast = false;
+		let isLast = false;
 		if (msg && !msg.startsWith("http") && (rng <= REPLY_FREQ || forceReply)) {
 			const words = msg.replace(`<@${bot.discord.user?.id}> `, "").split(" ");
 			const index = Math.floor(rng * words.length);
-			islast = index + 1 === words.length;
-			if (!islast) {
+			isLast = index + 1 === words.length;
+			if (!isLast) {
 				search = words.slice(index, index + 2).join(" ");
 				fallback = words[index];
 			} else {
@@ -261,8 +261,8 @@ export default (bot: DiscordBot): void => {
 				(Math.random() <= MAYBE_TRIGGER_FREQ &&
 					MAYBE_TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))))
 		) {
-			const its_posting_time = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
-			if ((its_posting_time || Math.random() <= MSG_RNG) && !posting) {
+			const itsPostingTime = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
+			if ((itsPostingTime || Math.random() <= MSG_RNG) && !posting) {
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, forceReply: true }
@@ -271,7 +271,7 @@ export default (bot: DiscordBot): void => {
 				replied = false;
 				data.lastMsgTime = lastMsgTime = Date.now();
 			} else if (
-				!its_posting_time &&
+				!itsPostingTime &&
 				(!replied || Math.random() <= MSG_RNG) &&
 				!posting &&
 				((msg.mentions.users.first()?.id === bot.discord.user?.id &&
