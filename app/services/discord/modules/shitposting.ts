@@ -58,7 +58,7 @@ export const Shat = async (
 
 		if ((!mk || mk === msg) && fallback)
 			mk = await bot.container.getService("Markov")?.generate(fallback);
-		if (!mk) mk = await bot.container.getService("Markov")?.generate();
+		if (!mk || mk === msg) mk = await bot.container.getService("Markov")?.generate();
 
 		return mk ? { content: mk.replace(`<@${bot.discord.user?.id}> `, "") } : undefined;
 	} else {
