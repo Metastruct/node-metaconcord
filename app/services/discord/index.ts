@@ -13,7 +13,10 @@ export type Rule = {
 
 export const EMBED_FIELD_LIMIT = 1024;
 
-let lastTwMessageId: string;
+let lastMessageId: string;
+const TwitterRegex = /https?:\/\/(?:mobile.)?twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g;
+const ImgurRegex = /https?:\/\/(?:i.)?imgur.com\/(\w+)(?:.mp4)?/g;
+
 export class DiscordBot extends Service {
 	name = "DiscordBot";
 	config = config;
@@ -109,22 +112,34 @@ export class DiscordBot extends Service {
 				message: msg.content,
 			});
 	}
-	async fixTwitterEmbeds(msg: Discord.Message): Promise<void> {
-		if (!this.discord.isReady() || msg.id === lastTwMessageId) return;
 
-		const statusUrls = msg.content.match(
-			/https?:\/\/(?:mobile.)?twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g
-		);
-		if (!statusUrls) return;
+	async fixEmbeds(msg: Discord.Message): Promise<void> {
+		if (!this.discord.isReady() || msg.id === lastMessageId) return;
 
-		lastTwMessageId = msg.id;
+		if (!TwitterRegex.test(msg.content) && !ImgurRegex.test(msg.content)) return;
+
+		const twitterUrls = msg.content.match(TwitterRegex);
+		const imgurUrls = msg.content.match(ImgurRegex);
+
+		lastMessageId = msg.id;
 
 		let urls: Array<string> = [];
-		for (const statusUrl of statusUrls) {
-			const mediaUrls = await this.container
-				.getService("Twitter")
-				?.getStatusMediaURLs(statusUrl);
-			urls = urls.concat(mediaUrls ?? "");
+		if (twitterUrls) {
+			for (const statusUrl of twitterUrls) {
+				const mediaUrls = await this.container
+					.getService("Twitter")
+					?.getStatusMediaURLs(statusUrl);
+				urls = urls.concat(mediaUrls ?? "");
+			}
+		}
+		if (imgurUrls) {
+			for (const imageUrl of imgurUrls) {
+				const id = Array.from(imageUrl.matchAll(ImgurRegex), m => m[1])[0]; // wtf there has to be a better way
+				const info = await this.container.getService("Motd")?.getImageInfo(id);
+				if (info?.has_sound) {
+					urls.push(imageUrl.replace(".com", ".io"));
+				}
+			}
 		}
 		if (urls.length === 0) return;
 

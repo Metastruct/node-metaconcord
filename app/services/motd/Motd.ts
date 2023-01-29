@@ -2,7 +2,7 @@ import { Container } from "@/app/Container";
 import { Data, Service } from "@/app/services";
 import { scheduleJob } from "node-schedule";
 import FormData from "form-data";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import config from "@/config/motd.json";
 import dayjs from "dayjs";
 
@@ -33,6 +33,12 @@ type ImgurImage = {
 	edited: string;
 	in_gallery: boolean;
 	link: string;
+};
+
+type ImgurResponse = {
+	data: any;
+	success: boolean;
+	status: number;
 };
 
 export default class Motd extends Service {
@@ -67,14 +73,14 @@ export default class Motd extends Service {
 			});
 	}
 
-	public pushMessage(msg: string): void {
+	pushMessage(msg: string): void {
 		msg = msg.trim();
 		if (!this.isValidMsg(msg)) return;
 
 		this.messages.push(msg);
 	}
 
-	public isValidMsg(msg: string): boolean {
+	isValidMsg(msg: string): boolean {
 		if (msg.length > 279) return false;
 		if (msg.length < 5) return false;
 		if (msg.search("^[!\\.\\\\/]") === 0) return false;
@@ -194,7 +200,7 @@ export default class Motd extends Service {
 			await this.data.save();
 		}
 	}
-	public async rerollImageJob(): Promise<void> {
+	async rerollImageJob(): Promise<void> {
 		if (!(await this.container.getService("DiscordBot")?.overLvl2())) return;
 		const lastmsg = await this.container.getService("DiscordBot")?.getLastMotdMsg();
 		if (!lastmsg) return;
@@ -202,5 +208,16 @@ export default class Motd extends Service {
 
 		await this.executeImageJob(true, lastmsg.id);
 		await this.container.getService("DiscordBot")?.removeMotdReactions();
+	}
+
+	async getImageInfo(id: string): Promise<ImgurImage | undefined> {
+		const res = (await axios.get(`https://api.imgur.com/3/image/${id}`, {
+			headers: {
+				Authorization: `Client-ID ${config.imgurClientId}`,
+			},
+		})) as AxiosResponse<ImgurResponse>;
+		if (res.data.status === 200) {
+			return res.data.data;
+		}
 	}
 }

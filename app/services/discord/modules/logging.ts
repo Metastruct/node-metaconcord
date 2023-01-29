@@ -9,7 +9,7 @@ const YELLOW_COLOR: Discord.ColorResolvable = [220, 150, 0];
 export default (bot: DiscordBot): void => {
 	bot.discord.on("messageCreate", async msg => {
 		msg = await bot.fetchPartial(msg);
-		await Promise.all([bot.fixTwitterEmbeds(msg), bot.feedMarkov(msg)]);
+		await Promise.all([bot.fixEmbeds(msg), bot.feedMarkov(msg)]);
 	});
 
 	bot.discord.on("messageDelete", async msg => {
@@ -75,7 +75,7 @@ export default (bot: DiscordBot): void => {
 		if (user?.bot) return;
 
 		if (!newMsg.partial) {
-			await bot.fixTwitterEmbeds(newMsg);
+			await bot.fixEmbeds(newMsg);
 		}
 
 		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
