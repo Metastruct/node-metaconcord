@@ -24,7 +24,7 @@ export default (bot: DiscordBot): void => {
 					if (!usr.roles.cache.some(role => role.id === Config.roles.event))
 						usr.roles.add(Config.roles.event);
 				});
-				event.guild?.setAFKChannel(null, "Event is running.");
+				await event.guild?.setAFKChannel(null, "Event is running.");
 				break;
 			}
 			case Discord.GuildScheduledEventStatus.Canceled:
@@ -35,7 +35,7 @@ export default (bot: DiscordBot): void => {
 					if (usr.roles.cache.some(role => role.id === Config.roles.event))
 						usr.roles.remove(Config.roles.event);
 				});
-				event.guild?.setAFKChannel(afkChannelId, "Event ended.");
+				await event.guild?.setAFKChannel(afkChannelId, "Event ended.");
 				break;
 			}
 		}
