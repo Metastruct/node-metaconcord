@@ -14,7 +14,6 @@ export type Rule = {
 export const EMBED_FIELD_LIMIT = 1024;
 
 let lastMessageId: string;
-const TwitterRegex = /https?:\/\/(?:mobile.)?twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g;
 const ImgurRegex = /https?:\/\/(?:i.)?imgur.com\/(\w+)(?:.mp4)?/g;
 
 export class DiscordBot extends Service {
@@ -116,22 +115,13 @@ export class DiscordBot extends Service {
 	async fixEmbeds(msg: Discord.Message): Promise<void> {
 		if (!this.discord.isReady() || msg.id === lastMessageId) return;
 
-		if (!TwitterRegex.test(msg.content) && !ImgurRegex.test(msg.content)) return;
+		if (!ImgurRegex.test(msg.content)) return;
 
-		const twitterUrls = msg.content.match(TwitterRegex);
 		const imgurUrls = msg.content.match(ImgurRegex);
 
 		lastMessageId = msg.id;
 
-		let urls: Array<string> = [];
-		if (twitterUrls) {
-			for (const statusUrl of twitterUrls) {
-				const mediaUrls = await this.container
-					.getService("Twitter")
-					?.getStatusMediaURLs(statusUrl);
-				urls = urls.concat(mediaUrls ?? "");
-			}
-		}
+		const urls: Array<string> = [];
 		if (imgurUrls) {
 			for (const imageUrl of imgurUrls) {
 				const id = Array.from(imageUrl.matchAll(ImgurRegex), m => m[1])[0]; // wtf there has to be a better way
