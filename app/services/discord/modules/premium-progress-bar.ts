@@ -13,7 +13,7 @@ export default (bot: DiscordBot): void => {
 		const count = guild.premiumSubscriptionCount;
 		if (!count) return;
 		const needed = LVL_MAP[guild.premiumTier][1];
-		if (count < needed && count / needed >= 0.5) {
+		if (count < needed && count / needed >= 0.6) {
 			if (!guild.premiumProgressBarEnabled) {
 				await guild.setPremiumProgressBarEnabled(true);
 			}
