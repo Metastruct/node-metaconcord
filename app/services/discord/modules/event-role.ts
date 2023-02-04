@@ -10,7 +10,6 @@ export default (bot: DiscordBot): void => {
 
 	bot.discord.on("guildScheduledEventUpdate", async (was, now) => {
 		const event = now;
-		const afkChannelId = event.guild?.afkChannelId as string;
 		if (
 			event.channelId !== Config.channels.eventStage &&
 			event.channelId !== Config.channels.eventVoice
@@ -35,7 +34,7 @@ export default (bot: DiscordBot): void => {
 					if (usr.roles.cache.some(role => role.id === Config.roles.event))
 						usr.roles.remove(Config.roles.event);
 				});
-				await event.guild?.setAFKChannel(afkChannelId, "Event ended.");
+				await event.guild?.setAFKChannel(Config.channels.afkChannel, "Event ended.");
 				break;
 			}
 		}
