@@ -255,9 +255,9 @@ export default (bot: DiscordBot): void => {
 		if (
 			bot.config.chatChannelId === msg.channelId &&
 			msg.author.id !== id &&
-			lastMsgs.length > 1 &&
+			lastMsgs.length >= MSG_CACHE_AMOUNT &&
 			lastMsgs.slice(-4)[0].author.id !== id &&
-			(msg.mentions.users.first()?.id === id ||
+			((msg.mentions.users.first()?.id === id && msg.content !== "<@427261532284387329>") ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
 				(Math.random() <= MAYBE_TRIGGER_FREQ &&
 					MAYBE_TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))))
@@ -271,14 +271,7 @@ export default (bot: DiscordBot): void => {
 				);
 				replied = false;
 				data.lastMsgTime = lastMsgTime = Date.now();
-			} else if (
-				!itsPostingTime &&
-				(!replied || Math.random() <= MSG_RNG) &&
-				!posting &&
-				((msg.mentions.users.first()?.id === bot.discord.user?.id &&
-					msg.content !== "<@427261532284387329>") ||
-					TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)))
-			) {
+			} else if (!itsPostingTime && (!replied || Math.random() <= MSG_RNG) && !posting) {
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, ping: true, dont_save: true }
