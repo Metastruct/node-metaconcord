@@ -257,7 +257,7 @@ export default (bot: DiscordBot): void => {
 			msg.author.id !== id &&
 			lastMsgs.length >= MSG_CACHE_AMOUNT &&
 			lastMsgs.slice(-4)[0].author.id !== id &&
-			((msg.mentions.users.first()?.id === id && msg.content !== "<@427261532284387329>") ||
+			((msg.mentions.users.first()?.id === id && msg.content !== `<@${id}>`) ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
 				(Math.random() <= MAYBE_TRIGGER_FREQ &&
 					MAYBE_TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))))
