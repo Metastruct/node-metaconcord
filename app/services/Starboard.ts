@@ -34,6 +34,7 @@ export class Starboard extends Service {
 	}
 
 	public async handleReactionAdded(reaction: MessageReaction): Promise<void> {
+		if (reaction.me) return; // ignore self reactions
 		const channel = reaction.message.channel as GuildChannel;
 		const category = channel.parentId;
 		if (config.channelIgnores.includes(channel.id)) return;
