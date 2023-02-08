@@ -34,7 +34,6 @@ export class Starboard extends Service {
 	}
 
 	public async handleReactionAdded(reaction: MessageReaction): Promise<void> {
-		if (reaction.me) return; // ignore self reactions
 		const channel = reaction.message.channel as GuildChannel;
 		const category = channel.parentId;
 		if (config.channelIgnores.includes(channel.id)) return;
@@ -45,7 +44,8 @@ export class Starboard extends Service {
 			if (reaction.message.author)
 				ego = reaction.users.cache.has(reaction.message.author?.id);
 
-			const count = ego ? reaction.count - 1 : reaction.count;
+			let count = ego ? reaction.count - 1 : reaction.count;
+			count = reaction.users.cache.has(reaction.client.user.id) ? count - 1 : count;
 			if (count >= AMOUNT && !this.isBusy) {
 				this.isBusy = true;
 				const client = reaction.client;
