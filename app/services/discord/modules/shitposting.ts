@@ -21,7 +21,7 @@ const MSG_CACHE_AMOUNT = 4; // how many messages to save to look up backwards
 const TYPING_TRIGGER_THRESHOLD = 0.8; // at how much msgs to trigger the typing (related to MSG_TRIGGER_COUNT)
 
 // trigger word constants
-const TRIGGER_WORDS = ["meta bot", "the bot", "metaconcord"]; // these will always count like a normal reply/ping
+const TRIGGER_WORDS = ["metabot", "meta bot", "the bot", "metaconcord"]; // these will always count like a normal reply/ping
 const MAYBE_TRIGGER_WORDS = ["metastruct", "metaconstruct", "meta", "bot"]; // not directly the bot but maybe
 const MAYBE_TRIGGER_FREQ = 0.25; // frequency of triggers above
 
