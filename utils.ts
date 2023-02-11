@@ -1,6 +1,7 @@
 import { PathLike, promises as fs } from "fs";
 import { createCanvas, loadImage } from "canvas";
 import apikeys from "@/config/apikeys.json";
+import axios from "axios";
 import request, { gql } from "graphql-request";
 import webappconfig from "@/config/webapp.json";
 
@@ -156,4 +157,11 @@ export const makeSpeechBubble = async (
 	ctx.stroke();
 
 	return canvas.toBuffer();
+};
+
+export const isAdmin = async (steamid: string) => {
+	const res = await axios.get(
+		"https://steamcommunity.com/gid/103582791433481287/memberslistxml?xml=1"
+	);
+	return !!res.data.match(steamid);
 };
