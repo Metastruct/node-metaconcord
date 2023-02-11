@@ -244,7 +244,12 @@ export default (webApp: WebApp): void => {
 			time: isNaN(parseInt(playtime)) ? undefined : Math.round(parseInt(playtime) / 60 / 60),
 			coins: coins,
 		};
-		await pushMetadata(userId, data, metadata, nick.toString("utf-8").replace(/<[^>]*>/g, ""));
+		await pushMetadata(
+			userId,
+			data,
+			metadata,
+			nick ? nick.toString("utf-8").replace(/<[^>]*>/g, "") : undefined
+		);
 	};
 
 	webApp.app.use(cookieParser(webApp.config.cookieSecret));
@@ -264,7 +269,7 @@ export default (webApp: WebApp): void => {
 		res.send({ accountid: new SteamID(db.steam_id).accountid, ...data });
 	});
 	webApp.app.get("/discord/linkrefreshall", async (req, res) => {
-		const secret = req.params["secret"];
+		const secret = req.query.secret;
 		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
 		const db = await (await sql.getLocalDatabase()).all("SELECT user_id FROM discord_tokens");
 		for (const entry of db) {
