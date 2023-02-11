@@ -228,8 +228,14 @@ export default (webApp: WebApp): void => {
 			"SELECT SUM(totaltime) from playingtime WHERE accountid = $1;",
 			[new SteamID(data.steam_id).accountid]
 		);
-		const coins = query1[0]?.coins;
-		const playtime = query2[0]?.sum;
+		const query3 = await sql.queryPool(
+			"SELECT value from kv WHERE key = $1 AND scope = 'meta_name'",
+			[data.steam_id]
+		);
+		const coins: number = query1[0]?.coins;
+		const playtime: string = query2[0]?.sum;
+		const nick: Buffer = query3[0]?.value;
+
 		const bridge = webApp.container.getService("GameBridge");
 		if (!bridge) return;
 
@@ -238,7 +244,7 @@ export default (webApp: WebApp): void => {
 			time: isNaN(parseInt(playtime)) ? undefined : Math.round(parseInt(playtime) / 60 / 60),
 			coins: coins,
 		};
-		await pushMetadata(userId, data, metadata);
+		await pushMetadata(userId, data, metadata, nick.toString("utf-8").replace(/<[^>]*>/g, ""));
 	};
 
 	webApp.app.use(cookieParser(webApp.config.cookieSecret));
