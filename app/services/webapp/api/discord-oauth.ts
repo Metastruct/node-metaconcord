@@ -268,6 +268,10 @@ export default (webApp: WebApp): void => {
 		if (!data || !db) return;
 		res.send({ accountid: new SteamID(db.steam_id).accountid, ...data });
 	});
+	webApp.app.get("/discord/link/:id/refresh", async (req, res) => {
+		await updateMetadata(req.params.id);
+		res.send("👌");
+	});
 	webApp.app.get("/discord/linkrefreshall", async (req, res) => {
 		const secret = req.query.secret;
 		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
