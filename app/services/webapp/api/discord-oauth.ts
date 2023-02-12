@@ -76,6 +76,7 @@ type ApplicationRoleConnectionObject = {
 export default (webApp: WebApp): void => {
 	const bot = webApp.container.getService("DiscordBot");
 	const sql = webApp.container.getService("SQL");
+	const ARCOCache: Record<string, ApplicationRoleConnectionObject> = {};
 	if (!bot || !sql) return;
 
 	const getOAuthURL = () => {
@@ -189,22 +190,29 @@ export default (webApp: WebApp): void => {
 	};
 
 	const getMetadata = async (userId: string) => {
-		const url = `https://discord.com/api/v10/users/@me/applications/${bot.config.applicationId}/role-connection`;
-		const db = await sql.getLocalDatabase();
-		const data = await db.get<LocalDatabaseEntry>(
-			"SELECT * FROM discord_tokens where user_id = ?;",
-			userId
-		);
-		if (!data) return;
-		const accessToken = await getAccessToken(userId, data);
+		if (!ARCOCache[userId]) {
+			const url = `https://discord.com/api/v10/users/@me/applications/${bot.config.applicationId}/role-connection`;
+			const db = await sql.getLocalDatabase();
+			const data = await db.get<LocalDatabaseEntry>(
+				"SELECT * FROM discord_tokens where user_id = ?;",
+				userId
+			);
+			if (!data) return;
+			const accessToken = await getAccessToken(userId, data);
 
-		const res = await axios.get<ApplicationRoleConnectionObject>(url, {
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-			},
-		});
-		if (res.status === 200) return res.data;
-		else console.error(`Error getting discord metadata: [${res.status}] ${res.statusText}`);
+			const res = await axios.get<ApplicationRoleConnectionObject>(url, {
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+				},
+			});
+			if (res.status === 200) {
+				ARCOCache[userId] = res.data;
+				return res.data;
+			} else
+				console.error(`Error getting discord metadata: [${res.status}] ${res.statusText}`);
+		} else {
+			return ARCOCache[userId];
+		}
 	};
 
 	const updateMetadata = async (userId: string) => {
@@ -265,7 +273,7 @@ export default (webApp: WebApp): void => {
 		const db = await (
 			await sql.getLocalDatabase()
 		).get<LocalDatabaseEntry>("SELECT * FROM discord_tokens where user_id = ?;", req.params.id);
-		if (!data || !db) return;
+		if (!data || !db) return res.status(404).send("no data");
 		res.send({ accountid: new SteamID(db.steam_id).accountid, ...data });
 	});
 	webApp.app.get("/discord/link/:id/refresh", async (req, res) => {
