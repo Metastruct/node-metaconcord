@@ -38,7 +38,7 @@ const events = [
 		range: ["01/01", "03/01"], // We do a little cheating
 	},
 ];
-const iconsPath = join(require.main?.path ?? ".", "resources/discord-guild-icons");
+const iconsPath = join(process.cwd(), "resources/discord-guild-icons");
 const defaultIconPath = join(iconsPath, "default.png");
 
 const fileExists = async (filePath: PathLike) =>
