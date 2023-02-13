@@ -89,5 +89,5 @@ export default (bot: DiscordBot): void => {
 		creator.registerCommand(new slashCmd(bot, creator));
 	}
 
-	creator.syncCommands();
+	creator.syncCommands({ syncPermissions: false });
 };
