@@ -127,7 +127,7 @@ export class DiscordBot extends Service {
 				const id = Array.from(imageUrl.matchAll(ImgurRegex), m => m[1])[0]; // wtf there has to be a better way
 				const info = await this.container.getService("Motd")?.getImageInfo(id);
 				if (info?.has_sound) {
-					urls.push(imageUrl.replace(".com", ".io"));
+					urls.push(imageUrl.replace(/(?:i\.)?imgur\.com/g, "i.imgur.io"));
 				}
 			}
 		}
