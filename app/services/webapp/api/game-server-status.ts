@@ -30,7 +30,7 @@ export default (webApp: WebApp): void => {
 		const discordBot = req.headers.accept == "*/*" || !req.headers.accept;
 
 		const html = pug.renderFile(
-			path.join(require.main?.path ?? ".", "resources/game-server-status/view.pug"), // same here
+			path.join(process.cwd(), "resources/game-server-status/view.pug"), // same here
 			{
 				server,
 				image: !!discordBot,
