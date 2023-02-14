@@ -5,13 +5,13 @@ import Discord from "discord.js";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
 // #chat and #shat constants
-const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 10; // interval for changing the bot status to a random message
+const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 60 * 0.25; // interval for changing the bot status to a random message
 const MSG_INTERVAL = 1000 * 60; // interval for checking messages for below trigger count, also resets activity if it was set manually or by other means
 const MSG_TRIGGER_COUNT = 13; // how many msgs in above interval until a msg is posted
 const MSG_CHAT_INTERVAL = 1000 * 60 * 60 * 2; // total time until a message is forced if below interval wasn't met (active chatters)
 const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 1; // idle (no active chatters) time until post, can be delayed by chatting
 const MSG_REPLY_INTERVAL = 1000 * 60 * 2; // limit how often people can reply to the bot and get a response
-const MSG_RNG = 0.1; // random messges that defy intervals and limits
+const MSG_RNG_FREQ = 0.1; // random messges that defy intervals and limits
 const REACTION_FREQ = 0.01; // how often to react on messages;
 const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
 const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
@@ -263,7 +263,7 @@ export default (bot: DiscordBot): void => {
 					MAYBE_TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))))
 		) {
 			const itsPostingTime = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
-			if ((itsPostingTime || Math.random() <= MSG_RNG) && !posting) {
+			if ((itsPostingTime || Math.random() <= MSG_RNG_FREQ) && !posting) {
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, forceReply: true }
@@ -271,7 +271,7 @@ export default (bot: DiscordBot): void => {
 				);
 				replied = false;
 				data.lastMsgTime = lastMsgTime = Date.now();
-			} else if (!itsPostingTime && (!replied || Math.random() <= MSG_RNG) && !posting) {
+			} else if (!itsPostingTime && (!replied || Math.random() <= MSG_RNG_FREQ) && !posting) {
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, ping: true, dont_save: true }
