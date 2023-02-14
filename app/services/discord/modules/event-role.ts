@@ -10,11 +10,7 @@ export default (bot: DiscordBot): void => {
 
 	bot.discord.on("guildScheduledEventUpdate", async (was, now) => {
 		const event = now;
-		if (
-			event.channelId !== Config.channels.eventStage &&
-			event.channelId !== Config.channels.eventVoice
-		)
-			return;
+		if (event.channelId !== Config.channels.eventStage) return;
 		switch (event.status) {
 			case Discord.GuildScheduledEventStatus.Active: {
 				console.log(`Event "${event.name}" running! Setting roles...`); // logging because I don't trust discord
