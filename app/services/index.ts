@@ -8,7 +8,7 @@ export class Service {
 		this.container = container;
 	}
 }
-
+import BanProvider, { Bans } from "./Bans";
 import DataProvider, { Data } from "./Data";
 import DiscordBotProvider, { DiscordBot } from "./discord";
 import GameBridgeProvider, { GameBridge } from "./gamebridge";
@@ -26,18 +26,20 @@ export default [
 	SteamProvider,
 	DataProvider,
 	DiscordBotProvider,
+	BanProvider,
 	WebAppProvider,
 	GameBridgeProvider,
 	MotdProvider,
 	StarboardProvider,
 	IRCProvider,
 ]; // The order is important
-export { SQLProvider, Data, DiscordBot, GameBridge, Steam, WebApp, Motd, IRC };
+export { SQLProvider, Data, DiscordBot, GameBridge, Bans, Steam, WebApp, Motd, IRC };
 export type ServiceMap = {
 	[key: string]: Service | undefined;
 	Data?: Data;
 	DiscordBot?: DiscordBot;
 	GameBridge?: GameBridge;
+	Bans?: Bans;
 	Steam?: Steam;
 	WebApp?: WebApp;
 	Motd?: Motd;
