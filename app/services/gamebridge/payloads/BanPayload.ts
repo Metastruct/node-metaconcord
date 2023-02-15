@@ -85,5 +85,13 @@ export default class BanPayload extends Payload {
 		(guild.channels.cache.get(bridge.config.relayChannelId) as TextChannel).send({
 			embeds: [embed],
 		});
+
+		const metadata = bridge.container.getService("DiscordMetadata");
+		if (metadata) {
+			const discordId = await metadata.discordIDfromSteam64(bannedSteamId64);
+			if (discordId) {
+				metadata.update(discordId);
+			}
+		}
 	}
 }

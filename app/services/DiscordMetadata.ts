@@ -50,9 +50,15 @@ type LocalDatabaseEntry = {
 	expires_at: number;
 };
 
+type CachedUser = {
+	steamId: string;
+	discordId: string;
+};
+
 export class DiscordMetadata extends Service {
 	name = "DiscordMetadata";
 	private ARCOCache: Record<string, ApplicationRoleConnectionObject> = {};
+	private UserCache: CachedUser[] = [];
 	private sql: SQL;
 	private bot: DiscordBot;
 
@@ -158,7 +164,7 @@ export class DiscordMetadata extends Service {
 		if (!bridge) return;
 		const banned = await this.container
 			.getService("Bans")
-			?.getBan(new SteamID(data.steam_id).getSteam2RenderedID());
+			?.getBan(new SteamID(data.steam_id).getSteam2RenderedID(), true);
 
 		const metadata: MetaMetadata = {
 			banned: banned?.b ? 1 : 0,
@@ -188,6 +194,38 @@ export class DiscordMetadata extends Service {
 
 		if (res.status !== 200)
 			console.error(`Error pushing discord metadata: [${res.status}] ${res.statusText}`);
+	}
+
+	async discordIDfromSteam64(steam64: string) {
+		const cached = this.UserCache.find(user => user.steamId == steam64)?.discordId;
+		if (!cached) {
+			const db = await this.sql.getLocalDatabase();
+			const res = await db.get<LocalDatabaseEntry>(
+				"SELECT * FROM discord_tokens where steam_id = ?;",
+				steam64
+			);
+			if (res) {
+				this.UserCache.push({ steamId: res.steam_id, discordId: res.user_id });
+				return res.user_id;
+			}
+		}
+		return cached;
+	}
+
+	async steam64fromDiscordID(discordId: string) {
+		const cached = this.UserCache.find(user => user.steamId == discordId)?.steamId;
+		if (cached) {
+			const db = await this.sql.getLocalDatabase();
+			const res = await db.get<LocalDatabaseEntry>(
+				"SELECT * FROM discord_tokens where user_id = ?;",
+				discordId
+			);
+			if (res) {
+				this.UserCache.push({ steamId: res.steam_id, discordId: res.user_id });
+				return res.steam_id;
+			}
+		}
+		return cached;
 	}
 }
 

@@ -29,8 +29,8 @@ export class Bans extends Service {
 		this.lastUpdate = Date.now();
 	}
 
-	async getBan(steamid: string): Promise<MetaBan | undefined> {
-		if (Date.now() - this.lastUpdate > 5 * 60 * 1000) await this.updateCache();
+	async getBan(steamid: string, force?: boolean): Promise<MetaBan | undefined> {
+		if (Date.now() - this.lastUpdate > 5 * 60 * 1000 || force) await this.updateCache();
 		const cached = this.banCache.find(ban => ban.sid === steamid);
 		if (cached) return cached;
 		return undefined;
