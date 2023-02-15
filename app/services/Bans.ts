@@ -1,5 +1,6 @@
 import { Container } from "../Container";
 import { Service } from ".";
+import SteamID from "steamid";
 import axios from "axios";
 
 class MetaBan {
@@ -30,8 +31,9 @@ export class Bans extends Service {
 	}
 
 	async getBan(steamid: string, force?: boolean): Promise<MetaBan | undefined> {
+		const steam2 = new SteamID(steamid).getSteam2RenderedID();
 		if (Date.now() - this.lastUpdate > 5 * 60 * 1000 || force) await this.updateCache();
-		const cached = this.banCache.find(ban => ban.sid === steamid);
+		const cached = this.banCache.find(ban => ban.sid === steam2);
 		if (cached) return cached;
 		return undefined;
 	}
