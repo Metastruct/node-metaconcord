@@ -11,6 +11,7 @@ export class Service {
 import BanProvider, { Bans } from "./Bans";
 import DataProvider, { Data } from "./Data";
 import DiscordBotProvider, { DiscordBot } from "./discord";
+import DiscordMetadataProvider, { DiscordMetadata } from "./DiscordMetadata";
 import GameBridgeProvider, { GameBridge } from "./gamebridge";
 import IRCProvider, { IRC } from "./IRC";
 import MarkovProvider, { MarkovService } from "./Markov";
@@ -26,6 +27,7 @@ export default [
 	SteamProvider,
 	DataProvider,
 	DiscordBotProvider,
+	DiscordMetadataProvider,
 	BanProvider,
 	WebAppProvider,
 	GameBridgeProvider,
@@ -33,7 +35,9 @@ export default [
 	StarboardProvider,
 	IRCProvider,
 ]; // The order is important
-export { SQLProvider, Data, DiscordBot, GameBridge, Bans, Steam, WebApp, Motd, IRC };
+
+export { SQL, Data, DiscordBot, GameBridge, Bans, Steam, DiscordMetadata, WebApp, Motd, IRC };
+
 export type ServiceMap = {
 	[key: string]: Service | undefined;
 	Data?: Data;
@@ -41,6 +45,7 @@ export type ServiceMap = {
 	GameBridge?: GameBridge;
 	Bans?: Bans;
 	Steam?: Steam;
+	DiscordMetadata?: DiscordMetadata;
 	WebApp?: WebApp;
 	Motd?: Motd;
 	Markov?: MarkovService;

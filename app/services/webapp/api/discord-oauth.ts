@@ -1,5 +1,4 @@
 import { WebApp } from "..";
-import { isAdmin } from "@/utils";
 import { rateLimit } from "express-rate-limit";
 import SteamID from "steamid";
 import axios from "axios";
@@ -23,19 +22,6 @@ type LocalDatabaseEntry = {
 	expires_at: number;
 };
 
-type MetaDatabaseEntry = {
-	accountid: number;
-	discorduserid: string;
-	linked_at: string;
-};
-
-type ClientAccessTokenResponse = {
-	access_token: string;
-	token_type: string;
-	expires_in: number;
-	scope: string;
-};
-
 type ConnectionObject = discord.APIConnection;
 
 type CurrentAuthorizationInformation = {
@@ -45,41 +31,11 @@ type CurrentAuthorizationInformation = {
 	user: discord.APIUser;
 };
 
-enum ApplicationRoleConnectionMetadataType {
-	INTEGER_LESS_THAN_OR_EQUAL = 1,
-	INTEGER_GREATER_THAN_OR_EQUAL,
-	INTEGER_EQUAL,
-	INTEGER_NOT_EQUAL,
-	DATETIME_LESS_THAN_OR_EQUAL,
-	DATETIME_GREATER_THAN_OR_EQUAL,
-	BOOLEAN_EQUAL,
-	BOOLEAN_NOT_EQUAL,
-}
-type ApplicationRoleConnectionMetadata = {
-	type: ApplicationRoleConnectionMetadataType;
-	key: string;
-	name: string;
-	description: string;
-};
-
-type MetaMetadata = {
-	banned?: 1 | 0;
-	dev?: 1 | 0;
-	coins?: number;
-	time?: number; // playtime
-};
-
-type ApplicationRoleConnectionObject = {
-	platform_name?: string;
-	platfrom_username?: string;
-	metadata: MetaMetadata;
-};
-
 export default (webApp: WebApp): void => {
 	const bot = webApp.container.getService("DiscordBot");
 	const sql = webApp.container.getService("SQL");
-	const ARCOCache: Record<string, ApplicationRoleConnectionObject> = {};
-	if (!bot || !sql) return;
+	const metadata = webApp.container.getService("DiscordMetadata");
+	if (!bot || !sql || !metadata) return;
 
 	const getOAuthURL = () => {
 		const state = crypto.randomUUID();
@@ -111,39 +67,6 @@ export default (webApp: WebApp): void => {
 			);
 	};
 
-	const getAccessToken = async (userId: string, data: LocalDatabaseEntry) => {
-		if (Date.now() > data.expires_at) {
-			const res = await axios.post<AccessTokenResponse>(
-				"https://discord.com/api/v10/oauth2/token",
-				new URLSearchParams({
-					client_id: bot.config.applicationId,
-					client_secret: bot.config.clientSecret,
-					grant_type: "refresh_token",
-					refresh_token: data.refresh_token,
-				})
-			);
-			if (res.status === 200) {
-				const token = res.data;
-				await (
-					await sql.getLocalDatabase()
-				).run(
-					"UPDATE discord_tokens SET access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at WHERE user_id = $user_id",
-					{
-						$user_Id: userId,
-						$access_token: token.access_token,
-						$refresh_token: token.refresh_token,
-						$expires_at: Date.now() + token.expires_in * 1000,
-					}
-				);
-				return token.access_token;
-			} else
-				console.error(
-					`[OAuth Callback] failed fetching tokens: [${res.status}] ${res.statusText}`
-				);
-		}
-		return data.access_token;
-	};
-
 	const getAuthorizationData = async (tokens: AccessTokenResponse) => {
 		const res = await axios.get<CurrentAuthorizationInformation>(
 			"https://discord.com/api/v10/oauth2/@me",
@@ -169,99 +92,6 @@ export default (webApp: WebApp): void => {
 			);
 	};
 
-	const pushMetadata = async (
-		userId: string,
-		data: LocalDatabaseEntry,
-		metadata: MetaMetadata,
-		userName?: string
-	) => {
-		const url = `https://discord.com/api/v10/users/@me/applications/${bot.config.applicationId}/role-connection`;
-		const accessToken = await getAccessToken(userId, data);
-		const body = { platform_name: "Metastruct", platform_username: userName, metadata };
-
-		const res = await axios.put(url, body, {
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-			},
-		});
-
-		ARCOCache[userId] = body;
-
-		if (res.status !== 200)
-			console.error(`Error pushing discord metadata: [${res.status}] ${res.statusText}`);
-	};
-
-	const getMetadata = async (userId: string) => {
-		if (!ARCOCache[userId]) {
-			const url = `https://discord.com/api/v10/users/@me/applications/${bot.config.applicationId}/role-connection`;
-			const db = await sql.getLocalDatabase();
-			const data = await db.get<LocalDatabaseEntry>(
-				"SELECT * FROM discord_tokens where user_id = ?;",
-				userId
-			);
-			if (!data) return;
-			const accessToken = await getAccessToken(userId, data);
-
-			const res = await axios.get<ApplicationRoleConnectionObject>(url, {
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-				},
-			});
-			if (res.status === 200) {
-				ARCOCache[userId] = res.data;
-				return res.data;
-			} else
-				console.error(`Error getting discord metadata: [${res.status}] ${res.statusText}`);
-		} else {
-			return ARCOCache[userId];
-		}
-	};
-
-	const updateMetadata = async (userId: string) => {
-		const db = await sql.getLocalDatabase();
-
-		const data = await db.get<LocalDatabaseEntry>(
-			"SELECT * FROM discord_tokens where user_id = ?;",
-			userId
-		);
-		if (!data) return;
-
-		await sql.queryPool(
-			"INSERT INTO discord_link (accountid, discorduserid, linked_at) VALUES($1, $2, $3) ON CONFLICT (accountid) DO UPDATE SET linked_at = $3",
-			[new SteamID(data.steam_id).accountid, data?.user_id, new Date()]
-		);
-
-		const query1 = await sql.queryPool(`SELECT coins FROM coins WHERE accountid = $1;`, [
-			new SteamID(data.steam_id).accountid,
-		]);
-		const query2 = await sql.queryPool(
-			"SELECT SUM(totaltime) from playingtime WHERE accountid = $1;",
-			[new SteamID(data.steam_id).accountid]
-		);
-		const query3 = await sql.queryPool(
-			"SELECT value from kv WHERE key = $1 AND scope = 'meta_name'",
-			[data.steam_id]
-		);
-		const coins: number = query1[0]?.coins;
-		const playtime: string = query2[0]?.sum;
-		const bytea: Buffer = query3[0]?.value;
-		const nick = bytea ? bytea.toString("utf-8").replace(/<[^>]*>/g, "") : undefined;
-
-		const bridge = webApp.container.getService("GameBridge");
-		if (!bridge) return;
-		const banned = await webApp.container
-			.getService("Bans")
-			?.getBan(new SteamID(data.steam_id).getSteam2RenderedID());
-
-		const metadata: MetaMetadata = {
-			banned: banned?.b ? 1 : 0,
-			dev: (await isAdmin(data.steam_id)) ? 1 : 0,
-			time: isNaN(parseInt(playtime)) ? undefined : Math.round(parseInt(playtime) / 60 / 60),
-			coins: coins,
-		};
-		await pushMetadata(userId, data, metadata, nick);
-	};
-
 	webApp.app.use(cookieParser(webApp.config.cookieSecret));
 
 	webApp.app.get("/discord/link", async (req, res) => {
@@ -271,7 +101,7 @@ export default (webApp: WebApp): void => {
 		res.redirect(url);
 	});
 	webApp.app.get("/discord/link/:id", async (req, res) => {
-		const data = await getMetadata(req.params.id);
+		const data = await metadata.get(req.params.id);
 		const db = await (
 			await sql.getLocalDatabase()
 		).get<LocalDatabaseEntry>("SELECT * FROM discord_tokens where user_id = ?;", req.params.id);
@@ -279,7 +109,7 @@ export default (webApp: WebApp): void => {
 		res.send({ accountid: new SteamID(db.steam_id).accountid, ...data });
 	});
 	webApp.app.get("/discord/link/:id/refresh", rateLimit({ max: 5 }), async (req, res) => {
-		await updateMetadata(req.params.id);
+		await metadata.update(req.params.id);
 		res.send("👌");
 	});
 	webApp.app.get("/discord/linkrefreshall", rateLimit({ max: 5 }), async (req, res) => {
@@ -287,7 +117,7 @@ export default (webApp: WebApp): void => {
 		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
 		const db = await (await sql.getLocalDatabase()).all("SELECT user_id FROM discord_tokens");
 		for (const entry of db) {
-			await updateMetadata(entry.user_id);
+			await metadata.update(entry.user_id);
 		}
 		res.send("👌");
 	});
@@ -333,7 +163,7 @@ export default (webApp: WebApp): void => {
 				}
 			);
 
-			await updateMetadata(userId);
+			await metadata.update(userId);
 
 			res.send("👍");
 		} catch (err) {
