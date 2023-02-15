@@ -63,6 +63,7 @@ type ApplicationRoleConnectionMetadata = {
 };
 
 type MetaMetadata = {
+	banned?: 1 | 0;
 	dev?: 1 | 0;
 	coins?: number;
 	time?: number; // playtime
@@ -248,8 +249,12 @@ export default (webApp: WebApp): void => {
 
 		const bridge = webApp.container.getService("GameBridge");
 		if (!bridge) return;
+		const banned = await webApp.container
+			.getService("Bans")
+			?.getBan(new SteamID(data.steam_id).getSteam2RenderedID());
 
 		const metadata: MetaMetadata = {
+			banned: banned?.b ? 1 : 0,
 			dev: (await isAdmin(data.steam_id)) ? 1 : 0,
 			time: isNaN(parseInt(playtime)) ? undefined : Math.round(parseInt(playtime) / 60 / 60),
 			coins: coins,
