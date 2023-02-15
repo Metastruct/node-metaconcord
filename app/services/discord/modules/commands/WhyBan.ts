@@ -24,7 +24,7 @@ export class SlashWhyBanCommand extends SlashCommand {
 				{
 					type: CommandOptionType.STRING,
 					name: "steamid",
-					description: "Your steamid in this format STEAM_0:0:000000000",
+					description: "Steam2 rendered ID, Steam3 rendered ID, SteamID64",
 					required: true,
 					autocomplete: true,
 				},
@@ -45,7 +45,7 @@ export class SlashWhyBanCommand extends SlashCommand {
 				function (ban) {
 					if (this.limit < 25) {
 						this.limit++;
-						return ban.sid.includes(ctx.options[ctx.focused]);
+						return ban.sid.includes(ctx.options[ctx.focused].toUpperCase());
 					}
 				},
 				{ limit: 0 }
