@@ -6,27 +6,13 @@ import {
 	SlashCommand,
 	SlashCreator,
 } from "slash-create";
+import { Bans } from "@/app/services/Bans";
 import { DiscordBot } from "../..";
 import { EphemeralResponse } from ".";
-import axios from "axios";
-
-class MetaBan {
-	public sid: string;
-	public bannersid: string;
-	public unbannersid?: string;
-	public b: boolean;
-	public banreason: string;
-	public unbanreason?: string;
-	public whenbanned: number;
-	public whenunban: number;
-	public whenunbanned?: number;
-	public numbans?: number;
-	public name: string;
-}
 
 export class SlashWhyBanCommand extends SlashCommand {
-	private banCache: MetaBan[] = [];
-	private lastUpdate = 0;
+	private bot: DiscordBot;
+	private bans: Bans;
 
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
@@ -45,26 +31,16 @@ export class SlashWhyBanCommand extends SlashCommand {
 			],
 		});
 		this.filePath = __filename;
-		this.updateCache();
-	}
-
-	async updateCache(): Promise<void> {
-		const res = await axios.get<Array<MetaBan>>("http://g2.metastruct.net/bans");
-		if (res.status === 200) {
-			this.banCache = res.data;
-		}
-		this.lastUpdate = Date.now();
-	}
-
-	async getBan(steamid: string): Promise<MetaBan | undefined> {
-		if (Date.now() - this.lastUpdate > 5 * 60 * 1000) await this.updateCache();
-		const cached = this.banCache.find(ban => ban.sid === steamid);
-		if (cached) return cached;
-		return undefined;
+		this.bot = bot;
+		const bans = this.bot.container.getService("Bans");
+		if (!bans) return;
+		this.bans = bans;
 	}
 
 	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[]> {
-		return this.banCache
+		const list = await this.bans.getBanList();
+		if (!list) return [];
+		return list
 			.filter(
 				function (ban) {
 					if (this.limit < 25) {
@@ -85,7 +61,7 @@ export class SlashWhyBanCommand extends SlashCommand {
 
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer(true);
-		const ban = await this.getBan(ctx.options.steamid);
+		const ban = await this.bans.getBan(ctx.options.steamid);
 		if (!ban) return EphemeralResponse("That SteamID has never been banned before.");
 		if (!ban.b)
 			return EphemeralResponse(
