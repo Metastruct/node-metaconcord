@@ -1,5 +1,6 @@
 import { WebApp } from "..";
 import { isAdmin } from "@/utils";
+import { rateLimit } from "express-rate-limit";
 import SteamID from "steamid";
 import axios from "axios";
 import cookieParser from "cookie-parser";
@@ -62,7 +63,7 @@ type ApplicationRoleConnectionMetadata = {
 };
 
 type MetaMetadata = {
-	admin?: 1 | 0;
+	dev?: 1 | 0;
 	coins?: number;
 	time?: number; // playtime
 };
@@ -175,16 +176,16 @@ export default (webApp: WebApp): void => {
 	) => {
 		const url = `https://discord.com/api/v10/users/@me/applications/${bot.config.applicationId}/role-connection`;
 		const accessToken = await getAccessToken(userId, data);
+		const body = { platform_name: "Metastruct", platform_username: userName, metadata };
 
-		const res = await axios.put(
-			url,
-			{ platform_name: "Metastruct", platform_username: userName, metadata },
-			{
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-				},
-			}
-		);
+		const res = await axios.put(url, body, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+			},
+		});
+
+		ARCOCache[userId] = body;
+
 		if (res.status !== 200)
 			console.error(`Error pushing discord metadata: [${res.status}] ${res.statusText}`);
 	};
@@ -242,22 +243,18 @@ export default (webApp: WebApp): void => {
 		);
 		const coins: number = query1[0]?.coins;
 		const playtime: string = query2[0]?.sum;
-		const nick: Buffer = query3[0]?.value;
+		const bytea: Buffer = query3[0]?.value;
+		const nick = bytea ? bytea.toString("utf-8").replace(/<[^>]*>/g, "") : undefined;
 
 		const bridge = webApp.container.getService("GameBridge");
 		if (!bridge) return;
 
 		const metadata: MetaMetadata = {
-			admin: (await isAdmin(data.steam_id)) ? 1 : 0,
+			dev: (await isAdmin(data.steam_id)) ? 1 : 0,
 			time: isNaN(parseInt(playtime)) ? undefined : Math.round(parseInt(playtime) / 60 / 60),
 			coins: coins,
 		};
-		await pushMetadata(
-			userId,
-			data,
-			metadata,
-			nick ? nick.toString("utf-8").replace(/<[^>]*>/g, "") : undefined
-		);
+		await pushMetadata(userId, data, metadata, nick);
 	};
 
 	webApp.app.use(cookieParser(webApp.config.cookieSecret));
@@ -276,11 +273,11 @@ export default (webApp: WebApp): void => {
 		if (!data || !db) return res.status(404).send("no data");
 		res.send({ accountid: new SteamID(db.steam_id).accountid, ...data });
 	});
-	webApp.app.get("/discord/link/:id/refresh", async (req, res) => {
+	webApp.app.get("/discord/link/:id/refresh", rateLimit({ max: 5 }), async (req, res) => {
 		await updateMetadata(req.params.id);
 		res.send("👌");
 	});
-	webApp.app.get("/discord/linkrefreshall", async (req, res) => {
+	webApp.app.get("/discord/linkrefreshall", rateLimit({ max: 5 }), async (req, res) => {
 		const secret = req.query.secret;
 		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
 		const db = await (await sql.getLocalDatabase()).all("SELECT user_id FROM discord_tokens");
@@ -318,7 +315,7 @@ export default (webApp: WebApp): void => {
 			const steamProvider = connections.find(
 				provider => provider.type === "steam" && provider.verified === true
 			);
-			if (!steamProvider) return res.status(404).send("Missing Steam connection :(");
+			if (!steamProvider) return res.status(403).send("Missing Steam connection :(");
 
 			await db.run(
 				"INSERT INTO discord_tokens VALUES($user_id, $steam_id, $access_token, $refresh_token, $expires_at) ON CONFLICT (user_id) DO UPDATE SET steam_id = $steam_id, access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at",
