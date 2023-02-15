@@ -162,9 +162,7 @@ export class DiscordMetadata extends Service {
 
 		const bridge = this.container.getService("GameBridge");
 		if (!bridge) return;
-		const banned = await this.container
-			.getService("Bans")
-			?.getBan(new SteamID(data.steam_id).getSteam2RenderedID(), true);
+		const banned = await this.container.getService("Bans")?.getBan(data.steam_id, true);
 
 		const metadata: MetaMetadata = {
 			banned: banned?.b ? 1 : 0,
