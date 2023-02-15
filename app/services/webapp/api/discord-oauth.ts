@@ -62,7 +62,7 @@ type ApplicationRoleConnectionMetadata = {
 };
 
 type MetaMetadata = {
-	admin?: boolean;
+	admin?: 1 | 0;
 	coins?: number;
 	time?: number; // playtime
 };
@@ -248,7 +248,7 @@ export default (webApp: WebApp): void => {
 		if (!bridge) return;
 
 		const metadata: MetaMetadata = {
-			admin: await isAdmin(data.steam_id),
+			admin: (await isAdmin(data.steam_id)) ? 1 : 0,
 			time: isNaN(parseInt(playtime)) ? undefined : Math.round(parseInt(playtime) / 60 / 60),
 			coins: coins,
 		};
