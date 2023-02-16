@@ -167,7 +167,7 @@ export class DiscordMetadata extends Service {
 
 		const banned =
 			(await this.container.getService("Bans")?.getBan(data.steam_id, true))?.b ||
-			discordUser?.roles.cache.filter(role => config.banned_roles.includes(role.id));
+			discordUser?.roles.cache.hasAny(...config.banned_roles);
 
 		const metadata: MetaMetadata = {
 			banned: banned ? 1 : 0,
