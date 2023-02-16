@@ -1046,13 +1046,12 @@ create-require@^1.1.0:
   resolved "https://registry.npmjs.org/create-require/-/create-require-1.1.1.tgz"
   integrity sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==
 
-cron-parser@^3.5.0:
-  version "3.5.0"
-  resolved "https://registry.npmjs.org/cron-parser/-/cron-parser-3.5.0.tgz"
-  integrity sha512-wyVZtbRs6qDfFd8ap457w3XVntdvqcwBGxBoTvJQH9KGVKL/fB+h2k3C8AqiVxvUQKN1Ps/Ns46CNViOpVDhfQ==
+cron-parser@^4.2.0:
+  version "4.7.1"
+  resolved "https://registry.yarnpkg.com/cron-parser/-/cron-parser-4.7.1.tgz#1e325a6a18e797a634ada1e2599ece0b6b5ed177"
+  integrity sha512-WguFaoQ0hQ61SgsCZLHUcNbAvlK0lypKXu62ARguefYmjzaOXIVRNrAmyXzabTwUn4sQvQLkk6bjH+ipGfw8bA==
   dependencies:
-    is-nan "^1.3.2"
-    luxon "^1.26.0"
+    luxon "^3.2.1"
 
 cross-env@^7.0.2:
   version "7.0.3"
@@ -1189,9 +1188,9 @@ discord-api-types@0.37.14:
   integrity sha512-byBH7SfDCMJwxdqeS8k5sihltH88/YPhuwx+vF2cftSxFLdxyHyU/ZxDL3bq+LB2c4ls/TymE76/ISlLfniUXg==
 
 discord-api-types@^0.37.20:
-  version "0.37.33"
-  resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.37.33.tgz#35985992a45dc983f59927cf2ec55b9fc36213bf"
-  integrity sha512-ZMH5RU3q1pvYS+2wGUJ5Zvy8jMGTQ4wCpbDlIQDkbIL/k6kJwBPsXnCg81g2GywlOuf0f8ezakxVSe+sZuY6ig==
+  version "0.37.34"
+  resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.37.34.tgz#0cf04b51adc1537884bb466150e8b11204261be6"
+  integrity sha512-3sX2QMX2vLjT93n6+c1rN6lM6qWHycjYol6x/ls6U5hbZPdGH00dRMjg2csF58ISMf7DGV/6inDKgY1u5niWhA==
 
 discord-api-types@^0.37.23:
   version "0.37.24"
@@ -2212,14 +2211,6 @@ is-lambda@^1.0.1:
   resolved "https://registry.npmjs.org/is-lambda/-/is-lambda-1.0.1.tgz"
   integrity sha512-z7CMFGNrENq5iFB9Bqo64Xk6Y9sg+epq1myIcdHaGnbMTYOxvzsEtdYqQUylB7LxfkvgrrjP32T6Ywciio9UIQ==
 
-is-nan@^1.3.2:
-  version "1.3.2"
-  resolved "https://registry.npmjs.org/is-nan/-/is-nan-1.3.2.tgz"
-  integrity sha512-E+zBKpQ2t6MEo1VsonYmluk9NxGrbzpeeLC2xIViuO2EjU2xsXsBPwTr3Ykv9l08UYEVEdWeRZNouaZqF6RN0w==
-  dependencies:
-    call-bind "^1.0.0"
-    define-properties "^1.1.3"
-
 is-negative-zero@^2.0.2:
   version "2.0.2"
   resolved "https://registry.npmjs.org/is-negative-zero/-/is-negative-zero-2.0.2.tgz"
@@ -2337,10 +2328,15 @@ json5@^1.0.1:
   dependencies:
     minimist "^1.2.0"
 
-json5@^2.2.0, json5@^2.2.1:
+json5@^2.2.0:
   version "2.2.1"
   resolved "https://registry.npmjs.org/json5/-/json5-2.2.1.tgz"
   integrity sha512-1hqLFMSrGHRHxav9q9gNjJ5EXznIxGVO09xQRrwplcS8qs28pZ8s8hupZAmqDwZUmVZ2Qb2jnyPOWcDH8m8dlA==
+
+json5@^2.2.2:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/json5/-/json5-2.2.3.tgz#78cd6f1a19bdc12b73db5ad0c61efd66c1e29283"
+  integrity sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==
 
 jsonwebtoken@^9.0.0:
   version "9.0.0"
@@ -2431,10 +2427,10 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-luxon@^1.26.0:
-  version "1.28.0"
-  resolved "https://registry.npmjs.org/luxon/-/luxon-1.28.0.tgz"
-  integrity sha512-TfTiyvZhwBYM/7QdAVDh+7dBTBA29v4ik0Ce9zda3Mnf8on1S5KJI8P2jKFZ8+5C0jhmr0KwJEO/Wdpm0VeWJQ==
+luxon@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.2.1.tgz#14f1af209188ad61212578ea7e3d518d18cee45f"
+  integrity sha512-QrwPArQCNLAKGO/C+ZIilgIuDnEnKx5QYODdDtbFaxzsbZcc/a7WFq7MhsVYgRlwawLtvOUESTlfJ+hc/USqPg==
 
 make-dir@^3.1.0:
   version "3.1.0"
@@ -2683,12 +2679,12 @@ node-html-to-image@^3.2.4:
     puppeteer "^13.1.1"
     puppeteer-cluster "^0.23.0"
 
-node-schedule@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/node-schedule/-/node-schedule-2.1.0.tgz"
-  integrity sha512-nl4JTiZ7ZQDc97MmpTq9BQjYhq7gOtoh7SiPH069gBFBj0PzD8HI7zyFs6rzqL8Y5tTiEEYLxgtbx034YPrbyQ==
+node-schedule@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/node-schedule/-/node-schedule-2.1.1.tgz#6958b2c5af8834954f69bb0a7a97c62b97185de3"
+  integrity sha512-OXdegQq03OmXEjt2hZP33W2YPs/E5BcFQks46+G2gAxs4gHOIVD1u7EqlYLYSKsaIpyKCK9Gbk0ta1/gjRSMRQ==
   dependencies:
-    cron-parser "^3.5.0"
+    cron-parser "^4.2.0"
     long-timeout "0.1.1"
     sorted-array-functions "^1.3.0"
 
@@ -3768,12 +3764,12 @@ tsconfig-paths@^3.14.1:
     minimist "^1.2.6"
     strip-bom "^3.0.0"
 
-tsconfig-paths@^4.0.0:
-  version "4.1.0"
-  resolved "https://registry.npmjs.org/tsconfig-paths/-/tsconfig-paths-4.1.0.tgz"
-  integrity sha512-AHx4Euop/dXFC+Vx589alFba8QItjF+8hf8LtmuiCwHyI4rHXQtOOENaM8kvYf5fR0dRChy3wzWIZ9WbB7FWow==
+tsconfig-paths@^4.1.2:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-4.1.2.tgz#4819f861eef82e6da52fb4af1e8c930a39ed979a"
+  integrity sha512-uhxiMgnXQp1IR622dUXI+9Ehnws7i/y6xvpZB9IbUVOPy0muvdvgXeZOn88UcGPiT98Vp3rJPTa8bFoalZ3Qhw==
   dependencies:
-    json5 "^2.2.1"
+    json5 "^2.2.2"
     minimist "^1.2.6"
     strip-bom "^3.0.0"
 
