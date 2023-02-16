@@ -2,7 +2,7 @@ import { Container } from "../Container";
 import { DiscordBot, SQL, Service } from ".";
 import { isAdmin } from "@/utils";
 import SteamID from "steamid";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import config from "@/config/metadata.json";
 
 export type MetaMetadata = {
@@ -74,16 +74,22 @@ export class DiscordMetadata extends Service {
 
 	private async getAccessToken(userId: string, data: LocalDatabaseEntry) {
 		if (Date.now() > data.expires_at) {
-			const res = await axios.post<AccessTokenResponse>(
-				"https://discord.com/api/v10/oauth2/token",
-				new URLSearchParams({
-					client_id: this.bot.config.applicationId,
-					client_secret: this.bot.config.clientSecret,
-					grant_type: "refresh_token",
-					refresh_token: data.refresh_token,
-				})
-			);
-			if (res.status === 200) {
+			const res = await axios
+				.post<AccessTokenResponse>(
+					"https://discord.com/api/v10/oauth2/token",
+					new URLSearchParams({
+						client_id: this.bot.config.applicationId,
+						client_secret: this.bot.config.clientSecret,
+						grant_type: "refresh_token",
+						refresh_token: data.refresh_token,
+					})
+				)
+				.catch((err: AxiosError) => {
+					console.error(
+						`[Metadata] failed fetching tokens: [${err.code}] ${err.message}`
+					);
+				});
+			if (res) {
 				const token = res.data;
 				await (
 					await this.sql.getLocalDatabase()
@@ -97,10 +103,7 @@ export class DiscordMetadata extends Service {
 					}
 				);
 				return token.access_token;
-			} else
-				console.error(
-					`[OAuth Callback] failed fetching tokens: [${res.status}] ${res.statusText}`
-				);
+			}
 		}
 		return data.access_token;
 	}
@@ -116,16 +119,21 @@ export class DiscordMetadata extends Service {
 			if (!data) return;
 			const accessToken = await this.getAccessToken(userId, data);
 
-			const res = await axios.get<ApplicationRoleConnectionObject>(url, {
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-				},
-			});
-			if (res.status === 200) {
+			const res = await axios
+				.get<ApplicationRoleConnectionObject>(url, {
+					headers: {
+						Authorization: `Bearer ${accessToken}`,
+					},
+				})
+				.catch((err: AxiosError) => {
+					console.error(
+						`[Metadata] failed getting discord metadata: [${err.code}] ${err.message}`
+					);
+				});
+			if (res) {
 				this.ARCOCache[userId] = res.data;
 				return res.data;
-			} else
-				console.error(`Error getting discord metadata: [${res.status}] ${res.statusText}`);
+			}
 		} else {
 			return this.ARCOCache[userId];
 		}
@@ -187,16 +195,19 @@ export class DiscordMetadata extends Service {
 		const accessToken = await this.getAccessToken(userId, data);
 		const body = { platform_name: "Metastruct", platform_username: userName, metadata };
 
-		const res = await axios.put(url, body, {
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-			},
-		});
+		await axios
+			.put(url, body, {
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+				},
+			})
+			.catch((err: AxiosError) => {
+				console.error(
+					`[Metadata] failed pushing discord metadata: [${err.code}] ${err.message}`
+				);
+			});
 
 		this.ARCOCache[userId] = body;
-
-		if (res.status !== 200)
-			console.error(`Error pushing discord metadata: [${res.status}] ${res.statusText}`);
 	}
 
 	async discordIDfromSteam64(steam64: string) {
