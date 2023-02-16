@@ -3,6 +3,7 @@ import { DiscordBot, SQL, Service } from ".";
 import { isAdmin } from "@/utils";
 import SteamID from "steamid";
 import axios from "axios";
+import config from "@/config/metadata.json";
 
 export type MetaMetadata = {
 	banned?: 1 | 0;
@@ -160,12 +161,16 @@ export class DiscordMetadata extends Service {
 		const bytea: Buffer = query3[0]?.value;
 		const nick = bytea ? bytea.toString("utf-8").replace(/<[^>]*>/g, "") : undefined;
 
-		const bridge = this.container.getService("GameBridge");
-		if (!bridge) return;
-		const banned = await this.container.getService("Bans")?.getBan(data.steam_id, true);
+		const discordUser = this.bot.discord.guilds.cache
+			.get(this.bot.config.guildId)
+			?.members.cache.get(userId);
+
+		const banned =
+			(await this.container.getService("Bans")?.getBan(data.steam_id, true))?.b ||
+			discordUser?.roles.cache.filter(role => config.banned_roles.includes(role.id));
 
 		const metadata: MetaMetadata = {
-			banned: banned?.b ? 1 : 0,
+			banned: banned ? 1 : 0,
 			dev: (await isAdmin(data.steam_id)) ? 1 : 0,
 			time: isNaN(parseInt(playtime)) ? undefined : Math.round(parseInt(playtime) / 60 / 60),
 			coins: coins,
