@@ -40,7 +40,7 @@
 		"qs": "^6.11.0",
 		"slash-create": "^5.10.0",
 		"sqlite": "^4.1.2",
-		"sqlite3": "^5.1.1",
+		"sqlite3": "^5.1.4",
 		"steamapi": "^2.2.0",
 		"steamid": "^2.0.0",
 		"unicode-emoji-json": "^0.4.0",
