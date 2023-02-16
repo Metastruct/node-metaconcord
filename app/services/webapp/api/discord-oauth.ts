@@ -1,7 +1,7 @@
 import { WebApp } from "..";
 import { rateLimit } from "express-rate-limit";
 import SteamID from "steamid";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import discord from "discord.js";
@@ -50,62 +50,65 @@ export default (webApp: WebApp): void => {
 	};
 
 	const getOAuthTokens = async (code: any) => {
-		const res = await axios.post<AccessTokenResponse>(
-			"https://discord.com/api/v10/oauth2/token",
-			new URLSearchParams({
-				client_id: bot.config.applicationId,
-				client_secret: bot.config.clientSecret,
-				grant_type: "authorization_code",
-				code,
-				redirect_uri: bot.config.OAuthCallbackUri,
-			})
-		);
-		if (res.status === 200) return res.data;
-		else
-			console.error(
-				`[OAuth Callback] failed fetching tokens: [${res.status}] ${res.statusText}`
-			);
+		const res = await axios
+			.post<AccessTokenResponse>(
+				"https://discord.com/api/v10/oauth2/token",
+				new URLSearchParams({
+					client_id: bot.config.applicationId,
+					client_secret: bot.config.clientSecret,
+					grant_type: "authorization_code",
+					code,
+					redirect_uri: bot.config.OAuthCallbackUri,
+				})
+			)
+			.catch((err: AxiosError) => {
+				console.error(
+					`[OAuth Callback] failed fetching tokens: [${err.code}] ${err.message}`
+				);
+			});
+		if (res) return res.data;
 	};
 
 	const revokeOAuthToken = async (token: string) => {
-		const res = await axios.post(
-			"https://discord.com/api/v10/oauth2/token/revoke",
-			new URLSearchParams({
-				client_id: bot.config.applicationId,
-				client_secret: bot.config.clientSecret,
-				token: token,
-			})
-		);
-		if (res.status === 200) return res.data;
-		else
-			console.error(
-				`[OAuth Callback] failed revoking tokens: [${res.status}] ${res.statusText}`
-			);
+		const res = await axios
+			.post(
+				"https://discord.com/api/v10/oauth2/token/revoke",
+				new URLSearchParams({
+					client_id: bot.config.applicationId,
+					client_secret: bot.config.clientSecret,
+					token: token,
+				})
+			)
+			.catch((err: AxiosError) => {
+				console.error(
+					`[OAuth Callback] failed revoking tokens: [${err.code}] ${err.message}`
+				);
+			});
+		if (res) return res.data;
 	};
 
 	const getAuthorizationData = async (tokens: AccessTokenResponse) => {
-		const res = await axios.get<CurrentAuthorizationInformation>(
-			"https://discord.com/api/v10/oauth2/@me",
-			{
+		const res = await axios
+			.get<CurrentAuthorizationInformation>("https://discord.com/api/v10/oauth2/@me", {
 				headers: { Authorization: `Bearer ${tokens.access_token}` },
-			}
-		);
-		if (res.status === 200) return res.data;
-		else console.error(`[OAuth] failed fetching user data: [${res.status}] ${res.statusText}`);
+			})
+			.catch((err: AxiosError) => {
+				console.error(`[OAuth] failed fetching user data: [${err.code}] ${err.message}`);
+			});
+		if (res) return res.data;
 	};
 
 	const getConnections = async (tokens: AccessTokenResponse) => {
-		const res = await axios.get<ConnectionObject[]>(
-			"https://discord.com/api/v10/users/@me/connections",
-			{
+		const res = await axios
+			.get<ConnectionObject[]>("https://discord.com/api/v10/users/@me/connections", {
 				headers: { Authorization: `Bearer ${tokens.access_token}` },
-			}
-		);
-		if (res.status === 200) return res.data;
-		else
-			console.error(
-				`[OAuth] failed fetching user connection data: [${res.status}] ${res.statusText}`
-			);
+			})
+			.catch((err: AxiosError) => {
+				console.error(
+					`[OAuth] failed fetching user connection data: [${err.code}] ${err.message}`
+				);
+			});
+		if (res) return res.data;
 	};
 
 	webApp.app.use(cookieParser(webApp.config.cookieSecret));
