@@ -67,6 +67,22 @@ export default (webApp: WebApp): void => {
 			);
 	};
 
+	const revokeOAuthToken = async (token: string) => {
+		const res = await axios.post(
+			"https://discord.com/api/v10/oauth2/token/revoke",
+			new URLSearchParams({
+				client_id: bot.config.applicationId,
+				client_secret: bot.config.clientSecret,
+				token: token,
+			})
+		);
+		if (res.status === 200) return res.data;
+		else
+			console.error(
+				`[OAuth Callback] failed revoking tokens: [${res.status}] ${res.statusText}`
+			);
+	};
+
 	const getAuthorizationData = async (tokens: AccessTokenResponse) => {
 		const res = await axios.get<CurrentAuthorizationInformation>(
 			"https://discord.com/api/v10/oauth2/@me",
@@ -110,6 +126,16 @@ export default (webApp: WebApp): void => {
 	});
 	webApp.app.get("/discord/link/:id/refresh", rateLimit({ max: 5 }), async (req, res) => {
 		await metadata.update(req.params.id);
+		res.send("👌");
+	});
+	webApp.app.get("/discord/link/:id/revoke", rateLimit({ max: 5 }), async (req, res) => {
+		const secret = req.query.secret;
+		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
+		const db = await (
+			await sql.getLocalDatabase()
+		).get<LocalDatabaseEntry>("SELECT * FROM discord_tokens where user_id = ?;", req.params.id);
+		if (!db) return res.status(404).send("no data");
+		await revokeOAuthToken(db.access_token);
 		res.send("👌");
 	});
 	webApp.app.get("/discord/linkrefreshall", rateLimit({ max: 5 }), async (req, res) => {
