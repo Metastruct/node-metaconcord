@@ -128,8 +128,7 @@ export default (webApp: WebApp): void => {
 		res.send({ accountid: new SteamID(db.steam_id).accountid, ...data });
 	});
 	webApp.app.get("/discord/link/:id/refresh", rateLimit({ max: 5 }), async (req, res) => {
-		await metadata.update(req.params.id);
-		res.send("👌");
+		res.send((await metadata.update(req.params.id)) ? "👌" : "👎");
 	});
 	webApp.app.get("/discord/link/:id/revoke", rateLimit({ max: 5 }), async (req, res) => {
 		const secret = req.query.secret;
