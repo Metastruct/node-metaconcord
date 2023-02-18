@@ -146,7 +146,7 @@ export class DiscordMetadata extends Service {
 			"SELECT * FROM discord_tokens where user_id = ?;",
 			userId
 		);
-		if (!data) return;
+		if (!data) return false;
 
 		await this.sql.queryPool(
 			"INSERT INTO discord_link (accountid, discorduserid, linked_at) VALUES($1, $2, $3) ON CONFLICT (accountid) DO UPDATE SET linked_at = $3",
@@ -184,6 +184,7 @@ export class DiscordMetadata extends Service {
 			coins: coins,
 		};
 		await this.push(userId, data, metadata, nick);
+		return true;
 	}
 	private async push(
 		userId: string,
