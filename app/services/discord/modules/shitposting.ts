@@ -102,7 +102,7 @@ export default (bot: DiscordBot): void => {
 		if (options.msg) options.msg.channel.sendTyping();
 		const shat = await Shat(
 			bot,
-			Math.random() < MSG_USE_AUTHOR_FREQ
+			Math.random() <= MSG_USE_AUTHOR_FREQ
 				? options.msg?.author.username
 				: options.msg?.content,
 			options.msg?.content,
