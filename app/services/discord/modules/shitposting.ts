@@ -12,6 +12,7 @@ const MSG_CHAT_INTERVAL = 1000 * 60 * 60 * 2; // total time until a message is f
 const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 1; // idle (no active chatters) time until post, can be delayed by chatting
 const MSG_REPLY_INTERVAL = 1000 * 60 * 2; // limit how often people can reply to the bot and get a response
 const MSG_RNG_FREQ = 0.1; // random messges that defy intervals and limits
+const MSG_USE_AUTHOR_FREQ = 0.2; // use the author name instead of message
 const REACTION_FREQ = 0.01; // how often to react on messages;
 const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
 const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
@@ -32,19 +33,19 @@ const REPLY_FREQ = 0.25; // when to take a word from a previous discord message 
 export const Shat = async (
 	bot: DiscordBot,
 	msg?: string,
+	fallback?: string,
 	forceImage?: boolean,
 	forceReply?: boolean
 ): Promise<MessageCreateOptions | undefined> => {
 	const rng = Math.random();
 	if (rng > IMAGE_FREQ && !forceImage) {
 		let search: string | undefined;
-		let fallback: string | undefined;
 		let isLast = false;
 		if (msg && !msg.startsWith("http") && (rng <= REPLY_FREQ || forceReply)) {
 			const words = msg.replace(`<@${bot.discord.user?.id}> `, "").split(" ");
 			const index = Math.floor(rng * words.length);
 			isLast = index + 1 === words.length;
-			if (!isLast) {
+			if (!isLast && !fallback) {
 				search = words.slice(index, index + 2).join(" ");
 				fallback = words[index];
 			} else {
@@ -99,7 +100,15 @@ export default (bot: DiscordBot): void => {
 	) => {
 		posting = true;
 		if (options.msg) options.msg.channel.sendTyping();
-		const shat = await Shat(bot, options.msg?.content, options.forceImage, options.forceReply);
+		const shat = await Shat(
+			bot,
+			Math.random() < MSG_USE_AUTHOR_FREQ
+				? options.msg?.author.username
+				: options.msg?.content,
+			options.msg?.content,
+			options.forceImage,
+			options.forceReply
+		);
 		if (shat) {
 			if (options.msg) {
 				await options.msg.reply({
