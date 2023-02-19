@@ -100,12 +100,11 @@ export default (bot: DiscordBot): void => {
 	) => {
 		posting = true;
 		if (options.msg) options.msg.channel.sendTyping();
+		const shouldUseAuthor = Math.random() <= MSG_USE_AUTHOR_FREQ;
 		const shat = await Shat(
 			bot,
-			Math.random() <= MSG_USE_AUTHOR_FREQ
-				? options.msg?.author.username
-				: options.msg?.content,
-			options.msg?.content,
+			shouldUseAuthor ? options.msg?.author.username : options.msg?.content,
+			shouldUseAuthor ? options.msg?.content : undefined,
 			options.forceImage,
 			options.forceReply
 		);
