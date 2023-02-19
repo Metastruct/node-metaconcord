@@ -38,6 +38,7 @@ export class IRC extends Service {
 
 	private async relayDiscord(nick: string, text: string, message: message) {
 		if (nick.match(/meta\d/)) return;
+		text = text === "" ? "<empty>" : text;
 		await this.webhook
 			.send({
 				content: text,
@@ -67,14 +68,11 @@ export class IRC extends Service {
 				for (const [, attachment] of msg.attachments) {
 					content += "\n" + attachment.url;
 				}
-				let repliedUser;
-				if (msg.reference) {
-					const ref = await msg.fetchReference();
-					repliedUser = ref.author.username;
-				}
 				this.relayIRC(
 					`\u000312${msg.author.username}${
-						msg.reference ? ` (replying to ${repliedUser})` : ""
+						msg.reference
+							? ` (replying to ${(await msg.fetchReference()).author.username})`
+							: ""
 					}\u000f: ${content}`
 				);
 			}
