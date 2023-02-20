@@ -82,9 +82,8 @@ export class Starboard extends Service {
 
 				if (text === "") return;
 
-				const isMetaBot = msg.author.id === client.user.id;
 				const channel = client.channels.cache.get(
-					isMetaBot ? config.extraChannelId : config.channelId
+					msg.author.bot ? config.extraChannelId : config.channelId
 				);
 				const webhooks = await (channel as TextChannel).fetchWebhooks();
 				const webhook = webhooks.find(h => h.token);
