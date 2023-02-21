@@ -86,11 +86,20 @@ export class DiscordMetadata extends Service {
 					})
 				)
 				.catch((err: AxiosError) => {
-					console.error(
-						`[Metadata] failed fetching tokens: [${err.code}] ${JSON.stringify(
-							err.response?.data
-						)}`
-					);
+					const responseData: any = err.response?.data;
+					if (responseData.error === "invalid_grant") {
+						// The provided authorization grant (e.g., authorization
+						// 	code, resource owner credentials) or refresh token is
+						// 	invalid, expired, revoked, does not match the redirection
+						// 	URI used in the authorization request, or was issued to
+						// 	another client.
+						revokeOAuthToken(data.refresh_token, true);
+					} else
+						console.error(
+							`[Metadata] failed fetching tokens: [${err.code}] ${JSON.stringify(
+								responseData
+							)}`
+						);
 				});
 			if (!res) return;
 
@@ -203,9 +212,8 @@ export class DiscordMetadata extends Service {
 
 		if (!accessToken) {
 			console.error(
-				`[Metadata] failed pushing discord metadata invalid Accesstoken, removing: ${userName}(${userId})`
+				`[Metadata] failed pushing discord metadata invalid Accesstoken?: ${userName}(${userId})`
 			);
-			await revokeOAuthToken(data.access_token);
 			return;
 		}
 
@@ -216,6 +224,10 @@ export class DiscordMetadata extends Service {
 				},
 			})
 			.catch((err: AxiosError) => {
+				if (err.response?.status === 401) {
+					// unauthorised, user probably revoked the token.
+					revokeOAuthToken(accessToken, true);
+				}
 				console.error(
 					`[Metadata] failed pushing discord metadata: [${err.code}] ${JSON.stringify(
 						err.response?.data

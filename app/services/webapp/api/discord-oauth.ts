@@ -66,7 +66,15 @@ export const getOAuthTokens = async (code: any) => {
 	if (res) return res.data;
 };
 
-export const revokeOAuthToken = async (token: string) => {
+export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
+	const sql = globalThis.MetaConcord.container.getService("SQL");
+	if (!sql) return false;
+	(await sql.getLocalDatabase()).db.get(
+		"DELETE FROM discord_tokens where access_token = ?;",
+		token
+	);
+	if (localOnly) return true;
+
 	const res = await axios
 		.post(
 			"https://discord.com/api/v10/oauth2/token/revoke",
@@ -84,12 +92,6 @@ export const revokeOAuthToken = async (token: string) => {
 			);
 		});
 	if (!res) return false;
-	const sql = globalThis.MetaConcord.container.getService("SQL");
-	if (!sql) return false;
-	(await sql.getLocalDatabase()).db.get(
-		"DELETE FROM discord_tokens where access_token = ?;",
-		token
-	);
 	return true;
 };
 export default (webApp: WebApp): void => {
