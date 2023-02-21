@@ -55,7 +55,7 @@ export const getOAuthTokens = async (code: any) => {
 				redirect_uri: bot_config.OAuthCallbackUri,
 			})
 		)
-		.catch((err: AxiosError) => {
+		.catch((err: AxiosError<discord.OAuthErrorData>) => {
 			console.error(
 				`[OAuth Callback] failed fetching tokens: [${err.code}] ${JSON.stringify(
 					err.response?.data

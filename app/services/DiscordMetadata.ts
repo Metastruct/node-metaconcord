@@ -1,6 +1,6 @@
 import { Container } from "../Container";
 import { DiscordBot, SQL, Service } from ".";
-import { DiscordErrorData } from "discord.js";
+import { DiscordErrorData, OAuthErrorData } from "discord.js";
 import { isAdmin } from "@/utils";
 import { revokeOAuthToken } from "./webapp/api/discord-oauth";
 import SteamID from "steamid";
@@ -86,9 +86,9 @@ export class DiscordMetadata extends Service {
 						refresh_token: data.refresh_token,
 					})
 				)
-				.catch((err: AxiosError<DiscordErrorData>) => {
-					const discordResponse = err.response?.data.errors;
-					if (discordResponse === "invalid_grant") {
+				.catch((err: AxiosError<OAuthErrorData>) => {
+					const discordResponse = err.response?.data;
+					if (discordResponse?.error === "invalid_grant") {
 						// The provided authorization grant (e.g., authorization
 						// 	code, resource owner credentials) or refresh token is
 						// 	invalid, expired, revoked, does not match the redirection
@@ -98,7 +98,7 @@ export class DiscordMetadata extends Service {
 					} else
 						console.error(
 							`[Metadata] failed fetching tokens: [${err.code}] ${JSON.stringify(
-								discordResponse
+								discordResponse?.error
 							)}`
 						);
 				});
@@ -131,6 +131,7 @@ export class DiscordMetadata extends Service {
 			);
 			if (!data) return;
 			const accessToken = await this.getAccessToken(userId, data);
+			if (!accessToken) return;
 
 			const res = await axios
 				.get<ApplicationRoleConnectionObject>(url, {
