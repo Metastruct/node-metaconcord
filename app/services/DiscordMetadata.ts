@@ -86,7 +86,9 @@ export class DiscordMetadata extends Service {
 				)
 				.catch((err: AxiosError) => {
 					console.error(
-						`[Metadata] failed fetching tokens: [${err.code}] ${err.message}`
+						`[Metadata] failed fetching tokens: [${err.code}] ${JSON.stringify(
+							err.response?.data
+						)}`
 					);
 				});
 			if (res) {
@@ -127,7 +129,9 @@ export class DiscordMetadata extends Service {
 				})
 				.catch((err: AxiosError) => {
 					console.error(
-						`[Metadata] failed getting discord metadata: [${err.code}] ${err.message}`
+						`[Metadata] failed getting discord metadata: [${err.code}] ${JSON.stringify(
+							err.response?.data
+						)}`
 					);
 				});
 			if (res) {
@@ -196,6 +200,13 @@ export class DiscordMetadata extends Service {
 		const accessToken = await this.getAccessToken(userId, data);
 		const body = { platform_name: "Metastruct", platform_username: userName, metadata };
 
+		if (!accessToken) {
+			console.error(
+				`[Metadata] failed pushing discord metadata missing accessToken!: ${userName}(${userId})`
+			);
+			return;
+		}
+
 		await axios
 			.put(url, body, {
 				headers: {
@@ -204,7 +215,9 @@ export class DiscordMetadata extends Service {
 			})
 			.catch((err: AxiosError) => {
 				console.error(
-					`[Metadata] failed pushing discord metadata: [${err.code}] ${err.message}`
+					`[Metadata] failed pushing discord metadata: [${err.code}] ${JSON.stringify(
+						err.response?.data
+					)}`
 				);
 			});
 

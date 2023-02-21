@@ -63,7 +63,9 @@ export default (webApp: WebApp): void => {
 			)
 			.catch((err: AxiosError) => {
 				console.error(
-					`[OAuth Callback] failed fetching tokens: [${err.code}] ${err.message}`
+					`[OAuth Callback] failed fetching tokens: [${err.code}] ${JSON.stringify(
+						err.response?.data
+					)}`
 				);
 			});
 		if (res) return res.data;
@@ -81,7 +83,9 @@ export default (webApp: WebApp): void => {
 			)
 			.catch((err: AxiosError) => {
 				console.error(
-					`[OAuth Callback] failed revoking tokens: [${err.code}] ${err.message}`
+					`[OAuth Callback] failed revoking tokens: [${err.code}] ${JSON.stringify(
+						err.response?.data
+					)}`
 				);
 			});
 		if (res) return res.data;
@@ -93,7 +97,11 @@ export default (webApp: WebApp): void => {
 				headers: { Authorization: `Bearer ${tokens.access_token}` },
 			})
 			.catch((err: AxiosError) => {
-				console.error(`[OAuth] failed fetching user data: [${err.code}] ${err.message}`);
+				console.error(
+					`[OAuth] failed fetching user data: [${err.code}] ${JSON.stringify(
+						err.response?.data
+					)}`
+				);
 			});
 		if (res) return res.data;
 	};
@@ -105,7 +113,9 @@ export default (webApp: WebApp): void => {
 			})
 			.catch((err: AxiosError) => {
 				console.error(
-					`[OAuth] failed fetching user connection data: [${err.code}] ${err.message}`
+					`[OAuth] failed fetching user connection data: [${err.code}] ${JSON.stringify(
+						err.response?.data
+					)}`
 				);
 			});
 		if (res) return res.data;
@@ -138,6 +148,10 @@ export default (webApp: WebApp): void => {
 		).get<LocalDatabaseEntry>("SELECT * FROM discord_tokens where user_id = ?;", req.params.id);
 		if (!db) return res.status(404).send("no data");
 		await revokeOAuthToken(db.access_token);
+		(await sql.getLocalDatabase()).get(
+			"DELETE FROM discord_tokens where user_id = ?;",
+			db.user_id
+		);
 		res.send("👌");
 	});
 	webApp.app.get("/discord/linkrefreshall", rateLimit({ max: 5 }), async (req, res) => {
