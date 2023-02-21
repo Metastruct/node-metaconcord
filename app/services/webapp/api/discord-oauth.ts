@@ -1,6 +1,5 @@
 import { WebApp } from "..";
 import { rateLimit } from "express-rate-limit";
-import MetaConcord from "@/index";
 import SteamID from "steamid";
 import axios, { AxiosError } from "axios";
 import bot_config from "@/config/discord.json";
@@ -85,7 +84,7 @@ export const revokeOAuthToken = async (token: string) => {
 			);
 		});
 	if (!res) return false;
-	const sql = MetaConcord.container.getService("SQL");
+	const sql = globalThis.MetaConcord.container.getService("SQL");
 	if (!sql) return false;
 	(await sql.getLocalDatabase()).db.get(
 		"DELETE FROM discord_tokens where access_token = ?;",
