@@ -1,6 +1,5 @@
 import { WebApp } from "..";
 import { rateLimit } from "express-rate-limit";
-import SteamID from "steamid";
 import axios, { AxiosError } from "axios";
 import bot_config from "@/config/discord.json";
 import cookieParser from "cookie-parser";
@@ -139,11 +138,8 @@ export default (webApp: WebApp): void => {
 	});
 	webApp.app.get("/discord/link/:id", async (req, res) => {
 		const data = await metadata.get(req.params.id);
-		const db = await (
-			await sql.getLocalDatabase()
-		).get<LocalDatabaseEntry>("SELECT * FROM discord_tokens where user_id = ?;", req.params.id);
-		if (!data || !db) return res.status(404).send("no data");
-		res.send({ accountid: new SteamID(db.steam_id).accountid, ...data });
+		if (!data) return res.status(404).send("no data");
+		res.send(data);
 	});
 	webApp.app.get("/discord/link/:id/refresh", rateLimit({ max: 5 }), async (req, res) => {
 		res.send((await metadata.update(req.params.id)) ? "👌" : "👎");
