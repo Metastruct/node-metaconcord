@@ -94,7 +94,7 @@ export class DiscordMetadata extends Service {
 						// 	invalid, expired, revoked, does not match the redirection
 						// 	URI used in the authorization request, or was issued to
 						// 	another client.
-						revokeOAuthToken(data.refresh_token, true);
+						revokeOAuthToken(data.refresh_token);
 					} else
 						console.error(
 							`[Metadata] failed fetching tokens: [${err.code}] ${JSON.stringify(
