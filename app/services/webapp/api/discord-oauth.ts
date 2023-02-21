@@ -1,7 +1,9 @@
 import { WebApp } from "..";
 import { rateLimit } from "express-rate-limit";
+import MetaConcord from "@/index";
 import SteamID from "steamid";
 import axios, { AxiosError } from "axios";
+import bot_config from "@/config/discord.json";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import discord from "discord.js";
@@ -31,65 +33,70 @@ type CurrentAuthorizationInformation = {
 	user: discord.APIUser;
 };
 
+export const getOAuthURL = () => {
+	const state = crypto.randomUUID();
+	const url = new URL("https://discord.com/api/oauth2/authorize");
+	url.searchParams.set("client_id", bot_config.applicationId);
+	url.searchParams.set("redirect_uri", bot_config.OAuthCallbackUri);
+	url.searchParams.set("response_type", "code");
+	url.searchParams.set("state", state);
+	url.searchParams.set("scope", "role_connections.write identify connections");
+	url.searchParams.set("prompt", "consent");
+	return { state, url: url.toString() };
+};
+
+export const getOAuthTokens = async (code: any) => {
+	const res = await axios
+		.post<AccessTokenResponse>(
+			"https://discord.com/api/v10/oauth2/token",
+			new URLSearchParams({
+				client_id: bot_config.applicationId,
+				client_secret: bot_config.clientSecret,
+				grant_type: "authorization_code",
+				code,
+				redirect_uri: bot_config.OAuthCallbackUri,
+			})
+		)
+		.catch((err: AxiosError) => {
+			console.error(
+				`[OAuth Callback] failed fetching tokens: [${err.code}] ${JSON.stringify(
+					err.response?.data
+				)}`
+			);
+		});
+	if (res) return res.data;
+};
+
+export const revokeOAuthToken = async (token: string) => {
+	const res = await axios
+		.post(
+			"https://discord.com/api/v10/oauth2/token/revoke",
+			new URLSearchParams({
+				client_id: bot_config.applicationId,
+				client_secret: bot_config.clientSecret,
+				token: token,
+			})
+		)
+		.catch((err: AxiosError) => {
+			console.error(
+				`[OAuth Callback] failed revoking tokens: [${err.code}] ${JSON.stringify(
+					err.response?.data
+				)}`
+			);
+		});
+	if (!res) return false;
+	const sql = MetaConcord.container.getService("SQL");
+	if (!sql) return false;
+	(await sql.getLocalDatabase()).db.get(
+		"DELETE FROM discord_tokens where access_token = ?;",
+		token
+	);
+	return true;
+};
 export default (webApp: WebApp): void => {
-	const bot = webApp.container.getService("DiscordBot");
 	const sql = webApp.container.getService("SQL");
 	const metadata = webApp.container.getService("DiscordMetadata");
-	if (!bot || !sql || !metadata) return;
-
-	const getOAuthURL = () => {
-		const state = crypto.randomUUID();
-		const url = new URL("https://discord.com/api/oauth2/authorize");
-		url.searchParams.set("client_id", bot.config.applicationId);
-		url.searchParams.set("redirect_uri", bot.config.OAuthCallbackUri);
-		url.searchParams.set("response_type", "code");
-		url.searchParams.set("state", state);
-		url.searchParams.set("scope", "role_connections.write identify connections");
-		url.searchParams.set("prompt", "consent");
-		return { state, url: url.toString() };
-	};
-
-	const getOAuthTokens = async (code: any) => {
-		const res = await axios
-			.post<AccessTokenResponse>(
-				"https://discord.com/api/v10/oauth2/token",
-				new URLSearchParams({
-					client_id: bot.config.applicationId,
-					client_secret: bot.config.clientSecret,
-					grant_type: "authorization_code",
-					code,
-					redirect_uri: bot.config.OAuthCallbackUri,
-				})
-			)
-			.catch((err: AxiosError) => {
-				console.error(
-					`[OAuth Callback] failed fetching tokens: [${err.code}] ${JSON.stringify(
-						err.response?.data
-					)}`
-				);
-			});
-		if (res) return res.data;
-	};
-
-	const revokeOAuthToken = async (token: string) => {
-		const res = await axios
-			.post(
-				"https://discord.com/api/v10/oauth2/token/revoke",
-				new URLSearchParams({
-					client_id: bot.config.applicationId,
-					client_secret: bot.config.clientSecret,
-					token: token,
-				})
-			)
-			.catch((err: AxiosError) => {
-				console.error(
-					`[OAuth Callback] failed revoking tokens: [${err.code}] ${JSON.stringify(
-						err.response?.data
-					)}`
-				);
-			});
-		if (res) return res.data;
-	};
+	if (!sql || !metadata) return;
 
 	const getAuthorizationData = async (tokens: AccessTokenResponse) => {
 		const res = await axios
@@ -148,10 +155,6 @@ export default (webApp: WebApp): void => {
 		).get<LocalDatabaseEntry>("SELECT * FROM discord_tokens where user_id = ?;", req.params.id);
 		if (!db) return res.status(404).send("no data");
 		await revokeOAuthToken(db.access_token);
-		(await sql.getLocalDatabase()).get(
-			"DELETE FROM discord_tokens where user_id = ?;",
-			db.user_id
-		);
 		res.send("👌");
 	});
 	webApp.app.get("/discord/linkrefreshall", rateLimit({ max: 5 }), async (req, res) => {

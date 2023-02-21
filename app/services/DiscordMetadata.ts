@@ -1,6 +1,7 @@
 import { Container } from "../Container";
 import { DiscordBot, SQL, Service } from ".";
 import { isAdmin } from "@/utils";
+import { revokeOAuthToken } from "./webapp/api/discord-oauth";
 import SteamID from "steamid";
 import axios, { AxiosError } from "axios";
 import config from "@/config/metadata.json";
@@ -91,21 +92,21 @@ export class DiscordMetadata extends Service {
 						)}`
 					);
 				});
-			if (res) {
-				const token = res.data;
-				await (
-					await this.sql.getLocalDatabase()
-				).run(
-					"UPDATE discord_tokens SET access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at WHERE user_id = $user_id",
-					{
-						$user_Id: userId,
-						$access_token: token.access_token,
-						$refresh_token: token.refresh_token,
-						$expires_at: Date.now() + token.expires_in * 1000,
-					}
-				);
-				return token.access_token;
-			}
+			if (!res) return;
+
+			const token = res.data;
+			await (
+				await this.sql.getLocalDatabase()
+			).run(
+				"UPDATE discord_tokens SET access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at WHERE user_id = $user_id",
+				{
+					$user_Id: userId,
+					$access_token: token.access_token,
+					$refresh_token: token.refresh_token,
+					$expires_at: Date.now() + token.expires_in * 1000,
+				}
+			);
+			return token.access_token;
 		}
 		return data.access_token;
 	}
@@ -202,8 +203,9 @@ export class DiscordMetadata extends Service {
 
 		if (!accessToken) {
 			console.error(
-				`[Metadata] failed pushing discord metadata missing accessToken!: ${userName}(${userId})`
+				`[Metadata] failed pushing discord metadata invalid Accesstoken, removing: ${userName}(${userId})`
 			);
+			await revokeOAuthToken(data.access_token);
 			return;
 		}
 
