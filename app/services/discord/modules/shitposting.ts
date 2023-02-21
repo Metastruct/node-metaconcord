@@ -103,7 +103,7 @@ export default (bot: DiscordBot): void => {
 		const shouldUseAuthor = Math.random() <= MSG_USE_AUTHOR_FREQ;
 		const shat = await Shat(
 			bot,
-			shouldUseAuthor ? options.msg?.author.username.toLowerCase() : options.msg?.content,
+			shouldUseAuthor ? options.msg?.author.username?.toLowerCase() : options.msg?.content,
 			shouldUseAuthor ? options.msg?.content : undefined,
 			options.forceImage,
 			options.forceReply
