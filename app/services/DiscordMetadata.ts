@@ -95,6 +95,11 @@ export class DiscordMetadata extends Service {
 						// 	URI used in the authorization request, or was issued to
 						// 	another client.
 						revokeOAuthToken(data.refresh_token);
+						console.info(
+							`[Metadata] force unlinking ${userId} [${err.code}] ${JSON.stringify(
+								discordResponse?.error
+							)}`
+						);
 					} else
 						console.error(
 							`[Metadata] failed fetching tokens: [${err.code}] ${JSON.stringify(
