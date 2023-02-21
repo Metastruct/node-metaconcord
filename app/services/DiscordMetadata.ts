@@ -1,5 +1,6 @@
 import { Container } from "../Container";
 import { DiscordBot, SQL, Service } from ".";
+import { DiscordErrorData } from "discord.js";
 import { isAdmin } from "@/utils";
 import { revokeOAuthToken } from "./webapp/api/discord-oauth";
 import SteamID from "steamid";
@@ -7,8 +8,8 @@ import axios, { AxiosError } from "axios";
 import config from "@/config/metadata.json";
 
 export type MetaMetadata = {
-	banned?: 1 | 0;
-	dev?: 1 | 0;
+	banned?: "1" | "0";
+	dev?: "1" | "0";
 	coins?: number;
 	time?: number; // playtime
 };
@@ -85,9 +86,9 @@ export class DiscordMetadata extends Service {
 						refresh_token: data.refresh_token,
 					})
 				)
-				.catch((err: AxiosError) => {
-					const responseData: any = err.response?.data;
-					if (responseData.error === "invalid_grant") {
+				.catch((err: AxiosError<DiscordErrorData>) => {
+					const discordResponse = err.response?.data.errors;
+					if (discordResponse === "invalid_grant") {
 						// The provided authorization grant (e.g., authorization
 						// 	code, resource owner credentials) or refresh token is
 						// 	invalid, expired, revoked, does not match the redirection
@@ -97,7 +98,7 @@ export class DiscordMetadata extends Service {
 					} else
 						console.error(
 							`[Metadata] failed fetching tokens: [${err.code}] ${JSON.stringify(
-								responseData
+								discordResponse
 							)}`
 						);
 				});
@@ -137,7 +138,7 @@ export class DiscordMetadata extends Service {
 						Authorization: `Bearer ${accessToken}`,
 					},
 				})
-				.catch((err: AxiosError) => {
+				.catch((err: AxiosError<DiscordErrorData>) => {
 					console.error(
 						`[Metadata] failed getting discord metadata: [${err.code}] ${JSON.stringify(
 							err.response?.data
@@ -192,13 +193,13 @@ export class DiscordMetadata extends Service {
 			discordUser?.roles.cache.hasAny(...config.banned_roles);
 
 		const metadata: MetaMetadata = {
-			banned: banned ? 1 : 0,
-			dev: (await isAdmin(data.steam_id)) ? 1 : 0,
+			banned: banned ? "1" : "0",
+			dev: (await isAdmin(data.steam_id)) ? "1" : "0",
 			time: isNaN(parseInt(playtime)) ? undefined : Math.round(parseInt(playtime) / 60 / 60),
 			coins: coins,
 		};
-		await this.push(userId, data, metadata, nick);
-		return true;
+		const res = await this.push(userId, data, metadata, nick);
+		return res;
 	}
 	private async push(
 		userId: string,
@@ -214,7 +215,7 @@ export class DiscordMetadata extends Service {
 			console.error(
 				`[Metadata] failed pushing discord metadata invalid Accesstoken?: ${userName}(${userId})`
 			);
-			return;
+			return false;
 		}
 
 		await axios
@@ -223,19 +224,22 @@ export class DiscordMetadata extends Service {
 					Authorization: `Bearer ${accessToken}`,
 				},
 			})
-			.catch((err: AxiosError) => {
+			.catch((err: AxiosError<DiscordErrorData>) => {
 				if (err.response?.status === 401) {
 					// unauthorised, user probably revoked the token.
 					revokeOAuthToken(accessToken, true);
+				} else {
+					console.error(
+						`[Metadata] failed pushing discord metadata: [${err.code}] ${JSON.stringify(
+							err.response?.data
+						)}`
+					);
 				}
-				console.error(
-					`[Metadata] failed pushing discord metadata: [${err.code}] ${JSON.stringify(
-						err.response?.data
-					)}`
-				);
+				return false;
 			});
 
 		this.ARCOCache[userId] = body;
+		return true;
 	}
 
 	async discordIDfromSteam64(steam64: string) {
