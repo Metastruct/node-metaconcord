@@ -94,8 +94,8 @@ export class DiscordMetadata extends Service {
 						// 	invalid, expired, revoked, does not match the redirection
 						// 	URI used in the authorization request, or was issued to
 						// 	another client.
-						revokeOAuthToken(data.refresh_token);
-						console.info(
+						revokeOAuthToken(data.access_token);
+						console.warn(
 							`[Metadata] force unlinking ${userId} [${err.code}] ${JSON.stringify(
 								discordResponse?.error
 							)}`
