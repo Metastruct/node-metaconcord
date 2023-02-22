@@ -23,7 +23,9 @@ export class UIStickerYankCommand extends SlashCommand {
 						: undefined
 					: undefined
 				: undefined;
-		let link: string | undefined = `https://cdn.discordapp.com/stickers/${sticker.id}`;
+		let link: string | undefined = sticker
+			? `https://cdn.discordapp.com/stickers/${sticker.id}`
+			: undefined;
 
 		switch (sticker.format_type) {
 			case 1:
