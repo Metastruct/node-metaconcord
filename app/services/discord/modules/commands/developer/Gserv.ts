@@ -86,7 +86,7 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 
 			const success = !buffer.includes("GSERV FAILED");
 
-			const fileName = `${commands.join("_")}_${host}_${Date.now()}.txt`;
+			const fileName = `${commands.join("_")}_${host}_${Date.now()}.ansi`;
 			let msgContent = host;
 			if (!success) msgContent += " FAILED";
 
