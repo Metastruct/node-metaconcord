@@ -50,18 +50,6 @@ export class SlashGservAllCommand extends SlashDeveloperCommand {
 		}
 	}
 
-	private stripControlChars(input: string) {
-		return input
-			.split("")
-			.filter(x => {
-				if (x === "\n") return true;
-
-				const n = x.charCodeAt(0);
-				return 31 < n && 127 > n;
-			})
-			.join("");
-	}
-
 	private async gserv(
 		ctx: ComponentContext,
 		host: string,
@@ -88,7 +76,6 @@ export class SlashGservAllCommand extends SlashDeveloperCommand {
 				onStderr: buff => (buffer += buff),
 			});
 
-			buffer = this.stripControlChars(buffer);
 			const success = !buffer.includes("GSERV FAILED");
 
 			const fileName = `${commands.join("_")}_${host}_${Date.now()}.txt`;
