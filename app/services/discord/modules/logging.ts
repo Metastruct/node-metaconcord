@@ -99,9 +99,9 @@ export default (bot: DiscordBot): void => {
 
 			for (const part of diffList) {
 				diff += part.added
-					? `\u001b[1;37m${part.value}\u001b[0;0m`
+					? `\u001b[1;40m${part.value}\u001b[0;0m`
 					: part.removed
-					? `\u001b[0;30m${part.value}\u001b[0;0m`
+					? `\u001b[1;30;41m${part.value}\u001b[0;0m`
 					: part.value.replace("```", "\\`\\`\\`");
 			}
 		}
