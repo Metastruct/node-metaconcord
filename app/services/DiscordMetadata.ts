@@ -97,13 +97,13 @@ export class DiscordMetadata extends Service {
 						revokeOAuthToken(data.access_token);
 						console.warn(
 							`[Metadata] force unlinking ${userId} [${err.code}] ${JSON.stringify(
-								discordResponse?.error
+								discordResponse
 							)}`
 						);
 					} else
 						console.error(
 							`[Metadata] failed fetching tokens: [${err.code}] ${JSON.stringify(
-								discordResponse?.error
+								discordResponse
 							)}`
 						);
 				});
