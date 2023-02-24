@@ -135,9 +135,7 @@ export default (bot: DiscordBot): void => {
 	const getRandomEmoji = () => {
 		let emoji: Discord.EmojiIdentifierResolvable;
 		if (Math.random() <= GUILD_EMOJI_RATIO) {
-			emoji = bot.discord.guilds.cache
-				.get(bot.config.guildId)
-				?.emojis.cache.random() as Discord.EmojiIdentifierResolvable;
+			emoji = bot.discord.emojis.cache.random() as Discord.EmojiIdentifierResolvable;
 		} else {
 			emoji = EmojiList[Math.floor(Math.random() * EmojiList.length)];
 		}
