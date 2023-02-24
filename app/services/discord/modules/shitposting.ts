@@ -13,7 +13,6 @@ const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 1; // idle (no active ch
 const MSG_REPLY_INTERVAL = 1000 * 60 * 2; // limit how often people can reply to the bot and get a response
 const MSG_RNG_FREQ = 0.1; // random messges that defy intervals and limits
 const MSG_USE_AUTHOR_FREQ = 0.3; // use the author name instead of message
-const MSG_AUTHOR_YOU_FREQ = 0.5; // you instead of username for above
 const REACTION_FREQ = 0.005; // how often to react on messages;
 const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
 const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
@@ -112,13 +111,6 @@ export default (bot: DiscordBot): void => {
 			options.forceReply
 		);
 		if (shat) {
-			if (shouldUseAuthor && Math.random() <= MSG_AUTHOR_YOU_FREQ) {
-				const words = shat.content?.split(" ").slice(1);
-				if (!words) return;
-				words.unshift("you");
-				shat.content = words.join(" ");
-			}
-
 			if (options.msg) {
 				await options.msg.reply({
 					...shat,
