@@ -1,5 +1,4 @@
 import { DiscordBot } from "..";
-import { Emoji, MessageCreateOptions, parseEmoji } from "discord.js";
 import { makeSpeechBubble } from "@/utils";
 import Discord from "discord.js";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
@@ -17,7 +16,6 @@ const REACTION_FREQ = 0.005; // how often to react on messages;
 const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
 const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
-const RANDOM_EMOJI_RATIO = 0.5; // ratio of cached non guild emojis
 const REACTION_BOOST_FREQ = 0.15; // how often to add the same reaction as someone else did
 const MSG_CACHE_AMOUNT = 4; // how many messages to save to look up backwards
 const TYPING_TRIGGER_THRESHOLD = 0.8; // at how much msgs to trigger the typing (related to MSG_TRIGGER_COUNT)
@@ -37,7 +35,7 @@ export const Shat = async (
 	fallback?: string,
 	forceImage?: boolean,
 	forceReply?: boolean
-): Promise<MessageCreateOptions | undefined> => {
+): Promise<Discord.MessageCreateOptions | undefined> => {
 	const rng = Math.random();
 	if (rng > IMAGE_FREQ && !forceImage) {
 		let search: string | undefined;
@@ -89,7 +87,6 @@ export default (bot: DiscordBot): void => {
 	const lastMsgs: Discord.Message<boolean>[] = [];
 	let posting = false;
 	let replied = false;
-	const emojiCache: Emoji[] = [];
 
 	const sendShat = async (
 		options: {
@@ -129,11 +126,7 @@ export default (bot: DiscordBot): void => {
 	const getRandomEmoji = () => {
 		let emoji: Discord.EmojiIdentifierResolvable;
 		if (Math.random() <= GUILD_EMOJI_RATIO) {
-			if (Math.random() <= RANDOM_EMOJI_RATIO)
-				emoji = emojiCache[
-					Math.floor(Math.random() * emojiCache.length)
-				] as Discord.EmojiIdentifierResolvable;
-			else emoji = bot.discord.emojis.cache.random() as Discord.EmojiIdentifierResolvable;
+			emoji = bot.discord.emojis.cache.random() as Discord.EmojiIdentifierResolvable;
 		} else {
 			emoji = EmojiList[Math.floor(Math.random() * EmojiList.length)];
 		}
@@ -226,11 +219,6 @@ export default (bot: DiscordBot): void => {
 			} catch {
 				return;
 			}
-		}
-
-		for (const match of msg.content.matchAll(/<a?:\S+:\d+>/g)) {
-			const emoji = parseEmoji(match[0]) as Emoji;
-			if (emoji.id && !bot.discord.emojis.cache.has(emoji.id)) emojiCache.push(emoji);
 		}
 
 		// Message Reactions
