@@ -9,6 +9,7 @@ import {
 import { Bans } from "@/app/services/Bans";
 import { DiscordBot } from "../..";
 import { EphemeralResponse } from ".";
+import SteamID from "steamid";
 
 export class SlashWhyBanCommand extends SlashCommand {
 	private bot: DiscordBot;
@@ -23,8 +24,8 @@ export class SlashWhyBanCommand extends SlashCommand {
 			options: [
 				{
 					type: CommandOptionType.STRING,
-					name: "steamid",
-					description: "Steam2 rendered ID, Steam3 rendered ID, SteamID64",
+					name: "query",
+					description: "Name, STEAM_0:1:18717664, [U:1:37435329] or 76561197997701057",
 					required: true,
 					autocomplete: true,
 				},
@@ -44,8 +45,19 @@ export class SlashWhyBanCommand extends SlashCommand {
 			.filter(
 				function (ban) {
 					if (this.limit < 25) {
+						const name = ban.name.toLowerCase().includes(ctx.options[ctx.focused]);
+						const sid = new SteamID(ban.sid);
+						const sid2 = sid
+							.getSteam2RenderedID()
+							.includes(ctx.options[ctx.focused].toUpperCase());
+						const sid3 = sid
+							.getSteam3RenderedID()
+							.includes(ctx.options[ctx.focused].toUpperCase());
+						const sid64 = sid.getSteamID64().includes(ctx.options[ctx.focused]);
+						const res = name || sid2 || sid64 || sid3;
+						if (!res) return false;
 						this.limit++;
-						return ban.sid.includes(ctx.options[ctx.focused].toUpperCase());
+						return res;
 					}
 				},
 				{ limit: 0 }
@@ -61,7 +73,7 @@ export class SlashWhyBanCommand extends SlashCommand {
 
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer(true);
-		const ban = await this.bans.getBan(ctx.options.steamid);
+		const ban = await this.bans.getBan(ctx.options.query);
 		if (!ban) return EphemeralResponse("That SteamID has never been banned before.");
 		if (!ban.b)
 			return EphemeralResponse(
