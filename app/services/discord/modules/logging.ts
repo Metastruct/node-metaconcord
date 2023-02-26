@@ -3,8 +3,9 @@ import { diffWords } from "diff";
 import { f } from "@/utils";
 import Discord from "discord.js";
 
-const RED_COLOR: Discord.ColorResolvable = [255, 0, 0];
-const YELLOW_COLOR: Discord.ColorResolvable = [220, 150, 0];
+const RED_COLOR = Discord.Colors.Red;
+const YELLOW_COLOR = Discord.Colors.Yellow;
+const GREEN_COLOR = Discord.Colors.Green;
 
 export default (bot: DiscordBot): void => {
 	bot.discord.on("messageCreate", async msg => {
@@ -136,6 +137,7 @@ export default (bot: DiscordBot): void => {
 
 		await logChannel.send({ embeds: [embed] });
 	});
+
 	bot.discord.on("guildMemberRemove", async user => {
 		user = await bot.fetchPartial(user);
 		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
@@ -146,6 +148,20 @@ export default (bot: DiscordBot): void => {
 			.setColor(RED_COLOR)
 			.addFields(f("Mention", user.mention))
 			.setFooter({ text: "Member Left/Kicked" })
+			.setTimestamp(Date.now());
+		await logChannel.send({ embeds: [embed] });
+	});
+
+	bot.discord.on("guildMemberAdd", async user => {
+		user = await bot.fetchPartial(user);
+		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
+		if (!logChannel) return;
+
+		const embed = new Discord.EmbedBuilder()
+			.setAuthor({ name: user.displayName, iconURL: user.avatarURL() ?? undefined })
+			.setColor(GREEN_COLOR)
+			.addFields(f("Mention", user.mention))
+			.setFooter({ text: "Member joined" })
 			.setTimestamp(Date.now());
 		await logChannel.send({ embeds: [embed] });
 	});
