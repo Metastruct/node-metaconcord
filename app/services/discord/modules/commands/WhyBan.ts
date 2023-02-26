@@ -25,7 +25,8 @@ export class SlashWhyBanCommand extends SlashCommand {
 				{
 					type: CommandOptionType.STRING,
 					name: "query",
-					description: "Name, STEAM_0:1:18717664, [U:1:37435329] or 76561197997701057",
+					description:
+						"use autocomplete or input STEAM_0:1:18717664, [U:1:37435329], 76561197997701057",
 					required: true,
 					autocomplete: true,
 				},
