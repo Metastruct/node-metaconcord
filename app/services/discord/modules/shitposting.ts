@@ -98,7 +98,7 @@ export default (bot: DiscordBot): void => {
 		} = {}
 	) => {
 		posting = true;
-		if (options.msg) options.msg.channel.sendTyping();
+		if (options.msg) (options.msg.channel as Discord.TextChannel).sendTyping();
 		const shouldUseAuthor = Math.random() <= MSG_USE_AUTHOR_FREQ;
 		const shat = await Shat(
 			bot,
@@ -240,7 +240,7 @@ export default (bot: DiscordBot): void => {
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))) &&
 			bot.config.allowedShitpostingChannels.includes(msg.channelId)
 		) {
-			msg.channel.sendTyping();
+			(msg.channel as Discord.TextChannel).sendTyping();
 			const shat = await Shat(bot, msg.content);
 			if (shat) await msg.reply(shat);
 		}
@@ -253,7 +253,7 @@ export default (bot: DiscordBot): void => {
 				lastMsgs.length - MSG_CACHE_AMOUNT < MSG_TRIGGER_COUNT &&
 				(lastMsgs.length - MSG_CACHE_AMOUNT) / MSG_TRIGGER_COUNT >= TYPING_TRIGGER_THRESHOLD
 			) {
-				msg.channel.sendTyping();
+				(msg.channel as Discord.TextChannel).sendTyping();
 			}
 		}
 
