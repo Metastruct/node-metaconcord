@@ -57,6 +57,7 @@ export class SlashMarkovCommand extends SlashCommand {
 	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[]> {
 		if (ctx.focused && ctx.focused == "insanity") {
 			return [
+				{ name: "normal", value: 4 },
 				{ name: "sane", value: 3 },
 				{ name: "insane", value: 2 },
 				{ name: "crazy", value: 1 },
@@ -69,7 +70,7 @@ export class SlashMarkovCommand extends SlashCommand {
 		await ctx.defer();
 
 		const res = await this.markov.generate(ctx.options.sentence, {
-			depth: ctx.options.insanity ? clamp(ctx.options.insanity, 1, 3) : undefined,
+			depth: ctx.options.insanity ? clamp(ctx.options.insanity, 1, 4) : undefined,
 			length: ctx.options.length ? clamp(ctx.options.length, 1, 50) : undefined,
 			authorID: ctx.options.user,
 			continuation: ctx.options.continuation,
