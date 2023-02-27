@@ -86,7 +86,7 @@ abstract class MarkovChainBase {
 	}
 
 	async generate(
-		depth = 3,
+		depth = 4,
 		maxLength = 50,
 		sentence = "",
 		authorID = "",
