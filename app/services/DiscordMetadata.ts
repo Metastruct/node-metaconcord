@@ -94,7 +94,7 @@ export class DiscordMetadata extends Service {
 						// 	invalid, expired, revoked, does not match the redirection
 						// 	URI used in the authorization request, or was issued to
 						// 	another client.
-						revokeOAuthToken(data.access_token);
+						// revokeOAuthToken(data.access_token);
 						console.warn(
 							`[Metadata] force unlinking ${userId} [${err.code}] ${JSON.stringify(
 								discordResponse
@@ -170,8 +170,8 @@ export class DiscordMetadata extends Service {
 		if (!data) return false;
 
 		await this.sql.queryPool(
-			"INSERT INTO discord_link (accountid, discorduserid, linked_at) VALUES($1, $2, $3) ON CONFLICT (accountid) DO UPDATE SET linked_at = $3",
-			[new SteamID(data.steam_id).accountid, data?.user_id, new Date()]
+			"INSERT INTO discord_link (accountid, discorduserid, linked_at) VALUES($1, $2, $3) ON CONFLICT (accountid) DO UPDATE SET linked_at = $4",
+			[new SteamID(data.steam_id).accountid, data.user_id, new Date(), new Date()]
 		);
 
 		const query1 = await this.sql.queryPool(`SELECT coins FROM coins WHERE accountid = $1;`, [
