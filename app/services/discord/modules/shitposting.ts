@@ -16,7 +16,6 @@ const REACTION_FREQ = 0.005; // how often to react on messages;
 const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
 const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
-const REACTION_BOOST_FREQ = 0.15; // how often to add the same reaction as someone else did
 const MSG_CACHE_AMOUNT = 4; // how many messages to save to look up backwards
 const TYPING_TRIGGER_THRESHOLD = 0.8; // at how much msgs to trigger the typing (related to MSG_TRIGGER_COUNT)
 
@@ -287,14 +286,6 @@ export default (bot: DiscordBot): void => {
 				msg.react(getRandomEmoji());
 			}
 		}
-	});
-	bot.discord.on("messageReactionAdd", async reaction => {
-		if (
-			reaction.message.channelId !== bot.config.chatChannelId &&
-			!bot.config.allowedShitpostingChannels.includes(reaction.message.channelId)
-		)
-			return;
-		if (Math.random() <= REACTION_BOOST_FREQ) reaction.react();
 	});
 
 	bot.discord.on("messageReactionRemove", async reaction => {
