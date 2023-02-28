@@ -287,14 +287,4 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 	});
-
-	bot.discord.on("messageReactionRemove", async reaction => {
-		if (
-			reaction.message.channelId !== bot.config.chatChannelId &&
-			!bot.config.allowedShitpostingChannels.includes(reaction.message.channelId)
-		)
-			return;
-		if (reaction.me && reaction.count && reaction.count <= 2)
-			reaction.users.remove(reaction.client.user);
-	});
 };
