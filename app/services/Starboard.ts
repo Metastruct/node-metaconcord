@@ -58,8 +58,8 @@ export class Starboard extends Service {
 				// check against our local db first
 				if (await this.isMsgStarred(msg.id)) return;
 
-				// skip messages older than 3 months
-				if (Date.now() - msg.createdTimestamp > 3 * 28 * 24 * 60 * 60 * 1000) return;
+				// skip messages older than 6 months
+				if (Date.now() - msg.createdTimestamp > 6 * 28 * 24 * 60 * 60 * 1000) return;
 
 				let text = "";
 				const reference = msg.reference;
