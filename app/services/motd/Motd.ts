@@ -103,10 +103,6 @@ export default class Motd extends Service {
 				},
 			})
 			.catch();
-		if (this.data) {
-			this.data.lastIotdAuthors = [];
-			this.data.save();
-		}
 	}
 
 	private async executeMessageJob(): Promise<void> {
@@ -140,11 +136,9 @@ export default class Motd extends Service {
 
 		if (res.status === 200) {
 			const yesterday = dayjs().subtract(1, "d").unix();
-			const lastAuthors = this.data.lastIotdAuthors;
 			this.images = res.data.data;
 			const urls: Array<ImgurImage> = res.data.data.filter(
-				(img: ImgurImage) => img.datetime >= yesterday && !lastAuthors.includes(img.title)
-			); // keep only recent images
+				(img: ImgurImage) => img.datetime >= yesterday); // keep only recent images
 			const authors = [...new Set(urls.map(image => image.title))];
 			const index = Math.floor(Math.random() * urls.length);
 			const image = urls[index];
@@ -194,7 +188,6 @@ export default class Motd extends Service {
 			this.container.getService("DiscordBot")?.setServerBanner(url);
 
 			this.lastimage = url;
-			this.data.lastIotdAuthors.push(image.title);
 			await this.data.save();
 		}
 	}
