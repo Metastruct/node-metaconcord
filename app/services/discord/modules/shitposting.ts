@@ -184,8 +184,11 @@ export default (bot: DiscordBot): void => {
 
 		setInterval(async () => {
 			await data.save();
-			lastImgs.splice(0, lastImgs.length);
 		}, SAVE_INTERVAL); // save data
+
+		setInterval(() => {
+			lastImgs.splice(0, lastImgs.length);
+		}, 1000 * 60 * 60 * 6);
 
 		setInterval(async () => {
 			const now = Date.now();
