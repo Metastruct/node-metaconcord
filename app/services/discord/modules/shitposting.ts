@@ -227,7 +227,9 @@ export default (bot: DiscordBot): void => {
 				msg.mentions.users.first()?.id !== bot.discord.user?.id) ||
 			(msg.author.id !== id &&
 				bot.config.chatChannelId !== msg.channelId &&
-				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)))
+				TRIGGER_WORDS.some(str =>
+					msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
+				))
 		) {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
@@ -236,7 +238,9 @@ export default (bot: DiscordBot): void => {
 		if (
 			msg.author.id !== id &&
 			(msg.mentions.users.first()?.id === id ||
-				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))) &&
+				TRIGGER_WORDS.some(str =>
+					msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
+				)) &&
 			bot.config.allowedShitpostingChannels.includes(msg.channelId)
 		) {
 			(msg.channel as Discord.TextChannel).sendTyping();
@@ -264,7 +268,9 @@ export default (bot: DiscordBot): void => {
 			((msg.mentions.users.first()?.id === id && msg.content !== `<@${id}>`) ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
 				(Math.random() <= MAYBE_TRIGGER_FREQ &&
-					MAYBE_TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str))))
+					MAYBE_TRIGGER_WORDS.some(str =>
+						msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
+					)))
 		) {
 			const itsPostingTime = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
 			if ((itsPostingTime || Math.random() <= MSG_RNG_FREQ) && !posting) {
