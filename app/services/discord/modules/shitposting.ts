@@ -25,16 +25,21 @@ const MAYBE_TRIGGER_WORDS = ["metastruct", "metaconstruct", "meta", "bot"]; // n
 const MAYBE_TRIGGER_FREQ = 0.25; // frequency of triggers above
 
 // shat constants
-const IMAGE_FREQ = 0.025; // how often the bot will respond with an image instead of text
+const STOLEN_IMAGE_FREQ = 0.025; // how often the bot will respond with an image instead of text
+const IMAGE_FREQ = 0.025; // how often the bot will respond with an image from the iotd imgur album instead of text
 const REPLY_FREQ = 0.25; // when to take a word from a previous discord message if provided
+
+const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp"];
 
 export const Shat = async (
 	bot: DiscordBot,
 	msg?: string,
 	fallback?: string,
 	forceImage?: boolean,
-	forceReply?: boolean
+	forceReply?: boolean,
+	forceMessage?: string
 ): Promise<Discord.MessageCreateOptions | undefined> => {
+	if (forceMessage) return { content: forceMessage };
 	const rng = Math.random();
 	if (rng > IMAGE_FREQ && !forceImage) {
 		let search: string | undefined;
@@ -84,6 +89,7 @@ export default (bot: DiscordBot): void => {
 	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? now);
 	let lastChatTime = now;
 	const lastMsgs: Discord.Message<boolean>[] = [];
+	const lastImgs: string[] = [];
 	let posting = false;
 	let replied = false;
 
@@ -92,19 +98,25 @@ export default (bot: DiscordBot): void => {
 			msg?: Discord.Message;
 			forceImage?: boolean;
 			forceReply?: boolean;
+			forceMessage?: string;
 			ping?: boolean;
 			dont_save?: boolean;
 		} = {}
 	) => {
 		posting = true;
 		if (options.msg) (options.msg.channel as Discord.TextChannel).sendTyping();
-		const shouldUseAuthor = Math.random() <= MSG_USE_AUTHOR_FREQ;
+		const rng = Math.random();
+		const shouldUseAuthor = rng <= MSG_USE_AUTHOR_FREQ;
+		const shouldStealImg = rng <= STOLEN_IMAGE_FREQ;
 		const shat = await Shat(
 			bot,
 			shouldUseAuthor ? options.msg?.author.username?.toLowerCase() : options.msg?.content,
 			shouldUseAuthor ? options.msg?.content : undefined,
 			options.forceImage,
-			options.forceReply
+			options.forceReply,
+			shouldStealImg && lastImgs.length > 0
+				? lastImgs[Math.floor(Math.random() * lastImgs.length)]
+				: undefined
 		);
 		if (shat) {
 			if (options.msg) {
@@ -172,6 +184,7 @@ export default (bot: DiscordBot): void => {
 
 		setInterval(async () => {
 			await data.save();
+			lastImgs.splice(0, lastImgs.length);
 		}, SAVE_INTERVAL); // save data
 
 		setInterval(async () => {
@@ -257,6 +270,18 @@ export default (bot: DiscordBot): void => {
 				(lastMsgs.length - MSG_CACHE_AMOUNT) / MSG_TRIGGER_COUNT >= TYPING_TRIGGER_THRESHOLD
 			) {
 				(msg.channel as Discord.TextChannel).sendTyping();
+			}
+		}
+		// https?:\/\/(?:\w+)?.?(discordapp).\w+\/
+		if (msg.content.startsWith("http")) {
+			if (
+				msg.content.match(
+					new RegExp(
+						`^https?:\/\/(?:\w+)?.?(${ALLOWED_IMG_PROVIDERS.join("|")}).\w+\/[^\s]+$`
+					)
+				)
+			) {
+				lastImgs.push(msg.content);
 			}
 		}
 
