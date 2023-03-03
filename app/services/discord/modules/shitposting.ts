@@ -263,8 +263,6 @@ export default (bot: DiscordBot): void => {
 		if (
 			bot.config.chatChannelId === msg.channelId &&
 			msg.author.id !== id &&
-			lastMsgs.length >= MSG_CACHE_AMOUNT &&
-			lastMsgs.slice(-4)[0].author.id !== id &&
 			((msg.mentions.users.first()?.id === id && msg.content !== `<@${id}>`) ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
 				(Math.random() <= MAYBE_TRIGGER_FREQ &&
@@ -273,7 +271,12 @@ export default (bot: DiscordBot): void => {
 					)))
 		) {
 			const itsPostingTime = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
-			if ((itsPostingTime || Math.random() <= MSG_RNG_FREQ) && !posting) {
+			if (
+				(itsPostingTime || Math.random() <= MSG_RNG_FREQ) &&
+				!posting &&
+				lastMsgs.length >= MSG_CACHE_AMOUNT &&
+				lastMsgs.slice(-4)[0].author.id !== id
+			) {
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, forceReply: true }
