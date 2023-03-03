@@ -276,7 +276,7 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 		// https?:\/\/(?:\w+)?.?(discordapp).\w+\/
-		if (msg.content.startsWith("http")) {
+		if (msg.content.startsWith("http") && msg.author.id !== id) {
 			if (
 				msg.content.match(
 					new RegExp(
