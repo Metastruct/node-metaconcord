@@ -13,7 +13,7 @@ export default (bot: DiscordBot): void => {
 		if (
 			reaction.message.channel.id !== config.channelId ||
 			reaction.emoji.name !== "♻️" ||
-			reaction.count < 5
+			reaction.count < 8
 		)
 			return;
 		const lastmsg = await bot.getLastMotdMsg();
