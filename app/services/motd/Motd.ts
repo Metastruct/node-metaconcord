@@ -138,7 +138,8 @@ export default class Motd extends Service {
 			const yesterday = dayjs().subtract(1, "d").unix();
 			this.images = res.data.data;
 			const urls: Array<ImgurImage> = res.data.data.filter(
-				(img: ImgurImage) => img.datetime >= yesterday); // keep only recent images
+				(img: ImgurImage) => img.datetime >= yesterday
+			); // keep only recent images
 			const authors = [...new Set(urls.map(image => image.title))];
 			const index = Math.floor(Math.random() * urls.length);
 			const image = urls[index];
