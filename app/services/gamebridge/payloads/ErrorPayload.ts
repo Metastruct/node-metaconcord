@@ -36,7 +36,9 @@ export default class ErrorPayload extends Payload {
 			description: stack.join("\n").replace("`", "\\`"),
 			footer: {
 				text: `${
-					server.gamemode.name ?? server.gamemode.folderName ?? "No gamemode name"
+					server.gamemode
+						? server.gamemode.name ?? server.gamemode.folderName
+						: "No gamemode name"
 				}@${server.config.name}`,
 			},
 			fields: [

@@ -50,7 +50,7 @@ export default class Motd extends Service {
 	private data: Data;
 	private rerolls = 0;
 
-	private ignorelist: Array<string> = ["STEAM_0:1:161162716"];
+	private ignorelist: Array<string> = ["STEAM_0:1:161162716", "STEAM_0:0:25648317"];
 
 	constructor(container: Container) {
 		super(container);
