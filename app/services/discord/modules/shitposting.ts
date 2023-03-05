@@ -280,7 +280,7 @@ export default (bot: DiscordBot): void => {
 			if (
 				msg.content.match(
 					new RegExp(
-						`^https?:\/\/(?:\w+)?.?(${ALLOWED_IMG_PROVIDERS.join("|")}).\w+\/[^\s]+$`
+						`^https?://(?:\\w+)?.?(${ALLOWED_IMG_PROVIDERS.join("|")}).\\w+/[^\\s]+$`
 					)
 				)
 			) {
