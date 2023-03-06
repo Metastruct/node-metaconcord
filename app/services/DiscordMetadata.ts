@@ -84,7 +84,7 @@ export class DiscordMetadata extends Service {
 						client_secret: this.bot.config.clientSecret,
 						grant_type: "refresh_token",
 						refresh_token: data.refresh_token,
-					})
+					}).toString()
 				)
 				.catch((err: AxiosError<OAuthErrorData>) => {
 					const discordResponse = err.response?.data;
@@ -96,7 +96,7 @@ export class DiscordMetadata extends Service {
 						// 	another client.
 						// revokeOAuthToken(data.access_token);
 						console.warn(
-							`[Metadata] force unlinking ${userId} [${err.code}] ${JSON.stringify(
+							`[Metadata] InValID_GraNT ${userId} [${err.code}] ${JSON.stringify(
 								discordResponse
 							)}`
 						);
