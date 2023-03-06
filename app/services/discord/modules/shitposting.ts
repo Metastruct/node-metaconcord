@@ -2,6 +2,7 @@ import { DiscordBot } from "..";
 import { makeSpeechBubble } from "@/utils";
 import Discord from "discord.js";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
+import bot_config from "@/config/discord.json";
 
 // #chat and #shat constants
 const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 60 * 0.25; // interval for changing the bot status to a random message
@@ -31,8 +32,21 @@ const REPLY_FREQ = 0.25; // when to take a word from a previous discord message 
 
 const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp"];
 
+function getWord(msg: string, fallback?: string) {
+	let search: string;
+	const words = msg.replace(`<@${bot_config.userId}> `, "").split(" ");
+	const index = Math.floor(Math.random() * words.length);
+	const isLast = index + 1 === words.length;
+	if (!isLast && !fallback) {
+		search = words.slice(index, index + 2).join(" ");
+		fallback = words[index];
+	} else {
+		search = words[index];
+	}
+	return search;
+}
+
 export const Shat = async (
-	bot: DiscordBot,
 	msg?: string,
 	fallback?: string,
 	forceImage?: boolean,
@@ -43,37 +57,44 @@ export const Shat = async (
 	const rng = Math.random();
 	if (rng > IMAGE_FREQ && !forceImage) {
 		let search: string | undefined;
-		let isLast = false;
 		if (msg && !msg.startsWith("http") && (rng <= REPLY_FREQ || forceReply)) {
-			const words = msg.replace(`<@${bot.discord.user?.id}> `, "").split(" ");
-			const index = Math.floor(rng * words.length);
-			isLast = index + 1 === words.length;
-			if (!isLast && !fallback) {
-				search = words.slice(index, index + 2).join(" ");
-				fallback = words[index];
-			} else {
-				search = words[index];
-			}
+			search = getWord(msg);
 		}
-		// continuation: !(islast && rng >= 0.75),
-		let mk = await bot.container.getService("Markov")?.generate(search, {
+		let mk = await globalThis.MetaConcord.container.getService("Markov")?.generate(search, {
 			continuation: true,
 		});
 
 		if ((!mk || mk === msg) && fallback)
-			mk = await bot.container.getService("Markov")?.generate(fallback);
-		if (!mk || mk === msg) mk = await bot.container.getService("Markov")?.generate();
+			mk = await globalThis.MetaConcord.container.getService("Markov")?.generate(fallback);
+		if (!mk || mk === msg)
+			mk = await globalThis.MetaConcord.container.getService("Markov")?.generate();
 
-		return mk ? { content: mk.replace(`<@${bot.discord.user?.id}> `, "") } : undefined;
+		return mk ? { content: mk.replace(`<@${bot_config.userId}> `, "") } : undefined;
 	} else {
 		const rng2 = Math.random();
-		const images = bot.container.getService("Motd")?.images;
-		if (images) {
+		const images = globalThis.MetaConcord.container.getService("Motd")?.images;
+		const word = msg ? getWord(msg) : undefined;
+		if (images && (rng2 <= 0.5 || !word)) {
 			const imgur = images[Math.floor(rng2 * images.length)];
 			const result = await makeSpeechBubble(imgur.link, rng2 <= 0.5);
 			return result
 				? { files: [{ attachment: result, description: imgur.title }] }
 				: undefined;
+		} else {
+			if (!word)
+				return {
+					content: await globalThis.MetaConcord.container
+						.getService("Markov")
+						?.generate(),
+				}; // if for some reason images are missing
+			const res = await globalThis.MetaConcord.container.getService("Tenor")?.search(word, 4);
+			if (!res)
+				return {
+					content: await globalThis.MetaConcord.container
+						.getService("Markov")
+						?.generate(),
+				}; // if for some reason we get no result;
+			return { content: res.data.results[Math.floor(rng2 * res.data.results.length)].url };
 		}
 	}
 };
@@ -109,7 +130,6 @@ export default (bot: DiscordBot): void => {
 		const shouldUseAuthor = rng <= MSG_USE_AUTHOR_FREQ;
 		const shouldStealImg = rng <= STOLEN_IMAGE_FREQ;
 		const shat = await Shat(
-			bot,
 			shouldUseAuthor ? options.msg?.author.username?.toLowerCase() : options.msg?.content,
 			shouldUseAuthor ? options.msg?.content : undefined,
 			options.forceImage,
@@ -260,7 +280,7 @@ export default (bot: DiscordBot): void => {
 			bot.config.allowedShitpostingChannels.includes(msg.channelId)
 		) {
 			(msg.channel as Discord.TextChannel).sendTyping();
-			const shat = await Shat(bot, msg.content);
+			const shat = await Shat(msg.content);
 			if (shat) await msg.reply(shat);
 		}
 
