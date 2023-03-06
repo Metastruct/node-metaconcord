@@ -1,5 +1,5 @@
+import { Bans, DiscordBot, SQL, Service } from ".";
 import { Container } from "../Container";
-import { DiscordBot, SQL, Service } from ".";
 import { DiscordErrorData, OAuthErrorData } from "discord.js";
 import { isAdmin } from "@/utils";
 import { revokeOAuthToken } from "./webapp/api/discord-oauth";
@@ -8,8 +8,8 @@ import axios, { AxiosError } from "axios";
 import config from "@/config/metadata.json";
 
 export type MetaMetadata = {
-	banned?: "1" | "0";
-	dev?: "1" | "0";
+	banned?: 1 | 0;
+	dev?: 1 | 0;
 	coins?: number;
 	time?: number; // playtime
 };
@@ -64,14 +64,17 @@ export class DiscordMetadata extends Service {
 	private UserCache: CachedUser[] = [];
 	private sql: SQL;
 	private bot: DiscordBot;
+	private bans: Bans;
 
 	constructor(container: Container) {
 		super(container);
 		const sql = this.container.getService("SQL");
 		const bot = this.container.getService("DiscordBot");
-		if (!sql || !bot) return;
+		const bans = this.container.getService("Bans");
+		if (!sql || !bot || !bans) return;
 		this.sql = sql;
 		this.bot = bot;
+		this.bans = bans;
 	}
 
 	private async getAccessToken(userId: string, data: LocalDatabaseEntry) {
@@ -195,12 +198,12 @@ export class DiscordMetadata extends Service {
 			?.members.cache.get(userId);
 
 		const banned =
-			(await this.container.getService("Bans")?.getBan(data.steam_id, true))?.b ||
+			(await this.bans.getBan(data.steam_id, true))?.b ||
 			discordUser?.roles.cache.hasAny(...config.banned_roles);
 
 		const metadata: MetaMetadata = {
-			banned: banned ? "1" : "0",
-			dev: (await isAdmin(data.steam_id)) ? "1" : "0",
+			banned: banned ? 1 : 0,
+			dev: (await isAdmin(data.steam_id)) ? 1 : 0,
 			time: isNaN(parseInt(playtime)) ? undefined : Math.round(parseInt(playtime) / 60 / 60),
 			coins: coins,
 		};
