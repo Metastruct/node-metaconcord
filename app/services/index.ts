@@ -19,6 +19,7 @@ import MotdProvider, { Motd } from "./motd";
 import SQLProvider, { SQL } from "./SQL";
 import StarboardProvider, { Starboard } from "./Starboard";
 import SteamProvider, { Steam } from "./Steam";
+import TenorProvider, { Tenor } from "./Tenor";
 import WebAppProvider, { WebApp } from "./webapp";
 
 export default [
@@ -33,10 +34,23 @@ export default [
 	GameBridgeProvider,
 	MotdProvider,
 	StarboardProvider,
+	TenorProvider,
 	IRCProvider,
 ]; // The order is important
 
-export { SQL, Data, DiscordBot, GameBridge, Bans, Steam, DiscordMetadata, WebApp, Motd, IRC };
+export {
+	SQL,
+	Data,
+	DiscordBot,
+	GameBridge,
+	Bans,
+	Steam,
+	DiscordMetadata,
+	Tenor,
+	WebApp,
+	Motd,
+	IRC,
+};
 
 export type ServiceMap = {
 	[key: string]: Service | undefined;
@@ -50,6 +64,7 @@ export type ServiceMap = {
 	Motd?: Motd;
 	Markov?: MarkovService;
 	Starboard?: Starboard;
+	Tenor?: Tenor;
 	SQL?: SQL;
 	IRC?: IRC;
 };
