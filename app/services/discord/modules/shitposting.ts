@@ -73,7 +73,7 @@ export const Shat = async (
 	} else {
 		const rng2 = Math.random();
 		const images = globalThis.MetaConcord.container.getService("Motd")?.images;
-		const word = msg ? getWord(msg) : undefined;
+		const word = msg && !msg.startsWith("http") ? getWord(msg) : undefined;
 		if (images && (rng2 <= 0.5 || !word)) {
 			const imgur = images[Math.floor(rng2 * images.length)];
 			const result = await makeSpeechBubble(imgur.link, rng2 <= 0.5);
