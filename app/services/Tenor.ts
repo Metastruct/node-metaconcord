@@ -23,7 +23,7 @@ const FORMATS = [
 	"nanowebp_transparent",
 	"gif_transparent",
 	"tinygif_transparent",
-	"nanogif_transparten",
+	"nanogif_transparent",
 ] as const;
 
 type ContentFormat = typeof FORMATS[number];
