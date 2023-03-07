@@ -49,6 +49,7 @@ export default class StatusPayload extends Payload {
 				server.gamemode ?? { folderName: "???", name: "unknown gamemode" };
 			const current_serverUptime = serverUptime ?? server.serverUptime;
 			const current_mapUptime = mapUptime ?? server.mapUptime;
+			const current_workshopMap = workshopMap ?? server.workshopMap;
 
 			if (current_countdown && current_countdown.typ === CountdownType.AOWL_COUNTDOWN_CUSTOM)
 				return;
@@ -154,8 +155,8 @@ export default class StatusPayload extends Payload {
 						iconURL: embed.data.footer?.icon_url,
 					});
 			}
-			if (workshopMap) {
-				const res = await Steam?.getPublishedFileDetails([workshopMap.id]).catch(
+			if (current_workshopMap) {
+				const res = await Steam?.getPublishedFileDetails([current_workshopMap.id]).catch(
 					console.error
 				);
 
