@@ -177,7 +177,7 @@ export default class StatusPayload extends Payload {
 			server.map = current_map;
 			server.mapUptime = current_mapUptime;
 			server.serverUptime = current_serverUptime;
-			server.workshopMap = workshopMap;
+			server.workshopMap = current_workshopMap;
 
 			for (const [, player] of Object.entries(server.status.players)) {
 				if (!player.avatar) {
