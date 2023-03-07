@@ -47,8 +47,8 @@ export default class StatusPayload extends Payload {
 			const current_map = map ?? server.map ?? "unknown map";
 			const current_gamemode = gamemode ??
 				server.gamemode ?? { folderName: "???", name: "unknown gamemode" };
-			const current_serverUptime = serverUptime ?? server.serverUptime;
-			const current_mapUptime = mapUptime ?? server.mapUptime;
+			const current_serverUptime = serverUptime ?? server.serverUptime ?? 0;
+			const current_mapUptime = mapUptime ?? server.mapUptime ?? 0;
 			const current_workshopMap = workshopMap ?? server.workshopMap;
 
 			if (current_countdown && current_countdown.typ === CountdownType.AOWL_COUNTDOWN_CUSTOM)
