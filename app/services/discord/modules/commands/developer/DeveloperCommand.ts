@@ -7,9 +7,7 @@ import {
 } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
-import { GameServer, Player } from "@/app/services/gamebridge";
 import { Rule } from "../../..";
-import SteamID from "steamid";
 
 export class SlashDeveloperCommand extends SlashCommand {
 	protected bot: DiscordBot;
@@ -56,33 +54,6 @@ export class SlashDeveloperCommand extends SlashCommand {
 			return false;
 		}
 	}
-
-	// public async getPlayers(server: number): Promise<GameServer["status"]["players"] | undefined> {
-	// 	const bridge = this.bot.container.getService("GameBridge");
-	// 	if (!bridge) return;
-	// 	const where = server ?? 2;
-	// 	if (!bridge.servers[where]) return;
-	// 	return bridge.servers[where].status.players;
-	// }
-
-	// public async getPlayer(steamID64: string, server?: number): Promise<Player | undefined> {
-	// 	const bridge = this.bot.container.getService("GameBridge");
-	// 	if (!bridge) return;
-	// 	const accountId = SteamID.fromIndividualAccountID(steamID64).accountid;
-	// 	if (server) {
-	// 		if (!bridge.servers[server]) return;
-	// 		return bridge.servers[server].status.players.find(
-	// 			player => player.accountId === accountId
-	// 		);
-	// 	} else {
-	// 		const server = bridge.servers.find(server =>
-	// 			server.status.players.find(player => player.accountId === accountId)
-	// 		);
-	// 		if (server) return server.status.players.find(player => player.accountId === accountId);
-	// 		return;
-	// 		// there has to be an online for this right?????
-	// 	}
-	// }
 
 	public async getRules(): Promise<Array<Rule>> {
 		const data = this.bot.container.getService("Data");

@@ -1,6 +1,6 @@
-import { CommandContext, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
+import { SlashCreator } from "slash-create";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
 
 export class SlashForceIotdRerollCommand extends SlashDeveloperCommand {

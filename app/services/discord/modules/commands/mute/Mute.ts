@@ -112,7 +112,6 @@ export class SlashMuteCommand extends SlashCommand {
 		});
 
 		// Every second, check if mute period is over
-		const guild = bot.getGuild();
 		setInterval(async () => {
 			let changes = false;
 			for (const [userId, data] of Object.entries(muted)) {
@@ -196,8 +195,6 @@ export class UIMuteCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
-		await ctx.defer(true);
-		const { discord, config } = this.bot;
 		let { muted } = this.data;
 		const userId = ctx.targetID;
 		if (!userId) return;
@@ -211,7 +208,7 @@ export class UIMuteCommand extends SlashCommand {
 		if (!guild) return;
 		const member = await this.bot.getGuildMember(userId);
 		if (!member) return "Couldn't get that User, probably left the guild already...";
-		await member.roles.add(config.roles.muted, "muted via rightclick menu command");
+		await member.roles.add(this.bot.config.roles.muted, "muted via rightclick menu command");
 
 		const content = `${member} has been muted.`;
 		return EphemeralResponse(content);
