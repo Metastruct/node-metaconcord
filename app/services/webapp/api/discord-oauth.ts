@@ -1,7 +1,7 @@
 import { WebApp } from "..";
 import { rateLimit } from "express-rate-limit";
+import DiscordConfig from "@/config/discord.json";
 import axios, { AxiosError } from "axios";
-import bot_config from "@/config/discord.json";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import discord from "discord.js";
@@ -34,8 +34,8 @@ type CurrentAuthorizationInformation = {
 export const getOAuthURL = () => {
 	const state = crypto.randomUUID();
 	const url = new URL("https://discord.com/api/oauth2/authorize");
-	url.searchParams.set("client_id", bot_config.applicationId);
-	url.searchParams.set("redirect_uri", bot_config.OAuthCallbackUri);
+	url.searchParams.set("client_id", DiscordConfig.bot.applicationId);
+	url.searchParams.set("redirect_uri", DiscordConfig.bot.oAuthCallbackUri);
 	url.searchParams.set("response_type", "code");
 	url.searchParams.set("state", state);
 	url.searchParams.set("scope", "role_connections.write identify connections");
@@ -48,11 +48,11 @@ export const getOAuthTokens = async (code: any) => {
 		.post<AccessTokenResponse>(
 			"https://discord.com/api/v10/oauth2/token",
 			new URLSearchParams({
-				client_id: bot_config.applicationId,
-				client_secret: bot_config.clientSecret,
+				client_id: DiscordConfig.bot.applicationId,
+				client_secret: DiscordConfig.bot.clientSecret,
 				grant_type: "authorization_code",
 				code,
-				redirect_uri: bot_config.OAuthCallbackUri,
+				redirect_uri: DiscordConfig.bot.oAuthCallbackUri,
 			})
 		)
 		.catch((err: AxiosError<discord.OAuthErrorData>) => {
@@ -78,8 +78,8 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 		.post(
 			"https://discord.com/api/v10/oauth2/token/revoke",
 			new URLSearchParams({
-				client_id: bot_config.applicationId,
-				client_secret: bot_config.clientSecret,
+				client_id: DiscordConfig.bot.applicationId,
+				client_secret: DiscordConfig.bot.clientSecret,
 				token: token,
 			})
 		)

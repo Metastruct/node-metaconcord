@@ -15,11 +15,7 @@ export class SlashForceIotdRerollCommand extends SlashDeveloperCommand {
 		this.bot = bot;
 	}
 
-	public async runProtected(ctx: CommandContext): Promise<any> {
-		if (!this.bot.isElevatedUser(ctx.user.id))
-			return EphemeralResponse(
-				`You need the <@&${this.bot.config.elevatedRoleId}> role to run this command!`
-			);
+	public async runExtraProtected(): Promise<any> {
 		try {
 			const lastmsg = await this.bot.getLastMotdMsg();
 			if (!lastmsg) return EphemeralResponse("Could not find last message");

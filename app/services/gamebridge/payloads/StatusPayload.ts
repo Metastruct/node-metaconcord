@@ -58,7 +58,7 @@ export default class StatusPayload extends Payload {
 
 			if (!discord) return;
 
-			const guild = discord.guilds.cache.get(discord.config.guildId);
+			const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 			if (!guild) return;
 
 			// Nick

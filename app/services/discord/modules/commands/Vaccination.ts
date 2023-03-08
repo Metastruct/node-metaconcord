@@ -1,6 +1,6 @@
 import { CommandContext, SlashCommand, SlashCreator } from "slash-create";
 import { DiscordBot } from "../..";
-import config from "@/config/discord-extras.json";
+import config from "@/config/discord.json";
 
 const VACCINATION_ROLE = config.roles.vaccination;
 
@@ -12,7 +12,7 @@ export class SlashVaccinatedCommand extends SlashCommand {
 			name: "vaccinated",
 			description: "Gives you a vaccinated role.",
 			deferEphemeral: true,
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 		});
 		this.filePath = __filename;
 		this.bot = bot;
@@ -24,16 +24,13 @@ export class SlashVaccinatedCommand extends SlashCommand {
 	}
 
 	async addRole(ctx: CommandContext): Promise<string> {
-		const guild = await this.bot.discord.guilds.fetch(ctx.guildID ?? this.bot.config.guildId);
-		if (!guild) return "Something went wrong! Try again...";
-
-		const member = await guild.members.fetch(ctx.user.id);
-
-		if (member.roles.cache.get(VACCINATION_ROLE)) {
+		const member = await this.bot.getGuildMember(ctx.user.id);
+		if (!member) return "Something went wrong! Try again...";
+		if (member?.roles.cache.get(VACCINATION_ROLE)) {
 			return "You are already vaccinated!";
 		}
 
-		await member.roles.add(VACCINATION_ROLE);
+		await member?.roles.add(VACCINATION_ROLE);
 
 		return "You just got vaccinated!";
 	}

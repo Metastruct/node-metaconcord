@@ -18,7 +18,7 @@ export class SlashSpeechbubbleCommand extends SlashCommand {
 			name: "speechbubble",
 			description: "create your own speechbubble gifs",
 			deferEphemeral: true,
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			options: [
 				{
 					type: CommandOptionType.STRING,

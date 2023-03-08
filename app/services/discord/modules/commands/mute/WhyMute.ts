@@ -10,13 +10,13 @@ import { EphemeralResponse } from "..";
 
 export class SlashWhyMuteCommand extends SlashCommand {
 	private bot: DiscordBot;
-	private data;
+	private data: Data;
 
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
 			name: "whymute",
 			description: "Prints the reason and duration for a muted user.",
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			options: [
 				{
 					type: CommandOptionType.USER,
@@ -41,9 +41,7 @@ export class SlashWhyMuteCommand extends SlashCommand {
 		const { muted } = this.data;
 		if (muted && muted[userId]) {
 			const { at, until, reason, muter } = muted[userId];
-			const guild = await this.bot.discord.guilds.fetch(
-				ctx.guildID ?? this.bot.config.guildId
-			);
+			const guild = this.bot.getGuild();
 			if (guild) {
 				const content =
 					`${ctx.user.mention}, ` +
@@ -75,7 +73,7 @@ export class UIWhyMuteCommand extends SlashCommand {
 	constructor(bot: DiscordBot, creator: SlashCreator) {
 		super(creator, {
 			name: "Mute Reason",
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			type: ApplicationCommandType.USER,
 		});
 
@@ -92,7 +90,7 @@ export class UIWhyMuteCommand extends SlashCommand {
 		const { muted } = this.data;
 		if (muted && muted[userId]) {
 			const { at, until, reason, muter } = muted[userId];
-			const guild = this.bot.discord.guilds.cache.get(ctx.guildID ?? this.bot.config.guildId);
+			const guild = this.bot.getGuild();
 			if (guild) {
 				const content =
 					(ctx.user.id == userId ? `you remain muted` : `<@${userId}> remains muted`) +

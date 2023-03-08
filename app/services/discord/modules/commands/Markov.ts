@@ -17,7 +17,7 @@ export class SlashMarkovCommand extends SlashCommand {
 		super(creator, {
 			name: "mk",
 			description: "Funny text generation based off the gmod and discord chats.",
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			options: [
 				{
 					name: "sentence",

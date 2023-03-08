@@ -21,7 +21,7 @@ export default class AdminNotifyPayload extends Payload {
 	static async initialize(server: GameServer): Promise<void> {
 		const discord = server.discord;
 		const notificationsChannel = discord.channels.cache.get(
-			server.discord.config.notificationsChannelId
+			server.discord.config.channels.notifications
 		) as TextChannel;
 		if (!notificationsChannel) return;
 		const steam = server.bridge.container.getService("Steam");

@@ -7,7 +7,7 @@ export class UIStickerYankCommand extends SlashCommand {
 		super(creator, {
 			name: "Yank Sticker URL",
 			deferEphemeral: true,
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			type: ApplicationCommandType.MESSAGE,
 		});
 		this.filePath = __filename;

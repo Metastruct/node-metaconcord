@@ -9,8 +9,8 @@ const LVL_MAP = [
 
 export default (bot: DiscordBot): void => {
 	const setProgressBar = async () => {
-		const guild = await bot.discord.guilds.fetch(bot.config.guildId);
-		const count = guild.premiumSubscriptionCount;
+		const guild = bot.getGuild();
+		const count = guild?.premiumSubscriptionCount;
 		if (!count) return;
 		const needed = LVL_MAP[guild.premiumTier][1];
 		if (count < needed && count / needed >= 0.6) {

@@ -20,7 +20,7 @@ export class SlashWhyBanCommand extends SlashCommand {
 			name: "whyban",
 			description: "Display in-game ban information",
 			deferEphemeral: true,
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			options: [
 				{
 					type: CommandOptionType.STRING,

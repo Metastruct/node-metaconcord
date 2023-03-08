@@ -8,7 +8,6 @@ import {
 import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../../..";
 import { EphemeralResponse } from "..";
-import { GuildMember } from "discord.js";
 
 export class SlashUnmuteCommand extends SlashCommand {
 	private bot: DiscordBot;
@@ -18,7 +17,7 @@ export class SlashUnmuteCommand extends SlashCommand {
 		super(creator, {
 			name: "unmute",
 			description: "Unmutes an user.",
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			requiredPermissions: ["MANAGE_ROLES"],
 			options: [
 				{
@@ -48,18 +47,11 @@ export class SlashUnmuteCommand extends SlashCommand {
 		delete muted[userId];
 		await this.data.save();
 
-		const guild = this.bot.discord.guilds.cache.get(config.guildId);
+		const guild = this.bot.getGuild();
 		if (guild) {
-			let member: GuildMember;
-			try {
-				member = await guild.members.fetch(userId);
-			} catch {
-				return EphemeralResponse(
-					"Couldn't get that User, probably left the guild already..."
-				);
-			}
-
-			await member.roles.remove(config.mutedRoleId);
+			const member = await this.bot.getGuildMember(userId);
+			if (!member) return "Couldn't get that User, probably left the guild already...";
+			await member.roles.remove(config.roles.muted);
 			return `${member.mention} has been unmuted by ${ctx.user.mention}.`;
 		} else {
 			return EphemeralResponse("how#3");
@@ -76,7 +68,7 @@ export class UIUnmuteCommand extends SlashCommand {
 		super(creator, {
 			name: "Unmute User",
 			type: ApplicationCommandType.USER,
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			requiredPermissions: ["MANAGE_ROLES"],
 		});
 
@@ -99,17 +91,11 @@ export class UIUnmuteCommand extends SlashCommand {
 		delete muted[userId];
 		await this.data.save();
 
-		const guild = this.bot.discord.guilds.cache.get(ctx.guildID ?? this.bot.config.guildId);
+		const guild = this.bot.getGuild();
 		if (guild) {
-			let member: GuildMember;
-			try {
-				member = await guild.members.fetch(userId);
-			} catch {
-				return EphemeralResponse(
-					"Couldn't get that User, probably left the guild already..."
-				);
-			}
-			await member.roles.remove(config.mutedRoleId);
+			const member = await this.bot.getGuildMember(userId);
+			if (!member) return "Couldn't get that User, probably left the guild already...";
+			await member.roles.remove(config.roles.muted);
 			return EphemeralResponse(`${member} has been unmuted.`);
 		} else {
 			return EphemeralResponse("how#3");

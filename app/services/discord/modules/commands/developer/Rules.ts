@@ -112,13 +112,7 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 		return [];
 	}
 
-	public async runProtected(ctx: CommandContext): Promise<any> {
-		const allowed = this.bot.isElevatedUser(ctx.user.id);
-		if (!allowed) {
-			return EphemeralResponse(
-				`You need the <@&${this.bot.config.elevatedRoleId}> role to use this command!`
-			);
-		}
+	public async runExtraProtected(ctx: CommandContext): Promise<any> {
 		this.ruleCache = await this.getRules();
 		try {
 			switch (ctx.subcommands[0]) {
@@ -139,7 +133,7 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 			EphemeralResponse("Something went wrong with saving the rules");
 			return;
 		}
-		const channel = await this.bot.getTextChannel(this.bot.config.ruleChannelId);
+		const channel = this.bot.getTextChannel(this.bot.config.channels.rules);
 		if (!channel) return;
 		const msgs = await channel.messages.fetch();
 		const msg = msgs

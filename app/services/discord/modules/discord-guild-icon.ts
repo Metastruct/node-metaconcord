@@ -51,7 +51,8 @@ export default (bot: DiscordBot): void => {
 	if (!data) return;
 
 	bot.discord.on("ready", async () => {
-		const guild = await bot.discord.guilds.fetch(bot.config.guildId);
+		const guild = bot.getGuild();
+		if (!guild) return;
 
 		const changeIcon = async (filePath: string, eventName: string, nickName: string) => {
 			if (data.lastDiscordGuildIcon === eventName) return;

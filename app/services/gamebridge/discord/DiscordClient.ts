@@ -21,13 +21,13 @@ export default class DiscordClient extends Discord.Client {
 	public static async isAllowed(server: GameServer, user: User): Promise<boolean> {
 		try {
 			const discord = server.discord;
-			const guild = discord.guilds.cache.get(discord.config.guildId);
+			const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 			if (!guild) return false;
 
 			const member = await guild.members.fetch(user.id);
 			if (!member) return false;
 
-			return member.roles.cache.has(discord.config.developerRoleId);
+			return member.roles.cache.has(discord.config.roles.developer);
 		} catch {
 			return false;
 		}

@@ -8,16 +8,16 @@ const YELLOW_COLOR = Discord.Colors.Yellow;
 const GREEN_COLOR = Discord.Colors.Green;
 
 export default (bot: DiscordBot): void => {
+	const logChannel = bot.getTextChannel(bot.config.channels.log);
+
 	bot.discord.on("messageCreate", async msg => {
 		msg = await bot.fetchPartial(msg);
 		await Promise.all([bot.fixEmbeds(msg), bot.feedMarkov(msg)]);
 	});
 
 	bot.discord.on("messageDelete", async msg => {
-		msg = await bot.fetchPartial(msg);
-
-		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
 		if (!logChannel) return;
+		msg = await bot.fetchPartial(msg);
 
 		const message = msg.content && msg.content.length > 0 ? msg.content : undefined;
 
@@ -70,6 +70,8 @@ export default (bot: DiscordBot): void => {
 	});
 
 	bot.discord.on("messageUpdate", async (oldMsg, newMsg) => {
+		if (!logChannel) return;
+
 		oldMsg = await bot.fetchPartial(oldMsg);
 		if (oldMsg.content === newMsg.content) return; // discord manages embeds by updating user messages
 		const user = oldMsg.author ?? newMsg.author;
@@ -78,9 +80,6 @@ export default (bot: DiscordBot): void => {
 		if (!newMsg.partial) {
 			await bot.fixEmbeds(newMsg);
 		}
-
-		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
-		if (!logChannel) return;
 
 		const oldText = oldMsg.content ? oldMsg.content.substring(0, EMBED_FIELD_LIMIT - 10) : "";
 		const newText = newMsg.content ? newMsg.content.substring(0, EMBED_FIELD_LIMIT - 10) : "";
@@ -139,9 +138,8 @@ export default (bot: DiscordBot): void => {
 	});
 
 	bot.discord.on("guildMemberRemove", async user => {
-		user = await bot.fetchPartial(user);
-		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
 		if (!logChannel) return;
+		user = await bot.fetchPartial(user);
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({ name: user.displayName, iconURL: user.avatarURL() ?? undefined })
@@ -153,9 +151,8 @@ export default (bot: DiscordBot): void => {
 	});
 
 	bot.discord.on("guildMemberAdd", async user => {
-		user = await bot.fetchPartial(user);
-		const logChannel = await bot.getTextChannel(bot.config.logChannelId);
 		if (!logChannel) return;
+		user = await bot.fetchPartial(user);
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({ name: user.displayName, iconURL: user.avatarURL() ?? undefined })

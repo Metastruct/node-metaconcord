@@ -1,11 +1,8 @@
 {
-	"token": "",
-	"applicationId": "",
-	"publicKey": "",
-	"guildId": "",
-	"developerRoleId": "",
-	"notificationsChannelId": "",
-	"mutedChannelId": "",
-	"appDevelopers": [],
-	"mutedRoleId": ""
+	"roles": {
+	},
+	"channels": {
+	},
+	"bot": {
+	}
 }

@@ -3,15 +3,14 @@ import { WebApp } from "..";
 export default (webApp: WebApp): void => {
 	const bot = webApp.container.getService("DiscordBot");
 	if (!bot) return;
-	const { discord, config } = bot;
 
 	webApp.app.get("/discord/guild/emojis", async (_, res) => {
-		if (!discord.readyAt)
+		if (!bot.discord.readyAt)
 			return res.status(500).json({
 				error: "Bot is not connected",
 			});
 
-		const guild = await discord.guilds.resolve(config.guildId)?.fetch();
+		const guild = bot.getGuild();
 		if (!guild) {
 			return res.status(500).json({
 				error: "Bot is not part of guild",
