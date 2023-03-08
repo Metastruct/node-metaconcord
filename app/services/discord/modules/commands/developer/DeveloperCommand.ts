@@ -23,7 +23,7 @@ export class SlashDeveloperCommand extends SlashCommand {
 			name,
 			description,
 			deferEphemeral,
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			forcePermissions: true,
 			options,
 			requiredPermissions: ["MANAGE_ROLES"],
@@ -37,44 +37,52 @@ export class SlashDeveloperCommand extends SlashCommand {
 
 	private async isAllowed(user: User): Promise<boolean> {
 		try {
-			const guild = await this.bot.discord.guilds.fetch(this.bot.config.guildId);
-			if (!guild) return false;
-
-			const member = await guild.members.fetch(user.id);
-			if (!member) return false;
-
-			return member.roles.cache.has(this.bot.config.developerRoleId);
+			const res = (await this.bot.getGuildMember(user.id))?.roles.cache.has(
+				this.bot.config.roles.developer
+			);
+			return res ?? false;
 		} catch {
 			return false;
 		}
 	}
 
-	public async getPlayers(server: number): Promise<GameServer["status"]["players"] | undefined> {
-		const bridge = this.bot.container.getService("GameBridge");
-		if (!bridge) return;
-		const where = server ?? 2;
-		if (!bridge.servers[where]) return;
-		return bridge.servers[where].status.players;
-	}
-
-	public async getPlayer(steamID64: string, server?: number): Promise<Player | undefined> {
-		const bridge = this.bot.container.getService("GameBridge");
-		if (!bridge) return;
-		const accountId = SteamID.fromIndividualAccountID(steamID64).accountid;
-		if (server) {
-			if (!bridge.servers[server]) return;
-			return bridge.servers[server].status.players.find(
-				player => player.accountId === accountId
+	async isElevated(user: User): Promise<boolean> {
+		try {
+			const res = (await this.bot.getGuildMember(user.id))?.roles.cache.has(
+				this.bot.config.roles.elevated
 			);
-		} else {
-			const server = bridge.servers.find(server =>
-				server.status.players.find(player => player.accountId === accountId)
-			);
-			if (server) return server.status.players.find(player => player.accountId === accountId);
-			return;
-			// there has to be an online for this right?????
+			return res ?? false;
+		} catch {
+			return false;
 		}
 	}
+
+	// public async getPlayers(server: number): Promise<GameServer["status"]["players"] | undefined> {
+	// 	const bridge = this.bot.container.getService("GameBridge");
+	// 	if (!bridge) return;
+	// 	const where = server ?? 2;
+	// 	if (!bridge.servers[where]) return;
+	// 	return bridge.servers[where].status.players;
+	// }
+
+	// public async getPlayer(steamID64: string, server?: number): Promise<Player | undefined> {
+	// 	const bridge = this.bot.container.getService("GameBridge");
+	// 	if (!bridge) return;
+	// 	const accountId = SteamID.fromIndividualAccountID(steamID64).accountid;
+	// 	if (server) {
+	// 		if (!bridge.servers[server]) return;
+	// 		return bridge.servers[server].status.players.find(
+	// 			player => player.accountId === accountId
+	// 		);
+	// 	} else {
+	// 		const server = bridge.servers.find(server =>
+	// 			server.status.players.find(player => player.accountId === accountId)
+	// 		);
+	// 		if (server) return server.status.players.find(player => player.accountId === accountId);
+	// 		return;
+	// 		// there has to be an online for this right?????
+	// 	}
+	// }
 
 	public async getRules(): Promise<Array<Rule>> {
 		const data = this.bot.container.getService("Data");
@@ -93,14 +101,21 @@ export class SlashDeveloperCommand extends SlashCommand {
 	protected async runProtected(ctx: CommandContext): Promise<any> {
 		throw new Error("runProtected is not defined");
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	protected async runExtraProtected(ctx: CommandContext): Promise<any> {
+		throw new Error("runExtraProtected is not defined");
+	}
 
 	public async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer(this.deferEphemeral);
 
-		if (!this.isAllowed(ctx.user)) {
-			return EphemeralResponse("You are not allowed to use this command.");
+		if (await this.isAllowed(ctx.user)) {
+			return this.runProtected(ctx);
+		}
+		if (await this.isElevated(ctx.user)) {
+			return this.runExtraProtected(ctx);
 		}
 
-		return this.runProtected(ctx);
+		return EphemeralResponse("You are not allowed to use this command.");
 	}
 }

@@ -7,11 +7,10 @@ import {
 	SlashCommand,
 	SlashCreator,
 } from "slash-create";
-import { AuditLogEvent, GuildMember, User } from "discord.js";
+import { AuditLogEvent, User } from "discord.js";
 import { Data } from "@/app/services/Data";
 import { DiscordBot } from "../../..";
 import { EphemeralResponse } from "..";
-import { TextChannel } from "discord.js";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
@@ -27,7 +26,7 @@ export class SlashMuteCommand extends SlashCommand {
 		super(creator, {
 			name: "mute",
 			description: "Mutes an user.",
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			requiredPermissions: ["MANAGE_ROLES"],
 			options: [
 				{
@@ -66,7 +65,7 @@ export class SlashMuteCommand extends SlashCommand {
 
 		// Re-add muted role if user leaves and rejoins to try and escape it
 		client.on("guildMemberAdd", async member => {
-			if (muted[member.id]) await member.roles.add(config.mutedRoleId);
+			if (muted[member.id]) await member.roles.add(config.roles.muted);
 		});
 
 		// Don't let anyone add muted people, and persist the role if someone tries to take it off
@@ -82,10 +81,10 @@ export class SlashMuteCommand extends SlashCommand {
 					if (!user?.id) return;
 					if (user?.id == user?.client?.user?.id) continue;
 					if (target.id == member.id && !manualMuteReminderTimeouts.includes(user.id)) {
-						const notificationsChannel = user?.client.channels.cache.get(
-							config.notificationsChannelId
-						) as TextChannel;
-						notificationsChannel.send(
+						const notificationsChannel = this.bot.getTextChannel(
+							config.channels.notifications
+						);
+						notificationsChannel?.send(
 							`${user.mention}, this role can only be managed by me. Sorry! Use /mute, or rightclick an user > apps > mute.`
 						);
 
@@ -101,27 +100,27 @@ export class SlashMuteCommand extends SlashCommand {
 				}
 			};
 
-			if (member.roles.cache.has(config.mutedRoleId) && !muted[member.id]) {
-				await member.roles.remove(config.mutedRoleId);
+			if (member.roles.cache.has(config.roles.muted) && !muted[member.id]) {
+				await member.roles.remove(config.roles.muted);
 				warn();
 			}
 
-			if (!member.roles.cache.has(config.mutedRoleId) && muted[member.id]) {
-				await member.roles.add(config.mutedRoleId);
+			if (!member.roles.cache.has(config.roles.muted) && muted[member.id]) {
+				await member.roles.add(config.roles.muted);
 				warn();
 			}
 		});
 
 		// Every second, check if mute period is over
-		const guild = bot.discord.guilds.resolve(bot.config.guildId);
+		const guild = bot.getGuild();
 		setInterval(async () => {
 			let changes = false;
 			for (const [userId, data] of Object.entries(muted)) {
 				if (typeof data.until == "number" && data.until < Date.now()) {
 					delete muted[userId];
-					const member = await guild?.members.fetch(userId);
+					const member = await bot.getGuildMember(userId);
 					if (!member) return;
-					member.roles.remove(config.mutedRoleId);
+					member.roles.remove(config.roles.muted);
 					changes = true;
 				}
 			}
@@ -161,15 +160,11 @@ export class SlashMuteCommand extends SlashCommand {
 		muted[userId] = { at: now, until, reason, muter: ctx.user.id };
 		await this.data.save();
 
-		const guild = discord.guilds.cache.get(this.bot.config.guildId);
+		const guild = discord.guilds.cache.get(this.bot.config.bot.primaryGuildId);
 		if (!guild) return;
-		let member: GuildMember;
-		try {
-			member = await guild.members.fetch(userId);
-		} catch {
-			return "Couldn't get that User, probably left the guild already...";
-		}
-		await member.roles.add(config.mutedRoleId, "muted via slash command");
+		const member = await this.bot.getGuildMember(userId);
+		if (!member) return "Couldn't get that User, probably left the guild already...";
+		await member.roles.add(config.roles.muted, "muted via slash command");
 
 		const content =
 			`${ctx.user.mention}, ${member} has been muted` +
@@ -189,7 +184,7 @@ export class UIMuteCommand extends SlashCommand {
 		super(creator, {
 			name: "Mute User",
 			type: ApplicationCommandType.USER,
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			requiredPermissions: ["MANAGE_ROLES"],
 		});
 
@@ -212,15 +207,11 @@ export class UIMuteCommand extends SlashCommand {
 		muted[userId] = { at: now, muter: ctx.user.id };
 		await this.data.save();
 
-		const guild = discord.guilds.cache.get(this.bot.config.guildId);
+		const guild = this.bot.getGuild();
 		if (!guild) return;
-		let member: GuildMember;
-		try {
-			member = await guild.members.fetch(userId);
-		} catch {
-			return EphemeralResponse("Couldn't get that User, probably left the guild already...");
-		}
-		await member.roles.add(config.mutedRoleId, "muted via rightclick menu command");
+		const member = await this.bot.getGuildMember(userId);
+		if (!member) return "Couldn't get that User, probably left the guild already...";
+		await member.roles.add(config.roles.muted, "muted via rightclick menu command");
 
 		const content = `${member} has been muted.`;
 		return EphemeralResponse(content);

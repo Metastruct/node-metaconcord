@@ -15,7 +15,7 @@ export default class JoinLeavePayload extends Payload {
 
 		if (!discord.isReady()) return;
 
-		const guild = discord.guilds.cache.get(discord.config.guildId);
+		const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 		if (!guild) return;
 
 		const relayChannel = guild.channels.cache.get(bridge.config.relayChannelId);

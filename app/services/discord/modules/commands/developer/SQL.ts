@@ -49,9 +49,9 @@ export class SlashSQLCommand extends SlashDeveloperCommand {
 		try {
 			switch (ctx.options.target) {
 				case "metaconcord": {
-					if (!this.bot.isElevatedUser(ctx.user.id))
+					if (!this.isElevated(ctx.user))
 						return EphemeralResponse(
-							`You need the <@&${this.bot.config.elevatedRoleId}> role to run SQL commands on me!`
+							`You need the <@&${this.bot.config.roles.elevated}> role to run SQL commands on me!`
 						);
 					const sql = this.bot.container.getService("SQL");
 					if (sql) {

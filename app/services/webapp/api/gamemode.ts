@@ -1,5 +1,4 @@
 import { NodeSSH } from "node-ssh";
-import { TextChannel } from "discord.js";
 import { WebApp } from "..";
 import config from "@/config/ssh.json";
 import servers from "@/config/gamebridge.servers.json";
@@ -38,13 +37,11 @@ export default (webApp: WebApp): void => {
 
 		const failed = output.includes("GSERV FAILED");
 		if (failed && bot) {
-			const guild = await bot.discord.guilds.resolve(bot.config.guildId)?.fetch();
+			const guild = bot.getGuild();
 			if (guild) {
-				const channel = await guild.channels
-					.resolve(bot.config.notificationsChannelId)
-					?.fetch();
-				await (channel as TextChannel)?.send(
-					`<@&${bot.config.appDeveloperRole}> GSERV FAILED ON SERVER ${id}, PLEASE FIX`
+				const channel = bot.getTextChannel(bot.config.channels.notifications);
+				await channel?.send(
+					`<@&${bot.config.roles.appDeveloper}> GSERV FAILED ON SERVER ${id}, PLEASE FIX`
 				);
 			}
 		}

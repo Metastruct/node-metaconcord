@@ -77,7 +77,7 @@ export class SlashDeeplCommand extends SlashCommand {
 			name: "deepl",
 			description: "translate using DeepL.",
 			deferEphemeral: true,
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			options: [
 				{
 					name: "text",
@@ -157,7 +157,7 @@ export class UIDeeplCommand extends SlashCommand {
 		super(creator, {
 			name: "DeepL translate",
 			deferEphemeral: true,
-			guildIDs: [bot.config.guildId],
+			guildIDs: [bot.config.bot.primaryGuildId],
 			type: ApplicationCommandType.MESSAGE,
 		});
 		this.filePath = __filename;

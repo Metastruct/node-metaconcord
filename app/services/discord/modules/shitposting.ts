@@ -1,8 +1,8 @@
 import { DiscordBot } from "..";
 import { makeSpeechBubble } from "@/utils";
 import Discord from "discord.js";
+import DiscordConfig from "@/config/discord.json";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
-import bot_config from "@/config/discord.json";
 
 // #chat and #shat constants
 const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 60 * 0.25; // interval for changing the bot status to a random message
@@ -34,7 +34,7 @@ const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp"];
 
 function getWord(msg: string, fallback?: string) {
 	let search: string;
-	const words = msg.replace(`<@${bot_config.userId}> `, "").split(" ");
+	const words = msg.replace(`<@${DiscordConfig.bot.userId}> `, "").split(" ");
 	const index = Math.floor(Math.random() * words.length);
 	const isLast = index + 1 === words.length;
 	if (!isLast && !fallback) {
@@ -69,7 +69,7 @@ export const Shat = async (
 		if (!mk || mk === msg)
 			mk = await globalThis.MetaConcord.container.getService("Markov")?.generate();
 
-		return mk ? { content: mk.replace(`<@${bot_config.userId}> `, "") } : undefined;
+		return mk ? { content: mk.replace(`<@${DiscordConfig.bot.userId}> `, "") } : undefined;
 	} else {
 		const rng2 = Math.random();
 		const images = globalThis.MetaConcord.container.getService("Motd")?.images;
@@ -145,7 +145,7 @@ export default (bot: DiscordBot): void => {
 					allowedMentions: options.ping ? { repliedUser: true } : { repliedUser: false },
 				});
 			} else {
-				await (await bot.getTextChannel(bot.config.chatChannelId))?.send(shat);
+				await bot.getTextChannel(bot.config.channels.chat)?.send(shat);
 			}
 			if (!options.dont_save) {
 				data.lastMkTime = lastMkTime = Date.now();
@@ -238,7 +238,7 @@ export default (bot: DiscordBot): void => {
 	});
 
 	bot.discord.on("messageDelete", async msg => {
-		if (msg.channelId !== bot.config.chatChannelId) return;
+		if (msg.channelId !== bot.config.channels.chat) return;
 		const idx = lastMsgs.indexOf(msg as Discord.Message);
 		if (idx !== -1) lastMsgs.splice(idx, 1);
 	});
@@ -262,7 +262,7 @@ export default (bot: DiscordBot): void => {
 				Math.random() <= REACTION_FREQ &&
 				msg.mentions.users.first()?.id !== bot.discord.user?.id) ||
 			(msg.author.id !== id &&
-				bot.config.chatChannelId !== msg.channelId &&
+				bot.config.channels.chat !== msg.channelId &&
 				TRIGGER_WORDS.some(str =>
 					msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
 				))
@@ -277,7 +277,7 @@ export default (bot: DiscordBot): void => {
 				TRIGGER_WORDS.some(str =>
 					msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
 				)) &&
-			bot.config.allowedShitpostingChannels.includes(msg.channelId)
+			bot.config.bot.allowedShitpostingChannels.includes(msg.channelId)
 		) {
 			(msg.channel as Discord.TextChannel).sendTyping();
 			const shat = await Shat(msg.content);
@@ -285,7 +285,7 @@ export default (bot: DiscordBot): void => {
 		}
 
 		// #chat channel
-		if (bot.config.chatChannelId === msg.channelId) {
+		if (bot.config.channels.chat === msg.channelId) {
 			lastChatTime = Date.now();
 			lastMsgs.push(msg);
 			if (
@@ -311,7 +311,7 @@ export default (bot: DiscordBot): void => {
 		}
 
 		if (
-			bot.config.chatChannelId === msg.channelId &&
+			bot.config.channels.chat === msg.channelId &&
 			msg.author.id !== id &&
 			((msg.mentions.users.first()?.id === id && msg.content !== `<@${id}>`) ||
 				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||

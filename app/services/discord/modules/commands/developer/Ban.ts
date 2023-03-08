@@ -68,10 +68,18 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 		this.bot = bot;
 	}
 
+	//const bridge = this.bot.container.getService("GameBridge");
+	// 	if (!bridge) return;
+	// 	const where = server ?? 2;
+	// 	if (!bridge.servers[where]) return;
+	// 	return bridge.servers[where].status.players;
+
 	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[]> {
 		switch (ctx.focused) {
 			case "steamid": {
-				const players = await this.getPlayers(ctx.options.server ?? 2);
+				const players =
+					this.bot.container.getService("GameBridge")?.servers[ctx.options.server ?? 2]
+						.status.players;
 				if (!players) return [];
 				return players
 					.filter(

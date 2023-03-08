@@ -38,6 +38,8 @@ enum ApplicationRoleConnectionMetadataType {
 	BOOLEAN_EQUAL,
 	BOOLEAN_NOT_EQUAL,
 }
+// for refrence
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ApplicationRoleConnectionMetadata = {
 	type: ApplicationRoleConnectionMetadataType;
 	key: string;
@@ -83,8 +85,8 @@ export class DiscordMetadata extends Service {
 				.post<AccessTokenResponse>(
 					"https://discord.com/api/v10/oauth2/token",
 					new URLSearchParams({
-						client_id: this.bot.config.applicationId,
-						client_secret: this.bot.config.clientSecret,
+						client_id: this.bot.config.bot.applicationId,
+						client_secret: this.bot.config.bot.clientSecret,
 						grant_type: "refresh_token",
 						refresh_token: data.refresh_token,
 					}).toString()
@@ -131,7 +133,7 @@ export class DiscordMetadata extends Service {
 
 	async get(userId: string) {
 		if (!this.ARCOCache[userId]) {
-			const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.applicationId}/role-connection`;
+			const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.bot.applicationId}/role-connection`;
 			const db = await this.sql.getLocalDatabase();
 			const data = await db.get<LocalDatabaseEntry>(
 				"SELECT * FROM discord_tokens where user_id = ?;",
@@ -193,9 +195,7 @@ export class DiscordMetadata extends Service {
 		const bytea: Buffer = query3[0]?.value;
 		const nick = bytea ? bytea.toString("utf-8").replace(/<[^>]*>/g, "") : undefined;
 
-		const discordUser = this.bot.discord.guilds.cache
-			.get(this.bot.config.guildId)
-			?.members.cache.get(userId);
+		const discordUser = await this.bot.getGuildMember(userId);
 
 		const banned =
 			(await this.bans.getBan(data.steam_id, true))?.b ||
@@ -216,7 +216,7 @@ export class DiscordMetadata extends Service {
 		metadata: MetaMetadata,
 		userName?: string
 	) {
-		const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.applicationId}/role-connection`;
+		const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.bot.applicationId}/role-connection`;
 		const accessToken = await this.getAccessToken(userId, data);
 		const body = { platform_name: "Metastruct", platform_username: userName, metadata };
 

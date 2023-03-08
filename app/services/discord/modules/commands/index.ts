@@ -66,9 +66,9 @@ export const commands = [
 
 export default (bot: DiscordBot): void => {
 	const creator = new SlashCreator({
-		applicationID: bot.config.applicationId,
-		publicKey: bot.config.publicKey,
-		token: bot.config.token,
+		applicationID: bot.config.bot.applicationId,
+		publicKey: bot.config.bot.publicKey,
+		token: bot.config.bot.token,
 	});
 	// Emergency mode lolol
 	creator.on("error", console.error);

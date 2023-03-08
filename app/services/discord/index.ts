@@ -1,8 +1,8 @@
 import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
 import Discord from "discord.js";
+import DiscordConfig from "@/config/discord.json";
 import axios from "axios";
-import config from "@/config/discord.json";
 import modules from "./modules";
 import motdConfig from "@/config/motd.json";
 
@@ -18,7 +18,7 @@ const ImgurRegex = /https?:\/\/(?:i.)?imgur.com\/(\w+)(?:.mp4)?/g;
 
 export class DiscordBot extends Service {
 	name = "DiscordBot";
-	config = config;
+	config = DiscordConfig;
 	discord: Discord.Client = new Discord.Client({
 		intents: [
 			"Guilds",
@@ -45,20 +45,30 @@ export class DiscordBot extends Service {
 			loadModule(this);
 		}
 
-		this.discord.login(config.token);
+		this.discord.login(this.config.bot.token);
 	}
 
-	async isElevatedUser(userId: string): Promise<boolean> {
-		if (!this.discord.isReady()) return false;
-		const guild = this.discord.guilds.cache.get(config.guildId);
-		if (!guild) return false;
-		const user = await guild.members.fetch(userId);
-		return user.roles.cache.has(this.config.elevatedRoleId);
-	}
+	// async isElevatedUser(userId: string): Promise<boolean> {
+	// 	if (!this.discord.isReady()) return false;
+	// 	const guild = this.discord.guilds.cache.get(DiscordConfig.bot.primaryGuildId);
+	// 	if (!guild) return false;
+	// 	const user = await guild.members.fetch(userId);
+	// 	return user.roles.cache.has(this.config.roles.elevatedRoleId);
+	// }
 
-	async getTextChannel(channelId: string): Promise<Discord.TextChannel | undefined> {
+	getTextChannel(channelId: string): Discord.TextChannel | undefined {
 		if (!this.discord.isReady()) return;
 		return this.discord.channels.cache.get(channelId) as Discord.TextChannel;
+	}
+
+	async getGuildMember(userId: string): Promise<Discord.GuildMember | undefined> {
+		if (!this.discord.isReady()) return;
+		return this.discord.guilds.cache.get(this.config.bot.primaryGuildId)?.members.fetch(userId);
+	}
+
+	getGuild(): Discord.Guild | undefined {
+		if (!this.discord.isReady()) return;
+		return this.discord.guilds.cache.get(this.config.bot.primaryGuildId);
 	}
 
 	async setActivity(
@@ -89,14 +99,14 @@ export class DiscordBot extends Service {
 
 	async setServerBanner(url: string): Promise<void> {
 		if (!this.discord.isReady() || !(await this.overLvl2())) return;
-		const guild = this.discord.guilds.cache.get(config.guildId);
+		const guild = this.getGuild();
 		const response = await axios.get(url, { responseType: "arraybuffer" });
 		if (!response) return;
 		guild?.setBanner(response.data, "motd");
 	}
 
 	async feedMarkov(msg: Discord.Message): Promise<void> {
-		if (msg.author.bot || msg.guild?.id !== config.guildId) return;
+		if (msg.author.bot || msg.guild?.id !== this.config.bot.primaryGuildId) return;
 
 		const channel = msg.channel as Discord.GuildChannel;
 		const guild = channel.guild;
@@ -139,7 +149,7 @@ export class DiscordBot extends Service {
 
 	async getLastMotdMsg(): Promise<Discord.Message | undefined> {
 		if (!this.discord.isReady()) return;
-		const channel = await this.getTextChannel(motdConfig.channelId);
+		const channel = this.getTextChannel(motdConfig.channelId);
 		if (!channel) return;
 		return (
 			channel?.lastMessage ??
@@ -152,13 +162,13 @@ export class DiscordBot extends Service {
 	}
 
 	async overLvl2(): Promise<boolean> {
-		const guild = this.discord.guilds.cache.get(config.guildId);
+		const guild = this.discord.guilds.cache.get(this.config.bot.primaryGuildId);
 		if (!guild) return false;
 		return guild.premiumTier > Discord.GuildPremiumTier.Tier1 ?? false;
 	}
 
 	async removeMotdReactions(): Promise<void> {
-		const chan = await this.getTextChannel(motdConfig.channelId);
+		const chan = this.getTextChannel(motdConfig.channelId);
 		if (!chan?.lastMessage) return;
 		await (await chan.lastMessage.fetch()).reactions.removeAll();
 	}

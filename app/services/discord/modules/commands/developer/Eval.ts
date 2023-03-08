@@ -24,11 +24,7 @@ export class SlashEvalCommand extends SlashDeveloperCommand {
 		this.bot = bot;
 	}
 
-	public async runProtected(ctx: CommandContext): Promise<any> {
-		if (!this.bot.isElevatedUser(ctx.user.id))
-			return EphemeralResponse(
-				`You need the <@&${this.bot.config.elevatedRoleId}> role to run eval commands!`
-			);
+	public async runExtraProtected(ctx: CommandContext): Promise<any> {
 		const lang = (ctx.options.code as string).substring(0, 2);
 		if (lang !== "js" && lang !== "ts") return EphemeralResponse("unsupported langauge");
 		const code = (ctx.options.code as string).substring(3);
