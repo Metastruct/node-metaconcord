@@ -93,6 +93,7 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 	if (!res) return false;
 	return true;
 };
+
 export default (webApp: WebApp): void => {
 	const sql = webApp.container.getService("SQL");
 	const metadata = webApp.container.getService("DiscordMetadata");
@@ -165,7 +166,6 @@ export default (webApp: WebApp): void => {
 	});
 	webApp.app.get("/discord/auth/callback", async (req, res) => {
 		try {
-			const db = await sql.getLocalDatabase();
 			const code = req.query["code"];
 			if (!code) return res.sendStatus(403);
 			const discordState = req.query["state"];
@@ -180,7 +180,7 @@ export default (webApp: WebApp): void => {
 			if (!data) return res.sendStatus(500);
 
 			const userId = data.user.id;
-
+			const db = await sql.getLocalDatabase();
 			await db.exec(
 				"CREATE TABLE IF NOT EXISTS discord_tokens (user_id VARCHAR(255) PRIMARY KEY, steam_id VARCHAR(255), access_token VARCHAR(255), refresh_token VARCHAR(255), expires_at DATETIME);"
 			);
