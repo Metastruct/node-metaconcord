@@ -89,7 +89,7 @@ export class DiscordMetadata extends Service {
 						client_secret: this.bot.config.bot.clientSecret,
 						grant_type: "refresh_token",
 						refresh_token: data.refresh_token,
-					}).toString()
+					})
 				)
 				.catch((err: AxiosError<OAuthErrorData>) => {
 					const discordResponse = err.response?.data;
@@ -169,7 +169,7 @@ export class DiscordMetadata extends Service {
 		const db = await this.sql.getLocalDatabase();
 
 		const data = await db.get<LocalDatabaseEntry>(
-			"SELECT * FROM discord_tokens where user_id = ?;",
+			"SELECT * FROM discord_tokens WHERE user_id = ?;",
 			userId
 		);
 		if (!data) return false;
