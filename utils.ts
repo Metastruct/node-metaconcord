@@ -1,13 +1,15 @@
 import { PathLike, promises as fs } from "fs";
-import { createCanvas, loadImage } from "canvas";
+import { createCanvas, loadImage } from "@napi-rs/canvas";
 import apikeys from "@/config/apikeys.json";
 import axios from "axios";
 import request, { gql } from "graphql-request";
 import webappconfig from "@/config/webapp.json";
 
 export const sleep = (ms: number): Promise<any> => new Promise(resolve => setTimeout(resolve, ms));
+
 export const clamp = (input: number, min: number, max: number): number =>
 	input <= min ? min : input >= max ? max : input;
+
 export const f = (
 	name: string,
 	value: string,
@@ -19,11 +21,13 @@ export const f = (
 		inline: !!inline,
 	},
 ];
+
 export const exists = async (path: PathLike): Promise<boolean> =>
 	fs
 		.access(path)
 		.then(() => true)
 		.catch(() => false);
+
 export const getStackLines = (input: string, linestart: number, lineend?: number): string => {
 	const lines = input.split(/\r?\n/).map(str => "  " + str);
 	const line = linestart - 1;
@@ -55,6 +59,7 @@ export const AddonURIS = {
 	vrmod: "https://github.com/Metastruct/vrmod-addon/blob/master/",
 	wire: "https://github.com/Metastruct/wire/blob/master/",
 };
+
 const LOOKUP_PATH = webappconfig.lookupPath;
 export const getOrFetchLuaFile = async (path: PathLike, linenr: number, addon?: string) => {
 	const fullpath = LOOKUP_PATH + path;
@@ -115,6 +120,7 @@ export const getOrFetchLuaFile = async (path: PathLike, linenr: number, addon?: 
 		}
 	}
 };
+
 export const makeSpeechBubble = async (
 	link: string,
 	flip?: boolean,
@@ -156,7 +162,7 @@ export const makeSpeechBubble = async (
 	ctx.lineWidth = linewidth ?? 4;
 	ctx.stroke();
 
-	return canvas.toBuffer();
+	return canvas.encode("png");
 };
 
 export const isAdmin = async (steamid: string) => {
