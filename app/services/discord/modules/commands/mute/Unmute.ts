@@ -80,7 +80,6 @@ export class UIUnmuteCommand extends SlashCommand {
 	}
 
 	async run(ctx: CommandContext): Promise<any> {
-		await ctx.defer(true);
 		const userId = ctx.targetID;
 		if (!userId) return;
 
