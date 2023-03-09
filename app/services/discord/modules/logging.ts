@@ -8,7 +8,11 @@ const YELLOW_COLOR = Discord.Colors.Yellow;
 const GREEN_COLOR = Discord.Colors.Green;
 
 export default (bot: DiscordBot): void => {
-	const logChannel = bot.getTextChannel(bot.config.channels.log);
+	let logChannel: Discord.TextChannel | undefined;
+
+	bot.discord.once("ready", () => {
+		logChannel = bot.getTextChannel(bot.config.channels.log);
+	});
 
 	bot.discord.on("messageCreate", async msg => {
 		msg = await bot.fetchPartial(msg);
