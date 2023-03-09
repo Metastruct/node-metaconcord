@@ -87,7 +87,7 @@ export default (bot: DiscordBot): void => {
 
 			if (nickChange) {
 				try {
-					await bot.discord.user?.setUsername(nickName + " Construct");
+					await guild.members.me?.setNickname(nickName + " Construct");
 				} catch (err) {
 					console.error(err);
 				}
