@@ -118,9 +118,10 @@ export default (bot: DiscordBot): void => {
 				}
 			}
 			const messages = bot.container.getService("Motd")?.messages;
-			const message = messages
-				? messages[Math.floor(Math.random() * messages?.length)].split(" ")
-				: undefined;
+			const message =
+				messages && messages.length > 0
+					? messages[Math.floor(Math.random() * messages?.length)].split(" ")
+					: undefined;
 			let word = message ? message[Math.floor(Math.random() * message?.length)] : "Meta";
 			word = word.charAt(0).toUpperCase() + word.slice(1);
 
