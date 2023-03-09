@@ -18,7 +18,7 @@ const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
 const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
 const MSG_CACHE_AMOUNT = 4; // how many messages to save to look up backwards
-const TYPING_TRIGGER_THRESHOLD = 0.8; // at how much msgs to trigger the typing (related to MSG_TRIGGER_COUNT)
+const TYPING_TRIGGER_THRESHOLD = 0.9; // at how much msgs to trigger the typing (related to MSG_TRIGGER_COUNT)
 
 // trigger word constants
 const TRIGGER_WORDS = ["metabot", "meta bot", "the bot", "metaconcord"]; // these will always count like a normal reply/ping
