@@ -139,7 +139,7 @@ export default (bot: DiscordBot): void => {
 							.split("-")
 							.map(str => str.charAt(0).toUpperCase() + str.slice(1))
 							.join(" "),
-						nickName: nick[Math.floor(Math.random() * nick.length)],
+						nickName: nick[(Math.random() * nick.length) | 0],
 					};
 				}
 			}
@@ -152,7 +152,7 @@ export default (bot: DiscordBot): void => {
 							.flat()
 							.filter(w => !filter.includes(w))
 					: undefined;
-			let word = message ? message[Math.floor(Math.random() * message?.length)] : "Meta";
+			let word = message ? message[(Math.random() * message?.length) | 0] : "Meta";
 			word = word.charAt(0).toUpperCase() + word.slice(1);
 
 			return { filePath: defaultIconPath, eventName: "None", nickName: word };

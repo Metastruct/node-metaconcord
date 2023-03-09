@@ -110,7 +110,7 @@ export default class Motd extends Service {
 	private async executeMessageJob(): Promise<void> {
 		if (this.messages.length <= 0) return;
 
-		const msg: string = this.messages[Math.floor(Math.random() * this.messages.length)];
+		const msg: string = this.messages[(Math.random() * this.messages.length) | 0];
 		this.messages = [];
 		if (msg == null || msg.length === 0) return;
 
@@ -144,7 +144,7 @@ export default class Motd extends Service {
 					img.datetime >= yesterday && !this.ignorelist.some(id => img.title.includes(id))
 			); // keep only recent images
 			const authors = [...new Set(urls.map(image => image.title))];
-			const index = Math.floor(Math.random() * urls.length);
+			const index = (Math.random() * urls.length) | 0;
 			const image = urls[index];
 			const url: string = image.link;
 			if (!url) return;

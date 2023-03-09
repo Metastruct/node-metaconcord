@@ -35,7 +35,7 @@ const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp"];
 function getWord(msg: string, fallback?: string) {
 	let search: string;
 	const words = msg.replace(`<@${DiscordConfig.bot.userId}> `, "").split(" ");
-	const index = Math.floor(Math.random() * words.length);
+	const index = (Math.random() * words.length) | 0;
 	const isLast = index + 1 === words.length;
 	if (!isLast && !fallback) {
 		search = words.slice(index, index + 2).join(" ");
@@ -75,7 +75,7 @@ export const Shat = async (
 		const images = globalThis.MetaConcord.container.getService("Motd")?.images;
 		const word = msg && !msg.startsWith("http") ? getWord(msg) : undefined;
 		if (images && (rng2 <= 0.5 || !word)) {
-			const imgur = images[Math.floor(rng2 * images.length)];
+			const imgur = images[(rng2 * images.length) | 0];
 			const result = await makeSpeechBubble(imgur.link, rng2 <= 0.5);
 			return result
 				? { files: [{ attachment: result, description: imgur.title }] }
@@ -94,7 +94,7 @@ export const Shat = async (
 						.getService("Markov")
 						?.generate(),
 				}; // if for some reason we get no result;
-			return { content: res.data.results[Math.floor(rng2 * res.data.results.length)].url };
+			return { content: res.data.results[(rng2 * res.data.results.length) | 0].url };
 		}
 	}
 };
@@ -135,7 +135,7 @@ export default (bot: DiscordBot): void => {
 			options.forceImage,
 			options.forceReply,
 			shouldStealImg && lastImgs.length > 0
-				? lastImgs[Math.floor(Math.random() * lastImgs.length)]
+				? lastImgs[(Math.random() * lastImgs.length) | 0]
 				: undefined
 		);
 		if (shat) {
@@ -159,7 +159,7 @@ export default (bot: DiscordBot): void => {
 		if (Math.random() <= GUILD_EMOJI_RATIO) {
 			emoji = bot.discord.emojis.cache.random() as Discord.EmojiIdentifierResolvable;
 		} else {
-			emoji = EmojiList[Math.floor(Math.random() * EmojiList.length)];
+			emoji = EmojiList[(Math.random() * EmojiList.length) | 0];
 		}
 		return emoji;
 	};
@@ -176,13 +176,13 @@ export default (bot: DiscordBot): void => {
 			{ type: 5, ctx: ["competing in", "participate in", "take part in"] },
 		];
 
-		const selection = validActivities[Math.floor(Math.random() * validActivities.length)];
+		const selection = validActivities[(Math.random() * validActivities.length) | 0];
 
 		let status = "crashing the source engine";
 
 		const sentence = await bot.container
 			.getService("Markov")
-			?.generate(selection.ctx[Math.floor(Math.random() * selection.ctx.length)], {
+			?.generate(selection.ctx[(Math.random() * selection.ctx.length) | 0], {
 				continuation: false,
 			});
 		if (sentence) {
