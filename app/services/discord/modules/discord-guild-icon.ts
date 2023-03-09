@@ -46,6 +46,32 @@ const fileExists = async (filePath: PathLike) =>
 		.then(stats => stats.isFile())
 		.catch(() => false);
 
+const filter = [
+	"this",
+	"in",
+	"of",
+	"so",
+	"if",
+	"an",
+	"to",
+	"me",
+	"by",
+	"but",
+	"also",
+	"then",
+	"again",
+	"and",
+	"nor",
+	"instead",
+	"despite",
+	"while",
+	"rather",
+	"yet",
+	"has",
+	"hasn't",
+	"have",
+];
+
 export default (bot: DiscordBot): void => {
 	const data = bot.container.getService("Data");
 	if (!data) return;
@@ -117,10 +143,14 @@ export default (bot: DiscordBot): void => {
 					};
 				}
 			}
+
 			const messages = bot.container.getService("Motd")?.messages;
 			const message =
 				messages && messages.length > 0
-					? messages[Math.floor(Math.random() * messages?.length)].split(" ")
+					? messages
+							.map(msg => msg.split(" "))
+							.flat()
+							.filter(w => !filter.includes(w))
 					: undefined;
 			let word = message ? message[Math.floor(Math.random() * message?.length)] : "Meta";
 			word = word.charAt(0).toUpperCase() + word.slice(1);
