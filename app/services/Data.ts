@@ -9,7 +9,7 @@ export class Data extends Service {
 	private dataPath = path.join(process.cwd(), "data");
 
 	lastDiscordGuildIcon: string;
-	lastIotdAuthors: Array<string>;
+	lastDiscordNickName: string;
 	lastMkTime: number;
 	lastMsgTime: number;
 	muted: {
@@ -23,7 +23,7 @@ export class Data extends Service {
 	rules: Array<Rule>;
 	toSave = [
 		"lastDiscordGuildIcon",
-		"lastIotdAuthors",
+		"lastDiscordNickName",
 		"lastMkTime",
 		"lastMsgTime",
 		"muted",

@@ -81,29 +81,34 @@ export default (bot: DiscordBot): void => {
 		if (!guild) return;
 
 		const changeIcon = async (filePath: string, eventName: string, nickName: string) => {
-			if (data.lastDiscordGuildIcon === eventName) return;
+			const eventChange = data.lastDiscordGuildIcon !== eventName;
+			const nickChange = data.lastDiscordNickName !== nickName;
+			if (!eventChange && !nickChange) return;
 
-			try {
-				await guild.setIcon(
-					filePath,
-					eventName !== "None"
-						? `It's ${eventName}!`
-						: "Back to regularly scheduled activities."
-				);
-
-				await bot.discord.user?.setAvatar(filePath);
-				await bot.discord.user?.setUsername(nickName + " Construct");
+			if (nickChange) {
+				try {
+					await bot.discord.user?.setUsername(nickName + " Construct");
+				} catch (err) {
+					console.error(err);
+				}
+				data.lastDiscordNickName = nickName;
+			}
+			if (eventChange) {
+				try {
+					await guild.setIcon(
+						filePath,
+						eventName !== "None"
+							? `It's ${eventName}!`
+							: "Back to regularly scheduled activities."
+					);
+					await bot.discord.user?.setAvatar(filePath);
+				} catch (err) {
+					console.error(err);
+				}
 
 				data.lastDiscordGuildIcon = eventName;
-				await data.save();
-
-				console.log("Changed server icon successfully!");
-			} catch (err) {
-				console.error(err);
-				throw new Error(
-					"Can't change guild icon: the bot is likely missing permissions to do so."
-				);
 			}
+			await data.save();
 		};
 
 		const checkDate = async () => {
