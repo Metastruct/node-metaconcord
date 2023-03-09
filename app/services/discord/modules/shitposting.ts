@@ -23,7 +23,7 @@ const TYPING_TRIGGER_THRESHOLD = 0.9; // at how much msgs to trigger the typing 
 // trigger word constants
 const TRIGGER_WORDS = ["metabot", "meta bot", "the bot", "metaconcord"]; // these will always count like a normal reply/ping
 const MAYBE_TRIGGER_WORDS = ["metastruct", "metaconstruct", "meta", "bot"]; // not directly the bot but maybe
-const MAYBE_TRIGGER_FREQ = 0.25; // frequency of triggers above
+const MAYBE_TRIGGER_FREQ = 0.4; // frequency of triggers above
 
 // shat constants
 const STOLEN_IMAGE_FREQ = 0.025; // how often the bot will respond with an image instead of text
