@@ -106,9 +106,10 @@ export default (bot: DiscordBot): void => {
 					? `\u001b[1;40m${part.value}\u001b[0;0m`
 					: part.removed
 					? `\u001b[1;30;41m${part.value}\u001b[0;0m`
-					: part.value.replace("```", "\\`\\`\\`");
+					: part.value;
 			}
 		}
+		diff = diff.replace("`", "\\`");
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
