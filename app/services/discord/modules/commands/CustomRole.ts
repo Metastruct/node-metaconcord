@@ -268,7 +268,7 @@ export class SlashCustomRoleCommand extends SlashCommand {
 				reason: "Added role via command",
 				name: roleName.toString(),
 				color: roleColor,
-				position: boosterRole?.position,
+				position: boosterRole ? boosterRole?.position + 1 : 2,
 			});
 		} else {
 			await targetRole.setColor(roleColor, "Updated role color via command");
