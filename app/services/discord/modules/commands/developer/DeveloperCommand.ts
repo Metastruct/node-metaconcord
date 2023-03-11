@@ -72,21 +72,14 @@ export class SlashDeveloperCommand extends SlashCommand {
 	protected async runProtected(ctx: CommandContext): Promise<any> {
 		throw new Error("runProtected is not defined");
 	}
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	protected async runExtraProtected(ctx: CommandContext): Promise<any> {
-		return;
-	}
 
 	public async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer(this.deferEphemeral);
 
-		if (await this.isAllowed(ctx.user)) {
-			return this.runProtected(ctx);
-		}
-		if (await this.isElevated(ctx.user)) {
-			return this.runExtraProtected(ctx);
+		if (!this.isAllowed(ctx.user)) {
+			return EphemeralResponse("You are not allowed to use this command.");
 		}
 
-		return EphemeralResponse("You are not allowed to use this command.");
+		return this.runProtected(ctx);
 	}
 }

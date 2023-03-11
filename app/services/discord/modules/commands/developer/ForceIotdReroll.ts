@@ -1,6 +1,6 @@
+import { CommandContext, SlashCreator } from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
-import { SlashCreator } from "slash-create";
 import { SlashDeveloperCommand } from "./DeveloperCommand";
 
 export class SlashForceIotdRerollCommand extends SlashDeveloperCommand {
@@ -15,7 +15,11 @@ export class SlashForceIotdRerollCommand extends SlashDeveloperCommand {
 		this.bot = bot;
 	}
 
-	public async runExtraProtected(): Promise<any> {
+	public async runProtected(ctx: CommandContext): Promise<any> {
+		if (!this.isElevated(ctx.user))
+			return EphemeralResponse(
+				`You need the <#${this.bot.config.roles.elevated}> to run this command!`
+			);
 		try {
 			const lastmsg = await this.bot.getLastMotdMsg();
 			if (!lastmsg) return EphemeralResponse("Could not find last message");
