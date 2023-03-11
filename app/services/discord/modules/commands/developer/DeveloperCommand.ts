@@ -70,11 +70,11 @@ export class SlashDeveloperCommand extends SlashCommand {
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async runProtected(ctx: CommandContext): Promise<any> {
-		throw new Error("runProtected is not defined");
+		return;
 	}
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async runExtraProtected(ctx: CommandContext): Promise<any> {
-		throw new Error("runExtraProtected is not defined");
+		return;
 	}
 
 	public async run(ctx: CommandContext): Promise<any> {
