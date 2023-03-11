@@ -149,15 +149,17 @@ export default (bot: DiscordBot): void => {
 				}
 			}
 
-			const messages = bot.container.getService("Motd")?.messages;
-			let nick: string | undefined;
-			if (messages && messages.length > 0) {
-				const wordList = messages
-					.map(msg => msg.split(" "))
-					.flat()
-					.filter(w => !filter.includes(w));
-				const word = wordList[(Math.random() * wordList?.length) | 0];
-				nick = word.charAt(0).toUpperCase() + word.slice(1);
+			let nick = data.lastDiscordNickName;
+			if (!nick) {
+				const messages = bot.container.getService("Motd")?.messages;
+				if (messages && messages.length > 0) {
+					const wordList = messages
+						.map(msg => msg.split(" "))
+						.flat()
+						.filter(w => !filter.includes(w));
+					const word = wordList[(Math.random() * wordList?.length) | 0];
+					nick = word.charAt(0).toUpperCase() + word.slice(1);
+				}
 			}
 
 			return { filePath: defaultIconPath, eventName: "None", nickName: nick };
