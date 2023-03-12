@@ -24,5 +24,11 @@ export default (bot: DiscordBot): void => {
 		}
 	};
 	bot.discord.on("ready", setProgressBar);
-	setInterval(setProgressBar, 1000 * 60 * 60 * 24);
+	bot.discord.on("guildMemberUpdate", async (oldMember, updatedMember) => {
+		if (
+			updatedMember.premiumSinceTimestamp &&
+			Date.now() - updatedMember.premiumSinceTimestamp < 1000 * 60
+		)
+			setProgressBar();
+	});
 };
