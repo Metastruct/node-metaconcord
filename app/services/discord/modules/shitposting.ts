@@ -325,7 +325,8 @@ export default (bot: DiscordBot): void => {
 				(itsPostingTime || Math.random() <= MSG_RNG_FREQ) &&
 				!posting &&
 				lastMsgs.length >= MSG_CACHE_AMOUNT &&
-				lastMsgs.slice(-4)[0].author.id !== id
+				lastMsgs.slice(-4)[0].author.id !== id &&
+				lastMsgs.slice(-2)[0].author.id !== id
 			) {
 				await sendShat(
 					msg.stickers.size > 0
