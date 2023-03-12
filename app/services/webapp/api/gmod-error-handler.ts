@@ -1,4 +1,3 @@
-import { APIEmbed, WebhookCreateMessageOptions } from "discord.js";
 import { AddonURIS, getOrFetchLuaFile } from "@/utils";
 import { GameBridge, GameServer, Player } from "../../gamebridge";
 import { SQL } from "../../SQL";
@@ -207,10 +206,10 @@ export default (webApp: WebApp): void => {
 				);
 				return;
 			}
-			const embeds: APIEmbed[] = [];
+			const embeds: Discord.APIEmbed[] = [];
 
 			// main embed
-			const embed: APIEmbed = {
+			const embed: Discord.APIEmbed = {
 				description: stack.replace("`", "\\`"),
 				footer: {
 					text: `${body.gamemode}@${
@@ -270,7 +269,7 @@ export default (webApp: WebApp): void => {
 				);
 			}
 			embeds.push(embed);
-			const payload: WebhookCreateMessageOptions = {
+			const payload: Discord.MessageCreateOptions = {
 				allowedMentions: { parse: [] },
 				content: `**${body.error.replace("*", "\\*")}**`,
 				embeds: embeds,
