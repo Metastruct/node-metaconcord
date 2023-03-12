@@ -80,7 +80,7 @@ export default (bot: DiscordBot): void => {
 		const guild = bot.getGuild();
 		if (!guild) return;
 
-		const changeIcon = async (filePath: string, eventName: string, nickName?: string) => {
+		const changeIcon = async (filePath: string, eventName: string, nickName: string) => {
 			const eventChange = data.lastDiscordGuildIcon !== eventName;
 			const nickChange = guild.members.me?.nickname !== nickName;
 			if (!eventChange && !nickChange) return;
@@ -91,7 +91,7 @@ export default (bot: DiscordBot): void => {
 				} catch (err) {
 					console.error(err);
 				}
-				data.lastDiscordNickName = nickName ?? "";
+				data.lastDiscordNickName = nickName;
 			}
 			if (eventChange) {
 				try {
@@ -150,16 +150,14 @@ export default (bot: DiscordBot): void => {
 			}
 
 			let nick = data.lastDiscordNickName;
-			if (!nick) {
-				const messages = bot.container.getService("Motd")?.messages;
-				if (messages && messages.length > 0) {
-					const wordList = messages
-						.map(msg => msg.split(" "))
-						.flat()
-						.filter(w => !filter.includes(w));
-					const word = wordList[(Math.random() * wordList?.length) | 0];
-					nick = word.charAt(0).toUpperCase() + word.slice(1);
-				}
+			const messages = bot.container.getService("Motd")?.messages;
+			if (messages && messages.length > 0) {
+				const wordList = messages
+					.map(msg => msg.split(" "))
+					.flat()
+					.filter(w => !filter.includes(w));
+				const word = wordList[(Math.random() * wordList?.length) | 0];
+				nick = word.charAt(0).toUpperCase() + word.slice(1);
 			}
 
 			return { filePath: defaultIconPath, eventName: "None", nickName: nick };
