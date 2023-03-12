@@ -82,7 +82,7 @@ export default (bot: DiscordBot): void => {
 
 		const changeIcon = async (filePath: string, eventName: string, nickName?: string) => {
 			const eventChange = data.lastDiscordGuildIcon !== eventName;
-			const nickChange = data.lastDiscordNickName !== nickName;
+			const nickChange = guild.members.me?.nickname !== nickName;
 			if (!eventChange && !nickChange) return;
 
 			if (nickChange) {
