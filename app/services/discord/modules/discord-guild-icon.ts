@@ -91,7 +91,7 @@ export default (bot: DiscordBot): void => {
 				} catch (err) {
 					console.error(err);
 				}
-				data.lastDiscordNickName = nickName;
+				data.lastDiscordNickName = nickName ?? "";
 			}
 			if (eventChange) {
 				try {
