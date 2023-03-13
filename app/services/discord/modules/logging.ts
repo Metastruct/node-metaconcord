@@ -1,7 +1,7 @@
 import { DiscordBot, EMBED_FIELD_LIMIT } from "..";
 import { diffWords } from "diff";
 import { f } from "@/utils";
-import Discord, { AuditLogEvent, GuildAuditLogsTargets } from "discord.js";
+import Discord from "discord.js";
 
 const RED_COLOR = Discord.Colors.Red;
 const YELLOW_COLOR = Discord.Colors.Yellow;
@@ -276,6 +276,32 @@ export default (bot: DiscordBot): void => {
 		}
 
 		if (entry.reason) embed.addFields(f("Reason", entry.reason));
+
+		if (entry.changes.length > 0) {
+			switch (entry.actionType) {
+				case "Create":
+					embed.addFields(
+						f(
+							"Changes",
+							`\`\`\`\n${entry.changes
+								.map(change => `[${change.key}] ${change.new}`)
+								.join("\n")}\`\`\``
+						)
+					);
+					break;
+				case "Update":
+					embed.addFields(
+						f(
+							"Changes",
+							`\`\`\`\n${entry.changes
+								.map(change => `[${change.key}] ${change.old} -> ${change.new}`)
+								.join("\n")}\`\`\``
+						)
+					);
+					break;
+				case "Delete":
+			}
+		}
 
 		await logChannel.send({ embeds: [embed] });
 	});
