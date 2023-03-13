@@ -177,7 +177,7 @@ export default (bot: DiscordBot): void => {
 				name: user?.displayName ?? "unknown user",
 				iconURL: user?.avatarURL() ?? undefined,
 			})
-			.setFooter({ text: entry.actionType })
+			.setFooter({ text: entry.targetType + " " + entry.actionType })
 			.setTimestamp(Date.now());
 
 		switch (entry.actionType) {
