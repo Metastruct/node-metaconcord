@@ -70,6 +70,10 @@ const filter = [
 	"has",
 	"hasn't",
 	"have",
+	"did",
+	"do",
+	"done",
+	"myself",
 ];
 
 export default (bot: DiscordBot): void => {
@@ -155,7 +159,7 @@ export default (bot: DiscordBot): void => {
 				const wordList = messages
 					.map(msg => msg.split(" "))
 					.flat()
-					.filter(w => !filter.includes(w));
+					.filter(w => !filter.includes(w.toLowerCase()));
 				const word = wordList[(Math.random() * wordList?.length) | 0];
 				nick = word.charAt(0).toUpperCase() + word.slice(1);
 			}
