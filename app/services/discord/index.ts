@@ -25,6 +25,7 @@ export class DiscordBot extends Service {
 			"GuildMembers",
 			"GuildMessages",
 			"GuildMessageReactions",
+			"GuildModeration",
 			"GuildPresences",
 			"GuildScheduledEvents",
 			"MessageContent",

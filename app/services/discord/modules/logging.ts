@@ -1,7 +1,7 @@
 import { DiscordBot, EMBED_FIELD_LIMIT } from "..";
 import { diffWords } from "diff";
 import { f } from "@/utils";
-import Discord from "discord.js";
+import Discord, { AuditLogEvent, GuildAuditLogsTargets } from "discord.js";
 
 const RED_COLOR = Discord.Colors.Red;
 const YELLOW_COLOR = Discord.Colors.Yellow;
@@ -165,6 +165,118 @@ export default (bot: DiscordBot): void => {
 			.addFields(f("Mention", user.mention))
 			.setFooter({ text: "Member joined" })
 			.setTimestamp(Date.now());
+		await logChannel.send({ embeds: [embed] });
+	});
+
+	bot.discord.on("guildAuditLogEntryCreate", async (entry, guild) => {
+		if (!logChannel) return;
+		if (!entry.executorId) return;
+		const user = guild.members.cache.get(entry.executorId);
+		const embed = new Discord.EmbedBuilder()
+			.setAuthor({
+				name: user?.displayName ?? "unknown user",
+				iconURL: user?.avatarURL() ?? undefined,
+			})
+			.setFooter({ text: entry.actionType })
+			.setTimestamp(Date.now());
+
+		switch (entry.actionType) {
+			case "Create":
+				embed.setColor(GREEN_COLOR);
+				break;
+			case "Delete":
+				embed.setColor(RED_COLOR);
+				break;
+			case "Update":
+				embed.setColor(YELLOW_COLOR);
+				break;
+		}
+
+		if (user?.mention) embed.addFields(f("Mention", user.mention));
+
+		if (entry.target && entry.targetId) {
+			let target = "???";
+			switch (entry.targetType) {
+				case "ApplicationCommand": {
+					const command = guild.commands.cache.get(entry.targetId);
+					target = command ? `</${command.name}:${command.id}` : entry.targetId;
+					break;
+				}
+				case "AutoModerationRule": {
+					target =
+						guild.autoModerationRules.cache.get(entry.targetId)?.name ?? entry.targetId;
+					break;
+				}
+				case "Channel": {
+					target =
+						guild.channels.cache.get(entry.targetId)?.toString() ??
+						`<#${entry.targetId}>`;
+					break;
+				}
+				case "Emoji": {
+					target = guild.emojis.cache.get(entry.targetId)?.toString() ?? entry.targetId;
+					break;
+				}
+				case "Guild": {
+					target =
+						entry.targetId === bot.config.bot.primaryGuildId
+							? "Meta Construct"
+							: "wtf?????";
+					break;
+				}
+				case "GuildScheduledEvent": {
+					target =
+						guild.scheduledEvents.cache.get(entry.targetId)?.toString() ??
+						entry.targetId;
+					break;
+				}
+				case "Integration": {
+					target =
+						(await guild.fetchIntegrations()).get(entry.targetId)?.name ??
+						entry.targetId;
+					break;
+				}
+				case "Invite": {
+					target = guild.invites.cache.get(entry.targetId)?.toString() ?? entry.targetId;
+					break;
+				}
+				case "Message": {
+					target = entry.targetId;
+					break;
+				}
+				case "Role": {
+					target = guild.roles.cache.get(entry.targetId)?.toString() ?? entry.targetId;
+					break;
+				}
+				case "StageInstance": {
+					target =
+						guild.stageInstances.cache.get(entry.targetId)?.toString() ??
+						`<#${entry.targetId}>`;
+					break;
+				}
+				case "Sticker": {
+					target = guild.emojis.cache.get(entry.targetId)?.toString() ?? entry.targetId;
+					break;
+				}
+				case "Thread": {
+					target =
+						(await guild.channels.fetchActiveThreads()).threads
+							.get(entry.targetId)
+							?.toString() ?? `<#${entry.targetId}>`;
+					break;
+				}
+				case "User":
+					target =
+						guild.members.cache.get(entry.targetId)?.toString() ??
+						`<@${entry.targetId}>`;
+					break;
+				case "Webhook":
+			}
+			embed.addFields(f(entry.targetType, target));
+		}
+
+		if (entry.reason) embed.addFields(f("Reason", entry.reason));
+
 		await logChannel.send({ embeds: [embed] });
 	});
 };
