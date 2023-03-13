@@ -113,8 +113,8 @@ export default (bot: DiscordBot): void => {
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
-				name: user?.username ?? user?.username ?? "unknown user",
-				iconURL: user?.avatarURL() ?? user?.avatarURL() ?? undefined,
+				name: user?.username ?? "unknown user",
+				iconURL: user?.avatarURL() ?? undefined,
 				url: newMsg.url,
 			})
 			.setColor(YELLOW_COLOR)
