@@ -211,13 +211,13 @@ export default (bot: DiscordBot): void => {
 					break;
 				}
 				case "Channel": {
-					target =
-						guild.channels.cache.get(entry.targetId)?.toString() ??
-						`<#${entry.targetId}>`;
+					const channel = guild.channels.cache.get(entry.targetId);
+					target = `${channel?.toString()} (${channel?.name})` ?? `<#${entry.targetId}>`;
 					break;
 				}
 				case "Emoji": {
-					target = guild.emojis.cache.get(entry.targetId)?.toString() ?? entry.targetId;
+					const emoji = guild.emojis.cache.get(entry.targetId);
+					target = `${emoji?.toString()} (${emoji?.name})` ?? entry.targetId;
 					break;
 				}
 				case "Guild": {

@@ -29,6 +29,7 @@ export class DiscordBot extends Service {
 			"GuildPresences",
 			"GuildScheduledEvents",
 			"MessageContent",
+			"GuildVoiceStates",
 		],
 		partials: [Discord.Partials.Message, Discord.Partials.Channel, Discord.Partials.Reaction],
 	});

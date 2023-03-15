@@ -6,6 +6,7 @@ import MotdRollbackLoader from "./motdrollback";
 import ProgressBarLoader from "./premium-progress-bar";
 import ShitpostLoader from "./shitposting";
 import StarboardLoader from "./starboard";
+import TempVoiceChannelsLoader from "./temp-voice-channels";
 
 export default [
 	CommandsLoader,
@@ -16,4 +17,5 @@ export default [
 	ProgressBarLoader,
 	ShitpostLoader,
 	StarboardLoader,
+	TempVoiceChannelsLoader,
 ];

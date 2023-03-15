@@ -21,6 +21,12 @@ export class Data extends Service {
 		};
 	} = {};
 	rules: Array<Rule>;
+	tempVoiceChannels: {
+		[ownerId: string]: {
+			channelId: string;
+			createdAt: number;
+		};
+	} = {};
 	toSave = [
 		"lastDiscordGuildIcon",
 		"lastDiscordNickName",
@@ -28,6 +34,7 @@ export class Data extends Service {
 		"lastMsgTime",
 		"muted",
 		"rules",
+		"tempVoiceChannels",
 	];
 
 	async init(): Promise<void> {

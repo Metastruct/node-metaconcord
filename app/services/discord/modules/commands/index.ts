@@ -22,6 +22,7 @@ import {
 	UISpeechbubbleLeftCommand,
 	UISpeechbubbleRightCommand,
 } from "./Speechbubble";
+import { SlashTempVoiceChannelCommand } from "./TempVoiceChannel";
 import { SlashUnBanCommand } from "./developer/UnBan";
 import { SlashUnmuteCommand, UIUnmuteCommand } from "./mute/Unmute";
 import { SlashVaccinatedCommand } from "./Vaccination";
@@ -50,6 +51,7 @@ export const commands = [
 	SlashRuleCommand,
 	SlashSpeechbubbleCommand,
 	SlashSQLCommand,
+	SlashTempVoiceChannelCommand,
 	SlashUnBanCommand,
 	SlashUnmuteCommand,
 	SlashVaccinatedCommand,
