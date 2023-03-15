@@ -212,12 +212,14 @@ export default (bot: DiscordBot): void => {
 				}
 				case "Channel": {
 					const channel = guild.channels.cache.get(entry.targetId);
-					target = `${channel?.toString()} (${channel?.name})` ?? `<#${entry.targetId}>`;
+					target = channel
+						? `${channel.toString()} (${channel.name})`
+						: `${entry.targetId}`;
 					break;
 				}
 				case "Emoji": {
 					const emoji = guild.emojis.cache.get(entry.targetId);
-					target = `${emoji?.toString()} (${emoji?.name})` ?? entry.targetId;
+					target = emoji ? `${emoji?.toString()} (${emoji?.name})` : entry.targetId;
 					break;
 				}
 				case "Guild": {
@@ -255,7 +257,7 @@ export default (bot: DiscordBot): void => {
 				case "StageInstance": {
 					target =
 						guild.stageInstances.cache.get(entry.targetId)?.toString() ??
-						`<#${entry.targetId}>`;
+						`${entry.targetId}`;
 					break;
 				}
 				case "Sticker": {
@@ -266,7 +268,7 @@ export default (bot: DiscordBot): void => {
 					target =
 						(await guild.channels.fetchActiveThreads()).threads
 							.get(entry.targetId)
-							?.toString() ?? `<#${entry.targetId}>`;
+							?.toString() ?? `${entry.targetId}`;
 					break;
 				}
 				case "User":

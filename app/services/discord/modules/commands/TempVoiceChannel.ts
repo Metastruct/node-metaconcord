@@ -62,7 +62,7 @@ export class SlashTempVoiceChannelCommand extends SlashCommand {
 						.getGuild()
 						?.channels.fetch(channel.id)) as Discord.VoiceChannel;
 					if (updatedChannel?.members.size === 0) {
-						await updatedChannel.delete();
+						await updatedChannel.delete("No one joined after 30 secs");
 					} else {
 						this.data.tempVoiceChannels[ctx.user.id] = {
 							createdAt: Date.now(),
