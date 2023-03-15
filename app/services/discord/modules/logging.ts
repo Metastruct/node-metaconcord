@@ -174,8 +174,8 @@ export default (bot: DiscordBot): void => {
 		const user = guild.members.cache.get(entry.executorId);
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
-				name: user?.displayName ?? "unknown user",
-				iconURL: user?.avatarURL() ?? undefined,
+				name: `${user?.user.username} (${user?.displayName})` ?? "unknown user",
+				iconURL: user?.avatarURL() ?? user?.user.avatarURL() ?? undefined,
 			})
 			.setFooter({ text: entry.targetType + " " + entry.actionType })
 			.setTimestamp(Date.now());
