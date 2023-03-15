@@ -160,7 +160,10 @@ export default (bot: DiscordBot): void => {
 		user = await bot.fetchPartial(user);
 
 		const embed = new Discord.EmbedBuilder()
-			.setAuthor({ name: user.displayName, iconURL: user.avatarURL() ?? undefined })
+			.setAuthor({
+				name: `${user.user.username} (${user.displayName})`,
+				iconURL: user.avatarURL() ?? user.user.avatarURL() ?? undefined,
+			})
 			.setColor(GREEN_COLOR)
 			.addFields(f("Mention", user.mention))
 			.setFooter({ text: "Member joined" })
