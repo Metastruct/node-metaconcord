@@ -43,9 +43,9 @@ type ImgurResponse = {
 
 export default class Motd extends Service {
 	name = "Motd";
-	messages: Array<string>;
-	images: Array<ImgurImage>;
-	lastimage?: string;
+	messages: string[];
+	images: ImgurImage[];
+	lastimages: ImgurImage[];
 
 	private data: Data;
 	private rerolls = 0;
@@ -55,7 +55,6 @@ export default class Motd extends Service {
 	constructor(container: Container) {
 		super(container);
 		this.messages = [];
-		this.lastimage = undefined;
 		scheduleJob("0 12 * * *", this.executeMessageJob.bind(this));
 		scheduleJob("0 20 * * *", this.executeImageJob.bind(this));
 		scheduleJob("0 0 * * 0", this.clearImageAlbumAndHistory.bind(this));
@@ -105,6 +104,7 @@ export default class Motd extends Service {
 				},
 			})
 			.catch();
+		this.lastimages = [];
 	}
 
 	private async executeMessageJob(): Promise<void> {
@@ -141,7 +141,9 @@ export default class Motd extends Service {
 			this.images = res.data.data;
 			const urls: Array<ImgurImage> = res.data.data.filter(
 				(img: ImgurImage) =>
-					img.datetime >= yesterday && !this.ignorelist.some(id => img.title.includes(id))
+					img.datetime >= yesterday &&
+					!this.lastimages.includes(img) &&
+					!this.ignorelist.some(id => img.title.includes(id))
 			); // keep only recent images
 			const authors = [...new Set(urls.map(image => image.title))];
 			const index = (Math.random() * urls.length) | 0;
@@ -190,8 +192,7 @@ export default class Motd extends Service {
 				);
 			}
 			this.container.getService("DiscordBot")?.setServerBanner(url);
-
-			this.lastimage = url;
+			this.lastimages.push(image);
 			await this.data.save();
 		}
 	}
