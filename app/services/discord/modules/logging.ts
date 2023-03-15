@@ -248,7 +248,8 @@ export default (bot: DiscordBot): void => {
 					break;
 				}
 				case "Role": {
-					target = guild.roles.cache.get(entry.targetId)?.toString() ?? entry.targetId;
+					const role = guild.roles.cache.get(entry.targetId);
+					target = `${role?.toString() ?? entry.targetId} (${role?.name})`;
 					break;
 				}
 				case "StageInstance": {
