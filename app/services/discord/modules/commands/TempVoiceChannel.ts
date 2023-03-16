@@ -51,7 +51,7 @@ export class SlashTempVoiceChannelCommand extends SlashCommand {
 				type: Discord.ChannelType.GuildVoice,
 				parent: this.bot.config.categories.voiceChat,
 				permissionOverwrites: [
-					{ id: ctx.user.id, allow: Discord.PermissionFlagsBits.ManageChannels },
+					{ id: ctx.user.id, allow: ["ManageChannels", "ManageRoles"] },
 				],
 				reason: "temp channel command",
 			});
