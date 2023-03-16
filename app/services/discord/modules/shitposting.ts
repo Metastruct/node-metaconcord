@@ -318,7 +318,8 @@ export default (bot: DiscordBot): void => {
 				(Math.random() <= MAYBE_TRIGGER_FREQ &&
 					MAYBE_TRIGGER_WORDS.some(str =>
 						msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
-					)))
+					)) ||
+				Math.random() <= MSG_RNG_FREQ)
 		) {
 			const itsPostingTime = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
 			if (
@@ -335,7 +336,7 @@ export default (bot: DiscordBot): void => {
 				);
 				replied = false;
 				data.lastMsgTime = lastMsgTime = Date.now();
-			} else if (!itsPostingTime && (!replied || Math.random() <= MSG_RNG_FREQ) && !posting) {
+			} else if (!itsPostingTime && !replied && !posting) {
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, ping: true, dont_save: true }
