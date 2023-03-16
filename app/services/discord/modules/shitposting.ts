@@ -310,6 +310,7 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 
+		const forcePost = Math.random() <= MSG_RNG_FREQ;
 		if (
 			bot.config.channels.chat === msg.channelId &&
 			msg.author.id !== id &&
@@ -319,11 +320,11 @@ export default (bot: DiscordBot): void => {
 					MAYBE_TRIGGER_WORDS.some(str =>
 						msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
 					)) ||
-				Math.random() <= MSG_RNG_FREQ)
+				forcePost)
 		) {
 			const itsPostingTime = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
 			if (
-				(itsPostingTime || Math.random() <= MSG_RNG_FREQ) &&
+				(itsPostingTime || forcePost) &&
 				!posting &&
 				lastMsgs.length >= MSG_CACHE_AMOUNT &&
 				lastMsgs.slice(-4)[0].author.id !== id &&
