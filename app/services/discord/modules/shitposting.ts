@@ -323,13 +323,7 @@ export default (bot: DiscordBot): void => {
 				forcePost)
 		) {
 			const itsPostingTime = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
-			if (
-				(itsPostingTime || forcePost) &&
-				!posting &&
-				lastMsgs.length >= MSG_CACHE_AMOUNT &&
-				lastMsgs.slice(-4)[0].author.id !== id &&
-				lastMsgs.slice(-2)[0].author.id !== id
-			) {
+			if ((itsPostingTime || forcePost) && !posting) {
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, forceReply: true }
