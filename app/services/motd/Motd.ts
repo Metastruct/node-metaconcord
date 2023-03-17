@@ -43,9 +43,9 @@ type ImgurResponse = {
 
 export default class Motd extends Service {
 	name = "Motd";
-	messages: string[];
-	images: ImgurImage[];
-	lastimages: ImgurImage[];
+	messages: string[] = [];
+	images: ImgurImage[] = [];
+	lastimages: ImgurImage[] = [];
 
 	private data: Data;
 	private rerolls = 0;
