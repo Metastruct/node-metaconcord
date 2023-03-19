@@ -1,7 +1,7 @@
 import * as requestSchema from "./structures/BanRequest.json";
 import { BanRequest } from "./structures";
 import { GameServer } from "..";
-import { PlayerSummary } from "steamapi";
+import { PlayerSummary } from "../../Steam";
 import { TextChannel } from "discord.js";
 import { f } from "@/utils";
 import Discord from "discord.js";
@@ -34,7 +34,7 @@ export default class BanPayload extends Payload {
 			const summary: PlayerSummary | undefined = await steam?.getUserSummaries(steamId64);
 			if (summary) {
 				bannerName = summary.nickname;
-				avatar = summary.avatar.large;
+				avatar = summary.avatarfull;
 			}
 		} catch {
 			bannerName = player.steamId;
