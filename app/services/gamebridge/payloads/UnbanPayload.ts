@@ -1,6 +1,6 @@
 import * as requestSchema from "./structures/UnbanRequest.json";
 import { GameServer } from "..";
-import { PlayerSummary } from "steamapi";
+import { PlayerSummary } from "../../Steam";
 import { TextChannel } from "discord.js";
 import { UnbanRequest } from "./structures";
 import { f } from "@/utils";
@@ -34,7 +34,7 @@ export default class UnbanPayload extends Payload {
 			const summary: PlayerSummary | undefined = await steam?.getUserSummaries(steamId64);
 			if (summary) {
 				bannerName = summary.nickname;
-				avatar = summary.avatar.large;
+				avatar = summary.avatarfull;
 			}
 		} catch {
 			bannerName = player.steamId;

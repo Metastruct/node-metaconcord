@@ -1,14 +1,44 @@
 import { Container } from "@/app/Container";
 import { Service } from ".";
-import SteamAPI from "steamapi";
 import SteamID from "steamid";
 import apikeys from "@/config/apikeys.json";
 import axios from "axios";
 import qs from "qs";
 
+export type PlayerSummary = {
+	avatar: string;
+	avatarfull: string;
+	avatarhash: string;
+	avatarmedium: string;
+	communityvisiblitystate: number;
+	steamid: string;
+	profileurl: string;
+	created?: number;
+	lastlogoff?: number;
+	nickname: string;
+	realname?: string;
+	primaryclanid?: string;
+	personastate: number;
+	personaname: string;
+	personastateflags?: number;
+	commentpermission?: number;
+	loccountrycode?: string;
+	locstatecode?: string;
+	loccityid?: number;
+	gameserverid?: string;
+	gameserversteamid?: string;
+	gameextrainfo?: string;
+	gameid?: string;
+	timecreated: number;
+};
+
+type SummariesResponse = {
+	response: { players: PlayerSummary[] };
+};
+
 type UserCache = {
 	expireTime: number;
-	summary?: SteamAPI.PlayerSummary;
+	summary?: PlayerSummary;
 };
 const validTime = 30 * 60 * 1000;
 const avatarRegExp = /<avatarFull>\s*<!\[CDATA\[\s*([^\s]*)\s*\]\]>\s*<\/avatarFull>/;
@@ -19,12 +49,12 @@ export class Steam extends Service {
 		[steamId64: string]: UserCache;
 	} = {};
 
-	async getUserSummaries(steamId64: string): Promise<SteamAPI.PlayerSummary | undefined> {
+	async getUserSummaries(steamId64: string): Promise<PlayerSummary | undefined> {
 		const userCache = this.getUserCache(steamId64);
 		if (!userCache.summary) {
 			try {
 				const summary = (
-					await axios.get<SteamAPI.PlayerSummary>(
+					await axios.get<SummariesResponse>(
 						"https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/",
 						{
 							params: {
@@ -33,15 +63,17 @@ export class Steam extends Service {
 							},
 						}
 					)
-				).data;
-				const { status } = await axios.head(summary.avatar.large);
-				if (status >= 400) {
-					const { data } = await axios.get(
-						`https://steamcommunity.com/profiles/${steamId64}?xml=1`
-					);
-					const results = avatarRegExp.exec(data);
-					if (results && results[1].trim().length) {
-						summary.avatar.large = results[1];
+				).data.response.players[0];
+				if (summary) {
+					const { status } = await axios.head(summary.avatarfull);
+					if (status >= 400) {
+						const { data } = await axios.get(
+							`https://steamcommunity.com/profiles/${steamId64}?xml=1`
+						);
+						const results = avatarRegExp.exec(data);
+						if (results && results[1].trim().length) {
+							summary.avatarfull = results[1];
+						}
 					}
 				}
 				userCache.summary = summary;
@@ -71,7 +103,7 @@ export class Steam extends Service {
 	}
 
 	async getUserAvatar(steamId64: string): Promise<any> {
-		return (await this.getUserSummaries(steamId64).catch())?.avatar?.large;
+		return (await this.getUserSummaries(steamId64).catch())?.avatarfull;
 	}
 
 	private getUserCache(steamId64: string): UserCache {
