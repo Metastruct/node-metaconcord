@@ -69,7 +69,7 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 	const sql = globalThis.MetaConcord.container.getService("SQL");
 	if (!sql) return false;
 	(await sql.getLocalDatabase()).db.get(
-		"DELETE FROM discord_tokens where access_token = ?;",
+		"DELETE FROM discord_tokens WHERE access_token = ?;",
 		token
 	);
 	if (localOnly) return true;
