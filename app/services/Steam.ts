@@ -44,25 +44,21 @@ export class Steam extends Service {
 	}
 
 	async getPublishedFileDetails(ids: string[]): Promise<any> {
-		try {
-			const query = {
-				publishedfileids: ids,
-				itemcount: ids.length,
-				key: apikeys.steam,
-			};
-			return (
-				await axios
-					.post(
-						`https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1`,
-						qs.stringify(query)
-					)
-					.catch(() => {
-						return { data: { response: {} } };
-					})
-			).data.response;
-		} catch {
-			return undefined;
-		}
+		const query = {
+			publishedfileids: ids,
+			itemcount: ids.length,
+			key: apikeys.steam,
+		};
+		return (
+			await axios
+				.post(
+					`https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1`,
+					qs.stringify(query)
+				)
+				.catch(() => {
+					return { data: { response: {} } };
+				})
+		).data.response;
 	}
 
 	async getUserAvatar(steamId64: string): Promise<any> {
