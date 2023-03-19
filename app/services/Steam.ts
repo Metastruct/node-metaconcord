@@ -1,6 +1,6 @@
 import { Container } from "@/app/Container";
 import { Service } from ".";
-import SteamAPI, { PlayerSummary } from "steamapi";
+import SteamAPI from "steamapi";
 import SteamID from "steamid";
 import apikeys from "@/config/apikeys.json";
 import axios from "axios";
@@ -8,14 +8,13 @@ import qs from "qs";
 
 type UserCache = {
 	expireTime: number;
-	summary?: PlayerSummary;
+	summary?: SteamAPI.PlayerSummary;
 };
 const validTime = 30 * 60 * 1000;
 const avatarRegExp = /<avatarFull>\s*<!\[CDATA\[\s*([^\s]*)\s*\]\]>\s*<\/avatarFull>/;
 
 export class Steam extends Service {
 	name = "Steam";
-	steam: SteamAPI = new SteamAPI(apikeys.steam);
 	private userCache: {
 		[steamId64: string]: UserCache;
 	} = {};
@@ -24,7 +23,17 @@ export class Steam extends Service {
 		const userCache = this.getUserCache(steamId64);
 		if (!userCache.summary) {
 			try {
-				const summary = await this.steam.getUserSummary(steamId64).catch();
+				const summary = (
+					await axios.get<SteamAPI.PlayerSummary>(
+						"https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/",
+						{
+							params: {
+								key: apikeys.steam,
+								steamids: steamId64,
+							},
+						}
+					)
+				).data;
 				const { status } = await axios.head(summary.avatar.large);
 				if (status >= 400) {
 					const { data } = await axios.get(
