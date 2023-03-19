@@ -24,7 +24,7 @@ export class Steam extends Service {
 		const userCache = this.getUserCache(steamId64);
 		if (!userCache.summary) {
 			try {
-				const summary = await this.steam.getUserSummary(steamId64);
+				const summary = await this.steam.getUserSummary(steamId64).catch();
 				const { status } = await axios.head(summary.avatar.large);
 				if (status >= 400) {
 					const { data } = await axios.get(
