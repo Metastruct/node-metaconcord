@@ -1,17 +1,9 @@
 import { PathLike, promises as fs } from "fs";
 import { createCanvas, loadImage } from "@napi-rs/canvas";
-import CacheableLookup from "cacheable-lookup";
 import apikeys from "@/config/apikeys.json";
 import axios from "axios";
-import http from "node:http";
-import https from "node:https";
 import request, { gql } from "graphql-request";
 import webappconfig from "@/config/webapp.json";
-
-const cacheable = new CacheableLookup();
-
-cacheable.install(http.globalAgent);
-cacheable.install(https.globalAgent);
 
 export const sleep = (ms: number): Promise<any> => new Promise(resolve => setTimeout(resolve, ms));
 

@@ -948,11 +948,6 @@ cacache@^15.2.0:
     tar "^6.0.2"
     unique-filename "^1.1.1"
 
-cacheable-lookup@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/cacheable-lookup/-/cacheable-lookup-7.0.0.tgz#3476a8215d046e5a3202a9209dd13fec1f933a27"
-  integrity sha512-+qJyx4xiKra8mZrcwhjMRMUhD5NR1R8esPkzIYxX96JiecFoxAXFuz/GpR3+ev4PE1WamHip78wV0vcmPQtp8w==
-
 call-bind@^1.0.0, call-bind@^1.0.2:
   version "1.0.2"
   resolved "https://registry.npmjs.org/call-bind/-/call-bind-1.0.2.tgz"
@@ -1255,9 +1250,9 @@ discord-api-types@0.37.14:
   integrity sha512-byBH7SfDCMJwxdqeS8k5sihltH88/YPhuwx+vF2cftSxFLdxyHyU/ZxDL3bq+LB2c4ls/TymE76/ISlLfniUXg==
 
 discord-api-types@^0.37.35:
-  version "0.37.36"
-  resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.37.36.tgz#650a8f66dce2c5e54a8c2275db74a0bb7936430d"
-  integrity sha512-Nlxmp10UpVr/utgZ9uODQvG2Or+5w7LFrvFMswyeKC9l/+UaqGT6H0OVgEFhu9GEO4U6K7NNO5W8Carv7irnCA==
+  version "0.37.35"
+  resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.37.35.tgz#d0dad0bce7ce5bffc633030f17464e45148d9f28"
+  integrity sha512-iyKZ/82k7FX3lcmHiAvvWu5TmyfVo78RtghBV/YsehK6CID83k5SI03DKKopBcln+TiEIYw5MGgq7SJXSpNzMg==
 
 discord.js@^14.8.0:
   version "14.8.0"
@@ -3587,7 +3582,7 @@ statuses@2.0.1:
 
 steamapi@^2.2.0:
   version "2.2.0"
-  resolved "https://registry.yarnpkg.com/steamapi/-/steamapi-2.2.0.tgz#e82682b94de773f42e92a59ae82f312abed50041"
+  resolved "https://registry.npmjs.org/steamapi/-/steamapi-2.2.0.tgz"
   integrity sha512-2UWklLzYQruuUC0a5AUgll1dU91/CWgiAhm/7y+rqc43kbBWereGTtmwo8wr6imjC64iV5893KChXghW0zK8Gg==
   dependencies:
     steamid "^2.0.0"
