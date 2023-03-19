@@ -20,6 +20,7 @@
 		"ajv": "^8.11.2",
 		"axios": "^0.27.2",
 		"bad-words": "^3.0.4",
+		"cacheable-lookup": "^7.0.0",
 		"cookie-parser": "^1.4.6",
 		"dayjs": "^1.10.6",
 		"diff": "^5.1.0",
