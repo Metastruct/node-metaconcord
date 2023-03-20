@@ -99,12 +99,12 @@ export class DiscordMetadata extends Service {
 						// 	invalid, expired, revoked, does not match the redirection
 						// 	URI used in the authorization request, or was issued to
 						// 	another client.
+						const res = revokeOAuthToken(data.access_token);
 						console.warn(
-							`[Metadata] InValID_GraNT revoking token! ${userId} [${
+							`[Metadata] InValID_GraNT revoking token (${res})! ${userId} [${
 								err.code
 							}] ${JSON.stringify(discordResponse)}`
 						);
-						revokeOAuthToken(data.access_token);
 					} else
 						console.error(
 							`[Metadata] failed fetching tokens: [${err.code}] ${JSON.stringify(
