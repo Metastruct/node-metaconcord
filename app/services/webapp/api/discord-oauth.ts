@@ -68,29 +68,32 @@ export const getOAuthTokens = async (code: any) => {
 export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 	const sql = globalThis.MetaConcord.container.getService("SQL");
 	if (!sql) return false;
+
+	if (!localOnly) {
+		const res = await axios
+			.post(
+				"https://discord.com/api/v10/oauth2/token/revoke",
+				new URLSearchParams({
+					client_id: DiscordConfig.bot.applicationId,
+					client_secret: DiscordConfig.bot.clientSecret,
+					token: token,
+				})
+			)
+			.catch((err: AxiosError) => {
+				console.error(
+					`[OAuth Callback] failed revoking tokens: [${err.code}] ${JSON.stringify(
+						err.response?.data
+					)}`
+				);
+			});
+		if (!res) return false;
+	}
+
 	(await sql.getLocalDatabase()).db.get(
 		"DELETE FROM discord_tokens WHERE access_token = ?;",
 		token
 	);
-	if (localOnly) return true;
 
-	const res = await axios
-		.post(
-			"https://discord.com/api/v10/oauth2/token/revoke",
-			new URLSearchParams({
-				client_id: DiscordConfig.bot.applicationId,
-				client_secret: DiscordConfig.bot.clientSecret,
-				token: token,
-			})
-		)
-		.catch((err: AxiosError) => {
-			console.error(
-				`[OAuth Callback] failed revoking tokens: [${err.code}] ${JSON.stringify(
-					err.response?.data
-				)}`
-			);
-		});
-	if (!res) return false;
 	return true;
 };
 
