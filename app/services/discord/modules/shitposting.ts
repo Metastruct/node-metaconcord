@@ -32,6 +32,8 @@ const REPLY_FREQ = 0.25; // when to take a word from a previous discord message 
 
 const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp"];
 
+const IGNORE_LIST = ["447835474925584385"];
+
 function getWord(msg: string, fallback?: string) {
 	let search: string;
 	const words = msg.replace(`<@${DiscordConfig.bot.userId}> `, "").split(" ");
@@ -246,6 +248,8 @@ export default (bot: DiscordBot): void => {
 	bot.discord.on("messageCreate", async msg => {
 		const id = bot.discord.user?.id;
 		if (!id) return;
+
+		if (IGNORE_LIST.includes(msg.author.id)) return;
 
 		if (msg.author.bot && msg.author.id !== id) return;
 		if (msg.partial) {
