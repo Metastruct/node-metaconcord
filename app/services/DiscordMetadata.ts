@@ -91,7 +91,7 @@ export class DiscordMetadata extends Service {
 						refresh_token: data.refresh_token,
 					})
 				)
-				.catch((err: AxiosError<OAuthErrorData>) => {
+				.catch(async (err: AxiosError<OAuthErrorData>) => {
 					const discordResponse = err.response?.data;
 					if (discordResponse?.error === "invalid_grant") {
 						// The provided authorization grant (e.g., authorization
@@ -99,7 +99,7 @@ export class DiscordMetadata extends Service {
 						// 	invalid, expired, revoked, does not match the redirection
 						// 	URI used in the authorization request, or was issued to
 						// 	another client.
-						const res = revokeOAuthToken(data.access_token);
+						const res = await revokeOAuthToken(data.access_token);
 						console.warn(
 							`[Metadata] InValID_GraNT revoking token (${res})! ${userId} [${
 								err.code
