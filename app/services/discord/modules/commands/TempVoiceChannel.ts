@@ -53,7 +53,7 @@ export class SlashTempVoiceChannelCommand extends SlashCommand {
 				permissionOverwrites: [
 					{ id: ctx.user.id, allow: ["ManageChannels", "ManageRoles"] },
 				],
-				reason: "temp channel command",
+				reason: `temp channel command from <@${ctx.user.id}>`,
 			});
 			if (channel) {
 				this.pending.push(ctx.user.id);
