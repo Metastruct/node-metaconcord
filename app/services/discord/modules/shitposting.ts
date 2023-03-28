@@ -26,7 +26,7 @@ const MAYBE_TRIGGER_WORDS = ["metastruct", "metaconstruct", "meta", "bot"]; // n
 const MAYBE_TRIGGER_FREQ = 0.4; // frequency of triggers above
 
 // shat constants
-const STOLEN_IMAGE_FREQ = 0.025; // how often the bot will respond with an image instead of text
+const STOLEN_IMAGE_FREQ = 0.05; // how often the bot will respond with an stolen image instead of text
 const IMAGE_FREQ = 0.025; // how often the bot will respond with an image from the iotd imgur album instead of text
 const REPLY_FREQ = 0.25; // when to take a word from a previous discord message if provided
 
