@@ -159,7 +159,7 @@ export default (bot: DiscordBot): void => {
 				const wordList = messages
 					.map(msg => msg.split(" "))
 					.flat()
-					.filter(w => !filter.includes(w.toLowerCase()));
+					.filter(w => w.length <= 32 && !filter.includes(w.toLowerCase()));
 				const word = wordList[(Math.random() * wordList?.length) | 0];
 				nick = word.charAt(0).toUpperCase() + word.slice(1);
 			}
