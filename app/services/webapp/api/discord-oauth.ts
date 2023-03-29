@@ -1,3 +1,4 @@
+import { SQL } from "../../SQL";
 import { WebApp } from "..";
 import { rateLimit } from "express-rate-limit";
 import DiscordConfig from "@/config/discord.json";
@@ -66,7 +67,7 @@ export const getOAuthTokens = async (code: any) => {
 };
 
 export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
-	const sql = globalThis.MetaConcord.container.getService("SQL");
+	const sql: SQL = globalThis.MetaConcord.container.getService("SQL");
 	if (!sql) return false;
 
 	if (!localOnly) {
@@ -89,7 +90,7 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 		if (!res) return false;
 	}
 
-	(await sql.getLocalDatabase()).db.get(
+	(await sql.getLocalDatabase()).db.run(
 		"DELETE FROM discord_tokens WHERE access_token = ?;",
 		token
 	);
@@ -151,20 +152,38 @@ export default (webApp: WebApp): void => {
 	webApp.app.get("/discord/link/:id/revoke", rateLimit({ max: 5 }), async (req, res) => {
 		const secret = req.query.secret;
 		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
-		const db = await (
+		const entry = await (
 			await sql.getLocalDatabase()
-		).get<LocalDatabaseEntry>("SELECT * FROM discord_tokens where user_id = ?;", req.params.id);
-		if (!db) return res.status(404).send("no data");
-		await revokeOAuthToken(db.access_token);
+		).get<LocalDatabaseEntry>(
+			"SELECT access_token FROM discord_tokens WHERE user_id = ?",
+			req.params.id
+		);
+		if (!entry) return res.status(404).send("no data");
+		await revokeOAuthToken(entry.access_token);
+		res.send("👌");
+	});
+	webApp.app.get("/discord/revokealltokens", rateLimit({ max: 5 }), async (req, res) => {
+		const secret = req.query.secret;
+		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
+		const entries = await (
+			await sql.getLocalDatabase()
+		).all<LocalDatabaseEntry[]>("SELECT access_token FROM discord_tokens");
+		if (!entries || entries.length === 0) return res.status(404).send("no data");
+		for (const entry of entries) {
+			await revokeOAuthToken(entry.access_token);
+		}
 		res.send("👌");
 	});
 	webApp.app.get("/discord/linkrefreshall", rateLimit({ max: 5 }), async (req, res) => {
 		const secret = req.query.secret;
 		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
-		const db = await (await sql.getLocalDatabase()).all("SELECT user_id FROM discord_tokens");
-		for (const entry of db) {
-			await metadata.update(entry.user_id);
-		}
+		const entries = await (
+			await sql.getLocalDatabase()
+		).all<LocalDatabaseEntry[]>("SELECT user_id FROM discord_tokens");
+		if (!entries || entries.length === 0)
+			for (const entry of entries) {
+				await metadata.update(entry.user_id);
+			}
 		res.send("👌");
 	});
 	webApp.app.get("/discord/auth/callback", async (req, res) => {
@@ -185,7 +204,7 @@ export default (webApp: WebApp): void => {
 			const userId = data.user.id;
 			const db = await sql.getLocalDatabase();
 			await db.exec(
-				"CREATE TABLE IF NOT EXISTS discord_tokens (user_id VARCHAR(255) PRIMARY KEY, steam_id VARCHAR(255), access_token VARCHAR(255), refresh_token VARCHAR(255), expires_at DATETIME);"
+				"CREATE TABLE IF NOT EXISTS discord_tokens (user_id VARCHAR(255) PRIMARY KEY, steam_id VARCHAR(255), access_token VARCHAR(255), refresh_token VARCHAR(255), expires_at DATETIME)"
 			);
 
 			const connections = await getConnections(tokens);
