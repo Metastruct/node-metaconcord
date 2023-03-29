@@ -120,7 +120,7 @@ export class DiscordMetadata extends Service {
 			).run(
 				"UPDATE discord_tokens SET access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at WHERE user_id = $user_id",
 				{
-					$user_Id: userId,
+					$user_id: userId,
 					$access_token: token.access_token,
 					$refresh_token: token.refresh_token,
 					$expires_at: Date.now() + token.expires_in * 1000,
