@@ -285,6 +285,6 @@ export class DiscordMetadata extends Service {
 }
 
 export default async (container: Container): Promise<Service> => {
-	const connections = new DiscordMetadata(container);
-	return connections;
+	const metadata = new DiscordMetadata(container);
+	return metadata;
 };
