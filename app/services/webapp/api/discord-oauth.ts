@@ -249,7 +249,7 @@ export default (webApp: WebApp): void => {
 
 				res.send(
 					"👍" + selectedId
-						? ` ⚠ since you seem to have more than one steamID linked (wtf) I just picked the first one (http://steamcommunity.com/id/${selectedId}) ⚠`
+						? ` ⚠ since you seem to have more than one steamID linked (wtf) I just picked the first one (https://steamcommunity.com/id/${selectedId}) ⚠`
 						: ""
 				);
 			}
