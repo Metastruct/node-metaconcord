@@ -35,7 +35,7 @@ export default (webApp: WebApp): void => {
 			params: query,
 		});
 		const ident = query["openid.identity"]?.toString();
-		if (!valid || valid.data.length === 0 || !ident)
+		if (!valid || valid.data.length === 0 || !valid.data.includes("is_valid:true") || !ident)
 			return res.status(403).send("Invalid Steam Response?");
 
 		const steamId = ident.match(/https:\/\/steamcommunity\.com\/openid\/id\/(\d+)/)?.[1];
