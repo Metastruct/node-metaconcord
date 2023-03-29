@@ -2,6 +2,7 @@ import { SQL } from "../../SQL";
 import { WebApp } from "..";
 import { rateLimit } from "express-rate-limit";
 import DiscordConfig from "@/config/discord.json";
+import SteamID from "steamid";
 import axios, { AxiosError } from "axios";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
@@ -146,10 +147,10 @@ export default (webApp: WebApp): void => {
 		if (!data) return res.status(404).send("no data");
 		res.send(data);
 	});
-	webApp.app.get("/discord/link/:id/refresh", rateLimit({ max: 5 }), async (req, res) => {
+	webApp.app.get("/discord/link/:id/refresh", rateLimit(), async (req, res) => {
 		res.send((await metadata.update(req.params.id)) ? "👌" : "👎");
 	});
-	webApp.app.get("/discord/link/:id/revoke", rateLimit({ max: 5 }), async (req, res) => {
+	webApp.app.get("/discord/link/:id/revoke", rateLimit(), async (req, res) => {
 		const secret = req.query.secret;
 		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
 		const entry = await (
@@ -162,7 +163,7 @@ export default (webApp: WebApp): void => {
 		await revokeOAuthToken(entry.access_token);
 		res.send("👌");
 	});
-	webApp.app.get("/discord/revokealltokens", rateLimit({ max: 5 }), async (req, res) => {
+	webApp.app.get("/discord/revokealltokens", rateLimit(), async (req, res) => {
 		const secret = req.query.secret;
 		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
 		const entries = await (
@@ -174,7 +175,7 @@ export default (webApp: WebApp): void => {
 		}
 		res.send("👌");
 	});
-	webApp.app.get("/discord/linkrefreshall", rateLimit({ max: 5 }), async (req, res) => {
+	webApp.app.get("/discord/linkrefreshall", rateLimit(), async (req, res) => {
 		const secret = req.query.secret;
 		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
 		const entries = await (
@@ -186,7 +187,7 @@ export default (webApp: WebApp): void => {
 			}
 		res.send("👌");
 	});
-	webApp.app.get("/discord/auth/callback", async (req, res) => {
+	webApp.app.get("/discord/auth/callback", rateLimit(), async (req, res) => {
 		try {
 			const code = req.query["code"];
 			if (!code) return res.sendStatus(403);
@@ -206,30 +207,52 @@ export default (webApp: WebApp): void => {
 			await db.exec(
 				"CREATE TABLE IF NOT EXISTS discord_tokens (user_id VARCHAR(255) PRIMARY KEY, steam_id VARCHAR(255), access_token VARCHAR(255), refresh_token VARCHAR(255), expires_at DATETIME)"
 			);
-
+			let steamId: string | undefined;
+			let selectedId: string | undefined;
 			const connections = await getConnections(tokens);
-			if (!connections) {
-				return res.status(500).send("Could not get connections :(");
-			}
-			const steamProvider = connections.find(
-				provider => provider.type === "steam" && provider.verified === true
-			);
-			if (!steamProvider) return res.status(403).send("Missing Steam connection :(");
-
-			await db.run(
-				"INSERT INTO discord_tokens VALUES($user_id, $steam_id, $access_token, $refresh_token, $expires_at) ON CONFLICT (user_id) DO UPDATE SET steam_id = $steam_id, access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at",
-				{
-					$user_id: userId,
-					$steam_id: steamProvider.id,
-					$access_token: tokens.access_token,
-					$refresh_token: tokens.refresh_token,
-					$expires_at: Date.now() + tokens.expires_in * 1000,
+			if (connections) {
+				const steamProvider = connections.find(
+					provider => provider.type === "steam" && provider.verified === true
+				);
+				if (steamProvider) {
+					steamId = steamProvider.id;
+				} else {
+					const links = await sql.queryPool(
+						`SELECT * FROM discord_link WHERE discorduserid = $1;`,
+						[userId]
+					);
+					if (links.length === 0)
+						return res.send(
+							`<p>Steam not linked on Discord, please click on the button below to start linking here instead, then try linking again.</p> <a href="/metaconcord/steam/link/${userId}"><img src="https://community.cloudflare.steamstatic.com/public/images/signinthroughsteam/sits_02.png">`
+						);
+					const selected = SteamID.fromIndividualAccountID(
+						links[0].accountid
+					).getSteamID64();
+					if (links.length >= 1) selectedId = selected;
+					steamId = selected;
 				}
-			);
 
-			await metadata.update(userId);
+				if (!steamId) return res.status(500).send("Could get not your SteamID :(");
 
-			res.send("👍");
+				await db.run(
+					"INSERT INTO discord_tokens VALUES($user_id, $steam_id, $access_token, $refresh_token, $expires_at) ON CONFLICT (user_id) DO UPDATE SET steam_id = $steam_id, access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at",
+					{
+						$user_id: userId,
+						$steam_id: steamId,
+						$access_token: tokens.access_token,
+						$refresh_token: tokens.refresh_token,
+						$expires_at: Date.now() + tokens.expires_in * 1000,
+					}
+				);
+
+				await metadata.update(userId);
+
+				res.send(
+					"👍" + selectedId
+						? ` ⚠ since you seem to have more than one steamID linked (wtf) I just picked the first one (${selectedId}) ⚠`
+						: ""
+				);
+			}
 		} catch (err) {
 			console.error(err);
 			res.sendStatus(500);
