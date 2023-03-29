@@ -5,6 +5,7 @@ import changeGamemode from "./gamemode";
 import ci from "./ci";
 import discordOAuth from "./discord-oauth";
 import gmodErrorHandler from "./gmod-error-handler";
+import steamOAuth from "./steam-oauth";
 import webhookHandler from "./webhook-handler";
 
 export default [
@@ -15,5 +16,6 @@ export default [
 	ci,
 	discordOAuth,
 	gmodErrorHandler,
+	steamOAuth,
 	webhookHandler,
 ];
