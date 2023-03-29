@@ -174,6 +174,11 @@ export class DiscordMetadata extends Service {
 		);
 		if (!data) return false;
 
+		await this.sql.queryPool(
+			"INSERT INTO discord_link (accountid, discorduserid, linked_at) VALUES($1, $2, $3) ON CONFLICT (accountid) DO UPDATE SET linked_at = $4",
+			[new SteamID(data.steam_id).accountid, data.user_id, new Date(), new Date()]
+		);
+
 		const query1 = await this.sql.queryPool(`SELECT coins FROM coins WHERE accountid = $1;`, [
 			new SteamID(data.steam_id).accountid,
 		]);
