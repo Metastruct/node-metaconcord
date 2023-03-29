@@ -228,7 +228,7 @@ export default (webApp: WebApp): void => {
 					const selected = SteamID.fromIndividualAccountID(
 						links[0].accountid
 					).getSteamID64();
-					if (links.length >= 1) selectedId = selected;
+					if (links.length > 1) selectedId = selected;
 					steamId = selected;
 				}
 
