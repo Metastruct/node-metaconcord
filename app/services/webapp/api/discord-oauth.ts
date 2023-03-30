@@ -223,7 +223,7 @@ export default (webApp: WebApp): void => {
 					);
 					if (links.length === 0)
 						return res.send(
-							`<p>Steam not linked on Discord, please click on the button below to start linking here instead.</p> <a href="/metaconcord/steam/link/${userId}"><img src="https://community.cloudflare.steamstatic.com/public/images/signinthroughsteam/sits_02.png">`
+							`<p>Steam not linked on Discord, please click on the button below to start linking here instead.</p> <a href="/steam/link/${userId}"><img src="https://community.cloudflare.steamstatic.com/public/images/signinthroughsteam/sits_02.png">`
 						);
 					const selected = SteamID.fromIndividualAccountID(
 						links[0].accountid

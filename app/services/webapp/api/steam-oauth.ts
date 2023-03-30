@@ -45,7 +45,7 @@ export default (webApp: WebApp): void => {
 			[new SteamID(steamId).accountid, userId, new Date(), new Date()]
 		);
 
-		return res.redirect("/metaconcord/discord/link");
+		return res.redirect("/discord/link");
 	});
 	webApp.app.get("/steam/link/:id", async (req, res) => {
 		const userId = req.params.id;
@@ -55,8 +55,8 @@ export default (webApp: WebApp): void => {
 			"openid.ns": "http://specs.openid.net/auth/2.0",
 			"openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
 			"openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
-			"openid.return_to": `https://g2cf.metastruct.net/metaconcord/steam/auth/callback/${userId}`,
-			"openid.realm": "https://g2cf.metastruct.net/metaconcord",
+			"openid.return_to": `https://metaconcord.metastruct.net/steam/auth/callback/${userId}`,
+			"openid.realm": "https://metaconcord.metastruct.net/",
 			"openid.mode": "checkid_setup",
 		}).toString();
 
