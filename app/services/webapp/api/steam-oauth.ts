@@ -44,7 +44,8 @@ export default (webApp: WebApp): void => {
 			"INSERT INTO discord_link (accountid, discorduserid, linked_at) VALUES($1, $2, $3) ON CONFLICT (accountid) DO UPDATE SET linked_at = $4",
 			[new SteamID(steamId).accountid, userId, new Date(), new Date()]
 		);
-		return res.send("👍, now go back to discord and try linking it again and it should work.");
+
+		return res.redirect("/metaconcord/discord/link");
 	});
 	webApp.app.get("/steam/link/:id", async (req, res) => {
 		const userId = req.params.id;
