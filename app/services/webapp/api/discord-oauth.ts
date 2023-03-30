@@ -223,7 +223,7 @@ export default (webApp: WebApp): void => {
 					);
 					if (links.length === 0)
 						return res.send(
-							`<p>Steam not linked on Discord, please click on the button below to start linking here instead, then try linking again.</p> <a href="/metaconcord/steam/link/${userId}"><img src="https://community.cloudflare.steamstatic.com/public/images/signinthroughsteam/sits_02.png">`
+							`<p>Steam not linked on Discord, please click on the button below to start linking here instead.</p> <a href="/metaconcord/steam/link/${userId}"><img src="https://community.cloudflare.steamstatic.com/public/images/signinthroughsteam/sits_02.png">`
 						);
 					const selected = SteamID.fromIndividualAccountID(
 						links[0].accountid
@@ -248,9 +248,10 @@ export default (webApp: WebApp): void => {
 				await metadata.update(userId);
 
 				res.send(
-					"👍" + selectedId
-						? ` ⚠ since you seem to have more than one steamID linked (wtf) I just picked the first one (https://steamcommunity.com/id/${selectedId}) ⚠`
-						: ""
+					"👍" +
+						(selectedId
+							? ` ⚠ since you seem to have more than one SteamID linked (wtf) I just picked the first one (https://steamcommunity.com/id/${selectedId}) ⚠`
+							: "")
 				);
 			}
 		} catch (err) {
