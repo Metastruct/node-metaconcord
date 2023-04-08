@@ -96,7 +96,7 @@ export class DiscordBot extends Service {
 			default:
 		}
 
-		this.discord.user.setActivity(activity);
+		this.discord.user?.setActivity(activity);
 	}
 
 	async setServerBanner(url: string): Promise<void> {
