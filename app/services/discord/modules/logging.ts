@@ -59,7 +59,7 @@ export default (bot: DiscordBot): void => {
 		}
 
 		if (attachments) {
-			embed.addFields(f("Attachment/s", attachments.join(" ")));
+			embed.addFields(f("Attachment/s", attachments.join(" ").substring(0, 1024)));
 		}
 
 		if (embeds) {
