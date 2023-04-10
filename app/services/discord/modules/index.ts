@@ -1,6 +1,6 @@
 import CommandsLoader from "./commands";
 import DiscordGuildIconLoader from "./discord-guild-icon";
-import EventRoleLoader from "./event-role";
+import EventRoleLoader from "./discord-events";
 import LoggingLoader from "./logging";
 import MotdRollbackLoader from "./motdrollback";
 import ProgressBarLoader from "./premium-progress-bar";
