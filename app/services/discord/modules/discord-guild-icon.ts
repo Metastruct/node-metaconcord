@@ -87,6 +87,7 @@ export default (bot: DiscordBot): void => {
 		const changeIcon = async (filePath: string, eventName: string, nickName: string) => {
 			const eventChange = data.lastDiscordGuildIcon !== eventName;
 			const nickChange = guild.members.me?.nickname !== nickName;
+			const guildEvents = await guild.scheduledEvents.fetch();
 			if (!eventChange && !nickChange) return;
 
 			if (nickChange) {
@@ -97,7 +98,7 @@ export default (bot: DiscordBot): void => {
 				}
 				data.lastDiscordNickName = nickName;
 			}
-			if (eventChange) {
+			if (eventChange && !guildEvents.find(ev => ev.isActive())) {
 				try {
 					await guild.setIcon(
 						filePath,
