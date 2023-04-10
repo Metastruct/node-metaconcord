@@ -1,6 +1,6 @@
 import CommandsLoader from "./commands";
+import DiscordEventsLoader from "./discord-events";
 import DiscordGuildIconLoader from "./discord-guild-icon";
-import EventRoleLoader from "./discord-events";
 import LoggingLoader from "./logging";
 import MotdRollbackLoader from "./motdrollback";
 import ProgressBarLoader from "./premium-progress-bar";
@@ -11,7 +11,7 @@ import TempVoiceChannelsLoader from "./temp-voice-channels";
 export default [
 	CommandsLoader,
 	DiscordGuildIconLoader,
-	EventRoleLoader,
+	DiscordEventsLoader,
 	LoggingLoader,
 	MotdRollbackLoader,
 	ProgressBarLoader,
