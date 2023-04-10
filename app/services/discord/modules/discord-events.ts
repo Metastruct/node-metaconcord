@@ -33,7 +33,9 @@ export default (bot: DiscordBot): void => {
 				for (const { icon, triggers } of events) {
 					if (triggers.includes(event.name.toLowerCase())) {
 						const currentIcon = event.guild?.iconURL();
-						oldIcon = currentIcon ? currentIcon : "wtf";
+						oldIcon = currentIcon
+							? currentIcon
+							: join(process.cwd(), "resources/discord-guild-icons/default.png");
 						await event.guild?.setIcon(join(iconsPath, `${icon}.png`));
 					}
 				}
