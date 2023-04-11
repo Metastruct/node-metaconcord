@@ -194,8 +194,10 @@ export default class Motd extends Service {
 			this.container.getService("DiscordBot")?.setServerBanner(url);
 			this.lastimages.push(image);
 			await this.data.save();
-			const last = await this.container.getService("DiscordBot")?.getLastMotdMsg();
-			await last?.react("♻");
+			setTimeout(async () => {
+				const last = await this.container.getService("DiscordBot")?.getLastMotdMsg();
+				await last?.react("♻");
+			}, 1000 * 60);
 		}
 	}
 	async rerollImageJob(): Promise<void> {
