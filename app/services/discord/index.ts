@@ -154,9 +154,9 @@ export class DiscordBot extends Service {
 		const channel = this.getTextChannel(motdConfig.channelId);
 		if (!channel) return;
 		return (
-			channel?.lastMessage ??
+			channel.lastMessage ??
 			(
-				await channel?.messages.fetch({
+				await channel.messages.fetch({
 					limit: 1,
 				})
 			).first()
@@ -172,14 +172,14 @@ export class DiscordBot extends Service {
 	async removeMotdReactions(): Promise<void> {
 		const chan = this.getTextChannel(motdConfig.channelId);
 		if (!chan?.lastMessage) return;
-		await (await chan.lastMessage.fetch()).reactions.removeAll();
+		await (await chan.lastMessage.fetch(false)).reactions.removeAll();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	async fetchPartial(obj): Promise<any> {
 		if (obj && obj.partial) {
 			try {
-				await obj.fetch(true);
+				await obj.fetch();
 			} catch {}
 			return obj;
 		}
