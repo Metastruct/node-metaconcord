@@ -19,4 +19,19 @@ export default async (bot: DiscordBot): Promise<void> => {
 			if (changes) data.save();
 		}
 	});
+
+	bot.discord.on("ready", async () => {
+		if (!channels) return;
+		const guildChannels = bot.getGuild()?.channels;
+		if (guildChannels) {
+			let changes = false;
+			for (const [ownerId, data] of Object.entries(channels)) {
+				if (!guildChannels.cache.has(data.channelId)) {
+					delete channels[ownerId];
+					changes = true;
+				}
+			}
+			if (changes) data.save();
+		}
+	});
 };
