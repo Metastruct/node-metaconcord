@@ -76,7 +76,9 @@ export default (bot: DiscordBot): void => {
 	bot.discord.on("messageUpdate", async (oldMsg, newMsg) => {
 		if (!logChannel) return;
 
-		oldMsg = await bot.fetchPartial(oldMsg);
+		oldMsg = oldMsg.partial ? await bot.fetchPartial(oldMsg) : oldMsg;
+		newMsg = newMsg.partial ? await bot.fetchPartial(newMsg) : newMsg;
+
 		if (oldMsg.content === newMsg.content) return; // discord manages embeds by updating user messages
 		const user = oldMsg.author ?? newMsg.author;
 		if (user?.bot) return;
