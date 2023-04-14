@@ -10,8 +10,6 @@ const MSG_INTERVAL = 1000 * 60; // interval for checking messages for below trig
 const MSG_TRIGGER_COUNT = 13; // how many msgs in above interval until a msg is posted
 const MSG_CHAT_INTERVAL = 1000 * 60 * 60 * 2; // total time until a message is forced if below interval wasn't met (active chatters)
 const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 1; // idle (no active chatters) time until post, can be delayed by chatting
-const MSG_REPLY_INTERVAL = 1000 * 60 * 2; // limit how often people can reply to the bot and get a response
-const MSG_RNG_FREQ = 0.005; // random messges that defy intervals and limits
 const MSG_USE_AUTHOR_FREQ = 0.3; // use the author name instead of message
 const REACTION_FREQ = 0.005; // how often to react on messages;
 const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
@@ -107,7 +105,6 @@ export default (bot: DiscordBot): void => {
 	let lastActivityChange = now;
 	let lastAPIActivity: Discord.Activity | undefined;
 	let lastSetActivity: Discord.ActivitiesOptions | undefined;
-	let lastMkTime = (data.lastMkTime = data.lastMkTime ?? now);
 	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? now);
 	let lastChatTime = now;
 	const lastMsgs: Discord.Message<boolean>[] = [];
@@ -149,7 +146,7 @@ export default (bot: DiscordBot): void => {
 				await bot.getTextChannel(bot.config.channels.chat)?.send(shat);
 			}
 			if (!options.dont_save) {
-				data.lastMkTime = lastMkTime = Date.now();
+				data.lastMkTime = Date.now();
 			}
 		}
 		posting = false;
@@ -274,7 +271,6 @@ export default (bot: DiscordBot): void => {
 		}
 
 		// #shitpost channel
-		const forcePost = Math.random() <= MSG_RNG_FREQ;
 		if (
 			bot.config.bot.allowedShitpostingChannels.includes(msg.channelId) &&
 			msg.author.id !== id &&
@@ -285,16 +281,7 @@ export default (bot: DiscordBot): void => {
 						msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
 					)))
 		) {
-			const itsPostingTime = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
-			if ((itsPostingTime || forcePost) && !posting) {
-				await sendShat(
-					msg.stickers.size > 0
-						? { forceImage: true, forceReply: true }
-						: { msg: msg, forceReply: true }
-				);
-				replied = false;
-				data.lastMsgTime = lastMsgTime = Date.now();
-			} else if (!itsPostingTime && !replied && !posting) {
+			if (!replied && !posting) {
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, ping: true, dont_save: true }
