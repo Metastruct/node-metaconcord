@@ -262,12 +262,12 @@ export default (bot: DiscordBot): void => {
 
 		// Message Reactions
 		if (
-			(msg.author.id !== id &&
-				Math.random() <= REACTION_FREQ &&
-				msg.mentions.users.first()?.id !== bot.discord.user?.id) ||
-			(msg.author.id !== id &&
-				bot.config.channels.chat !== msg.channelId &&
-				TRIGGER_WORDS.some(str =>
+			(msg.author.id !== id && Math.random() <= REACTION_FREQ) ||
+			TRIGGER_WORDS.some(str =>
+				msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
+			) ||
+			(Math.random() <= MAYBE_TRIGGER_FREQ &&
+				MAYBE_TRIGGER_WORDS.some(str =>
 					msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
 				))
 		) {
