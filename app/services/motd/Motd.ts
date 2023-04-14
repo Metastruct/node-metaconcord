@@ -196,7 +196,7 @@ export default class Motd extends Service {
 			await this.data.save();
 			setTimeout(async () => {
 				const last = await this.container.getService("DiscordBot")?.getLastMotdMsg();
-				await last?.react("♻");
+				await last?.react("♻️");
 			}, 1000 * 10);
 		}
 	}
