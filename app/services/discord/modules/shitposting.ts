@@ -17,7 +17,6 @@ const REACTION_FREQ = 0.005; // how often to react on messages;
 const SAVE_INTERVAL = 1000 * 60 * 10; // saves lastmsg/mk at that interval
 const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
-const MSG_CACHE_AMOUNT = 4; // how many messages to save to look up backwards
 const TYPING_TRIGGER_THRESHOLD = 0.9; // at how much msgs to trigger the typing (related to MSG_TRIGGER_COUNT)
 
 // trigger word constants
@@ -218,7 +217,7 @@ export default (bot: DiscordBot): void => {
 				lastMsgs.length > 0 &&
 				lastMsgs.slice(-1)[0].author.id !== bot.discord.user?.id &&
 				(now - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
-					lastMsgs.length - MSG_CACHE_AMOUNT >= MSG_TRIGGER_COUNT ||
+					lastMsgs.length >= MSG_TRIGGER_COUNT ||
 					now - lastMsgTime > MSG_CHAT_INTERVAL) &&
 				!posting
 			) {
@@ -235,7 +234,7 @@ export default (bot: DiscordBot): void => {
 			} else if (lastSetActivity?.name !== lastAPIActivity?.name) {
 				bot.setActivity(undefined, lastSetActivity);
 			}
-			lastMsgs.splice(0, lastMsgs.length - MSG_CACHE_AMOUNT); // delete lastmsg cache except the last two messages used for lookups
+			lastMsgs.splice(0, lastMsgs.length); // delete lastmsg cache
 		}, MSG_INTERVAL);
 	});
 
@@ -312,8 +311,8 @@ export default (bot: DiscordBot): void => {
 			lastChatTime = Date.now();
 			lastMsgs.push(msg);
 			if (
-				lastMsgs.length - MSG_CACHE_AMOUNT < MSG_TRIGGER_COUNT &&
-				(lastMsgs.length - MSG_CACHE_AMOUNT) / MSG_TRIGGER_COUNT >= TYPING_TRIGGER_THRESHOLD
+				lastMsgs.length < MSG_TRIGGER_COUNT &&
+				lastMsgs.length / MSG_TRIGGER_COUNT >= TYPING_TRIGGER_THRESHOLD
 			) {
 				(msg.channel as Discord.TextChannel).sendTyping();
 			}
