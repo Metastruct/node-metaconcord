@@ -223,6 +223,7 @@ export default (bot: DiscordBot): void => {
 					msg: Math.random() <= MSG_REPLY_FREQ ? lastMsgs.slice(-1)[0] : undefined,
 				});
 				data.lastMsgTime = lastMsgTime = now;
+				replied = false;
 				bot.setActivity(undefined, await getRandomStatus());
 			}
 			if (now - lastActivityChange > ACTIVITY_CHANGE_INTERVAL) {
