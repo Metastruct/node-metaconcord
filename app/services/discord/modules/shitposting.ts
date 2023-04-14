@@ -275,17 +275,36 @@ export default (bot: DiscordBot): void => {
 		}
 
 		// #shitpost channel
+		const forcePost = Math.random() <= MSG_RNG_FREQ;
 		if (
+			bot.config.bot.allowedShitpostingChannels.includes(msg.channelId) &&
 			msg.author.id !== id &&
-			(msg.mentions.users.first()?.id === id ||
-				TRIGGER_WORDS.some(str =>
-					msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
-				)) &&
-			bot.config.bot.allowedShitpostingChannels.includes(msg.channelId)
+			((msg.mentions.users.first()?.id === id && msg.content !== `<@${id}>`) ||
+				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
+				(Math.random() <= MAYBE_TRIGGER_FREQ &&
+					MAYBE_TRIGGER_WORDS.some(str =>
+						msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
+					)))
 		) {
-			(msg.channel as Discord.TextChannel).sendTyping();
-			const shat = await Shat(msg.content);
-			if (shat) await msg.reply(shat);
+			const itsPostingTime = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
+			if ((itsPostingTime || forcePost) && !posting) {
+				await sendShat(
+					msg.stickers.size > 0
+						? { forceImage: true, forceReply: true }
+						: { msg: msg, forceReply: true }
+				);
+				replied = false;
+				data.lastMsgTime = lastMsgTime = Date.now();
+			} else if (!itsPostingTime && !replied && !posting) {
+				await sendShat(
+					msg.stickers.size > 0
+						? { forceImage: true, ping: true, dont_save: true }
+						: { msg: msg, forceImage: true, ping: true, dont_save: true }
+				);
+				replied = true;
+			} else {
+				msg.react(getRandomEmoji());
+			}
 		}
 
 		// #chat channel
@@ -311,39 +330,6 @@ export default (bot: DiscordBot): void => {
 				)
 			) {
 				lastImgs.push(msg.content);
-			}
-		}
-
-		const forcePost = Math.random() <= MSG_RNG_FREQ;
-		if (
-			bot.config.channels.chat === msg.channelId &&
-			msg.author.id !== id &&
-			((msg.mentions.users.first()?.id === id && msg.content !== `<@${id}>`) ||
-				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
-				(Math.random() <= MAYBE_TRIGGER_FREQ &&
-					MAYBE_TRIGGER_WORDS.some(str =>
-						msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
-					)) ||
-				forcePost)
-		) {
-			const itsPostingTime = Date.now() - lastMkTime > MSG_REPLY_INTERVAL;
-			if ((itsPostingTime || forcePost) && !posting) {
-				await sendShat(
-					msg.stickers.size > 0
-						? { forceImage: true, forceReply: true }
-						: { msg: msg, forceReply: true }
-				);
-				replied = false;
-				data.lastMsgTime = lastMsgTime = Date.now();
-			} else if (!itsPostingTime && !replied && !posting) {
-				await sendShat(
-					msg.stickers.size > 0
-						? { forceImage: true, ping: true, dont_save: true }
-						: { msg: msg, forceImage: true, ping: true, dont_save: true }
-				);
-				replied = true;
-			} else {
-				msg.react(getRandomEmoji());
 			}
 		}
 	});
