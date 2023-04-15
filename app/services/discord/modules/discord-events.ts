@@ -33,7 +33,7 @@ export default (bot: DiscordBot): void => {
 				for (const { icon, triggers } of events) {
 					let match = false;
 					for (const trigger of triggers) {
-						if (event.name.includes(trigger)) match = true;
+						if (event.name.toLowerCase().includes(trigger)) match = true;
 					}
 					if (match) {
 						const currentIcon = event.guild?.iconURL();
