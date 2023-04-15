@@ -257,16 +257,21 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 
+		// triggers
+		const triggerWord = TRIGGER_WORDS.some(str =>
+			msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
+		);
+		const maybeTriggerWord =
+			Math.random() <= MAYBE_TRIGGER_FREQ &&
+			MAYBE_TRIGGER_WORDS.some(str =>
+				msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
+			);
+
 		// Message Reactions
 		if (
 			(msg.author.id !== id && Math.random() <= REACTION_FREQ) ||
-			TRIGGER_WORDS.some(str =>
-				msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
-			) ||
-			(Math.random() <= MAYBE_TRIGGER_FREQ &&
-				MAYBE_TRIGGER_WORDS.some(str =>
-					msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
-				))
+			triggerWord ||
+			maybeTriggerWord
 		) {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
@@ -276,11 +281,8 @@ export default (bot: DiscordBot): void => {
 			bot.config.bot.allowedShitpostingChannels.includes(msg.channelId) &&
 			msg.author.id !== id &&
 			((msg.mentions.users.first()?.id === id && msg.content !== `<@${id}>`) ||
-				TRIGGER_WORDS.some(str => msg.content.toLowerCase().includes(str)) ||
-				(Math.random() <= MAYBE_TRIGGER_FREQ &&
-					MAYBE_TRIGGER_WORDS.some(str =>
-						msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
-					)))
+				triggerWord ||
+				maybeTriggerWord)
 		) {
 			if (!replied && !posting) {
 				await sendShat(
