@@ -24,6 +24,7 @@ const MAYBE_TRIGGER_FREQ = 0.4; // frequency of triggers above
 
 // shat constants
 const STOLEN_IMAGE_FREQ = 0.1; // how often the bot will respond with an stolen image instead of text
+const STICKER_FREQ = 0.05;
 const IMAGE_FREQ = 0.01; // how often the bot will respond with an image from the iotd imgur album instead of text
 const REPLY_FREQ = 0.25; // when to take a word from a previous discord message if provided
 
@@ -50,9 +51,10 @@ export const Shat = async (
 	fallback?: string,
 	forceImage?: boolean,
 	forceReply?: boolean,
-	forceMessage?: string
+	forceMessage?: string | Discord.MessageCreateOptions
 ): Promise<Discord.MessageCreateOptions | undefined> => {
-	if (forceMessage) return { content: forceMessage };
+	if (forceMessage)
+		return typeof forceMessage === "string" ? { content: forceMessage } : forceMessage;
 	const rng = Math.random();
 	if (rng > IMAGE_FREQ && !forceImage) {
 		let search: string | undefined;
@@ -128,6 +130,7 @@ export default (bot: DiscordBot): void => {
 		const rng = Math.random();
 		const shouldUseAuthor = rng <= MSG_USE_AUTHOR_FREQ;
 		const shouldStealImg = rng <= STOLEN_IMAGE_FREQ;
+		const shouldSendSticker = rng <= STICKER_FREQ;
 		const shat = await Shat(
 			shouldUseAuthor ? options.msg?.author.username?.toLowerCase() : options.msg?.content,
 			shouldUseAuthor ? options.msg?.content : undefined,
@@ -135,6 +138,10 @@ export default (bot: DiscordBot): void => {
 			options.forceReply,
 			shouldStealImg && lastImgs.length > 0
 				? lastImgs[(Math.random() * lastImgs.length) | 0]
+				: shouldSendSticker
+				? ({
+						stickers: bot.getGuild()?.stickers.cache.random(),
+				  } as Discord.MessageCreateOptions)
 				: undefined
 		);
 		if (shat) {
