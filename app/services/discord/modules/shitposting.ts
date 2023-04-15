@@ -260,14 +260,14 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 
-		const RNG = Math.random();
+		const rng = Math.random();
 
 		// triggers
 		const isTriggerWord = TRIGGER_WORDS.some(str =>
 			msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
 		);
 		const isMaybeTriggerWord =
-			RNG <= MAYBE_TRIGGER_FREQ &&
+			rng <= MAYBE_TRIGGER_FREQ &&
 			MAYBE_TRIGGER_WORDS.some(str =>
 				msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
 			);
@@ -278,7 +278,7 @@ export default (bot: DiscordBot): void => {
 
 		// Message Reactions
 		if (
-			RNG <= REACTION_FREQ ||
+			rng <= REACTION_FREQ ||
 			(!isAllowedChannel && (isTriggerWord || isMaybeTriggerWord || isMention))
 		) {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
