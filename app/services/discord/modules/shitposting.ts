@@ -275,13 +275,13 @@ export default (bot: DiscordBot): void => {
 				msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
 			);
 		const isChatChannel = bot.config.channels.chat === msg.channelId;
-		const isBot = msg.author.id !== id;
+		const isBot = msg.author.id === id;
 		const isMention = msg.mentions.users.first()?.id === id;
 		const isAllowedChannel = bot.config.bot.allowedShitpostingChannels.includes(msg.channelId);
 
 		// Message Reactions
 		if (
-			(!isBot && Math.random() <= REACTION_FREQ) ||
+			Math.random() <= REACTION_FREQ ||
 			isMention ||
 			(!isAllowedChannel && (isTriggerWord || isMaybeTriggerWord))
 		) {
