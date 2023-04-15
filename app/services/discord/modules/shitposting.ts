@@ -291,8 +291,6 @@ export default (bot: DiscordBot): void => {
 						: { msg: msg, forceImage: true, ping: true, dont_save: true }
 				);
 				replied = true;
-			} else {
-				msg.react(getRandomEmoji());
 			}
 		}
 
