@@ -282,8 +282,7 @@ export default (bot: DiscordBot): void => {
 		// Message Reactions
 		if (
 			Math.random() <= REACTION_FREQ ||
-			isMention ||
-			(!isAllowedChannel && (isTriggerWord || isMaybeTriggerWord))
+			(!isAllowedChannel && (isTriggerWord || isMaybeTriggerWord || isMention))
 		) {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
