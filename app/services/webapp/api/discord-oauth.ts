@@ -83,10 +83,11 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 			)
 			.catch((err: AxiosError) => {
 				console.error(
-					`[OAuth Callback] failed revoking tokens: [${err.code}] ${JSON.stringify(
-						err.response?.data
-					)}`
+					`[OAuth Callback] failed revoking token ${token}: [${
+						err.code
+					}] ${JSON.stringify(err.response?.data)}`
 				);
+				return;
 			});
 		if (!res) return false;
 	}
