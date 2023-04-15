@@ -319,7 +319,7 @@ export default (bot: DiscordBot): void => {
 		}
 
 		// image collector
-		if (msg.content.startsWith("http") && msg.author.id !== id) {
+		if (msg.content.startsWith("http") && !isBot) {
 			if (
 				msg.content.match(
 					new RegExp(
