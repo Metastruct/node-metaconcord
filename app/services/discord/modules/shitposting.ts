@@ -293,7 +293,7 @@ export default (bot: DiscordBot): void => {
 				triggerWord ||
 				maybeTriggerWord)
 		) {
-			if (!replied && !posting) {
+			if (!posting && (!replied || msg.channelId !== bot.config.bot.chatChannel)) {
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, ping: true, dont_save: true }
