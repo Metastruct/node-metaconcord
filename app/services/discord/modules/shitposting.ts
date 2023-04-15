@@ -279,8 +279,8 @@ export default (bot: DiscordBot): void => {
 		if (
 			(msg.author.id !== id && Math.random() <= REACTION_FREQ) ||
 			msg.mentions.users.first()?.id === id ||
-			triggerWord ||
-			maybeTriggerWord
+			(!bot.config.bot.allowedShitpostingChannels.includes(msg.channelId) &&
+				(triggerWord || maybeTriggerWord))
 		) {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
@@ -300,6 +300,8 @@ export default (bot: DiscordBot): void => {
 						: { msg: msg, forceImage: true, ping: true, dont_save: true }
 				);
 				replied = true;
+			} else {
+				setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 			}
 		}
 
