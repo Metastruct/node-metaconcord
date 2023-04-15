@@ -122,7 +122,6 @@ export default (bot: DiscordBot): void => {
 			forceReply?: boolean;
 			forceMessage?: string;
 			ping?: boolean;
-			dont_save?: boolean;
 		} = {}
 	) => {
 		posting = true;
@@ -152,9 +151,6 @@ export default (bot: DiscordBot): void => {
 				});
 			} else {
 				await bot.getTextChannel(bot.config.channels.chat)?.send(shat);
-			}
-			if (!options.dont_save) {
-				data.lastMkTime = Date.now();
 			}
 		}
 		posting = false;
@@ -227,7 +223,6 @@ export default (bot: DiscordBot): void => {
 				!posting
 			) {
 				await sendShat({
-					dont_save: true,
 					msg: Math.random() <= MSG_REPLY_FREQ ? lastMsgs.slice(-1)[0] : undefined,
 				});
 				data.lastMsgTime = lastMsgTime = now;
@@ -298,8 +293,8 @@ export default (bot: DiscordBot): void => {
 			if (!posting && (!replied || !isChatChannel)) {
 				await sendShat(
 					msg.stickers.size > 0
-						? { forceImage: true, ping: true, dont_save: true }
-						: { msg: msg, forceImage: true, ping: true, dont_save: true }
+						? { forceImage: true, ping: true }
+						: { msg: msg, ping: true }
 				);
 				if (isChatChannel) replied = true;
 			} else {

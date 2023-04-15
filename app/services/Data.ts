@@ -10,7 +10,6 @@ export class Data extends Service {
 
 	lastDiscordGuildIcon: string;
 	lastDiscordNickName: string;
-	lastMkTime: number;
 	lastMsgTime: number;
 	muted: {
 		[userId: string]: {
@@ -30,7 +29,6 @@ export class Data extends Service {
 	toSave = [
 		"lastDiscordGuildIcon",
 		"lastDiscordNickName",
-		"lastMkTime",
 		"lastMsgTime",
 		"muted",
 		"rules",
