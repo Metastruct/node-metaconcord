@@ -291,7 +291,7 @@ export default (bot: DiscordBot): void => {
 		// Chatting
 		if (
 			isAllowedChannel &&
-			isBot &&
+			!isBot &&
 			((isMention && msg.content !== `<@${id}>`) || isTriggerWord || isMaybeTriggerWord)
 		) {
 			if (!posting && (!replied || !isChatChannel)) {
