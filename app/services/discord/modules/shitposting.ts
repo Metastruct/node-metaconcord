@@ -270,6 +270,7 @@ export default (bot: DiscordBot): void => {
 		// Message Reactions
 		if (
 			(msg.author.id !== id && Math.random() <= REACTION_FREQ) ||
+			msg.mentions.users.first()?.id === id ||
 			triggerWord ||
 			maybeTriggerWord
 		) {
