@@ -299,7 +299,7 @@ export default (bot: DiscordBot): void => {
 						? { forceImage: true, ping: true, dont_save: true }
 						: { msg: msg, forceImage: true, ping: true, dont_save: true }
 				);
-				replied = true;
+				if (msg.channelId === bot.config.bot.chatChannel) replied = true;
 			} else {
 				setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 			}
