@@ -70,12 +70,11 @@ export const Shat = async (
 
 		return mk ? { content: mk.replace(`<@${DiscordConfig.bot.userId}> `, "") } : undefined;
 	} else {
-		const rng2 = Math.random();
 		const images = globalThis.MetaConcord.container.getService("Motd")?.images;
 		const word = msg && !msg.startsWith("http") ? getWord(msg) : undefined;
-		if (images && (rng2 <= 0.5 || !word)) {
-			const imgur = images[(rng2 * images.length) | 0];
-			const result = await makeSpeechBubble(imgur.link, rng2 <= 0.5);
+		if (images && (Math.random() <= 0.5 || !word)) {
+			const imgur = images[(Math.random() * images.length) | 0];
+			const result = await makeSpeechBubble(imgur.link, Math.random() <= 0.5);
 			return result
 				? { files: [{ attachment: result, description: imgur.title }] }
 				: undefined;
@@ -93,7 +92,9 @@ export const Shat = async (
 						.getService("Markov")
 						?.generate(),
 				}; // if for some reason we get no result;
-			return { content: res.data.results[(rng2 * res.data.results.length) | 0].url };
+			return {
+				content: res.data.results[(Math.random() * res.data.results.length) | 0].url,
+			};
 		}
 	}
 };
