@@ -266,47 +266,48 @@ export default (bot: DiscordBot): void => {
 		}
 
 		// triggers
-		const triggerWord = TRIGGER_WORDS.some(str =>
+		const isTriggerWord = TRIGGER_WORDS.some(str =>
 			msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
 		);
-		const maybeTriggerWord =
+		const isMaybeTriggerWord =
 			Math.random() <= MAYBE_TRIGGER_FREQ &&
 			MAYBE_TRIGGER_WORDS.some(str =>
 				msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
 			);
+		const isChatChannel = bot.config.channels.chat === msg.channelId;
+		const isBot = msg.author.id !== id;
+		const isMention = msg.mentions.users.first()?.id === id;
+		const isAllowedChannel = bot.config.bot.allowedShitpostingChannels.includes(msg.channelId);
 
 		// Message Reactions
 		if (
-			(msg.author.id !== id && Math.random() <= REACTION_FREQ) ||
-			msg.mentions.users.first()?.id === id ||
-			(!bot.config.bot.allowedShitpostingChannels.includes(msg.channelId) &&
-				(triggerWord || maybeTriggerWord))
+			(!isBot && Math.random() <= REACTION_FREQ) ||
+			isMention ||
+			(!isAllowedChannel && (isTriggerWord || isMaybeTriggerWord))
 		) {
 			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 		}
 
-		// #shitpost channel
+		// Chatting
 		if (
-			bot.config.bot.allowedShitpostingChannels.includes(msg.channelId) &&
-			msg.author.id !== id &&
-			((msg.mentions.users.first()?.id === id && msg.content !== `<@${id}>`) ||
-				triggerWord ||
-				maybeTriggerWord)
+			isAllowedChannel &&
+			isBot &&
+			((isMention && msg.content !== `<@${id}>`) || isTriggerWord || isMaybeTriggerWord)
 		) {
-			if (!posting && (!replied || msg.channelId !== bot.config.bot.chatChannel)) {
+			if (!posting && (!replied || !isChatChannel)) {
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, ping: true, dont_save: true }
 						: { msg: msg, forceImage: true, ping: true, dont_save: true }
 				);
-				if (msg.channelId === bot.config.bot.chatChannel) replied = true;
+				if (isChatChannel) replied = true;
 			} else {
 				setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
 			}
 		}
 
-		// #chat channel
-		if (bot.config.channels.chat === msg.channelId) {
+		// lastMessage collector
+		if (isChatChannel) {
 			lastChatTime = Date.now();
 			lastMsgs.push(msg);
 			if (
@@ -316,7 +317,8 @@ export default (bot: DiscordBot): void => {
 				(msg.channel as Discord.TextChannel).sendTyping();
 			}
 		}
-		// https?:\/\/(?:\w+)?.?(discordapp).\w+\/
+
+		// image collector
 		if (msg.content.startsWith("http") && msg.author.id !== id) {
 			if (
 				msg.content.match(
