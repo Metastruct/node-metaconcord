@@ -31,7 +31,11 @@ export default (bot: DiscordBot): void => {
 						usr.roles.add(DiscordConfig.roles.event);
 				});
 				for (const { icon, triggers } of events) {
-					if (triggers.includes(event.name.toLowerCase())) {
+					let match = false;
+					for (const trigger of triggers) {
+						if (event.name.includes(trigger)) match = true;
+					}
+					if (match) {
 						const currentIcon = event.guild?.iconURL();
 						oldIcon = currentIcon
 							? currentIcon
