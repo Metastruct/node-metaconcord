@@ -130,7 +130,8 @@ export default class ChatPayload extends Payload {
 					// .replace(/@/g, "(at)")
 					// .replace(/#/g, "")
 					.substring(0, 77)
-					.replace("discord", "discоrd")}`,
+					.replace("discord", "discоrd")
+					.replace("Discord", "Discоrd")}`,
 				avatarURL: avatar,
 				allowedMentions: { parse: ["users", "roles"] },
 			})
