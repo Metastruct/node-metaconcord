@@ -135,12 +135,12 @@ export default (bot: DiscordBot): void => {
 			shouldUseAuthor ? options.msg?.content : undefined,
 			options.forceImage,
 			options.forceReply,
-			shouldStealImg && lastImgs.length > 0
-				? lastImgs[(Math.random() * lastImgs.length) | 0]
-				: shouldSendSticker
+			shouldSendSticker
 				? ({
 						stickers: bot.getGuild()?.stickers.cache.random(),
 				  } as Discord.MessageCreateOptions)
+				: shouldStealImg && lastImgs.length > 0
+				? lastImgs[(Math.random() * lastImgs.length) | 0]
 				: undefined
 		);
 		if (shat) {
