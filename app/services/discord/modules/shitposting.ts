@@ -235,7 +235,7 @@ export default (bot: DiscordBot): void => {
 			} else if (lastSetActivity?.name !== lastAPIActivity?.name) {
 				bot.setActivity(undefined, lastSetActivity);
 			}
-			lastMsgs.splice(0, lastMsgs.length); // delete lastmsg cache
+			lastMsgs.splice(0, lastMsgs.length - 1); // delete lastmsg cache
 		}, MSG_INTERVAL);
 	});
 
