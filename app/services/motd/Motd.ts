@@ -115,6 +115,7 @@ export default class Motd extends Service {
 		if (msg == null || msg.length === 0) return;
 		this.data.lastMotd = msg;
 		this.data.save();
+
 		await axios.post(
 			config.webhook + "?wait=true",
 			JSON.stringify({

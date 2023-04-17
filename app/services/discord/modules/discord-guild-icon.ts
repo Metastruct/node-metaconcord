@@ -74,6 +74,7 @@ const filter = [
 	"do",
 	"done",
 	"myself",
+	"it",
 ];
 
 export default (bot: DiscordBot): void => {
