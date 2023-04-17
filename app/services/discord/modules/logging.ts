@@ -298,14 +298,22 @@ export default (bot: DiscordBot): void => {
 					);
 					break;
 				case "Update":
-					embed.addFields(
-						f(
-							"Changes",
-							`\`\`\`\n${entry.changes
-								.map(change => `[${change.key}] ${change.old} -> ${change.new}`)
-								.join("\n")}\`\`\``
-						)
-					);
+					let diff = "";
+					entry.changes.map(change => {
+						const diffList = diffWords(
+							change.old?.toString() ?? "nothing",
+							change.new?.toString() ?? "missing?"
+						);
+						for (const part of diffList) {
+							diff += part.added
+								? `\u001b[1;40m${part.value}\u001b[0;0m`
+								: part.removed
+								? `\u001b[1;30;41m${part.value}\u001b[0;0m`
+								: part.value;
+						}
+					});
+					diff = diff.replace("`", "\\`");
+					embed.addFields(f("Changes", `\`\`\`ansi\n${diff.substring(0, 1010)}\n\`\`\``));
 					break;
 				case "Delete":
 			}
