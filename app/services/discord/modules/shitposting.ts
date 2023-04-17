@@ -137,7 +137,7 @@ export default (bot: DiscordBot): void => {
 			options.forceReply,
 			shouldSendSticker
 				? ({
-						stickers: bot.getGuild()?.stickers.cache.random(),
+						stickers: [bot.getGuild()?.stickers.cache.random()],
 				  } as Discord.MessageCreateOptions)
 				: shouldStealImg && lastImgs.length > 0
 				? lastImgs[(Math.random() * lastImgs.length) | 0]
