@@ -113,7 +113,8 @@ export default class Motd extends Service {
 		const msg: string = this.messages[(Math.random() * this.messages.length) | 0];
 		this.messages = [];
 		if (msg == null || msg.length === 0) return;
-
+		this.data.lastMotd = msg;
+		this.data.save();
 		await axios.post(
 			config.webhook + "?wait=true",
 			JSON.stringify({
