@@ -287,12 +287,20 @@ export default (bot: DiscordBot): void => {
 
 		if (entry.changes.length > 0) {
 			switch (entry.actionType) {
+				case "Delete":
 				case "Create":
 					embed.addFields(
 						f(
 							"Changes",
 							`\`\`\`\n${entry.changes
-								.map(change => `[${change.key}] ${change.new}`)
+								.map(
+									change =>
+										`[${change.key}] ${
+											typeof change.new === "object"
+												? JSON.stringify(change.new)
+												: change.new?.toString() ?? ""
+										}`
+								)
 								.join("\n")}\`\`\``
 						)
 					);
@@ -300,9 +308,12 @@ export default (bot: DiscordBot): void => {
 				case "Update":
 					let diff = "";
 					entry.changes.map(change => {
+						diff += `[${change.key}]`;
 						const diffList = diffWords(
-							change.old?.toString() ?? "nothing",
-							change.new?.toString() ?? "missing?"
+							change.old?.toString() ?? "",
+							typeof change.new === "object"
+								? JSON.stringify(change.new)
+								: change.new?.toString() ?? ""
 						);
 						for (const part of diffList) {
 							diff += part.added
@@ -315,7 +326,6 @@ export default (bot: DiscordBot): void => {
 					diff = diff.replace("`", "\\`");
 					embed.addFields(f("Changes", `\`\`\`ansi\n${diff.substring(0, 1010)}\n\`\`\``));
 					break;
-				case "Delete":
 			}
 		}
 
