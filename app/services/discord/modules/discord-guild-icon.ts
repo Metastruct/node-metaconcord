@@ -154,16 +154,11 @@ export default (bot: DiscordBot): void => {
 				}
 			}
 
-			let nick = data.lastDiscordNickName;
-			const messages = bot.container.getService("Motd")?.messages;
-			if (messages && messages.length > 0) {
-				const wordList = messages
-					.map(msg => msg.split(" "))
-					.flat()
-					.filter(w => w.length <= 22 && !filter.includes(w.toLowerCase()));
-				const word = wordList[(Math.random() * wordList?.length) | 0];
-				nick = word.charAt(0).toUpperCase() + word.slice(1);
-			}
+			const wordList = data.lastMotd
+				.split(" ")
+				.filter(w => w.length <= 22 && !filter.includes(w.toLowerCase()));
+			const word = wordList[(Math.random() * wordList?.length) | 0];
+			const nick = word.charAt(0).toUpperCase() + word.slice(1);
 
 			return { filePath: defaultIconPath, eventName: "None", nickName: nick };
 		};
