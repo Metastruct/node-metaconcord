@@ -308,7 +308,7 @@ export default (bot: DiscordBot): void => {
 				case "Update":
 					let diff = "";
 					entry.changes.map(change => {
-						diff += `[${change.key}]`;
+						diff += `[${change.key}] `;
 						const diffList = diffWords(
 							change.old?.toString() ?? "",
 							typeof change.new === "object"
