@@ -47,7 +47,11 @@ const fileExists = async (filePath: PathLike) =>
 		.catch(() => false);
 
 const filter = [
+	"like",
+	"for",
+	"else",
 	"this",
+	"than",
 	"in",
 	"of",
 	"so",
@@ -68,6 +72,7 @@ const filter = [
 	"rather",
 	"yet",
 	"has",
+	"hasnt",
 	"hasn't",
 	"have",
 	"did",
@@ -75,6 +80,10 @@ const filter = [
 	"done",
 	"myself",
 	"it",
+	"its",
+	"it's",
+	"come",
+	"was",
 ];
 
 export default (bot: DiscordBot): void => {
