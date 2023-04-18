@@ -41,7 +41,7 @@ type ImgurResponse = {
 	status: number;
 };
 
-export default class Motd extends Service {
+export class Motd extends Service {
 	name = "Motd";
 	messages: string[] = [];
 	images: ImgurImage[] = [];
@@ -222,3 +222,6 @@ export default class Motd extends Service {
 		}
 	}
 }
+export default (container: Container): Service => {
+	return new Motd(container);
+};
