@@ -15,7 +15,7 @@ import DiscordMetadataProvider, { DiscordMetadata } from "./DiscordMetadata";
 import GameBridgeProvider, { GameBridge } from "./gamebridge";
 import IRCProvider, { IRC } from "./IRC";
 import MarkovProvider, { MarkovService } from "./Markov";
-import MotdProvider, { Motd } from "./motd";
+import MotdProvider, { Motd } from "./Motd";
 import SQLProvider, { SQL } from "./SQL";
 import StarboardProvider, { Starboard } from "./Starboard";
 import SteamProvider, { Steam } from "./Steam";
