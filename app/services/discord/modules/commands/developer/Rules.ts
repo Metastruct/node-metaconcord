@@ -112,7 +112,7 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 		return [];
 	}
 
-	public async runExtraProtected(ctx: CommandContext): Promise<any> {
+	public async runProtected(ctx: CommandContext): Promise<any> {
 		this.ruleCache = await this.getRules();
 		try {
 			switch (ctx.subcommands[0]) {
