@@ -77,7 +77,7 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 							description: "description of the role",
 						},
 						{
-							type: CommandOptionType.NUMBER,
+							type: CommandOptionType.INTEGER,
 							name: "position",
 							description: "position of the role",
 						},
@@ -96,7 +96,7 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 				return this.ruleCache.map((rule, idx) => {
 					return {
 						name: rule.title,
-						value: idx,
+						value: idx + 1,
 					} as AutocompleteChoice;
 				});
 			} else {
@@ -104,7 +104,7 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 				return this.ruleCache.map((rule, idx) => {
 					return {
 						name: rule.title,
-						value: idx,
+						value: idx + 1,
 					} as AutocompleteChoice;
 				});
 			}
@@ -159,7 +159,7 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 			return EphemeralResponse("You must provide a Title!"); // should be handled by discord but who knows
 		}
 		if (options.position) {
-			const exists = this.ruleCache[options.position];
+			const exists = this.ruleCache[options.position - 1];
 			if (exists) {
 				this.ruleCache.splice(options.position - 1, 0, {
 					title: options.title,
@@ -180,10 +180,10 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 	}
 	private async removeRule(ctx: CommandContext): Promise<any> {
 		const options = ctx.options[ctx.subcommands[0]];
-		if (!this.ruleCache[options.rule]) {
+		if (!this.ruleCache[options.rule - 1]) {
 			return EphemeralResponse("That rule doesn't exist?");
 		}
-		this.ruleCache.splice(options.rule, 1);
+		this.ruleCache.splice(options.rule - 1, 1);
 		await this.refreshRules();
 		return EphemeralResponse("Successfully deleted the Rule!");
 	}
@@ -192,7 +192,7 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 		if (Object.keys(options).length === 0) {
 			return EphemeralResponse("well... you need to edit something at least!");
 		}
-		const rule = this.ruleCache[options.rule];
+		const rule = this.ruleCache[options.rule - 1];
 		if (options.position) {
 			const exists = this.ruleCache[options.position - 1];
 			if (exists) {
@@ -200,13 +200,13 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 				this.ruleCache.splice(
 					options.position - 1,
 					0,
-					this.ruleCache.splice(options.rule, 1)[0]
+					this.ruleCache.splice(options.rule - 1, 1)[0]
 				);
 			} else {
 				return EphemeralResponse("Rule position is nonsequential!");
 			}
 		} else {
-			this.ruleCache.splice(options.rule, 1, {
+			this.ruleCache.splice(options.rule - 1, 1, {
 				title: options.title ?? rule.title,
 				description: options.description ?? rule.description ?? "",
 			});
