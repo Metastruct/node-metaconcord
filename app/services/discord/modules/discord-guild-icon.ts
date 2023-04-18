@@ -6,7 +6,7 @@ import { scheduleJob } from "node-schedule";
 import { stat } from "fs/promises";
 import dayjs from "dayjs";
 
-const events = [
+export const events = [
 	{
 		icon: "haaugh",
 		nick: ["Haaugh"],
@@ -86,7 +86,7 @@ export default (bot: DiscordBot): void => {
 		if (!guild) return;
 
 		const changeIcon = async (filePath: string, eventName: string, nickName: string) => {
-			const eventChange = data.lastDiscordGuildIcon !== eventName;
+			const eventChange = data.lastDiscordGuildEvent !== eventName;
 			const nickChange = guild.members.me?.nickname !== nickName;
 			const guildEvents = await guild.scheduledEvents.fetch();
 			if (!eventChange && !nickChange) return;
@@ -108,11 +108,11 @@ export default (bot: DiscordBot): void => {
 							: "Back to regularly scheduled activities."
 					);
 					await bot.discord.user?.setAvatar(filePath);
+					data.lastDiscordGuildIcon = filePath;
 				} catch (err) {
 					console.error(err);
 				}
-
-				data.lastDiscordGuildIcon = eventName;
+				data.lastDiscordGuildEvent = eventName;
 			}
 			await data.save();
 		};
