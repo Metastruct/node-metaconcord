@@ -12,14 +12,14 @@ const events = [
 const iconsPath = join(process.cwd(), "resources/discord-event-icons");
 
 export default (bot: DiscordBot): void => {
+	const data = bot.container.getService("Data");
+	if (!data) return;
 	const GetParticipants = async (event: Discord.GuildScheduledEvent) => {
 		const eventUsers = await event.fetchSubscribers({ withMember: true });
 		return eventUsers.map(evu => evu.member);
 	};
 
-	let oldIcon: string | null;
-
-	bot.discord.on("guildScheduledEventUpdate", async (was, now) => {
+	bot.discord.on("guildScheduledEventUpdate", async (_, now) => {
 		const event = now;
 		if (event.channelId !== DiscordConfig.channels.eventStage) return;
 		switch (event.status) {
@@ -36,10 +36,6 @@ export default (bot: DiscordBot): void => {
 						if (event.name.toLowerCase().includes(trigger)) match = true;
 					}
 					if (match) {
-						const currentIcon = event.guild?.iconURL();
-						oldIcon = currentIcon
-							? currentIcon
-							: join(process.cwd(), "resources/discord-guild-icons/default.png");
 						await event.guild?.setIcon(join(iconsPath, `${icon}.png`));
 					}
 				}
@@ -53,10 +49,7 @@ export default (bot: DiscordBot): void => {
 					if (usr.roles.cache.some(role => role.id === DiscordConfig.roles.event))
 						usr.roles.remove(DiscordConfig.roles.event);
 				});
-				if (oldIcon) {
-					await event.guild?.setIcon(oldIcon);
-					oldIcon = null;
-				}
+				await event.guild?.setIcon(data.lastDiscordGuildIcon);
 				break;
 			}
 		}
