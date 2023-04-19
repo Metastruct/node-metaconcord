@@ -177,7 +177,7 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 					type: ComponentType.ACTION_ROW,
 					components: [
 						{
-							type: ComponentType.SELECT,
+							type: ComponentType.STRING_SELECT,
 							custom_id: "gserv_command",
 							placeholder: "Choose a command.",
 							min_values: 1,
@@ -203,7 +203,7 @@ export class SlashGservCommand extends SlashDeveloperCommand {
 						type: ComponentType.ACTION_ROW,
 						components: [
 							{
-								type: ComponentType.SELECT,
+								type: ComponentType.STRING_SELECT,
 								custom_id: "gserv_server",
 								placeholder: "Choose a server.",
 								min_values: 1,
