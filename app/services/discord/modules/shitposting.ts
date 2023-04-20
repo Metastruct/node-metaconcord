@@ -268,12 +268,12 @@ export default (bot: DiscordBot): void => {
 
 		// triggers
 		const isTriggerWord = TRIGGER_WORDS.some(str =>
-			msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
+			msg.content.toLowerCase().match(new RegExp(`\\s?${str}\\s`))
 		);
 		const isMaybeTriggerWord =
 			rng <= MAYBE_TRIGGER_FREQ &&
 			MAYBE_TRIGGER_WORDS.some(str =>
-				msg.content.toLowerCase().match(new RegExp(`/\s?${str}\s/`))
+				msg.content.toLowerCase().match(new RegExp(`\\s?${str}\\s`))
 			);
 		const isChatChannel = bot.config.channels.chat === msg.channelId;
 		const isBot = msg.author.id === id;
