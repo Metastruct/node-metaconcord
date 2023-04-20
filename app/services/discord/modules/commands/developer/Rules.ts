@@ -142,7 +142,7 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 			)
 			.first();
 
-		const rules = `***__RULES/GUIDELINES__***\n\n${this.ruleCache
+		const rules = `# ***__RULES/GUIDELINES__***\n\n${this.ruleCache
 			.map((rule, idx) => `**${idx + 1}. ${rule.title}**\n${rule.description ?? ""}\n\n`)
 			.join("")}\n***Breaking these rules may result in a ban!***`;
 
