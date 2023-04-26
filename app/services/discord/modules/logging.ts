@@ -214,9 +214,7 @@ export default (bot: DiscordBot): void => {
 				}
 				case "Channel": {
 					const channel = guild.channels.cache.get(entry.targetId);
-					target = channel
-						? `${channel.toString()} (${channel.name})`
-						: `${entry.targetId}`;
+					target = channel ? `${channel.toString()} (${entry.targetId})` : entry.targetId;
 					break;
 				}
 				case "Emoji": {
@@ -253,13 +251,14 @@ export default (bot: DiscordBot): void => {
 				}
 				case "Role": {
 					const role = guild.roles.cache.get(entry.targetId);
-					target = `${role?.toString() ?? entry.targetId} (${role?.name})`;
+					target = role?.toString()
+						? `${role?.toString()} (${entry.targetId})`
+						: entry.targetId;
 					break;
 				}
 				case "StageInstance": {
-					target =
-						guild.stageInstances.cache.get(entry.targetId)?.toString() ??
-						`${entry.targetId}`;
+					const cache = guild.stageInstances.cache.get(entry.targetId)?.toString();
+					target = cache ? `${cache} (${entry.targetId})` : entry.targetId;
 					break;
 				}
 				case "Sticker": {
