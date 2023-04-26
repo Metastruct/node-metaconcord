@@ -266,10 +266,10 @@ export default (bot: DiscordBot): void => {
 					break;
 				}
 				case "Thread": {
-					target =
-						(await guild.channels.fetchActiveThreads()).threads
-							.get(entry.targetId)
-							?.toString() ?? `${entry.targetId}`;
+					const cache = (await guild.channels.fetchActiveThreads()).threads
+						.get(entry.targetId)
+						?.toString();
+					target = cache ? `${cache} (${entry.targetId})` : entry.targetId;
 					break;
 				}
 				case "User":
