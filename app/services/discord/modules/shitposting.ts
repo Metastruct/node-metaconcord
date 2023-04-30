@@ -33,14 +33,13 @@ const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp"];
 
 const IGNORE_LIST = ["447835474925584385"];
 
-function getWord(msg: string, fallback?: string) {
+function getWord(msg: string) {
 	let search: string;
 	const words = msg.replace(`<@${DiscordConfig.bot.userId}> `, "").split(" ");
 	const index = (Math.random() * words.length) | 0;
 	const isLast = index + 1 === words.length;
-	if (!isLast && !fallback) {
+	if (!isLast) {
 		search = words.slice(index, index + 2).join(" ");
-		fallback = words[index];
 	} else {
 		search = words[index];
 	}
@@ -67,7 +66,9 @@ export const Shat = async (
 		});
 
 		if ((!mk || mk === msg) && fallback)
-			mk = await globalThis.MetaConcord.container.getService("Markov")?.generate(fallback);
+			mk = await globalThis.MetaConcord.container
+				.getService("Markov")
+				?.generate(getWord(fallback));
 		if (!mk || mk === msg)
 			mk = await globalThis.MetaConcord.container.getService("Markov")?.generate();
 
