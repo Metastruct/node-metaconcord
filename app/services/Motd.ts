@@ -193,7 +193,7 @@ export class Motd extends Service {
 					}
 				);
 			}
-			this.container.getService("DiscordBot")?.setServerBanner(url);
+			// this.container.getService("DiscordBot")?.setServerBanner(url);
 			this.lastimages.push(image);
 			await this.data.save();
 			setTimeout(async () => {
