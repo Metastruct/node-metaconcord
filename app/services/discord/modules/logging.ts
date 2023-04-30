@@ -257,7 +257,9 @@ export default (bot: DiscordBot): void => {
 					break;
 				}
 				case "StageInstance": {
-					const cache = guild.stageInstances.cache.get(entry.targetId)?.toString();
+					const cache = guild.stageInstances.cache
+						.get(entry.targetId)
+						?.channel?.toString();
 					target = cache ? `${cache} (${entry.targetId})` : entry.targetId;
 					break;
 				}
