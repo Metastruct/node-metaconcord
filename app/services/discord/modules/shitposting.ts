@@ -75,19 +75,19 @@ export const Shat = async (
 	} else {
 		const images = globalThis.MetaConcord.container.getService("Motd")?.images;
 		const word = msg && !msg.startsWith("http") ? getWord(msg) : undefined;
-		if (images && (Math.random() <= 0.5 || !word)) {
+
+		if (!word && !images)
+			return {
+				content: await globalThis.MetaConcord.container.getService("Markov")?.generate(),
+			};
+
+		if (Math.random() <= 0.5 || !word) {
 			const imgur = images[(Math.random() * images.length) | 0];
 			const result = await makeSpeechBubble(imgur.link, Math.random() <= 0.5);
 			return result
 				? { files: [{ attachment: result, description: imgur.title }] }
 				: undefined;
 		} else {
-			if (!word)
-				return {
-					content: await globalThis.MetaConcord.container
-						.getService("Markov")
-						?.generate(),
-				}; // if for some reason images are missing
 			const res = await globalThis.MetaConcord.container.getService("Tenor")?.search(word, 4);
 			if (!res)
 				return {
