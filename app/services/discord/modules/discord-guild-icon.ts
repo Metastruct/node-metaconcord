@@ -84,6 +84,8 @@ const filter = [
 	"it's",
 	"come",
 	"was",
+	"i'm",
+	"im",
 ];
 
 export default (bot: DiscordBot): void => {
