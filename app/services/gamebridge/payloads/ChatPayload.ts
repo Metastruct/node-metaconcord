@@ -75,7 +75,7 @@ export default class ChatPayload extends Payload {
 				payload.replied_message = {
 					msgID: reply.id,
 					content: reply.content,
-					ingameName: reply.author.bot ? reply.author.username : "",
+					ingameName: reply.webhookId ? reply.author.username : "",
 				};
 			}
 
