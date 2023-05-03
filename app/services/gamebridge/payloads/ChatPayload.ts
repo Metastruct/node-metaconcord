@@ -75,7 +75,7 @@ export default class ChatPayload extends Payload {
 				payload.replied_message = {
 					msgID: reply.id,
 					content: reply.content,
-					ingameName: reply.author.discriminator === "0000" ? reply.author.username : "",
+					ingameName: reply.author.bot ? reply.author.username : "",
 				};
 			}
 

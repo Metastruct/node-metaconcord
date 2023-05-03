@@ -61,7 +61,6 @@ export class IRC extends Service {
 		// Discord
 		bot.discord.on("messageCreate", async msg => {
 			if (msg.channelId === config.relayDiscordChannel) {
-				if (msg.author.discriminator === "0000") return;
 				if (msg.author.bot) return;
 				msg = await bot.fetchPartial(msg);
 				let content = msg.content;
