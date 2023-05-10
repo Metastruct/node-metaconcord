@@ -166,7 +166,9 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 					description: options.description,
 				});
 			} else {
-				return EphemeralResponse("Rule position is nonsequential!");
+				return EphemeralResponse(
+					`Rule ${options.position} does not exist.\nUse add without a position to append a new rule.`
+				);
 			}
 		} else {
 			this.ruleCache.push({
@@ -203,7 +205,7 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 					this.ruleCache.splice(options.rule - 1, 1)[0]
 				);
 			} else {
-				return EphemeralResponse("Rule position is nonsequential!");
+				return EphemeralResponse(`Rule ${options.position} does not exist.`);
 			}
 		} else {
 			this.ruleCache.splice(options.rule - 1, 1, {
