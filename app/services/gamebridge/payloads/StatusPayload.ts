@@ -108,7 +108,9 @@ export default class StatusPayload extends Payload {
 			if (current_countdown)
 				desc += `\n<a:ALERTA:843518761160015933> \`${current_countdown.text} in ${current_countdown.time} seconds\` <a:ALERTA:843518761160015933>`;
 			if (current_defcon && current_defcon !== 5)
-				desc += `\n<a:ALERTA:843518761160015933> \`DEFCON ${current_defcon}\` <a:ALERTA:843518761160015933>`;
+				desc += `\n<a:ALERTA:843518761160015933> \`DEFCON ${current_defcon}${
+					current_defcon === 1 ? " (Restricted Access)" : ""
+				}\` <a:ALERTA:843518761160015933>`;
 
 			let mapThumbnail: string | null = null;
 			if (current_map && /^gm_construct_m/i.test(current_map)) {
