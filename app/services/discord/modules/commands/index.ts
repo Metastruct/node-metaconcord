@@ -25,7 +25,7 @@ import {
 import { SlashTempVoiceChannelCommand } from "./TempVoiceChannel";
 import { SlashUnBanCommand } from "./developer/UnBan";
 import { SlashUnmuteCommand, UIUnmuteCommand } from "./mute/Unmute";
-import { SlashVaccinatedCommand } from "./Vaccination";
+//import { SlashVideoCommand } from "./Video";
 import { SlashWhyBanCommand } from "./WhyBan";
 import { SlashWhyMuteCommand, UIWhyMuteCommand } from "./mute/WhyMute";
 import { UIStickerYankCommand } from "./StickerYank";
@@ -54,7 +54,7 @@ export const commands = [
 	SlashTempVoiceChannelCommand,
 	SlashUnBanCommand,
 	SlashUnmuteCommand,
-	SlashVaccinatedCommand,
+	//	SlashVideoCommand,
 	SlashWhyBanCommand,
 	SlashWhyMuteCommand,
 	UIDeeplCommand,
