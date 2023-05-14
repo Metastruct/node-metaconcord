@@ -16,7 +16,8 @@ export default (bot: DiscordBot): void => {
 
 	bot.discord.on("messageCreate", async msg => {
 		msg = await bot.fetchPartial(msg);
-		await Promise.all([bot.fixEmbeds(msg), bot.feedMarkov(msg)]);
+		if (msg.channelId !== bot.config.channels.relay) bot.fixEmbeds(msg);
+		await bot.feedMarkov(msg);
 	});
 
 	bot.discord.on("messageDelete", async msg => {

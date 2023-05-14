@@ -56,22 +56,22 @@ export class Motd extends Service {
 		super(container);
 		this.messages = [];
 		scheduleJob("0 12 * * *", this.executeMessageJob.bind(this));
-		scheduleJob("0 20 * * *", this.executeImageJob.bind(this));
-		scheduleJob("0 0 * * 0", this.clearImageAlbumAndHistory.bind(this));
+		// scheduleJob("0 20 * * *", this.executeImageJob.bind(this));
+		// scheduleJob("0 0 * * 0", this.clearImageAlbumAndHistory.bind(this));
 		const data = this.container.getService("Data");
 		if (!data) return;
 		this.data = data;
-		axios
-			.get(`https://api.imgur.com/3/album/${config.imgurAlbumId}/images`, {
-				headers: {
-					Authorization: `Client-ID ${config.imgurClientId}`,
-				},
-			})
-			.then(res => {
-				if (res.status === 200) {
-					this.images = res.data.data;
-				}
-			});
+		// axios
+		// 	.get(`https://api.imgur.com/3/album/${config.imgurAlbumId}/images`, {
+		// 		headers: {
+		// 			Authorization: `Client-ID ${config.imgurClientId}`,
+		// 		},
+		// 	})
+		// 	.then(res => {
+		// 		if (res.status === 200) {
+		// 			this.images = res.data.data;
+		// 		}
+		// 	});
 	}
 
 	pushMessage(msg: string): void {
@@ -212,14 +212,16 @@ export class Motd extends Service {
 	}
 
 	async getImageInfo(id: string): Promise<ImgurImage | undefined> {
-		const res = (await axios.get(`https://api.imgur.com/3/image/${id}`, {
-			headers: {
-				Authorization: `Client-ID ${config.imgurClientId}`,
-			},
-		})) as AxiosResponse<ImgurResponse>;
-		if (res.data.status === 200) {
-			return res.data.data;
-		}
+		try {
+			const res = (await axios.get(`https://api.imgur.com/3/image/${id}`, {
+				headers: {
+					Authorization: `Client-ID ${config.imgurClientId}`,
+				},
+			})) as AxiosResponse<ImgurResponse>;
+			if (res.data.status === 200) {
+				return res.data.data;
+			}
+		} catch {}
 	}
 }
 export default (container: Container): Service => {
