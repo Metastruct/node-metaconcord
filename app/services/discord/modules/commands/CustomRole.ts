@@ -186,9 +186,9 @@ export class SlashCustomRoleCommand extends SlashCommand {
 			const head = await axios.head(url);
 			if (!IMG_TYPES.includes(head.headers["content-type"])) {
 				return EphemeralResponse(
-					`invalid image type \`${head.headers["content-type"]}\`\nOnly ${IMG_TYPES.join(
-						","
-					)} are supported, sorry.`
+					`invalid image type \`${
+						head.headers["content-type"]
+					}\`\nOnly \`${IMG_TYPES.join(", ")}\` are supported, sorry.`
 				);
 			}
 			const data = await axios
