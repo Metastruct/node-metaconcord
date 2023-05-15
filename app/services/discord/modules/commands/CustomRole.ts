@@ -180,7 +180,7 @@ export class SlashCustomRoleCommand extends SlashCommand {
 		const attachment = ctx.attachments.first();
 		const url = file
 			? attachment?.url
-			: ctx.options.add_icon.image_url.match(/(https?:\/\/.*\.(?:png|jpg))/)[0];
+			: ctx.options.add_icon.image_url?.match(/(https?:\/\/.*\.(?:png|jpg))/)[0];
 
 		if (url) {
 			const head = await axios.head(url);
