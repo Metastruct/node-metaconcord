@@ -77,7 +77,11 @@ export class SlashCustomRoleCommand extends SlashCommand {
 							type: CommandOptionType.STRING,
 							name: "image_url",
 							description: "the url for your role, please try to use a small image",
-							required: true,
+						},
+						{
+							name: "file",
+							type: CommandOptionType.ATTACHMENT,
+							description: "image file",
 						},
 					],
 				},
@@ -172,16 +176,21 @@ export class SlashCustomRoleCommand extends SlashCommand {
 
 	async uploadIcon(ctx: CommandContext, role: Discord.Role): Promise<any> {
 		// wtf there has to be a better way to get the option
-		const url = ctx.options.add_icon.image_url.match(/(https?:\/\/.*\.(?:png|jpg))/);
+		const file = ctx.options.add_icon.file;
+		const attachment = ctx.attachments.first();
+		const url = file
+			? attachment?.url
+			: ctx.options.add_icon.image_url.match(/(https?:\/\/.*\.(?:png|jpg))/)[0];
+
 		if (url) {
-			const head = await axios.head(url[0]);
+			const head = await axios.head(url);
 			if (!IMG_TYPES.includes(head.headers["content-type"])) {
 				return EphemeralResponse(
 					`invalid image type \`${head.headers["content-type"]}\`\nOnly png/jpeg images are supported, sorry.`
 				);
 			}
 			const data = await axios
-				.get(url[0], { responseType: "arraybuffer" })
+				.get(url, { responseType: "arraybuffer" })
 				.then(response => Buffer.from(response.data));
 			try {
 				await role.setIcon(data);
@@ -190,7 +199,7 @@ export class SlashCustomRoleCommand extends SlashCommand {
 			}
 			return EphemeralResponse("set custom icon successfully");
 		}
-		return EphemeralResponse("that url seems invalid");
+		return EphemeralResponse("missing file or invalid url");
 	}
 	async addEmoji(emoji: string, role: Discord.Role): Promise<any> {
 		// lmao
