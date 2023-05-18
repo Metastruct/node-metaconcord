@@ -183,7 +183,11 @@ export default (bot: DiscordBot): void => {
 				name: `${user?.user.username} (${user?.displayName})` ?? "unknown user",
 				iconURL: user?.avatarURL() ?? user?.user.avatarURL() ?? undefined,
 			})
-			.setFooter({ text: entry.targetType + " " + entry.actionType })
+			.setFooter({
+				text: `${Discord.AuditLogEvent[entry.action]} (${entry.targetType} ${
+					entry.actionType
+				})`,
+			})
 			.setTimestamp(Date.now());
 
 		switch (entry.actionType) {
