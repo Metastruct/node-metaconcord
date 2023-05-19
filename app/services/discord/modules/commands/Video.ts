@@ -58,10 +58,15 @@ export class SlashVideoCommand extends SlashCommand {
 							description: "how many times to do something",
 						},
 						{
-							name: "every",
+							name: "repeat",
 							type: CommandOptionType.NUMBER,
 							max_value: 10,
-							description: "do that every x times",
+							description: "do that repeat x times",
+						},
+						{
+							name: "include_beginning",
+							type: CommandOptionType.BOOLEAN,
+							description: "whether to include the beginning or not",
 						},
 					],
 				},
@@ -71,7 +76,14 @@ export class SlashVideoCommand extends SlashCommand {
 		this.bot = bot;
 	}
 
-	async doStutter(filename: string, at: number, method: Method, doFor: number, every?: number) {
+	async doStutter(
+		filename: string,
+		at: number,
+		method: Method,
+		doFor: number,
+		repeat: number,
+		include_beginning: boolean
+	) {
 		await this.ffmpeg.run(
 			"-i",
 			`${filename}`,
@@ -117,8 +129,8 @@ export class SlashVideoCommand extends SlashCommand {
 				audioOutput = selectedAudio.map(t => new Float32Array([...t, ...t.reverse()]));
 				break;
 		}
-		if (every) {
-			for (let i = 0; i < every; i++) {
+		if (repeat !== 0) {
+			for (let i = 0; i < repeat; i++) {
 				videoOutput = videoOutput.concat(videoOutput);
 				const tr1 = audioOutput[0];
 				const tr2 = audioOutput[1];
@@ -128,12 +140,21 @@ export class SlashVideoCommand extends SlashCommand {
 				];
 			}
 		}
-		if (start !== 0) videoOutput = frames.slice(0, start).concat(videoOutput);
-		if (audioStart !== 0)
-			audioOutput = [
-				new Float32Array([...audio.channelData[0].slice(0, audioStart), ...audioOutput[0]]),
-				new Float32Array([...audio.channelData[1].slice(0, audioStart), ...audioOutput[1]]),
-			];
+
+		if (include_beginning) {
+			if (start !== 0) videoOutput = frames.slice(0, start).concat(videoOutput);
+			if (audioStart !== 0)
+				audioOutput = [
+					new Float32Array([
+						...audio.channelData[0].slice(0, audioStart),
+						...audioOutput[0],
+					]),
+					new Float32Array([
+						...audio.channelData[1].slice(0, audioStart),
+						...audioOutput[1],
+					]),
+				];
+		}
 
 		this.ffmpeg.FS("writeFile", "concat.txt", videoOutput.map(f => `file ${f}`).join("\n"));
 
@@ -174,7 +195,8 @@ export class SlashVideoCommand extends SlashCommand {
 		const at: number = ctx.options.stutter.at ?? 0;
 		const method: Method = ctx.options.stutter.method ?? "repeat";
 		const doFor: number = ctx.options.stutter.for ?? 1;
-		const every: number = ctx.options.stutter.every;
+		const repeat: number = ctx.options.stutter.repeat ?? 0;
+		const include_beginning: boolean = ctx.options.stutter.include_beginning ?? false;
 
 		if (!url && !file) return EphemeralResponse("I need either an url or file for this...");
 		if (ctx.attachments.size > 1)
@@ -193,7 +215,14 @@ export class SlashVideoCommand extends SlashCommand {
 				await fetchFile(attachment ? attachment.url : url ?? "wtf")
 			);
 			await this.ffmpeg.run(
-				...(await this.doStutter(fn, at, method, clamp(doFor, 0, 10), clamp(every, 0, 10)))
+				...(await this.doStutter(
+					fn,
+					at,
+					method,
+					clamp(doFor, 0, 10),
+					clamp(repeat, 0, 10),
+					include_beginning
+				))
 			);
 			await ctx.send(
 				{
