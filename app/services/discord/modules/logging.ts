@@ -294,10 +294,26 @@ export default (bot: DiscordBot): void => {
 		if (entry.changes.length > 0) {
 			switch (entry.actionType) {
 				case "Delete":
+					embed.addFields(
+						f(
+							"Removed",
+							`\`\`\`\n${entry.changes
+								.map(
+									change =>
+										`[${change.key}] ${
+											typeof change.old === "object"
+												? JSON.stringify(change.old)
+												: change.old?.toString() ?? ""
+										}`
+								)
+								.join("\n")}\`\`\``
+						)
+					);
+					break;
 				case "Create":
 					embed.addFields(
 						f(
-							"Changes",
+							"Added",
 							`\`\`\`\n${entry.changes
 								.map(
 									change =>
