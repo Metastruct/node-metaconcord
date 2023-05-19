@@ -128,8 +128,12 @@ export class SlashVideoCommand extends SlashCommand {
 				];
 			}
 		}
-		// if (start !== 0) videoOutput = frames.slice(0, start).concat(videoOutput);
-		// if (audioStart !== 0) audioOutput = audio.channelData.slice(0, start).concat(audioOutput);
+		if (start !== 0) videoOutput = frames.slice(0, start).concat(videoOutput);
+		if (audioStart !== 0)
+			audioOutput = [
+				new Float32Array([...audio.channelData[0].slice(0, audioStart), ...audioOutput[0]]),
+				new Float32Array([...audio.channelData[1].slice(0, audioStart), ...audioOutput[1]]),
+			];
 
 		this.ffmpeg.FS("writeFile", "concat.txt", videoOutput.map(f => `file ${f}`).join("\n"));
 
@@ -163,7 +167,7 @@ export class SlashVideoCommand extends SlashCommand {
 
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer();
-		this.ffmpeg = createFFmpeg({ log: true });
+		this.ffmpeg = createFFmpeg();
 		const url: string | undefined = ctx.options.stutter.url;
 		const file: string | undefined = ctx.options.stutter.file;
 		const attachment = ctx.attachments.first();
