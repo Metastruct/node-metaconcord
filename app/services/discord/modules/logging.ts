@@ -178,15 +178,18 @@ export default (bot: DiscordBot): void => {
 		if (!logChannel) return;
 		if (!entry.executorId) return;
 		const user = guild.members.cache.get(entry.executorId);
+		const actionName = Discord.AuditLogEvent[entry.action];
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
 				name: `${user?.user.username} (${user?.displayName})` ?? "unknown user",
 				iconURL: user?.avatarURL() ?? user?.user.avatarURL() ?? undefined,
 			})
 			.setFooter({
-				text: `${Discord.AuditLogEvent[entry.action]} (${entry.targetType} ${
-					entry.actionType
-				})`,
+				text: `${actionName}${
+					actionName !== entry.targetType + entry.actionType
+						? ` (${entry.targetType} ${entry.actionType})`
+						: ""
+				}`,
 			})
 			.setTimestamp(Date.now());
 
