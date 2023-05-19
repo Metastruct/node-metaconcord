@@ -2,7 +2,6 @@ import { CommandContext, CommandOptionType, SlashCommand, SlashCreator } from "s
 import { DiscordBot } from "../..";
 import { EphemeralResponse } from ".";
 import { FFmpeg, createFFmpeg, fetchFile } from "@ffmpeg.wasm/main";
-import { clamp } from "@/utils";
 import { decode, encode } from "node-wav";
 import { randomUUID } from "crypto";
 
@@ -59,8 +58,8 @@ export class SlashVideoCommand extends SlashCommand {
 						},
 						{
 							name: "repeat",
-							type: CommandOptionType.NUMBER,
-							max_value: 10,
+							type: CommandOptionType.INTEGER,
+							max_value: 5,
 							description: "repeat that x times",
 						},
 						{
@@ -215,14 +214,7 @@ export class SlashVideoCommand extends SlashCommand {
 				await fetchFile(attachment ? attachment.url : url ?? "wtf")
 			);
 			await this.ffmpeg.run(
-				...(await this.doStutter(
-					fn,
-					at,
-					method,
-					clamp(doFor, 0, 10),
-					clamp(repeat, 0, 10),
-					include_beginning
-				))
+				...(await this.doStutter(fn, at, method, doFor, repeat, include_beginning))
 			);
 			await ctx.send(
 				{
