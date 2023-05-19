@@ -61,7 +61,7 @@ export class SlashVideoCommand extends SlashCommand {
 							name: "repeat",
 							type: CommandOptionType.NUMBER,
 							max_value: 10,
-							description: "do that repeat x times",
+							description: "repeat that x times",
 						},
 						{
 							name: "include_beginning",
