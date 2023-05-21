@@ -178,26 +178,30 @@ export class SlashCustomRoleCommand extends SlashCommand {
 		// wtf there has to be a better way to get the option
 		const file = ctx.options.add_icon.file;
 		const attachment = ctx.attachments.first();
-		const url = file
+		const url: string = file
 			? attachment?.url
 			: ctx.options.add_icon.image_url?.match(/(https?:\/\/.*\.(?:png|jpg))/)[0];
 
 		if (url) {
-			const head = await axios.head(url);
-			if (!IMG_TYPES.includes(head.headers["content-type"])) {
-				return EphemeralResponse(
-					`invalid image type \`${
-						head.headers["content-type"]
-					}\`\nOnly \`${IMG_TYPES.join(", ")}\` are supported, sorry.`
-				);
-			}
-			const data = await axios
-				.get(url, { responseType: "arraybuffer" })
-				.then(response => Buffer.from(response.data));
 			try {
+				const head = await axios.head(url);
+				if (!IMG_TYPES.includes(head.headers["content-type"])) {
+					return EphemeralResponse(
+						`invalid image type \`${
+							head.headers["content-type"]
+						}\`\nOnly \`${IMG_TYPES.join(", ")}\` are supported, sorry.`
+					);
+				}
+				const data = await axios
+					.get(url, { responseType: "arraybuffer" })
+					.then(response => Buffer.from(response.data));
 				await role.setIcon(data);
 			} catch (err) {
-				return EphemeralResponse(`something went wrong \`\`\`${err}\`\`\``);
+				return EphemeralResponse(
+					`could not set role icon :( ${
+						url.includes("imgur") ? "Imgur is known to have issues" : ""
+					}`
+				);
 			}
 			return EphemeralResponse("set custom icon successfully");
 		}
