@@ -225,7 +225,8 @@ export class SlashVideoCommand extends SlashCommand {
 				},
 				{ ephemeral: false }
 			);
-		} catch {
+		} catch (err) {
+			console.log(err);
 			return EphemeralResponse("Something went wrong transcoding the video :(");
 		}
 	}
