@@ -192,7 +192,7 @@ export class SlashVideoCommand extends SlashCommand {
 		const file: string | undefined = ctx.options.stutter.file;
 		const attachment = ctx.attachments.first();
 		const at: number = ctx.options.stutter.at ?? 0;
-		const method: Method = ctx.options.stutter.method ?? "repeat";
+		const method: Method = ctx.options.stutter.method ?? "ping-pong";
 		const doFor: number = ctx.options.stutter.for ?? 1;
 		const repeat: number = ctx.options.stutter.repeat ?? 0;
 		const include_beginning: boolean = ctx.options.stutter.include_beginning ?? false;
