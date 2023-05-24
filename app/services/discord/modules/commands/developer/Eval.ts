@@ -36,7 +36,7 @@ export class SlashEvalCommand extends SlashDeveloperCommand {
 			case "js":
 				try {
 					let res = "";
-					res = (1, eval)(code);
+					res = eval(code);
 					return `\`\`\`js\n${res}\`\`\``;
 				} catch (err) {
 					return `\`\`\`js\n${err}\`\`\``;
@@ -47,7 +47,7 @@ export class SlashEvalCommand extends SlashDeveloperCommand {
 						code,
 						ts.parseJsonConfigFileContent(tsconfig, ts.sys, process.cwd()).options
 					);
-					const res = (1, eval)(js);
+					const res = eval(js);
 					return `\`\`\`js\n${res}\`\`\``;
 				} catch (err) {
 					return `\`\`\`js\n${err}\`\`\``;

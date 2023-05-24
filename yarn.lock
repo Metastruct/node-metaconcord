@@ -1283,11 +1283,6 @@ dir-glob@^3.0.1:
   dependencies:
     path-type "^4.0.0"
 
-discord-api-types@0.37.14:
-  version "0.37.14"
-  resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.37.14.tgz#0fb10a5bb3ff9415afac12d7eaecc68b430d372a"
-  integrity sha512-byBH7SfDCMJwxdqeS8k5sihltH88/YPhuwx+vF2cftSxFLdxyHyU/ZxDL3bq+LB2c4ls/TymE76/ISlLfniUXg==
-
 discord-api-types@^0.37.41:
   version "0.37.42"
   resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.37.42.tgz#3c196267ed31e9ea249e6880c15e2af1c6428629"
@@ -3861,19 +3856,19 @@ tsconfig-paths@^3.14.1:
     minimist "^1.2.6"
     strip-bom "^3.0.0"
 
-tsconfig-paths@^4.1.2:
-  version "4.1.2"
-  resolved "https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-4.1.2.tgz#4819f861eef82e6da52fb4af1e8c930a39ed979a"
-  integrity sha512-uhxiMgnXQp1IR622dUXI+9Ehnws7i/y6xvpZB9IbUVOPy0muvdvgXeZOn88UcGPiT98Vp3rJPTa8bFoalZ3Qhw==
+tsconfig-paths@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-4.2.0.tgz#ef78e19039133446d244beac0fd6a1632e2d107c"
+  integrity sha512-NoZ4roiN7LnbKn9QqE1amc9DJfzvZXxF4xDavcOWt1BPkdx+m+0gJuPM+S0vCe7zTJMYUP0R8pO2XMr+Y8oLIg==
   dependencies:
     json5 "^2.2.2"
     minimist "^1.2.6"
     strip-bom "^3.0.0"
 
-tsconfig-replace-paths@^0.0.11:
-  version "0.0.11"
-  resolved "https://registry.npmjs.org/tsconfig-replace-paths/-/tsconfig-replace-paths-0.0.11.tgz"
-  integrity sha512-BX10vOJL/kTZExQwj22FJgxCpneNYKfXvujBKGFpnvaKWl4/9Cpd678ZvKF+CX5NdxbKphscwtc8QzFA7zhVsA==
+tsconfig-replace-paths@^0.0.14:
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/tsconfig-replace-paths/-/tsconfig-replace-paths-0.0.14.tgz#67cd762ddcf09acca52c1102dae0698937278f9e"
+  integrity sha512-If9w1Z/HdSJkrZvCRSKHA3vAL3SwRWvI7rLmuTozlmKuBjPF/R8dWJku5C9ncOqiTOd8Dzd7SZ1cIYVZfpva8g==
   dependencies:
     commander "^3.0.2"
     globby "^10.0.1"

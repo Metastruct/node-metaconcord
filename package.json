@@ -9,7 +9,7 @@
 	"private": true,
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"start": "cross-env NODE_ENV=production node dist",
+		"start": "cross-env NODE_ENV=production node dist --experimental-wasm-threads",
 		"dev": "cross-env NODE_ENV=development ts-node-dev --experimental-wasm-threads -r tsconfig-paths/register index.ts",
 		"build": "yarn scss && rm -rf ./dist && tsc && tsconfig-replace-paths -p tsconfig.json -s ./ -o ./dist",
 		"scss": "sass resources/ --no-source-map",
@@ -49,9 +49,6 @@
 		"unicode-emoji-json": "^0.4.0",
 		"websocket": "^1.0.34"
 	},
-	"resolutions": {
-		"discord.js/discord-api-types": "0.37.14"
-	},
 	"devDependencies": {
 		"@types/bad-words": "^3.0.0",
 		"@types/cookie-parser": "^1.4.3",
@@ -80,8 +77,8 @@
 		"sass": "^1.30.0",
 		"ts-node": "^10.8.1",
 		"ts-node-dev": "^2.0.0",
-		"tsconfig-paths": "^4.1.2",
-		"tsconfig-replace-paths": "^0.0.11",
+		"tsconfig-paths": "^4.2.0",
+		"tsconfig-replace-paths": "^0.0.14",
 		"typescript": "^4.8.3",
 		"typescript-json-schema": "^0.54.0"
 	}
