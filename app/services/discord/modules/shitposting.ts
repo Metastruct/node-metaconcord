@@ -1,5 +1,5 @@
 import { DiscordBot } from "..";
-import { makeSpeechBubble } from "@/utils";
+// import { makeSpeechBubble } from "@/utils";
 import Discord from "discord.js";
 import DiscordConfig from "@/config/discord.json";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
