@@ -133,7 +133,11 @@ export default (bot: DiscordBot): void => {
 		const shouldSendSticker = rng <= STICKER_FREQ;
 		const foundMatch = options.msg?.content
 			.split(" ")
-			.find(word => options.originalMsg?.content.split(" ").includes(word)); // this feels like super slow but whatever
+			.find(word =>
+				options.originalMsg?.content
+					.split(" ")
+					.filter(orig => orig.match(new RegExp(`${word}\\W?`)))
+			); // this feels like super slow but whatever
 		const shat = await Shat(
 			foundMatch
 				? foundMatch
@@ -275,12 +279,12 @@ export default (bot: DiscordBot): void => {
 
 		// triggers
 		const isTriggerWord = TRIGGER_WORDS.some(str =>
-			msg.content.toLowerCase().match(new RegExp(`\\s?${str}\\s`))
+			msg.content.toLowerCase().match(new RegExp(`\\s?${str}\\W?\\s`))
 		);
 		const isMaybeTriggerWord =
 			rng <= MAYBE_TRIGGER_FREQ &&
 			MAYBE_TRIGGER_WORDS.some(str =>
-				msg.content.toLowerCase().match(new RegExp(`\\s?${str}\\s`))
+				msg.content.toLowerCase().match(new RegExp(`\\s?${str}\\W?\\s`))
 			);
 		const isChatChannel = bot.config.channels.chat === msg.channelId;
 		const isBot = msg.author.id === id;
