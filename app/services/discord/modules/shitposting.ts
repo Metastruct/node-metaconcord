@@ -1,5 +1,5 @@
 import { DiscordBot } from "..";
-// import { makeSpeechBubble } from "@/utils";
+import { makeSpeechBubble } from "@/utils";
 import Discord from "discord.js";
 import DiscordConfig from "@/config/discord.json";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
@@ -77,25 +77,27 @@ export const Shat = async (
 		const images = globalThis.MetaConcord.container.getService("Motd")?.images;
 		let word = msg && !msg.startsWith("http") ? getWord(msg) : undefined;
 
-		if (!word && !images)
+		if (!word)
 			word = getWord(await globalThis.MetaConcord.container.getService("Markov")?.generate());
 
-		// if (Math.random() <= 0.5 || !word) {
-		// 	const imgur = images[(Math.random() * images.length) | 0];
-		// 	const result = await makeSpeechBubble(imgur.link, Math.random() <= 0.5);
-		// 	return result
-		// 		? { files: [{ attachment: result, description: imgur.title }] }
-		// 		: undefined;
-		// } else {
-		const res = await globalThis.MetaConcord.container.getService("Tenor")?.search(word, 4);
-		if (!res)
+		if (images.length !== 0 && (Math.random() <= 0.5 || !word)) {
+			const imgur = images[(Math.random() * images.length) | 0];
+			const result = await makeSpeechBubble(imgur.link, Math.random() <= 0.5);
+			return result
+				? { files: [{ attachment: result, description: imgur.title }] }
+				: undefined;
+		} else {
+			const res = await globalThis.MetaConcord.container.getService("Tenor")?.search(word, 4);
+			if (!res)
+				return {
+					content: await globalThis.MetaConcord.container
+						.getService("Markov")
+						?.generate(),
+				}; // if for some reason we get no result;
 			return {
-				content: await globalThis.MetaConcord.container.getService("Markov")?.generate(),
-			}; // if for some reason we get no result;
-		return {
-			content: res.data.results[(Math.random() * res.data.results.length) | 0].url,
-		};
-		// }
+				content: res.data.results[(Math.random() * res.data.results.length) | 0].url,
+			};
+		}
 	}
 };
 

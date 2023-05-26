@@ -9,7 +9,7 @@
 	"private": true,
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"start": "cross-env NODE_ENV=production node dist --experimental-wasm-threads",
+		"start": "cross-env NODE_ENV=production node dist",
 		"dev": "cross-env NODE_ENV=development ts-node-dev --experimental-wasm-threads -r tsconfig-paths/register index.ts",
 		"build": "yarn scss && rm -rf ./dist && tsc && tsconfig-replace-paths -p tsconfig.json -s ./ -o ./dist",
 		"scss": "sass resources/ --no-source-map",
