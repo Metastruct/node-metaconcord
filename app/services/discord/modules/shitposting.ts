@@ -118,6 +118,7 @@ export default (bot: DiscordBot): void => {
 	const sendShat = async (
 		options: {
 			msg?: Discord.Message;
+			originalMsg?: Discord.Message;
 			forceImage?: boolean;
 			forceReply?: boolean;
 			forceMessage?: string;
@@ -130,8 +131,15 @@ export default (bot: DiscordBot): void => {
 		const shouldUseAuthor = rng <= MSG_USE_AUTHOR_FREQ;
 		const shouldStealImg = rng <= STOLEN_IMAGE_FREQ;
 		const shouldSendSticker = rng <= STICKER_FREQ;
+		const foundMatch = options.msg?.content
+			.split(" ")
+			.find(word => options.originalMsg?.content.split(" ").includes(word)); // this feels like super slow but whatever
 		const shat = await Shat(
-			shouldUseAuthor ? options.msg?.author.username?.toLowerCase() : options.msg?.content,
+			foundMatch
+				? foundMatch
+				: shouldUseAuthor
+				? options.msg?.author.username?.toLowerCase()
+				: options.msg?.content,
 			shouldUseAuthor ? options.msg?.content : undefined,
 			options.forceImage,
 			options.forceReply,
@@ -298,7 +306,11 @@ export default (bot: DiscordBot): void => {
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, ping: true }
-						: { msg: msg, ping: true }
+						: {
+								msg: msg,
+								originalMsg: msg.reference ? await msg.fetchReference() : undefined,
+								ping: true,
+						  }
 				);
 				if (isChatChannel) replied = true;
 			} else {
