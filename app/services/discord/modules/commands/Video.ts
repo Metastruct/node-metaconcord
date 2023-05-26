@@ -53,19 +53,26 @@ export class SlashVideoCommand extends SlashCommand {
 						{
 							name: "for",
 							type: CommandOptionType.NUMBER,
+							min_value: 0.05,
 							max_value: 10,
 							description: "how many times to do something",
 						},
 						{
 							name: "repeat",
 							type: CommandOptionType.INTEGER,
-							max_value: 5,
+							min_value: 1,
+							max_value: 10,
 							description: "repeat that x times",
 						},
 						{
 							name: "include_beginning",
 							type: CommandOptionType.BOOLEAN,
 							description: "whether to include the beginning or not",
+						},
+						{
+							name: "include_ending",
+							type: CommandOptionType.BOOLEAN,
+							description: "whether to include the ending or not",
 						},
 					],
 				},
@@ -79,9 +86,10 @@ export class SlashVideoCommand extends SlashCommand {
 		filename: string,
 		at: number,
 		method: Method,
-		doFor: number,
+		doFor: number | undefined,
 		repeat: number,
-		include_beginning: boolean
+		include_beginning: boolean,
+		include_ending: boolean
 	) {
 		await this.ffmpeg.run(
 			"-i",
@@ -89,7 +97,7 @@ export class SlashVideoCommand extends SlashCommand {
 			"-qscale:v",
 			"4",
 			"-vf",
-			"fps=30",
+			"fps=30,scale=720:-1",
 			"frame%06d.png"
 		);
 		await this.ffmpeg.run(`-i`, `${filename}`, `${filename}.wav`);
@@ -101,7 +109,7 @@ export class SlashVideoCommand extends SlashCommand {
 		const frames = this.ffmpeg.FS("readdir", `/`).filter(f => f.endsWith(".png"));
 		const frameLen = frames.length;
 		const start = fps * at;
-		const end = start + fps * doFor;
+		const end = start + fps * (doFor ?? frameLen);
 		const selectedFrames = frames.slice(start, end);
 		let videoOutput: string[] = [];
 
@@ -110,7 +118,7 @@ export class SlashVideoCommand extends SlashCommand {
 		const audio: DecodedWAV = await decode(af);
 		const audioLength = audio.channelData[0].length / audio.sampleRate;
 		const audioStart = audio.sampleRate * at;
-		const audioEnd = audioStart + audio.sampleRate * doFor;
+		const audioEnd = audio.sampleRate * (at + (doFor ?? audioLength));
 		const selectedAudio = audio.channelData.map(t => t.slice(audioStart, audioEnd));
 		let audioOutput: Float32Array[];
 
@@ -129,30 +137,57 @@ export class SlashVideoCommand extends SlashCommand {
 				break;
 		}
 		if (repeat !== 0) {
-			for (let i = 0; i < repeat; i++) {
+			for (let i = 1; i < repeat; i++) {
 				videoOutput = videoOutput.concat(videoOutput);
 				const tr1 = audioOutput[0];
 				const tr2 = audioOutput[1];
-				audioOutput = [
-					new Float32Array([...tr1, ...tr1]),
-					new Float32Array([...tr2, ...tr2]),
-				];
+				audioOutput = tr2
+					? [new Float32Array([...tr1, ...tr1]), new Float32Array([...tr2, ...tr2])]
+					: [new Float32Array([...tr1, ...tr1])];
 			}
 		}
 
 		if (include_beginning) {
 			if (start !== 0) videoOutput = frames.slice(0, start).concat(videoOutput);
 			if (audioStart !== 0)
-				audioOutput = [
-					new Float32Array([
-						...audio.channelData[0].slice(0, audioStart),
-						...audioOutput[0],
-					]),
-					new Float32Array([
-						...audio.channelData[1].slice(0, audioStart),
-						...audioOutput[1],
-					]),
-				];
+				audioOutput = audio.channelData[1]
+					? [
+							new Float32Array([
+								...audio.channelData[0].slice(0, audioStart),
+								...audioOutput[0],
+							]),
+							new Float32Array([
+								...audio.channelData[1].slice(0, audioStart),
+								...audioOutput[1],
+							]),
+					  ]
+					: [
+							new Float32Array([
+								...audio.channelData[0].slice(0, audioStart),
+								...audioOutput[0],
+							]),
+					  ];
+		}
+		if (include_ending) {
+			if (end <= frameLen) videoOutput.push(...frames.slice(end));
+			if (audioEnd <= audioLength)
+				audioOutput = audio.channelData[1]
+					? [
+							new Float32Array([
+								...audioOutput[0],
+								...audio.channelData[0].slice(audioEnd),
+							]),
+							new Float32Array([
+								...audioOutput[1],
+								...audio.channelData[1].slice(audioEnd),
+							]),
+					  ]
+					: [
+							new Float32Array([
+								...audioOutput[0],
+								...audio.channelData[0].slice(audioEnd),
+							]),
+					  ];
 		}
 
 		this.ffmpeg.FS("writeFile", "concat.txt", videoOutput.map(f => `file ${f}`).join("\n"));
@@ -187,15 +222,15 @@ export class SlashVideoCommand extends SlashCommand {
 
 	async run(ctx: CommandContext): Promise<any> {
 		await ctx.defer();
-		this.ffmpeg = createFFmpeg();
 		const url: string | undefined = ctx.options.stutter.url;
 		const file: string | undefined = ctx.options.stutter.file;
 		const attachment = ctx.attachments.first();
 		const at: number = ctx.options.stutter.at ?? 0;
 		const method: Method = ctx.options.stutter.method ?? "ping-pong";
-		const doFor: number = ctx.options.stutter.for ?? 1;
+		const doFor: number = ctx.options.stutter.for;
 		const repeat: number = ctx.options.stutter.repeat ?? 0;
 		const include_beginning: boolean = ctx.options.stutter.include_beginning ?? false;
+		const include_ending: boolean = ctx.options.stutter.include_ending ?? false;
 
 		if (!url && !file) return EphemeralResponse("I need either an url or file for this...");
 		if (ctx.attachments.size > 1)
@@ -207,6 +242,7 @@ export class SlashVideoCommand extends SlashCommand {
 
 		try {
 			const fn = `tmp-${randomUUID()}.mp4`;
+			this.ffmpeg = createFFmpeg();
 			await this.ffmpeg.load();
 			this.ffmpeg.FS(
 				"writeFile",
@@ -214,7 +250,15 @@ export class SlashVideoCommand extends SlashCommand {
 				await fetchFile(attachment ? attachment.url : url ?? "wtf")
 			);
 			await this.ffmpeg.run(
-				...(await this.doStutter(fn, at, method, doFor, repeat, include_beginning))
+				...(await this.doStutter(
+					fn,
+					at,
+					method,
+					doFor,
+					repeat,
+					include_beginning,
+					include_ending
+				))
 			);
 			await ctx.send(
 				{
@@ -225,6 +269,7 @@ export class SlashVideoCommand extends SlashCommand {
 				},
 				{ ephemeral: false }
 			);
+			this.ffmpeg.exit();
 		} catch (err) {
 			console.error(err);
 			return EphemeralResponse("Something went wrong transcoding the video :(");
