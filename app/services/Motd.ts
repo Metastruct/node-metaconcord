@@ -95,10 +95,8 @@ export class Motd extends Service {
 
 	private clearImageAlbumAndHistory(): void {
 		const data = new FormData();
-		data.append("deletehashes[]", "{{}}");
-		// this errors but works ?
 		axios
-			.post(`https://api.imgur.com/3/album/${config.imgurDeleteHash}`, data, {
+			.post(`https://api.imgur.com/3/album/${config.imgurAlbumDeleteHash}`, data, {
 				headers: {
 					Authorization: `Client-ID ${config.imgurClientId}`,
 				},
@@ -141,7 +139,7 @@ export class Motd extends Service {
 		if (res.status === 200) {
 			const yesterday = dayjs().subtract(1, "d").unix();
 			this.images = res.data.data;
-			const urls: Array<ImgurImage> = res.data.data.filter(
+			const urls: ImgurImage[] = res.data.data.filter(
 				(img: ImgurImage) =>
 					img.datetime >= yesterday &&
 					!this.lastimages.includes(img) &&
