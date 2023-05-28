@@ -8,7 +8,7 @@ import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 60 * 0.25; // interval for changing the bot status to a random message
 const MSG_INTERVAL = 1000 * 60; // interval for checking messages for below trigger count, also resets activity if it was set manually or by other means
 const MSG_REPLY_INTERVAL = 1000 * 60 * 60 * 0.25; // interval when to allow replying to messages
-const MSG_TRIGGER_COUNT = 13; // how many msgs in above interval until a msg is posted
+const MSG_TRIGGER_COUNT = 10; // how many msgs in above interval until a msg is posted
 const MSG_CHAT_INTERVAL = 1000 * 60 * 60 * 2; // total time until a message is forced if below interval wasn't met (active chatters)
 const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.75; // idle (no active chatters) time until post, can be delayed by chatting
 const MSG_USE_AUTHOR_FREQ = 0.3; // use the author name instead of message
