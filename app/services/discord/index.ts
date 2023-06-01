@@ -2,7 +2,7 @@ import { Container } from "@/app/Container";
 import { Service } from "@/app/services";
 import Discord from "discord.js";
 import DiscordConfig from "@/config/discord.json";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import modules from "./modules";
 import motdConfig from "@/config/motd.json";
 
@@ -15,6 +15,8 @@ export const EMBED_FIELD_LIMIT = 1024;
 
 let lastMessageId: string;
 const ImgurRegex = /https?:\/\/(?:i.)?imgur.com\/(\w+)(?:.mp4)?/g;
+
+let bannerRetries = 0;
 
 export class DiscordBot extends Service {
 	name = "DiscordBot";
@@ -98,12 +100,25 @@ export class DiscordBot extends Service {
 
 		this.discord.user?.setActivity(activity);
 	}
-
 	async setServerBanner(url: string): Promise<void> {
 		if (!this.discord.isReady() || !(await this.overLvl2())) return;
 		const guild = this.getGuild();
-		const response = await axios.get(url, { responseType: "arraybuffer" });
+		const response = await axios
+			.get(url, { responseType: "arraybuffer" })
+			.catch((err: AxiosError) => {
+				if (
+					err.request.host === "i.imgur.com" &&
+					err.response?.status === 429 &&
+					bannerRetries < 3
+				) {
+					// too any requests my ass
+					this.setServerBanner(url);
+					bannerRetries++;
+					return;
+				}
+			});
 		if (!response) return;
+		bannerRetries = 0;
 		guild?.setBanner(response.data, "motd");
 	}
 
