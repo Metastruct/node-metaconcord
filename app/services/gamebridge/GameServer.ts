@@ -47,7 +47,7 @@ export default class GameServer {
 		players: Player[];
 		image: string | null;
 	} = { mapThumbnail: null, players: [], image: null };
-	map: string;
+	mapName: string;
 	mapUptime: number;
 	workshopMap?: {
 		name: string;

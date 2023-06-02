@@ -28,7 +28,7 @@ export default interface StatusRequest extends PayloadRequest {
 			nick: string;
 			isPirate?: boolean;
 		}[];
-		map?: string;
+		mapName?: string;
 		workshopMap?: {
 			name: string;
 			id: string;
