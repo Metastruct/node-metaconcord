@@ -30,8 +30,16 @@ export default class StatusPayload extends Payload {
 	static async handle(payload: StatusRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
-		const { countdown, defcon, players, map, workshopMap, gamemode, serverUptime, mapUptime } =
-			payload.data;
+		const {
+			countdown,
+			defcon,
+			players,
+			mapName,
+			workshopMap,
+			gamemode,
+			serverUptime,
+			mapUptime,
+		} = payload.data;
 		const { bridge, discord } = server;
 		const webApp = bridge.container.getService("WebApp");
 		if (!webApp) return;
@@ -44,7 +52,7 @@ export default class StatusPayload extends Payload {
 			const current_countdown = countdown;
 			const current_defcon = defcon ?? server.defcon ?? 5;
 			const current_players = players ?? server.status.players ?? [];
-			const current_map = map ?? server.map ?? "unknown map";
+			const current_map = mapName ?? server.mapName ?? "unknown map";
 			const current_gamemode = gamemode ??
 				server.gamemode ?? { folderName: "???", name: "unknown gamemode" };
 			const current_serverUptime = serverUptime ?? server.serverUptime ?? 0;
@@ -176,7 +184,7 @@ export default class StatusPayload extends Payload {
 			server.status.players = current_players;
 			server.defcon = current_defcon;
 			server.gamemode = current_gamemode;
-			server.map = current_map;
+			server.mapName = current_map;
 			server.mapUptime = current_mapUptime;
 			server.serverUptime = current_serverUptime;
 			server.workshopMap = current_workshopMap;
