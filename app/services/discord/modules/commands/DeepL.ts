@@ -116,7 +116,7 @@ export class SlashDeeplCommand extends SlashCommand {
 			function (entry) {
 				if (this.limit < 25) {
 					this.limit++;
-					return entry.includes(ctx.options[ctx.focused]);
+					return entry.includes((ctx.options[ctx.focused] as string).toUpperCase());
 				}
 			},
 			{ limit: 0 }
