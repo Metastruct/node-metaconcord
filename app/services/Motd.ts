@@ -60,7 +60,7 @@ export class Motd extends Service {
 		// scheduleJob("0 0 * * 0", this.clearImageAlbumAndHistory.bind(this));
 		const data = this.container.getService("Data");
 		if (!data) return;
-		// this.data = data;
+		this.data = data;
 		// axios
 		// 	.get(`https://api.imgur.com/3/album/${config.imgurAlbumId}/images`, {
 		// 		headers: {
