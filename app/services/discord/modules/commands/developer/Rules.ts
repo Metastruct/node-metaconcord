@@ -147,10 +147,10 @@ export class SlashRuleCommand extends SlashDeveloperCommand {
 			.join("")}\n# ***Breaking these rules may result in a ban!***`;
 
 		if (msg) {
-			await msg.edit(rules);
-		} else {
-			await channel.send(rules);
+			await msg.delete();
 		}
+
+		await channel.send(rules);
 		await this.saveRules(this.ruleCache);
 	}
 	private async addRule(ctx: CommandContext): Promise<any> {
