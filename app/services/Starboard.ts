@@ -47,19 +47,23 @@ export class Starboard extends Service {
 			let count = ego ? reaction.count - 1 : reaction.count;
 			count = reaction.users.cache.has(reaction.client.user.id) ? count - 1 : count;
 
-			let needed;
+			let needed: number;
+			let channelFilter: string | undefined = undefined;
 			switch (reaction.emoji.name) {
 				case "_h":
 					needed = 10;
 					break;
 				case "⭐":
-					needed = 5;
+					needed = 8;
+					channelFilter = discordConfig.channels.starArt;
 					break;
 				default:
 					needed = AMOUNT;
 					break;
 			}
-			if (count >= needed && !this.isBusy) {
+			const allowedChannel =
+				channelFilter !== undefined ? channel.id === channelFilter : true;
+			if (count >= needed && !this.isBusy && allowedChannel) {
 				this.isBusy = true;
 				const client = reaction.client;
 				const msg = await reaction.message.fetch();
