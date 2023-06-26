@@ -1,9 +1,9 @@
 import { Container } from "../Container";
-import { GuildChannel, MessageReaction } from "discord.js";
 import { SQL } from "./SQL";
 import { Service } from ".";
-import { TextChannel } from "discord.js";
+import Discord from "discord.js";
 import config from "@/config/starboard.json";
+import discordConfig from "@/config/discord.json";
 
 const AMOUNT = config.amount;
 export class Starboard extends Service {
@@ -33,27 +33,37 @@ export class Starboard extends Service {
 		await db.run("INSERT INTO starboard(MessageId) VALUES(?)", msgId);
 	}
 
-	public async handleReactionAdded(reaction: MessageReaction): Promise<void> {
-		const channel = reaction.message.channel as GuildChannel;
+	public async handleReactionAdded(reaction: Discord.MessageReaction): Promise<void> {
+		const channel = reaction.message.channel as Discord.GuildChannel;
 		const category = channel.parentId;
 		if (config.channelIgnores.includes(channel.id)) return;
 		if (category && config.categoryIgnores.includes(category)) return;
 
-		if (reaction.emoji.id === config.emoteId) {
+		if (reaction.emoji.name && config.emoteNames.includes(reaction.emoji.name)) {
 			let ego = false;
 			if (reaction.message.author)
 				ego = reaction.users.cache.has(reaction.message.author?.id);
 
 			let count = ego ? reaction.count - 1 : reaction.count;
 			count = reaction.users.cache.has(reaction.client.user.id) ? count - 1 : count;
-			if (count >= AMOUNT && !this.isBusy) {
+
+			let needed;
+			switch (reaction.emoji.name) {
+				case "_h":
+					needed = 10;
+					break;
+				case "⭐":
+					needed = 5;
+					break;
+				default:
+					needed = AMOUNT;
+					break;
+			}
+			if (count >= needed && !this.isBusy) {
 				this.isBusy = true;
 				const client = reaction.client;
 				const msg = await reaction.message.fetch();
 				if (!msg) return;
-
-				// don't loop
-				if (msg.channel.id === config.channelId) return;
 
 				// check against our local db first
 				if (await this.isMsgStarred(msg.id)) return;
@@ -65,7 +75,7 @@ export class Starboard extends Service {
 				const reference = msg.reference;
 				if (reference && reference.messageId) {
 					const refMsg = await (
-						client.channels.cache.get(reference.channelId) as TextChannel
+						client.channels.cache.get(reference.channelId) as Discord.TextChannel
 					).messages.fetch(reference.messageId);
 
 					text += `${
@@ -82,10 +92,21 @@ export class Starboard extends Service {
 
 				if (text === "") return;
 
-				const channel = client.channels.cache.get(
-					msg.author.bot ? config.extraChannelId : config.channelId
-				);
-				const webhooks = await (channel as TextChannel).fetchWebhooks();
+				let targetChannel: Discord.Channel | undefined;
+				switch (reaction.emoji.name) {
+					case "_h":
+						targetChannel = client.channels.cache.get(
+							msg.author.bot ? discordConfig.channels.hBot : discordConfig.channels.h
+						);
+						break;
+					case "⭐":
+						targetChannel = client.channels.cache.get(discordConfig.channels.starArt);
+						break;
+					default:
+						targetChannel = client.channels.cache.get(discordConfig.channels.h);
+						break;
+				}
+				const webhooks = await (targetChannel as Discord.TextChannel).fetchWebhooks();
 				const webhook = webhooks.find(h => h.token);
 
 				if (webhook) {
