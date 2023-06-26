@@ -53,9 +53,9 @@ export class Starboard extends Service {
 				case "_h":
 					needed = 10;
 					break;
-				case "⭐":
+				case "❤️":
 					needed = 8;
-					channelFilter = discordConfig.channels.starArt;
+					channelFilter = discordConfig.channels.artsAndCrafts;
 					break;
 				default:
 					needed = AMOUNT;
@@ -103,7 +103,7 @@ export class Starboard extends Service {
 							msg.author.bot ? discordConfig.channels.hBot : discordConfig.channels.h
 						);
 						break;
-					case "⭐":
+					case "❤️":
 						targetChannel = client.channels.cache.get(discordConfig.channels.starArt);
 						break;
 					default:
