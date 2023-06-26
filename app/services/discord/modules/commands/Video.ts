@@ -169,8 +169,8 @@ export class SlashVideoCommand extends SlashCommand {
 					  ];
 		}
 		if (include_ending) {
-			if (end <= frameLen) videoOutput.push(...frames.slice(end));
-			if (audioEnd <= audioLength)
+			if (end < frameLen) videoOutput.push(...frames.slice(end));
+			if (audioEnd < audioLength)
 				audioOutput = audio.channelData[1]
 					? [
 							new Float32Array([

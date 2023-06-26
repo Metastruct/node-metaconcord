@@ -3534,10 +3534,10 @@ signal-exit@^3.0.0, signal-exit@^3.0.7:
   resolved "https://registry.npmjs.org/signal-exit/-/signal-exit-3.0.7.tgz"
   integrity sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==
 
-slash-create@^5.11.0:
-  version "5.11.0"
-  resolved "https://registry.yarnpkg.com/slash-create/-/slash-create-5.11.0.tgz#2eeaa435bfac740680e44c081334ad11c9dde146"
-  integrity sha512-FIJxEv6gOXLCYf1ds7mdcsJywyrw359h2ytACEJ9DL/8LQ6CujAov4bbnZjSvgmr/QsztUvZEX9B4bIQjQtoNA==
+slash-create@^5.13.0:
+  version "5.13.0"
+  resolved "https://registry.yarnpkg.com/slash-create/-/slash-create-5.13.0.tgz#34deb10eea510b3a7137328aebe608c6ce57e674"
+  integrity sha512-cxvX6qCfVAhSuR+fkgN3u705c+lD3XuHCV/HWNCa7upHH9R46K9v73+AShMmWfmWlBszM9zJFKcB1MCgS/bHUw==
   dependencies:
     eventemitter3 "^5.0.0"
     lodash.isequal "^4.5.0"
