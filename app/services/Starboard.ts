@@ -104,7 +104,7 @@ export class Starboard extends Service {
 						);
 						break;
 					case "❤️":
-						targetChannel = client.channels.cache.get(discordConfig.channels.starArt);
+						targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
 						break;
 					default:
 						targetChannel = client.channels.cache.get(discordConfig.channels.h);
