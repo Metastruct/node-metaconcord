@@ -50,7 +50,7 @@ export class Starboard extends Service {
 			let needed: number;
 			let channelFilter: string | undefined = undefined;
 			switch (reaction.emoji.name) {
-				case "_h":
+				case "h_":
 					needed = 10;
 					break;
 				case "❤️":
@@ -98,7 +98,7 @@ export class Starboard extends Service {
 
 				let targetChannel: Discord.Channel | undefined;
 				switch (reaction.emoji.name) {
-					case "_h":
+					case "h_":
 						targetChannel = client.channels.cache.get(
 							msg.author.bot ? discordConfig.channels.hBot : discordConfig.channels.h
 						);
