@@ -54,7 +54,7 @@ export class Starboard extends Service {
 					needed = 10;
 					break;
 				case "❤️":
-					needed = 8;
+					needed = 5;
 					channelFilter = discordConfig.channels.artsAndCrafts;
 					break;
 				default:
