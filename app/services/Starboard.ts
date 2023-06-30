@@ -88,11 +88,10 @@ export class Starboard extends Service {
 				}
 
 				text += msg.content;
-				text +=
-					msg.attachments.size > 0
-						? "\n" + msg.attachments.map(a => a.url).join("\n")
-						: "";
 				text += msg.stickers.size > 0 ? msg.stickers.first()?.url : "";
+
+				const files: string[] = [];
+				msg.attachments.map(a => files.push(a.url));
 
 				if (text === "") return;
 
@@ -119,6 +118,7 @@ export class Starboard extends Service {
 						avatarURL: msg.author.avatarURL() ?? "",
 						username: `${msg.author.username}`,
 						allowedMentions: { parse: ["users", "roles"] },
+						files: files,
 					});
 					await this.starMsg(msg.id);
 				}
