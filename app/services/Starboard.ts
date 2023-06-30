@@ -93,8 +93,6 @@ export class Starboard extends Service {
 				const files: string[] = [];
 				msg.attachments.map(a => files.push(a.url));
 
-				if (text === "") return;
-
 				let targetChannel: Discord.Channel | undefined;
 				switch (reaction.emoji.name) {
 					case "h_":
