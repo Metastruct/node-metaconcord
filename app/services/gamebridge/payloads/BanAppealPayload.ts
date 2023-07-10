@@ -33,7 +33,7 @@ export default class UnbanPayload extends Payload {
 			steamId64 = new SteamID(player.steamId).getSteamID64();
 			const summary: PlayerSummary | undefined = await steam?.getUserSummaries(steamId64);
 			if (summary) {
-				bannerName = summary.nickname;
+				bannerName = summary.personaname;
 				avatar = summary.avatarfull;
 			}
 		} catch {
