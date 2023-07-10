@@ -48,7 +48,7 @@ export default class AdminNotifyPayload extends Payload {
 					const summary = await steam?.getUserSummaries(interactionId64);
 					await ctx.followUp({
 						content: `${ctx.user.mention} kicked player \`${
-							summary ? summary.nickname : "[nickname not found]"
+							summary ? summary.personaname : "[nickname not found]"
 						}\``,
 					});
 				} else {

@@ -229,6 +229,6 @@ export class SlashBanCommand extends SlashDeveloperCommand {
 			);
 			return;
 		}
-		await this.Ban(summary.nickname, ctx);
+		await this.Ban(summary.personaname, ctx);
 	}
 }
