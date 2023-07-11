@@ -151,7 +151,7 @@ export class SlashGservAllCommand extends SlashDeveloperCommand {
 		await Promise.all(promises)
 			.then(() => {
 				if (servers.length === 1) return;
-				ctx.editOriginal(`exected ${commands.join(" and ")} successfully!`);
+				ctx.editOriginal(`sent ${commands.join(" and ")} successfully!`);
 			})
 			.catch(err => ctx.send(`something went wrong!\`\`\`\n${err}\`\`\``));
 	}
