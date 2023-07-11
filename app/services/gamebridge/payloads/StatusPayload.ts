@@ -140,14 +140,16 @@ export default class StatusPayload extends Payload {
 						GamemodeAlias[current_gamemode.name.toLowerCase()] ?? current_gamemode.name,
 					iconURL: GamemodeIcons[current_gamemode.name.toLowerCase()],
 				})
+				.setAuthor({
+					name: server.config.name,
+					iconURL: GamemodeIcons.qbox,
+					url: `https://metastruct.net/${
+						server.config.label ? "join/" + server.config.label : ""
+					}`,
+				})
 				.setTitle(current_map)
 				.setDescription(desc)
-				.setThumbnail(mapThumbnail)
-				.setURL(
-					`https://metastruct.net/${
-						server.config.label ? "join/" + server.config.label : ""
-					}`
-				);
+				.setThumbnail(mapThumbnail);
 
 			if (count > 0) {
 				embed
