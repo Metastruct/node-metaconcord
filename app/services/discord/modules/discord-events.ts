@@ -6,7 +6,7 @@ import DiscordConfig from "@/config/discord.json";
 const events = [
 	{
 		icon: "vr",
-		triggers: ["vrchat"],
+		triggers: ["vrchat", "vr"],
 	},
 ];
 const iconsPath = join(process.cwd(), "resources/discord-event-icons");
@@ -33,10 +33,12 @@ export default (bot: DiscordBot): void => {
 				for (const { icon, triggers } of events) {
 					let match = false;
 					for (const trigger of triggers) {
-						if (event.name.toLowerCase().includes(trigger)) match = true;
+						if (event.name.toLowerCase().match(new RegExp(`${trigger}\\s`)))
+							match = true;
 					}
 					if (match) {
 						await event.guild?.setIcon(join(iconsPath, `${icon}.png`));
+						break;
 					}
 				}
 				break;
