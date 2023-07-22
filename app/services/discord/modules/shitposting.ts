@@ -104,8 +104,7 @@ export const Shat = async (
 export default async (bot: DiscordBot) => {
 	const data = bot.container.getService("Data");
 	const db = await bot.container.getService("SQL")?.getLocalDatabase();
-	const guild = bot.getGuild();
-	if (!data || !db || !guild) return;
+	if (!data || !db) return;
 	db.exec("CREATE TABLE IF NOT EXISTS media_urls (url VARCHAR(255) NOT NULL UNIQUE);");
 	const now = Date.now();
 	let lastActivityChange = now;
@@ -290,9 +289,11 @@ export default async (bot: DiscordBot) => {
 		const isBot = msg.author.id === id;
 		const isMention = msg.mentions.users.first()?.id === id;
 		const isAllowedChannel = bot.config.bot.allowedShitpostingChannels.includes(msg.channelId);
-		const isHidden = !(msg.channel as Discord.GuildChannel)
-			.permissionsFor(guild.roles.everyone)
-			.has("ViewChannel");
+		const isHidden = msg.guild
+			? !(msg.channel as Discord.GuildChannel)
+					.permissionsFor(msg.guild.roles.everyone)
+					.has("ViewChannel")
+			: true;
 
 		// Message Reactions
 		if (
