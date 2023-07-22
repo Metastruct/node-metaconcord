@@ -1,6 +1,6 @@
 import { DiscordBot } from "..";
 import { makeSpeechBubble } from "@/utils";
-import Discord, { GuildChannel } from "discord.js";
+import Discord from "discord.js";
 import DiscordConfig from "@/config/discord.json";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
@@ -290,7 +290,7 @@ export default async (bot: DiscordBot) => {
 		const isMention = msg.mentions.users.first()?.id === id;
 		const isAllowedChannel = bot.config.bot.allowedShitpostingChannels.includes(msg.channelId);
 		const isHidden = msg.guild
-			? !(msg.channel as GuildChannel)
+			? !(msg.channel as Discord.GuildChannel)
 					.permissionsFor(msg.guild?.roles.everyone)
 					.has("ViewChannel")
 			: true;
