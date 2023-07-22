@@ -24,12 +24,12 @@ const MAYBE_TRIGGER_WORDS = ["metastruct", "metaconstruct", "meta", "bot"]; // n
 const MAYBE_TRIGGER_FREQ = 0.4; // frequency of triggers above
 
 // shat constants
-const STOLEN_IMAGE_FREQ = 0.05; // how often the bot will respond with an stolen image
+const STOLEN_IMAGE_FREQ = 1; // how often the bot will respond with an stolen image
 const STICKER_FREQ = 0.05;
 const IMAGE_FREQ = 0.1; // how often the bot will respond with an image instead of text
 const REPLY_FREQ = 0.25; // when to take a word from a previous discord message if provided
 
-const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp"];
+const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp", "tumblr"];
 
 const IGNORE_LIST = ["447835474925584385"];
 
@@ -101,9 +101,11 @@ export const Shat = async (
 	}
 };
 
-export default (bot: DiscordBot): void => {
+export default async (bot: DiscordBot) => {
 	const data = bot.container.getService("Data");
-	if (!data) return;
+	const db = await bot.container.getService("SQL")?.getLocalDatabase();
+	if (!data || !db) return;
+	db.exec("CREATE TABLE IF NOT EXISTS media_urls (url VARCHAR(255) NOT NULL UNIQUE);");
 	const now = Date.now();
 	let lastActivityChange = now;
 	let lastAPIActivity: Discord.Activity | undefined;
@@ -111,7 +113,6 @@ export default (bot: DiscordBot): void => {
 	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? now);
 	let lastChatTime = now;
 	const lastMsgs: Discord.Message<boolean>[] = [];
-	const lastImgs: string[] = [];
 	let posting = false;
 	let replied = false;
 
@@ -151,8 +152,10 @@ export default (bot: DiscordBot): void => {
 				? ({
 						stickers: [bot.getGuild()?.stickers.cache.random()],
 				  } as Discord.MessageCreateOptions)
-				: shouldStealImg && lastImgs.length > 0
-				? lastImgs[(Math.random() * lastImgs.length) | 0]
+				: shouldStealImg
+				? (
+						await db.get<any>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1")
+				  ).url
 				: undefined
 		);
 		if (shat) {
@@ -219,10 +222,6 @@ export default (bot: DiscordBot): void => {
 		setInterval(async () => {
 			await data.save();
 		}, SAVE_INTERVAL); // save data
-
-		setInterval(() => {
-			lastImgs.splice(0, lastImgs.length);
-		}, 1000 * 60 * 60 * 6);
 
 		setInterval(async () => {
 			const now = Date.now();
@@ -339,13 +338,15 @@ export default (bot: DiscordBot): void => {
 			if (
 				msg.content.match(
 					new RegExp(
-						`^https?://(?:\\w+)?.?(${ALLOWED_IMG_PROVIDERS.join(
+						`^https?://(?:(?:\\w+)?\\.?)+(?:${ALLOWED_IMG_PROVIDERS.join(
 							"|"
-						)}).\\w+/[^\\s]+[^.mov|.mp4|.webm]$`
+						)})\\.(?:com|io)/[^\\s]+(?:\\.mov|\\.mp4|\\.webm)$`
 					)
 				)
 			) {
-				lastImgs.push(msg.content);
+				db.run("INSERT INTO media_urls VALUES($url)", {
+					$url: msg.content,
+				});
 			}
 		}
 	});
