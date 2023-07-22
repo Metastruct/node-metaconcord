@@ -1,6 +1,6 @@
 import { DiscordBot } from "..";
 import { makeSpeechBubble } from "@/utils";
-import Discord from "discord.js";
+import Discord, { GuildChannel } from "discord.js";
 import DiscordConfig from "@/config/discord.json";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 
@@ -289,6 +289,11 @@ export default async (bot: DiscordBot) => {
 		const isBot = msg.author.id === id;
 		const isMention = msg.mentions.users.first()?.id === id;
 		const isAllowedChannel = bot.config.bot.allowedShitpostingChannels.includes(msg.channelId);
+		const isHidden = msg.guild
+			? !(msg.channel as GuildChannel)
+					.permissionsFor(msg.guild?.roles.everyone)
+					.has("ViewChannel")
+			: true;
 
 		// Message Reactions
 		if (
@@ -334,7 +339,7 @@ export default async (bot: DiscordBot) => {
 		}
 
 		// image collector
-		if (msg.content.startsWith("http") && !isBot) {
+		if (msg.content.startsWith("http") && !isBot && !isHidden) {
 			if (
 				msg.content.match(
 					new RegExp(
