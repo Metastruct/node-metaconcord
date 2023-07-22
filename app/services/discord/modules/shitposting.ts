@@ -340,7 +340,7 @@ export default async (bot: DiscordBot) => {
 					new RegExp(
 						`^https?://(?:(?:\\w+)?\\.?)+(?:${ALLOWED_IMG_PROVIDERS.join(
 							"|"
-						)})\\.(?:com|io)/[^\\s]+(?:\\.mov|\\.mp4|\\.webm|\\.gif)$`
+						)})\\.(?:com|io)/[^\\s]+$`
 					)
 				)
 			) {
