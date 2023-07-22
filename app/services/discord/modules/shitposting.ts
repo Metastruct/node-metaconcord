@@ -24,9 +24,8 @@ const MAYBE_TRIGGER_WORDS = ["metastruct", "metaconstruct", "meta", "bot"]; // n
 const MAYBE_TRIGGER_FREQ = 0.4; // frequency of triggers above
 
 // shat constants
-const STOLEN_IMAGE_FREQ = 0.05; // how often the bot will respond with an stolen image
-const STICKER_FREQ = 0.05;
 const IMAGE_FREQ = 0.1; // how often the bot will respond with an image instead of text
+const STICKER_FREQ = 0.05; // guess
 const REPLY_FREQ = 0.25; // when to take a word from a previous discord message if provided
 
 const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp", "tumblr"];
@@ -130,7 +129,7 @@ export default async (bot: DiscordBot) => {
 		if (options.msg) (options.msg.channel as Discord.TextChannel).sendTyping();
 		const rng = Math.random();
 		const shouldUseAuthor = rng <= MSG_USE_AUTHOR_FREQ;
-		const shouldStealImg = rng <= STOLEN_IMAGE_FREQ;
+		const shouldStealImg = rng <= IMAGE_FREQ;
 		const shouldSendSticker = rng <= STICKER_FREQ;
 		const foundMatch = options.msg?.content
 			.split(" ")
