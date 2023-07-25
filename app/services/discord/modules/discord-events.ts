@@ -68,6 +68,10 @@ export default (bot: DiscordBot): void => {
 		await checkEvents();
 	});
 
+	bot.discord.on("guildScheduledEventDelete", async () => {
+		await checkEvents();
+	});
+
 	bot.discord.on("guildScheduledEventUpdate", async (_, now) => {
 		const event = now;
 
