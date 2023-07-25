@@ -50,7 +50,11 @@ export default (bot: DiscordBot): void => {
 					});
 				}
 			} else {
-				await guild.scheduledEvents.create(eventData);
+				// todo: see above
+				await guild.scheduledEvents.create({
+					...eventData,
+					scheduledStartTime: dayjs().day(6).hour(20).minute(0).second(0).toDate(),
+				});
 			}
 		}
 	};
