@@ -11,7 +11,6 @@ const events = [
 			entityType: Discord.GuildScheduledEventEntityType.Voice,
 			privacyLevel: Discord.GuildScheduledEventPrivacyLevel.GuildOnly,
 			channel: DiscordConfig.channels.gamingVoice,
-			scheduledStartTime: dayjs().day(6).hour(20).minute(0).toDate(),
 			name: "VRChat [Automated Event]",
 			description:
 				"Wanna join us in VR? Sign up so we know. Discussion in <#1009704968070107148>\n\nAlso checkout our Group at https://vrchat.com/home/group/grp_caeaacf4-a8a7-4e7d-8b66-46094732f85b",
@@ -40,11 +39,14 @@ export default (bot: DiscordBot): void => {
 			if (existingEvent?.status === Discord.GuildScheduledEventStatus.Active) return;
 			if (existingEvent) {
 				const eventDate = existingEvent.scheduledStartAt;
+				// todo: figure out how to properly schedule this for multiple events, maybe just use cron afterall??
+				const nextDate = dayjs().day(6).hour(20).minute(0).second(0);
+				if (nextDate.isBefore(eventDate)) nextDate.add(7, "days");
 				if (eventDate && dayjs().add(5, "minutes").toDate() > eventDate) {
 					await guild.scheduledEvents.delete(existingEvent);
 					await guild.scheduledEvents.create({
 						...eventData,
-						scheduledStartTime: dayjs().day(6).hour(20).minute(0).toDate(),
+						scheduledStartTime: nextDate.toDate(),
 					});
 				}
 			} else {
