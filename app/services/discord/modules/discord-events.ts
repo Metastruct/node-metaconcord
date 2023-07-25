@@ -17,6 +17,7 @@ const events = [
 			reason: "Automated Event",
 		} as Discord.GuildScheduledEventCreateOptions,
 		triggers: ["vrchat", "vr"],
+		notificationChannel: DiscordConfig.threads.VR,
 	},
 ];
 const iconsPath = join(process.cwd(), "resources/discord-event-icons");
@@ -34,7 +35,7 @@ export default (bot: DiscordBot): void => {
 		const guild = bot.getGuild();
 		if (!guild) return;
 		const eventList = await guild.scheduledEvents.fetch();
-		for (const { eventData } of events) {
+		for (const { eventData, notificationChannel } of events) {
 			const existingEvent = eventList.find(event => event.name === eventData.name);
 			if (existingEvent?.status === Discord.GuildScheduledEventStatus.Active) return;
 			if (existingEvent) {
@@ -44,10 +45,14 @@ export default (bot: DiscordBot): void => {
 				if (nextDate.isBefore(eventDate)) nextDate.add(7, "days");
 				if (eventDate && dayjs().add(5, "minutes").toDate() > eventDate) {
 					await guild.scheduledEvents.delete(existingEvent);
-					await guild.scheduledEvents.create({
+					const event = await guild.scheduledEvents.create({
 						...eventData,
 						scheduledStartTime: nextDate.toDate(),
 					});
+					if (notificationChannel)
+						(guild.channels.cache.get(notificationChannel) as Discord.TextChannel).send(
+							event.url
+						);
 				}
 			} else {
 				// todo: see above
