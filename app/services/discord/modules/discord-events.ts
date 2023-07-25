@@ -37,30 +37,21 @@ export default (bot: DiscordBot): void => {
 		const eventList = await guild.scheduledEvents.fetch();
 		for (const { eventData, notificationChannel } of events) {
 			const existingEvent = eventList.find(event => event.name === eventData.name);
-			if (existingEvent?.status === Discord.GuildScheduledEventStatus.Active) return;
-			if (existingEvent) {
-				const eventDate = existingEvent.scheduledStartAt;
-				// todo: figure out how to properly schedule this for multiple events, maybe just use cron afterall??
-				const nextDate = dayjs().day(6).hour(20).minute(0).second(0);
-				if (nextDate.isBefore(eventDate)) nextDate.add(7, "days");
-				if (eventDate && dayjs().add(5, "minutes").toDate() > eventDate) {
-					await guild.scheduledEvents.delete(existingEvent);
-					const event = await guild.scheduledEvents.create({
-						...eventData,
-						scheduledStartTime: nextDate.toDate(),
-					});
-					if (notificationChannel)
-						(guild.channels.cache.get(notificationChannel) as Discord.TextChannel).send(
-							event.url
-						);
-				}
-			} else {
-				// todo: see above
-				await guild.scheduledEvents.create({
-					...eventData,
-					scheduledStartTime: dayjs().day(6).hour(20).minute(0).second(0).toDate(),
-				});
-			}
+			if (existingEvent) return;
+
+			// todo: figure out how to properly schedule this for multiple events, maybe just use cron afterall??
+			const nextDate = dayjs().day(6).hour(20).minute(0).second(0);
+			if (nextDate.isBefore(dayjs())) nextDate.add(7, "days");
+
+			const event = await guild.scheduledEvents.create({
+				...eventData,
+				scheduledStartTime: nextDate.toDate(),
+			});
+
+			if (notificationChannel)
+				(guild.channels.cache.get(notificationChannel) as Discord.TextChannel).send(
+					event.url
+				);
 		}
 	};
 
@@ -108,6 +99,5 @@ export default (bot: DiscordBot): void => {
 				break;
 			}
 		}
-		await checkEvents();
 	});
 };
