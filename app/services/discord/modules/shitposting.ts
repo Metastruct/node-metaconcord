@@ -361,7 +361,7 @@ export default async (bot: DiscordBot) => {
 					)
 				)
 			) {
-				db.run("INSERT OR IGNORE INTO media_urls VALUES($url)", {
+				db.run("INSERT INTO media_urls VALUES($url) ON CONFLICT DO NOTHING", {
 					$url: msg.content,
 				});
 			}
