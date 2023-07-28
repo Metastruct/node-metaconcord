@@ -141,7 +141,7 @@ export default async (bot: DiscordBot) => {
 		if (options.msg) (options.msg.channel as Discord.TextChannel).sendTyping();
 		const rng = Math.random();
 		const shouldUseAuthor = rng <= MSG_USE_AUTHOR_FREQ;
-		const shouldStealImg = rng <= IMAGE_FREQ;
+		const shouldSendImg = rng <= IMAGE_FREQ;
 		const shouldSendSticker = rng <= STICKER_FREQ;
 		const foundMatch = options.msg?.content
 			.split(" ")
@@ -163,7 +163,7 @@ export default async (bot: DiscordBot) => {
 				? ({
 						stickers: [bot.getGuild()?.stickers.cache.random()],
 				  } as Discord.MessageCreateOptions)
-				: shouldStealImg
+				: shouldSendImg
 				? (
 						await db.get<any>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1")
 				  ).url
