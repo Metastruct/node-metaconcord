@@ -9,7 +9,7 @@ interface ILearnData {
 	authorName: string;
 }
 
-interface IGenerateOptions {
+export interface IGenerateOptions {
 	depth?: number;
 	length?: number;
 	authorID?: string;

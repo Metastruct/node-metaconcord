@@ -1,4 +1,5 @@
 import { DiscordBot } from "..";
+import { IGenerateOptions } from "../../Markov";
 import { makeSpeechBubble } from "@/utils";
 import Discord from "discord.js";
 import DiscordConfig from "@/config/discord.json";
@@ -45,6 +46,10 @@ function getWord(msg: string) {
 	return search;
 }
 
+const DefaultMarkovConfig: IGenerateOptions = {
+	depth: ((Math.random() * 3) | 0) + 2, // random number from 2 to 4
+};
+
 export const Shat = async (
 	msg?: string,
 	fallback?: string,
@@ -61,15 +66,18 @@ export const Shat = async (
 			search = getWord(msg);
 		}
 		let mk = await globalThis.MetaConcord.container.getService("Markov")?.generate(search, {
+			...DefaultMarkovConfig,
 			continuation: true,
 		});
 
 		if ((!mk || mk === msg) && fallback)
 			mk = await globalThis.MetaConcord.container
 				.getService("Markov")
-				?.generate(getWord(fallback));
+				?.generate(getWord(fallback), DefaultMarkovConfig);
 		if (!mk || mk === msg)
-			mk = await globalThis.MetaConcord.container.getService("Markov")?.generate();
+			mk = await globalThis.MetaConcord.container
+				.getService("Markov")
+				?.generate(DefaultMarkovConfig);
 
 		return mk ? { content: mk.replace(`<@${DiscordConfig.bot.userId}> `, "") } : undefined;
 	} else {
@@ -77,7 +85,11 @@ export const Shat = async (
 		let word = msg && !msg.startsWith("http") ? getWord(msg) : undefined;
 
 		if (!word)
-			word = getWord(await globalThis.MetaConcord.container.getService("Markov")?.generate());
+			word = getWord(
+				await globalThis.MetaConcord.container
+					.getService("Markov")
+					?.generate(DefaultMarkovConfig)
+			);
 
 		if (images.length !== 0 && (Math.random() <= 0.5 || !word)) {
 			const imgur = images[(Math.random() * images.length) | 0];
@@ -91,7 +103,7 @@ export const Shat = async (
 				return {
 					content: await globalThis.MetaConcord.container
 						.getService("Markov")
-						?.generate(),
+						?.generate(DefaultMarkovConfig),
 				}; // if for some reason we get no result;
 			return {
 				content: res.data.results[(Math.random() * res.data.results.length) | 0].url,
@@ -199,6 +211,7 @@ export default async (bot: DiscordBot) => {
 		const sentence = await bot.container
 			.getService("Markov")
 			?.generate(selection.ctx[(Math.random() * selection.ctx.length) | 0], {
+				...DefaultMarkovConfig,
 				continuation: false,
 			});
 		if (sentence) {
