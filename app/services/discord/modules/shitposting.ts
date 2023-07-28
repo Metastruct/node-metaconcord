@@ -241,8 +241,9 @@ export default async (bot: DiscordBot) => {
 				replied = false;
 			}
 			if (
-				lastMsgs.length > 0 &&
-				lastMsgs.slice(-1)[0].author.id !== bot.discord.user?.id &&
+				((lastMsgs.length > 0 && lastMsgs.slice(-1)[0].author.id) ||
+					(await bot.getTextChannel(bot.config.channels.chat)?.lastMessage?.fetch())) !==
+					bot.discord.user?.id &&
 				(now - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
 					lastMsgs.length >= MSG_TRIGGER_COUNT ||
 					now - lastMsgTime > MSG_CHAT_INTERVAL) &&
