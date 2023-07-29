@@ -77,7 +77,7 @@ export const Shat = async (
 		if (!mk || mk === msg)
 			mk = await globalThis.MetaConcord.container
 				.getService("Markov")
-				?.generate(DefaultMarkovConfig);
+				?.generate(undefined, DefaultMarkovConfig);
 
 		return mk ? { content: mk.replace(`<@${DiscordConfig.bot.userId}> `, "") } : undefined;
 	} else {
@@ -88,7 +88,7 @@ export const Shat = async (
 			word = getWord(
 				await globalThis.MetaConcord.container
 					.getService("Markov")
-					?.generate(DefaultMarkovConfig)
+					?.generate(undefined, DefaultMarkovConfig)
 			);
 
 		if (images.length !== 0 && (Math.random() <= 0.5 || !word)) {
@@ -103,7 +103,7 @@ export const Shat = async (
 				return {
 					content: await globalThis.MetaConcord.container
 						.getService("Markov")
-						?.generate(DefaultMarkovConfig),
+						?.generate(undefined, DefaultMarkovConfig),
 				}; // if for some reason we get no result;
 			return {
 				content: res.data.results[(Math.random() * res.data.results.length) | 0].url,
