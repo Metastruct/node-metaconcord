@@ -96,6 +96,7 @@ export default (bot: DiscordBot): void => {
 						usr.roles.remove(DiscordConfig.roles.event);
 				});
 				await event.guild?.setIcon(data.lastDiscordGuildIcon);
+				checkEvents();
 				break;
 			}
 		}
