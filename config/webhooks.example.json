@@ -1,0 +1,17 @@
+{
+    "webhookUrls": {
+        "public": {
+        },
+        "private": {
+            "test": ""
+        }
+    },
+    "github": {
+        "secret": "",
+        "webhookUrl": ""
+    },
+    "gitlab": {
+        "secret": "",
+        "webhookUrl": ""
+    }
+}
