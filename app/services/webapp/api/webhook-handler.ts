@@ -91,11 +91,12 @@ GitHub.on("push", async event => {
 			});
 		}
 
-		const diff = await getGitHubDiff(commit.url);
-		if (diff)
-			diff.replace(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n")
-				.replace(/diff.+\nindex.+\n/g, "")
-				.replace("```", "");
+		let diff = await getGitHubDiff(commit.url);
+		if (diff) {
+			diff = diff.replace(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n");
+			diff = diff.replace(/diff.+\nindex.+\n/g, "");
+			diff = diff.replace("```", "");
+		}
 
 		embeds.push({
 			title:
