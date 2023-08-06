@@ -154,7 +154,8 @@ export default async (bot: DiscordBot) => {
 			foundMatch
 				? foundMatch
 				: shouldUseAuthor
-				? options.msg?.author.username?.toLowerCase()
+				? options.msg?.author.globalName?.toLowerCase() ??
+				  options.msg?.author.username?.toLowerCase()
 				: options.msg?.content,
 			shouldUseAuthor ? options.msg?.content : undefined,
 			options.forceImage,
