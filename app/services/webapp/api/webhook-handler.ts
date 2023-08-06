@@ -34,7 +34,6 @@ const GetGithubChanges = (
 	added: string[],
 	removed: string[],
 	modified: string[],
-	host: "GitHub" | "GitLab",
 	repoPath: string,
 	sha: string
 ): string[] => {
@@ -44,21 +43,24 @@ const GetGithubChanges = (
 		[
 			added.map(
 				s =>
-					`Add [${s}](https://${
-						host === "GitHub" ? "github.com" : "gitlab.com"
-					}/${repoPath}/blob/${sha}/${s.replace(" ", "%%20")})`
+					`Add [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(
+						" ",
+						"%%20"
+					)})`
 			),
 			removed.map(
 				s =>
-					`Del [${s}](https://${
-						host === "GitHub" ? "github.com" : "gitlab.com"
-					}/${repoPath}/blob/${sha}/${s.replace(" ", "%%20")})`
+					`Del [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(
+						" ",
+						"%%20"
+					)})`
 			),
 			modified.map(
 				s =>
-					`Mod [${s}](https://${
-						host === "GitHub" ? "github.com" : "gitlab.com"
-					}/${repoPath}/blob/${sha}/${s.replace(" ", "%%20")})`
+					`Mod [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(
+						" ",
+						"%%20"
+					)})`
 			),
 		]
 	);
@@ -78,7 +80,6 @@ GitHub.on("push", async event => {
 			commit.added,
 			commit.removed,
 			commit.modified,
-			"GitHub",
 			event.payload.repository.full_name,
 			event.payload.ref
 		);
@@ -147,8 +148,5 @@ GitHub.on("push", async event => {
 });
 
 export default (webApp: WebApp): void => {
-	webApp.app.post("/webhooks/gitlab", async (req, res) => {
-		return res.status(500); // todo
-	});
 	webApp.app.use(createNodeMiddleware(GitHub, { path: "/webhooks/github" }));
 };
