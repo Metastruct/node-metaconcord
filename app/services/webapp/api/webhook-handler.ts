@@ -75,6 +75,8 @@ GitHub.on("push", async event => {
 	const embeds: Discord.APIEmbed[] = [];
 	const fields: Discord.APIEmbedField[] = [];
 	const commits = event.payload.commits;
+	const branch = event.payload.ref.split("/")[2];
+
 	for (const commit of commits) {
 		const changes = GetGithubChanges(
 			commit.added,
@@ -109,7 +111,14 @@ GitHub.on("push", async event => {
 						diff.length > 4096 - 12 ? diff.substring(0, 4079) + ". . ." : diff
 				  }\`\`\``
 				: undefined,
-
+			author: {
+				name:
+					branch !== event.payload.repository.default_branch
+						? (event.payload.repository.name + "/" + branch).substring(0, 256)
+						: event.payload.repository.name.substring(0, 256),
+				url: event.payload.repository.url,
+				icon_url: event.payload.repository.owner.avatar_url,
+			},
 			color:
 				clamp(COLOR_BASE + COLOR_MOD * commit.removed.length, COLOR_BASE, 255) * 65536 +
 				clamp(COLOR_BASE + COLOR_MOD * commit.added.length, COLOR_BASE, 255) * 256 +
