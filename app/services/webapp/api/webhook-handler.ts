@@ -194,7 +194,6 @@ export default (webApp: WebApp): void => {
 								)
 									.then(data => {
 										console.log(JSON.stringify(data, undefined, 2));
-										const errors = data.flatMap(res => res.data.errors);
 										ctx.editReply(
 											`<@${ctx.user.id}> updated servers and refreshed files sucessfully!`
 										);
