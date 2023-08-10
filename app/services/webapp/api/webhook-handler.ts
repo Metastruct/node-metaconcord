@@ -217,11 +217,11 @@ export default (webApp: WebApp): void => {
 
 	GitHub.on("push", async event => {
 		const embeds: Discord.APIEmbed[] = [];
-		const fields: Discord.APIEmbedField[] = [];
 		const commits = event.payload.commits;
 		const branch = event.payload.ref.split("/")[2];
 
 		for (const commit of commits) {
+			const fields: Discord.APIEmbedField[] = [];
 			const changes = GetGithubChanges(
 				commit.added,
 				commit.removed,
