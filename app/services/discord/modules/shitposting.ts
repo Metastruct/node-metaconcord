@@ -47,7 +47,7 @@ function getWord(msg: string) {
 }
 
 const DefaultMarkovConfig: IGenerateOptions = {
-	depth: ((Math.random() * 3) | 0) + 2, // random number from 2 to 4
+	depth: ((Math.random() * 2) | 0) + 3, // random number from 3 to 4
 };
 
 export const Shat = async (
