@@ -101,7 +101,6 @@ export default (webApp: WebApp): void => {
 
 			const collector = channel.createMessageComponentCollector({
 				componentType: Discord.ComponentType.Button,
-				time: 3600000,
 			});
 
 			collector.on("collect", async (ctx: Discord.ButtonInteraction) => {
