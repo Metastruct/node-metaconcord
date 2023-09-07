@@ -1,3 +1,4 @@
+import { GameBridge } from "../../gamebridge";
 import { NodeSSH } from "node-ssh";
 import { WebApp } from "..";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
@@ -40,32 +41,17 @@ const GetGithubChanges = (
 	sha: string
 ): string[] => {
 	// behold, the most cursed thing known to mankind
-	return [].concat.apply(
-		[],
-		[
-			added.map(
-				s =>
-					`Add [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(
-						" ",
-						"%%20"
-					)})`
-			),
-			removed.map(
-				s =>
-					`Del [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(
-						" ",
-						"%%20"
-					)})`
-			),
-			modified.map(
-				s =>
-					`Mod [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(
-						" ",
-						"%%20"
-					)})`
-			),
-		]
-	);
+	return [
+		...added.map(
+			s => `Add [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(" ", "%%20")})`
+		),
+		...removed.map(
+			s => `Del [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(" ", "%%20")})`
+		),
+		...modified.map(
+			s => `Mod [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(" ", "%%20")})`
+		),
+	];
 };
 
 const getGitHubDiff = async (url: string) => {
@@ -75,16 +61,24 @@ const getGitHubDiff = async (url: string) => {
 
 const FIELD_REGEX = /^(?:Add|Mod|Del) \[(.+)\]/g;
 
+const SERVER_EMOJI_MAP = {
+	"1": "1️⃣",
+	"2": "2️⃣",
+	"3": "3️⃣",
+};
+
 export default (webApp: WebApp): void => {
 	webApp.app.use(createNodeMiddleware(GitHub, { path: "/webhooks/github" }));
 	let webhook: Discord.Webhook;
+	let bridge: GameBridge;
 
 	const bot = webApp.container.getService("DiscordBot");
 	if (!bot) return;
 
 	bot.discord.on("ready", async () => {
-		const bridge = webApp.container.getService("GameBridge");
-		if (!bridge) return;
+		const bridgeService = webApp.container.getService("GameBridge");
+		if (!bridgeService) return;
+		bridge = bridgeService;
 
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
 		if (channel) {
@@ -98,119 +92,119 @@ export default (webApp: WebApp): void => {
 			} else {
 				webhook = botHook;
 			}
+		}
+	});
 
-			const collector = channel.createMessageComponentCollector({
-				componentType: Discord.ComponentType.Button,
-			});
+	bot.discord.on("interactionCreate", async (ctx: Discord.ButtonInteraction) => {
+		if (!ctx.member || !ctx.isButton() || !bridge) return;
+		const action = ctx.customId;
 
-			collector.on("collect", async (ctx: Discord.ButtonInteraction) => {
-				if (!ctx.member) return;
-				const action = ctx.customId;
+		const allowed = (ctx.member.roles as Discord.GuildMemberRoleManager).cache.some(
+			x => x.id === bot.config.roles.developer || x.id === bot.config.roles.administrator
+		);
 
-				const allowed = (ctx.member.roles as Discord.GuildMemberRoleManager).resolveId(
-					bot.config.roles.developer
-				);
+		if (!allowed) return;
 
-				if (!allowed) return;
+		switch (action) {
+			case "update":
+				//await ctx.update({ components: [] });
+				await ctx.reply(`<@${ctx.user.id}> updating servers...`);
+				await Promise.all(
+					sshConfig.servers.map(
+						async (srvConfig: { host: string; username: string; port: number }) => {
+							const ssh = new NodeSSH();
 
-				switch (action) {
-					case "update":
-						//await ctx.update({ components: [] });
-						await ctx.reply(`<@${ctx.user.id}> updating servers...`);
-						await Promise.all(
-							sshConfig.servers.map(
-								async (srvConfig: {
-									host: string;
-									username: string;
-									port: number;
-								}) => {
-									const ssh = new NodeSSH();
-
-									await ssh.connect({
-										username: srvConfig.username,
-										host: srvConfig.host,
-										port: srvConfig.port,
-										privateKeyPath: sshConfig.keyPath,
-									});
-
-									await ssh.exec("gserv", ["qu", "rehash"], {
-										stream: "stderr",
-									});
-								}
-							)
-						)
-							.then(() => {
-								ctx.editReply(
-									`<@${ctx.user.id}> successfully updated all servers!`
-								);
-							})
-							.catch(err => {
-								ctx.editReply(
-									`<@${ctx.user.id}> failed to update :(\`\`\`\n${err}\`\`\``
-								);
+							await ssh.connect({
+								username: srvConfig.username,
+								host: srvConfig.host,
+								port: srvConfig.port,
+								privateKeyPath: sshConfig.keyPath,
 							});
-						break;
-					case "everything":
-						//await ctx.update({ components: [] });
-						await ctx.reply(`<@${ctx.user.id}> updating servers and files...`);
-						await Promise.all(
-							sshConfig.servers.map(
-								async (srvConfig: {
-									host: string;
-									username: string;
-									port: number;
-								}) => {
-									const ssh = new NodeSSH();
 
-									await ssh.connect({
-										username: srvConfig.username,
-										host: srvConfig.host,
-										port: srvConfig.port,
-										privateKeyPath: sshConfig.keyPath,
-									});
-
-									await ssh.exec("gserv", ["qu", "rehash"], {
-										stream: "stderr",
-									});
-								}
-							)
-						)
-							.then(async () => {
-								const msg = ctx.message;
-								const files = msg.embeds
-									.flatMap(e => e.fields)
-									.map(f => [...f.value.matchAll(FIELD_REGEX)].map(m => m[1])[0]);
-
-								await Promise.all(
-									bridge.servers.map(server =>
-										bridge.payloads.RconPayload.callLua(
-											files.map(f => `RefreshLua([[${f}]])`).join("\n"),
-											"sv",
-											server,
-											ctx.user.globalName ?? ctx.user.displayName
-										)
-									)
-								)
-									.then(data => {
-										console.log(JSON.stringify(data, undefined, 2));
-										ctx.editReply(
-											`<@${ctx.user.id}> updated servers and refreshed files sucessfully!`
-										);
-									})
-									.catch(err => {
-										ctx.editReply(
-											`<@${ctx.user.id}> could not refresh files. :(\`\`\`\n${err}\`\`\``
-										);
-									});
-							})
-							.catch(err => {
-								ctx.editReply(
-									`<@${ctx.user.id}> failed to update servers :(\`\`\`\n${err}\`\`\``
+							await ssh
+								.exec("gserv", ["qu", "rehash"], {
+									stream: "stderr",
+								})
+								.then(async () =>
+									(
+										await ctx.fetchReply()
+									).react(SERVER_EMOJI_MAP[srvConfig.host.slice(1, 2)] ?? "❓")
 								);
+						}
+					)
+				)
+					.then(() => {
+						ctx.editReply(`<@${ctx.user.id}> successfully updated all servers!`);
+					})
+					.catch(err => {
+						ctx.editReply(`<@${ctx.user.id}> failed to update :(\`\`\`\n${err}\`\`\``);
+					});
+				break;
+			case "everything":
+				//await ctx.update({ components: [] });
+				await ctx.reply(`<@${ctx.user.id}> updating servers and files...`);
+				await Promise.all(
+					sshConfig.servers.map(
+						async (srvConfig: { host: string; username: string; port: number }) => {
+							const ssh = new NodeSSH();
+							const reply = await ctx.fetchReply();
+
+							if (!bridge.servers) {
+								throw new Error("no servers connected, please try again in a sec.");
+							}
+
+							const gameServer = bridge.servers[Number(srvConfig.host.slice(1, 2))];
+							if (!gameServer) throw new Error("gameserver not connected?");
+
+							await ssh.connect({
+								username: srvConfig.username,
+								host: srvConfig.host,
+								port: srvConfig.port,
+								privateKeyPath: sshConfig.keyPath,
 							});
-						break;
-				}
-			});
+
+							await ssh
+								.exec("gserv", ["qu", "rehash"], {
+									stream: "stderr",
+								})
+								.then(async () => {
+									const channel = <Discord.TextBasedChannel>(
+										await gameServer.discord.channels.fetch(reply.channelId)
+									);
+									(await channel.messages.fetch(reply)).react("📥");
+								});
+
+							const msg = ctx.message;
+							const files = msg.embeds
+								.flatMap(e => e.fields)
+								.map(f => [...f.value.matchAll(FIELD_REGEX)].map(m => m[1])[0]);
+							const res = await bridge.payloads.RconPayload.callLua(
+								'if not RefreshLua then return false, "RefreshLua missing?" end\n' +
+									files.map(f => `RefreshLua([[${f}]])`).join("\n"),
+								"sv",
+								gameServer,
+								ctx.user.globalName ?? ctx.user.displayName
+							);
+							if (res) {
+								const channel = <Discord.TextBasedChannel>(
+									await gameServer.discord.channels.fetch(reply.channelId)
+								);
+
+								(await channel.messages.fetch(reply)).react("🔁");
+							}
+							return res;
+						}
+					)
+				)
+					.then(() => {
+						ctx.editReply(
+							`<@${ctx.user.id}> successfully updated all servers and refreshed files!`
+						);
+					})
+					.catch(err =>
+						ctx.editReply(`<@${ctx.user.id}> failed to update :(\`\`\`\n${err}\`\`\``)
+					);
+				break;
 		}
 	});
 
