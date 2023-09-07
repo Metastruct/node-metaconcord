@@ -1,16 +1,6 @@
-import { APIEmbed } from "discord.js";
-import {
-	ApplicationCommandOptionChoice,
-	ApplicationCommandType,
-	AutocompleteContext,
-	CommandContext,
-	CommandOptionType,
-	MessageOptions,
-	SlashCommand,
-	SlashCreator,
-} from "slash-create";
-import { DiscordBot } from "../..";
 import { EphemeralResponse } from ".";
+import { MenuCommand, SlashCommand } from "@/extensions/discord";
+import Discord from "discord.js";
 import QueryString from "qs";
 import axios, { AxiosResponse } from "axios";
 import config from "@/config/deepl.json";
@@ -71,101 +61,96 @@ async function translate(options: DeeplOptions): Promise<AxiosResponse<DeeplResp
 	return axios.post("https://api-free.deepl.com/v2/translate", QueryString.stringify(options));
 }
 
-export class SlashDeeplCommand extends SlashCommand {
-	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(creator, {
-			name: "deepl",
-			description: "translate using DeepL.",
-			deferEphemeral: true,
-			guildIDs: [bot.config.bot.primaryGuildId],
-			options: [
-				{
-					name: "text",
-					description: "text to translate",
-					type: CommandOptionType.STRING,
-					required: true,
-				},
-				{
-					name: "to",
-					description: "language to translate to",
-					type: CommandOptionType.STRING,
-					autocomplete: true,
-				},
-				{
-					name: "from",
-					description: "language to translate to",
-					type: CommandOptionType.STRING,
-					autocomplete: true,
-				},
-				{
-					name: "formal",
-					description:
-						"try to get a more formal version if possible for now (DE,FR,IT,ES,NL,PL,PT,RU)",
-					type: CommandOptionType.STRING,
-					choices: [
-						{ name: "more_formal", value: "prefer_more" },
-						{ name: "less_formal", value: "prefer_less" },
-					],
-				},
-			],
-		});
-		this.filePath = __filename;
-	}
-	async autocomplete(ctx: AutocompleteContext): Promise<any> {
-		return LANG.filter(
-			function (entry) {
-				if (this.limit < 25) {
-					this.limit++;
-					return entry.includes((ctx.options[ctx.focused] as string).toUpperCase());
-				}
+export const SlashDeeplCommand: SlashCommand = {
+	options: {
+		name: "deepl",
+		description: "translate using DeepL.",
+		options: [
+			{
+				name: "text",
+				description: "text to translate",
+				type: Discord.ApplicationCommandOptionType.String,
+				required: true,
 			},
-			{ limit: 0 }
-		).map(lang => {
-			return { name: lang, value: lang } as ApplicationCommandOptionChoice;
-		});
-	}
-
-	async run(ctx: CommandContext): Promise<any> {
-		const text = ctx.options.text;
+			{
+				name: "to",
+				description: "language to translate to",
+				type: Discord.ApplicationCommandOptionType.String,
+				autocomplete: true,
+			},
+			{
+				name: "from",
+				description: "language to translate to",
+				type: Discord.ApplicationCommandOptionType.String,
+				autocomplete: true,
+			},
+			{
+				name: "formal",
+				description:
+					"try to get a more formal version if possible for now (DE,FR,IT,ES,NL,PL,PT,RU)",
+				type: Discord.ApplicationCommandOptionType.String,
+				choices: [
+					{ name: "more_formal", value: "prefer_more" },
+					{ name: "less_formal", value: "prefer_less" },
+				],
+			},
+		],
+	},
+	execute: async ctx => {
+		const text = ctx.options.getString("text");
 		if (text && Buffer.from(text).length < 128 * 1024) {
+			const to = <SupportedLanguages>ctx.options.getString("to") ?? "EN";
+			const from = <SupportedLanguages>ctx.options.getString("from");
+			const formality =
+				<DeeplOptions["formality"]>ctx.options.getString("formality") ?? "default";
 			const res = await translate({
 				auth_key: config.key,
-				text: ctx.options.text,
-				target_lang: ctx.options.to ?? "EN",
-				source_lang: ctx.options.from,
-				formality: ctx.options.formal ? ctx.options.formal : "default",
+				text: text,
+				target_lang: to,
+				source_lang: from,
+				formality: formality,
 			});
 			if (res) {
-				return `**${res.data.translations[0].detected_source_language} -> ${
-					ctx.options.to ?? "EN"
-				}${
-					ctx.options.formal
-						? ` (${ctx.options.formal === "prefer_more" ? "formal" : "less formal"})`
-						: ""
-				}**\`\`\`\n${res.data.translations[0].text}\`\`\``;
+				await ctx.reply(
+					`**${res.data.translations[0].detected_source_language} -> ${to}${
+						formality
+							? ` (${formality === "prefer_more" ? "formal" : "less formal"})`
+							: ""
+					}**\`\`\`\n${res.data.translations[0].text}\`\`\``
+				);
 			} else {
-				return EphemeralResponse("Something went wrong while trying to translate.");
+				await ctx.reply("Something went wrong while trying to translate.");
 			}
 		} else {
-			return EphemeralResponse("Text too big!");
+			await ctx.reply("Text too big!");
 		}
-	}
-}
+		// 	}
+	},
+	autocomplete: async ctx => {
+		await ctx.respond(
+			LANG.filter(
+				function (entry) {
+					if (this.limit < 25) {
+						this.limit++;
+						return entry.includes(ctx.options.getFocused().toUpperCase());
+					}
+				},
+				{ limit: 0 }
+			).map(lang => {
+				return { name: lang, value: lang };
+			})
+		);
+	},
+};
 
-export class UIDeeplCommand extends SlashCommand {
-	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(creator, {
-			name: "DeepL translate",
-			deferEphemeral: true,
-			guildIDs: [bot.config.bot.primaryGuildId],
-			type: ApplicationCommandType.MESSAGE,
-		});
-		this.filePath = __filename;
-	}
-
-	async run(ctx: CommandContext): Promise<any> {
+export const MenuDeeplCommand: MenuCommand = {
+	options: {
+		name: "DeepL translate",
+		type: Discord.ApplicationCommandType.Message,
+	},
+	execute: async (ctx: Discord.MessageContextMenuCommandInteraction) => {
 		const msg = ctx.targetMessage;
-		const text = msg?.content;
+		const text = msg.content;
 		if (text && Buffer.from(text).length < 128 * 1024) {
 			const res = await translate({
 				auth_key: config.key,
@@ -173,27 +158,27 @@ export class UIDeeplCommand extends SlashCommand {
 				target_lang: "EN",
 			});
 			if (res) {
-				const embed: APIEmbed = {
+				const embed: Discord.APIEmbed = {
 					author: {
 						name: msg.author.username,
-						icon_url: msg.author.avatarURL,
-						url: `https://discord.com/channels/${ctx.guildID}/${msg.channelID}/${msg.id}`,
+						icon_url: msg.author.displayAvatarURL(),
+						url: `https://discord.com/channels/${ctx.guildId}/${msg.channelId}/${msg.id}`,
 					},
 					footer: {
 						text: "DeepL translate",
 						icon_url: "https://avatars.githubusercontent.com/u/83310993?s=200&v=4",
 					},
 					description: `
-					\`\`\`\n${msg.content}\`\`\`\n**${res.data.translations[0].detected_source_language} -> ${
-						ctx.options.to ?? "EN"
-					}**\n\`\`\`\n${res.data.translations[0].text}\`\`\``,
+						\`\`\`\n${msg.content}\`\`\`\n**${res.data.translations[0].detected_source_language} -> EN**\n\`\`\`\n${res.data.translations[0].text}\`\`\``,
 				};
-				return { embeds: [embed], ephemeral: true } as MessageOptions;
+				await ctx.reply({ embeds: [embed], ephemeral: true });
 			} else {
-				return EphemeralResponse("Something went wrong while trying to translate.");
+				await ctx.reply(
+					EphemeralResponse("Something went wrong while trying to translate.")
+				);
 			}
 		} else {
-			return EphemeralResponse("Can't find text to translate or text is too big.");
+			await ctx.reply(EphemeralResponse("Can't find text to translate or text is too big."));
 		}
-	}
-}
+	},
+};

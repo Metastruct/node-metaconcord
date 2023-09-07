@@ -1,17 +1,6 @@
-import {
-	ButtonStyle,
-	CommandContext,
-	ComponentContext,
-	ComponentSelectOption,
-	ComponentType,
-	Message,
-	SlashCreator,
-} from "slash-create";
-import { DiscordBot } from "../../..";
-import { EphemeralResponse } from "..";
 import { NodeSSH } from "node-ssh";
-import { SlashDeveloperCommand } from "./DeveloperCommand";
-import { TextChannel } from "discord.js";
+import { SlashCommand } from "@/extensions/discord";
+import Discord from "discord.js";
 import config from "@/config/ssh.json";
 
 // order matters for the menu
@@ -30,226 +19,213 @@ const SERVER_EMOJI_MAP = {
 	"3": "3️⃣",
 };
 
-export class SlashGservCommand extends SlashDeveloperCommand {
-	private commandOptions: ComponentSelectOption[] = [];
-	private serverOptions: ComponentSelectOption[] = [];
-	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(bot, creator, {
-			name: "gserv",
-			description: "Gserv from discord",
+const gserv = async (
+	ctx: Discord.ButtonInteraction,
+	host: string,
+	username: string,
+	port: number,
+	commands: string[],
+	solo: boolean,
+	output: boolean
+): Promise<boolean> => {
+	const ssh = new NodeSSH();
+	try {
+		await ssh.connect({
+			username: username,
+			host: host,
+			port: port,
+			privateKeyPath: config.keyPath,
 		});
 
-		this.filePath = __filename;
-		this.bot = bot;
+		let buffer = "";
 
-		for (const cmd of VALID_GSERV_COMMANDS) {
-			this.commandOptions.push({
-				label: cmd[0],
-				value: cmd[0],
-				description: cmd[1],
-			} as ComponentSelectOption);
-		}
-		for (const server of config.servers) {
-			this.serverOptions.push({
-				label: server.host.slice(0, 2), // [g1].metastruct.net
-				value: server.host.slice(1, 2), // g[1].metastruct.net
-				description: server.host, // g1.metastruct.net
-			} as ComponentSelectOption);
-		}
-	}
+		await ssh.exec("gserv", commands, {
+			stream: "stderr",
+			onStdout: buff => (buffer += buff),
+			onStderr: buff => (buffer += buff),
+		});
 
-	private async gserv(
-		ctx: ComponentContext,
-		host: string,
-		username: string,
-		port: number,
-		commands: string[],
-		solo: boolean,
-		output: boolean
-	): Promise<boolean> {
-		const ssh = new NodeSSH();
-		try {
-			await ssh.connect({
-				username: username,
-				host: host,
-				port: port,
-				privateKeyPath: config.keyPath,
-			});
+		const success = !buffer.includes("GSERV FAILED");
 
-			let buffer = "";
+		const fileName = `${commands.join("_")}_${host}_${Date.now()}.ansi`;
+		let msgContent = host;
+		if (!success) msgContent += " FAILED";
 
-			await ssh.exec("gserv", commands, {
-				stream: "stderr",
-				onStdout: buff => (buffer += buff),
-				onStderr: buff => (buffer += buff),
-			});
+		const response: Discord.BaseMessageOptions = {
+			content: msgContent,
+			files: [{ attachment: Buffer.from(buffer), name: fileName }],
+		};
 
-			const success = !buffer.includes("GSERV FAILED");
+		if (output || success === false) {
+			solo ? await ctx.editReply(response) : await ctx.followUp(response);
 
-			const fileName = `${commands.join("_")}_${host}_${Date.now()}.ansi`;
-			let msgContent = host;
-			if (!success) msgContent += " FAILED";
-
-			const response = {
-				content: msgContent,
-				file: {
-					file: Buffer.from(buffer, "utf8"),
-					name: fileName,
-				},
-			};
-
-			if (output || success === false) {
-				const sent = solo ? await ctx.editParent(response) : await ctx.send(response);
-
-				if (sent instanceof Message) {
-					const channel = (await this.bot.discord.channels.fetch(
-						sent.channelID
-					)) as TextChannel;
-					const msg = await channel.messages.fetch(sent.id);
-					await msg.react(success ? "✅" : "❌");
-				}
-			} else {
-				const channel = (await this.bot.discord.channels.fetch(
-					ctx.channelID
-				)) as TextChannel;
-				const msg = await channel.messages.fetch(ctx.message.id);
-				await msg.react(SERVER_EMOJI_MAP[host.slice(1, 2)] ?? "❓");
-			}
-			return success;
-		} catch (err) {
-			const msg = host + `\ngserv failed!\`\`\`\n${err}\`\`\``;
 			if (solo) {
-				await ctx.editParent(msg);
-			} else {
-				await ctx.send(msg);
+				const msg = await ctx.fetchReply();
+				await msg.react(success ? "✅" : "❌");
 			}
-			return false;
+		} else {
+			const msg = await ctx.fetchReply();
+			await msg.react(SERVER_EMOJI_MAP[host.slice(1, 2)] ?? "❓");
 		}
+		return success;
+	} catch (err) {
+		const msg = host + `\ngserv failed!\`\`\`\n${err}\`\`\``;
+		if (solo) {
+			await ctx.editReply(msg);
+		} else {
+			await ctx.followUp(msg);
+		}
+		return false;
 	}
+};
 
-	private async send(
-		ctx: ComponentContext,
-		commands: string[],
-		servers: string[],
-		output: boolean
-	) {
-		ctx.editParent(
-			`Running ${commands.join(" and ")} on ${servers
-				.slice()
-				.sort()
-				.join(", ")} please wait...`,
-			{ components: [] }
-		);
-		const promises = config.servers
-			.filter(
-				(srvConfig: { host: string }) =>
-					servers.find(srv => srvConfig.host.slice(1, 2) === srv) != undefined
-			)
-			.map((srvConfig: { host: string; username: string; port: number }) =>
-				this.gserv(
-					ctx,
-					srvConfig.host,
-					srvConfig.username,
-					srvConfig.port,
-					commands,
-					servers.length === 1,
-					output
-				)
-			);
-		await Promise.all(promises)
-			.then(() => {
-				if (servers.length === 1) return;
-				ctx.editOriginal(`sent ${commands.join(" and ")} successfully!`);
-			})
-			.catch(err => ctx.send(`something went wrong!\`\`\`\n${err}\`\`\``));
-	}
+export const SlashGservCommand: SlashCommand = {
+	options: {
+		name: "gserv",
+		description: "Gserv from discord",
+		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+	},
 
-	private deny(ctx: CommandContext) {
-		return EphemeralResponse(`This command can only be used by ${ctx.user.username}`);
-	}
+	async execute(ctx) {
+		const filter = (i: Discord.Interaction) => i.user.id === ctx.user.id;
 
-	public async runProtected(ctx: CommandContext): Promise<any> {
-		const user = ctx.user;
-		let commands: string[];
-		await ctx.send("What command do you want to run?", {
+		const response = await ctx.reply({
+			content: "What command do you want to run?",
 			components: [
 				{
-					type: ComponentType.ACTION_ROW,
+					type: Discord.ComponentType.ActionRow,
 					components: [
 						{
-							type: ComponentType.STRING_SELECT,
+							type: Discord.ComponentType.StringSelect,
 							custom_id: "gserv_command",
 							placeholder: "Choose a command.",
 							min_values: 1,
 							max_values: VALID_GSERV_COMMANDS.length,
-							options: this.commandOptions,
+							options: VALID_GSERV_COMMANDS.map(
+								cmd =>
+									<Discord.APISelectMenuOption>{
+										label: cmd[0],
+										value: cmd[0],
+										description: cmd[1],
+									}
+							),
 						},
 					],
 				},
 			],
 		});
 
-		ctx.registerComponent("gserv_command", async (selected: ComponentContext) => {
-			if (selected.user.id !== user.id) {
-				selected.send(this.deny(ctx));
-				return;
-			}
-			commands = selected.values;
+		try {
+			const result = await response.awaitMessageComponent({
+				componentType: Discord.ComponentType.StringSelect,
+				filter: filter,
+				time: 60000,
+			});
+			const commands = result.values;
 
-			let servers: string[];
-			await selected.editParent("What server do you want the command to run on?", {
+			const server = await result.update({
+				content: "What server do you want the command to run on?",
 				components: [
 					{
-						type: ComponentType.ACTION_ROW,
+						type: Discord.ComponentType.ActionRow,
 						components: [
 							{
-								type: ComponentType.STRING_SELECT,
+								type: Discord.ComponentType.StringSelect,
 								custom_id: "gserv_server",
 								placeholder: "Choose a server.",
 								min_values: 1,
 								max_values: config.servers.length,
-								options: this.serverOptions,
+								options: config.servers.map(
+									server =>
+										<Discord.APISelectMenuOption>{
+											label: server.host.slice(0, 2), // [g1].metastruct.net
+											value: server.host.slice(1, 2), // g[1].metastruct.net
+											description: server.host, // g1.metastruct.net
+										}
+								),
 							},
 						],
 					},
 				],
 			});
 
-			ctx.registerComponent("gserv_server", async (selected: ComponentContext) => {
-				if (selected.user.id !== user.id) {
-					selected.send(this.deny(ctx));
-					return;
-				}
-				servers = selected.values;
+			try {
+				const result = await server.awaitMessageComponent({
+					componentType: Discord.ComponentType.StringSelect,
+					filter: filter,
+					time: 60000,
+				});
+				const servers = result.values;
 
-				await selected.editParent("Display output?", {
+				const output = await result.update({
+					content: "Display output?",
 					components: [
 						{
-							type: ComponentType.ACTION_ROW,
+							type: Discord.ComponentType.ActionRow,
 							components: [
 								{
-									type: ComponentType.BUTTON,
+									type: Discord.ComponentType.Button,
 									custom_id: "gserv_output_n",
 									label: "No",
-									style: ButtonStyle.DESTRUCTIVE,
+									style: Discord.ButtonStyle.Danger,
 								},
 								{
-									type: ComponentType.BUTTON,
+									type: Discord.ComponentType.Button,
 									custom_id: "gserv_output_y",
 									label: "Yes",
-									style: ButtonStyle.SUCCESS,
+									style: Discord.ButtonStyle.Success,
 								},
 							],
 						},
 					],
 				});
-				ctx.registerComponent("gserv_output_n", async (selected: ComponentContext) => {
-					this.send(selected, commands, servers, false);
-				});
-				ctx.registerComponent("gserv_output_y", async (selected: ComponentContext) => {
-					this.send(selected, commands, servers, true);
-				});
-			});
-		});
-	}
-}
+
+				try {
+					const result = await output.awaitMessageComponent({
+						componentType: Discord.ComponentType.Button,
+						filter: filter,
+						time: 60000,
+					});
+					await result.update({
+						content: `Running ${commands.join(" and ")} on ${servers
+							.slice()
+							.sort()
+							.join(", ")} please wait...`,
+						components: [],
+					});
+
+					await Promise.all(
+						config.servers
+							.filter(
+								(srvConfig: { host: string }) =>
+									servers.find(srv => srvConfig.host.slice(1, 2) === srv) !=
+									undefined
+							)
+							.map((srvConfig: { host: string; username: string; port: number }) =>
+								gserv(
+									result,
+									srvConfig.host,
+									srvConfig.username,
+									srvConfig.port,
+									commands,
+									servers.length === 1,
+									result.customId === "gserv_output_y"
+								)
+							)
+					)
+						.then(() => {
+							if (servers.length === 1) return;
+							result.update(`sent ${commands.join(" and ")} successfully!`);
+						})
+						.catch(err => result.update(`something went wrong!\`\`\`\n${err}\`\`\``));
+				} catch (err) {
+					await ctx.editReply(JSON.stringify(err));
+				}
+			} catch {
+				await ctx.deleteReply();
+			}
+		} catch {
+			await ctx.deleteReply();
+		}
+	},
+};

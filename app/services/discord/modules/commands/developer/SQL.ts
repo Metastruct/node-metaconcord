@@ -1,82 +1,89 @@
-import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
-import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
-import { SlashDeveloperCommand } from "./DeveloperCommand";
+import { SlashCommand } from "@/extensions/discord";
+import Discord from "discord.js";
 
-export class SlashSQLCommand extends SlashDeveloperCommand {
-	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(bot, creator, {
-			name: "sql",
-			description: "Executes an SQL query",
-			options: [
-				{
-					type: CommandOptionType.STRING,
-					name: "query",
-					description: "The SQL query to execute",
-					required: true,
-				},
-				{
-					type: CommandOptionType.STRING,
-					name: "target",
-					description: "The target SQL db to run the query on",
-					choices: [
-						{
-							name: "metaconcord",
-							value: "metaconcord",
-						},
-						{
-							name: "metastruct",
-							value: "metastruct",
-						},
-					],
-				},
-			],
-		});
-
-		this.filePath = __filename;
-		this.bot = bot;
-	}
-
-	private async sendResult(ctx: CommandContext, result: unknown) {
-		await ctx.send({
-			file: {
-				file: Buffer.from(JSON.stringify(result, null, 2), "utf-8"),
+const makeFile = (content: unknown) => {
+	return <Discord.BaseMessageOptions>{
+		files: [
+			{
+				attachment: Buffer.from(JSON.stringify(content, null, 2), "utf-8"),
 				name: "sql_result.json",
 			},
-		});
-	}
-	public async runProtected(ctx: CommandContext): Promise<any> {
-		try {
-			switch (ctx.options.target) {
-				case "metaconcord": {
-					if (!this.isElevated(ctx.user))
-						return EphemeralResponse(
-							`You need the <@&${this.bot.config.roles.elevated}> role to run SQL commands on me!`
-						);
-					const sql = this.bot.container.getService("SQL");
-					if (sql) {
-						const db = await sql?.getLocalDatabase();
-						const res = await db?.all(ctx.options.query);
-						await this.sendResult(ctx, res);
-					} else {
-						return EphemeralResponse("SQL service not running");
-					}
+		],
+	};
+};
 
+export const SlashSQLCommand: SlashCommand = {
+	options: {
+		name: "sql",
+		description: "Executes an SQL query",
+		options: [
+			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "query",
+				description: "The SQL query to execute",
+				required: true,
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "target",
+				description: "The target SQL db to run the query on",
+				choices: [
+					{
+						name: "metaconcord",
+						value: "metaconcord",
+					},
+					{
+						name: "metastruct",
+						value: "metastruct",
+					},
+				],
+			},
+		],
+	},
+	execute: async (ctx, bot) => {
+		const target = ctx.options.getString("target");
+		const query = ctx.options.getString("query", true);
+		const sql = bot.container.getService("SQL");
+		if (!ctx.member) {
+			await ctx.reply(EphemeralResponse("if this happens ping @techbot"));
+			console.error("SlashSQL: WTF");
+			return;
+		}
+		try {
+			switch (target) {
+				case "metaconcord": {
+					if (!(<string[]>ctx.member.roles).includes(bot.config.roles.elevated))
+						await ctx.reply(
+							EphemeralResponse(
+								`You need the <@&${bot.config.roles.elevated}> role to run SQL commands on me!`
+							)
+						);
+					if (sql) {
+						await ctx.deferReply();
+						const db = await sql?.getLocalDatabase();
+						const res = await db?.all(query);
+						const file = makeFile(res);
+						await ctx.followUp(file);
+					} else {
+						await ctx.reply(EphemeralResponse("SQL service not running"));
+					}
 					break;
 				}
 				case "metastruct":
 				default:
-					const sql = this.bot.container.getService("SQL");
 					if (sql) {
-						const res = await sql.queryPool(ctx.options.query);
-						await this.sendResult(ctx, res);
+						await ctx.deferReply();
+						const res = await sql.queryPool(query);
+						const file = makeFile(res);
+						await ctx.followUp(file);
 					} else {
-						return EphemeralResponse("SQL service not running");
+						await ctx.reply(EphemeralResponse("SQL service not running"));
 					}
 					break;
 			}
 		} catch (err) {
-			await ctx.send(err.message);
+			await ctx.followUp(err.message);
 		}
-	}
-}
+	},
+};
