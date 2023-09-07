@@ -14,7 +14,7 @@ export const SlashMarkovCommand: SlashCommand = {
 			{
 				name: "insanity",
 				description: "more crazy output",
-				type: Discord.ApplicationCommandOptionType.Number,
+				type: Discord.ApplicationCommandOptionType.Integer,
 				choices: [
 					{ name: "normal", value: 4 },
 					{ name: "sane", value: 3 },
