@@ -26,23 +26,20 @@ export const SlashMuteCommand: SlashCommand = {
 				type: Discord.ApplicationCommandOptionType.String,
 				name: "reason",
 				description: "Why you want to mute the user.",
-				required: true,
 			},
 			{
 				type: Discord.ApplicationCommandOptionType.String,
 				name: "time",
 				description:
-					"The amount of time you want to mute the user for. Input none for indefinite\nFor example: `2 weeks`",
-				required: false,
+					"The amount of time you want to mute the user for. Input none for indefinite example: `2 weeks`",
 			},
 		],
 	},
 
 	async execute(ctx, bot) {
-		await ctx.deferReply();
 		const data = dataProvider;
 		if (!data) {
-			await ctx.followUp("DataProvider missing :(");
+			await ctx.reply(EphemeralResponse("DataProvider missing :("));
 			return;
 		}
 
@@ -56,10 +53,29 @@ export const SlashMuteCommand: SlashCommand = {
 		// Calculate time if any is specified
 		let until = now;
 		if (time) {
-			const amount = time.substring(0, 1); // lol
-			const unit = time.substring(2) as dayjs.ManipulateType;
+			const matches = /^(\d+)\s?([^\d\s]+)$/.exec(time);
+			if (!matches) {
+				await ctx.reply(
+					EphemeralResponse(
+						"invalid formatted time, here some examples: https://day.js.org/docs/en/durations/creating#list-of-all-available-units"
+					)
+				);
+				return;
+			}
+			const [amount, unit] = [matches[1], matches[2] as dayjs.ManipulateType];
+			if (!unit) {
+				await ctx.reply(
+					EphemeralResponse(
+						"could not determine the unit, here some examples: https://day.js.org/docs/en/durations/creating#list-of-all-available-units"
+					)
+				);
+				return;
+			}
+
 			until += dayjs().add(Number(amount), unit).millisecond();
 		}
+
+		await ctx.deferReply();
 
 		if (!muted) muted = data.muted = {};
 		muted[userId] = { at: now, until, reason, muter: ctx.user.id };
