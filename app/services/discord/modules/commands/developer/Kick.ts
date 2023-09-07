@@ -1,71 +1,95 @@
-import {
-	AutocompleteChoice,
-	AutocompleteContext,
-	CommandContext,
-	CommandOptionType,
-	SlashCreator,
-} from "slash-create";
-import { DiscordBot } from "@/app/services";
-import { SlashDeveloperCommand } from "./DeveloperCommand";
+import { Player } from "@/app/services/gamebridge";
+import { SlashCommand } from "@/extensions/discord";
+import Discord from "discord.js";
 
-export class SlashKickCommand extends SlashDeveloperCommand {
-	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(bot, creator, {
-			name: "kick",
-			description: "Kick a player in-game",
-			options: [
-				{
-					type: CommandOptionType.INTEGER,
-					name: "server",
-					description: "The server to run the command on",
-					choices: [
-						{
-							name: "g1",
-							value: 1,
-						},
-						{
-							name: "g2",
-							value: 2,
-						},
-						{
-							name: "g3",
-							value: 3,
-						},
-					],
-					required: true,
-				},
-				{
-					type: CommandOptionType.STRING,
-					name: "name",
-					description: "The name of the player to kick",
-					required: true,
-					autocomplete: true,
-				},
-				{
-					type: CommandOptionType.STRING,
-					name: "reason",
-					description: "The reason for the ban",
-					required: false,
-				},
-			],
-		});
+export const SlashKickCommand: SlashCommand = {
+	options: {
+		name: "kick",
+		description: "Kick a player in-game",
+		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+		options: [
+			{
+				type: Discord.ApplicationCommandOptionType.Integer,
+				name: "server",
+				description: "The server to run the command on",
+				choices: [
+					{
+						name: "g1",
+						value: 1,
+					},
+					{
+						name: "g2",
+						value: 2,
+					},
+					{
+						name: "g3",
+						value: 3,
+					},
+				],
+				required: true,
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "name",
+				description: "The name of the player to kick",
+				required: true,
+				autocomplete: true,
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "reason",
+				description: "The reason for the kick",
+				required: false,
+			},
+		],
+	},
 
-		this.filePath = __filename;
-		this.bot = bot;
-	}
+	async execute(ctx, bot) {
+		await ctx.deferReply();
+		const bridge = bot.container.getService("GameBridge");
+		if (!bridge) return;
+		const server = ctx.options.getInteger("server", true);
+		const reason = ctx.options.getString("reason") ?? "byebye!!!";
+		const code =
+			`if not easylua then return false end ` +
+			`local ply = easylua.FindEntity("${ctx.options.getString("name")}") ` +
+			`if not IsValid(ply) or not ply:IsPlayer() then return false end ` +
+			`ply:Kick([[${reason}]])`;
+		try {
+			const res = await bridge.payloads.RconPayload.callLua(
+				code,
+				"sv",
+				bridge.servers[server],
+				ctx.user.username ?? "???"
+			);
 
-	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[]> {
-		if (ctx.focused && ctx.focused == "name") {
-			const players =
-				this.bot.container.getService("GameBridge")?.servers[ctx.options.server ?? 2].status
-					.players;
-			if (!players) return [];
-			return players
+			if (res.data.returns.length > 0 && res.data.returns[0] === "false") {
+				await ctx.followUp("Invalid player");
+				return;
+			}
+
+			await ctx.followUp("Kicked player");
+		} catch (err) {
+			const errMsg = (err as Error)?.message ?? err;
+			await ctx.followUp(errMsg);
+		}
+	},
+	async autocomplete(ctx, bot) {
+		const players =
+			bot.container.getService("GameBridge")?.servers[ctx.options.getInteger("server") ?? 2]
+				.status.players;
+		if (!players) {
+			await ctx.respond([]);
+			return;
+		}
+		const focused = ctx.options.getFocused();
+		await ctx.respond(
+			players
 				.filter(
-					function (player) {
+					function (player: Player) {
 						if (this.limit < 25) {
 							this.limit++;
-							return player.nick.includes(ctx.options[ctx.focused]);
+							return player.nick.includes(focused);
 						}
 					},
 					{ limit: 0 }
@@ -74,39 +98,8 @@ export class SlashKickCommand extends SlashDeveloperCommand {
 					return {
 						name: player.nick,
 						value: player.nick,
-					} as AutocompleteChoice;
-				});
-		}
-		return [];
-	}
-
-	public async runProtected(ctx: CommandContext): Promise<any> {
-		const bridge = this.bot.container.getService("GameBridge");
-		if (!bridge) return;
-		const server = ctx.options.server as number;
-		const reason = ctx.options.reason ?? "byebye!!!";
-		const code =
-			`if not easylua then return false end ` +
-			`local ply = easylua.FindEntity("${ctx.options.name}") ` +
-			`if not IsValid(ply) or not ply:IsPlayer() then return false end ` +
-			`ply:Kick([[${reason}]])`;
-		try {
-			const res = await bridge.payloads.RconPayload.callLua(
-				code,
-				"sv",
-				bridge.servers[server],
-				ctx.member?.displayName ?? "???"
-			);
-
-			if (res.data.returns.length > 0 && res.data.returns[0] === "false") {
-				await ctx.send("Invalid player");
-				return;
-			}
-
-			await ctx.send("Kicked player");
-		} catch (err) {
-			const errMsg = (err as Error)?.message ?? err;
-			await ctx.send(errMsg);
-		}
-	}
-}
+					};
+				})
+		);
+	},
+};

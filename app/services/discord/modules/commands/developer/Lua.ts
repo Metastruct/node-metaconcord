@@ -1,80 +1,80 @@
-import { CommandContext, CommandOptionType, SlashCreator } from "slash-create";
-import { DiscordBot } from "@/app/services";
-import { SlashDeveloperCommand } from "./DeveloperCommand";
+import { EphemeralResponse } from "..";
+import { SlashCommand } from "@/extensions/discord";
 import { f } from "@/utils";
 import Discord from "discord.js";
 
-export class SlashLuaCommand extends SlashDeveloperCommand {
-	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(bot, creator, {
-			name: "l",
-			description: "Executes lua on one of the gmod servers",
-			options: [
-				{
-					type: CommandOptionType.STRING,
-					name: "code",
-					description: "The code to run",
-					required: true,
-				},
-				{
-					type: CommandOptionType.INTEGER,
-					name: "server",
-					description: "The server to run the code on",
-					choices: [
-						{
-							name: "g1",
-							value: 1,
-						},
-						{
-							name: "g2",
-							value: 2,
-						},
-						{
-							name: "g3",
-							value: 3,
-						},
-					],
-					required: true,
-				},
-				{
-					type: CommandOptionType.STRING,
-					name: "realm",
-					description: "The realm to run the code on",
-					choices: [
-						{
-							name: "server",
-							value: "sv",
-						},
-						{
-							name: "shared",
-							value: "sh",
-						},
-						{
-							name: "clients",
-							value: "cl",
-						},
-					],
-				},
-			],
-		});
+export const SlashLuaCommand: SlashCommand = {
+	options: {
+		name: "l",
+		description: "Executes lua on one of the gmod servers",
+		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+		options: [
+			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "code",
+				description: "The code to run",
+				required: true,
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Integer,
+				name: "server",
+				description: "The server to run the code on",
+				choices: [
+					{
+						name: "g1",
+						value: 1,
+					},
+					{
+						name: "g2",
+						value: 2,
+					},
+					{
+						name: "g3",
+						value: 3,
+					},
+				],
+				required: true,
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "realm",
+				description: "The realm to run the code on",
+				choices: [
+					{
+						name: "server",
+						value: "sv",
+					},
+					{
+						name: "shared",
+						value: "sh",
+					},
+					{
+						name: "clients",
+						value: "cl",
+					},
+				],
+			},
+		],
+	},
 
-		this.filePath = __filename;
-		this.bot = bot;
-	}
-
-	public async runProtected(ctx: CommandContext): Promise<any> {
-		const bridge = this.bot.container.getService("GameBridge");
-		if (!bridge) return;
-		const code = ctx.options.code.replace("```", "") as string;
-		const server = ctx.options.server as number;
-		const realm = (ctx.options.realm ?? "sv") as string;
+	async execute(ctx, bot) {
+		const bridge = bot.container.getService("GameBridge");
+		if (!bridge) {
+			ctx.reply(EphemeralResponse("GameBridge is missing :("));
+			console.error(`SlashLua: GameBridge missing?`, ctx);
+			return;
+		}
+		await ctx.deferReply();
+		const code = ctx.options.getString("code", true).replace("```", "");
+		const server = ctx.options.getInteger("server", true);
+		const realm = ctx.options.getString("realm") ?? "sv";
 
 		try {
 			const res = await bridge.payloads.RconPayload.callLua(
 				code,
 				realm,
 				bridge.servers[server],
-				ctx.member?.displayName ?? "???"
+				ctx.user.displayName ?? "???"
 			);
 
 			const embed = new Discord.EmbedBuilder();
@@ -95,12 +95,12 @@ export class SlashLuaCommand extends SlashDeveloperCommand {
 				embed.addFields(f("Errors", res.data.errors.join("\n")));
 			}
 
-			await ctx.send({
+			await ctx.followUp({
 				embeds: [embed.toJSON()],
 			});
 		} catch (err) {
 			const errMsg = (err as Error)?.message ?? err;
-			await ctx.send(errMsg);
+			await ctx.followUp(errMsg);
 		}
-	}
-}
+	},
+};

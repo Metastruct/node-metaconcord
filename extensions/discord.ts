@@ -1,6 +1,31 @@
+import { DiscordBot } from "@/app/services";
 import Discord from "discord.js";
 
+export interface SlashCommand {
+	options: Discord.RESTPostAPIChatInputApplicationCommandsJSONBody;
+	execute: (interaction: Discord.ChatInputCommandInteraction, bot: DiscordBot) => Promise<void>;
+	autocomplete?: (interaction: Discord.AutocompleteInteraction, bot: DiscordBot) => Promise<void>;
+	initialize?: (bot: DiscordBot) => Promise<void>;
+	cooldown?: number;
+}
+
+export interface MenuCommand {
+	options: Discord.RESTPostAPIContextMenuApplicationCommandsJSONBody;
+	execute: (
+		interaction:
+			| Discord.UserContextMenuCommandInteraction
+			| Discord.MessageContextMenuCommandInteraction,
+		bot: DiscordBot
+	) => Promise<void>;
+	initialize?: (bot: DiscordBot) => Promise<void>;
+	cooldown?: number;
+}
+
 declare module "discord.js" {
+	interface Client {
+		slashCommands: Discord.Collection<string, SlashCommand>;
+		menuCommands: Discord.Collection<string, MenuCommand>;
+	}
 	interface User {
 		mention: string;
 	}

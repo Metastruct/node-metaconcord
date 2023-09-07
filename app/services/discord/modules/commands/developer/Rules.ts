@@ -1,220 +1,253 @@
-import {
-	AutocompleteChoice,
-	AutocompleteContext,
-	CommandContext,
-	CommandOptionType,
-	SlashCreator,
-} from "slash-create";
 import { DiscordBot } from "@/app/services";
 import { EphemeralResponse } from "..";
 import { Rule } from "../../..";
-import { SlashDeveloperCommand } from "./DeveloperCommand";
+import { SlashCommand } from "@/extensions/discord";
+import Discord from "discord.js";
 
-export class SlashRuleCommand extends SlashDeveloperCommand {
-	private ruleCache: Array<Rule> = [];
-	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(bot, creator, {
-			name: "rule",
-			description: "Adds, removes or edits a Rule.",
-			options: [
-				{
-					type: CommandOptionType.SUB_COMMAND,
-					name: "add",
-					description: "adds a rule",
-					options: [
-						{
-							type: CommandOptionType.STRING,
-							name: "title",
-							description: "title of the role (Bold Text)",
-							required: true,
-						},
-						{
-							type: CommandOptionType.STRING,
-							name: "description",
-							description: "description of the role",
-						},
-						{
-							type: CommandOptionType.NUMBER,
-							name: "position",
-							description: "position of the rule",
-						},
-					],
-				},
-				{
-					type: CommandOptionType.SUB_COMMAND,
-					name: "remove",
-					description: "remove a rule",
-					options: [
-						{
-							type: CommandOptionType.INTEGER,
-							name: "rule",
-							description: "Number of the rule",
-							required: true,
-							autocomplete: true,
-						},
-					],
-				},
-				{
-					type: CommandOptionType.SUB_COMMAND,
-					name: "edit",
-					description: "edits a rule",
-					options: [
-						{
-							type: CommandOptionType.INTEGER,
-							name: "rule",
-							description: "Number of the rule",
-							required: true,
-							autocomplete: true,
-						},
-						{
-							type: CommandOptionType.STRING,
-							name: "title",
-							description: "title of the role (Bold Text)",
-						},
-						{
-							type: CommandOptionType.STRING,
-							name: "description",
-							description: "description of the role",
-						},
-						{
-							type: CommandOptionType.INTEGER,
-							name: "position",
-							description: "position of the role",
-						},
-					],
-				},
-			],
-		});
+let ruleCache: Rule[] = [];
 
-		this.filePath = __filename;
-		this.bot = bot;
+const refreshRules = async (ctx: Discord.ChatInputCommandInteraction, bot: DiscordBot) => {
+	const data = bot.container.getService("Data");
+	if (!bot || !data) {
+		await ctx.reply(EphemeralResponse("wtf"));
+		console.error("RefreshRules: bot or data missing???");
+		return;
 	}
-
-	async autocomplete(ctx: AutocompleteContext): Promise<AutocompleteChoice[]> {
-		if (ctx.focused && ctx.focused == "rule") {
-			if (this.ruleCache.length > 0) {
-				return this.ruleCache.map((rule, idx) => {
-					return {
-						name: rule.title,
-						value: idx + 1,
-					} as AutocompleteChoice;
-				});
-			} else {
-				this.ruleCache = await this.getRules();
-				return this.ruleCache.map((rule, idx) => {
-					return {
-						name: rule.title,
-						value: idx + 1,
-					} as AutocompleteChoice;
-				});
-			}
-		}
-		return [];
+	if (ruleCache.length === 0) {
+		await ctx.reply(EphemeralResponse("Something went wrong with saving the rules"));
+		return;
 	}
+	const editOnly = ctx.options.getBoolean("edit_only") ?? false;
+	const channel = bot.getTextChannel(bot.config.channels.rules);
+	if (!channel) return;
+	const msgs = await channel.messages.fetch();
+	const msg = msgs
+		?.filter(msg => msg.author.id === bot.discord.user?.id && msg.content.includes("rules"))
+		.first();
 
-	public async runProtected(ctx: CommandContext): Promise<any> {
-		this.ruleCache = await this.getRules();
-		try {
-			switch (ctx.subcommands[0]) {
-				case "add":
-					return this.addRule(ctx);
-				case "remove":
-					return this.removeRule(ctx);
-				case "edit":
-					return this.editRule(ctx);
-			}
-		} catch (err) {
-			EphemeralResponse(err);
-		}
-	}
+	const rules = `# ***__RULES/GUIDELINES__***\n\n\n${ruleCache
+		.map((rule, idx) => `**${idx + 1}. ${rule.title}**\n${rule.description ?? ""}\n\n`)
+		.join("")}\n# ***Breaking these rules may result in a ban!***`;
 
-	private async refreshRules(): Promise<void> {
-		if (this.ruleCache.length === 0) {
-			EphemeralResponse("Something went wrong with saving the rules");
-			return;
-		}
-		const channel = this.bot.getTextChannel(this.bot.config.channels.rules);
-		if (!channel) return;
-		const msgs = await channel.messages.fetch();
-		const msg = msgs
-			?.filter(
-				msg => msg.author.id === this.bot.discord.user?.id && msg.content.includes("rules")
-			)
-			.first();
-
-		const rules = `# ***__RULES/GUIDELINES__***\n\n\n${this.ruleCache
-			.map((rule, idx) => `**${idx + 1}. ${rule.title}**\n${rule.description ?? ""}\n\n`)
-			.join("")}\n# ***Breaking these rules may result in a ban!***`;
-
-		if (msg) {
+	if (msg) {
+		if (editOnly) {
+			await msg.edit(rules);
+		} else {
 			await msg.delete();
 		}
-
+	}
+	if (!editOnly) {
 		await channel.send(rules);
-		await this.saveRules(this.ruleCache);
 	}
-	private async addRule(ctx: CommandContext): Promise<any> {
-		const options = ctx.options[ctx.subcommands[0]];
-		if ((options.title as string).length === 0) {
-			return EphemeralResponse("You must provide a Title!"); // should be handled by discord but who knows
-		}
-		if (options.position) {
-			const exists = this.ruleCache[options.position - 1];
-			if (exists) {
-				this.ruleCache.splice(options.position - 1, 0, {
-					title: options.title,
-					description: options.description,
-				});
-			} else {
-				return EphemeralResponse(
-					`Rule ${options.position} does not exist.\nUse add without a position to append a new rule.`
-				);
-			}
-		} else {
-			this.ruleCache.push({
-				title: options.title,
-				description: options.description,
-			});
-		}
+	data.rules = ruleCache;
+	await data.save();
+};
 
-		await this.refreshRules();
-		return EphemeralResponse("Successfully added the Rule!");
+const addRule = async (ctx: Discord.ChatInputCommandInteraction, bot: DiscordBot) => {
+	const title = ctx.options.getString("title", true);
+	const position = ctx.options.getNumber("position");
+	const description = ctx.options.getString("description") ?? undefined;
+	if (title.length === 0) {
+		await ctx.reply(EphemeralResponse("You must provide a Title!")); // should be handled by discord but who knows
+		return;
 	}
-	private async removeRule(ctx: CommandContext): Promise<any> {
-		const options = ctx.options[ctx.subcommands[0]];
-		if (!this.ruleCache[options.rule - 1]) {
-			return EphemeralResponse("That rule doesn't exist?");
-		}
-		this.ruleCache.splice(options.rule - 1, 1);
-		await this.refreshRules();
-		return EphemeralResponse("Successfully deleted the Rule!");
-	}
-	private async editRule(ctx: CommandContext): Promise<any> {
-		const options = ctx.options[ctx.subcommands[0]];
-		if (Object.keys(options).length === 0) {
-			return EphemeralResponse("well... you need to edit something at least!");
-		}
-		const rule = this.ruleCache[options.rule - 1];
-		if (options.position) {
-			const exists = this.ruleCache[options.position - 1];
-			if (exists) {
-				//arr.splice(index + 1, 0, arr.splice(index, 1)[0]);
-				this.ruleCache.splice(
-					options.position - 1,
-					0,
-					this.ruleCache.splice(options.rule - 1, 1)[0]
-				);
-			} else {
-				return EphemeralResponse(`Rule ${options.position} does not exist.`);
-			}
-		} else {
-			this.ruleCache.splice(options.rule - 1, 1, {
-				title: options.title ?? rule.title,
-				description: options.description ?? rule.description ?? "",
+	if (position) {
+		const exists = ruleCache[position - 1];
+		if (exists) {
+			ruleCache.splice(position - 1, 0, {
+				title: title,
+				description: description,
 			});
+		} else {
+			await ctx.reply(
+				EphemeralResponse(
+					`Rule ${position} does not exist.\nUse add without a position to append a new rule.`
+				)
+			);
+			return;
 		}
-
-		await this.refreshRules();
-		return EphemeralResponse("Successfully updated the Rules!");
+	} else {
+		ruleCache.push({
+			title: title,
+			description: description,
+		});
 	}
-}
+
+	await refreshRules(ctx, bot);
+	await ctx.reply("Successfully added the Rule!");
+};
+const removeRule = async (ctx: Discord.ChatInputCommandInteraction, bot: DiscordBot) => {
+	const rule = ctx.options.getInteger("rule", true);
+	if (!ruleCache[rule - 1]) {
+		await ctx.reply(EphemeralResponse("That rule doesn't exist?"));
+		return;
+	}
+	ruleCache.splice(rule - 1, 1);
+	await refreshRules(ctx, bot);
+	await ctx.reply("Successfully deleted the Rule!");
+};
+
+const editRule = async (ctx: Discord.ChatInputCommandInteraction, bot: DiscordBot) => {
+	const title = ctx.options.getString("title", true);
+	const position = ctx.options.getNumber("position");
+	const description = ctx.options.getString("description") ?? undefined;
+
+	if (!title && !position && !description) {
+		await ctx.reply(EphemeralResponse("well... you need to edit something at least!"));
+		return;
+	}
+	const choosenRule = ctx.options.getInteger("rule", true);
+	const rule = ruleCache[choosenRule - 1];
+	if (position) {
+		const exists = ruleCache[position - 1];
+		if (exists) {
+			//arr.splice(index + 1, 0, arr.splice(index, 1)[0]);
+			ruleCache.splice(position - 1, 0, ruleCache.splice(choosenRule - 1, 1)[0]);
+		} else {
+			await ctx.reply(EphemeralResponse(`Rule ${position} does not exist.`));
+			return;
+		}
+	} else {
+		ruleCache.splice(choosenRule - 1, 1, {
+			title: title ?? rule.title,
+			description: description ?? rule.description ?? "",
+		});
+	}
+
+	await refreshRules(ctx, bot);
+	await ctx.reply("Successfully updated the Rules!");
+};
+
+export const SlashRuleCommand: SlashCommand = {
+	options: {
+		name: "rule",
+		description: "Adds, removes or edits a Rule.",
+		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+		options: [
+			{
+				type: Discord.ApplicationCommandOptionType.Subcommand,
+				name: "add",
+				description: "adds a rule",
+				options: [
+					{
+						type: Discord.ApplicationCommandOptionType.String,
+						name: "title",
+						description: "title of the role (Bold Text)",
+						required: true,
+					},
+					{
+						type: Discord.ApplicationCommandOptionType.String,
+						name: "description",
+						description: "description of the role",
+					},
+					{
+						type: Discord.ApplicationCommandOptionType.Number,
+						name: "position",
+						description: "position of the rule",
+					},
+					{
+						type: Discord.ApplicationCommandOptionType.Boolean,
+						name: "edit_only",
+						description: "only edit, don't repost",
+					},
+				],
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Subcommand,
+				name: "remove",
+				description: "remove a rule",
+				options: [
+					{
+						type: Discord.ApplicationCommandOptionType.Integer,
+						name: "rule",
+						description: "Number of the rule",
+						required: true,
+						autocomplete: true,
+					},
+					{
+						type: Discord.ApplicationCommandOptionType.Boolean,
+						name: "edit_only",
+						description: "only edit, don't repost",
+					},
+				],
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Subcommand,
+				name: "edit",
+				description: "edits a rule",
+				options: [
+					{
+						type: Discord.ApplicationCommandOptionType.Integer,
+						name: "rule",
+						description: "Number of the rule",
+						required: true,
+						autocomplete: true,
+					},
+					{
+						type: Discord.ApplicationCommandOptionType.String,
+						name: "title",
+						description: "title of the role (Bold Text)",
+					},
+					{
+						type: Discord.ApplicationCommandOptionType.String,
+						name: "description",
+						description: "description of the role",
+					},
+					{
+						type: Discord.ApplicationCommandOptionType.Integer,
+						name: "position",
+						description: "position of the role",
+					},
+					{
+						type: Discord.ApplicationCommandOptionType.Boolean,
+						name: "edit_only",
+						description: "only edit, don't repost",
+					},
+				],
+			},
+		],
+	},
+
+	async execute(ctx, bot) {
+		try {
+			switch (ctx.options.getSubcommand(true)) {
+				case "add":
+					await addRule(ctx, bot);
+				case "remove":
+					await removeRule(ctx, bot);
+				case "edit":
+					await editRule(ctx, bot);
+			}
+		} catch (err) {
+			ctx.reply(EphemeralResponse(err));
+		}
+	},
+	async autocomplete(ctx, bot) {
+		const focused = ctx.options.getFocused();
+		if (focused === "rule") {
+			await ctx.respond(
+				ruleCache.map((rule, idx) => {
+					return {
+						name: rule.title,
+						value: idx + 1,
+					};
+				})
+			);
+		} else {
+			const data = bot.container.getService("Data");
+			if (!data) {
+				await ctx.respond([]);
+				return;
+			}
+			ruleCache = data.rules;
+			await ctx.respond(
+				ruleCache.map((rule, idx) => {
+					return {
+						name: rule.title,
+						value: idx + 1,
+					};
+				})
+			);
+		}
+	},
+};

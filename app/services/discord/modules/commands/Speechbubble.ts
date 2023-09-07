@@ -1,199 +1,152 @@
-import {
-	ApplicationCommandType,
-	CommandContext,
-	CommandOptionType,
-	MessageOptions,
-	SlashCommand,
-	SlashCreator,
-} from "slash-create";
-import { DiscordBot } from "../..";
 import { EphemeralResponse } from ".";
+import { MenuCommand, SlashCommand } from "@/extensions/discord";
 import { makeSpeechBubble } from "@/utils";
+import Discord from "discord.js";
 
-export class SlashSpeechbubbleCommand extends SlashCommand {
-	private bot: DiscordBot;
+export const SlashSpeechbubbleCommand: SlashCommand = {
+	options: {
+		name: "speechbubble",
+		description: "create your own speechbubble gifs",
+		options: [
+			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "link",
+				description: "image link",
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Attachment,
+				name: "image",
+				description: "file on your device",
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Integer,
+				name: "direction",
+				description: "tail direction",
+				choices: [
+					{ name: "left", value: 0 },
+					{ name: "right", value: 1 },
+				],
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "fill_color",
+				description:
+					"CSS style color for the speech bubble (default = transparent example: rgba(255,0,0,0.5))",
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "line_color",
+				description:
+					"CSS style color for the speech bubble outline (default = transparent example: rgba(255,0,0,0.5))",
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Number,
+				name: "line_width",
+				description: "how thicc the line is (default = 4)",
+			},
+		],
+	},
 
-	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(creator, {
-			name: "speechbubble",
-			description: "create your own speechbubble gifs",
-			deferEphemeral: true,
-			guildIDs: [bot.config.bot.primaryGuildId],
-			options: [
-				{
-					type: CommandOptionType.STRING,
-					name: "link",
-					description: "image link",
-				},
-				{
-					type: CommandOptionType.ATTACHMENT,
-					name: "image",
-					description: "file on your device",
-				},
-				{
-					type: CommandOptionType.INTEGER,
-					name: "direction",
-					description: "tail direction",
-					choices: [
-						{ name: "left", value: 0 },
-						{ name: "right", value: 1 },
-					],
-				},
-				{
-					type: CommandOptionType.STRING,
-					name: "fill_color",
-					description:
-						"CSS style color for the speech bubble (default = transparent example: rgba(255,0,0,0.5))",
-				},
-				{
-					type: CommandOptionType.STRING,
-					name: "line_color",
-					description:
-						"CSS style color for the speech bubble outline (default = transparent example: rgba(255,0,0,0.5))",
-				},
-				{
-					type: CommandOptionType.NUMBER,
-					name: "line_width",
-					description: "how thicc the line is (default = 4)",
-				},
-			],
-		});
-		this.filePath = __filename;
-		this.bot = bot;
-	}
-
-	async run(ctx: CommandContext): Promise<MessageOptions | undefined> {
-		const link: string | undefined = ctx.options.link;
-		const image: string | undefined = ctx.options.image;
-		if (link && image)
-			return EphemeralResponse("can't do shit with both, either one or the other");
-		if (!link && !image)
-			return EphemeralResponse("I can't read your mind, specify a file or link");
-		if (link && !link.match(/^https?:\/\/.+\..+$/g))
-			return EphemeralResponse("link seems to be invalid");
+	async execute(ctx) {
+		const link = ctx.options.getString("link");
+		const image = ctx.options.getAttachment("image");
+		if (link && image) {
+			await ctx.reply(EphemeralResponse("can't do shit with both, either one or the other"));
+			return;
+		}
+		if (!link && !image) {
+			await ctx.reply(EphemeralResponse("I can't read your mind, specify a file or link"));
+			return;
+		}
+		if (link && !link.match(/^https?:\/\/.+\..+$/g)) {
+			await ctx.reply(EphemeralResponse("link seems to be invalid"));
+			return;
+		}
+		await ctx.deferReply();
 		try {
-			const attachment = ctx.attachments.first();
+			const attachment = image;
 			const buffer = await makeSpeechBubble(
 				link ? link : attachment?.url ?? "",
-				ctx.options.direction === 1 ? true : false,
-				ctx.options.fill_color,
-				ctx.options.line_color,
-				ctx.options.line_width
+				ctx.options.getInteger("direction") === 1 ? true : false,
+				<string>ctx.options.getString("fill_color"),
+				<string>ctx.options.getString("line_color"),
+				<number>ctx.options.getNumber("line_width")
 			);
-			ctx.send({
-				file: {
-					name: "funny.gif",
-					file: buffer,
-				},
-			} as MessageOptions);
+			await ctx.followUp({
+				files: [{ attachment: buffer, name: "funny.gif" }],
+			});
 		} catch (err) {
-			return EphemeralResponse(`something went wrong! (${err})`);
+			await ctx.reply(EphemeralResponse(`something went wrong! (${err})`));
 		}
-	}
-}
+	},
+};
 
-// UI Commands
-export class UISpeechbubbleRightCommand extends SlashCommand {
-	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(creator, {
-			name: "speechbubble right",
-			deferEphemeral: true,
-			type: ApplicationCommandType.MESSAGE,
-		});
-		this.filePath = __filename;
-	}
+const getLink = (msg: Discord.Message) => {
+	const sticker = msg.stickers.first();
 
-	async run(ctx: CommandContext): Promise<MessageOptions | undefined> {
+	return sticker
+		? sticker.format < 3
+			? `https://cdn.discordapp.com/stickers/${sticker.id}.png`
+			: sticker.format === 4
+			? `https://cdn.discordapp.com/stickers/${sticker.id}.gif`
+			: undefined
+		: msg.content.match(/^https?:\/\/.+\..+$/g)
+		? msg.content
+		: msg.attachments.size > 0
+		? msg.attachments.first()?.url
+		: undefined;
+};
+
+export const MenuSpeechbubbleLeftCommand: MenuCommand = {
+	options: {
+		name: "speechbubble left",
+		type: Discord.ApplicationCommandType.Message,
+	},
+	execute: async (ctx: Discord.MessageContextMenuCommandInteraction) => {
 		const msg = ctx.targetMessage;
 
-		const hack = ctx.data.data.resolved?.messages as any;
-		const sticker =
-			ctx.targetID && hack
-				? hack[ctx.targetID].sticker_items
-					? hack[ctx.targetID].sticker_items.length > 0
-						? hack[ctx.targetID].sticker_items[0]
-						: undefined
-					: undefined
-				: undefined;
-
-		const link: string | undefined = sticker
-			? sticker.format_type < 3
-				? `https://cdn.discordapp.com/stickers/${sticker.id}.png`
-				: sticker.format_type === 4
-				? `https://cdn.discordapp.com/stickers/${sticker.id}.gif`
-				: undefined
-			: msg?.content.match(/^https?:\/\/.+\..+$/g)
-			? msg.content
-			: msg?.attachments
-			? msg.attachments.length > 0
-				? msg.attachments[0].url
-				: undefined
-			: undefined;
-
-		if (!link)
-			return EphemeralResponse("that message doesn't have a link or attachment I can use!");
+		const link = getLink(msg);
+		if (!link) {
+			await ctx.reply(
+				EphemeralResponse("that message doesn't have a link or attachment I can use!")
+			);
+			return;
+		}
+		await ctx.deferReply();
 		try {
 			const buffer = await makeSpeechBubble(link, true);
-			ctx.send({
-				file: {
-					name: "funny.gif",
-					file: buffer,
-				},
-			} as MessageOptions);
+			await ctx.followUp({
+				files: [{ attachment: buffer, name: "funny.gif" }],
+			});
 		} catch (err) {
-			return EphemeralResponse(`something went wrong! (${err})`);
+			await ctx.followUp(EphemeralResponse(`something went wrong! (${err})`));
 		}
-	}
-}
-export class UISpeechbubbleLeftCommand extends SlashCommand {
-	constructor(bot: DiscordBot, creator: SlashCreator) {
-		super(creator, {
-			name: "speechbubble left",
-			deferEphemeral: true,
-			type: ApplicationCommandType.MESSAGE,
-		});
-		this.filePath = __filename;
-	}
+	},
+};
 
-	async run(ctx: CommandContext): Promise<MessageOptions | undefined> {
+export const MenuSpeechbubbleRightCommand: MenuCommand = {
+	options: {
+		name: "speechbubble right",
+		type: Discord.ApplicationCommandType.Message,
+	},
+	execute: async (ctx: Discord.MessageContextMenuCommandInteraction) => {
 		const msg = ctx.targetMessage;
 
-		const hack = ctx.data.data.resolved?.messages as any;
-		const sticker =
-			ctx.targetID && hack
-				? hack[ctx.targetID].sticker_items
-					? hack[ctx.targetID].sticker_items.length > 0
-						? hack[ctx.targetID].sticker_items[0]
-						: undefined
-					: undefined
-				: undefined;
-
-		const link: string | undefined = sticker
-			? sticker.format_type < 3
-				? `https://cdn.discordapp.com/stickers/${sticker.id}.png`
-				: sticker.format_type === 4
-				? `https://cdn.discordapp.com/stickers/${sticker.id}.gif`
-				: undefined
-			: msg?.content.match(/^https?:\/\/.+\..+$/g)
-			? msg.content
-			: msg?.attachments
-			? msg.attachments.length > 0
-				? msg.attachments[0].url
-				: undefined
-			: undefined;
-
-		if (!link)
-			return EphemeralResponse("that message doesn't have a link or attachment I can use!");
+		const link = getLink(msg);
+		if (!link) {
+			await ctx.reply(
+				EphemeralResponse("that message doesn't have a link or attachment I can use!")
+			);
+			return;
+		}
+		await ctx.deferReply();
 		try {
 			const buffer = await makeSpeechBubble(link);
-			ctx.send({
-				file: {
-					name: "funny.gif",
-					file: buffer,
-				},
-			} as MessageOptions);
+			await ctx.followUp({
+				files: [{ attachment: buffer, name: "funny.gif" }],
+			});
 		} catch (err) {
-			return EphemeralResponse(`something went wrong! (${err})`);
+			await ctx.followUp(EphemeralResponse(`something went wrong! (${err})`));
 		}
-	}
-}
+	},
+};
