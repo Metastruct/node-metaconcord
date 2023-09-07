@@ -24,6 +24,8 @@ export default (bot: DiscordBot): void => {
 		if (!logChannel) return;
 		msg = await bot.fetchPartial(msg);
 
+		if (!msg.author?.username) return;
+
 		const message = msg.content && msg.content.length > 0 ? msg.content : undefined;
 
 		const attachments =
@@ -64,7 +66,7 @@ export default (bot: DiscordBot): void => {
 		}
 
 		if (embeds) {
-			embed.addFields(f("Embed/s", embeds.join("\n")));
+			embed.addFields(f("Embed/s", embeds.join("\n").substring(0, 1024)));
 		}
 
 		if (msg.stickers.size > 0) {
@@ -93,12 +95,12 @@ export default (bot: DiscordBot): void => {
 
 		const embeds: [boolean, boolean] = // I think this can be done better somehow lol
 			newMsg.embeds.length > 0 && oldMsg.embeds.length > 0
-				? [true, true]
+				? [true, true] // embed was changed
 				: newMsg.embeds.length > 0 && oldMsg.embeds.length === 0
-				? [true, false]
+				? [true, false] // embed was added
 				: newMsg.embeds.length === 0 && oldMsg.embeds.length > 0
-				? [false, true]
-				: [false, false];
+				? [false, true] // embed was removed
+				: [false, false]; // no embed was present at all
 
 		let diff = "";
 		if (oldText.length > 0 || newText.length > 0) {
@@ -209,85 +211,91 @@ export default (bot: DiscordBot): void => {
 
 		if (entry.target && entry.targetId) {
 			let target = "???";
+			const Id = entry.targetId;
 			switch (entry.targetType) {
 				case "ApplicationCommand": {
-					const command = guild.commands.cache.get(entry.targetId);
-					target = command ? `</${command.name}:${command.id}` : entry.targetId;
+					const command =
+						guild.commands.cache.get(Id) ?? (await guild.commands.fetch(Id));
+					target = command ? `</${command.name}:${command.id}>` : Id;
 					break;
 				}
 				case "AutoModerationRule": {
-					target =
-						guild.autoModerationRules.cache.get(entry.targetId)?.name ?? entry.targetId;
+					const rule =
+						guild.autoModerationRules.cache.get(Id) ??
+						(await guild.autoModerationRules.fetch(Id));
+					target = rule?.name ?? Id;
 					break;
 				}
 				case "Channel": {
-					const channel = guild.channels.cache.get(entry.targetId);
-					target = channel ? `${channel.toString()} (${entry.targetId})` : entry.targetId;
+					const channel =
+						guild.channels.cache.get(Id) ?? (await guild.channels.fetch(Id));
+					target = channel ? `${channel} (${Id})` : Id;
 					break;
 				}
 				case "Emoji": {
-					const emoji = guild.emojis.cache.get(entry.targetId);
-					target = emoji ? `${emoji?.toString()} (${emoji?.name})` : entry.targetId;
+					const emoji = guild.emojis.cache.get(Id) ?? (await guild.emojis.fetch(Id));
+					target = emoji ? `${emoji.name} (${Id})` : Id;
 					break;
 				}
 				case "Guild": {
-					target =
-						entry.targetId === bot.config.bot.primaryGuildId
-							? "Meta Construct"
-							: "wtf?????";
+					target = Id === bot.config.bot.primaryGuildId ? "Meta Construct" : "wtf?????";
 					break;
 				}
 				case "GuildScheduledEvent": {
-					target =
-						guild.scheduledEvents.cache.get(entry.targetId)?.toString() ??
-						entry.targetId;
+					const event =
+						guild.scheduledEvents.cache.get(Id) ??
+						(await guild.scheduledEvents.fetch(Id));
+					target = event ? event.name : Id;
 					break;
 				}
 				case "Integration": {
-					target =
-						(await guild.fetchIntegrations()).get(entry.targetId)?.name ??
-						entry.targetId;
+					const integration = (await guild.fetchIntegrations()).get(Id);
+					target = integration ? `${integration.name} (${Id})` : Id;
 					break;
 				}
 				case "Invite": {
-					target = guild.invites.cache.get(entry.targetId)?.toString() ?? entry.targetId;
+					const invite = guild.invites.cache.get(Id) ?? (await guild.invites.fetch(Id));
+					target = invite ? `<@${invite.inviterId}> -> <#${invite.channelId}>` : Id;
 					break;
 				}
 				case "Message": {
-					target = entry.targetId;
+					target = Id;
 					break;
 				}
 				case "Role": {
-					const role = guild.roles.cache.get(entry.targetId);
-					target = role?.toString()
-						? `${role?.toString()} (${entry.targetId})`
-						: entry.targetId;
+					const role = guild.roles.cache.get(Id) ?? (await guild.roles.fetch(Id));
+					target = role ? `${role.toString()} (${Id})` : Id;
 					break;
 				}
 				case "StageInstance": {
-					const cache = guild.stageInstances.cache
-						.get(entry.targetId)
-						?.channel?.toString();
-					target = cache ? `${cache} (${entry.targetId})` : entry.targetId;
+					const stage =
+						guild.stageInstances.cache.get(Id) ??
+						(await guild.stageInstances.fetch(Id));
+					target = stage ? `${stage} (${Id})` : Id;
 					break;
 				}
 				case "Sticker": {
-					target = guild.emojis.cache.get(entry.targetId)?.toString() ?? entry.targetId;
+					const sticker = guild.emojis.cache.get(Id) ?? (await guild.emojis.fetch(Id));
+					target = sticker ? `${sticker.name} (${Id})` : Id;
 					break;
 				}
 				case "Thread": {
-					const cache = (await guild.channels.fetchActiveThreads()).threads
-						.get(entry.targetId)
-						?.toString();
-					target = cache ? `${cache} (${entry.targetId})` : entry.targetId;
+					const thread = (await guild.channels.fetchActiveThreads()).threads.get(Id);
+					target = thread ? `${thread} (${Id})` : Id;
 					break;
 				}
 				case "User":
-					target =
-						guild.members.cache.get(entry.targetId)?.toString() ??
-						`<@${entry.targetId}>`;
+					const user =
+						guild.members.cache.get(Id) ?? (await guild.client.users.fetch(Id));
+					target = (user && user.mention) ?? `<@${Id}>`;
 					break;
 				case "Webhook":
+					const webhook = (await guild.fetchWebhooks()).find(h => h.id === Id);
+					target = webhook
+						? `${webhook.name} in ${webhook.channel?.toString()} created by: ${
+								webhook.owner
+						  }`
+						: Id;
 			}
 			embed.addFields(f(entry.targetType, target));
 		}
