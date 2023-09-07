@@ -83,7 +83,11 @@ export class Starboard extends Service {
 					).messages.fetch(reference.messageId);
 
 					text += `${
-						reference ? `[replying to ${refMsg.author.username}](${refMsg.url})\n` : ""
+						reference
+							? `[replying to ${
+									refMsg.system ? "System Message" : refMsg.author.username
+							  }](${refMsg.url})\n`
+							: ""
 					}`;
 				}
 
