@@ -20,6 +20,7 @@ export class DiscordBot extends Service {
 	name = "DiscordBot";
 	config = DiscordConfig;
 	discord: Discord.Client = new Discord.Client({
+		allowedMentions: { parse: ["users", "roles"] },
 		intents: [
 			"Guilds",
 			"GuildMembers",
@@ -30,6 +31,8 @@ export class DiscordBot extends Service {
 			"GuildScheduledEvents",
 			"MessageContent",
 			"GuildVoiceStates",
+			"GuildIntegrations",
+			"GuildWebhooks",
 		],
 		partials: [Discord.Partials.Message, Discord.Partials.Channel, Discord.Partials.Reaction],
 	});
@@ -37,8 +40,8 @@ export class DiscordBot extends Service {
 	constructor(container: Container) {
 		super(container);
 
-		this.discord.on("ready", async () => {
-			console.log(`'${this.discord.user?.username}' Discord Bot has logged in`);
+		this.discord.on("ready", async client => {
+			console.log(`'${client.user.username}' Discord Bot has logged in`);
 		});
 
 		this.discord.on("warn", console.log);
@@ -49,14 +52,6 @@ export class DiscordBot extends Service {
 
 		this.discord.login(this.config.bot.token);
 	}
-
-	// async isElevatedUser(userId: string): Promise<boolean> {
-	// 	if (!this.discord.isReady()) return false;
-	// 	const guild = this.discord.guilds.cache.get(DiscordConfig.bot.primaryGuildId);
-	// 	if (!guild) return false;
-	// 	const user = await guild.members.fetch(userId);
-	// 	return user.roles.cache.has(this.config.roles.elevatedRoleId);
-	// }
 
 	getTextChannel(channelId: string): Discord.TextChannel | undefined {
 		if (!this.discord.isReady()) return;
