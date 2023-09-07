@@ -1,4 +1,4 @@
-import Discord, { User } from "discord.js";
+import Discord from "discord.js";
 import GameServer from "../GameServer";
 import config from "@/config/discord.json";
 
@@ -18,7 +18,7 @@ export default class DiscordClient extends Discord.Client {
 		this.login(token);
 	}
 
-	public static async isAllowed(server: GameServer, user: User): Promise<boolean> {
+	public static async isAllowed(server: GameServer, user: Discord.User): Promise<boolean> {
 		try {
 			const discord = server.discord;
 			const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
