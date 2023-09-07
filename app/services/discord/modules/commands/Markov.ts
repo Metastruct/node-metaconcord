@@ -48,7 +48,7 @@ export const SlashMarkovCommand: SlashCommand = {
 			.getService("Markov")
 			?.generate(ctx.options.getString("sentence") ?? undefined, {
 				depth: ctx.options.getInteger("insanity") ?? undefined,
-				length: ctx.options.getNumber("length") ?? undefined,
+				length: ctx.options.getInteger("length") ?? undefined,
 				authorID: ctx.options.getUser("user")?.id,
 				continuation: ctx.options.getBoolean("continuation") ?? undefined,
 			});
