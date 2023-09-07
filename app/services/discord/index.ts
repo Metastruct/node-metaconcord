@@ -78,7 +78,7 @@ export class DiscordBot extends Service {
 		options?: Discord.ActivitiesOptions
 	): Promise<void> {
 		if (!this.discord.isReady()) return;
-		const activity: Discord.ActivitiesOptions = { ...options };
+		const activity: Discord.ActivitiesOptions = { name: "Starting up", ...options };
 		switch (true) {
 			case status instanceof Discord.Activity: {
 				status = status as Discord.Activity;
