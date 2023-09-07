@@ -301,9 +301,10 @@ export default (webApp: WebApp): void => {
 			type: Discord.ComponentType.ActionRow,
 		} as Discord.APIActionRowComponent<Discord.APIMessageActionRowComponent>;
 
-		if (embeds.length > 10) {
-			for (let i = 0; i < embeds.length; i += 10) {
-				const chunk = embeds.slice(i, i + 10);
+		// todo: figure out a good way to keep the embed size below the maximum size of 6000
+		if (embeds.length > 1) {
+			for (let i = 0; i < embeds.length; i += 1) {
+				const chunk = embeds.slice(i, i + 1);
 				webhook.send({
 					...payload,
 					embeds: chunk,
