@@ -14,27 +14,32 @@ export const events = [
 	},
 	{
 		icon: "summer",
-		nick: ["Sunny", "Summer", "Beach"],
-		range: ["01/06", "07/09"],
+		nick: ["Sunny", "Summer", "Beach", "Hot", "Ice Cream", "Swimming"],
+		range: ["01/06", "01/09"],
+	},
+	{
+		icon: "oktober",
+		nick: ["Drunk", "Beer", "Oktober", "Party"],
+		range: ["16/09", "03/10"],
 	},
 	{
 		icon: "halloween",
-		nick: ["Spooky", "Scary", "Ghost", "Skeleton", "Vampire"],
-		range: ["01/10", "07/11"],
+		nick: ["Spooky", "Scary", "Ghost", "Skeleton", "Vampire", "Vile", "Candy", "Blood"],
+		range: ["23/10", "07/11"],
 	},
 	{
 		icon: "christmas",
-		nick: ["Merry", "Jingle", "Snowy", "Winter"],
+		nick: ["Merry", "Jingle", "Snowy", "Winter", "Snow", "Cold", "Ice", "Freezing"],
 		range: ["01/12", "26/12"],
 	},
 	{
 		icon: "new-year",
-		nick: ["Party", "Firework", "Sparkly"],
+		nick: ["Party", "Firework", "Champagne"],
 		range: ["30/12", "31/12"],
 	},
 	{
 		icon: "new-year",
-		nick: ["Party", "Firework", "Sparkly"],
+		nick: ["Party", "Firework", "Champagne"],
 		range: ["01/01", "03/01"], // We do a little cheating
 	},
 ];
