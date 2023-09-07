@@ -102,25 +102,6 @@ export const SlashBanCommand: SlashCommand = {
 		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
 		options: [
 			{
-				type: Discord.ApplicationCommandOptionType.Integer,
-				name: "server",
-				description: "The server to run the command on",
-				choices: [
-					{
-						name: "g1",
-						value: 1,
-					},
-					{
-						name: "g2",
-						value: 2,
-					},
-					{
-						name: "g3",
-						value: 3,
-					},
-				],
-			},
-			{
 				type: Discord.ApplicationCommandOptionType.String,
 				name: "steamid",
 				description: "the steamid64 of the player to ban",
@@ -139,6 +120,25 @@ export const SlashBanCommand: SlashCommand = {
 				name: "reason",
 				description: "The reason for the ban",
 				required: false,
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Integer,
+				name: "server",
+				description: "The server to run the command on",
+				choices: [
+					{
+						name: "g1",
+						value: 1,
+					},
+					{
+						name: "g2",
+						value: 2,
+					},
+					{
+						name: "g3",
+						value: 3,
+					},
+				],
 			},
 		],
 	},

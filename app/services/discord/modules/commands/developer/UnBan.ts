@@ -10,6 +10,18 @@ export const SlashUnBanCommand: SlashCommand = {
 		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
 		options: [
 			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "steamid",
+				description: "the steamid64 of the player to ban",
+				required: true,
+				autocomplete: true,
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "reason",
+				description: "The reason for the ban",
+			},
+			{
 				type: Discord.ApplicationCommandOptionType.Integer,
 				name: "server",
 				description: "The server to run the command on",
@@ -27,18 +39,6 @@ export const SlashUnBanCommand: SlashCommand = {
 						value: 3,
 					},
 				],
-			},
-			{
-				type: Discord.ApplicationCommandOptionType.String,
-				name: "steamid",
-				description: "the steamid64 of the player to ban",
-				required: true,
-				autocomplete: true,
-			},
-			{
-				type: Discord.ApplicationCommandOptionType.String,
-				name: "reason",
-				description: "The reason for the ban",
 			},
 		],
 	},
