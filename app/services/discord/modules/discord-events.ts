@@ -40,8 +40,8 @@ export default (bot: DiscordBot): void => {
 			if (existingEvent) return;
 
 			// todo: figure out how to properly schedule this for multiple events, maybe just use cron afterall??
-			const nextDate = dayjs().day(6).hour(20).minute(0).second(0);
-			if (nextDate.isBefore(dayjs())) nextDate.add(7, "days");
+			let nextDate = dayjs().day(6).hour(20).minute(0).second(0);
+			if (nextDate.isBefore(dayjs())) nextDate = nextDate.add(7, "days");
 
 			const event = await guild.scheduledEvents.create({
 				...eventData,
