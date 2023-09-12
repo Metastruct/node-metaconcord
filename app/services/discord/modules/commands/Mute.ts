@@ -7,7 +7,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 
-const manualMuteReminderTimeouts: string[] = [];
 let dataProvider: Data;
 
 export const SlashMuteCommand: SlashCommand = {
@@ -99,59 +98,10 @@ export const SlashMuteCommand: SlashCommand = {
 	},
 	async initialize(bot: DiscordBot) {
 		const { config } = bot;
-		const client = bot.discord;
 		const data = bot.container.getService("Data");
 		if (!data) return;
 		dataProvider = data;
 		const { muted } = dataProvider;
-
-		// Re-add muted role if user leaves and rejoins to try and escape it
-		client.on("guildMemberAdd", async member => {
-			if (muted[member.id]) await member.roles.add(config.roles.muted);
-		});
-
-		// Don't let anyone add muted people, and persist the role if someone tries to take it off
-		client.on("guildMemberUpdate", async (_, member) => {
-			// This is sort of really ugly... See who's trying to mess with the role and notify them
-			const warn = async () => {
-				const auditLogs = await member.guild.fetchAuditLogs({
-					type: Discord.AuditLogEvent.MemberRoleUpdate,
-				});
-				for (const [, entry] of auditLogs.entries) {
-					const target = entry.target as Discord.User;
-					const user = entry.executor;
-					if (!user?.id) return;
-					if (user?.id == user?.client?.user?.id) continue;
-					if (target.id == member.id && !manualMuteReminderTimeouts.includes(user.id)) {
-						const notificationsChannel = bot.getTextChannel(
-							config.channels.notifications
-						);
-						notificationsChannel?.send(
-							`${user.mention}, this role can only be managed by me. Sorry! Use /mute, or rightclick an user > apps > mute.`
-						);
-
-						manualMuteReminderTimeouts.push(user.id);
-						setTimeout(() => {
-							delete manualMuteReminderTimeouts[
-								manualMuteReminderTimeouts.findIndex(id => id == user.id)
-							];
-						}, 30 * 1000);
-
-						break;
-					}
-				}
-			};
-
-			if (member.roles.cache.has(config.roles.muted) && !muted[member.id]) {
-				await member.roles.remove(config.roles.muted, "role was added manually");
-				warn();
-			}
-
-			if (!member.roles.cache.has(config.roles.muted) && muted[member.id]) {
-				await member.roles.add(config.roles.muted, "role was removed manually");
-				warn();
-			}
-		});
 
 		// Every second, check if mute period is over
 		setInterval(async () => {
