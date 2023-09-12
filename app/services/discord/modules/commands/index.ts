@@ -14,6 +14,7 @@ import {
 	MenuSpeechbubbleRightCommand,
 	SlashSpeechbubbleCommand,
 } from "./Speechbubble";
+import { MenuWhyRoleCommand } from "./WhyRole";
 import { SlashBanCommand } from "./developer/Ban";
 import { SlashGservCommand } from "./developer/Gserv";
 import { SlashKickCommand } from "./developer/Kick";
@@ -45,24 +46,25 @@ export const slashCommands = [
 	SlashSQLCommand,
 	SlashUnBanCommand,
 	// normal commands
-	SlashRoleCommand,
 	SlashDeeplCommand,
 	SlashMarkovCommand,
 	SlashMuteCommand,
-	SlashUnMuteCommand,
+	SlashRoleCommand,
 	SlashSpeechbubbleCommand,
+	SlashUnMuteCommand,
 	SlashVoiceCommand,
 	SlashWhyBanCommand,
 	SlashWhyMuteCommand,
 ];
 export const menuCommands = [
+	MenuDeeplCommand,
+	MenuGetStickerUrlCommand,
+	MenuMuteCommand,
 	MenuSpeechbubbleLeftCommand,
 	MenuSpeechbubbleRightCommand,
-	MenuDeeplCommand,
-	MenuMuteCommand,
 	MenuUnMuteCommand,
 	MenuWhyMuteCommand,
-	MenuGetStickerUrlCommand,
+	MenuWhyRoleCommand,
 ];
 
 export default (bot: DiscordBot): void => {
