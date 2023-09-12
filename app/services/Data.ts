@@ -40,7 +40,7 @@ export class Data extends Service {
 		"lastMotd",
 		"lastMsgTime",
 		"muted",
-		"permaRole",
+		"permaRoles",
 		"rules",
 		"tempVoiceChannels",
 	];
