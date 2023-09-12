@@ -13,7 +13,7 @@ export class Data extends Service {
 	lastDiscordNickName: string;
 	lastMotd: string;
 	lastMsgTime: number;
-	permaRole: {
+	permaRoles: {
 		[userId: string]: {
 			roles: { [roleId: string]: { adderId: string; timeStamp: number } };
 		};
