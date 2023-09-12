@@ -13,6 +13,11 @@ export class Data extends Service {
 	lastDiscordNickName: string;
 	lastMotd: string;
 	lastMsgTime: number;
+	permaRole: {
+		[userId: string]: {
+			roles: { [roleId: string]: { adderId: string; timeStamp: number } };
+		};
+	} = {};
 	muted: {
 		[userId: string]: {
 			until?: number;
@@ -35,6 +40,7 @@ export class Data extends Service {
 		"lastMotd",
 		"lastMsgTime",
 		"muted",
+		"permaRole",
 		"rules",
 		"tempVoiceChannels",
 	];
