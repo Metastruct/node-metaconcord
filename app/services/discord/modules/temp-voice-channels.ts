@@ -5,7 +5,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 	if (!data) return;
 	const channels = data.tempVoiceChannels;
 
-	bot.discord.on("voiceStateUpdate", async (oldState, newState) => {
+	bot.discord.on("voiceStateUpdate", async oldState => {
 		if (oldState.channelId && oldState.channel) {
 			const channel = oldState.channel;
 			let changes = false;
