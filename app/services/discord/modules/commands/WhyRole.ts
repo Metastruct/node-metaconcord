@@ -23,13 +23,16 @@ export const MenuWhyRoleCommand: MenuCommand = {
 		}
 
 		if (permaRole && permaRole[userId]) {
-			const permaRoles = permaRole[userId];
+			const permaRoles = permaRole[userId].roles;
 			const guild = bot.getGuild();
 			if (guild) {
-				const content = "";
+				let content = "";
 				for (const [roleId, data] of Object.entries(permaRoles)) {
-					content +
-						`<@&${roleId}> added by <@${data.adderId}> <t:${data.timeStamp}:R>${
+					content =
+						content +
+						`<@&${roleId}> added by <@${data.adderId}> <t:${data.timeStamp
+							.toString()
+							.substring(0, 10)}:R>${
 							Object.entries(permaRoles).length > 1 ? "\n" : ""
 						}`;
 				}

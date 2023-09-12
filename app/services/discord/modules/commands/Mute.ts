@@ -71,7 +71,7 @@ export const SlashMuteCommand: SlashCommand = {
 				return;
 			}
 
-			until += dayjs().add(Number(amount), unit).millisecond();
+			until += dayjs().add(Number(amount), unit).second();
 		}
 
 		await ctx.deferReply();
@@ -91,7 +91,7 @@ export const SlashMuteCommand: SlashCommand = {
 
 		const content =
 			`${ctx.user.mention}, ${member} has been muted` +
-			(until ? ` for <t:${until}:R>` : "") +
+			(until ? ` for <t:${until.toString().substring(0, 10)}:R>` : "") +
 			(reason ? ` with reason:\n\n${reason}` : "") +
 			`.`;
 		await ctx.followUp(content);
@@ -284,7 +284,7 @@ export const SlashWhyMuteCommand: SlashCommand = {
 				const content =
 					`${ctx.user.mention}, ` +
 					(ctx.user.id == userId ? `you remain muted` : `<@${userId}> remains muted`) +
-					(until ? ` expires <t:${until}:R> from now` : "") +
+					(until ? ` expires <t:${until.toString().substring(0, 10)}:R> from now` : "") +
 					(muter ? ` by <@${muter}>` : "") +
 					(reason ? ` with reason:\n\n${reason}` : " without a reason") +
 					(at ? `\n\nmuted since: <t:${at.toString().substring(0, 10)}:R>` : "") +
@@ -327,7 +327,7 @@ export const MenuWhyMuteCommand: MenuCommand = {
 				const content =
 					`${ctx.user.mention}, ` +
 					(ctx.user.id == userId ? `you remain muted` : `<@${userId}> remains muted`) +
-					(until ? ` expires <t:${until}:R> from now` : "") +
+					(until ? ` expires <t:${until.toString().substring(0, 10)}:R> from now` : "") +
 					(muter ? ` by <@${muter}>` : "") +
 					(reason ? ` with reason:\n\n${reason}` : " without a reason") +
 					(at ? `\n\nmuted since: <t:${at.toString().substring(0, 10)}:R>` : "") +
