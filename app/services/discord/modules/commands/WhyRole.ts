@@ -5,7 +5,7 @@ import Discord from "discord.js";
 
 export const MenuWhyRoleCommand: MenuCommand = {
 	options: {
-		name: "Why perma role",
+		name: "Perma-Role reason",
 		type: Discord.ApplicationCommandType.User,
 		default_member_permissions: Discord.PermissionsBitField.Flags.ManageRoles.toString(),
 	},
@@ -15,26 +15,24 @@ export const MenuWhyRoleCommand: MenuCommand = {
 			ctx.reply(EphemeralResponse("DataProvider missing :("));
 			return;
 		}
-		const { permaRole } = dataService;
+		const { permaRoles } = dataService;
 		const userId = ctx.targetId;
 		if (!userId) {
 			ctx.reply(EphemeralResponse("TargetId missing :( (blame me or discord)"));
 			return;
 		}
 
-		if (permaRole && permaRole[userId]) {
-			const permaRoles = permaRole[userId].roles;
+		if (permaRoles && permaRoles[userId]) {
+			const roles = permaRoles[userId].roles;
 			const guild = bot.getGuild();
 			if (guild) {
 				let content = "";
-				for (const [roleId, data] of Object.entries(permaRoles)) {
+				for (const [roleId, data] of Object.entries(roles)) {
 					content =
 						content +
 						`<@&${roleId}> added by <@${data.adderId}> <t:${data.timeStamp
 							.toString()
-							.substring(0, 10)}:R>${
-							Object.entries(permaRoles).length > 1 ? "\n" : ""
-						}`;
+							.substring(0, 10)}:R>${Object.entries(roles).length > 1 ? "\n" : ""}`;
 				}
 				await ctx.reply(EphemeralResponse(content));
 			} else {

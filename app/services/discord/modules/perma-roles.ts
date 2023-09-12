@@ -11,7 +11,7 @@ function isEmpty(obj: { [roleId: string]: { adderId: string; timeStamp: number }
 export default async (bot: DiscordBot): Promise<void> => {
 	const data = bot.container.getService("Data");
 	if (!data) return;
-	const permaRoles = data.permaRole;
+	const permaRoles = data.permaRoles;
 	const permaPrefix = "#";
 
 	bot.discord.on("guildMemberUpdate", async (outdated, updated) => {
