@@ -133,6 +133,7 @@ export default async (bot: DiscordBot) => {
 	let lastChatTime = now;
 	let lastReactionUserId: string | undefined;
 	const lastMsgs: Discord.Message<boolean>[] = [];
+	const lastRespondedReactionMsgs: string[] = [];
 	let posting = false;
 	let replied = false;
 
@@ -243,6 +244,7 @@ export default async (bot: DiscordBot) => {
 
 		setInterval(async () => {
 			await data.save();
+			lastRespondedReactionMsgs.splice(0, lastRespondedReactionMsgs.length - 1);
 		}, SAVE_INTERVAL); // save data
 
 		setInterval(async () => {
@@ -286,7 +288,8 @@ export default async (bot: DiscordBot) => {
 	bot.discord.on("messageReactionAdd", async (reaction, user) => {
 		if (
 			!bot.config.bot.allowedShitpostingChannels.includes(reaction.message.channelId) ||
-			reaction.message.author?.id !== bot.discord.user?.id
+			reaction.message.author?.id !== bot.discord.user?.id ||
+			lastRespondedReactionMsgs[reaction.message.id]
 		)
 			return;
 
@@ -299,6 +302,7 @@ export default async (bot: DiscordBot) => {
 				?.generate(reaction.emoji.toString(), DefaultMarkovConfig);
 			if (mk) {
 				lastReactionUserId = user.id;
+				lastRespondedReactionMsgs.push(reaction.message.id);
 				await reaction.message.channel.send(`${user.mention} ` + mk);
 			}
 		}
