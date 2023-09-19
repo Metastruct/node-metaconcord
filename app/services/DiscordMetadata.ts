@@ -193,7 +193,15 @@ export class DiscordMetadata extends Service {
 		const coins: number = query1[0]?.coins;
 		const playtime: string = query2[0]?.sum;
 		const bytea: Buffer = query3[0]?.value;
-		const nick = bytea ? bytea.toString("utf-8").replace(/<[^>]*>/g, "") : undefined;
+		let nick: string | undefined;
+
+		if (query3[0]) {
+			nick = bytea.toString("utf-8").replace(/<[^>]*>/g, "");
+		} else {
+			const steam = this.bot.container.getService("Steam");
+			const summary = await steam?.getUserSummaries(data.steam_id);
+			nick = summary?.personaname;
+		}
 
 		const discordUser = await this.bot.getGuildMember(userId);
 
