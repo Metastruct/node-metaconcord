@@ -85,8 +85,13 @@ const ignoreRegex = [
 
 export default (webApp: WebApp): void => {
 	let gameBridge: GameBridge;
+
 	const webhook = new Discord.WebhookClient({
 		url: config.webhookUrl,
+	});
+
+	const pac_error_webhook = new Discord.WebhookClient({
+		url: config.pacWebhookUrl,
 	});
 
 	webApp.app.post("/gmod/errors", express.urlencoded({ extended: false }), async (req, res) => {
@@ -238,7 +243,11 @@ export default (webApp: WebApp): void => {
 				});
 			}
 			if (body.v === "test") return;
-			webhook.send(payload).catch(console.error);
+			if (matches.some(m => (m.groups as StackMatchGroups).addon === "pac3")) {
+				pac_error_webhook.send(payload).catch(console.error);
+			} else {
+				webhook.send(payload).catch(console.error);
+			}
 		}
 	});
 };
