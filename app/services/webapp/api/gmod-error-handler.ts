@@ -1,6 +1,5 @@
 import { AddonURIS, getOrFetchLuaFile } from "@/utils";
 import { GameBridge, GameServer, Player } from "../../gamebridge";
-import { SQL } from "../../SQL";
 import { WebApp } from "..";
 import Discord from "discord.js";
 import SteamID from "steamid";
@@ -89,7 +88,6 @@ export default (webApp: WebApp): void => {
 	const webhook = new Discord.WebhookClient({
 		url: config.webhookUrl,
 	});
-	let sql: SQL;
 
 	webApp.app.post("/gmod/errors", express.urlencoded({ extended: false }), async (req, res) => {
 		const ip = req.header("x-forwarded-for")?.split(",")[0];
@@ -101,7 +99,6 @@ export default (webApp: WebApp): void => {
 		res.end();
 
 		gameBridge = gameBridge || webApp.container.getService("GameBridge");
-		sql = sql || gameBridge.container.getService("SQL");
 
 		const server = servers.find(srv => srv.ip === ip);
 		let gameserver: GameServer;
@@ -121,49 +118,22 @@ export default (webApp: WebApp): void => {
 		}
 
 		if (body.realm === "client" && !gamemodes.includes(body.gamemode)) {
-			await sql.queryPool(
-				"INSERT INTO error_stats (realm, stack, os, gamemode, filtered, filter_reason) VALUES($1, $2, $3, $4, $5, $6)",
-				[body.realm, body.stack, body.os, body.gamemode, true, "external players"]
-			);
 			return;
 		} // external players?
 		if (body.realm === "server" && !server) {
-			await sql.queryPool(
-				"INSERT INTO error_stats (realm, stack, os, gamemode, filtered, filter_reason) VALUES($1, $2, $3, $4, $5, $6)",
-				[body.realm, body.stack, body.os, body.gamemode, true, "external servers"]
-			);
 			return;
 		} // external servers?
 
 		if (body.stack) {
 			if (body.error.startsWith("@repl_")) {
-				await sql.queryPool(
-					"INSERT INTO error_stats (realm, stack, os, gamemode, filtered, filter_reason) VALUES($1, $2, $3, $4, $5, $6)",
-					[body.realm, body.stack, body.os, body.gamemode, true, "matched @repl_"]
-				);
 				return;
 			} // gcompute
 			if (body.error.startsWith("SF:")) {
-				await sql.queryPool(
-					"INSERT INTO error_stats (realm, stack, os, gamemode, filtered, filter_reason) VALUES($1, $2, $3, $4, $5, $6)",
-					[body.realm, body.stack, body.os, body.gamemode, true, "matched SF:"]
-				);
 				return;
 			} // starfall
 
 			for (const regex of ignoreRegex) {
 				if (body.error.match(regex)) {
-					await sql.queryPool(
-						"INSERT INTO error_stats (realm, stack, os, gamemode, filtered, filter_reason) VALUES($1, $2, $3, $4, $5, $6)",
-						[
-							body.realm,
-							body.stack,
-							body.os,
-							body.gamemode,
-							true,
-							"matched ignore regex",
-						]
-					);
 					return;
 				}
 			}
@@ -181,10 +151,6 @@ export default (webApp: WebApp): void => {
 					//	(m.groups?.filename && fileIgnore.includes(m.groups?.filename))
 				)
 			) {
-				await sql.queryPool(
-					"INSERT INTO error_stats (realm, stack, os, gamemode, filtered, filter_reason) VALUES($1, $2, $3, $4, $5, $6)",
-					[body.realm, body.stack, body.os, body.gamemode, true, "players (self) errors"]
-				);
 				return; // player (self) errors
 			}
 			if (
@@ -193,17 +159,6 @@ export default (webApp: WebApp): void => {
 					// (m.groups?.filename && fileIgnore.includes(m.groups?.filename))
 				)
 			) {
-				await sql.queryPool(
-					"INSERT INTO error_stats (realm, stack, os, gamemode, filtered, filter_reason) VALUES($1, $2, $3, $4, $5, $6)",
-					[
-						body.realm,
-						body.stack,
-						body.os,
-						body.gamemode,
-						true,
-						"matched function ignore regex",
-					]
-				);
 				return;
 			}
 			const embeds: Discord.APIEmbed[] = [];
@@ -225,10 +180,6 @@ export default (webApp: WebApp): void => {
 			embed.fields = [];
 			if (player) {
 				if (player.isPirate) {
-					await sql.queryPool(
-						"INSERT INTO error_stats (realm, stack, os, gamemode, filtered, filter_reason) VALUES($1, $2, $3, $4, $5, $6)",
-						[body.realm, body.stack, body.os, body.gamemode, true, "player is pirate"]
-					);
 					return;
 				} // dont care about pirates
 
@@ -238,10 +189,6 @@ export default (webApp: WebApp): void => {
 					url: `https://steamcommunity.com/profiles/[U:1:${player.accountId}]`,
 				};
 				if (player.isLinux) embed.fields = [{ name: "OS:", value: "UNIX", inline: true }];
-				await sql.queryPool(
-					"INSERT INTO error_stats (realm, stack, os, gamemode, filtered, accountid) VALUES($1, $2, $3, $4, $5, $6)",
-					[body.realm, body.stack, body.os, body.gamemode, false, player.accountId]
-				);
 			}
 			if (server) {
 				if (gameserver) {
@@ -263,10 +210,6 @@ export default (webApp: WebApp): void => {
 						});
 					}
 				}
-				await sql.queryPool(
-					"INSERT INTO error_stats (realm, stack, os, gamemode, filtered) VALUES($1, $2, $3, $4, $5)",
-					[body.realm, body.stack, body.os, body.gamemode, false]
-				);
 			}
 			embeds.push(embed);
 			const payload: Discord.MessageCreateOptions = {
