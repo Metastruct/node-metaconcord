@@ -53,8 +53,7 @@ export const AddonURIS = {
 	"neo-chatsounds": "https://github.com/Earu/neo-chatsounds/blob/main/",
 	mta: "https://gitlab.com/metastruct/mta_projects/mta/-/blob/master/",
 	mta_gamemode: "https://gitlab.com/metastruct/mta_projects/mta_gm/-/blob/master/",
-	// pac3: "https://github.com/CapsAdmin/pac3/blob/develop/",
-	pac3: "https://github.com/pingu7867/pac3/blob/develop-cedricversion/", // temp: for testing
+	pac3: "https://github.com/CapsAdmin/pac3/blob/develop/",
 	sandbox_modded: "https://gitlab.com/metastruct/internal/qbox/-/blob/master/",
 	swcs: "https://gitlab.com/cynhole/swcs/-/blob/master/",
 	vrmod: "https://github.com/Metastruct/vrmod-addon/blob/master/",
