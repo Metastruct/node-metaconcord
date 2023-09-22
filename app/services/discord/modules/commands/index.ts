@@ -22,7 +22,7 @@ import { SlashLuaCommand } from "./developer/Lua";
 import { SlashMarkovCommand } from "./Markov";
 import { SlashRconCommand } from "./developer/Rcon";
 import { SlashRefreshLuaCommand } from "./developer/RefreshLua";
-import { SlashRoleCommand } from "./CustomRole";
+import { SlashRoleCommand } from "./Role";
 import { SlashRuleCommand } from "./developer/Rules";
 import { SlashSQLCommand } from "./developer/SQL";
 import { SlashUnBanCommand } from "./developer/UnBan";
