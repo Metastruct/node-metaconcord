@@ -34,17 +34,13 @@ export const SlashManageMediaLinks: SlashCommand = {
 					ctx.followUp(EphemeralResponse("Could not get the DB :("));
 					return;
 				}
-				const success = new Promise<boolean>((resolve, reject) => {
-					db.run("DELETE FROM media_urls WHERE url = ?", url, [], (err: Error | null) => {
-						if (err) {
-							reject(false);
-						} else {
-							resolve(true);
-						}
-					});
-				});
+				const result = await db.run("DELETE FROM media_urls WHERE url = ?", url);
 				await ctx.followUp(
-					EphemeralResponse((await success) ? "👍" : "👎(probably doesn't exist)")
+					EphemeralResponse(
+						result?.changes !== undefined && result?.changes > 0 // wtf can this not be a oneliner without checking for undefined explicitly somehow?
+							? "👍"
+							: "👎 (probably doesn't exist)"
+					)
 				);
 				break;
 			default:
