@@ -14,6 +14,7 @@ const MSG_CHAT_INTERVAL = 1000 * 60 * 60 * 2; // total time until a message is f
 const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.75; // idle (no active chatters) time until post, can be delayed by chatting
 const MSG_USE_AUTHOR_FREQ = 0.3; // use the author name instead of message
 const MSG_REPLY_REACTION_FREQ = 0.3;
+const MSG_REPLY_REACTION_CLEAR_INTERVAL = 1000 * 60 * 60;
 const REACTION_FREQ = 0.005; // how often to react on messages;
 const SAVE_INTERVAL = 1000 * 60 * 60 * 0.25; // saves lastmsg/mk at that interval
 const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
@@ -244,8 +245,11 @@ export default async (bot: DiscordBot) => {
 
 		setInterval(async () => {
 			await data.save();
-			lastRespondedReactionMsgs.splice(0, lastRespondedReactionMsgs.length - 1);
 		}, SAVE_INTERVAL); // save data
+
+		setInterval(async () => {
+			lastRespondedReactionMsgs.splice(0, lastRespondedReactionMsgs.length - 1);
+		}, MSG_REPLY_REACTION_CLEAR_INTERVAL);
 
 		setInterval(async () => {
 			if (!client.isReady()) return;
