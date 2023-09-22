@@ -19,6 +19,7 @@ import { SlashBanCommand } from "./developer/Ban";
 import { SlashGservCommand } from "./developer/Gserv";
 import { SlashKickCommand } from "./developer/Kick";
 import { SlashLuaCommand } from "./developer/Lua";
+import { SlashManageMediaLinks } from "./developer/ManageMediaLinks";
 import { SlashMarkovCommand } from "./Markov";
 import { SlashRconCommand } from "./developer/Rcon";
 import { SlashRefreshLuaCommand } from "./developer/RefreshLua";
@@ -40,6 +41,7 @@ export const slashCommands = [
 	SlashGservCommand,
 	SlashKickCommand,
 	SlashLuaCommand,
+	SlashManageMediaLinks,
 	SlashRconCommand,
 	SlashRefreshLuaCommand,
 	SlashRuleCommand,
