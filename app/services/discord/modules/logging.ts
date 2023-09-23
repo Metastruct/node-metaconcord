@@ -50,6 +50,7 @@ export default (bot: DiscordBot): void => {
 				iconURL: msg.author?.avatarURL() ?? undefined,
 			})
 			.setColor(RED_COLOR)
+			.addFields(f("Id", msg.id))
 			.addFields(f("Channel", `<#${msg.channel.id}>`))
 			.setFooter({ text: "Message Deleted" })
 			.setTimestamp(msg.createdTimestamp);
@@ -123,6 +124,7 @@ export default (bot: DiscordBot): void => {
 				url: newMsg.url,
 			})
 			.setColor(YELLOW_COLOR)
+			.addFields(f("Id", oldMsg.id))
 			.addFields(f("Channel", `<#${oldMsg.channel.id}>`))
 			.addFields(f("Mention", user?.mention ?? "???"))
 			.addFields(f("Difference", `\`\`\`ansi\n${diff.substring(0, 1010)}\n\`\`\``))
