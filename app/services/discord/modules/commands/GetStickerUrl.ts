@@ -15,7 +15,16 @@ export const MenuGetStickerUrlCommand: MenuCommand = {
 		}
 		const stickers = ctx.targetMessage.stickers;
 		await ctx.reply({
-			content: stickers.map(s => s.url).join("\n"),
+			content: stickers
+				.map(
+					s =>
+						`${s.url}${
+							s.format === Discord.StickerFormatType.APNG
+								? "\n(APNG don't animate on Discord)"
+								: ""
+						}`
+				)
+				.join("\n"),
 			ephemeral: true,
 		});
 	},
