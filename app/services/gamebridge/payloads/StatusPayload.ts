@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 
 const GamemodeIcons = {
 	qbox: "https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
-	mta: "https://gitlab.com/metastruct/mta_projects/mta_gm/-/raw/master/gamemodes/mta/icon24.png?inline=false",
+	mta: "https://github.com/Metastruct/MTA-Gamemode/blob/master/gamemodes/mta/icon24.png?raw=true",
 	jazztronauts:
 		"https://github.com/Foohy/jazztronauts/blob/master/gamemodes/jazztronauts/icon24.png?raw=true",
 };
