@@ -40,7 +40,6 @@ const GetGithubChanges = (
 	repoPath: string,
 	sha: string
 ): string[] => {
-	// behold, the most cursed thing known to mankind
 	return [
 		...added.map(
 			s => `Add [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(" ", "%%20")})`
@@ -222,6 +221,7 @@ export default (webApp: WebApp): void => {
 				event.payload.repository.full_name,
 				event.payload.ref
 			);
+			const isPullRequestMerge = commit.message.startsWith("Merge pull request");
 
 			for (let i = 0; i < changes.length; i++) {
 				const change = changes[i];
@@ -231,7 +231,7 @@ export default (webApp: WebApp): void => {
 				});
 			}
 
-			let diff = await getGitHubDiff(commit.url);
+			let diff = isPullRequestMerge ? undefined : await getGitHubDiff(commit.url);
 			if (diff) {
 				diff = diff.replace(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n");
 				diff = diff.replace(/diff.+\nindex.+\n/g, "");
