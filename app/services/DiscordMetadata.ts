@@ -85,11 +85,15 @@ export class DiscordMetadata extends Service {
 				.post<AccessTokenResponse>(
 					"https://discord.com/api/v10/oauth2/token",
 					new URLSearchParams({
-						client_id: this.bot.config.bot.applicationId,
-						client_secret: this.bot.config.bot.clientSecret,
 						grant_type: "refresh_token",
 						refresh_token: data.refresh_token,
-					})
+					}),
+					{
+						auth: {
+							username: this.bot.config.bot.applicationId,
+							password: this.bot.config.bot.clientSecret,
+						},
+					}
 				)
 				.catch(async (err: AxiosError<OAuthErrorData>) => {
 					const discordResponse = err.response?.data;

@@ -50,12 +50,16 @@ export const getOAuthTokens = async (code: any) => {
 		.post<AccessTokenResponse>(
 			"https://discord.com/api/v10/oauth2/token",
 			new URLSearchParams({
-				client_id: DiscordConfig.bot.applicationId,
-				client_secret: DiscordConfig.bot.clientSecret,
 				grant_type: "authorization_code",
 				code,
 				redirect_uri: DiscordConfig.bot.oAuthCallbackUri,
-			})
+			}),
+			{
+				auth: {
+					username: DiscordConfig.bot.applicationId,
+					password: DiscordConfig.bot.clientSecret,
+				},
+			}
 		)
 		.catch((err: AxiosError<discord.OAuthErrorData>) => {
 			console.error(
@@ -76,10 +80,15 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 			.post(
 				"https://discord.com/api/v10/oauth2/token/revoke",
 				new URLSearchParams({
-					client_id: DiscordConfig.bot.applicationId,
-					client_secret: DiscordConfig.bot.clientSecret,
 					token: token,
-				})
+					token_type_hint: "access_token",
+				}),
+				{
+					auth: {
+						username: DiscordConfig.bot.applicationId,
+						password: DiscordConfig.bot.clientSecret,
+					},
+				}
 			)
 			.catch((err: AxiosError) => {
 				console.error(
