@@ -25,7 +25,7 @@ export const events = [
 	{
 		icon: "halloween",
 		nick: ["Spooky", "Scary", "Ghost", "Skeleton", "Vampire", "Vile", "Candy", "Blood"],
-		range: ["23/10", "07/11"],
+		range: ["03/10", "01/11"],
 	},
 	{
 		icon: "christmas",
