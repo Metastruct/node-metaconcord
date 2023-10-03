@@ -43,10 +43,10 @@ export default class ChatPayload extends Payload {
 					}`
 			);
 			for (const [, attachment] of msg.attachments) {
-				(content.length > 0 ? (content += "\n") : content) + attachment.url;
+				content += (content.length > 0 ? "\n" : "") + attachment.url;
 			}
 			for (const [, sticker] of msg.stickers) {
-				(content.length > 0 ? (content += "\n") : content) + sticker.url;
+				content += (content.length > 0 ? "\n" : "") + sticker.url;
 			}
 			let reply: Discord.Message | undefined;
 			if (msg.reference) {
