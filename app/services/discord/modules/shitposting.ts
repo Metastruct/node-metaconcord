@@ -35,7 +35,7 @@ const REPLY_FREQ = 0.5; // when to take a word from a previous discord message i
 
 const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp", "tumblr"];
 
-const IGNORE_LIST = ["447835474925584385"];
+const IGNORE_LIST = ["437294613976449024"];
 
 function getWord(msg: string) {
 	let search: string;
