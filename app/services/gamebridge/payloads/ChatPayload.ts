@@ -45,6 +45,9 @@ export default class ChatPayload extends Payload {
 			for (const [, attachment] of msg.attachments) {
 				content += "\n" + attachment.url;
 			}
+			for (const [, sticker] of msg.stickers) {
+				content += "\n" + sticker.url;
+			}
 			let reply: Discord.Message | undefined;
 			if (msg.reference) {
 				reply = await msg.fetchReference();
