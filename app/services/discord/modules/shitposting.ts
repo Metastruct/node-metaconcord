@@ -19,7 +19,7 @@ const REACTION_FREQ = 0.005; // how often to react on messages;
 const SAVE_INTERVAL = 1000 * 60 * 60 * 0.25; // saves lastmsg/mk at that interval
 const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
-const COMMON_EMOJI_RATIO = 0.6;
+const COMMON_EMOJI_RATIO = 0.7;
 const TYPING_TRIGGER_THRESHOLD = 0.9; // at how much msgs to trigger the typing (related to MSG_TRIGGER_COUNT)
 
 // trigger word constants
@@ -123,6 +123,7 @@ export const Shat = async (options?: {
 };
 
 const COMMON_EMOJIS = [
+	"❓",
 	"🐴",
 	"👀",
 	"👍",
