@@ -318,7 +318,7 @@ export default (webApp: WebApp): void => {
 					type: Discord.ComponentType.Button,
 					custom_id: serverOverride ? `update_${serverOverride.join()}` : "update",
 					label: serverOverride
-						? `Update Server ${serverOverride.join}`
+						? `Update Server ${serverOverride.join()}`
 						: "Update Servers",
 					style: 1,
 				},
