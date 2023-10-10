@@ -96,7 +96,8 @@ export default (webApp: WebApp): void => {
 
 	bot.discord.on("interactionCreate", async (ctx: Discord.ButtonInteraction) => {
 		if (!ctx.member || !ctx.isButton() || !bridge) return;
-		const action = ctx.customId;
+		const [action, override] = ctx.customId.split("_");
+		const where = override !== undefined ? override.split(",") : ["1", "2", "3"]; // how tf do I tell typescript that 'override' can be undefined
 
 		const allowed = (ctx.member.roles as Discord.GuildMemberRoleManager).cache.some(
 			x => x.id === bot.config.roles.developer || x.id === bot.config.roles.administrator
@@ -106,31 +107,36 @@ export default (webApp: WebApp): void => {
 
 		switch (action) {
 			case "update":
-				//await ctx.update({ components: [] });
-				await ctx.reply(`<@${ctx.user.id}> updating servers...`);
+				await ctx.reply(`<@${ctx.user.id}> updating ${where.map(s => `#${s}`).join()}...`);
 				await Promise.all(
-					sshConfig.servers.map(
-						async (srvConfig: { host: string; username: string; port: number }) => {
-							const ssh = new NodeSSH();
+					sshConfig.servers
+						.filter((srvConfig: { host: string; username: string; port: number }) =>
+							where.includes(srvConfig.host.slice(1, 2))
+						)
+						.map(
+							async (srvConfig: { host: string; username: string; port: number }) => {
+								const ssh = new NodeSSH();
 
-							await ssh.connect({
-								username: srvConfig.username,
-								host: srvConfig.host,
-								port: srvConfig.port,
-								privateKeyPath: sshConfig.keyPath,
-							});
+								await ssh.connect({
+									username: srvConfig.username,
+									host: srvConfig.host,
+									port: srvConfig.port,
+									privateKeyPath: sshConfig.keyPath,
+								});
 
-							await ssh
-								.exec("gserv", ["qu", "rehash"], {
-									stream: "stderr",
-								})
-								.then(async () =>
-									(
-										await ctx.fetchReply()
-									).react(SERVER_EMOJI_MAP[srvConfig.host.slice(1, 2)] ?? "❓")
-								);
-						}
-					)
+								await ssh
+									.exec("gserv", ["qu", "rehash"], {
+										stream: "stderr",
+									})
+									.then(async () =>
+										(
+											await ctx.fetchReply()
+										).react(
+											SERVER_EMOJI_MAP[srvConfig.host.slice(1, 2)] ?? "❓"
+										)
+									);
+							}
+						)
 				)
 					.then(() => {
 						ctx.editReply(`<@${ctx.user.id}> successfully updated all servers!`);
@@ -141,59 +147,70 @@ export default (webApp: WebApp): void => {
 				break;
 			case "everything":
 				//await ctx.update({ components: [] });
-				await ctx.reply(`<@${ctx.user.id}> updating servers and files...`);
+				await ctx.reply(
+					`<@${ctx.user.id}> updating and refreshing files on ${where
+						.map(s => `#${s}`)
+						.join()}...`
+				);
 				await Promise.all(
-					sshConfig.servers.map(
-						async (srvConfig: { host: string; username: string; port: number }) => {
-							const ssh = new NodeSSH();
-							const reply = await ctx.fetchReply();
+					sshConfig.servers
+						.filter((srvConfig: { host: string; username: string; port: number }) =>
+							where.includes(srvConfig.host.slice(1, 2))
+						)
+						.map(
+							async (srvConfig: { host: string; username: string; port: number }) => {
+								const ssh = new NodeSSH();
+								const reply = await ctx.fetchReply();
 
-							if (!bridge.servers) {
-								throw new Error("no servers connected, please try again in a sec.");
-							}
+								if (!bridge.servers) {
+									throw new Error(
+										"no servers connected, please try again in a sec."
+									);
+								}
 
-							const gameServer = bridge.servers[Number(srvConfig.host.slice(1, 2))];
-							if (!gameServer) throw new Error("gameserver not connected?");
+								const gameServer =
+									bridge.servers[Number(srvConfig.host.slice(1, 2))];
+								if (!gameServer) throw new Error("gameserver not connected?");
 
-							await ssh.connect({
-								username: srvConfig.username,
-								host: srvConfig.host,
-								port: srvConfig.port,
-								privateKeyPath: sshConfig.keyPath,
-							});
+								await ssh.connect({
+									username: srvConfig.username,
+									host: srvConfig.host,
+									port: srvConfig.port,
+									privateKeyPath: sshConfig.keyPath,
+								});
 
-							await ssh
-								.exec("gserv", ["qu", "rehash"], {
-									stream: "stderr",
-								})
-								.then(async () => {
+								await ssh
+									.exec("gserv", ["qu", "rehash"], {
+										stream: "stderr",
+									})
+									.then(async () => {
+										const channel = <Discord.TextBasedChannel>(
+											await gameServer.discord.channels.fetch(reply.channelId)
+										);
+										(await channel.messages.fetch(reply)).react("📥");
+									});
+
+								const msg = ctx.message;
+								const files = msg.embeds
+									.flatMap(e => e.fields)
+									.map(f => [...f.value.matchAll(FIELD_REGEX)].map(m => m[1])[0]);
+								const res = await bridge.payloads.RconPayload.callLua(
+									'if not RefreshLua then return false, "RefreshLua missing?" end\n' +
+										files.map(f => `RefreshLua([[${f}]])`).join("\n"),
+									"sv",
+									gameServer,
+									ctx.user.globalName ?? ctx.user.displayName
+								);
+								if (res) {
 									const channel = <Discord.TextBasedChannel>(
 										await gameServer.discord.channels.fetch(reply.channelId)
 									);
-									(await channel.messages.fetch(reply)).react("📥");
-								});
 
-							const msg = ctx.message;
-							const files = msg.embeds
-								.flatMap(e => e.fields)
-								.map(f => [...f.value.matchAll(FIELD_REGEX)].map(m => m[1])[0]);
-							const res = await bridge.payloads.RconPayload.callLua(
-								'if not RefreshLua then return false, "RefreshLua missing?" end\n' +
-									files.map(f => `RefreshLua([[${f}]])`).join("\n"),
-								"sv",
-								gameServer,
-								ctx.user.globalName ?? ctx.user.displayName
-							);
-							if (res) {
-								const channel = <Discord.TextBasedChannel>(
-									await gameServer.discord.channels.fetch(reply.channelId)
-								);
-
-								(await channel.messages.fetch(reply)).react("🔁");
+									(await channel.messages.fetch(reply)).react("🔁");
+								}
+								return res;
 							}
-							return res;
-						}
-					)
+						)
 				)
 					.then(() => {
 						ctx.editReply(
@@ -207,10 +224,19 @@ export default (webApp: WebApp): void => {
 		}
 	});
 
+	const REPO_SERVER_MAP: [repo: string, servers: number[]][] = [
+		["terrortown_modding", [3]],
+		["MTA-Gamemode", [3]],
+	];
+
 	GitHub.on("push", async event => {
+		const payload = event.payload;
+		const repo = payload.repository;
+		const serverOverride = REPO_SERVER_MAP.find(r => r[0] === repo.name)?.[1];
+		const commits = payload.commits;
+		const branch = payload.ref.split("/")[2];
+
 		const embeds: Discord.APIEmbed[] = [];
-		const commits = event.payload.commits;
-		const branch = event.payload.ref.split("/")[2];
 
 		for (const commit of commits) {
 			const fields: Discord.APIEmbedField[] = [];
@@ -218,8 +244,8 @@ export default (webApp: WebApp): void => {
 				commit.added,
 				commit.removed,
 				commit.modified,
-				event.payload.repository.full_name,
-				event.payload.ref
+				repo.full_name,
+				payload.ref
 			);
 			const isPullRequestMerge = commit.message.startsWith("Merge pull request");
 
@@ -250,11 +276,11 @@ export default (webApp: WebApp): void => {
 					: undefined,
 				author: {
 					name:
-						branch !== event.payload.repository.default_branch
-							? (event.payload.repository.name + "/" + branch).substring(0, 256)
-							: event.payload.repository.name.substring(0, 256),
-					url: event.payload.repository.url,
-					icon_url: event.payload.repository.owner.avatar_url,
+						branch !== repo.default_branch
+							? (repo.name + "/" + branch).substring(0, 256)
+							: repo.name.substring(0, 256),
+					url: repo.url,
+					icon_url: repo.owner.avatar_url,
 				},
 				color:
 					clamp(COLOR_BASE + COLOR_MOD * commit.removed.length, COLOR_BASE, 255) * 65536 +
@@ -274,11 +300,11 @@ export default (webApp: WebApp): void => {
 				},
 			});
 		}
-		const payload = {
+		const messagePayload = {
 			...BaseEmbed,
-			username: event.payload.sender.name ?? event.payload.sender.login,
-			avatarURL: event.payload.sender.avatar_url,
-			content: event.payload.forced
+			username: payload.sender.name ?? payload.sender.login,
+			avatarURL: payload.sender.avatar_url,
+			content: payload.forced
 				? "<a:ALERTA:843518761160015933> Force Pushed <a:ALERTA:843518761160015933>"
 				: "",
 			embeds: embeds,
@@ -287,13 +313,17 @@ export default (webApp: WebApp): void => {
 			components: [
 				{
 					type: Discord.ComponentType.Button,
-					custom_id: "update",
-					label: "Update Server",
+					custom_id: serverOverride ? `update_${serverOverride.join()}` : "update",
+					label: serverOverride
+						? `Update Server ${serverOverride.join}`
+						: "Update Servers",
 					style: 1,
 				},
 				{
 					type: Discord.ComponentType.Button,
-					custom_id: "everything",
+					custom_id: serverOverride
+						? `everything_${serverOverride.join()}`
+						: "everything",
 					label: "Update Server and Refresh Files",
 					style: 1,
 				},
@@ -306,18 +336,16 @@ export default (webApp: WebApp): void => {
 			for (let i = 0; i < embeds.length; i += 1) {
 				const chunk = embeds.slice(i, i + 1);
 				webhook.send({
-					...payload,
+					...messagePayload,
 					embeds: chunk,
 					components:
-						i === embeds.length && event.payload.repository.language === "Lua"
-							? [components]
-							: undefined,
+						i === embeds.length && repo.language === "Lua" ? [components] : undefined,
 				});
 			}
 		} else {
 			webhook.send({
-				...payload,
-				components: event.payload.repository.language === "Lua" ? [components] : undefined,
+				...messagePayload,
+				components: repo.language === "Lua" ? [components] : undefined,
 			});
 		}
 	});
