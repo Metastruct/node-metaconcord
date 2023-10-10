@@ -39,7 +39,7 @@ export default (bot: DiscordBot): void => {
 			msg.embeds.length > 0
 				? msg.embeds.map(e => {
 						return `\`\`\`json\n${JSON.stringify(e.data)
-							.replace("```", "​`​`​`")
+							.replaceAll("```", "​`​`​`")
 							.substring(0, 1024 - 11)}\`\`\``;
 				  })
 				: undefined;
@@ -115,7 +115,7 @@ export default (bot: DiscordBot): void => {
 					: part.value;
 			}
 		}
-		diff = diff.replace("```", "​`​`​`");
+		diff = diff.replaceAll("```", "​`​`​`");
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
@@ -358,7 +358,7 @@ export default (bot: DiscordBot): void => {
 								: part.value;
 						}
 					});
-					diff = diff.replace("```", "​`​`​`");
+					diff = diff.replaceAll("```", "​`​`​`");
 					embed.addFields(f("Changes", `\`\`\`ansi\n${diff.substring(0, 1010)}\n\`\`\``));
 					break;
 			}
