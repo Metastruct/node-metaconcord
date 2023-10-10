@@ -39,7 +39,7 @@ const IGNORE_LIST = ["437294613976449024"];
 
 function getWord(msg: string) {
 	let search: string;
-	const words = msg.replace(`<@${DiscordConfig.bot.userId}> `, "").split(" ");
+	const words = msg.replaceAll(`<@${DiscordConfig.bot.userId}> `, "").split(" ");
 	const index = (Math.random() * words.length) | 0;
 	const isLast = index + 1 === words.length;
 	if (!isLast) {
@@ -88,7 +88,7 @@ export const Shat = async (options?: {
 				.getService("Markov")
 				?.generate(undefined, DefaultMarkovConfig);
 
-		return mk ? { content: mk.replace(`<@${DiscordConfig.bot.userId}> `, "") } : undefined;
+		return mk ? { content: mk.replaceAll(`<@${DiscordConfig.bot.userId}> `, "") } : undefined;
 	} else {
 		const images = globalThis.MetaConcord.container.getService("Motd")?.images;
 		let word =

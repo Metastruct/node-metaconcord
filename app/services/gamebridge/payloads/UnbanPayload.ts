@@ -56,9 +56,9 @@ export default class UnbanPayload extends Payload {
 		} else {
 			if (bannerName.startsWith("Discord")) {
 				const chunks = bannerName
-					.replace("Discord ", "")
-					.replace(")", "")
-					.replace("(", "")
+					.replaceAll("Discord ", "")
+					.replaceAll(")", "")
+					.replaceAll("(", "")
 					.split("|");
 
 				const name = chunks[0].trim();

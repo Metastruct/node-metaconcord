@@ -170,7 +170,7 @@ export default (webApp: WebApp): void => {
 
 			// main embed
 			const embed: Discord.APIEmbed = {
-				description: stack.replace("`", "\\`"),
+				description: stack.replaceAll("```", "​`​`​`"),
 				footer: {
 					text: `${body.gamemode}@${
 						body.realm === "server"
@@ -219,7 +219,7 @@ export default (webApp: WebApp): void => {
 			embeds.push(embed);
 			const payload: Discord.MessageCreateOptions = {
 				allowedMentions: { parse: [] },
-				content: `**${body.error.replace("*", "\\*")}**`,
+				content: `**${body.error.replaceAll("*", "\\*")}**`,
 				embeds: embeds,
 			};
 

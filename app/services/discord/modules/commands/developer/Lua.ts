@@ -65,7 +65,7 @@ export const SlashLuaCommand: SlashCommand = {
 			return;
 		}
 		await ctx.deferReply();
-		const code = ctx.options.getString("code", true).replace("```", "");
+		const code = ctx.options.getString("code", true).replace(/```(?:lua\n?)?/g, "");
 		const server = ctx.options.getInteger("server", true);
 		const realm = ctx.options.getString("realm") ?? "sv";
 
