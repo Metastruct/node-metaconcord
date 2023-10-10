@@ -29,9 +29,9 @@ const GitHub = new Webhooks({
 // 	url: webhookConfig.webhookUrls.private.test,
 // });
 
-const BaseEmbed = {
+const BaseEmbed = <Discord.WebhookMessageCreateOptions>{
 	allowedMentions: { parse: ["users"] },
-} as Discord.WebhookMessageCreateOptions;
+};
 
 const GetGithubChanges = (
 	added: string[],
@@ -99,7 +99,7 @@ export default (webApp: WebApp): void => {
 		const [action, override] = ctx.customId.split("_");
 		const where = override !== undefined ? override.split(",") : ["1", "2", "3"]; // how tf do I tell typescript that 'override' can be undefined
 
-		const allowed = (ctx.member.roles as Discord.GuildMemberRoleManager).cache.some(
+		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(
 			x => x.id === bot.config.roles.developer || x.id === bot.config.roles.administrator
 		);
 
@@ -303,7 +303,7 @@ export default (webApp: WebApp): void => {
 				},
 			});
 		}
-		const messagePayload = {
+		const messagePayload = <Discord.WebhookMessageCreateOptions>{
 			...BaseEmbed,
 			username: payload.sender.name ?? payload.sender.login,
 			avatarURL: payload.sender.avatar_url,
@@ -312,7 +312,7 @@ export default (webApp: WebApp): void => {
 				: "",
 			embeds: embeds,
 		};
-		const components = {
+		const components = <Discord.APIActionRowComponent<Discord.APIMessageActionRowComponent>>{
 			components: [
 				{
 					type: Discord.ComponentType.Button,
@@ -332,7 +332,7 @@ export default (webApp: WebApp): void => {
 				},
 			],
 			type: Discord.ComponentType.ActionRow,
-		} as Discord.APIActionRowComponent<Discord.APIMessageActionRowComponent>;
+		};
 
 		// todo: figure out a good way to keep the embed size below the maximum size of 6000
 		if (embeds.length > 1) {
@@ -351,5 +351,146 @@ export default (webApp: WebApp): void => {
 				components: repo.language === "Lua" ? [components] : undefined,
 			});
 		}
+	});
+
+	GitHub.on("organization", async event => {
+		const payload = event.payload;
+
+		let title: string | undefined;
+		let description: string | undefined;
+		let timestamp: string | undefined = new Date().toISOString();
+		let thumbnail: Discord.APIEmbedThumbnail | undefined;
+
+		switch (payload.action) {
+			case "member_invited":
+				title = "member invited";
+				description = `[${payload.invitation.inviter.login}](${payload.invitation.inviter.url}) invited [${payload.user.login}](${payload.user.url}) as \`${payload.invitation.role}\``;
+				thumbnail = {
+					url: payload.user.avatar_url,
+				};
+				timestamp = payload.invitation.created_at;
+				break;
+			case "member_added":
+				title = "member joined";
+				description = `[${payload.membership.user.login}](${payload.membership.user.url}) joined ${payload.organization.login} as \`${payload.membership.role}\``;
+				thumbnail = {
+					url: payload.membership.user.avatar_url,
+				};
+				break;
+			case "member_removed":
+				title = "member removed";
+				description = `[${payload.membership.user.login}](${payload.membership.user.url}) left ${payload.organization.login}`;
+				thumbnail = {
+					url: payload.membership.user.avatar_url,
+				};
+				break;
+			case "renamed":
+				title = "renamed organisation";
+				description = `${payload.changes.login.from} -> ${payload.organization.login}`;
+				break;
+			case "deleted":
+				title = `deleted organisation ${payload.organization.login}`;
+				break;
+			default:
+				title = "unknown organisation action???";
+				break;
+		}
+
+		const messagePayload = <Discord.WebhookMessageCreateOptions>{
+			...BaseEmbed,
+			username: payload.sender.name ?? payload.sender.login,
+			avatarURL: payload.sender.avatar_url,
+			embeds: [
+				{
+					author: {
+						name: payload.organization.login,
+						url: payload.organization.url,
+						icon_url: payload.organization.avatar_url,
+					},
+					thumbnail: thumbnail,
+					title: title,
+					description: description,
+					timestamp: timestamp,
+				},
+			],
+		};
+
+		webhook.send(messagePayload);
+	});
+
+	GitHub.on("membership", async event => {
+		const payload = event.payload;
+
+		const messagePayload = <Discord.WebhookMessageCreateOptions>{
+			...BaseEmbed,
+			username: payload.sender.name ?? payload.sender.login,
+			avatarURL: payload.sender.avatar_url,
+			embeds: [
+				{
+					author: {
+						name: payload.organization.login,
+						url: payload.organization.url,
+						icon_url: payload.organization.avatar_url,
+					},
+					thumbnail: {
+						url: payload.member.avatar_url,
+					},
+					title: "Membership " + event.payload.action,
+					description: `[${payload.sender.login}](${payload.sender.url}) ${event.payload.action} [${payload.member.login}](${payload.member.url}) to ${payload.team.name}`,
+					timestamp: new Date().toISOString(),
+				},
+			],
+		};
+
+		webhook.send(messagePayload);
+	});
+
+	GitHub.on("team", async event => {
+		const payload = event.payload;
+
+		let title: string | undefined;
+		let description: string | undefined;
+		switch (event.payload.action) {
+			case "added_to_repository":
+				title = "team added to repository";
+				description = `[${payload.sender.login}](${payload.sender.url}) added [${payload.team.name}](${payload.team.url}) to [${payload.repository?.name}](${payload.repository?.url})`;
+				break;
+			case "removed_from_repository":
+				title = "team removed from repository";
+				description = `[${payload.sender.login}](${payload.sender.url}) removed [${payload.team.name}](${payload.team.url}) from [${payload.repository?.name}](${payload.repository?.url})`;
+				break;
+			case "created":
+				title = "team created";
+				description = `[${payload.sender.login}](${payload.sender.url}) created [${payload.team.name}](${payload.team.url})`;
+			case "deleted":
+				title = "team deleted";
+				description = `[${payload.sender.login}](${payload.sender.url}) deleted [${payload.team.name}](${payload.team.url})`;
+			case "edited":
+				title = "team edited";
+				description = `[${payload.sender.login}](${payload.sender.url}) edited [${payload.team.name}](${payload.team.url})`;
+			default:
+				title = "unknown team action???";
+				break;
+		}
+
+		const messagePayload: Discord.WebhookMessageCreateOptions = {
+			...BaseEmbed,
+			username: payload.sender.name ?? payload.sender.login,
+			avatarURL: payload.sender.avatar_url,
+			embeds: [
+				{
+					author: {
+						name: payload.organization.login,
+						url: payload.organization.url,
+						icon_url: payload.organization.avatar_url,
+					},
+					title: title,
+					description: description,
+					timestamp: new Date().toISOString(),
+				},
+			],
+		};
+
+		webhook.send(messagePayload);
 	});
 };
