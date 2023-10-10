@@ -318,8 +318,8 @@ export default (webApp: WebApp): void => {
 					type: Discord.ComponentType.Button,
 					custom_id: serverOverride ? `update_${serverOverride.join()}` : "update",
 					label: serverOverride
-						? `Update Server ${serverOverride.join()}`
-						: "Update Servers",
+						? `Update Files on ${serverOverride.map(s => `#${s}`).join()}`
+						: "Update Files on all Servers",
 					style: 1,
 				},
 				{
@@ -327,7 +327,9 @@ export default (webApp: WebApp): void => {
 					custom_id: serverOverride
 						? `everything_${serverOverride.join()}`
 						: "everything",
-					label: "Update Server and Refresh Files",
+					label: serverOverride
+						? `Update and Refresh Files on ${serverOverride.map(s => `#${s}`).join()}`
+						: `Update and Refresh Files on all Servers`,
 					style: 1,
 				},
 			],
