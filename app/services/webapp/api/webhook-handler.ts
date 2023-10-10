@@ -196,7 +196,10 @@ export default (webApp: WebApp): void => {
 									.map(f => [...f.value.matchAll(FIELD_REGEX)].map(m => m[1])[0]);
 								const res = await bridge.payloads.RconPayload.callLua(
 									'if not RefreshLua then return false, "RefreshLua missing?" end\n' +
-										files.map(f => `RefreshLua([[${f}]])`).join("\n"),
+										files
+											.filter(f => f.split(".")[1] === "lua")
+											.map(f => `RefreshLua([[${f}]])`)
+											.join("\n"),
 									"sv",
 									gameServer,
 									ctx.user.globalName ?? ctx.user.displayName
