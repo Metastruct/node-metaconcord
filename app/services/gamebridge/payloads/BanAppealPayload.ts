@@ -59,7 +59,9 @@ export default class UnbanPayload extends Payload {
 		embed.addFields(f("Banned by", bannerName, true));
 		embed.addFields(f("Ban Reason", banReason.substring(0, 1900), true));
 		embed.addFields(f("Ban Expiration", `<t:${unixTime}:R>`, true));
-		embed.addFields(f("Appeal", `\`\`\`${appeal.substring(0, 1900).replace("`", "")}\`\`\``));
+		embed.addFields(
+			f("Appeal", `\`\`\`${appeal.substring(0, 1900).replaceAll("```", "​`​`​`")}\`\`\``)
+		);
 		embed.addFields(
 			f(
 				"SteamID",

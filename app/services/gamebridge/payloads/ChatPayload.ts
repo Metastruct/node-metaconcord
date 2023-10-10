@@ -109,7 +109,7 @@ export default class ChatPayload extends Payload {
 				const users = await guild.members.fetch({ query: name, limit: 1 });
 				const user = users.first();
 				if (user) {
-					content = content.replace(match[0], `<@${user.id}>`);
+					content = content.replaceAll(match[0], `<@${user.id}>`);
 				}
 			}
 		}
@@ -133,8 +133,8 @@ export default class ChatPayload extends Payload {
 					// .replace(/@/g, "(at)")
 					// .replace(/#/g, "")
 					.substring(0, 77)
-					.replace("discord", "discоrd")
-					.replace("Discord", "Discоrd")}`,
+					.replaceAll("discord", "discоrd")
+					.replaceAll("Discord", "Discоrd")}`,
 				avatarURL: avatar,
 				allowedMentions: { parse: ["users", "roles"] },
 			})
