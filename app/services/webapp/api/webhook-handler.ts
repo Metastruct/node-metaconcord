@@ -153,7 +153,9 @@ export default (webApp: WebApp): void => {
 					.then(() => {
 						ctx.editReply(
 							`<@${ctx.user.id}> successfully updated ${
-								where.length === 3 ? "all servers" : where.map(s => `#${s}`).join()
+								where.length === sshConfig.servers.length
+									? "all servers"
+									: where.map(s => `#${s}`).join()
 							}!`
 						);
 					})
@@ -234,7 +236,9 @@ export default (webApp: WebApp): void => {
 					.then(() => {
 						ctx.editReply(
 							`<@${ctx.user.id}> successfully updated ${
-								where.length === 3 ? "all servers" : where.map(s => `#${s}`).join()
+								where.length === sshConfig.servers.length
+									? "all servers"
+									: where.map(s => `#${s}`).join()
 							} and refreshed files!`
 						);
 					})
