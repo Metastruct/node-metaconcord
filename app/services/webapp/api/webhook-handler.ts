@@ -264,7 +264,7 @@ export default (webApp: WebApp): void => {
 			if (diff) {
 				diff = diff.replace(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n");
 				diff = diff.replace(/diff.+\nindex.+\n/g, "");
-				diff = diff.replace("`", "​`");
+				diff = diff.replace("```", "​`​`​`");
 			}
 
 			embeds.push({
