@@ -151,7 +151,11 @@ export default (webApp: WebApp): void => {
 						)
 				)
 					.then(() => {
-						ctx.editReply(`<@${ctx.user.id}> successfully updated all servers!`);
+						ctx.editReply(
+							`<@${ctx.user.id}> successfully updated ${
+								where.length === 3 ? "all servers" : where.map(s => `#${s}`).join()
+							}!`
+						);
 					})
 					.catch(err => {
 						ctx.editReply(`<@${ctx.user.id}> failed to update :(\`\`\`\n${err}\`\`\``);
@@ -229,7 +233,9 @@ export default (webApp: WebApp): void => {
 				)
 					.then(() => {
 						ctx.editReply(
-							`<@${ctx.user.id}> successfully updated all servers and refreshed files!`
+							`<@${ctx.user.id}> successfully updated ${
+								where.length === 3 ? "all servers" : where.map(s => `#${s}`).join()
+							} and refreshed files!`
 						);
 					})
 					.catch(err =>
