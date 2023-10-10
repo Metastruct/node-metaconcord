@@ -242,6 +242,7 @@ export default (webApp: WebApp): void => {
 	const REPO_SERVER_MAP: [repo: string, servers: number[]][] = [
 		["terrortown_modding", [3]],
 		["MTA-Gamemode", [3]],
+		["TTT2", [3]],
 	];
 
 	GitHub.on("push", async event => {
