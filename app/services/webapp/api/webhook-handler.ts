@@ -42,13 +42,25 @@ const GetGithubChanges = (
 ): string[] => {
 	return [
 		...added.map(
-			s => `Add [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(" ", "%%20")})`
+			s =>
+				`Add [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(
+					" ",
+					"%%20"
+				)})`
 		),
 		...removed.map(
-			s => `Del [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(" ", "%%20")})`
+			s =>
+				`Del [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(
+					" ",
+					"%%20"
+				)})`
 		),
 		...modified.map(
-			s => `Mod [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replace(" ", "%%20")})`
+			s =>
+				`Mod [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(
+					" ",
+					"%%20"
+				)})`
 		),
 	];
 };
@@ -262,9 +274,9 @@ export default (webApp: WebApp): void => {
 
 			let diff = isPullRequestMerge ? undefined : await getGitHubDiff(commit.url);
 			if (diff) {
-				diff = diff.replace(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n");
-				diff = diff.replace(/diff.+\nindex.+\n/g, "");
-				diff = diff.replace("```", "​`​`​`");
+				diff = diff.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n");
+				diff = diff.replaceAll(/diff.+\nindex.+\n/g, "");
+				diff = diff.replaceAll("```", "​`​`​`");
 			}
 
 			embeds.push({
