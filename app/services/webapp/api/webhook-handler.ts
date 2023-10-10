@@ -248,7 +248,9 @@ export default (webApp: WebApp): void => {
 	GitHub.on("push", async event => {
 		const payload = event.payload;
 		const repo = payload.repository;
-		const serverOverride = REPO_SERVER_MAP.find(r => r[0] === repo.name)?.[1];
+		const serverOverride = REPO_SERVER_MAP.filter(r => r[1].length > 0).find(
+			r => r[0] === repo.name
+		)?.[1];
 		const commits = payload.commits;
 		const branch = payload.ref.split("/")[2];
 
