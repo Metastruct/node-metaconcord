@@ -23,16 +23,16 @@ export const SlashWhyBanCommand: SlashCommand = {
 		await ctx.deferReply({ ephemeral: true });
 		const banService = bot.container.getService("Bans");
 		if (!banService) {
-			ctx.reply(EphemeralResponse("ban service offline for some reason :("));
+			ctx.followUp(EphemeralResponse("ban service offline for some reason :("));
 			return;
 		}
 		const ban = await banService.getBan(ctx.options.getString("query", true));
 		if (!ban) {
-			ctx.reply(EphemeralResponse("That SteamID has never been banned before."));
+			ctx.followUp(EphemeralResponse("That SteamID has never been banned before."));
 			return;
 		}
 		if (!ban.b)
-			ctx.reply(
+			ctx.followUp(
 				EphemeralResponse(
 					`\`\`\`ansi\n\u001b[1;33m${
 						ban.name
@@ -45,7 +45,7 @@ export const SlashWhyBanCommand: SlashCommand = {
 				)
 			);
 
-		ctx.reply(
+		ctx.followUp(
 			EphemeralResponse(
 				`\`\`\`ansi\n\u001b[1;33m${
 					ban.name
