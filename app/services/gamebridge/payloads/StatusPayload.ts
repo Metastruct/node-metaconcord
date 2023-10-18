@@ -7,6 +7,11 @@ import Payload from "./Payload";
 import SteamID from "steamid";
 import dayjs from "dayjs";
 
+const GamemodeAlias = {
+	qbox: "metastruct",
+	"TTT2 (Advanced Update)": "ttt2",
+};
+
 const GamemodeIcons = {
 	jazztronauts:
 		"https://github.com/Foohy/jazztronauts/blob/master/gamemodes/jazztronauts/icon24.png?raw=true",
@@ -16,15 +21,10 @@ const GamemodeIcons = {
 	ttt2: "https://github.com/Metastruct/TTT2/blob/master/gamemodes/terrortown/logo.png?raw=true",
 };
 
-const GamemodeAlias = {
-	qbox: "metastruct",
-	"TTT2 (Advanced Update)": "ttt2",
-};
-
 const GamemodeColors = {
 	jazztronauts: 0x320032,
+	metastruct: 0x4bf5ca,
 	mta: 0xf48702,
-	qbox: 0x4bf5ca,
 	ttt2: 0xdcb400,
 };
 
