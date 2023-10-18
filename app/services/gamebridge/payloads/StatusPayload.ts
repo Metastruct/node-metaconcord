@@ -8,21 +8,26 @@ import SteamID from "steamid";
 import dayjs from "dayjs";
 
 const GamemodeIcons = {
-	qbox: "https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
-	mta: "https://github.com/Metastruct/MTA-Gamemode/blob/master/gamemodes/mta/icon24.png?raw=true",
 	jazztronauts:
 		"https://github.com/Foohy/jazztronauts/blob/master/gamemodes/jazztronauts/icon24.png?raw=true",
+	mta: "https://github.com/Metastruct/MTA-Gamemode/blob/master/gamemodes/mta/icon24.png?raw=true",
+	metastruct:
+		"https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
+	ttt2: "https://github.com/Metastruct/TTT2/blob/master/gamemodes/terrortown/logo.png?raw=true",
 };
 
 const GamemodeAlias = {
 	qbox: "metastruct",
+	"TTT2 (Advanced Update)": "ttt2",
 };
 
 const GamemodeColors = {
-	qbox: 0x4bf5ca,
-	mta: 0xf48702,
 	jazztronauts: 0x320032,
+	mta: 0xf48702,
+	qbox: 0x4bf5ca,
+	ttt2: 0xdcb400,
 };
+
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	private static retryCount = 0;
@@ -127,22 +132,24 @@ export default class StatusPayload extends Payload {
 				mapThumbnail = `http://${host}:${port}/map-thumbnails/rp_unioncity.jpg`;
 			}
 
+			const gamemodeName =
+				GamemodeAlias[current_gamemode.name.toLowerCase()] ?? current_gamemode.name;
+
 			const embed = new Discord.EmbedBuilder()
 				.setColor(
 					current_defcon === 1 || current_countdown
 						? 0xff0000
 						: current_gamemode
-						? GamemodeColors[current_gamemode.name.toLowerCase()] ?? null
+						? GamemodeColors[gamemodeName] ?? null
 						: null
 				)
 				.setFooter({
-					text:
-						GamemodeAlias[current_gamemode.name.toLowerCase()] ?? current_gamemode.name,
-					iconURL: GamemodeIcons[current_gamemode.name.toLowerCase()],
+					text: gamemodeName,
+					iconURL: GamemodeIcons[gamemodeName],
 				})
 				.setAuthor({
 					name: server.config.name,
-					iconURL: GamemodeIcons.qbox,
+					iconURL: GamemodeIcons.metastruct,
 					url: `https://metastruct.net/${
 						server.config.label ? "join/" + server.config.label : ""
 					}`,
