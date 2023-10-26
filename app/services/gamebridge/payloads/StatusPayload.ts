@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 
 const GamemodeAlias = {
 	qbox: "metastruct",
-	"TTT2 (Advanced Update)": "ttt2",
+	"ttt2 (advanced update)": "ttt2",
 };
 
 const GamemodeIcons = {
