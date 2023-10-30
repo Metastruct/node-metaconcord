@@ -32,6 +32,7 @@ const TENOR_IMAGE_FREQ = 0.1; // how often the bot will respond with an image in
 const DISCORD_IMAGE_FREQ = 0.2;
 const STICKER_FREQ = 0.05; // guess
 const REPLY_FREQ = 0.5; // when to take a word from a previous discord message if provided
+const EMOJI_REPLY_FREQ = 0.1; // reply with just an emoji
 
 const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp", "tumblr"];
 
@@ -169,6 +170,19 @@ export default async (bot: DiscordBot) => {
 	let posting = false;
 	let replied = false;
 
+	const getRandomEmoji = () => {
+		let emoji: Discord.EmojiIdentifierResolvable;
+		if (Math.random() <= GUILD_EMOJI_RATIO) {
+			emoji = bot.discord.emojis.cache.random() as Discord.EmojiIdentifierResolvable;
+		} else {
+			emoji =
+				Math.random() <= COMMON_EMOJI_RATIO
+					? COMMON_EMOJIS[(Math.random() * COMMON_EMOJIS.length) | 0]
+					: EmojiList[(Math.random() * EmojiList.length) | 0];
+		}
+		return emoji;
+	};
+
 	const sendShat = async (
 		options: {
 			msg?: Discord.Message;
@@ -185,6 +199,7 @@ export default async (bot: DiscordBot) => {
 		const shouldUseAuthor = rng <= MSG_USE_AUTHOR_FREQ;
 		const shouldSendImg = rng <= DISCORD_IMAGE_FREQ;
 		const shouldSendSticker = rng <= STICKER_FREQ;
+		const shouldSendEmoji = rng <= EMOJI_REPLY_FREQ;
 		const foundMatch = options.msg?.content
 			.split(" ")
 			.find(word =>
@@ -210,6 +225,8 @@ export default async (bot: DiscordBot) => {
 				? (
 						await db.get<any>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1")
 				  ).url
+				: shouldSendEmoji
+				? getRandomEmoji()
 				: undefined,
 		});
 		if (shat) {
@@ -223,19 +240,6 @@ export default async (bot: DiscordBot) => {
 			}
 		}
 		posting = false;
-	};
-
-	const getRandomEmoji = () => {
-		let emoji: Discord.EmojiIdentifierResolvable;
-		if (Math.random() <= GUILD_EMOJI_RATIO) {
-			emoji = bot.discord.emojis.cache.random() as Discord.EmojiIdentifierResolvable;
-		} else {
-			emoji =
-				Math.random() <= COMMON_EMOJI_RATIO
-					? COMMON_EMOJIS[(Math.random() * COMMON_EMOJIS.length) | 0]
-					: EmojiList[(Math.random() * EmojiList.length) | 0];
-		}
-		return emoji;
 	};
 
 	const getRandomStatus = async () => {
