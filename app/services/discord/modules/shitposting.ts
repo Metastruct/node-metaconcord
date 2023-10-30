@@ -28,11 +28,11 @@ const MAYBE_TRIGGER_WORDS = ["metastruct", "metaconstruct", "meta", "bot"]; // n
 const MAYBE_TRIGGER_FREQ = 0.4; // frequency of triggers above
 
 // shat constants
-const TENOR_IMAGE_FREQ = 0.1; // how often the bot will respond with an image instead of text
-const DISCORD_IMAGE_FREQ = 0.15;
-const STICKER_FREQ = 0.05; // guess
-const REPLY_FREQ = 0.5; // when to take a word from a previous discord message if provided
-const EMOJI_REPLY_FREQ = 0.2; // reply with just an emoji
+const TENOR_IMAGE_FREQ = 0.1; // how often the image will be taken from tenor instead of local cache
+const DISCORD_IMAGE_FREQ = 0.15; // how often the bot will respond with an image instead of text
+const EMOJI_REPLY_FREQ = 0.2; // how often to reply with just an emoji
+const STICKER_FREQ = 0.05; // how often to reply with just a sticker
+const REPLY_FREQ = 0.5; // how often to reply to an user (without a ping)
 
 const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp", "tumblr"];
 
