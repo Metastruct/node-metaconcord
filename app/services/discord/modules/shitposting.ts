@@ -32,7 +32,7 @@ const TENOR_IMAGE_FREQ = 0.1; // how often the image will be taken from tenor in
 const DISCORD_IMAGE_FREQ = 0.15; // how often the bot will respond with an image instead of text
 const EMOJI_REPLY_FREQ = 0.2; // how often to reply with just an emoji
 const STICKER_FREQ = 0.05; // how often to reply with just a sticker
-const REPLY_FREQ = 0.5; // how often to reply to an user (without a ping)
+const REPLY_FREQ = 0.5; // how often to when to take a word from a previous message if provided
 
 const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp", "tumblr"];
 
@@ -205,7 +205,7 @@ export default async (bot: DiscordBot) => {
 			.find(word =>
 				options.originalMsg?.content
 					.split(" ")
-					.filter(orig => orig.match(new RegExp(`${word}\\W?`)))
+					.filter(orig => orig.match(new RegExp(`\\b${word}\\b`)))
 			); // this feels like super slow but whatever
 		const shat = await Shat({
 			msg: foundMatch
@@ -356,7 +356,6 @@ export default async (bot: DiscordBot) => {
 
 		if (IGNORE_LIST.includes(msg.author.id)) return;
 
-		if (msg.author.bot && msg.author.id !== id) return;
 		if (msg.partial) {
 			try {
 				msg = await msg.fetch();
