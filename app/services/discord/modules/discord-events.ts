@@ -10,7 +10,7 @@ const events = [
 		eventData: {
 			entityType: Discord.GuildScheduledEventEntityType.Voice,
 			privacyLevel: Discord.GuildScheduledEventPrivacyLevel.GuildOnly,
-			channel: DiscordConfig.channels.gamingVoice,
+			entityMetadata: { location: "VRChat" },
 			name: "VRChat [Automated Event]",
 			description:
 				"Wanna join us in VR? Sign up so we know. Discussion in <#1009704968070107148>\n\nAlso checkout our Group at https://vrchat.com/home/group/grp_caeaacf4-a8a7-4e7d-8b66-46094732f85b",
