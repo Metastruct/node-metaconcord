@@ -391,7 +391,7 @@ export default async (bot: DiscordBot) => {
 			(rng <= REACTION_FREQ ||
 				(!isAllowedChannel && (isTriggerWord || isMaybeTriggerWord || isMention)))
 		) {
-			setTimeout(async () => msg.react(getRandomEmoji()), 1000 * 10);
+			setTimeout(async () => msg.react(getRandomEmoji()).catch(), 1000 * 10);
 		}
 
 		// Chatting
