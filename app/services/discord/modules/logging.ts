@@ -217,25 +217,26 @@ export default (bot: DiscordBot): void => {
 			switch (entry.targetType) {
 				case "ApplicationCommand": {
 					const command =
-						guild.commands.cache.get(Id) ?? (await guild.commands.fetch(Id));
+						guild.commands.cache.get(Id) ?? (await guild.commands.fetch(Id).catch());
 					target = command ? `</${command.name}:${command.id}>` : Id;
 					break;
 				}
 				case "AutoModerationRule": {
 					const rule =
 						guild.autoModerationRules.cache.get(Id) ??
-						(await guild.autoModerationRules.fetch(Id));
+						(await guild.autoModerationRules.fetch(Id).catch());
 					target = rule?.name ?? Id;
 					break;
 				}
 				case "Channel": {
 					const channel =
-						guild.channels.cache.get(Id) ?? (await guild.channels.fetch(Id));
+						guild.channels.cache.get(Id) ?? (await guild.channels.fetch(Id).catch());
 					target = channel ? `${channel} (${Id})` : Id;
 					break;
 				}
 				case "Emoji": {
-					const emoji = guild.emojis.cache.get(Id) ?? (await guild.emojis.fetch(Id));
+					const emoji =
+						guild.emojis.cache.get(Id) ?? (await guild.emojis.fetch(Id).catch());
 					target = emoji ? `${emoji.name} (${Id})` : Id;
 					break;
 				}
@@ -246,7 +247,7 @@ export default (bot: DiscordBot): void => {
 				case "GuildScheduledEvent": {
 					const event =
 						guild.scheduledEvents.cache.get(Id) ??
-						(await guild.scheduledEvents.fetch(Id));
+						(await guild.scheduledEvents.fetch(Id).catch());
 					target = event ? event.name : Id;
 					break;
 				}
@@ -256,7 +257,8 @@ export default (bot: DiscordBot): void => {
 					break;
 				}
 				case "Invite": {
-					const invite = guild.invites.cache.get(Id) ?? (await guild.invites.fetch(Id));
+					const invite =
+						guild.invites.cache.get(Id) ?? (await guild.invites.fetch(Id).catch());
 					target = invite ? `<@${invite.inviterId}> -> <#${invite.channelId}>` : Id;
 					break;
 				}
@@ -265,7 +267,7 @@ export default (bot: DiscordBot): void => {
 					break;
 				}
 				case "Role": {
-					const role = guild.roles.cache.get(Id) ?? (await guild.roles.fetch(Id));
+					const role = guild.roles.cache.get(Id) ?? (await guild.roles.fetch(Id).catch());
 					target = role ? `${role.toString()} (${Id})` : Id;
 					break;
 				}
@@ -277,7 +279,8 @@ export default (bot: DiscordBot): void => {
 					break;
 				}
 				case "Sticker": {
-					const sticker = guild.emojis.cache.get(Id) ?? (await guild.emojis.fetch(Id));
+					const sticker =
+						guild.emojis.cache.get(Id) ?? (await guild.emojis.fetch(Id).catch());
 					target = sticker ? `${sticker.name} (${Id})` : Id;
 					break;
 				}
@@ -288,7 +291,7 @@ export default (bot: DiscordBot): void => {
 				}
 				case "User":
 					const user =
-						guild.members.cache.get(Id) ?? (await guild.client.users.fetch(Id));
+						guild.members.cache.get(Id) ?? (await guild.client.users.fetch(Id).catch());
 					target = (user && user.mention) ?? `<@${Id}>`;
 					break;
 				case "Webhook":
