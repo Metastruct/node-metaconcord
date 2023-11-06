@@ -8,7 +8,7 @@ const events = [
 	{
 		icon: "vr",
 		eventData: {
-			entityType: Discord.GuildScheduledEventEntityType.Voice,
+			entityType: Discord.GuildScheduledEventEntityType.External,
 			privacyLevel: Discord.GuildScheduledEventPrivacyLevel.GuildOnly,
 			entityMetadata: { location: "VRChat" },
 			name: "VRChat [Automated Event]",
@@ -46,6 +46,7 @@ export default (bot: DiscordBot): void => {
 			const event = await guild.scheduledEvents.create({
 				...eventData,
 				scheduledStartTime: nextDate.toDate(),
+				scheduledEndTime: nextDate.add(4, "hours").toDate(),
 			});
 
 			if (notificationChannel)
