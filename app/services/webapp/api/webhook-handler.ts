@@ -256,6 +256,7 @@ export default (webApp: WebApp): void => {
 	];
 
 	GitHub.on("push", async event => {
+		if (!webhook) return;
 		const payload = event.payload;
 		const repo = payload.repository;
 		const serverOverride = REPO_SERVER_MAP.filter(r => r[1].length > 0).find(
@@ -381,6 +382,7 @@ export default (webApp: WebApp): void => {
 	});
 
 	GitHub.on("organization", async event => {
+		if (!webhook) return;
 		const payload = event.payload;
 
 		let title: string | undefined;
@@ -446,6 +448,7 @@ export default (webApp: WebApp): void => {
 	});
 
 	GitHub.on("membership", async event => {
+		if (!webhook) return;
 		const payload = event.payload;
 
 		const messagePayload = <Discord.WebhookMessageCreateOptions>{
@@ -473,6 +476,7 @@ export default (webApp: WebApp): void => {
 	});
 
 	GitHub.on("team", async event => {
+		if (!webhook) return;
 		const payload = event.payload;
 
 		let title: string | undefined;
