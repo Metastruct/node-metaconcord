@@ -2,14 +2,6 @@ import { DiscordBot } from "../..";
 import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL";
 import { MenuGetStickerUrlCommand } from "./GetStickerUrl";
 import {
-	MenuMuteCommand,
-	MenuUnMuteCommand,
-	MenuWhyMuteCommand,
-	SlashMuteCommand,
-	SlashUnMuteCommand,
-	SlashWhyMuteCommand,
-} from "./Mute";
-import {
 	MenuSpeechbubbleLeftCommand,
 	MenuSpeechbubbleRightCommand,
 	SlashSpeechbubbleCommand,
@@ -50,22 +42,16 @@ export const slashCommands = [
 	// normal commands
 	SlashDeeplCommand,
 	SlashMarkovCommand,
-	SlashMuteCommand,
 	SlashRoleCommand,
 	SlashSpeechbubbleCommand,
-	SlashUnMuteCommand,
 	SlashVoiceCommand,
 	SlashWhyBanCommand,
-	SlashWhyMuteCommand,
 ];
 export const menuCommands = [
 	MenuDeeplCommand,
 	MenuGetStickerUrlCommand,
-	MenuMuteCommand,
 	MenuSpeechbubbleLeftCommand,
 	MenuSpeechbubbleRightCommand,
-	MenuUnMuteCommand,
-	MenuWhyMuteCommand,
 	MenuWhyRoleCommand,
 ];
 
