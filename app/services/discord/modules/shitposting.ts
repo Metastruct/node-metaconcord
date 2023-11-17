@@ -337,7 +337,7 @@ export default async (bot: DiscordBot) => {
 
 		if (
 			user.id !== lastReactionUserId &&
-			Math.random() <= (reaction.emoji.name === "h_" ? 0.05 : MSG_REPLY_REACTION_FREQ)
+			Math.random() <= (reaction.emoji.name === "h_" ? 0.025 : MSG_REPLY_REACTION_FREQ)
 		) {
 			const mk = await bot.container
 				.getService("Markov")
