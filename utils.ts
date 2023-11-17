@@ -30,7 +30,7 @@ export const exists = async (path: PathLike): Promise<boolean> =>
 
 export const getStackLines = (input: string, linestart: number, lineend?: number): string => {
 	const lines = input.split(/\r?\n/).map(str => "  " + str);
-	const line = linestart - 1;
+	const line = clamp(linestart, 0, lines.length) - 1;
 	const replace = lines.slice(line, lineend ?? line + 1).map(line => ">>" + line.substring(2));
 	lines.splice(line, lineend ? lineend - linestart : 1, ...replace);
 	return lines
@@ -61,11 +61,21 @@ export const AddonURIS = {
 };
 
 const LOOKUP_PATH = webappconfig.lookupPath;
-export const getOrFetchLuaFile = async (path: PathLike, linenr: number, addon?: string) => {
-	const fullpath = LOOKUP_PATH + path;
+const PATH_MATCH =
+	/^(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?|)?(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>[a-z]*))?(?::-?(?<linenos>\d+)-?(?<linenoe>\d+)?)?$/g;
+
+export const getOrFetchGmodFile = async (path: PathLike) => {
+	const [, fpath, addon, filename, ext, linenos, linenoe] =
+		new RegExp(PATH_MATCH).exec(<string>path) || [];
+	const fullpath = LOOKUP_PATH + fpath;
+
 	if (await exists(fullpath)) {
+		const path = await fs.realpath(fullpath);
+		if (!path.startsWith(LOOKUP_PATH)) return undefined;
 		const file = await fs.readFile(fullpath, "utf8");
-		return getStackLines(file, linenr);
+		return linenos
+			? getStackLines(file, Number(linenos), linenoe ? Number(linenoe) : undefined)
+			: file;
 	} else {
 		const url: string | undefined = addon ? AddonURIS[addon] : undefined;
 
@@ -110,7 +120,9 @@ export const getOrFetchLuaFile = async (path: PathLike, linenr: number, addon?: 
 					const filecontent = isGithub
 						? (res.data.repository.content.text as string)
 						: (res.data.project.repository.blobs.nodes[0].rawTextBlob as string);
-					return getStackLines(filecontent, linenr);
+					return linenos
+						? getStackLines(filecontent, Number(linenos), Number(linenoe))
+						: filecontent;
 				}
 				return;
 			} catch (err) {
