@@ -93,6 +93,7 @@ const filter = [
 	"to",
 	"was",
 	"while",
+	"with",
 	"yet",
 ];
 
