@@ -8,6 +8,7 @@ import {
 } from "./Speechbubble";
 import { MenuWhyRoleCommand } from "./WhyRole";
 import { SlashBanCommand } from "./developer/Ban";
+import { SlashFileCommand } from "./developer/File";
 import { SlashGservCommand } from "./developer/Gserv";
 import { SlashKickCommand } from "./developer/Kick";
 import { SlashLuaCommand } from "./developer/Lua";
@@ -30,6 +31,7 @@ export function EphemeralResponse(content: string): Discord.InteractionReplyOpti
 export const slashCommands = [
 	// developer commands
 	SlashBanCommand,
+	SlashFileCommand,
 	SlashGservCommand,
 	SlashKickCommand,
 	SlashLuaCommand,
