@@ -208,9 +208,14 @@ export default (webApp: WebApp): void => {
 						gameserver.config.defaultGamemode &&
 						body.gamemode !== gameserver.config.defaultGamemode
 					) {
+						const gamemode = gameserver.gamemode ?? {
+							folderName: "???",
+							name: body.gamemode,
+						};
+
 						embed.fields.push({
 							name: "Gamemode:",
-							value: `${gameserver.gamemode.name} (${gameserver.gamemode.folderName})`,
+							value: `${gamemode.name} (${gamemode.folderName})`,
 							inline: true,
 						});
 					}
