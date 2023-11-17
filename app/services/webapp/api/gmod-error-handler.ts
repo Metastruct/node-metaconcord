@@ -1,4 +1,4 @@
-import { AddonURIS, getOrFetchLuaFile } from "@/utils";
+import { AddonURIS, getOrFetchGmodFile } from "@/utils";
 import { GameBridge, GameServer, Player } from "../../gamebridge";
 import { WebApp } from "..";
 import Discord from "discord.js";
@@ -29,19 +29,20 @@ type StackMatchGroups = {
 	ext?: string;
 	filename?: string;
 	fn: string;
-	lino: string;
+	fpath?: string;
+	lineno: string;
 	nick?: string;
 	partialsteamid?: string;
 	path?: string;
-	runnables?: string;
 	rfilename?: string;
+	runnables?: string;
 	stacknr: string;
 	steamid: string;
 	steamnick?: string;
 };
 
 const megaRex =
-	/(?<stacknr>\d+)\. (?<fn>\S+) - (?<runnables>RunString|LuaCmd|LUACMD)?(\[(?<steamid>STEAM_\d:\d:\d+)\](?<steamnick>.+))?(<(?<partialsteamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lino>-?\d+)/g;
+	/(?<stacknr>\d+)\. (?<fn>\S+) - (?<runnables>RunString|LuaCmd|LUACMD)?(\[(?<steamid>STEAM_\d:\d:\d+)\](?<steamnick>.+))?(<(?<partialsteamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<fpath>(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua)):-?(?<lineno>\d+))?/g;
 
 const SuperReplacer = (_: string, ...args: any[]) => {
 	const groups = args.at(-1) as StackMatchGroups;
@@ -69,10 +70,10 @@ const SuperReplacer = (_: string, ...args: any[]) => {
 						? "mta_gamemode"
 						: groups.addon
 			  ]
-				? `[${groups.path}](${AddonURIS[groups.addon] + groups.path}#L${groups.lino})`
+				? `[${groups.path}](${AddonURIS[groups.addon] + groups.path}#L${groups.lineno})`
 				: groups.path
 			: groups.engine
-	}:${groups.lino}`;
+	}:${groups.lineno}`;
 };
 
 const gamemodes = ["sandbox_modded", "mta", "jazztronauts"]; //proper gamemode support when???
@@ -235,8 +236,8 @@ export default (webApp: WebApp): void => {
 			);
 			if (filematch.length > 0) {
 				const smg = filematch[0].groups as StackMatchGroups;
-				if (!smg.path) return;
-				await getOrFetchLuaFile(smg.path, Number(smg.lino), smg.addon).then(res => {
+				if (!smg.fpath) return;
+				await getOrFetchGmodFile(smg.fpath).then(res => {
 					if (res && smg.filename) {
 						payload.files = [
 							{
