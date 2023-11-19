@@ -78,6 +78,11 @@ const SERVER_EMOJI_MAP = {
 	"3": "3️⃣",
 };
 
+const isMergeCommit = (message: string) =>
+	message.startsWith("Merge remote-tracking") ||
+	message.startsWith("Merge branch") ||
+	message.startsWith("Merge pull request");
+
 export default (webApp: WebApp): void => {
 	webApp.app.use(createNodeMiddleware(GitHub, { path: "/webhooks/github" }));
 	let webhook: Discord.Webhook;
@@ -267,6 +272,9 @@ export default (webApp: WebApp): void => {
 
 		const embeds: Discord.APIEmbed[] = [];
 
+		if (payload.head_commit && isMergeCommit(payload.head_commit.message))
+			commits.splice(0, commits.length, payload.head_commit);
+
 		for (const commit of commits) {
 			const fields: Discord.APIEmbedField[] = [];
 			const changes = GetGithubChanges(
@@ -276,17 +284,24 @@ export default (webApp: WebApp): void => {
 				repo.full_name,
 				payload.ref
 			);
-			const isPullRequestMerge = commit.message.startsWith("Merge pull request");
 
 			for (let i = 0; i < changes.length; i++) {
 				const change = changes[i];
-				fields.push({
-					name: i > 0 ? "​" : "---",
-					value: change.length > 1024 ? "<LINK TOO LONG>" : change,
-				});
+				if (i == 24) {
+					fields.push({
+						name: "...",
+						value: `and ${changes.length - 25} more changes`,
+					});
+					break;
+				} else {
+					fields.push({
+						name: i > 0 ? "​" : "---",
+						value: change.length > 1024 ? "<LINK TOO LONG>" : change,
+					});
+				}
 			}
 
-			let diff = isPullRequestMerge ? undefined : await getGitHubDiff(commit.url);
+			let diff = isMergeCommit(commit.message) ? undefined : await getGitHubDiff(commit.url);
 			if (diff) {
 				diff = diff.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n");
 				diff = diff.replaceAll(/diff.+\nindex.+\n/g, "");
@@ -374,10 +389,12 @@ export default (webApp: WebApp): void => {
 				});
 			}
 		} else {
-			webhook.send({
-				...messagePayload,
-				components: repo.language === "Lua" ? [components] : undefined,
-			});
+			webhook
+				.send({
+					...messagePayload,
+					components: repo.language === "Lua" ? [components] : undefined,
+				})
+				.catch(console.error);
 		}
 	});
 
@@ -444,7 +461,7 @@ export default (webApp: WebApp): void => {
 			],
 		};
 
-		webhook.send(messagePayload);
+		webhook.send(messagePayload).catch(console.error);
 	});
 
 	GitHub.on("membership", async event => {
@@ -472,7 +489,7 @@ export default (webApp: WebApp): void => {
 			],
 		};
 
-		webhook.send(messagePayload);
+		webhook.send(messagePayload).catch(console.error);
 	});
 
 	GitHub.on("team", async event => {
@@ -522,6 +539,6 @@ export default (webApp: WebApp): void => {
 			],
 		};
 
-		webhook.send(messagePayload);
+		webhook.send(messagePayload).catch(console.error);
 	});
 };
