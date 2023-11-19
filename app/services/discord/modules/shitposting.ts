@@ -31,7 +31,7 @@ const MAYBE_TRIGGER_FREQ = 0.4; // frequency of triggers above
 const TENOR_IMAGE_FREQ = 0.1; // how often the image will be taken from tenor instead of local cache
 const DISCORD_IMAGE_FREQ = 0.15; // how often the bot will respond with an image instead of text
 const EMOJI_REPLY_FREQ = 0.2; // how often to reply with just an emoji
-const STICKER_FREQ = 0.05; // how often to reply with just a sticker
+const STICKER_FREQ = 0.02; // how often to reply with just a sticker
 const REPLY_FREQ = 0.5; // how often to when to take a word from a previous message if provided
 
 const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp", "tumblr"];
