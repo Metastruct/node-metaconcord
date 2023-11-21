@@ -236,7 +236,12 @@ export default async (bot: DiscordBot) => {
 					allowedMentions: options.ping ? { repliedUser: true } : { repliedUser: false },
 				});
 			} else {
-				await bot.getTextChannel(bot.config.channels.chat)?.send(shat);
+				await bot
+					.getTextChannel(bot.config.channels.chat)
+					?.send(shat)
+					.catch(e => {
+						console.error(e, shat, options);
+					});
 			}
 		}
 		posting = false;
@@ -345,7 +350,7 @@ export default async (bot: DiscordBot) => {
 			if (mk) {
 				lastReactionUserId = user.id;
 				lastRespondedReactionMsgs.push(reaction.message.id);
-				await reaction.message.channel.send(`${user.mention} ` + mk);
+				await reaction.message.channel.send(`${user.mention} ` + mk).catch();
 			}
 		}
 	});
@@ -409,7 +414,7 @@ export default async (bot: DiscordBot) => {
 								originalMsg: msg.reference ? await msg.fetchReference() : undefined,
 								ping: true,
 						  }
-				);
+				).catch(console.error);
 				if (isChatChannel) replied = true;
 			} else {
 				msg.react(getRandomEmoji());
