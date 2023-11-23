@@ -120,7 +120,7 @@ const removeRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any
 	if (role && member) {
 		await member.roles.remove(role, "Removed role via command");
 		if (role.members.size === 0) {
-			await role.delete();
+			await role.delete("Role has no members anymore");
 		}
 	}
 	role
