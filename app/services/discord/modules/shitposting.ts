@@ -231,10 +231,16 @@ export default async (bot: DiscordBot) => {
 		});
 		if (shat) {
 			if (options.msg) {
-				await options.msg.reply({
-					...shat,
-					allowedMentions: options.ping ? { repliedUser: true } : { repliedUser: false },
-				});
+				await options.msg
+					.reply({
+						...shat,
+						allowedMentions: options.ping
+							? { repliedUser: true }
+							: { repliedUser: false },
+					})
+					.catch(e => {
+						console.error(e, shat, options);
+					});
 			} else {
 				await bot
 					.getTextChannel(bot.config.channels.chat)
