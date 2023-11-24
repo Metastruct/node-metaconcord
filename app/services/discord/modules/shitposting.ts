@@ -335,7 +335,7 @@ export default async (bot: DiscordBot) => {
 	bot.discord.on("messageDelete", async msg => {
 		if (msg.channelId !== bot.config.channels.chat) return;
 		const idx = lastMsgs.indexOf(msg as Discord.Message);
-		if (idx !== -1) lastMsgs.splice(idx - 1, 1);
+		if (idx !== -1) lastMsgs.splice(idx, 1);
 	});
 
 	bot.discord.on("messageReactionAdd", async (reaction, user) => {
