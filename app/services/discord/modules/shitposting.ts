@@ -226,7 +226,7 @@ export default async (bot: DiscordBot) => {
 						await db.get<any>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1")
 				  ).url
 				: shouldSendEmoji
-				? getRandomEmoji()
+				? getRandomEmoji().toString()
 				: undefined,
 		});
 		if (shat) {
