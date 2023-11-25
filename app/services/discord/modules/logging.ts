@@ -280,7 +280,7 @@ export default (bot: DiscordBot): void => {
 				}
 				case "Sticker": {
 					const sticker =
-						guild.emojis.cache.get(Id) ?? (await guild.emojis.fetch(Id).catch());
+						guild.stickers.cache.get(Id) ?? (await guild.stickers.fetch(Id).catch());
 					target = sticker ? `${sticker.name} (${Id})` : Id;
 					break;
 				}
