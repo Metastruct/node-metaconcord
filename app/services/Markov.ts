@@ -231,7 +231,7 @@ class MarkovChain extends MarkovChainBase {
 		});
 	}
 }
-export class MarkovService extends Service {
+export class Markov extends Service {
 	name = "Markov";
 	markov = new MarkovChain("./metaconcord.db");
 
@@ -266,5 +266,5 @@ export class MarkovService extends Service {
 }
 
 export default (container: Container): Service => {
-	return new MarkovService(container);
+	return new Markov(container);
 };
