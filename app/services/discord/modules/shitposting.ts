@@ -206,7 +206,11 @@ export default async (bot: DiscordBot) => {
 		const shouldSendEmoji = rng <= EMOJI_REPLY_FREQ;
 		const shat = await Shat({
 			msg: shouldUseHuggingface
-				? `${options.msg?.author.globalName}: ${options.msg?.content}`
+				? `${
+						options.msg?.author.globalName ?? options.msg?.author.username ?? "someone"
+				  }: ${options.originalMsg ? `@${options.originalMsg.author.username}` : ""} ${
+						options.msg?.content
+				  }`
 				: shouldUseAuthor
 				? options.msg?.author.globalName?.toLowerCase() ??
 				  options.msg?.author.username?.toLowerCase()
