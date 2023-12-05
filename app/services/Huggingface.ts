@@ -13,9 +13,10 @@ export class Huggingface extends Service {
 	async textGeneration(input: string, limit: number, temperature?: number) {
 		return await hf.textGeneration({
 			model: Model,
-			inputs: `<s>[INST] ${config.systemPrompt} Hi [/INST] ${
-				config.systemAnswer
-			}</s>[INST] ${input.replaceAll(/\[\/?INST\]|<\/?s>/g, "")} [/INST]`,
+			inputs: `[INST] ${config.systemPrompt} ${input.replaceAll(
+				/\[\/?INST\]|<\/?s>/g,
+				""
+			)} [/INST]`,
 			parameters: {
 				max_new_tokens: limit,
 				temperature: temperature,
