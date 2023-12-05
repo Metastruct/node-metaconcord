@@ -13,8 +13,9 @@ import DataProvider, { Data } from "./Data";
 import DiscordBotProvider, { DiscordBot } from "./discord";
 import DiscordMetadataProvider, { DiscordMetadata } from "./DiscordMetadata";
 import GameBridgeProvider, { GameBridge } from "./gamebridge";
+import HuggingfaceProvider, { Huggingface } from "./Huggingface";
 import IRCProvider, { IRC } from "./IRC";
-import MarkovProvider, { MarkovService } from "./Markov";
+import MarkovProvider, { Markov } from "./Markov";
 import MotdProvider, { Motd } from "./Motd";
 import SQLProvider, { SQL } from "./SQL";
 import StarboardProvider, { Starboard } from "./Starboard";
@@ -25,6 +26,7 @@ import WebAppProvider, { WebApp } from "./webapp";
 export default [
 	SQLProvider,
 	MarkovProvider,
+	HuggingfaceProvider,
 	SteamProvider,
 	DataProvider,
 	BanProvider,
@@ -40,6 +42,8 @@ export default [
 
 export {
 	SQL,
+	Markov,
+	Huggingface,
 	Data,
 	DiscordBot,
 	GameBridge,
@@ -57,12 +61,13 @@ export type ServiceMap = {
 	Data?: Data;
 	DiscordBot?: DiscordBot;
 	GameBridge?: GameBridge;
+	Huggingface?: Huggingface;
 	Bans?: Bans;
 	Steam?: Steam;
 	DiscordMetadata?: DiscordMetadata;
 	WebApp?: WebApp;
 	Motd?: Motd;
-	Markov?: MarkovService;
+	Markov?: Markov;
 	Starboard?: Starboard;
 	Tenor?: Tenor;
 	SQL?: SQL;

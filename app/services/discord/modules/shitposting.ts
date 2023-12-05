@@ -38,7 +38,8 @@ const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp", "tumblr"];
 
 const IGNORE_LIST = ["437294613976449024"];
 
-function getWord(msg: string) {
+function getWord(msg?: string) {
+	if (!msg) return undefined;
 	let search: string;
 	const words = msg.replaceAll(`<@${DiscordConfig.bot.userId}> `, "").split(" ");
 	const index = (Math.random() * words.length) | 0;
@@ -68,28 +69,22 @@ export const Shat = async (options?: {
 			: options.forceMessage;
 	const rng = Math.random();
 	if (rng > TENOR_IMAGE_FREQ && !options?.forceImage) {
+		const message = options?.msg?.replaceAll(`<@${DiscordConfig.bot.userId}> `, "");
 		let search: string | undefined;
-		if (
-			options?.msg &&
-			!options.msg.startsWith("http") &&
-			(rng <= REPLY_FREQ || options.forceReply)
-		) {
-			search = getWord(options.msg);
+		let shat: string | undefined;
+		if (message && !message.startsWith("http")) {
+			if (rng <= REPLY_FREQ || options?.forceReply) search = getWord(options?.msg);
+			const response = await globalThis.MetaConcord.container
+				.getService("Huggingface")
+				?.textGeneration(message, 100);
+			shat = response.generated_text;
 		}
-		let mk = await globalThis.MetaConcord.container
-			.getService("Markov")
-			?.generate(search, DefaultMarkovConfig);
 
-		if ((!mk || mk === options?.msg) && options?.fallback)
-			mk = await globalThis.MetaConcord.container
+		if (!shat || shat === options?.msg)
+			shat = await globalThis.MetaConcord.container
 				.getService("Markov")
-				?.generate(getWord(options.fallback), DefaultMarkovConfig);
-		if (!mk || mk === options?.msg)
-			mk = await globalThis.MetaConcord.container
-				.getService("Markov")
-				?.generate(undefined, DefaultMarkovConfig);
-
-		return mk ? { content: mk.replaceAll(`<@${DiscordConfig.bot.userId}> `, "") } : undefined;
+				?.generate(getWord(search ?? options?.fallback), DefaultMarkovConfig);
+		return shat ? { content: shat } : undefined;
 	} else {
 		const images = globalThis.MetaConcord.container.getService("Motd")?.images;
 		let word =
@@ -423,7 +418,7 @@ export default async (bot: DiscordBot) => {
 				).catch(console.error);
 				if (isChatChannel) replied = true;
 			} else {
-				msg.react(getRandomEmoji());
+				msg.react(getRandomEmoji()).catch();
 			}
 		}
 
