@@ -1,5 +1,5 @@
 import { EphemeralResponse } from "..";
-import { SlashCommand } from "@/extensions/discord";
+import { MenuCommand, SlashCommand } from "@/extensions/discord";
 import Discord from "discord.js";
 
 export const SlashManageMediaLinks: SlashCommand = {
@@ -46,5 +46,43 @@ export const SlashManageMediaLinks: SlashCommand = {
 			default:
 				break;
 		}
+	},
+};
+
+export const MenuManageMediaLinksCommand: MenuCommand = {
+	options: {
+		name: "remove media from bot cache",
+		type: Discord.ApplicationCommandType.Message,
+		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+	},
+	execute: async (ctx: Discord.MessageContextMenuCommandInteraction, bot) => {
+		const msg = ctx.targetMessage;
+		const text = msg.content;
+
+		if (msg.author.id !== ctx.client.user.id) {
+			await ctx.reply(
+				EphemeralResponse(`can only be used on messages sent by ${ctx.client.user.mention}`)
+			);
+			return;
+		}
+
+		if (!text.startsWith("http")) {
+			await ctx.reply(EphemeralResponse("this doesn't look like a media link"));
+			return;
+		}
+		await ctx.deferReply({ ephemeral: true });
+		const db = await bot.container.getService("SQL")?.getLocalDatabase();
+		if (!db) {
+			ctx.followUp(EphemeralResponse("Could not get the DB :("));
+			return;
+		}
+		const result = await db.run("DELETE FROM media_urls WHERE url = ?", text);
+		await ctx.followUp(
+			EphemeralResponse(
+				result?.changes !== undefined && result?.changes > 0
+					? "👍"
+					: "👎 (this shouldn't happen)"
+			)
+		);
 	},
 };
