@@ -1,6 +1,7 @@
 import { DiscordBot } from "../..";
 import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL";
 import { MenuGetStickerUrlCommand } from "./GetStickerUrl";
+import { MenuManageMediaLinksCommand, SlashManageMediaLinks } from "./developer/ManageMediaLinks";
 import {
 	MenuSpeechbubbleLeftCommand,
 	MenuSpeechbubbleRightCommand,
@@ -12,7 +13,6 @@ import { SlashFileCommand } from "./developer/File";
 import { SlashGservCommand } from "./developer/Gserv";
 import { SlashKickCommand } from "./developer/Kick";
 import { SlashLuaCommand } from "./developer/Lua";
-import { SlashManageMediaLinks } from "./developer/ManageMediaLinks";
 import { SlashMarkovCommand } from "./Markov";
 import { SlashRconCommand } from "./developer/Rcon";
 import { SlashRefreshLuaCommand } from "./developer/RefreshLua";
@@ -29,7 +29,7 @@ export function EphemeralResponse(content: string): Discord.InteractionReplyOpti
 }
 
 export const slashCommands = [
-	// developer commands
+	// restricted commands
 	SlashBanCommand,
 	SlashFileCommand,
 	SlashGservCommand,
@@ -50,6 +50,9 @@ export const slashCommands = [
 	SlashWhyBanCommand,
 ];
 export const menuCommands = [
+	// restricted menuCommands
+	MenuManageMediaLinksCommand,
+	// normal menuCommands
 	MenuDeeplCommand,
 	MenuGetStickerUrlCommand,
 	MenuSpeechbubbleLeftCommand,
