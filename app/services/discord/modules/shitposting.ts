@@ -13,7 +13,6 @@ const MSG_TRIGGER_COUNT = 10; // how many msgs in above interval until a msg is 
 const MSG_CHAT_INTERVAL = 1000 * 60 * 60 * 2; // total time until a message is forced if below interval wasn't met (active chatters)
 const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.75; // idle (no active chatters) time until post, can be delayed by chatting
 const MSG_USE_AUTHOR_FREQ = 0.3; // use the author name instead of message
-const MSG_USE_HUGGINGFACE_FREQ = 0; // use hugging face to reply instead of markov
 const MSG_REPLY_REACTION_FREQ = 0.3;
 const MSG_REPLY_REACTION_CLEAR_INTERVAL = 1000 * 60 * 60;
 const REACTION_FREQ = 0.005; // how often to react on messages;
@@ -75,22 +74,13 @@ export const Shat = async (options?: {
 	if (rng > TENOR_IMAGE_FREQ && !options?.forceImage) {
 		const message = options?.msg?.replaceAll(`<@${DiscordConfig.bot.userId}> `, "");
 		let search: string | undefined;
-		let shat: string | undefined;
 
-		if (message && !message.startsWith("http")) {
-			if (rng <= REPLY_FREQ || options?.forceReply) search = getWord(message);
-			if (options?.forceHuggingface) {
-				const response = await globalThis.MetaConcord.container
-					.getService("Huggingface")
-					?.textGeneration(message, 100);
-				shat = response.generated_text;
-			}
+		if (message && !message.startsWith("http") && (rng <= REPLY_FREQ || options?.forceReply)) {
+			search = getWord(message);
 		}
-
-		if (!shat || shat === options?.msg)
-			shat = await globalThis.MetaConcord.container
-				.getService("Markov")
-				?.generate(getWord(search ?? options?.fallback), DefaultMarkovConfig);
+		const shat = await globalThis.MetaConcord.container
+			.getService("Markov")
+			?.generate(getWord(search ?? options?.fallback), DefaultMarkovConfig);
 
 		return shat ? { content: shat } : undefined;
 	} else {
@@ -199,19 +189,12 @@ export default async (bot: DiscordBot) => {
 		posting = true;
 		if (options.msg) (options.msg.channel as Discord.TextChannel).sendTyping();
 		const rng = Math.random();
-		const shouldUseHuggingface = rng <= MSG_USE_HUGGINGFACE_FREQ;
 		const shouldUseAuthor = rng <= MSG_USE_AUTHOR_FREQ;
 		const shouldSendImg = rng <= DISCORD_IMAGE_FREQ;
 		const shouldSendSticker = rng <= STICKER_FREQ;
 		const shouldSendEmoji = rng <= EMOJI_REPLY_FREQ;
 		const shat = await Shat({
-			msg: shouldUseHuggingface
-				? `${
-						options.msg?.author.globalName ?? options.msg?.author.username ?? "someone"
-				  }: ${options.originalMsg ? `@${options.originalMsg.author.username}` : ""} ${
-						options.msg?.content
-				  }`
-				: shouldUseAuthor
+			msg: shouldUseAuthor
 				? options.msg?.author.globalName?.toLowerCase() ??
 				  options.msg?.author.username?.toLowerCase()
 				: options.msg?.content,
@@ -229,7 +212,6 @@ export default async (bot: DiscordBot) => {
 				: shouldSendEmoji
 				? getRandomEmoji().toString()
 				: undefined,
-			forceHuggingface: shouldUseHuggingface,
 		});
 		if (shat) {
 			if (options.msg) {
