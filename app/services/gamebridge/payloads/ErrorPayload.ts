@@ -10,6 +10,7 @@ import dayjs from "dayjs";
 export default class ErrorPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	protected static responseSchema = responseSchema;
+	private static lastError: ErrorRequest["data"]["hook_error"];
 
 	// static async initialize(server: GameServer): Promise<void> {
 	// }
@@ -20,7 +21,7 @@ export default class ErrorPayload extends Payload {
 
 		const { hook_error } = payload.data;
 
-		if (hook_error.name.includes("@repl_")) return;
+		if (hook_error.name.includes("@repl_") || this.lastError === hook_error) return;
 
 		const webhook = discordEWH;
 
@@ -59,7 +60,7 @@ export default class ErrorPayload extends Payload {
 		} else {
 			embeds.push(embed);
 		}
-
+		this.lastError = hook_error;
 		webhook.send({
 			allowedMentions: { parse: [] },
 			content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
