@@ -36,6 +36,7 @@ export default class GameServer {
 	discord: DiscordClient;
 	discordWH: WebhookClient;
 	discordEWH: WebhookClient;
+	discordPEWH: WebhookClient;
 	gamemode: {
 		folderName: string;
 		name: string;
@@ -66,6 +67,9 @@ export default class GameServer {
 		});
 		this.discordEWH = new WebhookClient({
 			url: bridge.config.errorWebhookUrl,
+		});
+		this.discordPEWH = new WebhookClient({
+			url: bridge.config.pacErrorWebhookUrl,
 		});
 
 		this.discord.run(this.config.discordToken);

@@ -2,8 +2,8 @@ import * as requestSchema from "./structures/ErrorRequest.json";
 import * as responseSchema from "./structures/ErrorResponse.json";
 import { APIEmbed } from "discord.js";
 import { ErrorRequest, ErrorResponse } from "./structures";
+import { GMOD_PATH_MATCH, getOrFetchGmodFile } from "@/utils";
 import { GameServer } from "..";
-import { getOrFetchGmodFile } from "@/utils";
 import Payload from "./Payload";
 import dayjs from "dayjs";
 
@@ -17,19 +17,23 @@ export default class ErrorPayload extends Payload {
 
 	static async handle(payload: ErrorRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
-		const { discordEWH } = server;
+		const { discordEWH, discordPEWH } = server;
 
 		const { hook_error } = payload.data;
 
 		if (hook_error.name.includes("@repl_") || this.lastError === hook_error) return;
 
 		const webhook = discordEWH;
+		const pacWebhook = discordPEWH;
 
 		const lines = hook_error.errormsg.split(/\r?\n/);
 		const err = lines[0];
 		const [path, linenr] = err.split(":", 2);
 		const stack = lines.splice(2).map((l, i) => `${i + 1}. ${l}`);
 		const file = await getOrFetchGmodFile(path + ":" + linenr);
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const [, fpath, addon, filename, ext, linenos, linenoe] =
+			new RegExp(GMOD_PATH_MATCH).exec(<string>path) || [];
 		const embeds: APIEmbed[] = [];
 		const embed = {
 			title: hook_error.name,
@@ -61,11 +65,19 @@ export default class ErrorPayload extends Payload {
 			embeds.push(embed);
 		}
 		this.lastError = hook_error;
-		webhook.send({
-			allowedMentions: { parse: [] },
-			content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
-			embeds: embeds,
-		});
+		if (addon === "pac3") {
+			pacWebhook.send({
+				allowedMentions: { parse: [] },
+				content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
+				embeds: embeds,
+			});
+		} else {
+			webhook.send({
+				allowedMentions: { parse: [] },
+				content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
+				embeds: embeds,
+			});
+		}
 	}
 
 	static async send(payload: ErrorResponse, server: GameServer): Promise<void> {

@@ -61,12 +61,13 @@ export const AddonURIS = {
 };
 
 const LOOKUP_PATH = webappconfig.lookupPath;
-const PATH_MATCH =
+export const GMOD_PATH_MATCH =
 	/^(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?|)?(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>[a-z]*))?(?::-?(?<linenos>\d+)-?(?<linenoe>\d+)?)?$/g;
 
 export const getOrFetchGmodFile = async (path: PathLike) => {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [, fpath, addon, filename, ext, linenos, linenoe] =
-		new RegExp(PATH_MATCH).exec(<string>path) || [];
+		new RegExp(GMOD_PATH_MATCH).exec(<string>path) || [];
 	const fullpath = LOOKUP_PATH + fpath;
 
 	if (await exists(fullpath)) {
