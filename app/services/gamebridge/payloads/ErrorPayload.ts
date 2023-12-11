@@ -28,11 +28,11 @@ export default class ErrorPayload extends Payload {
 		const err = lines[0];
 		const [path, linenr] = err.split(":", 2);
 		const stack = lines.splice(2).map((l, i) => `${i + 1}. ${l}`);
-		const file = await getOrFetchGmodFile(path + linenr);
+		const file = await getOrFetchGmodFile(path + ":" + linenr);
 		const embeds: APIEmbed[] = [];
 		const embed = {
 			title: hook_error.name,
-			description: stack.join("\n").replace("`", "\\`"),
+			description: stack.join("\n").replaceAll("```", "​`​`​`"),
 			footer: {
 				text: `${
 					server.gamemode
