@@ -1,5 +1,5 @@
 import { DiscordBot } from "..";
-import { IGenerateOptions } from "../../Markov";
+import { IGenerateOptions, Markov } from "../../Markov";
 import { makeSpeechBubble } from "@/utils";
 import Discord from "discord.js";
 import DiscordConfig from "@/config/discord.json";
@@ -64,6 +64,8 @@ export const Shat = async (options?: {
 	forceMessage?: string | Discord.MessageCreateOptions;
 	forceHuggingface?: boolean;
 }): Promise<Discord.MessageCreateOptions | undefined> => {
+	const markov: Markov = await globalThis.MetaConcord.container.getService("Markov");
+
 	if (options?.forceMessage)
 		return typeof options.forceMessage === "string"
 			? { content: options.forceMessage }
@@ -78,9 +80,13 @@ export const Shat = async (options?: {
 		if (message && !message.startsWith("http") && (rng <= REPLY_FREQ || options?.forceReply)) {
 			search = getWord(message);
 		}
-		const shat = await globalThis.MetaConcord.container
-			.getService("Markov")
-			?.generate(getWord(search ?? options?.fallback), DefaultMarkovConfig);
+
+		let shat = await markov?.generate(
+			getWord(search ?? options?.fallback),
+			DefaultMarkovConfig
+		);
+
+		if (!shat) shat = await markov?.generate(undefined, DefaultMarkovConfig);
 
 		return shat ? { content: shat } : undefined;
 	} else {
@@ -88,12 +94,7 @@ export const Shat = async (options?: {
 		let word =
 			options?.msg && !options.msg.startsWith("http") ? getWord(options.msg) : undefined;
 
-		if (!word)
-			word = getWord(
-				await globalThis.MetaConcord.container
-					.getService("Markov")
-					?.generate(undefined, DefaultMarkovConfig)
-			);
+		if (!word) word = getWord(await markov?.generate(undefined, DefaultMarkovConfig));
 
 		if (images.length !== 0 && (Math.random() <= 0.5 || !word)) {
 			const imgur = images[(Math.random() * images.length) | 0];
@@ -105,9 +106,7 @@ export const Shat = async (options?: {
 			const res = await globalThis.MetaConcord.container.getService("Tenor")?.search(word, 4);
 			if (!res)
 				return {
-					content: await globalThis.MetaConcord.container
-						.getService("Markov")
-						?.generate(undefined, DefaultMarkovConfig),
+					content: await markov?.generate(undefined, DefaultMarkovConfig),
 				}; // if for some reason we get no result;
 			return {
 				content: res.data.results[(Math.random() * res.data.results.length) | 0].url,
