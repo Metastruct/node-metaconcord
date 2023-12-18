@@ -133,7 +133,8 @@ export default class StatusPayload extends Payload {
 			}
 
 			const gamemodeName =
-				GamemodeAlias[current_gamemode.name.toLowerCase()] ?? current_gamemode.name;
+				GamemodeAlias[current_gamemode.name.toLowerCase()] ??
+				current_gamemode.name.toLowerCase();
 
 			const embed = new Discord.EmbedBuilder()
 				.setColor(
