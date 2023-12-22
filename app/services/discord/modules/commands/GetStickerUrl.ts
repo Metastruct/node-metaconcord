@@ -1,6 +1,4 @@
-// import { ApplicationCommandType, CommandContext, SlashCommand, SlashCreator } from "slash-create";
-// import { DiscordBot } from "../..";
-// import { EphemeralResponse } from ".";
+import { EphemeralResponse } from ".";
 import { MenuCommand } from "@/extensions/discord";
 import Discord from "discord.js";
 
@@ -11,7 +9,8 @@ export const MenuGetStickerUrlCommand: MenuCommand = {
 	},
 	execute: async (ctx: Discord.MessageContextMenuCommandInteraction) => {
 		if (ctx.targetMessage.stickers.size === 0) {
-			await ctx.reply("no stickers found in this message...");
+			await ctx.reply(EphemeralResponse("no stickers found in this message..."));
+			return;
 		}
 		const stickers = ctx.targetMessage.stickers;
 		await ctx.reply({
