@@ -29,7 +29,7 @@ export const events = [
 	},
 	{
 		icon: "christmas",
-		nick: ["Merry", "Jingle", "Snowy", "Winter", "Snow", "Cold", "Ice", "Freezing"],
+		nick: ["Merry", "Jingle", "Snowy", "Winter", "Snow", "Cold", "Ice", "Freezing", "Jolly"],
 		range: ["01/12", "26/12"],
 	},
 	{
