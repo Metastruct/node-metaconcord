@@ -361,12 +361,12 @@ export default async (bot: DiscordBot) => {
 		const rng = Math.random();
 
 		// triggers
-		const isTriggerWord = new RegExp(TRIGGER_WORDS.join("\\b|").slice(0, -1)).test(
+		const isTriggerWord = new RegExp("\\b" + TRIGGER_WORDS.join("\\b|\\b").slice(0, -3)).test(
 			msg.content.toLowerCase()
 		);
 		const isMaybeTriggerWord =
 			rng <= MAYBE_TRIGGER_FREQ &&
-			new RegExp(MAYBE_TRIGGER_WORDS.join("\\b|").slice(0, -1)).test(
+			new RegExp("\\b" + MAYBE_TRIGGER_WORDS.join("\\b|\\b").slice(0, -3)).test(
 				msg.content.toLowerCase()
 			);
 		const isChatChannel = bot.config.channels.chat === msg.channelId;
