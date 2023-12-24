@@ -32,7 +32,7 @@ export default (bot: DiscordBot): void => {
 						usr.roles.add(DiscordConfig.roles.event);
 				});
 				for (const { icon, triggers } of events) {
-					const match = new RegExp(triggers.join("\\b|").slice(0, -1)).test(
+					const match = new RegExp("\\b" + triggers.join("\\b|\\b").slice(0, -3)).test(
 						event.name.toLowerCase()
 					);
 					if (match) {
