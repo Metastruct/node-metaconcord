@@ -361,13 +361,13 @@ export default async (bot: DiscordBot) => {
 		const rng = Math.random();
 
 		// triggers
-		const isTriggerWord = TRIGGER_WORDS.some(str =>
-			msg.content.toLowerCase().match(new RegExp(`\\b${str}\\b`))
+		const isTriggerWord = new RegExp(TRIGGER_WORDS.join("\\b|").slice(0, -1)).test(
+			msg.content.toLowerCase()
 		);
 		const isMaybeTriggerWord =
 			rng <= MAYBE_TRIGGER_FREQ &&
-			MAYBE_TRIGGER_WORDS.some(str =>
-				msg.content.toLowerCase().match(new RegExp(`\\b${str}\\b`))
+			new RegExp(MAYBE_TRIGGER_WORDS.join("\\b|").slice(0, -1)).test(
+				msg.content.toLowerCase()
 			);
 		const isChatChannel = bot.config.channels.chat === msg.channelId;
 		const isBot = msg.author.id === id;
