@@ -212,7 +212,9 @@ export default (bot: DiscordBot): void => {
 		if (user?.mention) embed.addFields(f("Mention", user.mention));
 
 		if (entry.target && entry.targetId) {
-			embed.addFields(f(entry.targetType, entry.target.toString() ?? entry.targetId));
+			embed.addFields(
+				f(entry.targetType, entry.target ? entry.target.toString() : entry.targetId)
+			);
 		}
 
 		if (entry.reason) embed.addFields(f("Reason", entry.reason));
