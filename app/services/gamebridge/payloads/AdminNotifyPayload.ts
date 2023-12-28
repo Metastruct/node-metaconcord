@@ -78,7 +78,7 @@ export default class AdminNotifyPayload extends Payload {
 
 		const callAdminRole = guild.roles.cache.get(bridge.config.callAdminRoleId);
 
-		const notificationsChannel = guild.channels.cache.get(bridge.config.notificationsChannelId);
+		const notificationsChannel = guild.channels.cache.get(bridge.config.reportsChannelId);
 		if (!notificationsChannel) return;
 
 		const steamId64 = new SteamID(player.steamId).getSteamID64();
