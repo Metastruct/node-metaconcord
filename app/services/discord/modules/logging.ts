@@ -212,97 +212,7 @@ export default (bot: DiscordBot): void => {
 		if (user?.mention) embed.addFields(f("Mention", user.mention));
 
 		if (entry.target && entry.targetId) {
-			let target = "???";
-			const Id = entry.targetId;
-			switch (entry.targetType) {
-				case "ApplicationCommand": {
-					const command =
-						guild.commands.cache.get(Id) ?? (await guild.commands.fetch(Id).catch());
-					target = command ? `</${command.name}:${command.id}>` : Id;
-					break;
-				}
-				case "AutoModerationRule": {
-					const rule =
-						guild.autoModerationRules.cache.get(Id) ??
-						(await guild.autoModerationRules.fetch(Id).catch());
-					target = rule?.name ?? Id;
-					break;
-				}
-				case "Channel": {
-					const channel =
-						guild.channels.cache.get(Id) ?? (await guild.channels.fetch(Id).catch());
-					target = channel ? `${channel} (${Id})` : Id;
-					break;
-				}
-				case "Emoji": {
-					const emoji =
-						guild.emojis.cache.get(Id) ?? (await guild.emojis.fetch(Id).catch());
-					target = emoji ? `${emoji.name} (${Id})` : Id;
-					break;
-				}
-				case "Guild": {
-					target = Id === bot.config.bot.primaryGuildId ? "Meta Construct" : "wtf?????";
-					break;
-				}
-				case "GuildScheduledEvent": {
-					const event =
-						guild.scheduledEvents.cache.get(Id) ??
-						(await guild.scheduledEvents.fetch(Id).catch());
-					target = event ? event.name : Id;
-					break;
-				}
-				case "Integration": {
-					const integration = (await guild.fetchIntegrations()).get(Id);
-					target = integration ? `${integration.name} (${Id})` : Id;
-					break;
-				}
-				case "Invite": {
-					const invite =
-						guild.invites.cache.get(Id) ?? (await guild.invites.fetch(Id).catch());
-					target = invite ? `<@${invite.inviterId}> -> <#${invite.channelId}>` : Id;
-					break;
-				}
-				case "Message": {
-					target = Id;
-					break;
-				}
-				case "Role": {
-					const role = guild.roles.cache.get(Id) ?? (await guild.roles.fetch(Id).catch());
-					target = role ? `${role.toString()} (${Id})` : Id;
-					break;
-				}
-				case "StageInstance": {
-					const stage =
-						guild.stageInstances.cache.get(Id) ??
-						(await guild.stageInstances.fetch(Id));
-					target = stage ? `${stage} (${Id})` : Id;
-					break;
-				}
-				case "Sticker": {
-					const sticker =
-						guild.stickers.cache.get(Id) ?? (await guild.stickers.fetch(Id).catch());
-					target = sticker ? `${sticker.name} (${Id})` : Id;
-					break;
-				}
-				case "Thread": {
-					const thread = (await guild.channels.fetchActiveThreads()).threads.get(Id);
-					target = thread ? `${thread} (${Id})` : Id;
-					break;
-				}
-				case "User":
-					const user =
-						guild.members.cache.get(Id) ?? (await guild.client.users.fetch(Id).catch());
-					target = (user && user.mention) ?? `<@${Id}>`;
-					break;
-				case "Webhook":
-					const webhook = (await guild.fetchWebhooks()).find(h => h.id === Id);
-					target = webhook
-						? `${webhook.name} in ${webhook.channel?.toString()} created by: ${
-								webhook.owner
-						  }`
-						: Id;
-			}
-			embed.addFields(f(entry.targetType, target));
+			embed.addFields(f(entry.targetType, entry.target.toString() ?? entry.targetId));
 		}
 
 		if (entry.reason) embed.addFields(f("Reason", entry.reason));
@@ -366,6 +276,8 @@ export default (bot: DiscordBot): void => {
 					break;
 			}
 		}
+
+		if (entry.extra) embed.addFields(f("Extra", JSON.stringify(entry.extra)));
 
 		await logChannel.send({ embeds: [embed] });
 	});
