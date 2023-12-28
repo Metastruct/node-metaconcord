@@ -22,7 +22,7 @@ export default class UnbanPayload extends Payload {
 		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
 		if (!guild) return;
 
-		const notificationsChannel = guild.channels.cache.get(bridge.config.notificationsChannelId);
+		const notificationsChannel = guild.channels.cache.get(bridge.config.banUnbanChannelId);
 		if (!notificationsChannel) return;
 
 		const steam = bridge.container.getService("Steam");
