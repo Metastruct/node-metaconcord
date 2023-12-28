@@ -12,23 +12,6 @@ export default class NotificationPayload extends Payload {
 		[steamId64: string]: number;
 	} = {};
 
-	// static async initialize(server: GameServer): Promise<void> {
-	// 	const discord = server.discord;
-	// 	const notificationsChannel = (await discord.channels.fetch(
-	// 		server.discord.config.notificationsChannelId
-	// 	)) as TextChannel;
-	// 	const steam = server.bridge.container.getService("Steam");
-	// 	const filter = (btn: MessageComponentInteraction) => btn.customId.endsWith("_VOTEKICK");
-	// 	const collector = notificationsChannel.createMessageComponentCollector({ filter });
-	// 	collector.on("collect", async (ctx: ButtonInteraction) => {
-	// 		await ctx.deferReply();
-	// 		if (!(await DiscordClient.isAllowed(server, ctx.user))) return;
-	// 		try {
-	// 		} catch (err) {}
-	// 		await ctx.update({ components: [] });
-	// 	});
-	// }
-
 	static async handle(payload: VoteKickRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
@@ -41,7 +24,7 @@ export default class NotificationPayload extends Payload {
 		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
 		if (!guild) return;
 
-		const notificationsChannel = guild.channels.cache.get(bridge.config.notificationsChannelId);
+		const notificationsChannel = guild.channels.cache.get(bridge.config.votekicksChannelId);
 		if (!notificationsChannel) return;
 
 		const relayChannel = guild.channels.cache.get(bridge.config.relayChannelId);
