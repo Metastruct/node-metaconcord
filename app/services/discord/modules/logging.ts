@@ -213,7 +213,12 @@ export default (bot: DiscordBot): void => {
 
 		if (entry.target && entry.targetId) {
 			embed.addFields(
-				f(entry.targetType, entry.target ? entry.target.toString() : entry.targetId)
+				f(
+					entry.targetType,
+					entry.target.toString !== Object.prototype.toString
+						? entry.target.toString()
+						: `\`\`\`json\n${JSON.stringify(entry.target, undefined, 2)}\`\`\``
+				)
 			);
 		}
 
@@ -230,7 +235,7 @@ export default (bot: DiscordBot): void => {
 									change =>
 										`[${change.key}] ${
 											typeof change.old === "object"
-												? JSON.stringify(change.old)
+												? JSON.stringify(change.old, undefined, 2)
 												: change.old?.toString() ?? ""
 										}`
 								)
@@ -247,7 +252,7 @@ export default (bot: DiscordBot): void => {
 									change =>
 										`[${change.key}] ${
 											typeof change.new === "object"
-												? JSON.stringify(change.new)
+												? JSON.stringify(change.new, undefined, 2)
 												: change.new?.toString() ?? ""
 										}`
 								)
@@ -262,7 +267,7 @@ export default (bot: DiscordBot): void => {
 						const diffList = diffWords(
 							change.old?.toString() ?? "",
 							typeof change.new === "object"
-								? JSON.stringify(change.new)
+								? JSON.stringify(change.new, undefined, 2)
 								: change.new?.toString() ?? ""
 						);
 						for (const part of diffList) {
@@ -279,7 +284,7 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 
-		if (entry.extra) embed.addFields(f("Extra", JSON.stringify(entry.extra)));
+		if (entry.extra) embed.addFields(f("Extra", JSON.stringify(entry.extra, undefined, 2)));
 
 		await logChannel.send({ embeds: [embed] });
 	});
