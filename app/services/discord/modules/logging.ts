@@ -284,7 +284,16 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 
-		if (entry.extra) embed.addFields(f("Extra", JSON.stringify(entry.extra, undefined, 2)));
+		if (entry.extra)
+			embed.addFields(
+				f(
+					"Extra",
+					`\`\`\`json\n${JSON.stringify(entry.extra, undefined, 2).substring(
+						0,
+						1010
+					)}\n\`\`\``
+				)
+			);
 
 		await logChannel.send({ embeds: [embed] });
 	});
