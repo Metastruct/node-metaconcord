@@ -288,10 +288,17 @@ export default (bot: DiscordBot): void => {
 			embed.addFields(
 				f(
 					"Extra",
-					`\`\`\`json\n${JSON.stringify(entry.extra, undefined, 2).substring(
-						0,
-						1010
-					)}\n\`\`\``
+					`\`\`\`json\n${JSON.stringify(
+						entry.extra,
+						function (k, v) {
+							return k && v && typeof v !== "number"
+								? Array.isArray(v)
+									? "[object Array]"
+									: "" + v
+								: v;
+						},
+						2
+					).substring(0, 1010)}\n\`\`\``
 				)
 			);
 
