@@ -42,7 +42,6 @@ export default (bot: DiscordBot): void => {
 				}
 				break;
 			}
-			case Discord.GuildScheduledEventStatus.Canceled:
 			case Discord.GuildScheduledEventStatus.Completed: {
 				console.log(`Event "${event.name}" ended! Removing roles...`);
 				const users = await GetParticipants(event);
