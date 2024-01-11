@@ -50,7 +50,7 @@ type ResponseObject = {
 	url: string;
 };
 
-type TenorResponse = {
+export type TenorResponse = {
 	next: string;
 	results: ResponseObject[];
 };

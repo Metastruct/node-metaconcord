@@ -1,5 +1,7 @@
+import { AxiosResponse } from "axios";
 import { DiscordBot } from "..";
 import { IGenerateOptions, Markov } from "../../Markov";
+import { TenorResponse } from "../../Tenor";
 import { makeSpeechBubble } from "@/utils";
 import Discord from "discord.js";
 import DiscordConfig from "@/config/discord.json";
@@ -103,13 +105,17 @@ export const Shat = async (options?: {
 				? { files: [{ attachment: result, description: imgur.title }] }
 				: undefined;
 		} else {
-			const res = await globalThis.MetaConcord.container.getService("Tenor")?.search(word, 4);
-			if (!res)
+			const res: AxiosResponse<TenorResponse> = await globalThis.MetaConcord.container
+				.getService("Tenor")
+				?.search(word, 4);
+			if (!res || res.data.results.length === 0)
 				return {
 					content: await markov?.generate(undefined, DefaultMarkovConfig),
 				}; // if for some reason we get no result;
 			return {
-				content: res.data.results[(Math.random() * res.data.results.length) | 0].url,
+				content:
+					res.data.results[(Math.random() * res.data.results.length) | 0].url ??
+					"wtf tenor error",
 			};
 		}
 	}
