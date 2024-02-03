@@ -1,4 +1,5 @@
 import { DiscordBot, EMBED_FIELD_LIMIT } from "..";
+import { InspectOptions, inspect } from "node:util";
 import { diffWords } from "diff";
 import { f } from "@/utils";
 import Discord from "discord.js";
@@ -6,6 +7,8 @@ import Discord from "discord.js";
 const RED_COLOR = Discord.Colors.Red;
 const YELLOW_COLOR = Discord.Colors.Yellow;
 const GREEN_COLOR = Discord.Colors.Green;
+
+const INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 1 };
 
 export default (bot: DiscordBot): void => {
 	let logChannel: Discord.TextChannel | undefined;
@@ -38,7 +41,7 @@ export default (bot: DiscordBot): void => {
 		const embeds =
 			msg.embeds.length > 0
 				? msg.embeds.map(e => {
-						return `\`\`\`json\n${JSON.stringify(e.data)
+						return `\`\`\`ansi\n${inspect(e.data, INSPECT_OPTIONS)
 							.replaceAll("```", "​`​`​`")
 							.substring(0, 1024 - 11)}\`\`\``;
 				  })
@@ -217,7 +220,7 @@ export default (bot: DiscordBot): void => {
 					entry.targetType,
 					entry.target.toString !== Object.prototype.toString
 						? entry.target.toString()
-						: `\`\`\`json\n${JSON.stringify(entry.target, undefined, 2)}\`\`\``
+						: `\`\`\`ansi${inspect(entry.target, INSPECT_OPTIONS)}\n\`\`\``
 				)
 			);
 		}
@@ -230,12 +233,12 @@ export default (bot: DiscordBot): void => {
 					embed.addFields(
 						f(
 							"Removed",
-							`\`\`\`\n${entry.changes
+							`\`\`\`\nansi${entry.changes
 								.map(
 									change =>
 										`[${change.key}] ${
 											typeof change.old === "object"
-												? JSON.stringify(change.old, undefined, 2)
+												? inspect(change.old, INSPECT_OPTIONS)
 												: change.old?.toString() ?? ""
 										}`
 								)
@@ -247,12 +250,12 @@ export default (bot: DiscordBot): void => {
 					embed.addFields(
 						f(
 							"Added",
-							`\`\`\`\n${entry.changes
+							`\`\`\`\nansi${entry.changes
 								.map(
 									change =>
 										`[${change.key}] ${
 											typeof change.new === "object"
-												? JSON.stringify(change.new, undefined, 2)
+												? inspect(change.new, INSPECT_OPTIONS)
 												: change.new?.toString() ?? ""
 										}`
 								)
@@ -267,7 +270,7 @@ export default (bot: DiscordBot): void => {
 						const diffList = diffWords(
 							change.old?.toString() ?? "",
 							typeof change.new === "object"
-								? JSON.stringify(change.new, undefined, 2)
+								? inspect(change.new, INSPECT_OPTIONS)
 								: change.new?.toString() ?? ""
 						);
 						for (const part of diffList) {
@@ -288,17 +291,10 @@ export default (bot: DiscordBot): void => {
 			embed.addFields(
 				f(
 					"Extra",
-					`\`\`\`json\n${JSON.stringify(
-						entry.extra,
-						function (k, v) {
-							return k && v && typeof v !== "number"
-								? Array.isArray(v)
-									? "[object Array]"
-									: "" + v
-								: v;
-						},
-						2
-					).substring(0, 1010)}\n\`\`\``
+					`\`\`\`ansi\n${inspect(entry.extra, INSPECT_OPTIONS).substring(
+						0,
+						1010
+					)}\n\`\`\``
 				)
 			);
 
