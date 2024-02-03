@@ -39,7 +39,7 @@ export const SlashManageMediaLinks: SlashCommand = {
 					EphemeralResponse(
 						result?.changes !== undefined && result?.changes > 0 // wtf can this not be a oneliner without checking for undefined explicitly somehow?
 							? "👍"
-							: "👎 (probably doesn't exist)"
+							: "👎 (probably doesn't exist or is pulled from tenor)"
 					)
 				);
 				break;
@@ -81,7 +81,7 @@ export const MenuManageMediaLinksCommand: MenuCommand = {
 			EphemeralResponse(
 				result?.changes !== undefined && result?.changes > 0
 					? "👍"
-					: "👎 (this shouldn't happen)"
+					: "👎 (probably doesn't exist or is pulled from tenor)"
 			)
 		);
 	},
