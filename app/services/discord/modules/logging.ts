@@ -220,7 +220,7 @@ export default (bot: DiscordBot): void => {
 					entry.targetType,
 					entry.target.toString !== Object.prototype.toString
 						? entry.target.toString()
-						: `\`\`\`ansi${inspect(entry.target, INSPECT_OPTIONS)}\n\`\`\``
+						: `\`\`\`ansi\n${inspect(entry.target, INSPECT_OPTIONS)}\`\`\``
 				)
 			);
 		}
@@ -233,7 +233,7 @@ export default (bot: DiscordBot): void => {
 					embed.addFields(
 						f(
 							"Removed",
-							`\`\`\`\nansi${entry.changes
+							`\`\`\`ansi\n${entry.changes
 								.map(
 									change =>
 										`[${change.key}] ${
@@ -250,7 +250,7 @@ export default (bot: DiscordBot): void => {
 					embed.addFields(
 						f(
 							"Added",
-							`\`\`\`\nansi${entry.changes
+							`\`\`\`ansi\n${entry.changes
 								.map(
 									change =>
 										`[${change.key}] ${
