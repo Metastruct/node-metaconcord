@@ -9,6 +9,7 @@ const YELLOW_COLOR = Discord.Colors.Yellow;
 const GREEN_COLOR = Discord.Colors.Green;
 
 const INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 1 };
+const format = (input: any) => inspect(input, INSPECT_OPTIONS).replaceAll("```", "​`​`​`");
 
 export default (bot: DiscordBot): void => {
 	let logChannel: Discord.TextChannel | undefined;
@@ -41,9 +42,7 @@ export default (bot: DiscordBot): void => {
 		const embeds =
 			msg.embeds.length > 0
 				? msg.embeds.map(e => {
-						return `\`\`\`ansi\n${inspect(e.data, INSPECT_OPTIONS)
-							.replaceAll("```", "​`​`​`")
-							.substring(0, 1024 - 11)}\`\`\``;
+						return `\`\`\`ansi\n${format(e.data).substring(0, 1024 - 11)}\`\`\``;
 				  })
 				: undefined;
 
@@ -215,14 +214,7 @@ export default (bot: DiscordBot): void => {
 		if (user?.mention) embed.addFields(f("Mention", user.mention));
 
 		if (entry.target && entry.targetId) {
-			embed.addFields(
-				f(
-					entry.targetType,
-					entry.target.toString !== Object.prototype.toString
-						? entry.target.toString()
-						: `\`\`\`ansi\n${inspect(entry.target, INSPECT_OPTIONS)}\`\`\``
-				)
-			);
+			embed.addFields(f(entry.targetType, `\`\`\`ansi\n${format(entry.target)}\`\`\``));
 		}
 
 		if (entry.reason) embed.addFields(f("Reason", entry.reason));
@@ -234,14 +226,7 @@ export default (bot: DiscordBot): void => {
 						f(
 							"Removed",
 							`\`\`\`ansi\n${entry.changes
-								.map(
-									change =>
-										`[${change.key}] ${
-											typeof change.old === "object"
-												? inspect(change.old, INSPECT_OPTIONS)
-												: change.old?.toString() ?? ""
-										}`
-								)
+								.map(change => `[${change.key}] ${format(change.old)}`)
 								.join("\n")}\`\`\``
 						)
 					);
@@ -251,14 +236,7 @@ export default (bot: DiscordBot): void => {
 						f(
 							"Added",
 							`\`\`\`ansi\n${entry.changes
-								.map(
-									change =>
-										`[${change.key}] ${
-											typeof change.new === "object"
-												? inspect(change.new, INSPECT_OPTIONS)
-												: change.new?.toString() ?? ""
-										}`
-								)
+								.map(change => `[${change.key}] ${format(change.new)}`)
 								.join("\n")}\`\`\``
 						)
 					);
@@ -267,14 +245,7 @@ export default (bot: DiscordBot): void => {
 					let diff = "";
 					entry.changes.map(change => {
 						diff += `[${change.key}] `;
-						const diffList = diffWords(
-							typeof change.old === "object"
-								? inspect(change.old, INSPECT_OPTIONS)
-								: change.old?.toString() ?? "",
-							typeof change.new === "object"
-								? inspect(change.new, INSPECT_OPTIONS)
-								: change.new?.toString() ?? ""
-						);
+						const diffList = diffWords(format(change.old), format(change.new));
 						for (const part of diffList) {
 							diff += part.added
 								? `\u001b[1;40m${part.value}\u001b[0;0m`
@@ -283,7 +254,6 @@ export default (bot: DiscordBot): void => {
 								: part.value;
 						}
 					});
-					diff = diff.replaceAll("```", "​`​`​`");
 					embed.addFields(f("Changes", `\`\`\`ansi\n${diff.substring(0, 1010)}\n\`\`\``));
 					break;
 			}
@@ -291,13 +261,7 @@ export default (bot: DiscordBot): void => {
 
 		if (entry.extra)
 			embed.addFields(
-				f(
-					"Extra",
-					`\`\`\`ansi\n${inspect(entry.extra, INSPECT_OPTIONS).substring(
-						0,
-						1010
-					)}\n\`\`\``
-				)
+				f("Extra", `\`\`\`ansi\n${format(entry.extra).substring(0, 1010)}\n\`\`\``)
 			);
 
 		await logChannel.send({ embeds: [embed] });
