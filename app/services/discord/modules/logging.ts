@@ -268,9 +268,11 @@ export default (bot: DiscordBot): void => {
 					entry.changes.map(change => {
 						diff += `[${change.key}] `;
 						const diffList = diffWords(
-							change.old?.toString() ?? "",
+							typeof change.old === "object"
+								? inspect(change.old, INSPECT_OPTIONS)
+								: change.old?.toString() ?? "",
 							typeof change.new === "object"
-								? inspect(change.new, { depth: 1 })
+								? inspect(change.new, INSPECT_OPTIONS)
 								: change.new?.toString() ?? ""
 						);
 						for (const part of diffList) {
