@@ -270,7 +270,7 @@ export default (bot: DiscordBot): void => {
 						const diffList = diffWords(
 							change.old?.toString() ?? "",
 							typeof change.new === "object"
-								? inspect(change.new, INSPECT_OPTIONS)
+								? inspect(change.new, { depth: 1 })
 								: change.new?.toString() ?? ""
 						);
 						for (const part of diffList) {
