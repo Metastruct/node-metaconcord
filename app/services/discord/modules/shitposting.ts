@@ -25,8 +25,8 @@ const COMMON_EMOJI_RATIO = 0.7;
 const TYPING_TRIGGER_THRESHOLD = 0.9; // at how much msgs to trigger the typing (related to MSG_TRIGGER_COUNT)
 
 // trigger word constants
-const TRIGGER_WORDS = ["metabot", "meta bot", "the bot", "metaconcord"]; // these will always count like a normal reply/ping
-const MAYBE_TRIGGER_WORDS = ["metastruct", "metaconstruct", "meta", "bot"]; // not directly the bot but maybe
+const TRIGGER_WORDS = ["meta bot", "metabot", "metaconcord", "the bot"]; // these will always count like a normal reply/ping
+const MAYBE_TRIGGER_WORDS = ["bot", "meta", "meta construct", "metaconstruct", "metastruct"] // not directly the bot but maybe
 const MAYBE_TRIGGER_FREQ = 0.4; // frequency of triggers above
 
 // shat constants
@@ -280,6 +280,11 @@ export default async (bot: DiscordBot) => {
 
 	bot.discord.once("ready", async client => {
 		bot.setActivity(undefined, await getRandomStatus());
+
+		if (lastMsgs.length === 0) {
+			const lastmsg = bot.getTextChannel(bot.config.channels.chat)?.lastMessage;
+			if (lastmsg) lastMsgs.push(lastmsg);
+		}
 
 		setInterval(async () => {
 			await data.save();
