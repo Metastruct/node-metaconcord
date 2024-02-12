@@ -8,7 +8,7 @@ const RED_COLOR = Discord.Colors.Red;
 const YELLOW_COLOR = Discord.Colors.Yellow;
 const GREEN_COLOR = Discord.Colors.Green;
 
-const INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 1 };
+const INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 0 };
 const format = (input: any) => inspect(input, INSPECT_OPTIONS).replaceAll("```", "​`​`​`");
 
 export default (bot: DiscordBot): void => {
@@ -111,9 +111,9 @@ export default (bot: DiscordBot): void => {
 
 			for (const part of diffList) {
 				diff += part.added
-					? `\u001b[1;40m${part.value}\u001b[0;0m`
+					? `\u001b[1;40m${part.value}\u001b[0m`
 					: part.removed
-					? `\u001b[1;30;41m${part.value}\u001b[0;0m`
+					? `\u001b[1;30;41m${part.value}\u001b[0m`
 					: part.value;
 			}
 		}
@@ -214,7 +214,13 @@ export default (bot: DiscordBot): void => {
 		if (user?.mention) embed.addFields(f("Mention", user.mention));
 
 		if (entry.target && entry.targetId) {
-			embed.addFields(f(entry.targetType, `\`\`\`ansi\n${format(entry.target)}\`\`\``));
+			const target = `\`\`\`ansi\n${format(entry.target)}\`\`\``;
+			embed.addFields(
+				f(
+					entry.targetType,
+					target.length >= 1024 ? target.substring(0, 1010) + "\n. . .```" : target
+				)
+			);
 		}
 
 		if (entry.reason) embed.addFields(f("Reason", entry.reason));
@@ -248,9 +254,9 @@ export default (bot: DiscordBot): void => {
 						const diffList = diffWords(format(change.old), format(change.new));
 						for (const part of diffList) {
 							diff += part.added
-								? `\u001b[1;40m${part.value}\u001b[0;0m`
+								? `\u001b[1;40m${part.value}\u001b[0m`
 								: part.removed
-								? `\u001b[1;30;41m${part.value}\u001b[0;0m`
+								? `\u001b[1;30;41m${part.value}\u001b[0m`
 								: part.value;
 						}
 					});
