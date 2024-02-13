@@ -8,8 +8,9 @@ const RED_COLOR = Discord.Colors.Red;
 const YELLOW_COLOR = Discord.Colors.Yellow;
 const GREEN_COLOR = Discord.Colors.Green;
 
-const INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 0 };
-const format = (input: any) => inspect(input, INSPECT_OPTIONS).replaceAll("```", "​`​`​`");
+const DEFAULT_INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 0 };
+const format = (input: any, options?: InspectOptions) =>
+	inspect(input, options ? options : DEFAULT_INSPECT_OPTIONS).replaceAll("```", "​`​`​`");
 
 export default (bot: DiscordBot): void => {
 	let logChannel: Discord.TextChannel | undefined;
@@ -251,7 +252,15 @@ export default (bot: DiscordBot): void => {
 					let diff = "";
 					entry.changes.map(change => {
 						diff += `[${change.key}] `;
-						const diffList = diffWords(format(change.old), format(change.new));
+						const diffList = diffWords(
+							typeof change.old === "object"
+								? format(change.old, { ...DEFAULT_INSPECT_OPTIONS, depth: 1 })
+								: change.old?.toString() ?? "",
+							typeof change.new === "object"
+								? format(change.new, { ...DEFAULT_INSPECT_OPTIONS, depth: 1 })
+								: change.new?.toString() ?? ""
+						);
+						// const diffList = diffWords(format(change.old), format(change.new));
 						for (const part of diffList) {
 							diff += part.added
 								? `\u001b[1;40m${part.value}\u001b[0m`
