@@ -65,9 +65,9 @@ export class Starboard extends Service {
 		const count = ego ? reaction.count - 1 : reaction.count;
 
 		if (
-			count >= needed && !this.isBusy && emojiFilter
-				? emojiFilter.includes(reaction.emoji.name ?? "")
-				: true
+			count >= needed &&
+			!this.isBusy &&
+			(emojiFilter ? emojiFilter.includes(reaction.emoji.name ?? "") : true)
 		) {
 			this.isBusy = true;
 			const msg = await reaction.message.fetch();
