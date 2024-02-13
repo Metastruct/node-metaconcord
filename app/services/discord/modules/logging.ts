@@ -1,4 +1,4 @@
-import { DiscordBot, EMBED_FIELD_LIMIT } from "..";
+import { DiscordBot } from "..";
 import { InspectOptions, inspect } from "node:util";
 import { diffWords } from "diff";
 import { f } from "@/utils";
@@ -11,6 +11,13 @@ const GREEN_COLOR = Discord.Colors.Green;
 const DEFAULT_INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 0 };
 const format = (input: any, options?: InspectOptions) =>
 	inspect(input, options ? options : DEFAULT_INSPECT_OPTIONS).replaceAll("```", "​`​`​`");
+
+const trimfield = (input: string, limit: number, isCodeBlock: boolean) =>
+	input.length >= limit
+		? input.substring(0, limit - (isCodeBlock ? 17 : 6)) +
+		  "\n. . ." +
+		  (isCodeBlock ? "```" : "")
+		: input + (isCodeBlock ? "```" : "");
 
 export default (bot: DiscordBot): void => {
 	let logChannel: Discord.TextChannel | undefined;
@@ -43,7 +50,8 @@ export default (bot: DiscordBot): void => {
 		const embeds =
 			msg.embeds.length > 0
 				? msg.embeds.map(e => {
-						return `\`\`\`ansi\n${format(e.data).substring(0, 1024 - 11)}\`\`\``;
+						const data = "```ansi\n" + format(e.data);
+						return trimfield(data, 1024, true);
 				  })
 				: undefined;
 
@@ -62,15 +70,15 @@ export default (bot: DiscordBot): void => {
 			embed.addFields(f("Mention", msg.author?.mention));
 		}
 		if (message) {
-			embed.addFields(f("Message", message.substring(0, 1024), true));
+			embed.addFields(f("Message", trimfield(message, 1024, false), true));
 		}
 
 		if (attachments) {
-			embed.addFields(f("Attachment/s", attachments.join(" ").substring(0, 1024)));
+			embed.addFields(f("Attachment/s", trimfield(attachments.join(" "), 1024, false)));
 		}
 
 		if (embeds) {
-			embed.addFields(f("Embed/s", embeds.join("\n").substring(0, 1024)));
+			embed.addFields(f("Embed/s", trimfield(embeds.join("\n"), 1024, false)));
 		}
 
 		if (msg.stickers.size > 0) {
@@ -94,8 +102,8 @@ export default (bot: DiscordBot): void => {
 			await bot.fixEmbeds(newMsg);
 		}
 
-		const oldText = oldMsg.content ? oldMsg.content.substring(0, EMBED_FIELD_LIMIT - 10) : "";
-		const newText = newMsg.content ? newMsg.content.substring(0, EMBED_FIELD_LIMIT - 10) : "";
+		const oldText = oldMsg.content ? trimfield(oldMsg.content, 1024, false) : "";
+		const newText = newMsg.content ? trimfield(newMsg.content, 1024, false) : "";
 
 		const embeds: [boolean, boolean] = // I think this can be done better somehow lol
 			newMsg.embeds.length > 0 && oldMsg.embeds.length > 0
@@ -118,7 +126,7 @@ export default (bot: DiscordBot): void => {
 					: part.value;
 			}
 		}
-		diff = diff.replaceAll("```", "​`​`​`");
+		diff = diff.replaceAll("```", "​`​`​`") + "```ansi\n";
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
@@ -130,7 +138,7 @@ export default (bot: DiscordBot): void => {
 			.addFields(f("Id", oldMsg.id))
 			.addFields(f("Channel", `<#${oldMsg.channel.id}>`))
 			.addFields(f("Mention", user?.mention ?? "???"))
-			.addFields(f("Difference", `\`\`\`ansi\n${diff.substring(0, 1010)}\n\`\`\``))
+			.addFields(f("Difference", trimfield(diff, 1024, true)))
 			.setFooter({ text: "Message Edited" })
 			.setTimestamp(newMsg.editedTimestamp);
 
@@ -215,13 +223,8 @@ export default (bot: DiscordBot): void => {
 		if (user?.mention) embed.addFields(f("Mention", user.mention));
 
 		if (entry.target && entry.targetId) {
-			const target = `\`\`\`ansi\n${format(entry.target)}\`\`\``;
-			embed.addFields(
-				f(
-					entry.targetType,
-					target.length >= 1024 ? target.substring(0, 1010) + "\n. . .```" : target
-				)
-			);
+			const target = "```ansi\n" + format(entry.target);
+			embed.addFields(f(entry.targetType, trimfield(target, 1024, true)));
 		}
 
 		if (entry.reason) embed.addFields(f("Reason", entry.reason));
@@ -249,7 +252,7 @@ export default (bot: DiscordBot): void => {
 					);
 					break;
 				case "Update":
-					let diff = "";
+					let diff = "```ansi\n";
 					entry.changes.map(change => {
 						diff += `[${change.key}] `;
 						const diffList = diffWords(
@@ -260,7 +263,6 @@ export default (bot: DiscordBot): void => {
 								? format(change.new, { ...DEFAULT_INSPECT_OPTIONS, depth: 1 })
 								: change.new?.toString() ?? ""
 						);
-						// const diffList = diffWords(format(change.old), format(change.new));
 						for (const part of diffList) {
 							diff += part.added
 								? `\u001b[1;40m${part.value}\u001b[0m`
@@ -269,15 +271,15 @@ export default (bot: DiscordBot): void => {
 								: part.value;
 						}
 					});
-					embed.addFields(f("Changes", `\`\`\`ansi\n${diff.substring(0, 1010)}\n\`\`\``));
+					embed.addFields(f("Changes", trimfield(diff, 1024, true)));
 					break;
 			}
 		}
 
-		if (entry.extra)
-			embed.addFields(
-				f("Extra", `\`\`\`ansi\n${format(entry.extra).substring(0, 1010)}\n\`\`\``)
-			);
+		if (entry.extra) {
+			const extra = "```ansi\n" + format(entry.extra);
+			embed.addFields(f("Extra", trimfield(extra, 1024, true)));
+		}
 
 		await logChannel.send({ embeds: [embed] });
 	});
