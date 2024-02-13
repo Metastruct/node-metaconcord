@@ -5,7 +5,9 @@ import Discord from "discord.js";
 import config from "@/config/starboard.json";
 import discordConfig from "@/config/discord.json";
 
-const AMOUNT = config.amount;
+const DEFAULT_AMOUNT = config.amount;
+const DEFAULT_EMOTE = config.defaultEmote;
+
 export class Starboard extends Service {
 	name = "Starboard";
 	private isBusy = false;
@@ -34,96 +36,91 @@ export class Starboard extends Service {
 	}
 
 	public async handleReactionAdded(reaction: Discord.MessageReaction): Promise<void> {
+		const client = reaction.client;
 		const channel = reaction.message.channel as Discord.GuildChannel;
 		const category = channel.parentId;
+
 		if (config.channelIgnores.includes(channel.id)) return;
 		if (category && config.categoryIgnores.includes(category)) return;
 
-		if (reaction.emoji.name && config.emoteNames.includes(reaction.emoji.name)) {
-			let ego = false;
-			if (reaction.message.author)
-				ego = reaction.users.cache.has(reaction.message.author?.id);
+		let needed: number;
+		let emojiFilter: string[] | undefined;
+		let targetChannel: Discord.Channel | undefined;
 
-			let count = ego ? reaction.count - 1 : reaction.count;
-			count = reaction.users.cache.has(reaction.client.user.id) ? count - 1 : count;
+		switch (channel.id) {
+			case discordConfig.channels.artsAndCrafts:
+				needed = 6;
+				targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
+				break;
+			default:
+				needed = DEFAULT_AMOUNT;
+				emojiFilter = [DEFAULT_EMOTE];
+				targetChannel = client.channels.cache.get(discordConfig.channels.h);
+				break;
+		}
 
-			let needed: number;
-			let channelFilter: string | undefined = undefined;
-			switch (reaction.emoji.name) {
-				case "h_":
-					needed = 10;
-					break;
-				case "❤️":
-					needed = 6;
-					channelFilter = discordConfig.channels.artsAndCrafts;
-					break;
-				default:
-					needed = AMOUNT;
-					break;
+		const ego = reaction.message.author
+			? reaction.users.cache.has(reaction.message.author.id)
+			: false;
+		const count = ego ? reaction.count - 1 : reaction.count;
+
+		if (
+			count >= needed && !this.isBusy && emojiFilter
+				? emojiFilter.includes(reaction.emoji.name ?? "")
+				: true
+		) {
+			this.isBusy = true;
+			const msg = await reaction.message.fetch();
+			if (!msg) return;
+
+			if (msg.author.bot)
+				targetChannel = client.channels.cache.get(discordConfig.channels.hBot);
+
+			if (!targetChannel) {
+				console.error("[Starboard] wtf invalid channel", reaction);
+				return;
 			}
-			const allowedChannel =
-				channelFilter !== undefined ? channel.id === channelFilter : true;
-			if (count >= needed && !this.isBusy && allowedChannel) {
-				this.isBusy = true;
-				const client = reaction.client;
-				const msg = await reaction.message.fetch();
-				if (!msg) return;
 
-				// check against our local db first
-				if (await this.isMsgStarred(msg.id)) return;
+			// check against our local db first
+			if (await this.isMsgStarred(msg.id)) return;
 
-				// skip messages older than 3 months
-				if (Date.now() - msg.createdTimestamp > 3 * 28 * 24 * 60 * 60 * 1000) return;
+			// skip messages older than 3 months
+			if (Date.now() - msg.createdTimestamp > 3 * 28 * 24 * 60 * 60 * 1000) return;
 
-				let text = "";
-				const reference = msg.reference;
-				if (reference && reference.messageId) {
-					const refMsg = await (
-						client.channels.cache.get(reference.channelId) as Discord.TextChannel
-					).messages.fetch(reference.messageId);
+			let text = "";
+			const reference = msg.reference;
+			if (reference && reference.messageId) {
+				const refMsg = await (
+					client.channels.cache.get(reference.channelId) as Discord.TextChannel
+				).messages.fetch(reference.messageId);
 
-					text += `${
-						reference
-							? `[replying to ${
-									refMsg.system ? "System Message" : refMsg.author.username
-							  }](${refMsg.url})\n`
-							: ""
-					}`;
-				}
+				text += `${
+					reference
+						? `[replying to ${
+								refMsg.system ? "System Message" : refMsg.author.username
+						  }](${refMsg.url})\n`
+						: ""
+				}`;
+			}
 
-				text += msg.content;
-				text += msg.stickers.size > 0 ? msg.stickers.first()?.url : "";
+			text += msg.content;
+			text += msg.stickers.size > 0 ? msg.stickers.first()?.url : "";
 
-				const files: string[] = [];
-				msg.attachments.map(a => files.push(a.url));
+			const files: string[] = [];
+			msg.attachments.map(a => files.push(a.url));
 
-				let targetChannel: Discord.Channel | undefined;
-				switch (reaction.emoji.name) {
-					case "h_":
-						targetChannel = client.channels.cache.get(
-							msg.author.bot ? discordConfig.channels.hBot : discordConfig.channels.h
-						);
-						break;
-					case "❤️":
-						targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
-						break;
-					default:
-						targetChannel = client.channels.cache.get(discordConfig.channels.h);
-						break;
-				}
-				const webhooks = await (targetChannel as Discord.TextChannel).fetchWebhooks();
-				const webhook = webhooks.find(h => h.token);
+			const webhooks = await (targetChannel as Discord.TextChannel).fetchWebhooks();
+			const webhook = webhooks.find(h => h.token);
 
-				if (webhook) {
-					await webhook.send({
-						content: text,
-						avatarURL: msg.author.avatarURL() ?? "",
-						username: `${msg.author.username}`,
-						allowedMentions: { parse: ["users", "roles"] },
-						files: files,
-					});
-					await this.starMsg(msg.id);
-				}
+			if (webhook) {
+				await webhook.send({
+					content: text,
+					avatarURL: msg.author.avatarURL() ?? "",
+					username: `${msg.author.username}`,
+					allowedMentions: { parse: ["users", "roles"] },
+					files: files,
+				});
+				await this.starMsg(msg.id);
 			}
 			this.isBusy = false;
 		}
