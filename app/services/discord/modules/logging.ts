@@ -114,7 +114,7 @@ export default (bot: DiscordBot): void => {
 				? [false, true] // embed was removed
 				: [false, false]; // no embed was present at all
 
-		let diff = "```ansi\n";
+		let diff = "";
 		if (oldText.length > 0 || newText.length > 0) {
 			const diffList = diffWords(oldText, newText);
 
@@ -138,7 +138,7 @@ export default (bot: DiscordBot): void => {
 			.addFields(f("Id", oldMsg.id))
 			.addFields(f("Channel", `<#${oldMsg.channel.id}>`))
 			.addFields(f("Mention", user?.mention ?? "???"))
-			.addFields(f("Difference", trimfield(diff, 1024, true)))
+			.addFields(f("Difference", trimfield("```ansi\n" + diff, 1024, true)))
 			.setFooter({ text: "Message Edited" })
 			.setTimestamp(newMsg.editedTimestamp);
 
