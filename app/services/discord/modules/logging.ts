@@ -8,7 +8,7 @@ const RED_COLOR = Discord.Colors.Red;
 const YELLOW_COLOR = Discord.Colors.Yellow;
 const GREEN_COLOR = Discord.Colors.Green;
 
-const DEFAULT_INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 0 };
+const DEFAULT_INSPECT_OPTIONS: InspectOptions = { colors: true };
 const format = (input: any, options?: InspectOptions) =>
 	inspect(input, options ? options : DEFAULT_INSPECT_OPTIONS).replaceAll("```", "​`​`​`");
 
@@ -224,7 +224,9 @@ export default (bot: DiscordBot): void => {
 
 		if (entry.target && entry.targetId) {
 			const target = "```ansi\n" + format(entry.target);
-			embed.addFields(f(entry.targetType, trimfield(target, 1024, true)));
+			embed.addFields(
+				f(`${entry.targetType} (${entry.targetId})`, trimfield(target, 1024, true))
+			);
 		}
 
 		if (entry.reason) embed.addFields(f("Reason", entry.reason));
@@ -257,10 +259,10 @@ export default (bot: DiscordBot): void => {
 						diff += `[${change.key}] `;
 						const diffList = diffWords(
 							typeof change.old === "object"
-								? format(change.old, { ...DEFAULT_INSPECT_OPTIONS, depth: 1 })
+								? format(change.old, { ...DEFAULT_INSPECT_OPTIONS })
 								: change.old?.toString() ?? "",
 							typeof change.new === "object"
-								? format(change.new, { ...DEFAULT_INSPECT_OPTIONS, depth: 1 })
+								? format(change.new, { ...DEFAULT_INSPECT_OPTIONS })
 								: change.new?.toString() ?? ""
 						);
 						for (const part of diffList) {
