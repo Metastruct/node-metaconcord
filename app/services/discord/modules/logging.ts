@@ -114,7 +114,7 @@ export default (bot: DiscordBot): void => {
 				? [false, true] // embed was removed
 				: [false, false]; // no embed was present at all
 
-		let diff = "";
+		let diff = "```ansi\n";
 		if (oldText.length > 0 || newText.length > 0) {
 			const diffList = diffWords(oldText, newText);
 
@@ -126,7 +126,7 @@ export default (bot: DiscordBot): void => {
 					: part.value;
 			}
 		}
-		diff = diff.replaceAll("```", "​`​`​`") + "```ansi\n";
+		diff = diff.replaceAll("```", "​`​`​`");
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
