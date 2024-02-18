@@ -76,7 +76,7 @@ export const SlashSpeechbubbleCommand: SlashCommand = {
 				files: [{ attachment: buffer, name: "funny.gif" }],
 			});
 		} catch (err) {
-			await ctx.reply(EphemeralResponse(`something went wrong! (${err})`));
+			await ctx.followUp(EphemeralResponse(`something went wrong! (${err})`));
 		}
 	},
 };
