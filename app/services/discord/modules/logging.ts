@@ -255,24 +255,26 @@ export default (bot: DiscordBot): void => {
 					break;
 				case "Update":
 					let diff = "```ansi\n";
-					entry.changes.map(change => {
-						diff += `[${change.key}] `;
-						const diffList = diffWords(
-							typeof change.old === "object"
-								? format(change.old, { ...DEFAULT_INSPECT_OPTIONS })
-								: change.old?.toString() ?? "",
-							typeof change.new === "object"
-								? format(change.new, { ...DEFAULT_INSPECT_OPTIONS })
-								: change.new?.toString() ?? ""
-						);
-						for (const part of diffList) {
-							diff += part.added
-								? `\u001b[1;40m${part.value}\u001b[0m`
-								: part.removed
-								? `\u001b[1;30;41m${part.value}\u001b[0m`
-								: part.value;
-						}
-					});
+					entry.changes
+						.map(change => {
+							diff += `[${change.key}] `;
+							const diffList = diffWords(
+								typeof change.old === "object"
+									? format(change.old, { ...DEFAULT_INSPECT_OPTIONS })
+									: change.old?.toString() ?? "",
+								typeof change.new === "object"
+									? format(change.new, { ...DEFAULT_INSPECT_OPTIONS })
+									: change.new?.toString() ?? ""
+							);
+							for (const part of diffList) {
+								diff += part.added
+									? `\u001b[1;40m${part.value}\u001b[0m`
+									: part.removed
+									? `\u001b[1;30;41m${part.value}\u001b[0m`
+									: part.value;
+							}
+						})
+						.join("\n");
 					embed.addFields(f("Changes", trimfield(diff, 1024, true)));
 					break;
 			}
