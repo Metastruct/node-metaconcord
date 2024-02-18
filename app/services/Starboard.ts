@@ -71,7 +71,10 @@ export class Starboard extends Service {
 		) {
 			this.isBusy = true;
 			const msg = await reaction.message.fetch();
-			if (!msg) return;
+			if (!msg) {
+				console.error("[Starboard] couldn't fetch message", reaction);
+				return;
+			}
 
 			if (msg.author.bot)
 				targetChannel = client.channels.cache.get(discordConfig.channels.hBot);
@@ -122,8 +125,8 @@ export class Starboard extends Service {
 				});
 				await this.starMsg(msg.id);
 			}
-			this.isBusy = false;
 		}
+		this.isBusy = false;
 	}
 }
 
