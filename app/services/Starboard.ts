@@ -122,6 +122,19 @@ export class Starboard extends Service {
 					username: `${msg.author.username}`,
 					allowedMentions: { parse: ["users", "roles"] },
 					files: files,
+					components: [
+						{
+							type: Discord.ComponentType.ActionRow,
+							components: [
+								{
+									type: Discord.ComponentType.Button,
+									label: "Original Message",
+									style: Discord.ButtonStyle.Link,
+									url: msg.url,
+								},
+							],
+						},
+					],
 				});
 				await this.starMsg(msg.id);
 			}
