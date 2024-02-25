@@ -8,7 +8,7 @@ const RED_COLOR = Discord.Colors.Red;
 const YELLOW_COLOR = Discord.Colors.Yellow;
 const GREEN_COLOR = Discord.Colors.Green;
 
-const DEFAULT_INSPECT_OPTIONS: InspectOptions = { colors: true };
+const DEFAULT_INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 1 };
 const format = (input: any, options?: InspectOptions) =>
 	inspect(input, options ? options : DEFAULT_INSPECT_OPTIONS).replaceAll("```", "​`​`​`");
 
@@ -35,8 +35,6 @@ export default (bot: DiscordBot): void => {
 	bot.discord.on("messageDelete", async msg => {
 		if (!logChannel) return;
 		msg = await bot.fetchPartial(msg);
-
-		if (!msg.author?.username) return;
 
 		const message = msg.content && msg.content.length > 0 ? msg.content : undefined;
 
