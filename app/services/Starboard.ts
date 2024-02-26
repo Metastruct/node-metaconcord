@@ -73,6 +73,7 @@ export class Starboard extends Service {
 			const msg = await reaction.message.fetch();
 			if (!msg) {
 				console.error("[Starboard] couldn't fetch message", reaction);
+				this.isBusy = false;
 				return;
 			}
 
@@ -81,14 +82,21 @@ export class Starboard extends Service {
 
 			if (!targetChannel) {
 				console.error("[Starboard] wtf invalid channel", reaction);
+				this.isBusy = false;
 				return;
 			}
 
 			// check against our local db first
-			if (await this.isMsgStarred(msg.id)) return;
+			if (await this.isMsgStarred(msg.id)) {
+				this.isBusy = false;
+				return;
+			}
 
 			// skip messages older than 3 months
-			if (Date.now() - msg.createdTimestamp > 3 * 28 * 24 * 60 * 60 * 1000) return;
+			if (Date.now() - msg.createdTimestamp > 3 * 28 * 24 * 60 * 60 * 1000) {
+				this.isBusy = false;
+				return;
+			}
 
 			let text = "";
 			const reference = msg.reference;
@@ -138,8 +146,8 @@ export class Starboard extends Service {
 				});
 				await this.starMsg(msg.id);
 			}
+			this.isBusy = false;
 		}
-		this.isBusy = false;
 	}
 }
 
