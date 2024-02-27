@@ -62,8 +62,9 @@ export default (bot: DiscordBot): void => {
 							? regex.test(event.description?.toLocaleLowerCase())
 							: false);
 					if (match) {
-						await event.guild?.setIcon(join(iconsPath, `${icon}.png`));
-						await bot.discord.user?.setAvatar(iconsPath);
+						const path = join(iconsPath, `${icon}.png`);
+						await event.guild?.setIcon(path);
+						await bot.discord.user?.setAvatar(path);
 						break;
 					}
 				}
