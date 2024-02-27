@@ -40,6 +40,7 @@ export default (bot: DiscordBot): void => {
 				usr.roles.remove(DiscordConfig.roles.event);
 		});
 		await event.guild?.setIcon(data.lastDiscordGuildIcon);
+		await bot.discord.user?.setAvatar(data.lastDiscordGuildIcon);
 	};
 
 	bot.discord.on("guildScheduledEventUpdate", async (old, now) => {
@@ -62,6 +63,7 @@ export default (bot: DiscordBot): void => {
 							: false);
 					if (match) {
 						await event.guild?.setIcon(join(iconsPath, `${icon}.png`));
+						await bot.discord.user?.setAvatar(iconsPath);
 						break;
 					}
 				}
