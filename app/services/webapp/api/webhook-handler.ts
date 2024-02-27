@@ -289,8 +289,8 @@ export default (webApp: WebApp): void => {
 				const change = changes[i];
 				if (i == 24) {
 					fields.push({
-						name: "...",
-						value: `and ${changes.length - 25} more changes`,
+						name: "​",
+						value: `... and ${changes.length - 25} more changes`,
 					});
 					break;
 				} else {
