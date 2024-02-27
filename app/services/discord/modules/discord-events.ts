@@ -54,9 +54,12 @@ export default (bot: DiscordBot): void => {
 						usr.roles.add(DiscordConfig.roles.event);
 				});
 				for (const { icon, triggers } of events) {
-					const match = new RegExp("\\b" + triggers.join("\\b|\\b") + "\\b").test(
-						event.name.toLowerCase()
-					);
+					const regex = new RegExp("\\b" + triggers.join("\\b|\\b") + "\\b");
+					const match =
+						regex.test(event.name.toLowerCase()) ||
+						(event.description
+							? regex.test(event.description?.toLocaleLowerCase())
+							: false);
 					if (match) {
 						await event.guild?.setIcon(join(iconsPath, `${icon}.png`));
 						break;
