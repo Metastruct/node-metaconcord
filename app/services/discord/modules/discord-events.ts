@@ -72,7 +72,7 @@ export default (bot: DiscordBot): void => {
 			}
 			case Discord.GuildScheduledEventStatus.Scheduled:
 			case Discord.GuildScheduledEventStatus.Completed: {
-				if (old && !old.isActive()) {
+				if (old && !now.isActive()) {
 					endEvent(old);
 				}
 				break;
