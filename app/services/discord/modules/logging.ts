@@ -61,7 +61,7 @@ export default (bot: DiscordBot): void => {
 			.setColor(RED_COLOR)
 			.addFields(f("Id", msg.id))
 			.addFields(f("Channel", `<#${msg.channel.id}>`))
-			.setFooter({ text: "Message Deleted" })
+			.setFooter({ text: `${msg.system ? "System " : ""}Message Deleted` })
 			.setTimestamp(msg.createdTimestamp);
 
 		if (msg.author?.mention) {
