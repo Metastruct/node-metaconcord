@@ -148,7 +148,7 @@ export const SlashBanCommand: SlashCommand = {
 		const summary = await steam?.getUserSummaries(ctx.options.getString("steamid", true));
 		if (!summary) {
 			await ctx.showModal(<Discord.APIModalInteractionResponseCallbackData>{
-				title: "private profile, please enter nick manually:",
+				title: "could not get nickname from steam, please enter it manually:",
 				custom_id: "ban_modal",
 				components: [
 					{
@@ -156,16 +156,16 @@ export const SlashBanCommand: SlashCommand = {
 						components: [
 							{
 								type: Discord.ComponentType.TextInput,
-								label: "Nickname of user to ban",
+								label: "nickname of the user to ban",
 								style: Discord.TextInputStyle.Short,
-								placeholder: "Player Name",
+								placeholder: "Mingebag69",
 								custom_id: "nickname_input",
 							},
 						],
 					},
 				],
 			});
-			const response = await ctx.awaitModalSubmit({ time: 60000 });
+			const response = await ctx.awaitModalSubmit({ time: 60000 }).catch();
 			if (response) {
 				await Ban(response.fields.getTextInputValue("nickname_input"), ctx, bot);
 			}
