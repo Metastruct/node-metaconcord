@@ -17,6 +17,7 @@ export const SlashSQLCommand: SlashCommand = {
 	options: {
 		name: "sql",
 		description: "Executes an SQL query",
+		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
 		options: [
 			{
 				type: Discord.ApplicationCommandOptionType.String,
