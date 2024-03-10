@@ -53,7 +53,11 @@ export const SlashSQLCommand: SlashCommand = {
 		try {
 			switch (target) {
 				case "metaconcord": {
-					if (!(<string[]>ctx.member.roles).includes(bot.config.roles.elevated))
+					if (
+						!(<Discord.GuildMemberRoleManager>ctx.member.roles).cache.has(
+							bot.config.roles.elevated
+						)
+					)
 						await ctx.reply(
 							EphemeralResponse(
 								`You need the <@&${bot.config.roles.elevated}> role to run SQL commands on me!`
