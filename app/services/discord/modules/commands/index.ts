@@ -1,6 +1,7 @@
 import { DiscordBot } from "../..";
 import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL";
 import { MenuGetStickerUrlCommand } from "./GetStickerUrl";
+import { MenuGetVoiceMessageUrlCommand } from "./GetVoiceMessageUrl";
 import { MenuManageMediaLinksCommand, SlashManageMediaLinks } from "./developer/ManageMediaLinks";
 import {
 	MenuSpeechbubbleLeftCommand,
@@ -55,6 +56,7 @@ export const menuCommands = [
 	// normal menuCommands
 	MenuDeeplCommand,
 	MenuGetStickerUrlCommand,
+	MenuGetVoiceMessageUrlCommand,
 	MenuSpeechbubbleLeftCommand,
 	MenuSpeechbubbleRightCommand,
 	MenuWhyRoleCommand,
