@@ -130,6 +130,7 @@ export class Starboard extends Service {
 					username: `${msg.author.username}`,
 					allowedMentions: { parse: ["users", "roles"] },
 					files: files,
+					embeds: msg.author.bot ? msg.embeds : undefined,
 					components: [
 						{
 							type: Discord.ComponentType.ActionRow,
