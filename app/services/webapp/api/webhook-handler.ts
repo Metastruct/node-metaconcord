@@ -12,6 +12,7 @@ const COLOR_MOD = 75;
 const COLOR_BASE = 50;
 
 const DIFF_SIZE = 2048;
+const MAX_FIELDS = 10;
 
 const GitHub = new Webhooks({
 	secret: webhookConfig.github.secret,
@@ -287,12 +288,15 @@ export default (webApp: WebApp): void => {
 				payload.ref
 			);
 
-			for (let i = 0; i < changes.length; i++) {
+			const oversize = changes.length > MAX_FIELDS;
+			const changeLen = oversize ? MAX_FIELDS : changes.length;
+
+			for (let i = 0; i < changeLen; i++) {
 				const change = changes[i];
-				if (i == 24) {
+				if (i === 24 || oversize ? i === changeLen - 1 : false) {
 					fields.push({
 						name: "​",
-						value: `... and ${changes.length - 25} more changes`,
+						value: `... and ${changes.length - changeLen} more changes`,
 					});
 					break;
 				} else {
@@ -381,13 +385,15 @@ export default (webApp: WebApp): void => {
 
 		// todo: figure out a good way to keep the embed size below the maximum size of 6000
 		if (embeds.length > 1) {
-			for (let i = 0; i < embeds.length; i += 1) {
+			for (let i = 0; i < embeds.length; i++) {
 				const chunk = embeds.slice(i, i + 1);
 				webhook.send({
 					...messagePayload,
 					embeds: chunk,
 					components:
-						i === embeds.length && repo.language === "Lua" ? [components] : undefined,
+						i === embeds.length - 1 && repo.language === "Lua"
+							? [components]
+							: undefined,
 				});
 			}
 		} else {
