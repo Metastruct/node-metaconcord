@@ -3,11 +3,6 @@ import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL";
 import { MenuGetStickerUrlCommand } from "./GetStickerUrl";
 import { MenuGetVoiceMessageUrlCommand } from "./GetVoiceMessageUrl";
 import { MenuManageMediaLinksCommand, SlashManageMediaLinks } from "./developer/ManageMediaLinks";
-import {
-	MenuSpeechbubbleLeftCommand,
-	MenuSpeechbubbleRightCommand,
-	SlashSpeechbubbleCommand,
-} from "./Speechbubble";
 import { MenuWhyRoleCommand } from "./WhyRole";
 import { SlashBanCommand } from "./developer/Ban";
 import { SlashFileCommand } from "./developer/File";
@@ -20,6 +15,7 @@ import { SlashRefreshLuaCommand } from "./developer/RefreshLua";
 import { SlashRoleCommand } from "./Role";
 import { SlashRuleCommand } from "./developer/Rules";
 import { SlashSQLCommand } from "./developer/SQL";
+import { SlashSpeechbubbleCommand } from "./Speechbubble";
 import { SlashUnBanCommand } from "./developer/UnBan";
 import { SlashVoiceCommand } from "./TempVoiceChannel";
 import { SlashWhyBanCommand } from "./WhyBan";
@@ -57,8 +53,6 @@ export const menuCommands = [
 	MenuDeeplCommand,
 	MenuGetStickerUrlCommand,
 	MenuGetVoiceMessageUrlCommand,
-	MenuSpeechbubbleLeftCommand,
-	MenuSpeechbubbleRightCommand,
 	MenuWhyRoleCommand,
 ];
 

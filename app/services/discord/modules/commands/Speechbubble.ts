@@ -1,5 +1,5 @@
 import { EphemeralResponse } from ".";
-import { MenuCommand, SlashCommand } from "@/extensions/discord";
+import { SlashCommand } from "@/extensions/discord";
 import { makeSpeechBubble } from "@/utils";
 import Discord from "discord.js";
 
@@ -95,58 +95,4 @@ const getLink = (msg: Discord.Message) => {
 		: msg.attachments.size > 0
 		? msg.attachments.first()?.url
 		: undefined;
-};
-
-export const MenuSpeechbubbleLeftCommand: MenuCommand = {
-	options: {
-		name: "speechbubble left",
-		type: Discord.ApplicationCommandType.Message,
-	},
-	execute: async (ctx: Discord.MessageContextMenuCommandInteraction) => {
-		const msg = ctx.targetMessage;
-
-		const link = getLink(msg);
-		if (!link) {
-			await ctx.reply(
-				EphemeralResponse("that message doesn't have a link or attachment I can use!")
-			);
-			return;
-		}
-		await ctx.deferReply();
-		try {
-			const buffer = await makeSpeechBubble(link, true);
-			await ctx.followUp({
-				files: [{ attachment: buffer, name: "funny.gif" }],
-			});
-		} catch (err) {
-			await ctx.followUp(EphemeralResponse(`something went wrong! (${err})`));
-		}
-	},
-};
-
-export const MenuSpeechbubbleRightCommand: MenuCommand = {
-	options: {
-		name: "speechbubble right",
-		type: Discord.ApplicationCommandType.Message,
-	},
-	execute: async (ctx: Discord.MessageContextMenuCommandInteraction) => {
-		const msg = ctx.targetMessage;
-
-		const link = getLink(msg);
-		if (!link) {
-			await ctx.reply(
-				EphemeralResponse("that message doesn't have a link or attachment I can use!")
-			);
-			return;
-		}
-		await ctx.deferReply();
-		try {
-			const buffer = await makeSpeechBubble(link);
-			await ctx.followUp({
-				files: [{ attachment: buffer, name: "funny.gif" }],
-			});
-		} catch (err) {
-			await ctx.followUp(EphemeralResponse(`something went wrong! (${err})`));
-		}
-	},
 };
