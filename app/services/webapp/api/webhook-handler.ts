@@ -11,6 +11,8 @@ import webhookConfig from "@/config/webhooks.json";
 const COLOR_MOD = 75;
 const COLOR_BASE = 50;
 
+const DIFF_SIZE = 2048;
+
 const GitHub = new Webhooks({
 	secret: webhookConfig.github.secret,
 });
@@ -315,7 +317,7 @@ export default (webApp: WebApp): void => {
 						: commit.message,
 				description: diff
 					? `\`\`\`diff\n${
-							diff.length > 4096 - 12 ? diff.substring(0, 4079) + ". . ." : diff
+							diff.length > DIFF_SIZE - 12 ? diff.substring(0, 4079) + ". . ." : diff
 					  }\`\`\``
 					: undefined,
 				author: {
