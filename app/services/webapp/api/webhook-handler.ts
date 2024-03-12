@@ -273,6 +273,8 @@ export default (webApp: WebApp): void => {
 		const commits = payload.commits;
 		const branch = payload.ref.split("/")[2];
 
+		let includesLua = false;
+
 		const embeds: Discord.APIEmbed[] = [];
 
 		if (payload.head_commit && isMergeCommit(payload.head_commit.message))
@@ -287,6 +289,8 @@ export default (webApp: WebApp): void => {
 				repo.full_name,
 				payload.ref
 			);
+
+			includesLua = commit.modified.some(str => str.endsWith(".lua"));
 
 			const oversize = changes.length > MAX_FIELDS;
 			const changeLen = oversize ? MAX_FIELDS : changes.length;
@@ -390,17 +394,14 @@ export default (webApp: WebApp): void => {
 				webhook.send({
 					...messagePayload,
 					embeds: chunk,
-					components:
-						i === embeds.length - 1 && repo.language === "Lua"
-							? [components]
-							: undefined,
+					components: i === embeds.length - 1 && includesLua ? [components] : undefined,
 				});
 			}
 		} else {
 			webhook
 				.send({
 					...messagePayload,
-					components: repo.language === "Lua" ? [components] : undefined,
+					components: includesLua ? [components] : undefined,
 				})
 				.catch(console.error);
 		}
