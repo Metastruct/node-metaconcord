@@ -110,6 +110,7 @@ const addEmoji = async (
 		}
 		await role.setIcon(emoji);
 		await ctx.followUp(EphemeralResponse(`Set your role emoji to ${emoji}`));
+		return;
 	}
 	await ctx.followUp(EphemeralResponse("that doesn't seem to be a vaild emoji 🤔"));
 };
