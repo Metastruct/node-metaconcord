@@ -101,7 +101,7 @@ const addEmoji = async (
 		return;
 	}
 	if (custom) {
-		const emoji = ctx.client.emojis.resolveId(custom[3]);
+		const emoji = ctx.client.emojis.resolve(custom[3]);
 		if (!emoji) {
 			await ctx.followUp(
 				EphemeralResponse(`Couldn't get your emote for some reason 🤷‍♂️ ${custom[3]}`)
