@@ -252,10 +252,9 @@ export default (bot: DiscordBot): void => {
 					);
 					break;
 				case "Update":
-					let diff = "```ansi\n";
-					entry.changes
+					const changes = entry.changes
 						.map(change => {
-							diff += `[${change.key}] `;
+							let changef = `[${change.key}] `;
 							const diffList = diffWords(
 								typeof change.old === "object"
 									? format(change.old, { ...DEFAULT_INSPECT_OPTIONS })
@@ -265,15 +264,16 @@ export default (bot: DiscordBot): void => {
 									: change.new?.toString() ?? ""
 							);
 							for (const part of diffList) {
-								diff += part.added
+								changef += part.added
 									? `\u001b[1;40m${part.value}\u001b[0m`
 									: part.removed
 									? `\u001b[1;30;41m${part.value}\u001b[0m`
 									: part.value;
 							}
+							return changef;
 						})
 						.join("\n");
-					embed.addFields(f("Changes", trimfield(diff, 1024, true)));
+					embed.addFields(f("Changes", trimfield("```ansi\n" + changes, 1024, true)));
 					break;
 			}
 		}
