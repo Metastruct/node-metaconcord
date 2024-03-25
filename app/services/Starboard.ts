@@ -49,6 +49,7 @@ export class Starboard extends Service {
 
 		switch (channel.id) {
 			case discordConfig.channels.artsAndCrafts:
+			case discordConfig.channels.artChat:
 				needed = 6;
 				targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
 				break;
