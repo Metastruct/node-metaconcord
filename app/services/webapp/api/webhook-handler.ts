@@ -290,7 +290,10 @@ export default (webApp: WebApp): void => {
 				payload.ref
 			);
 
-			includesLua = commit.modified.some(str => str.endsWith(".lua"));
+			includesLua =
+				commit.added.some(str => str.endsWith(".lua")) ||
+				commit.modified.some(str => str.endsWith(".lua")) ||
+				commit.removed.some(str => str.endsWith(".lua"));
 
 			const oversize = changes.length > MAX_FIELDS;
 			const changeLen = oversize ? MAX_FIELDS : changes.length;
