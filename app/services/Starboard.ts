@@ -52,8 +52,9 @@ export class Starboard extends Service {
 			case discordConfig.channels.artsAndCrafts:
 				needed = 6;
 				title =
-					reaction.message.thread?.id === reaction.message.id
-						? reaction.message.thread?.name
+					reaction.message.channel.isThread() &&
+					reaction.message.id === reaction.message.channel.id
+						? reaction.message.channel.name
 						: undefined;
 				targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
 				break;
