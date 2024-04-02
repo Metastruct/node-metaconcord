@@ -38,26 +38,32 @@ export class Starboard extends Service {
 	public async handleReactionAdded(reaction: Discord.MessageReaction): Promise<void> {
 		const client = reaction.client;
 		const channel = reaction.message.channel as Discord.GuildChannel;
-		const category = channel.parentId;
+		const parent = channel.parentId;
 
 		if (config.channelIgnores.includes(channel.id)) return;
-		if (category && config.categoryIgnores.includes(category)) return;
+		if (parent && config.categoryIgnores.includes(parent)) return;
 
 		let needed: number;
 		let emojiFilter: string[] | undefined;
 		let targetChannel: Discord.Channel | undefined;
 
-		switch (channel.id) {
+		switch (parent) {
 			case discordConfig.channels.artsAndCrafts:
-			case discordConfig.channels.artChat:
 				needed = 6;
 				targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
 				break;
 			default:
-				needed = DEFAULT_AMOUNT;
-				emojiFilter = [DEFAULT_EMOTE];
-				targetChannel = client.channels.cache.get(discordConfig.channels.h);
-				break;
+				switch (channel.id) {
+					case discordConfig.channels.artChat:
+						needed = 6;
+						targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
+						break;
+					default:
+						needed = DEFAULT_AMOUNT;
+						emojiFilter = [DEFAULT_EMOTE];
+						targetChannel = client.channels.cache.get(discordConfig.channels.h);
+						break;
+				}
 		}
 
 		const ego = reaction.message.author
