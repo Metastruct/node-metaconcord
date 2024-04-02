@@ -46,10 +46,15 @@ export class Starboard extends Service {
 		let needed: number;
 		let emojiFilter: string[] | undefined;
 		let targetChannel: Discord.Channel | undefined;
+		let title: string | undefined;
 
 		switch (parent) {
 			case discordConfig.channels.artsAndCrafts:
 				needed = 6;
+				title =
+					reaction.message.thread?.id === reaction.message.id
+						? reaction.message.thread?.name
+						: undefined;
 				targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
 				break;
 			default:
@@ -105,7 +110,8 @@ export class Starboard extends Service {
 				return;
 			}
 
-			let text = "";
+			let text = title ? title + "\n" : "";
+
 			const reference = msg.reference;
 			if (reference && reference.messageId) {
 				const refMsg = await (
