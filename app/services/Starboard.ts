@@ -111,7 +111,7 @@ export class Starboard extends Service {
 				return;
 			}
 
-			let text = title ? title + "\n" : "";
+			let text = title ? `## ${title}\n` : "";
 
 			const reference = msg.reference;
 			if (reference && reference.messageId) {
