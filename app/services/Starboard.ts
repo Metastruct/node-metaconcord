@@ -47,9 +47,11 @@ export class Starboard extends Service {
 		let emojiFilter: string[] | undefined;
 		let targetChannel: Discord.Channel | undefined;
 		let title: string | undefined;
+		let shouldReact = false;
 
 		switch (parent) {
 			case discordConfig.channels.artsAndCrafts:
+				shouldReact = true;
 				needed = 6;
 				title =
 					reaction.message.channel.isThread() &&
@@ -61,6 +63,7 @@ export class Starboard extends Service {
 			default:
 				switch (channel.id) {
 					case discordConfig.channels.artChat:
+						shouldReact = true;
 						needed = 6;
 						targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
 						break;
@@ -138,7 +141,7 @@ export class Starboard extends Service {
 			const webhook = webhooks.find(h => h.token);
 
 			if (webhook) {
-				await webhook.send({
+				const starred = await webhook.send({
 					content: text,
 					avatarURL: msg.author.avatarURL() ?? "",
 					username: `${msg.author.username}`,
@@ -160,6 +163,7 @@ export class Starboard extends Service {
 					],
 				});
 				await this.starMsg(msg.id);
+				if (shouldReact) await starred.react(reaction.emoji);
 			}
 			this.isBusy = false;
 		}
