@@ -168,7 +168,10 @@ export default (webApp: WebApp): void => {
 						);
 					})
 					.catch(err => {
-						ctx.editReply(`<@${ctx.user.id}> failed to update :(\`\`\`\n${err}\`\`\``);
+						ctx.editReply(
+							`<@${ctx.user.id}> something went wrong :(\`\`\`\n${err}\`\`\``
+						);
+						console.error(err);
 					});
 				break;
 			case "everything":
@@ -250,9 +253,12 @@ export default (webApp: WebApp): void => {
 							} and refreshed files!`
 						);
 					})
-					.catch(err =>
-						ctx.editReply(`<@${ctx.user.id}> failed to update :(\`\`\`\n${err}\`\`\``)
-					);
+					.catch(err => {
+						ctx.editReply(
+							`<@${ctx.user.id}> something went wrong :(\`\`\`\n${err}\`\`\``
+						);
+						console.error(err);
+					});
 				break;
 		}
 	});
