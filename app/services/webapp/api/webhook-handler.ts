@@ -223,7 +223,7 @@ export default (webApp: WebApp): void => {
 								const res = await bridge.payloads.RconPayload.callLua(
 									'if not RefreshLua then return false, "RefreshLua missing?" end\n' +
 										files
-											.filter(f => f.split(".")[1] === "lua")
+											.filter(f => f && f.split(".")[1] === "lua")
 											.map(f => `RefreshLua([[${f}]])`)
 											.join("\n"),
 									"sv",
