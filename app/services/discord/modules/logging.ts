@@ -221,7 +221,7 @@ export default (bot: DiscordBot): void => {
 		if (user?.mention) embed.addFields(f("Mention", user.mention));
 
 		if (entry.target && entry.targetId) {
-			const target = "```ansi\n" + format(entry.target, { depth: 0 });
+			const target = "```ansi\n" + format(entry.target, { depth: 0, colors: true });
 			embed.addFields(
 				f(
 					`${entry.targetType} (${entry.targetId})`,
