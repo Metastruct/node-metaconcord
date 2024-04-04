@@ -243,7 +243,7 @@ export default (bot: DiscordBot): void => {
 						f(
 							"Removed",
 							`\`\`\`ansi\n${entry.changes
-								.map(change => `[${change.key}] ${format(change.old)}`)
+								.map(change => `${change.key}: ${format(change.old)}`)
 								.join("\n")}\`\`\``
 						)
 					);
@@ -253,7 +253,7 @@ export default (bot: DiscordBot): void => {
 						f(
 							"Added",
 							`\`\`\`ansi\n${entry.changes
-								.map(change => `[${change.key}] ${format(change.new)}`)
+								.map(change => `${change.key}: ${format(change.new)}`)
 								.join("\n")}\`\`\``
 						)
 					);
@@ -261,7 +261,7 @@ export default (bot: DiscordBot): void => {
 				case "Update":
 					const changes = entry.changes
 						.map(change => {
-							let changef = `[${change.key}] `;
+							let changef = `${change.key}: `;
 							const isObject = // not sure why but if I try to use this below typescript complains
 								typeof change.old === "object" && typeof change.new === "object";
 							const diffList =
