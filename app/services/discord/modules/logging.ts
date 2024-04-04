@@ -223,7 +223,14 @@ export default (bot: DiscordBot): void => {
 		if (entry.target && entry.targetId) {
 			const target = "```ansi\n" + format(entry.target);
 			embed.addFields(
-				f(`${entry.targetType} (${entry.targetId})`, trimfield(target, 1024, true))
+				f(
+					`${entry.targetType} (${entry.targetId})`,
+					`${entry.target.toString()}\n${trimfield(
+						target,
+						1023 - entry.target.toString().length,
+						true
+					)}`
+				)
 			);
 		}
 
