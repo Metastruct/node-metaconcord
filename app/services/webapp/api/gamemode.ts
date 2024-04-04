@@ -43,6 +43,7 @@ export default (webApp: WebApp): void => {
 				await channel?.send(
 					`<@&${bot.config.roles.appDeveloper}> GSERV FAILED ON SERVER ${id}, PLEASE FIX`
 				);
+				console.error("gamemode switcher", output);
 			}
 		}
 
