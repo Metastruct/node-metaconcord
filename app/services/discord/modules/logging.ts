@@ -1,6 +1,6 @@
 import { DiscordBot } from "..";
 import { InspectOptions, inspect } from "node:util";
-import { diffWords } from "diff";
+import { diffJson, diffWords } from "diff";
 import { f } from "@/utils";
 import Discord from "discord.js";
 
@@ -10,7 +10,7 @@ const GREEN_COLOR = Discord.Colors.Green;
 
 const DEFAULT_INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 1 };
 const format = (input: any, options?: InspectOptions) =>
-	inspect(input, options ? options : DEFAULT_INSPECT_OPTIONS).replaceAll("```", "​`​`​`");
+	inspect(input, options ?? DEFAULT_INSPECT_OPTIONS).replaceAll("```", "​`​`​`");
 
 const trimfield = (input: string, limit: number, isCodeBlock: boolean) =>
 	input.length >= limit
@@ -255,19 +255,22 @@ export default (bot: DiscordBot): void => {
 					const changes = entry.changes
 						.map(change => {
 							let changef = `[${change.key}] `;
-							const diffList = diffWords(
-								typeof change.old === "object"
-									? format(change.old, { ...DEFAULT_INSPECT_OPTIONS })
-									: change.old?.toString() ?? "",
-								typeof change.new === "object"
-									? format(change.new, { ...DEFAULT_INSPECT_OPTIONS })
-									: change.new?.toString() ?? ""
-							);
+							const isObject = // not sure why but if I try to use this below typescript complains
+								typeof change.old === "object" && typeof change.new === "object";
+							const diffList =
+								typeof change.old === "object" && typeof change.new === "object"
+									? diffJson(change.old, change.new)
+									: diffWords(
+											change.old?.toString() ?? "",
+											change.new?.toString() ?? ""
+									  );
 							for (const part of diffList) {
 								changef += part.added
 									? `\u001b[1;40m${part.value}\u001b[0m`
 									: part.removed
 									? `\u001b[1;30;41m${part.value}\u001b[0m`
+									: isObject
+									? "" // skip value printing on object comparison
 									: part.value;
 							}
 							return changef;
