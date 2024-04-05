@@ -137,14 +137,19 @@ export class Starboard extends Service {
 			const files: string[] = [];
 			msg.attachments.map(a => files.push(a.url));
 
-			const webhooks = await (targetChannel as Discord.TextChannel).fetchWebhooks();
-			const webhook = webhooks.find(h => h.token);
+			const channel = targetChannel as Discord.TextChannel;
+
+			// we need a webhook created by the application so we can attach components
+			const webhooks = await channel.fetchWebhooks();
+			let webhook = webhooks.find(h => h.isApplicationCreated());
+			if (!webhook)
+				webhook = await channel.createWebhook({ name: "metaconcord starboard", });
 
 			if (webhook) {
 				const starred = await webhook.send({
 					content: text,
 					avatarURL: msg.author.avatarURL() ?? "",
-					username: `${msg.author.username}`,
+					username: msg.author.username,
 					allowedMentions: { parse: ["users", "roles"] },
 					files: files,
 					embeds: msg.author.bot ? msg.embeds : undefined,
@@ -154,7 +159,7 @@ export class Starboard extends Service {
 							components: [
 								{
 									type: Discord.ComponentType.Button,
-									label: "Original Message",
+									label: "Jump to message",
 									style: Discord.ButtonStyle.Link,
 									url: msg.url,
 								},
@@ -165,6 +170,7 @@ export class Starboard extends Service {
 				await this.starMsg(msg.id);
 				if (shouldReact) await starred.react(reaction.emoji);
 			}
+
 			this.isBusy = false;
 		}
 	}
