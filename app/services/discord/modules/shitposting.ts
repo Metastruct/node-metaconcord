@@ -416,6 +416,7 @@ export default async (bot: DiscordBot) => {
 						  }
 				).catch(console.error);
 				if (isChatChannel) replied = true;
+				data.lastMsgTime = lastMsgTime = now;
 			} else {
 				msg.react(getRandomEmoji()).catch();
 			}
