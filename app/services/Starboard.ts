@@ -143,7 +143,7 @@ export class Starboard extends Service {
 			const webhooks = await channel.fetchWebhooks();
 			let webhook = webhooks.find(h => h.isApplicationCreated());
 			if (!webhook)
-				webhook = await channel.createWebhook({ name: 'hee-hoo', });
+				webhook = await channel.createWebhook({ name: "metaconcord starboard", });
 
 			if (webhook) {
 				const starred = await webhook.send({
