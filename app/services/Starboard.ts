@@ -141,9 +141,10 @@ export class Starboard extends Service {
 
 			// we need a webhook created by the application so we can attach components
 			const webhooks = await channel.fetchWebhooks();
-			let webhook = webhooks.find(h => h.isApplicationCreated());
-			if (!webhook)
-				webhook = await channel.createWebhook({ name: "metaconcord starboard", });
+			let webhook = webhooks.find(
+				h => h.applicationId === discordConfig.bot.applicationId && h.token
+			);
+			if (!webhook) webhook = await channel.createWebhook({ name: "metaconcord starboard" });
 
 			if (webhook) {
 				const starred = await webhook.send({
