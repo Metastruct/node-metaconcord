@@ -406,6 +406,7 @@ export default async (bot: DiscordBot) => {
 			((isMention && msg.content !== `<@${id}>`) || isTriggerWord || isMaybeTriggerWord)
 		) {
 			if (!posting && (!replied || !isChatChannel)) {
+				if (isChatChannel) replied = true;
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, ping: true }
@@ -415,7 +416,6 @@ export default async (bot: DiscordBot) => {
 								ping: true,
 						  }
 				).catch(console.error);
-				if (isChatChannel) replied = true;
 				data.lastMsgTime = lastMsgTime = now;
 			} else {
 				msg.react(getRandomEmoji()).catch();
