@@ -181,7 +181,7 @@ export default class StatusPayload extends Payload {
 					console.error
 				);
 
-				if (res?.publishedfiledetails[0]?.preview_url) {
+				if (res?.publishedfiledetails?.[0]?.preview_url) {
 					embed.setThumbnail(res.publishedfiledetails[0].preview_url);
 					if (mapThumbnail === null) {
 						mapThumbnail = res.publishedfiledetails[0].preview_url;
