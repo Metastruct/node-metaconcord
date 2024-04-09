@@ -436,17 +436,16 @@ export default async (bot: DiscordBot) => {
 
 		// image collector
 		if (msg.content.startsWith("http") && !isBot && !isHidden) {
-			if (
-				msg.content.match(
-					new RegExp(
-						`^https?://(?:(?:\\w+)?\\.?)+(?:${ALLOWED_IMG_PROVIDERS.join(
-							"|"
-						)})\\.(?:com|io)/[^\\s]+$`
-					)
+			const match = msg.content.match(
+				new RegExp(
+					`https?://(?:(?:\\w+)?\\.?)+(?:${ALLOWED_IMG_PROVIDERS.join(
+						"|"
+					)})\\.(?:com|io)/[^?\\s]+`
 				)
-			) {
+			);
+			if (match) {
 				db.run("INSERT INTO media_urls VALUES($url) ON CONFLICT DO NOTHING", {
-					$url: msg.content,
+					$url: match[0],
 				});
 			}
 		}
