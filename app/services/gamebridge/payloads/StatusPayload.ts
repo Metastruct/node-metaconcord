@@ -175,7 +175,8 @@ export default class StatusPayload extends Payload {
 						iconURL: embed.data.footer?.icon_url,
 					});
 			}
-			if (current_workshopMap) {
+
+			if (current_workshopMap && server.status.mapThumbnail === null) {
 				const res = await Steam?.getPublishedFileDetails([current_workshopMap.id]).catch(
 					console.error
 				);
