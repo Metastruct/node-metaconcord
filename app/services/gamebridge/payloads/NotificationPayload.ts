@@ -13,7 +13,7 @@ export default class NotificationPayload extends Payload {
 		const { title, message, color } = payload.data;
 		const { bridge, discord: discordClient } = server;
 
-		if (!discordClient.isReady()) return;
+		if (!discordClient.ready) return;
 
 		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
 		if (!guild) return;

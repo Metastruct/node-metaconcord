@@ -36,12 +36,18 @@ export class DiscordBot extends Service {
 		],
 		partials: [Discord.Partials.Message, Discord.Partials.Channel, Discord.Partials.Reaction],
 	});
+	ready: boolean;
 
 	constructor(container: Container) {
 		super(container);
 
 		this.discord.on("ready", async client => {
+			this.ready = true;
 			console.log(`'${client.user.username}' Discord Bot has logged in`);
+		});
+
+		this.discord.on("shardDisconnect", () => {
+			this.ready = false;
 		});
 
 		this.discord.on("warn", console.log);
@@ -54,17 +60,17 @@ export class DiscordBot extends Service {
 	}
 
 	getTextChannel(channelId: string): Discord.TextChannel | undefined {
-		if (!this.discord.isReady()) return;
+		if (!this.ready) return;
 		return this.discord.channels.cache.get(channelId) as Discord.TextChannel;
 	}
 
 	async getGuildMember(userId: string): Promise<Discord.GuildMember | undefined> {
-		if (!this.discord.isReady()) return;
+		if (!this.ready) return;
 		return this.discord.guilds.cache.get(this.config.bot.primaryGuildId)?.members.fetch(userId);
 	}
 
 	getGuild(): Discord.Guild | undefined {
-		if (!this.discord.isReady()) return;
+		if (!this.ready) return;
 		return this.discord.guilds.cache.get(this.config.bot.primaryGuildId);
 	}
 
@@ -72,7 +78,7 @@ export class DiscordBot extends Service {
 		status: string | Discord.Activity | undefined,
 		options?: Discord.ActivitiesOptions
 	): Promise<void> {
-		if (!this.discord.isReady()) return;
+		if (!this.ready) return;
 		const activity: Discord.ActivitiesOptions = { name: "Starting up", ...options };
 		switch (true) {
 			case status instanceof Discord.Activity: {
@@ -95,7 +101,7 @@ export class DiscordBot extends Service {
 	}
 
 	async setServerBanner(url: string): Promise<void> {
-		if (!this.discord.isReady() || !(await this.overLvl2())) return;
+		if (!this.ready || !(await this.overLvl2())) return;
 		const guild = this.getGuild();
 		const response = await axios.get(url, { responseType: "arraybuffer" });
 		if (!response) return;
@@ -120,7 +126,7 @@ export class DiscordBot extends Service {
 	}
 
 	async fixEmbeds(msg: Discord.Message): Promise<void> {
-		if (!this.discord.isReady() || msg.id === lastMessageId) return;
+		if (!this.ready || msg.id === lastMessageId) return;
 
 		if (!ImgurRegex.test(msg.content)) return;
 
@@ -145,7 +151,7 @@ export class DiscordBot extends Service {
 	}
 
 	async getLastMotdMsg(): Promise<Discord.Message | undefined> {
-		if (!this.discord.isReady()) return;
+		if (!this.ready) return;
 		const channel = this.getTextChannel(motdConfig.channelId);
 		if (!channel) return;
 		return (

@@ -3,13 +3,22 @@ import GameServer from "../GameServer";
 import config from "@/config/discord.json";
 
 export default class DiscordClient extends Discord.Client {
-	gameServer: GameServer;
 	config = config;
+	gameServer: GameServer;
+	ready: boolean;
 
 	constructor(gameServer: GameServer, options: Discord.ClientOptions) {
 		super(options);
 
 		this.gameServer = gameServer;
+
+		this.on("ready", () => {
+			this.ready = true;
+		});
+
+		this.on("shardDisconnect", () => {
+			this.ready = false;
+		});
 
 		this.on("warn", console.log);
 	}

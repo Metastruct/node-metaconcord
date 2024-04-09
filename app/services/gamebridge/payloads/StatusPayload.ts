@@ -238,7 +238,7 @@ export default class StatusPayload extends Payload {
 			}
 		};
 
-		if (discord.isReady() && this.retryCount < 5) {
+		if (discord.ready && this.retryCount < 5) {
 			try {
 				updateStatus();
 			} catch (e) {

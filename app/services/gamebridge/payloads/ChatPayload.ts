@@ -92,7 +92,7 @@ export default class ChatPayload extends Payload {
 		let { content } = payload.data;
 		const { bridge, discord, discordWH } = server;
 
-		if (!discord.isReady()) return;
+		if (!discord.ready) return;
 
 		const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 		if (!guild) return;
