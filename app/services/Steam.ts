@@ -32,6 +32,39 @@ export type PlayerSummary = {
 	timecreated: number;
 };
 
+type GetPublishedFileDetails = {
+	publishedfileid: string;
+	result: number;
+	creator: string; // steamid
+	creator_app_id: number;
+	consumer_app_id: number;
+	filename: string;
+	file_size: string; // in bytes I guess
+	file_url: string;
+	hcontent_file: string;
+	preview_url: string;
+	hcontent_preview: string;
+	title: string;
+	description: string;
+	time_created: number;
+	time_updated: number;
+	visibility: number;
+	banned: number;
+	ban_reason: string;
+	subscriptions: number;
+	favorited: number;
+	lifetime_subscriptions: number;
+	lifetime_favorited: number;
+	views: number;
+	tags: [{ tag: string }];
+};
+
+type GetPublishedFileDetailsResponse = {
+	result: number;
+	resultcount: number;
+	publishedfiledetails: [GetPublishedFileDetails];
+};
+
 type SummariesResponse = {
 	response: { players: PlayerSummary[] };
 };
@@ -84,7 +117,7 @@ export class Steam extends Service {
 		return userCache.summary;
 	}
 
-	async getPublishedFileDetails(ids: string[]): Promise<any> {
+	async getPublishedFileDetails(ids: string[]) {
 		const query = {
 			publishedfileids: ids,
 			itemcount: ids.length,
@@ -92,14 +125,14 @@ export class Steam extends Service {
 		};
 		return (
 			await axios
-				.post(
-					`https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1`,
+				.post<GetPublishedFileDetailsResponse>(
+					`https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/`,
 					qs.stringify(query)
 				)
 				.catch(() => {
-					return { data: { response: {} } };
+					return { data: undefined };
 				})
-		).data.response;
+		).data;
 	}
 
 	async getUserAvatar(steamId64: string): Promise<any> {
