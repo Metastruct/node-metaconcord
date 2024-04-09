@@ -17,7 +17,7 @@ export default class UnbanPayload extends Payload {
 		const { player, banned, banReason, unbanReason, banTime } = payload.data;
 		const { bridge, discord: discordClient } = server;
 
-		if (!discordClient.isReady()) return;
+		if (!discordClient.ready) return;
 
 		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
 		if (!guild) return;

@@ -71,7 +71,7 @@ export default class AdminNotifyPayload extends Payload {
 		let { message } = payload.data;
 		const { bridge, discord: discordClient } = server;
 
-		if (!discordClient.isReady()) return;
+		if (!discordClient.ready) return;
 
 		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
 		if (!guild) return;

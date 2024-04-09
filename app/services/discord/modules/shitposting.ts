@@ -295,7 +295,7 @@ export default async (bot: DiscordBot) => {
 		}, MSG_REPLY_REACTION_CLEAR_INTERVAL);
 
 		setInterval(async () => {
-			if (!client.isReady()) return;
+			if (!bot.ready) return;
 			const now = Date.now();
 			if (now - lastMsgTime >= MSG_REPLY_INTERVAL) {
 				replied = false;

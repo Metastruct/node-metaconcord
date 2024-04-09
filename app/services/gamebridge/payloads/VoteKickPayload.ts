@@ -19,7 +19,7 @@ export default class NotificationPayload extends Payload {
 		const { bridge, discord: discordClient } = server;
 		const steam = bridge.container.getService("Steam");
 
-		if (!discordClient.isReady()) return;
+		if (!discordClient.ready) return;
 
 		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
 		if (!guild) return;
