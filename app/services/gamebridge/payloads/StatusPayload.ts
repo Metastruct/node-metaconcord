@@ -232,9 +232,9 @@ export default class StatusPayload extends Payload {
 				.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
 				.first();
 			if (message) {
-				await message.edit({ embeds: [embed] });
+				await message.edit({ embeds: [embed] }).catch();
 			} else {
-				channel.send({ embeds: [embed] });
+				channel.send({ embeds: [embed] }).catch();
 			}
 		};
 
