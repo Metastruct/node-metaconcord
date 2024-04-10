@@ -157,7 +157,6 @@ export default async (bot: DiscordBot) => {
 	db.exec("CREATE TABLE IF NOT EXISTS media_urls (url VARCHAR(255) NOT NULL UNIQUE);");
 	const now = Date.now();
 	let lastActivityChange = now;
-	let lastAPIActivity: Discord.Activity | undefined;
 	let lastSetActivity: Discord.ActivitiesOptions | undefined;
 	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? now);
 	let lastChatTime = now;
@@ -274,7 +273,6 @@ export default async (bot: DiscordBot) => {
 
 	bot.discord.on("presenceUpdate", async (old, now) => {
 		if (now.userId !== bot.discord.user?.id) return;
-		lastAPIActivity = now.activities[0];
 	});
 
 	bot.discord.once("ready", async client => {
@@ -310,13 +308,10 @@ export default async (bot: DiscordBot) => {
 				});
 				data.lastMsgTime = lastMsgTime = now;
 				replied = false;
-				bot.setActivity(undefined, await getRandomStatus());
 			}
 			if (now - lastActivityChange > ACTIVITY_CHANGE_INTERVAL) {
 				bot.setActivity(undefined, await getRandomStatus());
 				lastActivityChange = now;
-			} else if (lastSetActivity?.name !== lastAPIActivity?.name) {
-				bot.setActivity(undefined, lastSetActivity);
 			}
 			lastMsgs.splice(0, lastMsgs.length - 1); // delete lastmsg cache
 		}, MSG_INTERVAL);
