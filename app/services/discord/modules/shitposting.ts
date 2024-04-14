@@ -407,7 +407,7 @@ export default async (bot: DiscordBot) => {
 								ping: true,
 						  }
 				).catch(console.error);
-				data.lastMsgTime = lastMsgTime = now;
+				data.lastMsgTime = lastMsgTime = Date.now();
 			} else {
 				msg.react(getRandomEmoji()).catch();
 			}
