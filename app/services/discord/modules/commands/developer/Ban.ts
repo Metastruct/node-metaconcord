@@ -204,7 +204,7 @@ export const SlashBanCommand: SlashCommand = {
 								player.accountId
 							).getSteamID64();
 							return {
-								name: `${steamID64} (${player.nick.substring(1, 100)})`,
+								name: `${steamID64} (${player.nick.substring(0, 100)})`,
 								value: steamID64,
 							};
 						})

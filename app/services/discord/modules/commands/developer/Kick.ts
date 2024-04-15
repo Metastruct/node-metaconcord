@@ -96,8 +96,8 @@ export const SlashKickCommand: SlashCommand = {
 				)
 				.map(player => {
 					return {
-						name: player.nick.substring(1, 100),
-						value: player.nick.substring(1, 100),
+						name: player.nick.substring(0, 100),
+						value: player.nick.substring(0, 100),
 					};
 				})
 		);
