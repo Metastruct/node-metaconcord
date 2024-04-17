@@ -148,7 +148,7 @@ export const SlashBanCommand: SlashCommand = {
 		const summary = await steam?.getUserSummaries(ctx.options.getString("steamid", true));
 		if (!summary) {
 			await ctx.showModal(<Discord.APIModalInteractionResponseCallbackData>{
-				title: "could not get nickname from steam, please enter it manually:",
+				title: "couldn't get nick please enter manually:",
 				custom_id: "ban_modal",
 				components: [
 					{
