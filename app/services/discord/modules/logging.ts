@@ -221,15 +221,13 @@ export default (bot: DiscordBot): void => {
 		if (user?.mention) embed.addFields(f("Mention", user.mention));
 
 		if (entry.target && entry.targetId) {
-			const target = "```ansi\n" + format(entry.target, { depth: 0, colors: true });
+			const targetString =
+				entry.target.toString() !== "[object Object]" ? entry.target.toString() : "";
+			const targetObject = "```ansi\n" + format(entry.target, { depth: 0, colors: true });
 			embed.addFields(
 				f(
 					`${entry.targetType} (${entry.targetId})`,
-					`${entry.target.toString()}\n${trimfield(
-						target,
-						1023 - entry.target.toString().length,
-						true
-					)}`
+					`${targetString}\n${trimfield(targetObject, 1023 - targetString.length, true)}`
 				)
 			);
 		}
