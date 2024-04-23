@@ -125,11 +125,13 @@ export default class StatusPayload extends Payload {
 					current_defcon === 1 ? " (Restricted Access)" : ""
 				}\` <a:ALERTA:843518761160015933>`;
 
-			let mapThumbnail: string | null = null;
-			if (current_map && /^gm_construct_m/i.test(current_map)) {
-				mapThumbnail = `http://${host}:${port}/map-thumbnails/gm_construct_m.jpg`;
-			} else if (current_map && current_map.toLowerCase().trim() == "rp_unioncity") {
-				mapThumbnail = `http://${host}:${port}/map-thumbnails/rp_unioncity.jpg`;
+			let mapThumbnail: string | null = server.status.mapThumbnail;
+			if (mapThumbnail === null) {
+				if (current_map && /^gm_construct_m/i.test(current_map)) {
+					mapThumbnail = `http://${host}:${port}/map-thumbnails/gm_construct_m.jpg`;
+				} else if (current_map && current_map.toLowerCase().trim() == "rp_unioncity") {
+					mapThumbnail = `http://${host}:${port}/map-thumbnails/rp_unioncity.jpg`;
+				}
 			}
 
 			const gamemodeName =
@@ -180,11 +182,12 @@ export default class StatusPayload extends Payload {
 				const res = await Steam?.getPublishedFileDetails([current_workshopMap.id]).catch(
 					console.error
 				);
+				const thumbnailURI = res?.publishedfiledetails?.[0]?.preview_url;
 
-				if (res?.publishedfiledetails?.[0]?.preview_url) {
-					embed.setThumbnail(res.publishedfiledetails[0].preview_url);
+				if (thumbnailURI) {
+					embed.setThumbnail(thumbnailURI);
 					if (mapThumbnail === null) {
-						mapThumbnail = res.publishedfiledetails[0].preview_url;
+						mapThumbnail = thumbnailURI;
 					}
 				}
 			}
