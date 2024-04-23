@@ -60,9 +60,11 @@ type GetPublishedFileDetails = {
 };
 
 type GetPublishedFileDetailsResponse = {
-	result: number;
-	resultcount: number;
-	publishedfiledetails: [GetPublishedFileDetails];
+	response: {
+		result: number;
+		resultcount: number;
+		publishedfiledetails: [GetPublishedFileDetails];
+	};
 };
 
 type SummariesResponse = {
@@ -132,7 +134,7 @@ export class Steam extends Service {
 				.catch(() => {
 					return { data: undefined };
 				})
-		).data;
+		).data?.response;
 	}
 
 	async getUserAvatar(steamId64: string): Promise<any> {
