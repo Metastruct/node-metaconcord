@@ -64,6 +64,8 @@ export default class StatusPayload extends Payload {
 			const current_mapUptime = mapUptime ?? server.mapUptime ?? 0;
 			const current_workshopMap = workshopMap ?? server.workshopMap;
 
+			const mapChanged = server.mapName !== current_map;
+
 			if (current_countdown && current_countdown.typ === CountdownType.AOWL_COUNTDOWN_CUSTOM)
 				return;
 
@@ -125,7 +127,7 @@ export default class StatusPayload extends Payload {
 					current_defcon === 1 ? " (Restricted Access)" : ""
 				}\` <a:ALERTA:843518761160015933>`;
 
-			let mapThumbnail: string | null = server.status.mapThumbnail;
+			let mapThumbnail: string | null = mapChanged ? null : server.status.mapThumbnail;
 			if (mapThumbnail === null) {
 				if (current_map && /^gm_construct_m/i.test(current_map)) {
 					mapThumbnail = `http://${host}:${port}/map-thumbnails/gm_construct_m.jpg`;
@@ -178,7 +180,7 @@ export default class StatusPayload extends Payload {
 					});
 			}
 
-			if (current_workshopMap && server.status.mapThumbnail === null) {
+			if (mapThumbnail === null && current_workshopMap) {
 				const res = await Steam?.getPublishedFileDetails([current_workshopMap.id]).catch(
 					console.error
 				);
@@ -186,9 +188,7 @@ export default class StatusPayload extends Payload {
 
 				if (thumbnailURI) {
 					embed.setThumbnail(thumbnailURI);
-					if (mapThumbnail === null) {
-						mapThumbnail = thumbnailURI;
-					}
+					mapThumbnail = thumbnailURI;
 				}
 			}
 
