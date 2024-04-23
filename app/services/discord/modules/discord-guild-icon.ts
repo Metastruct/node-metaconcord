@@ -113,7 +113,7 @@ export default (bot: DiscordBot): void => {
 
 			if (nickChange) {
 				try {
-					await guild.members.me?.setNickname(nickName ? nickName + " Construct" : null);
+					await bot.setNickname(nickName, "Random Motd name");
 				} catch (err) {
 					console.error(err);
 				}
