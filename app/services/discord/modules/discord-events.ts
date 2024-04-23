@@ -3,19 +3,26 @@ import { join } from "path";
 import Discord from "discord.js";
 import DiscordConfig from "@/config/discord.json";
 
-const events = [
-	{
-		icon: "vr",
-		triggers: ["vrchat", "vr"],
-	},
-	{
-		icon: "ttt",
-		triggers: ["ttt"],
-	},
-];
 const iconsPath = join(process.cwd(), "resources/discord-event-icons");
 
 export default (bot: DiscordBot): void => {
+	const events = [
+		{
+			icon: "vr",
+			triggers: ["vrchat", "vr"],
+			nicks: ["VR"],
+		},
+		{
+			icon: "ttt",
+			triggers: ["ttt"],
+			nicks: ["Terror", "Detective", "Innocent"],
+			execute: () =>
+				bot.container
+					.getService("GameBridge")
+					?.servers[3].sendLua(`require("gm_request"):SwitchGamemodeAsync("ttt",print)`),
+		},
+	];
+
 	const data = bot.container.getService("Data");
 	if (!data) return;
 
@@ -41,6 +48,7 @@ export default (bot: DiscordBot): void => {
 		});
 		await event.guild?.setIcon(data.lastDiscordGuildIcon);
 		await bot.discord.user?.setAvatar(data.lastDiscordGuildIcon);
+		await bot.setNickname(data.lastDiscordNickName, event.name + " ended");
 	};
 
 	bot.discord.on("guildScheduledEventUpdate", async (old, now) => {
@@ -54,7 +62,7 @@ export default (bot: DiscordBot): void => {
 					if (!usr.roles.cache.some(role => role.id === DiscordConfig.roles.event))
 						usr.roles.add(DiscordConfig.roles.event);
 				});
-				for (const { icon, triggers } of events) {
+				for (const { icon, triggers, nicks, execute } of events) {
 					const regex = new RegExp("\\b" + triggers.join("\\b|\\b") + "\\b");
 					const match =
 						regex.test(event.name.toLowerCase()) ||
@@ -65,6 +73,11 @@ export default (bot: DiscordBot): void => {
 						const path = join(iconsPath, `${icon}.png`);
 						await event.guild?.setIcon(path);
 						await bot.discord.user?.setAvatar(path);
+						await bot.setNickname(
+							nicks[(Math.random() * nicks.length) | 0],
+							event.name
+						);
+						if (execute) execute();
 						break;
 					}
 				}
