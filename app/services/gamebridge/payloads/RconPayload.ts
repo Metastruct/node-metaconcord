@@ -30,7 +30,7 @@ export default class RconPayload extends Payload {
 
 	public static async callLua(
 		code: string,
-		realm: string,
+		realm: RconResponse["realm"],
 		server: GameServer,
 		runner: string
 	): Promise<RconRequest> {
