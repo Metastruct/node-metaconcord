@@ -1,4 +1,5 @@
 import { EphemeralResponse } from "..";
+import { RconResponse } from "@/app/services/gamebridge/payloads/structures";
 import { SlashCommand } from "@/extensions/discord";
 import { f } from "@/utils";
 import Discord from "discord.js";
@@ -72,7 +73,7 @@ export const SlashLuaCommand: SlashCommand = {
 		try {
 			const res = await bridge.payloads.RconPayload.callLua(
 				code,
-				realm,
+				realm as RconResponse["realm"],
 				bridge.servers[server],
 				ctx.user.displayName ?? "???"
 			);

@@ -49,11 +49,8 @@ export const SlashRconCommand: SlashCommand = {
 		const server = ctx.options.getInteger("server", true);
 		const response = {
 			isLua: false,
-			code: "",
-			realm: "",
 			command: command,
 			runner: ctx.user.displayName ?? "???",
-			identifier: "",
 		};
 
 		await bridge.payloads.RconPayload.send(response, bridge.servers[server]);
