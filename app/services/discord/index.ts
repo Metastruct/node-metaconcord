@@ -100,6 +100,13 @@ export class DiscordBot extends Service {
 		this.discord.user?.setActivity(activity);
 	}
 
+	async setNickname(name: string, reason?: string): Promise<boolean> {
+		if (!this.ready || !this.discord.user || name.length > 22) return false;
+		const nick = name.charAt(0).toUpperCase() + name.slice(1);
+		this.getGuild()?.members.me?.setNickname(nick + " Construct", reason);
+		return true;
+	}
+
 	async setServerBanner(url: string): Promise<void> {
 		if (!this.ready || !(await this.overLvl2())) return;
 		const guild = this.getGuild();
