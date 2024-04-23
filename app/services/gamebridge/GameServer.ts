@@ -5,6 +5,7 @@ import {
 	connection as WebSocketConnection,
 	request as WebSocketRequest,
 } from "websocket";
+import { RconResponse } from "./payloads/structures";
 import { WebhookClient } from "discord.js";
 
 export type GameServerConfig = {
@@ -125,5 +126,10 @@ export default class GameServer {
 		});
 
 		console.log(`'${this.config.name}' Game Server connected`);
+	}
+
+	async sendLua(code: string, realm: RconResponse["realm"] = "sv", runner = "Metaconcord") {
+		if (!this.connection.connected) return;
+		return this.bridge.payloads["RconPayload"].callLua(code, realm, this, runner);
 	}
 }
