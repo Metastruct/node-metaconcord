@@ -15,7 +15,7 @@ export default (bot: DiscordBot): void => {
 		{
 			icon: "ttt",
 			triggers: ["ttt"],
-			nicks: ["Terror", "Detective", "Innocent"],
+			nicks: ["terror", "detective", "innocent", "trouble", "clue", "banana", "protogen"],
 			execute: () =>
 				bot.container
 					.getService("GameBridge")
