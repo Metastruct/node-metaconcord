@@ -247,23 +247,35 @@ export default async (bot: DiscordBot) => {
 				type: 1,
 				ctx: ["streaming", "sending", "delivering", "transporting", "transmitting"],
 			},
-			{ type: 2, ctx: ["listening to", "hearing"] },
-			{ type: 3, ctx: ["watching", "watch", "looking at", "observing"] },
-			{ type: 5, ctx: ["competing in", "participate in", "take part in"] },
+			{ type: 2, ctx: ["listening to", "hearing", "following"] },
+			{ type: 3, ctx: ["watching", "looking at", "observing", "following", "noticing"] },
+			{ type: 5, ctx: ["competing in", "participate in", "take part in", "play in"] },
 		];
 
 		const selection = validActivities[(Math.random() * validActivities.length) | 0];
 
 		let status = "crashing the source engine";
 
-		const sentence = await bot.container
-			.getService("Markov")
-			?.generate(selection.ctx[(Math.random() * selection.ctx.length) | 0], {
-				...DefaultMarkovConfig,
-				continuation: false,
-			});
+		const prefix = selection.ctx[(Math.random() * selection.ctx.length) | 0];
+
+		const sentence = await bot.container.getService("Markov")?.generate(prefix, {
+			...DefaultMarkovConfig,
+			continuation: false,
+		});
+
 		if (sentence) {
-			status = sentence.length > 127 ? sentence.substring(0, 120) + "..." : sentence;
+			const split = prefix.split(" ");
+			let joint = "";
+			if (split.length > 1 && selection.type !== 2 && selection.type !== 5) {
+				joint = ` ${split.at(-1)}` ?? "";
+			}
+
+			const maxLength = 127 - joint.length;
+
+			status =
+				sentence.length > maxLength
+					? joint + sentence.substring(0, 120) + "..."
+					: joint + sentence;
 		}
 
 		lastSetActivity = { name: status, type: selection.type } as Discord.ActivitiesOptions;
