@@ -42,7 +42,7 @@ export default (webApp: WebApp): void => {
 					html,
 					transparent: true,
 					selector: "main",
-				})) as Buffer;
+				}).catch()) as Buffer;
 
 				res.set({
 					"content-type": "image/png",
