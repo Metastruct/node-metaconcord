@@ -260,11 +260,10 @@ export default (bot: DiscordBot): void => {
 					const changes = entry.changes
 						.map(change => {
 							let changef = `${change.key}: `;
-							const isObject = // not sure why but if I try to use this below typescript complains
-								typeof change.old === "object" && typeof change.new === "object";
+							const isObject = typeof change.new === "object";
 							const diffList =
-								typeof change.old === "object" && typeof change.new === "object"
-									? diffJson(change.old, change.new)
+								typeof change.new === "object"
+									? diffJson(change.old?.toString() ?? {}, change.new)
 									: diffWords(
 											change.old?.toString() ?? "",
 											change.new?.toString() ?? ""
