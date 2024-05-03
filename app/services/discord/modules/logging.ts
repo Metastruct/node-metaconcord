@@ -19,6 +19,9 @@ const trimfield = (input: string, limit: number, isCodeBlock: boolean) =>
 		  (isCodeBlock ? "```" : "")
 		: input + (isCodeBlock ? "```" : "");
 
+const hastoString = (obj: object | string | number | boolean) =>
+	obj.toString === Object.prototype.toString;
+
 export default (bot: DiscordBot): void => {
 	let logChannel: Discord.TextChannel | undefined;
 
@@ -262,11 +265,17 @@ export default (bot: DiscordBot): void => {
 							let changef = `${change.key}: `;
 							const isObject = typeof change.new === "object";
 							const diffList =
-								typeof change.new === "object"
-									? diffJson(change.old?.toString() ?? {}, change.new)
+								typeof change.old === "object" && typeof change.new === "object"
+									? diffJson(change.old, change.new)
 									: diffWords(
-											change.old?.toString() ?? "",
-											change.new?.toString() ?? ""
+											change.old && hastoString(change.old)
+												? change.old.toString()
+												: format(change.old, { colors: false }) ??
+														"undefined",
+											change.new && hastoString(change.new)
+												? change.new.toString()
+												: format(change.new, { colors: false }) ??
+														"undefined"
 									  );
 							for (const part of diffList) {
 								changef += part.added
