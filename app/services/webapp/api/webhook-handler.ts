@@ -81,10 +81,8 @@ const SERVER_EMOJI_MAP = {
 	"3": "3️⃣",
 };
 
-const isMergeCommit = (message: string) =>
-	message.startsWith("Merge remote-tracking") ||
-	message.startsWith("Merge branch") ||
-	message.startsWith("Merge pull request");
+const isRemoteMergeCommit = (message: string) =>
+	message.startsWith("Merge remote-tracking") || message.startsWith("Merge pull request");
 
 export default (webApp: WebApp): void => {
 	webApp.app.use(createNodeMiddleware(GitHub, { path: "/webhooks/github" }));
@@ -283,7 +281,7 @@ export default (webApp: WebApp): void => {
 
 		const embeds: Discord.APIEmbed[] = [];
 
-		if (payload.head_commit && isMergeCommit(payload.head_commit.message))
+		if (payload.head_commit && isRemoteMergeCommit(payload.head_commit.message))
 			commits.splice(0, commits.length, payload.head_commit);
 
 		for (const commit of commits) {
@@ -320,7 +318,9 @@ export default (webApp: WebApp): void => {
 				}
 			}
 
-			let diff = isMergeCommit(commit.message) ? undefined : await getGitHubDiff(commit.url);
+			let diff = isRemoteMergeCommit(commit.message)
+				? undefined
+				: await getGitHubDiff(commit.url);
 			if (diff) {
 				diff = diff.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n");
 				diff = diff.replaceAll(/diff.+\nindex.+\n/g, "");
