@@ -12,6 +12,7 @@
 		"allowSyntheticDefaultImports": true,
 		"moduleResolution": "node",
 		"outDir": "./dist",
-		"strictNullChecks": true
+		"strictNullChecks": true,
+		"skipLibCheck": true // discord.js moment
 	}
 }
