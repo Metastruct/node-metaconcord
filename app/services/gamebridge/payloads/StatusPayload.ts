@@ -10,22 +10,35 @@ import dayjs from "dayjs";
 const GamemodeAlias = {
 	qbox: "metastruct",
 	"ttt2 (advanced update)": "ttt2",
-};
+}as const satisfies Record<string, string>;
 
-const GamemodeIcons = {
-	jazztronauts:
-		"https://github.com/Foohy/jazztronauts/blob/master/gamemodes/jazztronauts/icon24.png?raw=true",
-	mta: "https://github.com/Metastruct/MTA-Gamemode/blob/master/gamemodes/mta/icon24.png?raw=true",
-	metastruct:
-		"https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
-	ttt2: "https://github.com/Metastruct/TTT2/blob/master/gamemodes/terrortown/logo.png?raw=true",
-};
+const GamemodeExtras = {
+	jazztronauts: {
+		activities: ["stealing props", "collecting shards"],
+		icon: "https://github.com/Foohy/jazztronauts/blob/master/gamemodes/jazztronauts/icon24.png?raw=true",
+		color: 0x320032,
+	},
+	metastruct: {
+		activities: ["idling", "micspamming", "spamming chatsounds"],
+		icon: "https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
+		color: 0x4bf5ca,
+	},
+	mta: {
+		activities: ["shooting combines", "drilling vaults", "upgrading skills"],
+		icon: "https://github.com/Metastruct/MTA-Gamemode/blob/master/gamemodes/mta/icon24.png?raw=true",
+		color: 0xf48702,
+	},
+	ttt2: {
+		activities: ["die", "getting bricked", "discombobulate", "dying to fall damage"],
+		icon: "https://github.com/Metastruct/TTT2/blob/master/gamemodes/terrortown/logo.png?raw=true",
+		color: 0xdcb400,
+	},
+} as const satisfies Record<string, {activities: readonly string[], icon:string, color:number}>;
 
-const GamemodeColors = {
-	jazztronauts: 0x320032,
-	metastruct: 0x4bf5ca,
-	mta: 0xf48702,
-	ttt2: 0xdcb400,
+const getRandomActivity = (gamemode: string) => {
+	const activities = GamemodeExtras[gamemode as keyof typeof GamemodeExtras]?.activities;
+	if (!activities) return;
+	return activities[(Math.random() * activities.length) | 0];
 };
 
 export default class StatusPayload extends Payload {
@@ -65,6 +78,9 @@ export default class StatusPayload extends Payload {
 			const current_workshopMap = workshopMap ?? server.workshopMap;
 
 			const mapChanged = server.mapName !== current_map;
+			const gamemodeName =
+				GamemodeAlias[current_gamemode.name.toLowerCase()] ??
+				current_gamemode.name.toLowerCase();
 
 			if (current_countdown && current_countdown.typ === CountdownType.AOWL_COUNTDOWN_CUSTOM)
 				return;
@@ -87,7 +103,9 @@ export default class StatusPayload extends Payload {
 						? {
 								activities: [
 									{
-										name: `${count} player${count != 1 ? "s" : ""}`,
+										name: `${count} player${
+											count !== 1 ? "s" : ""
+										} ${getRandomActivity(gamemodeName)}`,
 										type: 3,
 									},
 								],
@@ -140,25 +158,21 @@ export default class StatusPayload extends Payload {
 				}
 			}
 
-			const gamemodeName =
-				GamemodeAlias[current_gamemode.name.toLowerCase()] ??
-				current_gamemode.name.toLowerCase();
-
 			const embed = new Discord.EmbedBuilder()
 				.setColor(
 					current_defcon === 1 || current_countdown
 						? 0xff0000
 						: current_gamemode
-						? GamemodeColors[gamemodeName] ?? null
+						? GamemodeExtras[gamemodeName as keyof typeof GamemodeExtras]?.color ?? null
 						: null
 				)
 				.setFooter({
 					text: gamemodeName,
-					iconURL: GamemodeIcons[gamemodeName],
+					iconURL: GamemodeExtras[gamemodeName as keyof typeof GamemodeExtras]?.icon,
 				})
 				.setAuthor({
 					name: server.config.name,
-					iconURL: GamemodeIcons.metastruct,
+					iconURL: GamemodeExtras.metastruct.icon,
 					url: `https://metastruct.net/${
 						server.config.label ? "join/" + server.config.label : ""
 					}`,
