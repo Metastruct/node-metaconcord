@@ -99,14 +99,18 @@ export default class StatusPayload extends Payload {
 								status: current_defcon === 1 || current_countdown ? "dnd" : "idle",
 								activities: [],
 						  };
-				if (current_countdown && presence.activities) {
-					presence.activities.push({
-						name: `${current_countdown.text} in ${current_countdown.time} seconds`,
-						type: 3,
-					});
+
+				if (current_countdown) {
+					presence.activities = [
+						{
+							name: `${current_countdown.text} in ${current_countdown.time} seconds`,
+							type: 3,
+						},
+					];
 				}
-				if (current_defcon !== 5 && presence.activities) {
-					presence.activities.push({ name: "DEFCON " + current_defcon, type: 5 });
+
+				if (current_defcon !== 5) {
+					presence.activities = [{ name: "DEFCON " + current_defcon, type: 5 }];
 				}
 				discord.user.setPresence(presence);
 			}
