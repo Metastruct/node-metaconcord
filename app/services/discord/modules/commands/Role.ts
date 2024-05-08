@@ -139,7 +139,7 @@ const addRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> =
 	const roleColor = Discord.resolveColor(
 		isRGB
 			? [parseInt(r), parseInt(g), parseInt(b)]
-			: <Discord.HexColorString>ctx.options.getString("hex", true)
+			: <Discord.HexColorString>ctx.options.getString("hex") ?? "Random"
 	);
 
 	const guild = ctx.guild;
@@ -192,6 +192,19 @@ export const SlashRoleCommand: SlashCommand = {
 		options: [
 			{
 				type: Discord.ApplicationCommandOptionType.Subcommand,
+				name: "add",
+				description: "Adds a custom role",
+				options: [
+					{
+						type: Discord.ApplicationCommandOptionType.String,
+						name: "name",
+						description: "The name of your role",
+						required: true,
+					},
+				],
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Subcommand,
 				name: "add_rgb",
 				description: "Adds a custom role with rgb colors",
 				options: [
@@ -207,6 +220,7 @@ export const SlashRoleCommand: SlashCommand = {
 						description: "The red component of your color 0 - 255",
 						min_value: 0,
 						max_value: 255,
+						required: true,
 					},
 					{
 						type: Discord.ApplicationCommandOptionType.Integer,
@@ -214,6 +228,7 @@ export const SlashRoleCommand: SlashCommand = {
 						description: "The green component of your color 0 - 255",
 						min_value: 0,
 						max_value: 255,
+						required: true,
 					},
 					{
 						type: Discord.ApplicationCommandOptionType.Integer,
@@ -221,6 +236,7 @@ export const SlashRoleCommand: SlashCommand = {
 						description: "The blue component of your color 0 - 255",
 						min_value: 0,
 						max_value: 255,
+						required: true,
 					},
 				],
 			},
@@ -239,6 +255,7 @@ export const SlashRoleCommand: SlashCommand = {
 						type: Discord.ApplicationCommandOptionType.String,
 						name: "hex",
 						description: "Hex color value for example #465f83",
+						required: true,
 					},
 				],
 			},
@@ -256,11 +273,13 @@ export const SlashRoleCommand: SlashCommand = {
 						type: Discord.ApplicationCommandOptionType.String,
 						name: "image_url",
 						description: "the url for your role, please try to use a small image",
+						required: true,
 					},
 					{
 						name: "file",
 						type: Discord.ApplicationCommandOptionType.Attachment,
 						description: "image file",
+						required: true,
 					},
 				],
 			},
@@ -288,6 +307,7 @@ export const SlashRoleCommand: SlashCommand = {
 		await ctx.deferReply({ ephemeral: true });
 		const cmd = ctx.options.getSubcommand();
 		switch (cmd) {
+			case "add":
 			case "add_rgb":
 			case "add_hex":
 				await addRole(ctx);
