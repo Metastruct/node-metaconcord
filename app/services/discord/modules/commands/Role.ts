@@ -273,13 +273,11 @@ export const SlashRoleCommand: SlashCommand = {
 						type: Discord.ApplicationCommandOptionType.String,
 						name: "image_url",
 						description: "the url for your role, please try to use a small image",
-						required: true,
 					},
 					{
 						name: "file",
 						type: Discord.ApplicationCommandOptionType.Attachment,
 						description: "image file",
-						required: true,
 					},
 				],
 			},
