@@ -10,7 +10,7 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"start": "cross-env NODE_ENV=production node dist",
-		"dev": "cross-env NODE_ENV=development ts-node-dev --experimental-wasm-threads -r tsconfig-paths/register index.ts",
+		"dev": "cross-env NODE_ENV=development ts-node-dev -r tsconfig-paths/register index.ts",
 		"build": "yarn scss && rm -rf ./dist && tsc && tsconfig-replace-paths -p tsconfig.json -s ./ -o ./dist",
 		"scss": "sass resources/ --no-source-map",
 		"scss-watch": "sass --watch resources/ --no-source-map"
@@ -76,7 +76,7 @@
 		"eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
 		"prettier": "^2.0.5",
 		"sass": "^1.30.0",
-		"ts-node": "^10.8.1",
+		"ts-node": "^10.9.2",
 		"ts-node-dev": "^2.0.0",
 		"tsconfig-paths": "^4.2.0",
 		"tsconfig-replace-paths": "^0.0.14",
