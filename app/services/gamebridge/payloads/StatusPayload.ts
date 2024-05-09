@@ -106,6 +106,7 @@ export default class StatusPayload extends Payload {
 				(GamemodeAlias[current_gamemode.name.toLowerCase()] as string) ??
 				current_gamemode.name.toLowerCase();
 			const gamemodeExtras = GamemodeExtras[gamemodeName as keyof typeof GamemodeExtras];
+			const gamemodeIcon = gamemodeExtras?.seagull ?? gamemodeExtras?.icon;
 
 			if (current_countdown && current_countdown.typ === CountdownType.AOWL_COUNTDOWN_CUSTOM)
 				return;
@@ -201,7 +202,7 @@ export default class StatusPayload extends Payload {
 				})
 				.setAuthor({
 					name: server.config.name,
-					iconURL: GamemodeExtras.metastruct.icon,
+					iconURL: gamemodeIcon,
 					url: `https://metastruct.net/${
 						server.config.label ? "join/" + server.config.label : ""
 					}`,
@@ -243,9 +244,11 @@ export default class StatusPayload extends Payload {
 				server.changeBanner(mapThumbnail);
 			}
 
-			if (!server.discordIcon || mapChanged) {
-				const icon = gamemodeExtras?.seagull ?? gamemodeExtras?.icon;
-				if (icon && icon !== server.discordIcon) server.changeIcon(icon);
+			if (
+				gamemodeIcon &&
+				(!server.discordIcon || gamemodeIcon !== server.discordIcon || mapChanged)
+			) {
+				server.changeIcon(gamemodeIcon);
 			}
 
 			// Server status metadata
