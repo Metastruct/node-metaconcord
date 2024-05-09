@@ -133,9 +133,9 @@ export default class StatusPayload extends Payload {
 						? {
 								activities: [
 									{
-										name: `${count} player${
-											count !== 1 ? "s" : ""
-										} ${getRandomActivity(gamemodeName)}`,
+										name: `${count} player${count !== 1 ? "s" : ""} ${
+											getRandomActivity(gamemodeName) ?? ""
+										}`,
 										type: 3,
 									},
 								],
