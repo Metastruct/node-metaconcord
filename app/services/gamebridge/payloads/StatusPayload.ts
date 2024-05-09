@@ -34,7 +34,15 @@ const GamemodeExtras = {
 		seagull: undefined,
 	},
 	ttt2: {
-		activities: ["die", "getting bricked", "discombobulate", "dying to fall damage"],
+		activities: [
+			"die",
+			"getting bricked",
+			"discombobulate",
+			"dying to fall damage",
+			"argue",
+			"kill jester",
+			"swapping",
+		],
 		icon: "https://github.com/Metastruct/TTT2/blob/master/gamemodes/terrortown/logo.png?raw=true",
 		color: 0xdcb400,
 		seagull: join(process.cwd(), "resources/discord-event-icons/ttt.png"),
@@ -53,6 +61,13 @@ const getRandomActivity = (gamemode: string) => {
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	private static retryCount = 0;
+	private static lastStatusUpdate: boolean[] = [];
+
+	static async initialize(): Promise<void> {
+		setInterval(() => {
+			this.lastStatusUpdate.splice(0, this.lastStatusUpdate.length);
+		}, 1000 * 5);
+	}
 
 	static async handle(payload: StatusRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
@@ -101,6 +116,10 @@ export default class StatusPayload extends Payload {
 
 			const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 			if (!guild) return;
+
+			if (this.lastStatusUpdate.length > 5) return; // burst prevention
+
+			this.lastStatusUpdate.push(true);
 
 			// Nick
 			if (discord.user) {
