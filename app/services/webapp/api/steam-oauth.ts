@@ -55,8 +55,8 @@ export default (webApp: WebApp): void => {
 			"openid.ns": "http://specs.openid.net/auth/2.0",
 			"openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
 			"openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
-			"openid.return_to": `https://metaconcord.metastruct.net/steam/auth/callback/${userId}`,
-			"openid.realm": "https://metaconcord.metastruct.net/",
+			"openid.return_to": `${webApp.config.url}/steam/auth/callback/${userId}`,
+			"openid.realm": webApp.config.url,
 			"openid.mode": "checkid_setup",
 		}).toString();
 

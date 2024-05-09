@@ -86,7 +86,7 @@ export default class StatusPayload extends Payload {
 		const webApp = bridge.container.getService("WebApp");
 		if (!webApp) return;
 		const {
-			config: { host, port },
+			config: { host, port, url },
 		} = webApp;
 		const Steam = bridge.container.getService("Steam");
 
@@ -181,9 +181,9 @@ export default class StatusPayload extends Payload {
 			let mapThumbnail: string | null = mapChanged ? null : server.status.mapThumbnail;
 			if (mapThumbnail === null) {
 				if (current_map && /^gm_construct_m/i.test(current_map)) {
-					mapThumbnail = `http://${host}:${port}/map-thumbnails/gm_construct_m.png`;
+					mapThumbnail = `${url}/map-thumbnails/gm_construct_m.png`;
 				} else if (current_map && current_map.toLowerCase().trim() == "rp_unioncity") {
-					mapThumbnail = `http://${host}:${port}/map-thumbnails/rp_unioncity.png`;
+					mapThumbnail = `${url}/map-thumbnails/rp_unioncity.png`;
 				}
 			}
 
