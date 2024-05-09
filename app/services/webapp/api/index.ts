@@ -1,6 +1,6 @@
 import addEmojiAPI from "./emojis";
 import addGameServerStatusAPI from "./game-server-status";
-import addMapThumbnails from "./map-thumbnails";
+import addMapThumbnails from "./resources";
 import changeGamemode from "./gamemode";
 import ci from "./ci";
 import discordOAuth from "./discord-oauth";
