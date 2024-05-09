@@ -2,7 +2,6 @@ import * as requestSchema from "./structures/StatusRequest.json";
 import { CountdownType } from "./structures/StatusRequest";
 import { GameServer } from "..";
 import { StatusRequest } from "./structures";
-import { join } from "path";
 import Discord, { TextChannel } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
@@ -45,7 +44,7 @@ const GamemodeExtras = {
 		],
 		icon: "https://github.com/Metastruct/TTT2/blob/master/gamemodes/terrortown/logo.png?raw=true",
 		color: 0xdcb400,
-		seagull: join(process.cwd(), "resources/discord-event-icons/ttt.png"),
+		seagull: "https://metaconcord.metastruct.net/event-icons/ttt.png",
 	},
 } as const satisfies Record<
 	string,
