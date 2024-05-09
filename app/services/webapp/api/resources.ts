@@ -7,12 +7,4 @@ export default (webApp: WebApp): void => {
 		"/map-thumbnails/",
 		express.static(path.join(process.cwd(), "resources/map-thumbnails"))
 	);
-	webApp.app.use(
-		"/event-icons/",
-		express.static(path.join(process.cwd(), "resources/discord-event-icons"))
-	);
-	webApp.app.use(
-		"/guild-icons/",
-		express.static(path.join(process.cwd(), "resources/discord-guild-icons"))
-	);
 };
