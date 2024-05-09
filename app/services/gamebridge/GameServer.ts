@@ -35,6 +35,8 @@ export default class GameServer {
 	bridge: GameBridge;
 	defcon: number;
 	discord: DiscordClient;
+	discordIcon: string | undefined = undefined;
+	discordBanner: string | undefined = undefined;
 	discordWH: WebhookClient;
 	discordEWH: WebhookClient;
 	discordPEWH: WebhookClient;
@@ -75,10 +77,12 @@ export default class GameServer {
 
 		this.discord.run(this.config.discordToken);
 
-		this.discord.on("ready", async () => {
+		this.discord.on("ready", async client => {
 			for (const [, payload] of Object.entries(bridge.payloads)) {
 				payload.initialize(this);
 			}
+			this.discordIcon = client.user.avatar ?? undefined;
+			this.discordBanner = client.user.banner ?? undefined;
 		});
 
 		this.connection.on("message", async (msg: IUtf8Message) => {
@@ -126,6 +130,22 @@ export default class GameServer {
 		});
 
 		console.log(`'${this.config.name}' Game Server connected`);
+	}
+
+	async changeIcon(path: string) {
+		if (!this.discord.ready) return;
+		try {
+			await this.discord.user?.setAvatar(path);
+			this.discordIcon = path;
+		} catch {}
+	}
+
+	async changeBanner(path: string) {
+		if (!this.discord.ready) return;
+		try {
+			await this.discord.user?.setBanner(path);
+			this.discordBanner = path;
+		} catch {}
 	}
 
 	async sendLua(code: string, realm: RconResponse["realm"] = "sv", runner = "Metaconcord") {

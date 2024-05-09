@@ -2,6 +2,7 @@ import * as requestSchema from "./structures/StatusRequest.json";
 import { CountdownType } from "./structures/StatusRequest";
 import { GameServer } from "..";
 import { StatusRequest } from "./structures";
+import { join } from "path";
 import Discord, { TextChannel } from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
@@ -10,30 +11,38 @@ import dayjs from "dayjs";
 const GamemodeAlias = {
 	qbox: "metastruct",
 	"ttt2 (advanced update)": "ttt2",
-}as const satisfies Record<string, string>;
+} as const satisfies Record<string, string>;
 
 const GamemodeExtras = {
 	jazztronauts: {
 		activities: ["stealing props", "collecting shards"],
 		icon: "https://github.com/Foohy/jazztronauts/blob/master/gamemodes/jazztronauts/icon24.png?raw=true",
 		color: 0x320032,
+		seagull: undefined,
 	},
 	metastruct: {
 		activities: ["idling", "micspamming", "spamming chatsounds"],
 		icon: "https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
 		color: 0x4bf5ca,
+		seagull:
+			"https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
 	},
 	mta: {
 		activities: ["shooting combines", "drilling vaults", "upgrading skills"],
 		icon: "https://github.com/Metastruct/MTA-Gamemode/blob/master/gamemodes/mta/icon24.png?raw=true",
 		color: 0xf48702,
+		seagull: undefined,
 	},
 	ttt2: {
 		activities: ["die", "getting bricked", "discombobulate", "dying to fall damage"],
 		icon: "https://github.com/Metastruct/TTT2/blob/master/gamemodes/terrortown/logo.png?raw=true",
 		color: 0xdcb400,
+		seagull: join(process.cwd(), "resources/discord-event-icons/ttt.png"),
 	},
-} as const satisfies Record<string, {activities: readonly string[], icon:string, color:number}>;
+} as const satisfies Record<
+	string,
+	{ activities: readonly string[]; icon: string; color: number; seagull?: string }
+>;
 
 const getRandomActivity = (gamemode: string) => {
 	const activities = GamemodeExtras[gamemode as keyof typeof GamemodeExtras]?.activities;
@@ -79,8 +88,9 @@ export default class StatusPayload extends Payload {
 
 			const mapChanged = server.mapName !== current_map;
 			const gamemodeName =
-				GamemodeAlias[current_gamemode.name.toLowerCase()] ??
+				(GamemodeAlias[current_gamemode.name.toLowerCase()] as string) ??
 				current_gamemode.name.toLowerCase();
+			const gamemodeExtras = GamemodeExtras[gamemodeName as keyof typeof GamemodeExtras];
 
 			if (current_countdown && current_countdown.typ === CountdownType.AOWL_COUNTDOWN_CUSTOM)
 				return;
@@ -163,12 +173,12 @@ export default class StatusPayload extends Payload {
 					current_defcon === 1 || current_countdown
 						? 0xff0000
 						: current_gamemode
-						? GamemodeExtras[gamemodeName as keyof typeof GamemodeExtras]?.color ?? null
+						? gamemodeExtras?.color ?? null
 						: null
 				)
 				.setFooter({
 					text: gamemodeName,
-					iconURL: GamemodeExtras[gamemodeName as keyof typeof GamemodeExtras]?.icon,
+					iconURL: gamemodeExtras?.icon,
 				})
 				.setAuthor({
 					name: server.config.name,
@@ -208,6 +218,15 @@ export default class StatusPayload extends Payload {
 					embed.setThumbnail(thumbnailURI);
 					mapThumbnail = thumbnailURI;
 				}
+			}
+
+			if (mapThumbnail && server.discordBanner !== mapThumbnail) {
+				server.changeBanner(mapThumbnail);
+			}
+
+			if (!server.discordIcon || mapChanged) {
+				const icon = gamemodeExtras?.seagull ?? gamemodeExtras.icon;
+				if (icon !== server.discordIcon) server.changeIcon(icon);
 			}
 
 			// Server status metadata
