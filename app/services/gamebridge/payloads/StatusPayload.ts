@@ -244,8 +244,8 @@ export default class StatusPayload extends Payload {
 			}
 
 			if (!server.discordIcon || mapChanged) {
-				const icon = gamemodeExtras?.seagull ?? gamemodeExtras.icon;
-				if (icon !== server.discordIcon) server.changeIcon(icon);
+				const icon = gamemodeExtras?.seagull ?? gamemodeExtras?.icon;
+				if (icon && icon !== server.discordIcon) server.changeIcon(icon);
 			}
 
 			// Server status metadata
