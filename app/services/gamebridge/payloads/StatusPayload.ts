@@ -44,7 +44,8 @@ const GamemodeExtras = {
 		],
 		icon: "https://github.com/Metastruct/TTT2/blob/master/gamemodes/terrortown/logo.png?raw=true",
 		color: 0xdcb400,
-		seagull: "https://metaconcord.metastruct.net/event-icons/ttt.png",
+		seagull:
+			"https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull_ttt.png?inline=false",
 	},
 } as const satisfies Record<
 	string,
