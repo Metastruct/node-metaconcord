@@ -20,7 +20,7 @@ export default (bot: DiscordBot): void => {
 				bot.container
 					.getService("GameBridge")
 					?.servers[3]?.sendLua(
-						`require("gm_request"):SwitchGamemodeAsync("terrortown",print)`
+						`local request = require("gm_request") if request and not request:IsServerGamemode(3,"terrortown") then request:SwitchGamemodeAsync("terrortown",print) end`
 					),
 		},
 	];
