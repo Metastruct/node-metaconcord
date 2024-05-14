@@ -341,7 +341,7 @@ export default (webApp: WebApp): void => {
 						branch !== repo.default_branch
 							? (repo.name + "/" + branch).substring(0, 256)
 							: repo.name.substring(0, 256),
-					url: repo.url,
+					url: repo.html_url,
 					icon_url: repo.owner.avatar_url,
 				},
 				color:
@@ -427,7 +427,7 @@ export default (webApp: WebApp): void => {
 		switch (payload.action) {
 			case "member_invited":
 				title = "member invited";
-				description = `[${payload.invitation.inviter.login}](${payload.invitation.inviter.url}) invited [${payload.user.login}](${payload.user.url}) as \`${payload.invitation.role}\``;
+				description = `[${payload.invitation.inviter.login}](${payload.invitation.inviter.html_url}) invited [${payload.user.login}](${payload.user.html_url}) as \`${payload.invitation.role}\``;
 				thumbnail = {
 					url: payload.user.avatar_url,
 				};
@@ -435,14 +435,14 @@ export default (webApp: WebApp): void => {
 				break;
 			case "member_added":
 				title = "member joined";
-				description = `[${payload.membership.user.login}](${payload.membership.user.url}) joined ${payload.organization.login} as \`${payload.membership.role}\``;
+				description = `[${payload.membership.user.login}](${payload.membership.user.html_url}) joined ${payload.organization.login} as \`${payload.membership.role}\``;
 				thumbnail = {
 					url: payload.membership.user.avatar_url,
 				};
 				break;
 			case "member_removed":
 				title = "member removed";
-				description = `[${payload.membership.user.login}](${payload.membership.user.url}) left ${payload.organization.login}`;
+				description = `[${payload.membership.user.login}](${payload.membership.user.html_url}) left ${payload.organization.login}`;
 				thumbnail = {
 					url: payload.membership.user.avatar_url,
 				};
@@ -467,7 +467,7 @@ export default (webApp: WebApp): void => {
 				{
 					author: {
 						name: payload.organization.login,
-						url: payload.organization.url,
+						url: payload.organization.html_url,
 						icon_url: payload.organization.avatar_url,
 					},
 					thumbnail: thumbnail,
@@ -493,14 +493,14 @@ export default (webApp: WebApp): void => {
 				{
 					author: {
 						name: payload.organization.login,
-						url: payload.organization.url,
+						url: payload.organization.html_url,
 						icon_url: payload.organization.avatar_url,
 					},
 					thumbnail: {
 						url: payload.member.avatar_url,
 					},
 					title: "Membership " + event.payload.action,
-					description: `[${payload.sender.login}](${payload.sender.url}) ${event.payload.action} [${payload.member.login}](${payload.member.url}) to ${payload.team.name}`,
+					description: `[${payload.sender.login}](${payload.sender.html_url}) ${event.payload.action} [${payload.member.login}](${payload.member.html_url}) to ${payload.team.name}`,
 					timestamp: new Date().toISOString(),
 				},
 			],
@@ -518,21 +518,21 @@ export default (webApp: WebApp): void => {
 		switch (event.payload.action) {
 			case "added_to_repository":
 				title = "team added to repository";
-				description = `[${payload.sender.login}](${payload.sender.url}) added [${payload.team.name}](${payload.team.url}) to [${payload.repository?.name}](${payload.repository?.url})`;
+				description = `[${payload.sender.login}](${payload.sender.html_url}) added [${payload.team.name}](${payload.team.html_url}) to [${payload.repository?.name}](${payload.repository?.html_url})`;
 				break;
 			case "removed_from_repository":
 				title = "team removed from repository";
-				description = `[${payload.sender.login}](${payload.sender.url}) removed [${payload.team.name}](${payload.team.url}) from [${payload.repository?.name}](${payload.repository?.url})`;
+				description = `[${payload.sender.login}](${payload.sender.html_url}) removed [${payload.team.name}](${payload.team.html_url}) from [${payload.repository?.name}](${payload.repository?.html_url})`;
 				break;
 			case "created":
 				title = "team created";
-				description = `[${payload.sender.login}](${payload.sender.url}) created [${payload.team.name}](${payload.team.url})`;
+				description = `[${payload.sender.login}](${payload.sender.html_url}) created [${payload.team.name}](${payload.team.html_url})`;
 			case "deleted":
 				title = "team deleted";
-				description = `[${payload.sender.login}](${payload.sender.url}) deleted [${payload.team.name}](${payload.team.url})`;
+				description = `[${payload.sender.login}](${payload.sender.html_url}) deleted [${payload.team.name}](${payload.team.html_url})`;
 			case "edited":
 				title = "team edited";
-				description = `[${payload.sender.login}](${payload.sender.url}) edited [${payload.team.name}](${payload.team.url})`;
+				description = `[${payload.sender.login}](${payload.sender.html_url}) edited [${payload.team.name}](${payload.team.html_url})`;
 			default:
 				title = "unknown team action???";
 				break;
@@ -546,7 +546,7 @@ export default (webApp: WebApp): void => {
 				{
 					author: {
 						name: payload.organization.login,
-						url: payload.organization.url,
+						url: payload.organization.html_url,
 						icon_url: payload.organization.avatar_url,
 					},
 					title: title,
