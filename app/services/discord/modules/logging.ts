@@ -171,6 +171,8 @@ export default (bot: DiscordBot): void => {
 			.addFields(f("Mention", user.mention))
 			.setFooter({ text: "Member Left/Kicked" })
 			.setTimestamp(Date.now());
+		if (user.joinedTimestamp)
+			embed.addFields(f("Member since", `<t${user.joinedTimestamp}:D>`));
 		await logChannel.send({ embeds: [embed] });
 	});
 
