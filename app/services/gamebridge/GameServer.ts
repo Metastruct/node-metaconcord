@@ -5,8 +5,10 @@ import {
 	connection as WebSocketConnection,
 	request as WebSocketRequest,
 } from "websocket";
+import { NodeSSH, SSHExecOptions } from "node-ssh";
 import { RconResponse } from "./payloads/structures";
 import { WebhookClient } from "discord.js";
+import sshConfig from "@/config/ssh.json";
 
 export type GameServerConfig = {
 	defaultGamemode?: string;
@@ -15,6 +17,11 @@ export type GameServerConfig = {
 	ip: string;
 	label?: string;
 	name: string;
+	ssh?: {
+		host: string;
+		port: number;
+		username: string;
+	};
 };
 
 export type Player = {
@@ -151,5 +158,25 @@ export default class GameServer {
 	async sendLua(code: string, realm: RconResponse["realm"] = "sv", runner = "Metaconcord") {
 		if (!this.connection.connected) return;
 		return this.bridge.payloads["RconPayload"].callLua(code, realm, this, runner);
+	}
+
+	async sshExec(
+		command: string,
+		parameters: string[],
+		options: (SSHExecOptions & { stream?: "stdout" | "stderr" | undefined }) | undefined
+	) {
+		if (!this.config.ssh) return;
+		const ssh = new NodeSSH();
+		try {
+			const connection = await ssh.connect({
+				username: this.config.ssh.username,
+				host: this.config.ssh.host,
+				port: this.config.ssh.port,
+				privateKeyPath: sshConfig.keyPath,
+			});
+			return await connection.exec(command, parameters, options);
+		} catch (err) {
+			console.error(err);
+		}
 	}
 }
