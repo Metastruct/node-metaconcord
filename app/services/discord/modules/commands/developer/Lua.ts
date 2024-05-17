@@ -3,6 +3,7 @@ import { RconResponse } from "@/app/services/gamebridge/payloads/structures";
 import { SlashCommand } from "@/extensions/discord";
 import { f } from "@/utils";
 import Discord from "discord.js";
+import servers from "@/config/gamebridge.servers.json";
 
 export const SlashLuaCommand: SlashCommand = {
 	options: {
@@ -20,20 +21,11 @@ export const SlashLuaCommand: SlashCommand = {
 				type: Discord.ApplicationCommandOptionType.Integer,
 				name: "server",
 				description: "The server to run the code on",
-				choices: [
-					{
-						name: "g1",
-						value: 1,
-					},
-					{
-						name: "g2",
-						value: 2,
-					},
-					{
-						name: "g3",
-						value: 3,
-					},
-				],
+				choices: servers
+					.filter(s => s.ssh)
+					.map(s => {
+						return { name: s.name, value: s.id };
+					}),
 				required: true,
 			},
 			{
@@ -59,7 +51,7 @@ export const SlashLuaCommand: SlashCommand = {
 	},
 
 	async execute(ctx, bot) {
-		const bridge = bot.container.getService("GameBridge");
+		const bridge = bot.bridge;
 		if (!bridge) {
 			ctx.reply(EphemeralResponse("GameBridge is missing :("));
 			console.error(`SlashLua: GameBridge missing?`, ctx);
@@ -67,19 +59,23 @@ export const SlashLuaCommand: SlashCommand = {
 		}
 		await ctx.deferReply();
 		const code = ctx.options.getString("code", true).replace(/```(?:lua\n?)?/g, "");
-		const server = ctx.options.getInteger("server", true);
+		const server = bridge.servers[ctx.options.getInteger("server", true)];
 		const realm = ctx.options.getString("realm") ?? "sv";
 
 		try {
-			const res = await bridge.payloads.RconPayload.callLua(
+			const res = await server.sendLua(
 				code,
 				realm as RconResponse["realm"],
-				bridge.servers[server],
 				ctx.user.displayName ?? "???"
 			);
 
+			if (!res) {
+				ctx.followUp(EphemeralResponse("Server isn't connected:("));
+				return;
+			}
+
 			const embed = new Discord.EmbedBuilder();
-			embed.setTitle("Metastruct #" + server);
+			embed.setTitle(server.config.name);
 			embed.setDescription(`\`\`\`lua\n${code.substring(0, 1999)}\`\`\``);
 			embed.setColor(res.data.errors.length > 0 ? [255, 0, 0] : [0, 255, 0]);
 			embed.setFooter({ text: realm });

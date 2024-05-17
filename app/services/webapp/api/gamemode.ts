@@ -18,18 +18,13 @@ export default (webApp: WebApp): void => {
 			return res.sendStatus(403);
 		}
 
-		const srvConfig = config.servers[id - 1];
-		const ssh = new NodeSSH();
-		await ssh.connect({
-			username: srvConfig.username,
-			host: srvConfig.host,
-			port: srvConfig.port,
-			privateKeyPath: config.keyPath,
-		});
-
+		const server = bot?.bridge?.servers[id];
+		if (!server) {
+			return res.sendStatus(404);
+		}
 		let output = "";
 
-		await ssh.exec("gserv", ["update_repos", "rehash"], {
+		await server.sshExec("gserv", ["update_repos", "rehash"], {
 			stream: "stderr",
 			onStdout: buff => (output += buff),
 			onStderr: buff => (output += buff),
