@@ -85,7 +85,7 @@ const ignoreRegex = [
 //const fileIgnore = [];
 
 export default (webApp: WebApp): void => {
-	let gameBridge: GameBridge;
+	let gameBridge: GameBridge | undefined;
 
 	const webhook = new Discord.WebhookClient({
 		url: config.webhookUrl,
@@ -105,6 +105,7 @@ export default (webApp: WebApp): void => {
 		res.end();
 
 		gameBridge = gameBridge || webApp.container.getService("GameBridge");
+		if (!gameBridge) return res.sendStatus(400);
 
 		const server = servers.find(srv => srv.ip === ip);
 		let gameserver: GameServer;
