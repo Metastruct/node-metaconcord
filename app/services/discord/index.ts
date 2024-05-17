@@ -18,6 +18,7 @@ const ImgurRegex = /https?:\/\/(?:i.)?imgur.com\/(\w+)(?:.mp4)?/g;
 
 export class DiscordBot extends Service {
 	name = "DiscordBot";
+	bridge = this.container.getService("GameBridge");
 	config = DiscordConfig;
 	discord: Discord.Client = new Discord.Client({
 		allowedMentions: { parse: ["users", "roles"] },
