@@ -8,6 +8,7 @@ import ProgressBarLoader from "./premium-progress-bar";
 import ShitpostLoader from "./shitposting";
 import StarboardLoader from "./starboard";
 import TempVoiceChannelsLoader from "./temp-voice-channels";
+import WebhookHandlerLoader from "./webhook-handler";
 
 export default [
 	CommandsLoader,
@@ -20,4 +21,5 @@ export default [
 	ShitpostLoader,
 	StarboardLoader,
 	TempVoiceChannelsLoader,
+	WebhookHandlerLoader,
 ];

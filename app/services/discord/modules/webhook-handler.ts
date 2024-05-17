@@ -1,5 +1,5 @@
+import { DiscordBot } from "..";
 import { GameBridge } from "../../gamebridge";
-import { WebApp } from "..";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
 import { clamp } from "@/utils";
 import Discord from "discord.js";
@@ -83,17 +83,16 @@ const isRemoteMergeCommit = (message: string) =>
 const isMergeCommit = (message: string) =>
 	message.startsWith("Merge branch") || isRemoteMergeCommit(message);
 
-export default (webApp: WebApp): void => {
-	webApp.app.use(createNodeMiddleware(GitHub, { path: "/webhooks/github" }));
-	let webhook: Discord.Webhook;
-	let bridge: GameBridge | undefined;
+export default (bot: DiscordBot): void => {
+	const webapp = bot.container.getService("WebApp");
+	if (!webapp) return;
 
-	const bot = webApp.container.getService("DiscordBot");
-	if (!bot) return;
+	webapp.app.use(createNodeMiddleware(GitHub, { path: "/webhooks/github" }));
+
+	let webhook: Discord.Webhook;
+	const bridge = bot.bridge;
 
 	bot.discord.on("ready", async () => {
-		bridge = bot.bridge;
-
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
 		if (channel) {
 			const hooks = await channel.fetchWebhooks();
