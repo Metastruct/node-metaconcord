@@ -1,11 +1,11 @@
-import { NodeSSH } from "node-ssh";
+import { DiscordBot } from "../../discord";
 import { WebApp } from "..";
-import config from "@/config/ssh.json";
 import servers from "@/config/gamebridge.servers.json";
 
 const HOSTING_IDS = { 3: true };
+
 export default (webApp: WebApp): void => {
-	const bot = webApp.container.getService("DiscordBot");
+	let bot: DiscordBot | undefined;
 
 	webApp.app.get("/gamemode/:id/", async (req, res) => {
 		const ip = req.header("x-forwarded-for")?.split(",")[0];
@@ -17,6 +17,8 @@ export default (webApp: WebApp): void => {
 		if (isNaN(id) || !HOSTING_IDS[id]) {
 			return res.sendStatus(403);
 		}
+
+		bot = bot || webApp.container.getService("DiscordBot");
 
 		const server = bot?.bridge?.servers[id];
 		if (!server) {
