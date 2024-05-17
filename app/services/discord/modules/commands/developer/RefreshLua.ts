@@ -1,5 +1,7 @@
+import { EphemeralResponse } from "..";
 import { SlashCommand } from "@/extensions/discord";
 import Discord from "discord.js";
+import servers from "@/config/gamebridge.servers.json";
 
 export const SlashRefreshLuaCommand: SlashCommand = {
 	options: {
@@ -17,43 +19,42 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 				type: Discord.ApplicationCommandOptionType.Integer,
 				name: "server",
 				description: "The server to run the command on",
-				choices: [
-					{
-						name: "g1",
-						value: 1,
-					},
-					{
-						name: "g2",
-						value: 2,
-					},
-					{
-						name: "g3",
-						value: 3,
-					},
-				],
+				choices: servers
+					.filter(s => s.ssh)
+					.map(s => {
+						return { name: s.name, value: s.id };
+					}),
 				required: true,
 			},
 		],
 	},
 
 	async execute(ctx, bot) {
-		const bridge = bot.container.getService("GameBridge");
-		if (!bridge) return;
+		const bridge = bot.bridge;
+		if (!bridge) {
+			ctx.reply(EphemeralResponse("GameBridge is missing :("));
+			console.error(`SlashRefreshLua: GameBridge missing?`, ctx);
+			return;
+		}
 
 		const filePath = ctx.options.getString("filepath", true);
 		const code = `if not RefreshLua then return false, "Couldn't refresh file" end return RefreshLua([[${filePath}]])`;
 
-		const server = ctx.options.getInteger("server", true);
+		const server = bridge.servers[ctx.options.getInteger("server", true)];
 
 		await ctx.deferReply();
 
 		try {
-			const res = await bridge.payloads.RconPayload.callLua(
+			const res = await server.sendLua(
 				code,
 				"sv",
-				bridge.servers[server],
 				ctx.user.globalName ?? ctx.user.displayName
 			);
+
+			if (!res) {
+				await ctx.editReply("GameServer not connected :(");
+				return;
+			}
 
 			if (res.data.returns.length > 0 && res.data.returns[0] === "false") {
 				await ctx.editReply(res.data.returns[1] ?? "Unknown error");

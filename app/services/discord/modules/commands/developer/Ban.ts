@@ -2,6 +2,7 @@ import { DiscordBot } from "../../..";
 import { SlashCommand } from "@/extensions/discord";
 import Discord from "discord.js";
 import SteamID from "steamid";
+import servers from "@/config/gamebridge.servers.json";
 
 const DEFAULT_BAN_LENGTHS = ["1d", "1w", "4w", "6mo", "1y"];
 const DEFAULT_BAN_REASONS = ["Mingebag", "Prop Spam", "Harassment"];
@@ -59,9 +60,10 @@ const parseLength = (input: string): number => {
 
 const Ban = async (nickname: string, ctx: Discord.ChatInputCommandInteraction, bot: DiscordBot) => {
 	await ctx.deferReply();
-	const bridge = bot.container.getService("GameBridge");
+	const bridge = bot.bridge;
 	if (!bridge) return;
-	const server = ctx.options.getInteger("server") ?? 2;
+	const selectedServer = ctx.options.getInteger("server") ?? 2;
+	const server = bridge.servers[selectedServer];
 	const plyName = nickname ?? `???`;
 	const steamid = ctx.options.getString("steamid", true);
 	const length = Math.round(
@@ -73,15 +75,10 @@ const Ban = async (nickname: string, ctx: Discord.ChatInputCommandInteraction, b
 		`local data = banni.Ban("${steamid}", "${plyName}", "Discord (${ctx.user.username}|${ctx.user.mention})", [[${reason}]], ${length}) ` +
 		`if istable(data) then return data.b else return data end`;
 	try {
-		const res = await bridge.payloads.RconPayload.callLua(
-			code,
-			"sv",
-			bridge.servers[server],
-			ctx.user.displayName
-		);
+		const res = await server.sendLua(code, "sv", ctx.user.displayName);
 
 		const unbanDate = length;
-		if (res.data.returns.length > 0 && res.data.returns[0] === "true") {
+		if (res && res.data.returns.length > 0 && res.data.returns[0] === "true") {
 			await ctx.followUp(`Banned \`${plyName} (${steamid})\` expires in: <t:${unbanDate}:R>`);
 			return;
 		}
@@ -125,20 +122,11 @@ export const SlashBanCommand: SlashCommand = {
 				type: Discord.ApplicationCommandOptionType.Integer,
 				name: "server",
 				description: "The server to run the command on",
-				choices: [
-					{
-						name: "g1",
-						value: 1,
-					},
-					{
-						name: "g2",
-						value: 2,
-					},
-					{
-						name: "g3",
-						value: 3,
-					},
-				],
+				choices: servers
+					.filter(s => s.ssh)
+					.map(s => {
+						return { name: s.name, value: s.id };
+					}),
 			},
 		],
 	},
@@ -178,9 +166,7 @@ export const SlashBanCommand: SlashCommand = {
 		switch (focused.name) {
 			case "steamid": {
 				const players =
-					bot.container.getService("GameBridge")?.servers[
-						ctx.options.getInteger("server") ?? 2
-					].status.players;
+					bot.bridge?.servers[ctx.options.getInteger("server") ?? 2].status.players;
 				if (!players) {
 					await ctx.respond([]);
 					return;

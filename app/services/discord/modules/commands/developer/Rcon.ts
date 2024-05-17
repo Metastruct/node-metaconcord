@@ -38,10 +38,10 @@ export const SlashRconCommand: SlashCommand = {
 	},
 
 	async execute(ctx, bot) {
-		const bridge = bot.container.getService("GameBridge");
+		const bridge = bot.bridge;
 		if (!bridge) {
 			ctx.reply(EphemeralResponse("GameBridge is missing :("));
-			console.error(`SlashLua: GameBridge missing?`, ctx);
+			console.error(`SlashRcon: GameBridge missing?`, ctx);
 			return;
 		}
 		await ctx.deferReply();

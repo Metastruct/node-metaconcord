@@ -2,6 +2,7 @@ import { EphemeralResponse } from "..";
 import { SlashCommand } from "@/extensions/discord";
 import Discord from "discord.js";
 import SteamID from "steamid";
+import servers from "@/config/gamebridge.servers.json";
 
 export const SlashUnBanCommand: SlashCommand = {
 	options: {
@@ -25,33 +26,24 @@ export const SlashUnBanCommand: SlashCommand = {
 				type: Discord.ApplicationCommandOptionType.Integer,
 				name: "server",
 				description: "The server to run the command on",
-				choices: [
-					{
-						name: "g1",
-						value: 1,
-					},
-					{
-						name: "g2",
-						value: 2,
-					},
-					{
-						name: "g3",
-						value: 3,
-					},
-				],
+				choices: servers
+					.filter(s => s.ssh)
+					.map(s => {
+						return { name: s.name, value: s.id };
+					}),
 			},
 		],
 	},
 
 	async execute(ctx, bot) {
-		const bridge = bot.container.getService("GameBridge");
+		const bridge = bot.bridge;
 		if (!bridge) {
 			ctx.reply(EphemeralResponse("GameBridge is missing :("));
 			console.error(`SlashUnBan: GameBridge missing?`, ctx);
 			return;
 		}
 		await ctx.deferReply();
-		const server = ctx.options.getInteger("server") ?? 2;
+		const server = bridge.servers[ctx.options.getInteger("server") ?? 2];
 		const steamid = ctx.options.getString("steamid", true);
 		const code =
 			`if not banni then return false end ` +
@@ -60,12 +52,12 @@ export const SlashUnBanCommand: SlashCommand = {
 			})", [[${ctx.options.getString("reason")}]]) ` +
 			`if istable(data) then return data.b == false else return data end`;
 		try {
-			const res = await bridge.payloads.RconPayload.callLua(
-				code,
-				"sv",
-				bridge.servers[server],
-				ctx.user.displayName ?? "???"
-			);
+			const res = await server.sendLua(code, "sv", ctx.user.displayName ?? "???");
+
+			if (!res) {
+				await ctx.editReply("GameServer not connected :(");
+				return;
+			}
 
 			if (res.data.returns.length > 0 && res.data.returns[0] === "true") {
 				await ctx.followUp(`Unbanned \`${steamid}\``);

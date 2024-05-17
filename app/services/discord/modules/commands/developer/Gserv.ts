@@ -1,7 +1,8 @@
-import { NodeSSH } from "node-ssh";
+import { EphemeralResponse } from "..";
+import { GameServer } from "@/app/services/gamebridge";
 import { SlashCommand } from "@/extensions/discord";
 import Discord from "discord.js";
-import config from "@/config/ssh.json";
+import servers from "@/config/gamebridge.servers.json";
 
 // order matters for the menu
 const VALID_GSERV_COMMANDS: [string, string][] = [
@@ -21,25 +22,15 @@ const SERVER_EMOJI_MAP = {
 
 const gserv = async (
 	ctx: Discord.ButtonInteraction,
-	host: string,
-	username: string,
-	port: number,
+	gameServer: GameServer,
 	commands: string[],
 	solo: boolean,
 	output: boolean
 ): Promise<boolean> => {
-	const ssh = new NodeSSH();
 	try {
-		await ssh.connect({
-			username: username,
-			host: host,
-			port: port,
-			privateKeyPath: config.keyPath,
-		});
-
 		let buffer = "";
 
-		await ssh.exec("gserv", commands, {
+		await gameServer.sshExec("gserv", commands, {
 			stream: "stderr",
 			onStdout: buff => (buffer += buff),
 			onStderr: buff => (buffer += buff),
@@ -47,8 +38,8 @@ const gserv = async (
 
 		const success = !buffer.includes("GSERV FAILED");
 
-		const fileName = `${commands.join("_")}_${host}_${Date.now()}.ansi`;
-		let msgContent = host;
+		const fileName = `${commands.join("_")}_${gameServer.config.id}_${Date.now()}.ansi`;
+		let msgContent = gameServer.config.name;
 		if (!success) msgContent += " FAILED";
 
 		const response: Discord.BaseMessageOptions = {
@@ -65,11 +56,11 @@ const gserv = async (
 			}
 		} else {
 			const msg = await ctx.fetchReply();
-			await msg.react(SERVER_EMOJI_MAP[host.slice(1, 2)] ?? "❓");
+			await msg.react(SERVER_EMOJI_MAP[gameServer.config.id] ?? "❓");
 		}
 		return success;
 	} catch (err) {
-		const msg = host + `\ngserv failed!\`\`\`\n${err}\`\`\``;
+		const msg = gameServer.config.name + `\ngserv failed!\`\`\`\n${err}\`\`\``;
 		if (solo) {
 			await ctx.editReply(msg);
 		} else {
@@ -86,8 +77,14 @@ export const SlashGservCommand: SlashCommand = {
 		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
 	},
 
-	async execute(ctx) {
+	async execute(ctx, bot) {
 		const filter = (i: Discord.Interaction) => i.user.id === ctx.user.id;
+		const bridge = bot.bridge;
+		if (!bridge) {
+			await ctx.reply(EphemeralResponse("GameBridge is missing :("));
+			console.error(`SlashGserv: GameBridge missing?`, ctx);
+			return;
+		}
 
 		const response = await ctx.reply({
 			content: "What command do you want to run?",
@@ -134,15 +131,17 @@ export const SlashGservCommand: SlashCommand = {
 								custom_id: "gserv_server",
 								placeholder: "Choose a server.",
 								min_values: 1,
-								max_values: config.servers.length,
-								options: config.servers.map(
-									server =>
-										<Discord.APISelectMenuOption>{
-											label: server.host.slice(0, 2), // [g1].metastruct.net
-											value: server.host.slice(1, 2), // g[1].metastruct.net
-											description: server.host, // g1.metastruct.net
-										}
-								),
+								max_values: servers.length,
+								options: servers
+									.filter(s => s.ssh)
+									.map(
+										server =>
+											<Discord.APISelectMenuOption>{
+												label: server.ssh?.host.slice(0, 2), // [g1].metastruct.net
+												value: server.id.toString(), // g[1].metastruct.net
+												description: server.name, // g1.metastruct.net
+											}
+									),
 							},
 						],
 					},
@@ -155,7 +154,7 @@ export const SlashGservCommand: SlashCommand = {
 					filter: filter,
 					time: 60000,
 				});
-				const servers = result.values;
+				const selectedServers = result.values;
 
 				const output = await result.update({
 					content: "Display output?",
@@ -187,7 +186,7 @@ export const SlashGservCommand: SlashCommand = {
 						time: 60000,
 					});
 					await result.update({
-						content: `Running ${commands.join(" and ")} on ${servers
+						content: `Running ${commands.join(" and ")} on ${selectedServers
 							.slice()
 							.sort()
 							.join(", ")} please wait...`,
@@ -195,26 +194,20 @@ export const SlashGservCommand: SlashCommand = {
 					});
 
 					await Promise.all(
-						config.servers
-							.filter(
-								(srvConfig: { host: string }) =>
-									servers.find(srv => srvConfig.host.slice(1, 2) === srv) !=
-									undefined
-							)
-							.map((srvConfig: { host: string; username: string; port: number }) =>
+						bridge.servers
+							.filter(s => selectedServers.indexOf(s.config.id.toString()))
+							.map(gameServer =>
 								gserv(
 									result,
-									srvConfig.host,
-									srvConfig.username,
-									srvConfig.port,
+									gameServer,
 									commands,
-									servers.length === 1,
+									selectedServers.length === 1,
 									result.customId === "gserv_output_y"
 								)
 							)
 					)
 						.then(() => {
-							if (servers.length === 1) return;
+							if (selectedServers.length === 1) return;
 							result.update(`sent ${commands.join(" and ")} successfully!`);
 						})
 						.catch(err => result.update(`something went wrong!\`\`\`\n${err}\`\`\``));
