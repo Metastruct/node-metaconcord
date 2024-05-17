@@ -26,7 +26,7 @@ const FORMATS = [
 	"nanogif_transparent",
 ] as const;
 
-type ContentFormat = typeof FORMATS[number];
+type ContentFormat = (typeof FORMATS)[number];
 
 type MediaObject = {
 	url: string;

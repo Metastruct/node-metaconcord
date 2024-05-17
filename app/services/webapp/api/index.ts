@@ -6,7 +6,6 @@ import ci from "./ci";
 import discordOAuth from "./discord-oauth";
 import gmodErrorHandler from "./gmod-error-handler";
 import steamOAuth from "./steam-oauth";
-import webhookHandler from "./webhook-handler";
 
 export default [
 	addEmojiAPI,
@@ -17,5 +16,4 @@ export default [
 	discordOAuth,
 	gmodErrorHandler,
 	steamOAuth,
-	webhookHandler,
 ];
