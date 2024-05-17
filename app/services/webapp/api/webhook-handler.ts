@@ -1,7 +1,7 @@
 import { GameBridge } from "../../gamebridge";
 import { WebApp } from "..";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
-import { clamp } from "@/utils";
+import { clamp, sleep } from "@/utils";
 import Discord from "discord.js";
 import axios from "axios";
 import webhookConfig from "@/config/webhooks.json";
@@ -83,7 +83,8 @@ const isRemoteMergeCommit = (message: string) =>
 const isMergeCommit = (message: string) =>
 	message.startsWith("Merge branch") || isRemoteMergeCommit(message);
 
-export default (webApp: WebApp): void => {
+export default async (webApp: WebApp): Promise<void> => {
+	await sleep(1000 * 5); // quick fix until I fix service order
 	webApp.app.use(createNodeMiddleware(GitHub, { path: "/webhooks/github" }));
 	let webhook: Discord.Webhook;
 	let bridge: GameBridge | undefined;
