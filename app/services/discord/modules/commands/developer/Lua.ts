@@ -75,7 +75,7 @@ export const SlashLuaCommand: SlashCommand = {
 			}
 
 			const embed = new Discord.EmbedBuilder();
-			embed.setTitle(server.config.name);
+			embed.setAuthor({ name: server.config.name, iconURL: server.discordIcon });
 			embed.setDescription(`\`\`\`lua\n${code.substring(0, 1999)}\`\`\``);
 			embed.setColor(res.data.errors.length > 0 ? [255, 0, 0] : [0, 255, 0]);
 			embed.setFooter({ text: realm });
