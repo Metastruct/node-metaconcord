@@ -86,15 +86,13 @@ const isMergeCommit = (message: string) =>
 export default (webApp: WebApp): void => {
 	webApp.app.use(createNodeMiddleware(GitHub, { path: "/webhooks/github" }));
 	let webhook: Discord.Webhook;
-	let bridge: GameBridge;
+	let bridge: GameBridge | undefined;
 
 	const bot = webApp.container.getService("DiscordBot");
 	if (!bot) return;
 
 	bot.discord.on("ready", async () => {
-		const bridgeService = webApp.container.getService("GameBridge");
-		if (!bridgeService) return;
-		bridge = bridgeService;
+		bridge = bot.bridge;
 
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
 		if (channel) {
@@ -148,6 +146,7 @@ export default (webApp: WebApp): void => {
 					})
 				)
 					.then(() => {
+						if (!bridge) return;
 						ctx.editReply(
 							`<@${ctx.user.id}> successfully updated ${
 								where.length === bridge.servers.length - 1 // idx 0 is empty
@@ -217,6 +216,7 @@ export default (webApp: WebApp): void => {
 					})
 				)
 					.then(() => {
+						if (!bridge) return;
 						ctx.editReply(
 							`<@${ctx.user.id}> successfully updated ${
 								where.length === bridge.servers.length - 1 // idx 0 is empty

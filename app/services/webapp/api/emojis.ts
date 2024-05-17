@@ -1,10 +1,11 @@
+import { DiscordBot } from "../../discord";
 import { WebApp } from "..";
 
 export default (webApp: WebApp): void => {
-	const bot = webApp.container.getService("DiscordBot");
-	if (!bot) return;
+	let bot: DiscordBot;
 
 	webApp.app.get("/discord/guild/emojis", async (_, res) => {
+		bot = bot ?? webApp.container.getService("DiscordBot");
 		if (!bot.discord.readyAt)
 			return res.status(500).json({
 				error: "Bot is not connected",
