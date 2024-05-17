@@ -6,7 +6,7 @@ import path from "path";
 import pug from "pug";
 
 export default (webApp: WebApp): void => {
-	let gameBridge: GameBridge;
+	let gameBridge: GameBridge | undefined;
 	webApp.app.get("/server-status/:id/:bruh?", async (req, res) => {
 		gameBridge = gameBridge || webApp.container.getService("GameBridge");
 
