@@ -1,5 +1,4 @@
 import { DiscordBot } from "..";
-import { GameBridge } from "../../gamebridge";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
 import { clamp } from "@/utils";
 import Discord from "discord.js";
@@ -113,7 +112,7 @@ export default (bot: DiscordBot): void => {
 		const [action, override] = ctx.customId.split("_");
 		const where =
 			override !== undefined
-				? bridge.servers.filter(s => override.split(",").indexOf(s.config.id.toString()))
+				? bridge.servers.filter(s => override.split(",").includes(s.config.id.toString()))
 				: bridge.servers;
 
 		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(
