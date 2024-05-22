@@ -15,20 +15,6 @@ const GitHub = new Webhooks({
 	secret: webhookConfig.github.secret,
 });
 
-// todo: maybe there is a better way for this?
-// const PublicCommits = new Discord.WebhookClient({
-// 	url: webhookConfig.webhookUrls.public.commits,
-// });
-// const PrivateCommits = new Discord.WebhookClient({
-// 	url: webhookConfig.webhookUrls.private.commits,
-// });
-// const MappingCommits = new Discord.WebhookClient({
-// 	url: webhookConfig.webhookUrls.public.mapping,
-// });
-// const TestCommits = new Discord.WebhookClient({
-// 	url: webhookConfig.webhookUrls.private.test,
-// });
-
 const BaseEmbed = <Discord.WebhookMessageCreateOptions>{
 	allowedMentions: { parse: ["users"] },
 };
@@ -243,6 +229,7 @@ export default (bot: DiscordBot): void => {
 		["terrortown_modding", [3]],
 		["MTA-Gamemode", [3]],
 		["TTT2", [3]],
+		["Lumiens-Map-Vote", [3]],
 	];
 
 	GitHub.on("push", async event => {
