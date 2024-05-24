@@ -77,14 +77,13 @@ export const MenuManageMediaLinksCommand: MenuCommand = {
 			return;
 		}
 		const result = await db.run("DELETE FROM media_urls WHERE url = ?", text);
-		if (result?.changes !== undefined && result?.changes > 0) {
-			await msg.delete();
-			await ctx.followUp(EphemeralResponse("👍"));
-		} else {
-			await msg.delete();
-			await ctx.followUp(
-				EphemeralResponse("👎 (probably doesn't exist or is pulled from tenor)")
-			);
-		}
+		await msg.delete();
+		await ctx.followUp(
+			EphemeralResponse(
+				result?.changes !== undefined && result?.changes > 0
+					? "👍"
+					: "👎 (probably doesn't exist or is pulled from tenor)"
+			)
+		);
 	},
 };
