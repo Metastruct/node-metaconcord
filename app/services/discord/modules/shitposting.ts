@@ -339,7 +339,7 @@ export default async (bot: DiscordBot) => {
 		if (
 			!bot.config.bot.allowedShitpostingChannels.includes(reaction.message.channelId) ||
 			reaction.message.author?.id !== bot.discord.user?.id ||
-			lastRespondedReactionMsgs[reaction.message.id]
+			lastRespondedReactionMsgs.includes(reaction.message.id)
 		)
 			return;
 
