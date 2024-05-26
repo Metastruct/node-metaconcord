@@ -57,7 +57,7 @@ export default class ChatPayload extends Payload {
 			try {
 				const author = await msg.guild?.members.fetch(msg.author.id);
 				if (author && author.nickname && author.nickname.length > 0) {
-					nickname = author.nickname;
+					nickname = `${author.nickname} (${nickname})`;
 				}
 			} catch {} // dont care
 
