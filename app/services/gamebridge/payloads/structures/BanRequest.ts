@@ -9,5 +9,6 @@ export default interface BanRequest extends PayloadRequest {
 		banned: { nick: string; steamId: string };
 		reason: string;
 		unbanTime: string;
+		gamemode: string | undefined;
 	};
 }

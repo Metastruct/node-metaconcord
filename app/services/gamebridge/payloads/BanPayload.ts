@@ -14,7 +14,7 @@ export default class BanPayload extends Payload {
 	static async handle(payload: BanRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
 
-		const { player, banned, reason, unbanTime } = payload.data;
+		const { player, banned, reason, unbanTime, gamemode } = payload.data;
 		const { bridge, discord: discordClient } = server;
 
 		if (!discordClient.ready) return;
@@ -73,6 +73,7 @@ export default class BanPayload extends Payload {
 		if (banned.nick) embed.addFields(f("Nick", banned.nick, true));
 		embed.addFields(f("Expiration", `<t:${unixTime}:R>`, true));
 		embed.addFields(f("Reason", reason.substring(0, 1900)));
+		embed.addFields(f("Gamemode", gamemode ?? "GLOBAL"));
 		embed.addFields(
 			f(
 				"SteamID",
