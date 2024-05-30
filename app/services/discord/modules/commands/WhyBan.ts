@@ -53,7 +53,7 @@ export const SlashWhyBanCommand: SlashCommand = {
 						ban.name
 					}\u001b[0;0m is currently \u001b[0;31mbanned ${`\u001b[4;36m${
 						ban.gamemode ? `on ${ban.gamemode}` : "globally"
-					}`} \u001b[0;0m for:\n\u001b[0;40m${ban.banreason.replaceAll(
+					}`}\u001b[0;0m for:\n\u001b[0;40m${ban.banreason.replaceAll(
 						"```",
 						"​`​`​`"
 					)}\u001b[0;0m\`\`\`expires: <t:${ban.whenunban}:R>${
