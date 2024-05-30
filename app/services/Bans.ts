@@ -4,17 +4,18 @@ import SteamID from "steamid";
 import axios from "axios";
 
 class MetaBan {
-	public sid: string;
-	public bannersid: string;
-	public unbannersid?: string;
 	public b: boolean;
+	public bannersid: string;
 	public banreason: string;
+	public gamemode?: string;
+	public name: string;
+	public numbans?: number;
+	public sid: string;
+	public unbannersid?: string;
 	public unbanreason?: string;
 	public whenbanned: number;
 	public whenunban: number;
 	public whenunbanned?: number;
-	public numbans?: number;
-	public name: string;
 }
 
 export class Bans extends Service {

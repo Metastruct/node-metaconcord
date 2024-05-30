@@ -31,34 +31,39 @@ export const SlashWhyBanCommand: SlashCommand = {
 			ctx.followUp(EphemeralResponse("That SteamID has never been banned before."));
 			return;
 		}
-		if (!ban.b)
+		if (!ban.b) {
 			ctx.followUp(
 				EphemeralResponse(
 					`\`\`\`ansi\n\u001b[1;33m${
 						ban.name
-					}\u001b[0;0m is currently \u001b[0;32mnot banned\u001b[0;0m but \u001b[4;36mwas banned${
+					}\u001b[0;0m is currently \u001b[0;32mnot banned\u001b[0;0m but was banned${
 						ban.numbans && ban.numbans > 1 ? ` ${ban.numbans} times` : ""
-					}\u001b[0;0m before.\nLast ban reason:\n\u001b[0;40m${ban.banreason.replaceAll(
+					}\u001b[0;0m before \u001b[4;36m${
+						ban.gamemode ? `on ${ban.gamemode}` : "globally"
+					}\u001b[0;0m.\nLast ban reason:\n\u001b[0;40m${ban.banreason.replaceAll(
 						"```",
 						"​`​`​`"
 					)}\u001b[0;0m\`\`\``
 				)
 			);
-
-		ctx.followUp(
-			EphemeralResponse(
-				`\`\`\`ansi\n\u001b[1;33m${
-					ban.name
-				}\u001b[0;0m is currently \u001b[0;31mbanned\u001b[0;0m for:\n\u001b[0;40m${ban.banreason.replaceAll(
-					"```",
-					"​`​`​`"
-				)}\u001b[0;0m\`\`\`expires: <t:${ban.whenunban}:R>${
-					ban.numbans && ban.numbans > 1
-						? `\n\`${ban.name}\` was banned \`${ban.numbans} times\` so far`
-						: ""
-				}`
-			)
-		);
+		} else {
+			ctx.followUp(
+				EphemeralResponse(
+					`\`\`\`ansi\n\u001b[1;33m${
+						ban.name
+					}\u001b[0;0m is currently \u001b[0;31mbanned ${`\u001b[4;36m${
+						ban.gamemode ? `on ${ban.gamemode}` : "globally"
+					}`} \u001b[0;0m for:\n\u001b[0;40m${ban.banreason.replaceAll(
+						"```",
+						"​`​`​`"
+					)}\u001b[0;0m\`\`\`expires: <t:${ban.whenunban}:R>${
+						ban.numbans && ban.numbans > 1
+							? `\n\`${ban.name}\` was banned \`${ban.numbans} times\` so far`
+							: ""
+					}`
+				)
+			);
+		}
 	},
 
 	async autocomplete(ctx, bot) {
