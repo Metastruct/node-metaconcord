@@ -197,30 +197,28 @@ export default (webApp: WebApp): void => {
 				};
 				if (player.isLinux) embed.fields = [{ name: "OS:", value: "UNIX", inline: true }];
 			}
-			if (server) {
-				if (gameserver) {
-					if (gameserver.mapUptime) {
-						embed.fields.push({
-							name: "Map running since:",
-							value: `<t:${dayjs().subtract(gameserver.mapUptime, "s").unix()}:R>`,
-							inline: true,
-						});
-					}
-					if (
-						gameserver.config.defaultGamemode &&
-						body.gamemode !== gameserver.config.defaultGamemode
-					) {
-						const gamemode = gameserver.gamemode ?? {
-							folderName: "???",
-							name: body.gamemode,
-						};
+			if (server && gameserver) {
+				if (gameserver.mapUptime) {
+					embed.fields.push({
+						name: "Map running since:",
+						value: `<t:${dayjs().subtract(gameserver.mapUptime, "s").unix()}:R>`,
+						inline: true,
+					});
+				}
+				if (
+					gameserver.config.defaultGamemode &&
+					body.gamemode !== gameserver.config.defaultGamemode
+				) {
+					const gamemode = gameserver.gamemode ?? {
+						folderName: "???",
+						name: body.gamemode,
+					};
 
-						embed.fields.push({
-							name: "Gamemode:",
-							value: `${gamemode.name} (${gamemode.folderName})`,
-							inline: true,
-						});
-					}
+					embed.fields.push({
+						name: "Gamemode:",
+						value: `${gamemode.name} (${gamemode.folderName})`,
+						inline: true,
+					});
 				}
 			}
 			embeds.push(embed);
