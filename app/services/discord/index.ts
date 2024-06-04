@@ -36,6 +36,8 @@ export class DiscordBot extends Service {
 			"GuildWebhooks",
 		],
 		partials: [Discord.Partials.Message, Discord.Partials.Channel, Discord.Partials.Reaction],
+		closeTimeout: 5000,
+		rest: { timeout: 30000 },
 	});
 	ready: boolean;
 
