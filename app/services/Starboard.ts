@@ -147,29 +147,33 @@ export class Starboard extends Service {
 			if (!webhook) webhook = await channel.createWebhook({ name: "metaconcord starboard" });
 
 			if (webhook) {
-				const starred = await webhook.send({
-					content: text,
-					avatarURL: msg.author.avatarURL() ?? "",
-					username: msg.author.username,
-					allowedMentions: { parse: ["users", "roles"] },
-					files: files,
-					embeds: msg.author.bot ? msg.embeds : undefined,
-					components: [
-						{
-							type: Discord.ComponentType.ActionRow,
-							components: [
-								{
-									type: Discord.ComponentType.Button,
-									label: "Jump to message",
-									style: Discord.ButtonStyle.Link,
-									url: msg.url,
-								},
-							],
-						},
-					],
-				});
-				await this.starMsg(msg.id);
-				if (shouldReact) await starred.react(reaction.emoji);
+				const starred = await webhook
+					.send({
+						content: text,
+						avatarURL: msg.author.avatarURL() ?? "",
+						username: msg.author.username,
+						allowedMentions: { parse: ["users", "roles"] },
+						files: files,
+						embeds: msg.author.bot ? msg.embeds : undefined,
+						components: [
+							{
+								type: Discord.ComponentType.ActionRow,
+								components: [
+									{
+										type: Discord.ComponentType.Button,
+										label: "Jump to message",
+										style: Discord.ButtonStyle.Link,
+										url: msg.url,
+									},
+								],
+							},
+						],
+					})
+					.catch();
+				if (starred) {
+					await this.starMsg(msg.id);
+					if (shouldReact) await starred.react(reaction.emoji);
+				}
 			}
 
 			this.isBusy = false;
