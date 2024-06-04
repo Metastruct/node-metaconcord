@@ -38,7 +38,7 @@ const LANG = [
 	"ZH",
 ] as const;
 
-type SupportedLanguages = typeof LANG[number];
+type SupportedLanguages = (typeof LANG)[number];
 
 interface DeeplResponse {
 	translations: {
