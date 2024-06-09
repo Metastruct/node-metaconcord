@@ -138,6 +138,11 @@ export default class GameServer {
 		});
 
 		console.log(`'${this.config.name}' Game Server connected`);
+
+		//! REMOVE when this is issue is resolved
+		if (this.config.id !== 2) {
+			this.bridge.servers[2]?.sendLua("if crosschat then crosschat.start() end");
+		}
 	}
 
 	async changeIcon(path: string) {
