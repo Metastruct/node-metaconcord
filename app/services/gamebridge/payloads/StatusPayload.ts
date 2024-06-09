@@ -122,7 +122,7 @@ export default class StatusPayload extends Payload {
 
 			if (players && this.lastStatusUpdate.length > 5) return; // burst prevention
 
-			this.lastStatusUpdate.push(true);
+			if (players) this.lastStatusUpdate.push(true);
 
 			// Nick
 			if (discord.user) {
