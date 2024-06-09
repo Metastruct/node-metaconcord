@@ -69,10 +69,13 @@ const Ban = async (nickname: string, ctx: Discord.ChatInputCommandInteraction, b
 	const length = Math.round(
 		Date.now() / 1000 + parseLength(ctx.options.getString("length", true))
 	);
+	const gamemode = ctx.options.getString("gamemode");
 	const reason = ctx.options.getString("reason") ?? "no reason";
 	const code =
 		`if not banni then return false end ` +
-		`local data = banni.Ban("${steamid}", "${plyName}", "Discord (${ctx.user.username}|${ctx.user.mention})", [[${reason}]], ${length}) ` +
+		`local data = banni.Ban("${steamid}", "${plyName}", "Discord (${ctx.user.username}|${
+			ctx.user.mention
+		})", [[${reason}]], ${length}, false, ${gamemode ?? "nil"}) ` +
 		`if istable(data) then return data.b else return data end`;
 	try {
 		const res = await server.sendLua(code, "sv", ctx.user.displayName);
@@ -116,7 +119,11 @@ export const SlashBanCommand: SlashCommand = {
 				type: Discord.ApplicationCommandOptionType.String,
 				name: "reason",
 				description: "The reason for the ban",
-				required: false,
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "gamemode",
+				description: "the gamemode to ban from (sandbox_modded by default)",
 			},
 			{
 				type: Discord.ApplicationCommandOptionType.Integer,
@@ -164,9 +171,18 @@ export const SlashBanCommand: SlashCommand = {
 	async autocomplete(ctx, bot) {
 		const focused = ctx.options.getFocused(true);
 		switch (focused.name) {
+			case "gamemode": {
+				const gamemodes = bot.bridge?.servers[
+					ctx.options.getInteger("server") ?? 2
+				]?.gamemodes.map(name => {
+					return { name: name, value: name };
+				});
+				await ctx.respond(gamemodes ?? []);
+				break;
+			}
 			case "steamid": {
 				const players =
-					bot.bridge?.servers[ctx.options.getInteger("server") ?? 2].status.players;
+					bot.bridge?.servers[ctx.options.getInteger("server") ?? 2]?.status.players;
 				if (!players) {
 					await ctx.respond([]);
 					return;

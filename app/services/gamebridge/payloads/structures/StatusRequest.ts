@@ -39,5 +39,6 @@ export default interface StatusRequest extends PayloadRequest {
 			folderName: string;
 			name: string;
 		};
+		gamemodes?: string[];
 	};
 }
