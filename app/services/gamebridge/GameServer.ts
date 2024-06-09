@@ -51,6 +51,7 @@ export default class GameServer {
 		folderName: string;
 		name: string;
 	};
+	gamemodes: string[];
 	playerListImage: Buffer;
 	serverUptime: number;
 	status: {

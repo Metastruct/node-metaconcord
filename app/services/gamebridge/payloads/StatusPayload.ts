@@ -81,6 +81,7 @@ export default class StatusPayload extends Payload {
 			gamemode,
 			serverUptime,
 			mapUptime,
+			gamemodes,
 		} = payload.data;
 		const { bridge, discord } = server;
 		const webApp = bridge.container.getService("WebApp");
@@ -97,6 +98,7 @@ export default class StatusPayload extends Payload {
 			const current_map = mapName ?? server.mapName ?? "unknown map";
 			const current_gamemode = gamemode ??
 				server.gamemode ?? { folderName: "???", name: "unknown gamemode" };
+			const current_gamemodes = gamemodes ?? server.gamemodes ?? [];
 			const current_serverUptime = serverUptime ?? server.serverUptime ?? 0;
 			const current_mapUptime = mapUptime ?? server.mapUptime ?? 0;
 			const current_workshopMap = workshopMap ?? server.workshopMap;
@@ -252,14 +254,15 @@ export default class StatusPayload extends Payload {
 			}
 
 			// Server status metadata
-			server.status.mapThumbnail = mapThumbnail;
-			server.status.image = embed.data.image?.url ?? null;
-			server.status.players = current_players;
 			server.defcon = current_defcon;
 			server.gamemode = current_gamemode;
+			server.gamemodes = current_gamemodes;
 			server.mapName = current_map;
 			server.mapUptime = current_mapUptime;
 			server.serverUptime = current_serverUptime;
+			server.status.image = embed.data.image?.url ?? null;
+			server.status.mapThumbnail = mapThumbnail;
+			server.status.players = current_players;
 			server.workshopMap = current_workshopMap;
 
 			for (const [, player] of Object.entries(server.status.players)) {
