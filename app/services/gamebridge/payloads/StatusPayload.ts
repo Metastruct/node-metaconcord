@@ -120,7 +120,7 @@ export default class StatusPayload extends Payload {
 			const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 			if (!guild) return;
 
-			if (this.lastStatusUpdate.length > 5) return; // burst prevention
+			if (players && this.lastStatusUpdate.length > 5) return; // burst prevention
 
 			this.lastStatusUpdate.push(true);
 
