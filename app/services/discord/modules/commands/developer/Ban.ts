@@ -124,6 +124,7 @@ export const SlashBanCommand: SlashCommand = {
 				type: Discord.ApplicationCommandOptionType.String,
 				name: "gamemode",
 				description: "the gamemode to ban from (sandbox_modded by default)",
+				autocomplete: true,
 			},
 			{
 				type: Discord.ApplicationCommandOptionType.Integer,
