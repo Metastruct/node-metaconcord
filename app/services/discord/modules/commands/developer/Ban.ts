@@ -131,7 +131,7 @@ export const SlashBanCommand: SlashCommand = {
 				name: "server",
 				description: "The server to run the command on",
 				choices: servers
-					.filter(s => s.ssh)
+					.filter(s => !!s.ssh)
 					.map(s => {
 						return { name: s.name, value: s.id };
 					}),
