@@ -131,9 +131,9 @@ export const SlashGservCommand: SlashCommand = {
 								custom_id: "gserv_server",
 								placeholder: "Choose a server.",
 								min_values: 1,
-								max_values: servers.length,
+								max_values: servers.filter(s => !!s.ssh).length,
 								options: servers
-									.filter(s => s.ssh)
+									.filter(s => !!s.ssh)
 									.map(
 										server =>
 											<Discord.APISelectMenuOption>{
@@ -212,12 +212,15 @@ export const SlashGservCommand: SlashCommand = {
 						})
 						.catch(err => result.update(`something went wrong!\`\`\`\n${err}\`\`\``));
 				} catch (err) {
+					console.error(err);
 					await ctx.editReply(JSON.stringify(err));
 				}
-			} catch {
+			} catch (err) {
+				console.error(err);
 				await ctx.deleteReply();
 			}
-		} catch {
+		} catch (err) {
+			console.error(err);
 			await ctx.deleteReply();
 		}
 	},
