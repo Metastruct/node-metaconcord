@@ -9,37 +9,30 @@ import dayjs from "dayjs";
 export const events = [
 	{
 		icon: "haaugh",
-		nick: ["Haaugh"],
 		range: ["27/03", "28/03"],
 	},
 	{
 		icon: "summer",
-		nick: ["Sunny", "Summer", "Beach", "Hot", "Ice Cream", "Swimming"],
 		range: ["01/06", "01/09"],
 	},
 	{
 		icon: "oktober",
-		nick: ["Drunk", "Beer", "Oktober", "Party"],
 		range: ["16/09", "03/10"],
 	},
 	{
 		icon: "halloween",
-		nick: ["Spooky", "Scary", "Ghost", "Skeleton", "Vampire", "Vile", "Candy", "Blood"],
 		range: ["03/10", "01/11"],
 	},
 	{
 		icon: "christmas",
-		nick: ["Merry", "Jingle", "Snowy", "Winter", "Snow", "Cold", "Ice", "Freezing", "Jolly"],
 		range: ["01/12", "26/12"],
 	},
 	{
 		icon: "new-year",
-		nick: ["Party", "Firework", "Champagne"],
 		range: ["30/12", "31/12"],
 	},
 	{
 		icon: "new-year",
-		nick: ["Party", "Firework", "Champagne"],
 		range: ["01/01", "03/01"], // We do a little cheating
 	},
 ];
@@ -138,7 +131,11 @@ export default (bot: DiscordBot): void => {
 		};
 
 		const checkDate = async () => {
-			for (const { icon, range, nick } of events) {
+			let filePath = defaultIconPath;
+			let eventName = "None";
+			let nick = "Meta";
+
+			for (const { icon, range } of events) {
 				const [start, end] = range;
 				const [startDay, startMonth] = start.split("/").map(n => +n);
 				const [endDay, endMonth] = end.split("/").map(n => +n);
@@ -153,7 +150,7 @@ export default (bot: DiscordBot): void => {
 					endDay >= (month < endMonth ? endDay : day);
 
 				if (inMonth && correctDay) {
-					let filePath = join(iconsPath, `${icon}.gif`);
+					filePath = join(iconsPath, `${icon}.gif`);
 					if (
 						guild.premiumTier === GuildPremiumTier.None ||
 						!(await fileExists(filePath))
@@ -163,15 +160,11 @@ export default (bot: DiscordBot): void => {
 					if (!(await fileExists(filePath))) {
 						filePath = defaultIconPath;
 					}
-
-					return {
-						filePath,
-						eventName: icon
-							.split("-")
-							.map(str => str.charAt(0).toUpperCase() + str.slice(1))
-							.join(" "),
-						nickName: nick[(Math.random() * nick.length) | 0],
-					};
+					eventName = icon
+						.split("-")
+						.map(str => str.charAt(0).toUpperCase() + str.slice(1))
+						.join(" ");
+					break;
 				}
 			}
 
@@ -179,9 +172,9 @@ export default (bot: DiscordBot): void => {
 				.split(" ")
 				.filter(w => w.length <= 22 && !filter.includes(w.toLowerCase()));
 			const word = wordList[(Math.random() * wordList?.length) | 0];
-			const nick = word.charAt(0).toUpperCase() + word.slice(1);
+			nick = word.charAt(0).toUpperCase() + word.slice(1);
 
-			return { filePath: defaultIconPath, eventName: "None", nickName: nick };
+			return { filePath: defaultIconPath, eventName, nickName: nick };
 		};
 
 		const doIt = async () => {
