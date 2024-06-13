@@ -44,7 +44,7 @@ export default class ChatPayload extends Payload {
 			);
 			content = content.replace(
 				/(https?:\/\/tenor.com\/view\/\S+)/g,
-				(_, url) => url + "?.gif"
+				(_, url) => url + ".gif"
 			);
 
 			for (const [, attachment] of msg.attachments) {
