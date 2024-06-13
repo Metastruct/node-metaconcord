@@ -195,7 +195,7 @@ export const SlashGservCommand: SlashCommand = {
 
 					await Promise.all(
 						bridge.servers
-							.filter(s => selectedServers.indexOf(s.config.id.toString()))
+							.filter(s => selectedServers.includes(s.config.id.toString()))
 							.map(gameServer =>
 								gserv(
 									result,
