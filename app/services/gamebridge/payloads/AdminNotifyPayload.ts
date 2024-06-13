@@ -2,13 +2,7 @@ import * as requestSchema from "./structures/AdminNotifyRequest.json";
 import { AdminNotifyRequest } from "./structures";
 import { DiscordClient, GameServer } from "..";
 import { f } from "@/utils";
-import Discord, {
-	ButtonBuilder,
-	ButtonInteraction,
-	ButtonStyle,
-	MessageComponentInteraction,
-	TextChannel,
-} from "discord.js";
+import Discord from "discord.js";
 import Payload from "./Payload";
 import SteamID from "steamid";
 
@@ -22,15 +16,16 @@ export default class AdminNotifyPayload extends Payload {
 		const discord = server.discord;
 		const notificationsChannel = discord.channels.cache.get(
 			server.discord.config.threads.reports
-		) as TextChannel;
+		) as Discord.ThreadChannel;
 		if (!notificationsChannel) return;
 		const steam = server.bridge.container.getService("Steam");
 
-		const filter = (btn: MessageComponentInteraction) => btn.customId.endsWith("_REPORT_KICK");
+		const filter = (btn: Discord.MessageComponentInteraction) =>
+			btn.customId.endsWith("_REPORT_KICK");
 
 		const collector = notificationsChannel.createMessageComponentCollector({ filter });
 
-		collector.on("collect", async (ctx: ButtonInteraction) => {
+		collector.on("collect", async (ctx: Discord.ButtonInteraction) => {
 			if (!(await DiscordClient.isAllowed(server, ctx.user))) return;
 			await ctx.deferReply();
 			try {
@@ -78,7 +73,9 @@ export default class AdminNotifyPayload extends Payload {
 
 		const callAdminRole = guild.roles.cache.get(bridge.config.callAdminRoleId);
 
-		const notificationsChannel = guild.channels.cache.get(bridge.config.reportsChannelId);
+		const notificationsChannel = (
+			guild.channels.cache.get(bridge.config.notificationsChannelId) as Discord.TextChannel
+		).threads.cache.get(bridge.config.reportsChannelId);
 		if (!notificationsChannel) return;
 
 		const steamId64 = new SteamID(player.steamId).getSteamID64();
@@ -128,21 +125,21 @@ export default class AdminNotifyPayload extends Payload {
 			}
 		}
 		// You can have a maximum of five ActionRows per message, and five buttons within an ActionRow.
-		const row = new Discord.ActionRowBuilder<ButtonBuilder>().addComponents(
-			new ButtonBuilder()
-				.setStyle(ButtonStyle.Secondary)
+		const row = new Discord.ActionRowBuilder<Discord.ButtonBuilder>().addComponents(
+			new Discord.ButtonBuilder()
+				.setStyle(Discord.ButtonStyle.Secondary)
 				.setCustomId(`${reportedSteamId64}_REPORT_KICK`)
 				.setEmoji("🥾")
 				.setLabel("KICK Offender"),
-			new ButtonBuilder()
-				.setStyle(ButtonStyle.Secondary)
+			new Discord.ButtonBuilder()
+				.setStyle(Discord.ButtonStyle.Secondary)
 				.setCustomId(`${steamId64}_REPORT_KICK`)
 				.setEmoji("🥾")
 				.setLabel("KICK Reporter")
 		);
 
 		try {
-			await (notificationsChannel as TextChannel).send({
+			await notificationsChannel.send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
 				embeds: [embed],
 				components: [row],
@@ -151,7 +148,7 @@ export default class AdminNotifyPayload extends Payload {
 			embed.spliceFields(1, 1);
 			// embed.data.fields = embed.data.fields.filter(f => f.name !== "Message");
 
-			await (notificationsChannel as TextChannel).send({
+			await notificationsChannel.send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
 				files: [
 					{
