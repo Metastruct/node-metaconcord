@@ -53,19 +53,21 @@ export default class ChatPayload extends Payload {
 				reply = await msg.fetchReference();
 			}
 
-			let nickname = msg.author.username;
+			const username = msg.author.username;
+			let nickname = "";
 			try {
 				const author = await msg.guild?.members.fetch(msg.author.id);
 				if (author && author.nickname && author.nickname.length > 0) {
-					nickname = `${author.nickname} (${nickname})`;
+					nickname = author.nickname;
 				}
 			} catch {} // dont care
 
-			const avatar = msg.author.avatarURL({ forceStatic: true });
+			const avatar = msg.author.avatarURL();
 
 			const payload: ChatResponse = {
 				user: {
 					id: msg.author.id,
+					username: username,
 					nick: nickname,
 					color: msg.member?.displayColor ?? 0,
 					avatar_url: avatar ?? msg.author.defaultAvatarURL,
