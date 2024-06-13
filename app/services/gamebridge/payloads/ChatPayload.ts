@@ -67,7 +67,12 @@ export default class ChatPayload extends Payload {
 				}
 			} catch {} // dont care
 
-			const avatar = msg.author.avatarURL({ forceStatic: true });
+			const avatarhash = msg.author.avatar;
+			const avatar = avatarhash
+				? `https://cdn.discordapp.com/avatars/${msg.author.id}/${avatarhash}${
+						avatarhash.startsWith("a_") ? ".gif" : ".png"
+				  }`
+				: msg.author.defaultAvatarURL;
 
 			const payload: ChatResponse = {
 				user: {
@@ -75,7 +80,7 @@ export default class ChatPayload extends Payload {
 					username: username,
 					nick: nickname,
 					color: msg.member?.displayColor ?? 0,
-					avatar_url: avatar ?? msg.author.defaultAvatarURL,
+					avatar_url: avatar,
 				},
 				msgID: msg.id,
 				content: content,
