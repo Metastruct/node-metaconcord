@@ -42,6 +42,11 @@ export default class ChatPayload extends Payload {
 							: "(uncached user)"
 					}`
 			);
+			content = content.replace(
+				/(https?:\/\/tenor.com\/view\/\S+)/g,
+				(_, url) => url + "?.gif"
+			);
+
 			for (const [, attachment] of msg.attachments) {
 				content += (content.length > 0 ? "\n" : "") + attachment.url;
 			}
