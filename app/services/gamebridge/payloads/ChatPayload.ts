@@ -67,7 +67,7 @@ export default class ChatPayload extends Payload {
 				}
 			} catch {} // dont care
 
-			const avatar = msg.author.avatarURL();
+			const avatar = msg.author.avatarURL({ forceStatic: true });
 
 			const payload: ChatResponse = {
 				user: {
