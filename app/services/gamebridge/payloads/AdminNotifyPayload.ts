@@ -73,10 +73,12 @@ export default class AdminNotifyPayload extends Payload {
 
 		const callAdminRole = guild.roles.cache.get(bridge.config.callAdminRoleId);
 
-		const notificationsChannel = (
-			guild.channels.cache.get(bridge.config.notificationsChannelId) as Discord.TextChannel
-		).threads.cache.get(bridge.config.reportsChannelId);
+		const notificationsChannel = (await guild.channels.fetch(
+			bridge.config.notificationsChannelId
+		)) as Discord.TextChannel;
 		if (!notificationsChannel) return;
+		const thread = await notificationsChannel.threads.fetch(bridge.config.reportsChannelId);
+		if (!thread) return;
 
 		const steamId64 = new SteamID(player.steamId).getSteamID64();
 		const reportedSteamId64 = new SteamID(reported.steamId).getSteamID64();
@@ -139,7 +141,7 @@ export default class AdminNotifyPayload extends Payload {
 		);
 
 		try {
-			await notificationsChannel.send({
+			await thread.send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
 				embeds: [embed],
 				components: [row],
@@ -148,7 +150,7 @@ export default class AdminNotifyPayload extends Payload {
 			embed.spliceFields(1, 1);
 			// embed.data.fields = embed.data.fields.filter(f => f.name !== "Message");
 
-			await notificationsChannel.send({
+			await thread.send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
 				files: [
 					{
