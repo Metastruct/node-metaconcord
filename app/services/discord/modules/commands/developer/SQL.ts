@@ -88,7 +88,11 @@ export const SlashSQLCommand: SlashCommand = {
 					break;
 			}
 		} catch (err) {
-			await ctx.reply(err.message);
+			if (ctx.deferred) {
+				await ctx.followUp(err.message);
+			} else {
+				await ctx.reply(EphemeralResponse(err.message));
+			}
 		}
 	},
 };
