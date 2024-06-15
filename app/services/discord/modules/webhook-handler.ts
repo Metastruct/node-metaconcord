@@ -99,7 +99,7 @@ export default (bot: DiscordBot): void => {
 		const where =
 			override !== undefined
 				? bridge.servers.filter(s => override.split(",").includes(s.config.id.toString()))
-				: bridge.servers;
+				: bridge.servers.filter(s => !!s.config.ssh);
 
 		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(
 			x => x.id === bot.config.roles.developer || x.id === bot.config.roles.administrator
@@ -133,7 +133,7 @@ export default (bot: DiscordBot): void => {
 						if (!bridge) return;
 						ctx.editReply(
 							`<@${ctx.user.id}> successfully updated ${
-								where.length === bridge.servers.length - 1 // idx 0 is empty
+								where.length === bridge.servers.length
 									? "all servers"
 									: where
 											.map(s =>
@@ -203,7 +203,7 @@ export default (bot: DiscordBot): void => {
 						if (!bridge) return;
 						ctx.editReply(
 							`<@${ctx.user.id}> successfully updated ${
-								where.length === bridge.servers.length - 1 // idx 0 is empty
+								where.length === bridge.servers.length
 									? "all servers"
 									: where
 											.map(s =>
