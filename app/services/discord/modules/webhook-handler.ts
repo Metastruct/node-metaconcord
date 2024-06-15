@@ -133,7 +133,7 @@ export default (bot: DiscordBot): void => {
 						if (!bridge) return;
 						ctx.editReply(
 							`<@${ctx.user.id}> successfully updated ${
-								where.length === bridge.servers.length
+								where.length === bridge.servers.length - 1 // 0 = empty
 									? "all servers"
 									: where
 											.map(s =>
@@ -203,7 +203,7 @@ export default (bot: DiscordBot): void => {
 						if (!bridge) return;
 						ctx.editReply(
 							`<@${ctx.user.id}> successfully updated ${
-								where.length === bridge.servers.length
+								where.length === bridge.servers.length - 1 // 0 = empty
 									? "all servers"
 									: where
 											.map(s =>
