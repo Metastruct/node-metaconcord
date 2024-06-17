@@ -101,7 +101,7 @@ const addEmoji = async (
 		return;
 	}
 	if (custom) {
-		const emoji = ctx.client.emojis.resolve(custom[3]);
+		let emoji: Discord.GuildEmoji | Buffer | null = ctx.client.emojis.resolve(custom[3]);
 		if (!emoji) {
 			try {
 				const data = await axios
@@ -109,9 +109,7 @@ const addEmoji = async (
 						responseType: "arraybuffer",
 					})
 					.then(response => Buffer.from(response.data));
-				await role.setIcon(data);
-				await ctx.followUp(EphemeralResponse(`Set custom emoji sucessfully!`));
-				return;
+				emoji = data;
 			} catch (error) {
 				await ctx.followUp(
 					EphemeralResponse(`Couldn't get your emote for some reason 🤷‍♂️\n${error}`)
