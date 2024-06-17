@@ -103,10 +103,21 @@ const addEmoji = async (
 	if (custom) {
 		const emoji = ctx.client.emojis.resolve(custom[3]);
 		if (!emoji) {
-			await ctx.followUp(
-				EphemeralResponse(`Couldn't get your emote for some reason 🤷‍♂️ ${custom[3]}`)
-			);
-			return;
+			try {
+				const data = await axios
+					.get(`https://cdn.discordapp.com/emojis/${custom[3]}.png`, {
+						responseType: "arraybuffer",
+					})
+					.then(response => Buffer.from(response.data));
+				await role.setIcon(data);
+				await ctx.followUp(EphemeralResponse(`Set custom emoji sucessfully!`));
+				return;
+			} catch (error) {
+				await ctx.followUp(
+					EphemeralResponse(`Couldn't get your emote for some reason 🤷‍♂️\n${error}`)
+				);
+				return;
+			}
 		}
 		await role.setIcon(emoji);
 		await ctx.followUp(EphemeralResponse(`Set your role emoji to ${emoji}`));
