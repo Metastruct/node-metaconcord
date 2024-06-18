@@ -101,7 +101,7 @@ const addEmoji = async (
 		return;
 	}
 	if (custom) {
-		let emoji: Discord.GuildEmoji | Buffer | null = ctx.client.emojis.resolve(custom[3]);
+		let emoji: string | Buffer | undefined = ctx.client.emojis.resolve(custom[3])?.url;
 		if (!emoji) {
 			try {
 				const data = await axios
