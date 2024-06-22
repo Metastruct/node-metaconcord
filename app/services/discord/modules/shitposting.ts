@@ -191,11 +191,10 @@ export default async (bot: DiscordBot) => {
 	) => {
 		posting = true;
 		if (options.msg) (options.msg.channel as Discord.TextChannel).sendTyping();
-		const rng = Math.random();
-		const shouldUseAuthor = rng <= MSG_USE_AUTHOR_FREQ;
-		const shouldSendImg = rng <= DISCORD_IMAGE_FREQ;
-		const shouldSendSticker = rng <= STICKER_FREQ;
-		const shouldSendEmoji = rng <= EMOJI_REPLY_FREQ;
+		const shouldUseAuthor = Math.random() <= MSG_USE_AUTHOR_FREQ;
+		const shouldSendImg = Math.random() <= DISCORD_IMAGE_FREQ;
+		const shouldSendSticker = Math.random() <= STICKER_FREQ;
+		const shouldSendEmoji = Math.random() <= EMOJI_REPLY_FREQ;
 		const shat = await Shat({
 			msg: shouldUseAuthor
 				? options.msg?.author.globalName?.toLowerCase() ??
