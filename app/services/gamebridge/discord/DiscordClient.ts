@@ -36,7 +36,10 @@ export default class DiscordClient extends Discord.Client {
 			const member = await guild.members.fetch(user.id);
 			if (!member) return false;
 
-			return member.roles.cache.has(discord.config.roles.developer);
+			return member.roles.cache.hasAny(
+				discord.config.roles.developer,
+				discord.config.roles.administrator
+			);
 		} catch {
 			return false;
 		}
