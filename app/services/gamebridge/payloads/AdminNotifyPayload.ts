@@ -1,6 +1,6 @@
 import * as requestSchema from "./structures/AdminNotifyRequest.json";
 import { AdminNotifyRequest } from "./structures";
-import { DiscordClient, GameServer } from "..";
+import { GameServer } from "..";
 import { f } from "@/utils";
 import Discord from "discord.js";
 import Payload from "./Payload";
@@ -26,7 +26,13 @@ export default class AdminNotifyPayload extends Payload {
 		const collector = notificationsChannel.createMessageComponentCollector({ filter });
 
 		collector.on("collect", async (ctx: Discord.ButtonInteraction) => {
-			if (!(await DiscordClient.isAllowed(server, ctx.user))) return;
+			if (!(await server.discord.isAllowed(ctx.user))) {
+				await ctx.reply({
+					content: "you're not allowed to use this button...",
+					ephemeral: true,
+				});
+				return;
+			}
 			await ctx.deferReply();
 			try {
 				const interactionId64 = new SteamID(
