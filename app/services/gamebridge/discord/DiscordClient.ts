@@ -27,10 +27,10 @@ export default class DiscordClient extends Discord.Client {
 		this.login(token);
 	}
 
-	public static async isAllowed(server: GameServer, user: Discord.User): Promise<boolean> {
+	public async isAllowed(user: Discord.User): Promise<boolean> {
 		try {
-			const discord = server.discord;
-			const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
+			const discord = this.gameServer.discord;
+			const guild = await discord.guilds.fetch(discord.config.bot.primaryGuildId);
 			if (!guild) return false;
 
 			const member = await guild.members.fetch(user.id);
