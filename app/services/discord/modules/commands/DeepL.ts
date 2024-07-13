@@ -6,6 +6,7 @@ import axios, { AxiosResponse } from "axios";
 import config from "@/config/deepl.json";
 
 const LANG = [
+	"AR",
 	"BG",
 	"CS",
 	"DA",
@@ -19,10 +20,13 @@ const LANG = [
 	"FI",
 	"FR",
 	"HU",
+	"ID",
 	"IT",
 	"JA",
+	"KO",
 	"LT",
 	"LV",
+	"NB",
 	"NL",
 	"PL",
 	"PT-PT",
@@ -40,6 +44,43 @@ const LANG = [
 
 type SupportedLanguages = (typeof LANG)[number];
 
+const DESC: { [K in SupportedLanguages]: string } = {
+	AR: "Arabic",
+	BG: "Bulgarian",
+	CS: "Czech",
+	DA: "Danish",
+	DE: "German",
+	EL: "Greek",
+	EN: "English (unspecified variant for backward compatibility; please select EN-GB or EN-US instead)",
+	"EN-GB": "English (British)",
+	"EN-US": "English (American)",
+	ES: "Spanish",
+	ET: "Estonian",
+	FI: "Finnish",
+	FR: "French",
+	HU: "Hungarian",
+	ID: "Indonesian",
+	IT: "Italian",
+	JA: "Japanese",
+	KO: "Korean",
+	LT: "Lithuanian",
+	LV: "Latvian",
+	NB: "Norwegian Bokmål",
+	NL: "Dutch",
+	PL: "Polish",
+	PT: "Portuguese (unspecified variant for backward compatibility; please select PT-BR or PT-PT instead)",
+	"PT-BR": "Portuguese (Brazilian)",
+	"PT-PT": "Portuguese (all Portuguese varieties excluding Brazilian Portuguese)",
+	RO: "Romanian",
+	RU: "Russian",
+	SK: "Slovak",
+	SL: "Slovenian",
+	SV: "Swedish",
+	TR: "Turkish",
+	UK: "Ukrainian",
+	ZH: "Chinese (simplified)",
+};
+
 interface DeeplResponse {
 	translations: {
 		detected_source_language: string;
@@ -51,10 +92,16 @@ interface DeeplOptions {
 	text: string;
 	source_lang?: SupportedLanguages;
 	target_lang: SupportedLanguages;
+	context?: string;
 	split_sentences?: "0" | "1" | "nonewlines";
 	preserve_formatting?: "0" | "1";
 	formality?: "default" | "more" | "less" | "prefer_more" | "prefer_less";
 	glossary_id?: string;
+	tag_handling?: "xml" | "html";
+	outline_detection?: boolean;
+	non_splitting_tags?: string[];
+	splitting_tags?: string[];
+	ignore_tags?: string[];
 }
 
 async function translate(options: DeeplOptions): Promise<AxiosResponse<DeeplResponse>> {
@@ -80,14 +127,14 @@ export const SlashDeeplCommand: SlashCommand = {
 			},
 			{
 				name: "from",
-				description: "language to translate to",
+				description: "language to translate from",
 				type: Discord.ApplicationCommandOptionType.String,
 				autocomplete: true,
 			},
 			{
 				name: "formal",
 				description:
-					"try to get a more formal version if possible for now (DE,FR,IT,ES,NL,PL,PT,RU)",
+					"try to get a more formal version if possible for now (DE,ES,FR,IT,JA,NL,PL,PT,RU)",
 				type: Discord.ApplicationCommandOptionType.String,
 				choices: [
 					{ name: "more_formal", value: "prefer_more" },
@@ -137,7 +184,7 @@ export const SlashDeeplCommand: SlashCommand = {
 				},
 				{ limit: 0 }
 			).map(lang => {
-				return { name: lang, value: lang };
+				return { name: DESC[lang], value: lang };
 			})
 		);
 	},
