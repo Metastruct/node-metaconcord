@@ -179,7 +179,9 @@ export const SlashDeeplCommand: SlashCommand = {
 				function (entry) {
 					if (this.limit < 25) {
 						this.limit++;
-						return entry.includes(ctx.options.getFocused().toUpperCase());
+						return DESC[entry]
+							.toLowerCase()
+							.includes(ctx.options.getFocused().toLowerCase());
 					}
 				},
 				{ limit: 0 }
