@@ -41,8 +41,8 @@ export default (webApp: WebApp): void => {
 		const steamId = ident.match(/https:\/\/steamcommunity\.com\/openid\/id\/(\d+)/)?.[1];
 		if (!steamId || steamId.length === 0) return res.status(403).send("Invalid SteamID?");
 		await sql.queryPool(
-			"INSERT INTO discord_link (accountid, discorduserid, linked_at) VALUES($1, $2, $3) ON CONFLICT (accountid) DO UPDATE SET linked_at = $4",
-			[new SteamID(steamId).accountid, userId, new Date(), new Date()]
+			"INSERT INTO discord_link (accountid, discorduserid, linked_at) VALUES($1, $2, $3) ON CONFLICT (accountid) DO UPDATE SET linked_at = EXCLUDED.linked_at, discorduserid = EXCLUDED.discorduserid;",
+			[new SteamID(steamId).accountid, userId, new Date()]
 		);
 
 		return res.redirect("/discord/link");
