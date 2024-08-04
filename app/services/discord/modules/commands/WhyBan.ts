@@ -31,6 +31,8 @@ export const SlashWhyBanCommand: SlashCommand = {
 			ctx.followUp(EphemeralResponse("That SteamID has never been banned before."));
 			return;
 		}
+		const banner = await bot.container.getService("Steam")?.getUserSummaries(ban.bannersid);
+
 		if (!ban.b) {
 			ctx.followUp(
 				EphemeralResponse(
@@ -51,14 +53,16 @@ export const SlashWhyBanCommand: SlashCommand = {
 				EphemeralResponse(
 					`\`\`\`ansi\n\u001b[1;33m${
 						ban.name
-					}\u001b[0;0m is currently \u001b[0;31mbanned ${`\u001b[4;36m${
+					}\u001b[0;0m is currently \u001b[0;31mbanned\u001b[0;0m by \u001b[1;33m${
+						banner ? `${banner.personaname} ` : ""
+					}(${ban.bannersid})\u001b[0;0m ${`\u001b[4;36m${
 						ban.gamemode ? `on ${ban.gamemode}` : "globally"
 					}`}\u001b[0;0m for:\n\u001b[0;40m${ban.banreason.replaceAll(
 						"```",
 						"​`​`​`"
 					)}\u001b[0;0m\`\`\`expires: <t:${ban.whenunban}:R>${
 						ban.numbans && ban.numbans > 1
-							? `\n\`${ban.name}\` was banned \`${ban.numbans} times\` so far`
+							? `\n\`${ban.name}\` has been banned \`${ban.numbans} times\` so far`
 							: ""
 					}`
 				)
