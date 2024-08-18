@@ -58,8 +58,13 @@ const parseLength = (input: string): number => {
 	return len;
 };
 
-const Ban = async (nickname: string, ctx: Discord.ChatInputCommandInteraction, bot: DiscordBot) => {
-	await ctx.deferReply();
+const Ban = async (
+	nickname: string,
+	ctx: Discord.ChatInputCommandInteraction,
+	bot: DiscordBot,
+	defer = true
+) => {
+	if (defer) await ctx.deferReply();
 	const bridge = bot.bridge;
 	if (!bridge) return;
 	const selectedServer = ctx.options.getInteger("server") ?? 2;
@@ -163,7 +168,7 @@ export const SlashBanCommand: SlashCommand = {
 			});
 			const response = await ctx.awaitModalSubmit({ time: 60000 }).catch();
 			if (response) {
-				await Ban(response.fields.getTextInputValue("nickname_input"), ctx, bot);
+				await Ban(response.fields.getTextInputValue("nickname_input"), ctx, bot, false);
 			}
 			return;
 		}
