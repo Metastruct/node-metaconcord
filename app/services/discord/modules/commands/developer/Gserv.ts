@@ -208,9 +208,11 @@ export const SlashGservCommand: SlashCommand = {
 					)
 						.then(() => {
 							if (selectedServers.length === 1) return;
-							result.update(`sent ${commands.join(" and ")} successfully!`);
+							result.editReply(`sent ${commands.join(" and ")} successfully!`);
 						})
-						.catch(err => result.update(`something went wrong!\`\`\`\n${err}\`\`\``));
+						.catch(err =>
+							result.editReply(`something went wrong!\`\`\`\n${err}\`\`\``)
+						);
 				} catch (err) {
 					console.error(err);
 					await ctx.editReply(JSON.stringify(err));

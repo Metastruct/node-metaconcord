@@ -13,6 +13,8 @@ export class Data extends Service {
 	lastDiscordNickName: string;
 	lastMotd: string;
 	lastMsgTime: number;
+	lastResoniteToken: string;
+	lastResoniteTokenTime: number;
 	permaRoles: {
 		[userId: string]: {
 			roles: { [roleId: string]: { adderId: string; timeStamp: number } };
@@ -37,6 +39,8 @@ export class Data extends Service {
 		"lastDiscordGuildEvent",
 		"lastDiscordGuildIcon",
 		"lastDiscordNickName",
+		"lastResoniteToken",
+		"lastResoniteTime",
 		"lastMotd",
 		"lastMsgTime",
 		"muted",

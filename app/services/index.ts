@@ -13,10 +13,10 @@ import DataProvider, { Data } from "./Data";
 import DiscordBotProvider, { DiscordBot } from "./discord";
 import DiscordMetadataProvider, { DiscordMetadata } from "./DiscordMetadata";
 import GameBridgeProvider, { GameBridge } from "./gamebridge";
-import HuggingfaceProvider, { Huggingface } from "./Huggingface";
 import IRCProvider, { IRC } from "./IRC";
 import MarkovProvider, { Markov } from "./Markov";
 import MotdProvider, { Motd } from "./Motd";
+import ResoniteProvider, { Resonite } from "./Resonite";
 import SQLProvider, { SQL } from "./SQL";
 import StarboardProvider, { Starboard } from "./Starboard";
 import SteamProvider, { Steam } from "./Steam";
@@ -26,11 +26,11 @@ import WebAppProvider, { WebApp } from "./webapp";
 export default [
 	SQLProvider,
 	MarkovProvider,
-	HuggingfaceProvider,
 	SteamProvider,
 	DataProvider,
 	BanProvider,
 	WebAppProvider,
+	ResoniteProvider,
 	GameBridgeProvider,
 	DiscordBotProvider,
 	DiscordMetadataProvider,
@@ -43,8 +43,8 @@ export default [
 export {
 	SQL,
 	Markov,
-	Huggingface,
 	Data,
+	Resonite,
 	DiscordBot,
 	GameBridge,
 	Bans,
@@ -58,18 +58,18 @@ export {
 
 export type ServiceMap = {
 	[key: string]: Service | undefined;
+	Bans?: Bans;
 	Data?: Data;
 	DiscordBot?: DiscordBot;
-	GameBridge?: GameBridge;
-	Huggingface?: Huggingface;
-	Bans?: Bans;
-	Steam?: Steam;
 	DiscordMetadata?: DiscordMetadata;
-	WebApp?: WebApp;
-	Motd?: Motd;
-	Markov?: Markov;
-	Starboard?: Starboard;
-	Tenor?: Tenor;
-	SQL?: SQL;
+	GameBridge?: GameBridge;
 	IRC?: IRC;
+	Markov?: Markov;
+	Motd?: Motd;
+	Resonite?: Resonite;
+	SQL?: SQL;
+	Starboard?: Starboard;
+	Steam?: Steam;
+	Tenor?: Tenor;
+	WebApp?: WebApp;
 };

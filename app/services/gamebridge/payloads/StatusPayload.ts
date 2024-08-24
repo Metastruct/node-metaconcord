@@ -77,11 +77,9 @@ export default class StatusPayload extends Payload {
 			gamemodes,
 		} = payload.data;
 		const { bridge, discord } = server;
-		const webApp = bridge.container.getService("WebApp");
-		if (!webApp) return;
 		const {
 			config: { host, port, url },
-		} = webApp;
+		} = bridge.webApp;
 		const Steam = bridge.container.getService("Steam");
 
 		const updateStatus = async () => {
