@@ -70,7 +70,13 @@ export class DiscordBot extends Service {
 
 	async getGuildMember(userId: string): Promise<Discord.GuildMember | undefined> {
 		if (!this.ready) return;
-		return this.discord.guilds.cache.get(this.config.bot.primaryGuildId)?.members.fetch(userId);
+		try {
+			return this.discord.guilds.cache
+				.get(this.config.bot.primaryGuildId)
+				?.members.fetch(userId);
+		} catch {
+			return;
+		}
 	}
 
 	getGuild(): Discord.Guild | undefined {

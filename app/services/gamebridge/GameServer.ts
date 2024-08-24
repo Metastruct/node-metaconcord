@@ -37,16 +37,16 @@ export type Player = {
 };
 
 export default class GameServer {
-	connection: WebSocketConnection;
+	connection?: WebSocketConnection;
 	config: GameServerConfig;
 	bridge: GameBridge;
 	defcon: number;
 	discord: DiscordClient;
 	discordIcon: string | undefined = undefined;
 	discordBanner: string | undefined = undefined;
-	discordWH: WebhookClient;
-	discordEWH: WebhookClient;
-	discordPEWH: WebhookClient;
+	discordWH?: WebhookClient; // chat relay webhook
+	discordEWH?: WebhookClient; // error relay webhook
+	discordPEWH?: WebhookClient; // pac3 specific error webhook todo: remove???
 	gamemode: {
 		folderName: string;
 		name: string;
@@ -66,34 +66,38 @@ export default class GameServer {
 		id: string;
 	};
 
-	constructor(req: WebSocketRequest, bridge: GameBridge, config: GameServerConfig) {
-		this.connection = req.accept();
-		this.config = config;
-		this.bridge = bridge;
+	constructor(config: {
+		req?: WebSocketRequest;
+		bridge: GameBridge;
+		serverConfig: GameServerConfig;
+	}) {
+		this.connection = config.req?.accept();
+		this.config = config.serverConfig;
+		this.bridge = config.bridge;
 		this.discord = new DiscordClient(this, {
 			intents: ["Guilds", "GuildMessages", "MessageContent"],
 		});
 		this.discordWH = new WebhookClient({
-			url: bridge.config.chatWebhookUrl,
+			url: config.bridge.config.chatWebhookUrl,
 		});
 		this.discordEWH = new WebhookClient({
-			url: bridge.config.errorWebhookUrl,
+			url: config.bridge.config.errorWebhookUrl,
 		});
 		this.discordPEWH = new WebhookClient({
-			url: bridge.config.pacErrorWebhookUrl,
+			url: config.bridge.config.pacErrorWebhookUrl,
 		});
 
 		this.discord.run(this.config.discordToken);
 
 		this.discord.on("ready", async client => {
-			for (const [, payload] of Object.entries(bridge.payloads)) {
+			for (const [, payload] of Object.entries(config.bridge.payloads)) {
 				payload.initialize(this);
 			}
 			this.discordIcon = client.user.avatar ?? undefined;
 			this.discordBanner = client.user.banner ?? undefined;
 		});
 
-		this.connection.on("message", async (msg: IUtf8Message) => {
+		this.connection?.on("message", async (msg: IUtf8Message) => {
 			// if (received.utf8Data == "") console.log("Heartbeat");
 			if (!msg || msg.utf8Data == "") return;
 
@@ -111,7 +115,7 @@ export default class GameServer {
 			}
 
 			try {
-				for (const [name, payload] of Object.entries(bridge.payloads)) {
+				for (const [name, payload] of Object.entries(config.bridge.payloads)) {
 					if (data.name === name) {
 						return payload.handle(data, this);
 					}
@@ -132,7 +136,7 @@ export default class GameServer {
 			);
 		});
 
-		this.connection.on("close", (code, desc) => {
+		this.connection?.on("close", (code, desc) => {
 			this.discord.destroy();
 			console.log(`'${this.config.name}' Game Server disconnected - [${code}] ${desc}`);
 		});
@@ -157,7 +161,7 @@ export default class GameServer {
 	}
 
 	async sendLua(code: string, realm: RconResponse["realm"] = "sv", runner = "Metaconcord") {
-		if (!this.connection.connected) return;
+		if (!this.connection?.connected) return;
 		return this.bridge.payloads["RconPayload"].callLua(code, realm, this, runner);
 	}
 

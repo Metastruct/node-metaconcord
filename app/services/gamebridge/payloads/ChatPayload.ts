@@ -139,7 +139,7 @@ export default class ChatPayload extends Payload {
 		// 9312 = ①, 9313 = ②, and so on until 20
 		const serverId = `#${server.config.id}`; // String.fromCodePoint(9311 + +(server.config.id ?? 0));
 		await webhook
-			.send({
+			?.send({
 				content: content,
 				username: `${serverId} ${player.nick
 					// .replace(/@/g, "(at)")
