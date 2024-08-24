@@ -110,7 +110,7 @@ export default class GameBridge extends Service {
 			const server = this.servers[9];
 			if (!server) return;
 			const discord = server.discord;
-			if (session.hostUserId === config.resonite.userID) {
+			if (session.hostUserId === resonite.UserID) {
 				if (discord.ready) {
 					const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 					if (!guild) return;
