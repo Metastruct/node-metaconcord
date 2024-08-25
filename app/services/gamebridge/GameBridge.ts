@@ -124,6 +124,7 @@ export default class GameBridge extends Service {
 					const presence: Discord.PresenceData =
 						count > 0
 							? {
+									status: "online",
 									activities: [
 										{
 											name: `${count} player${count !== 1 ? "s" : ""}`,
@@ -132,6 +133,7 @@ export default class GameBridge extends Service {
 									],
 							  }
 							: {
+									status: "idle",
 									afk: true,
 									activities: [],
 							  };
