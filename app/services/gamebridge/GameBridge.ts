@@ -169,11 +169,14 @@ export default class GameBridge extends Service {
 							url: `https://go.resonite.com/sessions/${session.sessionId}`,
 						},
 						thumbnail: { url: session.thumbnailUrl },
-						image: {
-							url: `http://${server.bridge.webApp.config.host}:${
-								server.bridge.webApp.config.port
-							}/server-status/${server.config.id}/${Date.now()}`,
-						},
+						image:
+							count > 0
+								? {
+										url: `http://${server.bridge.webApp.config.host}:${
+											server.bridge.webApp.config.port
+										}/server-status/${server.config.id}/${Date.now()}`,
+								  }
+								: undefined,
 						footer: {
 							text: "metastruct @ Resonite",
 						},
