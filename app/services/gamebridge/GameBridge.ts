@@ -133,22 +133,25 @@ export default class GameBridge extends Service {
 							  }
 							: {
 									afk: true,
+									activities: [],
 							  };
 
 					discord.user?.setPresence(presence);
 
 					server.status.mapThumbnail = session.thumbnailUrl;
 
-					server.status.players = session.sessionUsers.map(sessionUser => {
-						return {
-							nick: sessionUser.username,
-							isAfk: !sessionUser.isPresent,
-							accountId: 0,
-							isAdmin: false,
-							isBanned: false,
-							ip: sessionUser.userID,
-						};
-					});
+					server.status.players = session.sessionUsers
+						.filter(u => u.userID !== resonite.UserID)
+						.map(sessionUser => {
+							return {
+								nick: sessionUser.username,
+								isAfk: !sessionUser.isPresent,
+								accountId: 0,
+								isAdmin: false,
+								isBanned: false,
+								ip: sessionUser.userID,
+							};
+						});
 
 					const embed: Discord.APIEmbed = {
 						title: session.name,
