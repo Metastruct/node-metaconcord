@@ -76,13 +76,16 @@ export type ResoniteSession = {
 export type ResoniteUser = {
 	id: string;
 	username: string;
+	// entitlements?: {
+	// 	$type: string;
+	// }[];
 	normalizedUsername: string;
 	registrationDate: Date;
 	isVerified: boolean;
 	isLocked: boolean;
 	supressBanEvasion: boolean;
 	"2fa_login": boolean;
-	profile: {
+	profile?: {
 		iconUrl: string;
 		displayBadges: string[];
 	};
@@ -101,8 +104,20 @@ export class Resonite extends Service {
 		const cached = this.ResoniteUserCache[id];
 		if (cached && !forceFetch) return cached;
 		const res = await axios.get<ResoniteUser>(`https://api.resonite.com/users/${id}`).catch();
-		if (res) return res.data;
+		if (res) {
+			this.ResoniteUserCache[id] = res.data;
+			return res.data;
+		}
 		return undefined;
+	}
+
+	async GetResoniteUserAvatarURL(id: string) {
+		const user = await this.GetResoniteUser(id);
+		if (!user || !user.profile) return;
+		return (
+			`https://assets.resonite.com/${/resdb:\/\/\/(.+)\./.exec(user.profile.iconUrl)?.[1]}` ??
+			undefined
+		);
 	}
 
 	async GetOrFetchToken(): Promise<void> {
