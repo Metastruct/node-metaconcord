@@ -89,6 +89,7 @@ export default class GameBridge extends Service {
 				headers: { Authorization: `res ${resonite.UserID}:${resonite.ResoniteToken}` },
 			})
 			.configureLogging(signalR.LogLevel.Error)
+			.withAutomaticReconnect()
 			.build();
 
 		con.start()
