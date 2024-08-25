@@ -108,10 +108,10 @@ export default class GameBridge extends Service {
 			.catch();
 
 		con.on("ReceiveSessionUpdate", async (session: ResoniteSession) => {
-			const server = this.servers[9];
+			const server = this.servers[id];
 			if (!server) return;
-			const discord = server.discord;
 			if (session.hostUserId === resonite.UserID) {
+				const discord = server.discord;
 				if (discord.ready) {
 					const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 					if (!guild) return;
@@ -153,8 +153,13 @@ export default class GameBridge extends Service {
 								isAdmin: false,
 								isBanned: false,
 								ip: sessionUser.userID,
+								avatar: undefined,
 							};
 						});
+
+					server.status.players.forEach(
+						async u => (u.avatar = await resonite.GetResoniteUserAvatarURL(u.ip))
+					);
 
 					const embed: Discord.APIEmbed = {
 						title: session.name,
@@ -172,18 +177,17 @@ export default class GameBridge extends Service {
 							url: `https://go.resonite.com/session/${session.sessionId}`,
 						},
 						thumbnail: { url: session.thumbnailUrl },
-						image:
-							count > 0
-								? {
-										url: `http://${server.bridge.webApp.config.host}:${
-											server.bridge.webApp.config.port
-										}/server-status/${server.config.id}/${Date.now()}`,
-								  }
-								: undefined,
 						footer: {
 							text: "metastruct @ Resonite",
 						},
 					};
+
+					if (server.status.players.length > 0)
+						embed.image = {
+							url: `http://${server.bridge.webApp.config.host}:${
+								server.bridge.webApp.config.port
+							}/server-status/${server.config.id}/${Date.now()}`,
+						};
 
 					const messages = await channel.messages.fetch();
 					const message = messages
