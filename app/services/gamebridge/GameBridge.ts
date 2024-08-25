@@ -168,7 +168,7 @@ export default class GameBridge extends Service {
 						author: {
 							name: server.config.name,
 							icon_url: server.discordIcon,
-							url: `https://go.resonite.com/sessions/${session.sessionId}`,
+							url: `https://go.resonite.com/session/${session.sessionId}`,
 						},
 						thumbnail: { url: session.thumbnailUrl },
 						image:
