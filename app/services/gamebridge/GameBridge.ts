@@ -100,7 +100,7 @@ export default class GameBridge extends Service {
 				}));
 				server.discord.on("ready", client => {
 					server.changeIcon(
-						"https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull_vr.png?&inline=true"
+						"https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull_resonite.png?&inline=true"
 					);
 					if (server.status.mapThumbnail) server.changeBanner(server.status.mapThumbnail);
 				});
