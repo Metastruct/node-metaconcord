@@ -157,9 +157,7 @@ class MarkovChain extends MarkovChainBase {
 	}
 
 	ready(): void {
-		this.db.run(
-			"CREATE TABLE IF NOT EXISTS markov (`timestamp` DATETIME, `authorID` VARCHAR(255), `authorName` VARCHAR(255), `message` VARCHAR(255));"
-		);
+		this.db.run("CREATE TABLE IF NOT EXISTS markov (`message` VARCHAR(255));");
 	}
 
 	learn(data: ILearnData): Promise<void> {
@@ -167,11 +165,8 @@ class MarkovChain extends MarkovChainBase {
 			data.message = data.message.trim().replace(/\s+/g, " "); // standardise whitespace
 
 			this.db.run(
-				"INSERT INTO markov VALUES ($timestamp, $authorID, $authorName, $message)",
+				"INSERT INTO markov VALUES ($message)",
 				{
-					$timestamp: Math.round((data.timestamp || Date.now()) / 1000),
-					$authorID: data.authorID,
-					$authorName: data.authorName,
 					$message: data.message,
 				},
 				err => {
