@@ -140,7 +140,9 @@ export default class StatusPayload extends Payload {
 				if (current_countdown) {
 					presence.activities = [
 						{
-							name: `${current_countdown.text} in ${current_countdown.time} seconds`,
+							name: `${current_countdown.text} in ${current_countdown.time} second${
+								current_countdown.time > 1 ? "s" : ""
+							}`,
 							type: 3,
 						},
 					];
