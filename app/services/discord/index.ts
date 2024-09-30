@@ -137,7 +137,6 @@ export class DiscordBot extends Service {
 		if (this.container.getService("Motd")?.isValidMsg(content))
 			this.container.getService("Markov")?.learn({
 				authorName: msg.author.username,
-				authorID: msg.author.id,
 				message: msg.content,
 			});
 	}
