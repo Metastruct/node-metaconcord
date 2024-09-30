@@ -135,10 +135,7 @@ export class DiscordBot extends Service {
 
 		const content = msg.content;
 		if (this.container.getService("Motd")?.isValidMsg(content))
-			this.container.getService("Markov")?.learn({
-				authorName: msg.author.username,
-				message: msg.content,
-			});
+			this.container.getService("Markov")?.learn(msg.content);
 	}
 
 	async fixEmbeds(msg: Discord.Message): Promise<void> {

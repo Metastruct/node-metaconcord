@@ -131,9 +131,7 @@ export default class ChatPayload extends Payload {
 		const motd = bridge.container.getService("Motd");
 		if (motd?.isValidMsg(content)) {
 			motd.pushMessage(content);
-			bridge.container
-				.getService("Markov")
-				?.learn({ authorName: payload.data.player.nick, message: content });
+			bridge.container.getService("Markov")?.learn(content);
 		}
 
 		// 9312 = ①, 9313 = ②, and so on until 20
