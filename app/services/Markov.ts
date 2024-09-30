@@ -2,11 +2,6 @@
 import * as sqlite from "sqlite3";
 import { Container } from "../Container";
 import { Service } from ".";
-interface ILearnData {
-	timestamp?: number;
-	message: string;
-	authorName: string;
-}
 
 export interface IGenerateOptions {
 	depth?: number;
@@ -15,8 +10,8 @@ export interface IGenerateOptions {
 }
 
 abstract class MarkovChainBase {
-	abstract learn(data: ILearnData): Promise<void>;
-	abstract queryDB(chain: string[]): Promise<ILearnData | null>;
+	abstract learn(data: string): Promise<void>;
+	abstract queryDB(chain: string[]): Promise<string | null>;
 
 	private getWords(sentence: string) {
 		if (sentence.match(/^\s*$/)) {
@@ -110,11 +105,11 @@ abstract class MarkovChainBase {
 		while (out.length < maxLength) {
 			const data = await this.queryDB(chain);
 
-			if (!data || !data.message) {
+			if (!data) {
 				break;
 			}
 
-			words = this.getWords(data.message);
+			words = this.getWords(data);
 
 			lastChain = chain;
 			chain = this.matchCurrentChain(words, chain, depth);
@@ -156,15 +151,14 @@ class MarkovChain extends MarkovChainBase {
 	ready(): void {
 		this.db.run("CREATE TABLE IF NOT EXISTS markov (`message` VARCHAR(255));");
 	}
-
-	learn(data: ILearnData): Promise<void> {
+	learn(data: string): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
-			data.message = data.message.trim().replace(/\s+/g, " "); // standardise whitespace
+			data = data.trim().replace(/\s+/g, " "); // standardise whitespace
 
 			this.db.run(
 				"INSERT INTO markov VALUES ($message)",
 				{
-					$message: data.message,
+					$message: data,
 				},
 				err => {
 					if (err) {
@@ -177,7 +171,7 @@ class MarkovChain extends MarkovChainBase {
 		});
 	}
 
-	queryDB(chain: string[]): Promise<ILearnData | null> {
+	queryDB(chain: string[]): Promise<string | null> {
 		return new Promise((resolve, reject) => {
 			const sentence = chain.join(" ");
 
@@ -220,7 +214,7 @@ export class Markov extends Service {
 	name = "Markov";
 	markov = new MarkovChain("./metaconcord.db");
 
-	async learn(data: ILearnData): Promise<void> {
+	async learn(data: string): Promise<void> {
 		await this.markov.learn(data);
 	}
 
