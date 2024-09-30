@@ -5,20 +5,18 @@ import { Service } from ".";
 interface ILearnData {
 	timestamp?: number;
 	message: string;
-	authorID?: string;
 	authorName: string;
 }
 
 export interface IGenerateOptions {
 	depth?: number;
 	length?: number;
-	authorID?: string;
 	continuation?: boolean;
 }
 
 abstract class MarkovChainBase {
 	abstract learn(data: ILearnData): Promise<void>;
-	abstract queryDB(chain: string[], authorID?: string): Promise<ILearnData | null>;
+	abstract queryDB(chain: string[]): Promise<ILearnData | null>;
 
 	private getWords(sentence: string) {
 		if (sentence.match(/^\s*$/)) {
@@ -89,7 +87,6 @@ abstract class MarkovChainBase {
 		depth = 4,
 		maxLength = 50,
 		sentence = "",
-		authorID = "",
 		continuation = true,
 		callback?: (word: string) => void
 	): Promise<string | undefined> {
@@ -111,7 +108,7 @@ abstract class MarkovChainBase {
 		const startCount = out.length;
 
 		while (out.length < maxLength) {
-			const data = await this.queryDB(chain, authorID);
+			const data = await this.queryDB(chain);
 
 			if (!data || !data.message) {
 				break;
@@ -180,28 +177,21 @@ class MarkovChain extends MarkovChainBase {
 		});
 	}
 
-	queryDB(chain: string[], authorID: string): Promise<ILearnData | null> {
+	queryDB(chain: string[]): Promise<ILearnData | null> {
 		return new Promise((resolve, reject) => {
 			const sentence = chain.join(" ");
 
 			if (sentence.trim() === "") {
-				this.db.get(
-					`SELECT * FROM markov ${
-						authorID ? `WHERE authorID = ${authorID}` : ""
-					} ORDER BY RANDOM() LIMIT 1`,
-					(err, res) => {
-						if (err) {
-							reject(err);
-						} else {
-							resolve(res);
-						}
+				this.db.get(`SELECT * FROM markov ORDER BY RANDOM() LIMIT 1`, (err, res) => {
+					if (err) {
+						reject(err);
+					} else {
+						resolve(res);
 					}
-				);
+				});
 			} else {
 				this.db.all(
-					`SELECT * FROM markov WHERE ${
-						authorID ? `authorID = ${authorID} AND` : ""
-					}(message LIKE $sentence1 OR [message] Like $sentence3 ) ORDER BY RANDOM() LIMIT 1`,
+					`SELECT * FROM markov WHERE (message LIKE $sentence1 OR [message] Like $sentence3 ) ORDER BY RANDOM() LIMIT 1`,
 					{
 						$sentence1: `_% ${sentence} %_`,
 						// $sentence2: `% ${sentence}`,
@@ -240,7 +230,6 @@ export class Markov extends Service {
 				options?.depth,
 				options?.length,
 				sentence,
-				options?.authorID,
 				options?.continuation
 			);
 		} catch (err) {
