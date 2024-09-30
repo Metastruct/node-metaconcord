@@ -30,11 +30,6 @@ export const SlashMarkovCommand: SlashCommand = {
 				max_value: 50,
 			},
 			{
-				name: "user",
-				description: "does exactly what you think it does.",
-				type: Discord.ApplicationCommandOptionType.User,
-			},
-			{
 				name: "continuation",
 				description: "should it include your sentence in the response?",
 				type: Discord.ApplicationCommandOptionType.Boolean,
@@ -49,7 +44,6 @@ export const SlashMarkovCommand: SlashCommand = {
 			?.generate(ctx.options.getString("sentence") ?? undefined, {
 				depth: ctx.options.getInteger("insanity") ?? undefined,
 				length: ctx.options.getInteger("length") ?? undefined,
-				authorID: ctx.options.getUser("user")?.id,
 				continuation: ctx.options.getBoolean("continuation") ?? undefined,
 			});
 
