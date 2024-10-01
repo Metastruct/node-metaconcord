@@ -124,6 +124,7 @@ export default (bot: DiscordBot): void => {
 					data.lastDiscordGuildIcon = filePath;
 				} catch (err) {
 					console.error(err);
+					return;
 				}
 				data.lastDiscordGuildEvent = eventName;
 			}
@@ -174,7 +175,7 @@ export default (bot: DiscordBot): void => {
 			const word = wordList[(Math.random() * wordList?.length) | 0];
 			nick = word.charAt(0).toUpperCase() + word.slice(1);
 
-			return { filePath: defaultIconPath, eventName, nickName: nick };
+			return { filePath: filePath, eventName, nickName: nick };
 		};
 
 		const doIt = async () => {
