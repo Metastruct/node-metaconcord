@@ -198,7 +198,7 @@ class MarkovChain extends MarkovChainBase {
 						} else {
 							for (const res of resArr) {
 								if (!res.message.endsWith(sentence)) {
-									resolve(res);
+									resolve(res.message);
 									return;
 								}
 							}
