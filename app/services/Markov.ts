@@ -180,7 +180,7 @@ class MarkovChain extends MarkovChainBase {
 					if (err) {
 						reject(err);
 					} else {
-						resolve(res);
+						resolve(res.message);
 					}
 				});
 			} else {
