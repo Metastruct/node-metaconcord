@@ -9,7 +9,7 @@ export const MenuRemoveHighlightMessageCommand: MenuCommand = {
 	},
 	execute: async (ctx: Discord.MessageContextMenuCommandInteraction, bot) => {
 		if (
-			ctx.targetMessage.author.id !== ctx.client.user.id ||
+			!ctx.targetMessage.webhookId ||
 			(ctx.targetMessage.channel as Discord.GuildChannel).parentId !==
 				bot.config.categories.highlights
 		) {
