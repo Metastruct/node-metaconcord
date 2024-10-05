@@ -3,6 +3,7 @@ import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL";
 import { MenuGetStickerUrlCommand } from "./GetStickerUrl";
 import { MenuGetVoiceMessageUrlCommand } from "./GetVoiceMessageUrl";
 import { MenuManageMediaLinksCommand, SlashManageMediaLinks } from "./developer/ManageMediaLinks";
+import { MenuRemoveHighlightMessageCommand } from "./RemoveHighlightMessage";
 import { MenuWhyRoleCommand } from "./WhyRole";
 import { SlashBanCommand } from "./developer/Ban";
 import { SlashFileCommand } from "./developer/File";
@@ -53,6 +54,7 @@ export const menuCommands = [
 	MenuDeeplCommand,
 	MenuGetStickerUrlCommand,
 	MenuGetVoiceMessageUrlCommand,
+	MenuRemoveHighlightMessageCommand,
 	MenuWhyRoleCommand,
 ];
 
