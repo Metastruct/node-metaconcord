@@ -352,7 +352,9 @@ export default async (bot: DiscordBot) => {
 			if (mk) {
 				lastReactionUserId = user.id;
 				lastRespondedReactionMsgs.push(reaction.message.id);
-				await reaction.message.channel.send(`${user.mention} ` + mk).catch();
+				await (reaction.message.channel as Discord.TextChannel)
+					.send(`${user.mention} ` + mk)
+					.catch();
 			}
 		}
 	});
