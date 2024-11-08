@@ -313,24 +313,31 @@ export const SlashRoleCommand: SlashCommand = {
 	execute: async ctx => {
 		await ctx.deferReply({ ephemeral: true });
 		const cmd = ctx.options.getSubcommand();
-		switch (cmd) {
-			case "add":
-			case "add_rgb":
-			case "add_hex":
-				await addRole(ctx);
-				break;
-			case "add_emoji":
-				await addRoleIcon(ctx, false);
-				break;
-			case "add_icon":
-				await addRoleIcon(ctx, true);
-				break;
-			case "remove":
-				await removeRole(ctx);
-				break;
-			case "remove_icon":
-				await removeRoleIcon(ctx);
-				break;
+		try {
+			switch (cmd) {
+				case "add":
+				case "add_rgb":
+				case "add_hex":
+					await addRole(ctx);
+					break;
+				case "add_emoji":
+					await addRoleIcon(ctx, false);
+					break;
+				case "add_icon":
+					await addRoleIcon(ctx, true);
+					break;
+				case "remove":
+					await removeRole(ctx);
+					break;
+				case "remove_icon":
+					await removeRoleIcon(ctx);
+					break;
+			}
+		} catch (err) {
+			console.error(err);
+			await ctx.followUp(
+				EphemeralResponse(`Something went wrong adding your role :(\n` + err)
+			);
 		}
 	},
 	initialize: async bot => {
