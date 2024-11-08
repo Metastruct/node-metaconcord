@@ -42,6 +42,9 @@ export default (webApp: WebApp): void => {
 					html,
 					transparent: true,
 					selector: "main",
+					puppeteerArgs: {
+						args: ["--no-sandbox"],
+					},
 				})) as Buffer;
 
 				res.set({
