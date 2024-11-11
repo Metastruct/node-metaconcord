@@ -37,6 +37,17 @@ const REPLY_FREQ = 0.5; // how often to when to take a word from a previous mess
 
 const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp", "tumblr"];
 
+const getMediaUrl = (url: string) => {
+	const match = url.match(
+		new RegExp(
+			`https?://(?:(?:\\w+)?\\.?)+(?:${ALLOWED_IMG_PROVIDERS.join(
+				"|"
+			)})\\.(?:com|io)/[^?\\s]+`
+		)
+	);
+	if (match) return match[0];
+};
+
 const IGNORE_LIST = ["437294613976449024"];
 
 function getWord(msg?: string) {
@@ -335,15 +346,38 @@ export default async (bot: DiscordBot) => {
 	});
 
 	bot.discord.on("messageReactionAdd", async (reaction, user) => {
+		const message = reaction.message;
 		if (
-			!bot.config.bot.allowedShitpostingChannels.includes(reaction.message.channelId) ||
-			reaction.message.author?.id !== bot.discord.user?.id ||
-			lastRespondedReactionMsgs.includes(reaction.message.id)
+			!bot.config.bot.allowedShitpostingChannels.includes(message.channelId) ||
+			message.author?.id !== bot.discord.user?.id
 		)
 			return;
 
 		if (
+			message.content?.startsWith("http") &&
+			reaction.emoji.name === "👎" &&
+			reaction.count &&
+			reaction.count >= 5
+		) {
+			const url = getMediaUrl(message.content);
+			if (url) {
+				await message
+					.delete()
+					.then(() => {
+						db.run("DELETE FROM media_urls WHERE url = ?", url);
+					})
+					.catch(err =>
+						console.error(
+							"[shitposting] Failed to delete requested message from cache",
+							err
+						)
+					);
+			}
+		}
+
+		if (
 			user.id !== lastReactionUserId &&
+			!lastRespondedReactionMsgs.includes(message.id) &&
 			Math.random() <= (reaction.emoji.name === "h_" ? 0.025 : MSG_REPLY_REACTION_FREQ)
 		) {
 			const mk = await bot.container
@@ -351,8 +385,8 @@ export default async (bot: DiscordBot) => {
 				?.generate(reaction.emoji.toString(), DefaultMarkovConfig);
 			if (mk) {
 				lastReactionUserId = user.id;
-				lastRespondedReactionMsgs.push(reaction.message.id);
-				await (reaction.message.channel as Discord.TextChannel)
+				lastRespondedReactionMsgs.push(message.id);
+				await (message.channel as Discord.TextChannel)
 					.send(`${user.mention} ` + mk)
 					.catch();
 			}
@@ -440,18 +474,11 @@ export default async (bot: DiscordBot) => {
 
 		// image collector
 		if (msg.content.startsWith("http") && !isBot && !isHidden) {
-			const match = msg.content.match(
-				new RegExp(
-					`https?://(?:(?:\\w+)?\\.?)+(?:${ALLOWED_IMG_PROVIDERS.join(
-						"|"
-					)})\\.(?:com|io)/[^?\\s]+`
-				)
-			);
-			if (match) {
+			const url = getMediaUrl(msg.content);
+			if (url)
 				db.run("INSERT INTO media_urls VALUES($url) ON CONFLICT DO NOTHING", {
-					$url: match[0],
+					$url: url,
 				});
-			}
 		}
 	});
 };
