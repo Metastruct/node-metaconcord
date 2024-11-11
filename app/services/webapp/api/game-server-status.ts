@@ -53,6 +53,7 @@ export default (webApp: WebApp): void => {
 				});
 				res.send(server.playerListImage);
 			} catch (err) {
+				console.error("game-server-status image failed", err);
 				res.send(err);
 			}
 		} else {
