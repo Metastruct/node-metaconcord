@@ -2,7 +2,7 @@ import { DiscordBot } from "../../discord";
 import { WebApp } from "..";
 import servers from "@/config/gamebridge.servers.json";
 
-const HOSTING_IDS = { 3: true };
+const HOSTING_IDS = { 3: true, 1: true };
 
 export default (webApp: WebApp): void => {
 	let bot: DiscordBot | undefined;
