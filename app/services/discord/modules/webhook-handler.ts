@@ -226,10 +226,13 @@ export default (bot: DiscordBot): void => {
 	});
 
 	const REPO_SERVER_MAP: [repo: string, servers: number[]][] = [
-		["terrortown_modding", [3]],
-		["MTA-Gamemode", [3]],
-		["TTT2", [3]],
+		// maybe move this to a config?
 		["Lumiens-Map-Vote", [3]],
+		["MTA-Gamemode", [3]],
+		["terrortown_modding", [3]],
+		["ttt_player_tumbler", [3]],
+		["ttt_ragmod", [3]],
+		["TTT2", [3]],
 	];
 
 	GitHub.on("push", async event => {
