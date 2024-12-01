@@ -75,6 +75,7 @@ export default (bot: DiscordBot): void => {
 						const path = join(iconsPath, `${icon}.png`);
 						await event.guild?.setIcon(path);
 						await bot.discord.user?.setAvatar(path);
+						data.lastDiscordNickName = (await bot.getNickname()) ?? "Meta";
 						await bot.setNickname(
 							nicks[(Math.random() * nicks.length) | 0],
 							event.name
