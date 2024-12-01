@@ -1,5 +1,5 @@
 import { Container } from "@/app/Container";
-import { Data, Service } from "@/app/services";
+import { Data, DiscordBot, Service } from "@/app/services";
 import { scheduleJob } from "node-schedule";
 import FormData from "form-data";
 import axios, { AxiosResponse } from "axios";
@@ -94,6 +94,7 @@ export class Motd extends Service {
 	lastimages: ImgurImage[] = [];
 
 	private data: Data;
+	private bot: DiscordBot;
 	private rerolls = 0;
 
 	private ignorelist: Array<string> = ["STEAM_0:1:161162716", "STEAM_0:0:25648317"];
@@ -105,8 +106,10 @@ export class Motd extends Service {
 		// scheduleJob("0 20 * * *", this.executeImageJob.bind(this));
 		// scheduleJob("0 0 * * 0", this.clearImageAlbumAndHistory.bind(this));
 		const data = this.container.getService("Data");
-		if (!data) return;
+		const bot = this.container.getService("DiscordBot");
+		if (!data || !bot) return;
 		this.data = data;
+		this.bot = bot;
 		// axios
 		// 	.get(`https://api.imgur.com/3/album/${config.imgurAlbumId}/images`, {
 		// 		headers: {
@@ -173,7 +176,7 @@ export class Motd extends Service {
 				},
 			}
 		);
-		await this.setMotdNickName(msg);
+		await this.setNicknameFromSentence(msg);
 	}
 
 	private async executeImageJob(patch?: boolean, msgId?: string): Promise<void> {
@@ -238,22 +241,22 @@ export class Motd extends Service {
 					}
 				);
 			}
-			this.container.getService("DiscordBot")?.setServerBanner(url);
+			this.bot.setServerBanner(url);
 			this.lastimages.push(image);
 			await this.data.save();
 			setTimeout(async () => {
-				const last = await this.container.getService("DiscordBot")?.getLastMotdMsg();
+				const last = await this.bot.getLastMotdMsg();
 				await last?.react("♻️");
 			}, 1000 * 10);
 		}
 	}
 	async rerollImageJob(): Promise<void> {
-		if (!(await this.container.getService("DiscordBot")?.overLvl2())) return;
-		const lastmsg = await this.container.getService("DiscordBot")?.getLastMotdMsg();
+		if (!(await this.bot.overLvl2())) return;
+		const lastmsg = await this.bot.getLastMotdMsg();
 		if (!lastmsg) return;
 
 		await this.executeImageJob(true, lastmsg.id);
-		await this.container.getService("DiscordBot")?.removeMotdReactions();
+		await this.bot.removeMotdReactions();
 	}
 
 	async getImageInfo(id: string): Promise<ImgurImage | undefined> {
@@ -269,14 +272,15 @@ export class Motd extends Service {
 		} catch {}
 	}
 
-	async setMotdNickName(motd: string): Promise<boolean | undefined> {
+	async setNicknameFromSentence(motd: string): Promise<boolean | undefined> {
+		if (motd.length === 0) return;
 		let nick = "Meta";
 		const wordList = motd
 			.split(" ")
 			.filter(w => w.length <= 22 && !filter.includes(w.toLowerCase()));
 		const word = wordList[(Math.random() * wordList?.length) | 0];
 		nick = word.charAt(0).toUpperCase() + word.slice(1);
-		return await this.container.getService("DiscordBot")?.setNickname(nick, "Random Motd name");
+		return await this.bot.setNickname(nick, "Random Motd name");
 	}
 }
 export default (container: Container): Service => {
