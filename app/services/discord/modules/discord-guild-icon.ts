@@ -44,52 +44,6 @@ const fileExists = async (filePath: PathLike) =>
 		.then(stats => stats.isFile())
 		.catch(() => false);
 
-const filter = [
-	"again",
-	"also",
-	"an",
-	"and",
-	"but",
-	"by",
-	"come",
-	"despite",
-	"did",
-	"do",
-	"done",
-	"else",
-	"for",
-	"has",
-	"hasn't",
-	"hasnt",
-	"have",
-	"i'm",
-	"if",
-	"im",
-	"in",
-	"instead",
-	"is",
-	"it's",
-	"it",
-	"its",
-	"like",
-	"literally",
-	"me",
-	"myself",
-	"nor",
-	"of",
-	"rather",
-	"so",
-	"than",
-	"then",
-	"there",
-	"this",
-	"to",
-	"was",
-	"while",
-	"with",
-	"yet",
-];
-
 export default (bot: DiscordBot): void => {
 	const data = bot.container.getService("Data");
 	if (!data) return;
@@ -98,20 +52,11 @@ export default (bot: DiscordBot): void => {
 		const guild = bot.getGuild();
 		if (!guild) return;
 
-		const changeIcon = async (filePath: string, eventName: string, nickName: string) => {
+		const changeIcon = async (filePath: string, eventName: string) => {
 			const eventChange = data.lastDiscordGuildEvent !== eventName;
-			const nickChange = guild.members.me?.nickname !== nickName;
 			const guildEvents = await guild.scheduledEvents.fetch();
-			if (!eventChange && !nickChange) return;
+			if (!eventChange) return;
 
-			if (nickChange) {
-				try {
-					await bot.setNickname(nickName, "Random Motd name");
-				} catch (err) {
-					console.error(err);
-				}
-				data.lastDiscordNickName = nickName;
-			}
 			if (eventChange && !guildEvents.find(ev => ev.isActive())) {
 				try {
 					await guild.setIcon(
@@ -134,7 +79,6 @@ export default (bot: DiscordBot): void => {
 		const checkDate = async () => {
 			let filePath = defaultIconPath;
 			let eventName = "None";
-			let nick = "Meta";
 
 			for (const { icon, range } of events) {
 				const [start, end] = range;
@@ -169,18 +113,12 @@ export default (bot: DiscordBot): void => {
 				}
 			}
 
-			const wordList = data.lastMotd
-				.split(" ")
-				.filter(w => w.length <= 22 && !filter.includes(w.toLowerCase()));
-			const word = wordList[(Math.random() * wordList?.length) | 0];
-			nick = word.charAt(0).toUpperCase() + word.slice(1);
-
-			return { filePath: filePath, eventName, nickName: nick };
+			return { filePath: filePath, eventName };
 		};
 
 		const doIt = async () => {
-			const { filePath, eventName, nickName } = await checkDate();
-			changeIcon(filePath, eventName, nickName);
+			const { filePath, eventName } = await checkDate();
+			changeIcon(filePath, eventName);
 		};
 
 		scheduleJob("0 0 * * *", doIt);

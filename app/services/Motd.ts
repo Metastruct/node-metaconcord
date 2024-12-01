@@ -41,6 +41,52 @@ type ImgurResponse = {
 	status: number;
 };
 
+const filter = [
+	"again",
+	"also",
+	"an",
+	"and",
+	"but",
+	"by",
+	"come",
+	"despite",
+	"did",
+	"do",
+	"done",
+	"else",
+	"for",
+	"has",
+	"hasn't",
+	"hasnt",
+	"have",
+	"i'm",
+	"if",
+	"im",
+	"in",
+	"instead",
+	"is",
+	"it's",
+	"it",
+	"its",
+	"like",
+	"literally",
+	"me",
+	"myself",
+	"nor",
+	"of",
+	"rather",
+	"so",
+	"than",
+	"then",
+	"there",
+	"this",
+	"to",
+	"was",
+	"while",
+	"with",
+	"yet",
+];
+
 export class Motd extends Service {
 	name = "Motd";
 	messages: string[] = [];
@@ -127,6 +173,7 @@ export class Motd extends Service {
 				},
 			}
 		);
+		await this.setMotdNickName(msg);
 	}
 
 	private async executeImageJob(patch?: boolean, msgId?: string): Promise<void> {
@@ -220,6 +267,16 @@ export class Motd extends Service {
 				return res.data.data;
 			}
 		} catch {}
+	}
+
+	async setMotdNickName(motd: string): Promise<boolean | undefined> {
+		let nick = "Meta";
+		const wordList = motd
+			.split(" ")
+			.filter(w => w.length <= 22 && !filter.includes(w.toLowerCase()));
+		const word = wordList[(Math.random() * wordList?.length) | 0];
+		nick = word.charAt(0).toUpperCase() + word.slice(1);
+		return await this.container.getService("DiscordBot")?.setNickname(nick, "Random Motd name");
 	}
 }
 export default (container: Container): Service => {
