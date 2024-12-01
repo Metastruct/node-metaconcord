@@ -117,6 +117,11 @@ export class DiscordBot extends Service {
 		return true;
 	}
 
+	async getNickname(): Promise<string | undefined> {
+		if (!this.ready || !this.discord.user) return;
+		return (await this.getGuildMember(this.discord.user.id))?.nickname?.split(" ")[0];
+	}
+
 	async setServerBanner(url: string): Promise<void> {
 		if (!this.ready || !(await this.overLvl2())) return;
 		const guild = this.getGuild();
