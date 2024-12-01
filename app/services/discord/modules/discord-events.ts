@@ -40,13 +40,12 @@ export default (bot: DiscordBot): void => {
 	) => {
 		console.log(`Event "${event.name}" ended! Removing roles...`);
 		const users = await GetParticipants(event);
-		if (users.length === 0) {
-			return;
+		if (users.length > 0) {
+			users.forEach(usr => {
+				if (usr.roles.cache.some(role => role.id === DiscordConfig.roles.event))
+					usr.roles.remove(DiscordConfig.roles.event);
+			});
 		}
-		users.forEach(usr => {
-			if (usr.roles.cache.some(role => role.id === DiscordConfig.roles.event))
-				usr.roles.remove(DiscordConfig.roles.event);
-		});
 		await event.guild?.setIcon(data.lastDiscordGuildIcon);
 		await bot.discord.user?.setAvatar(data.lastDiscordGuildIcon);
 		await bot.setNickname(data.lastDiscordNickName, event.name + " ended");
