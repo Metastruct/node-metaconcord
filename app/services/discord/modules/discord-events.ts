@@ -41,7 +41,6 @@ export default (bot: DiscordBot): void => {
 		console.log(`Event "${event.name}" ended! Removing roles...`);
 		const users = await GetParticipants(event);
 		if (users.length === 0) {
-			console.error("[discord-events] wtf??? event has no users? can't remove roles");
 			return;
 		}
 		users.forEach(usr => {
