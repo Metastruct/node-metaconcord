@@ -74,6 +74,7 @@ export default (bot: DiscordBot): void => {
 						await event.guild?.setIcon(path);
 						await bot.discord.user?.setAvatar(path);
 						data.lastDiscordNickName = (await bot.getNickname()) ?? "Meta";
+						await data.save();
 						await bot.setNickname(
 							nicks[(Math.random() * nicks.length) | 0],
 							event.name
