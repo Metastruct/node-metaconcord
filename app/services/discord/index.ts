@@ -144,7 +144,7 @@ export class DiscordBot extends Service {
 	}
 
 	async fixEmbeds(msg: Discord.Message): Promise<void> {
-		if (!this.ready || msg.id === lastMessageId) return;
+		if (!this.ready || msg.id === lastMessageId || msg.author.id === msg.client.user.id) return;
 
 		if (!ImgurRegex.test(msg.content)) return;
 
