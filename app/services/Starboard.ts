@@ -43,36 +43,38 @@ export class Starboard extends Service {
 		if (config.channelIgnores.includes(channel.id)) return;
 		if (parent && config.categoryIgnores.includes(parent)) return;
 
-		let needed: number;
-		let emojiFilter: string[] | undefined;
-		let targetChannel: Discord.Channel | undefined;
+		let needed: number = DEFAULT_AMOUNT;
+		let emojiFilter: string[] | undefined = [DEFAULT_EMOTE];
+		let targetChannel: Discord.Channel | undefined = client.channels.cache.get(
+			discordConfig.channels.h
+		);
 		let title: string | undefined;
 		let shouldReact = false;
 
-		switch (parent) {
-			case discordConfig.channels.artsAndCrafts:
-				shouldReact = true;
-				needed = 6;
-				title =
-					reaction.message.channel.isThread() &&
-					reaction.message.id === reaction.message.channel.id
-						? reaction.message.channel.name
-						: undefined;
-				targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
-				break;
-			default:
-				switch (channel.id) {
-					case discordConfig.channels.artChat:
-						shouldReact = true;
-						needed = 6;
-						targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
-						break;
-					default:
-						needed = DEFAULT_AMOUNT;
-						emojiFilter = [DEFAULT_EMOTE];
-						targetChannel = client.channels.cache.get(discordConfig.channels.h);
-						break;
-				}
+		if (reaction.emoji.name !== DEFAULT_EMOTE) {
+			switch (parent) {
+				// the parent of a thread is the main channel, so we sadly can't get the category without fetching, so much for dry
+				case discordConfig.channels.postYourStuff:
+					emojiFilter = undefined;
+					shouldReact = true;
+					needed = 6;
+					title =
+						reaction.message.channel.isThread() &&
+						reaction.message.id === reaction.message.channel.id
+							? reaction.message.channel.name
+							: undefined;
+					targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
+					break;
+				default:
+					switch (channel.id) {
+						case discordConfig.channels.artChat:
+							emojiFilter = undefined;
+							shouldReact = true;
+							needed = 6;
+							targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
+							break;
+					}
+			}
 		}
 
 		const ego = reaction.message.author
