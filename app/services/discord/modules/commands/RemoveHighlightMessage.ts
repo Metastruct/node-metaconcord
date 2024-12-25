@@ -47,7 +47,8 @@ export const MenuRemoveHighlightMessageCommand: MenuCommand = {
 			m =>
 				m.author.username === ctx.user.username &&
 				m.content === ctx.targetMessage.content &&
-				m.attachments === ctx.targetMessage.attachments
+				m.attachments.size > 0 &&
+				m.attachments.first()?.name === ctx.targetMessage.attachments.first()?.name
 		);
 		const deleted = await targetMessage?.delete().catch(console.error);
 
