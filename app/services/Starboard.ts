@@ -16,6 +16,27 @@ export class Starboard extends Service {
 	constructor(container: Container) {
 		super(container);
 		this.sql = this.container.getService("SQL");
+
+		const bot = this.container.getService("DiscordBot");
+		if (bot) {
+			const filter = (btn: Discord.MessageComponentInteraction) =>
+				btn.customId.startsWith("starboard");
+
+			bot.discord.on("interactionCreate", async interaction => {
+				if (!interaction.isButton()) return;
+				if (!filter(interaction)) return;
+				if (interaction.message.author.username !== interaction.user.username) return;
+
+				const [, originalMsgID, originalChannelID] = interaction.customId.split(":");
+
+				const res = await interaction.message.delete().catch(console.error);
+				if (res) {
+					bot.getTextChannel(bot.config.channels.log)?.send(
+						`Highlighted Message in ${interaction.channel} deleted by ${interaction.user} (${interaction.user.id}) -> https://discord.com/channels/${interaction.guildId}/${originalChannelID}/${originalMsgID}`
+					);
+				}
+			});
+		}
 	}
 
 	async isMsgStarred(msgId: string): Promise<boolean> {
@@ -166,6 +187,12 @@ export class Starboard extends Service {
 										label: "Jump to message",
 										style: Discord.ButtonStyle.Link,
 										url: msg.url,
+									},
+									{
+										type: Discord.ComponentType.Button,
+										label: "Delete",
+										style: Discord.ButtonStyle.Danger,
+										customId: `starboard:${msg.id}:${msg.channelId}`,
 									},
 								],
 							},
