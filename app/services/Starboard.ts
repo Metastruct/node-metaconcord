@@ -18,7 +18,7 @@ export class Starboard extends Service {
 		this.sql = this.container.getService("SQL");
 	}
 
-	private async isMsgStarred(msgId: string): Promise<boolean> {
+	async isMsgStarred(msgId: string): Promise<boolean> {
 		if (!this.sql) return true;
 		const db = await this.sql.getLocalDatabase();
 		if (!(await this.sql.tableExists("starboard"))) {
