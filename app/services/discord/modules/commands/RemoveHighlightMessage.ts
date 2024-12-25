@@ -34,6 +34,7 @@ export const MenuRemoveHighlightMessageCommand: MenuCommand = {
 			default:
 				if (channel.id === discordConfig.channels.artChat) {
 					targetChannel = bot.getTextChannel(discordConfig.channels.hArt);
+					break;
 				}
 				targetChannel = bot.getTextChannel(discordConfig.channels.h);
 				break;
