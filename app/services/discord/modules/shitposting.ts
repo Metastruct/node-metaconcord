@@ -36,19 +36,16 @@ const STICKER_FREQ = 0.02; // how often to reply with just a sticker
 const REPLY_FREQ = 0.5; // how often to when to take a word from a previous message if provided
 
 const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp", "tumblr"];
+const MEDIA_URL_REGEX = new RegExp(
+	`https?://(?:(?:\\w+)?\\.?)+(?:${ALLOWED_IMG_PROVIDERS.join("|")})\\.(?:com|io)/[^?\\s]+`
+);
 
 const getMediaUrl = (url: string) => {
-	const match = url.match(
-		new RegExp(
-			`https?://(?:(?:\\w+)?\\.?)+(?:${ALLOWED_IMG_PROVIDERS.join(
-				"|"
-			)})\\.(?:com|io)/[^?\\s]+`
-		)
-	);
+	const match = url.match(MEDIA_URL_REGEX);
 	if (match) return match[0];
 };
 
-const IGNORE_LIST = ["437294613976449024"];
+const IGNORE_LIST = new Set(["437294613976449024"]);
 
 function getWord(msg?: string) {
 	if (!msg) return undefined;
@@ -397,7 +394,7 @@ export default async (bot: DiscordBot) => {
 		const id = bot.discord.user?.id;
 		if (!id) return;
 
-		if (IGNORE_LIST.includes(msg.author.id)) return;
+		if (IGNORE_LIST.has(msg.author.id)) return;
 
 		if (msg.partial) {
 			try {
