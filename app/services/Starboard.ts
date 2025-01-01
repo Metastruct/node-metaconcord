@@ -113,6 +113,7 @@ export class Starboard extends Service {
 
 			if (
 				count >= needed &&
+				!this.isBusy &&
 				(emojiFilter ? emojiFilter.includes(reaction.emoji.name ?? "") : true)
 			) {
 				this.isBusy = true;
