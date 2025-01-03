@@ -8,6 +8,7 @@ export class Data extends Service {
 	name = "Data";
 	private dataPath = path.join(process.cwd(), "data");
 
+	lastDiscordBanner: string;
 	lastDiscordGuildEvent: string;
 	lastDiscordGuildIcon: string;
 	lastDiscordNickName: string;
@@ -36,6 +37,7 @@ export class Data extends Service {
 		};
 	} = {};
 	toSave = [
+		"lastDiscordBanner",
 		"lastDiscordGuildEvent",
 		"lastDiscordGuildIcon",
 		"lastDiscordNickName",
