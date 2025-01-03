@@ -47,6 +47,7 @@ export default (bot: DiscordBot): void => {
 			});
 		}
 		await event.guild?.setIcon(data.lastDiscordGuildIcon);
+		await event.guild?.setBanner(data.lastDiscordBanner);
 		await bot.discord.user?.setAvatar(data.lastDiscordGuildIcon);
 		await bot.setNickname(data.lastDiscordNickName, event.name + " ended");
 	};
@@ -82,6 +83,12 @@ export default (bot: DiscordBot): void => {
 						if (execute) execute();
 						break;
 					}
+				}
+				const banner = event.image;
+				if (banner) {
+					data.lastDiscordBanner = event.guild?.bannerURL() ?? data.lastDiscordBanner;
+					await event.guild?.setBanner(banner, "Event banner");
+					await data.save();
 				}
 				break;
 			}
