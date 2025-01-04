@@ -118,17 +118,18 @@ export class DiscordBot extends Service {
 
 	// sets both the bot's avatar and the guild's icon
 	async setIcon(
-		path = this.data?.lastDiscordGuildIcon ?? "resources/discord-guild-icons/default.png",
+		path = this.data.lastDiscordGuildIcon ?? "resources/discord-guild-icons/default.png",
 		reason?: string
 	): Promise<boolean> {
 		if (!this.ready || !this.discord.user) return false;
 		try {
+			const guild = this.getGuild();
+			if (!guild) return false;
+			this.data.lastDiscordGuildIcon =
+				this.discord.user.avatarURL() ?? guild.iconURL() ?? this.data.lastDiscordGuildIcon;
+			await this.data.save();
 			await this.discord.user.setAvatar(path);
-			await this.getGuild()?.setIcon(path, reason);
-			if (this.data) {
-				this.data.lastDiscordGuildIcon = path;
-				await this.data.save();
-			}
+			await guild.setIcon(path, reason);
 			return true;
 		} catch {
 			return false;
@@ -139,18 +140,20 @@ export class DiscordBot extends Service {
 		name = this.data.lastDiscordNickName ?? "Meta",
 		reason?: string
 	): Promise<boolean> {
-		if (!this.ready || !this.discord.user || name.length > 22) return false;
+		if (!this.ready || name.length > 22) return false;
 		try {
 			const nick = name.charAt(0).toUpperCase() + name.slice(1);
+			this.data.lastDiscordNickName = this.getNickname() ?? "Meta";
+			await this.data.save();
 			await this.getGuild()?.members.me?.setNickname(nick + " Construct", reason);
-			if (this.data) {
-				this.data.lastDiscordNickName = nick;
-				await this.data.save();
-			}
 			return true;
 		} catch {
 			return false;
 		}
+	}
+
+	getNickname(): string | undefined {
+		return this.getGuild()?.members.me?.nickname?.split(" ")[0] ?? undefined;
 	}
 
 	async setServerBanner(
@@ -160,11 +163,9 @@ export class DiscordBot extends Service {
 		if (!this.ready || !(await this.overLvl2())) return false;
 		try {
 			const guild = this.getGuild();
+			this.data.lastDiscordBanner = guild?.bannerURL() ?? this.data.lastDiscordBanner;
+			await this.data.save();
 			await guild?.setBanner(url, reason);
-			if (this.data && url) {
-				this.data.lastDiscordBanner = url;
-				await this.data.save();
-			}
 			return true;
 		} catch {
 			return false;
