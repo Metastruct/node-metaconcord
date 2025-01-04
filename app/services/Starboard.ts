@@ -25,24 +25,33 @@ export class Starboard extends Service {
 		this.sql = await this.container.getService("SQL");
 		this.bot = await this.container.getService("DiscordBot");
 
-			const filter = (btn: Discord.MessageComponentInteraction) =>
-				btn.customId.startsWith("starboard");
+		const filter = (btn: Discord.MessageComponentInteraction) =>
+			btn.customId.startsWith("starboard");
 
 		this.bot.discord.on("interactionCreate", async interaction => {
-				if (!interaction.isButton()) return;
-				if (!filter(interaction)) return;
-				if (interaction.message.author.username !== interaction.user.username) return;
+			if (!interaction.isButton()) return;
+			if (!filter(interaction)) return;
+			if (interaction.message.author.username !== interaction.user.username) return;
 
-				const [, originalMsgID, originalChannelID] = interaction.customId.split(":");
+			const [, originalMsgID, originalChannelID, originalAuthorID] =
+				interaction.customId.split(":");
 
+			// additional check in case the username was changed somehow
+			if (originalAuthorID && originalAuthorID !== interaction.user.id) return;
+
+			try {
 				const res = await interaction.message.delete().catch(console.error);
 				if (res) {
-					bot.getTextChannel(bot.config.channels.log)?.send(
-						`Highlighted Message in ${interaction.channel} deleted by ${interaction.user} (${interaction.user.id}) -> https://discord.com/channels/${interaction.guildId}/${originalChannelID}/${originalMsgID}`
-					);
+					this.bot
+						.getTextChannel(this.bot.config.channels.log)
+						?.send(
+							`Highlighted Message in ${interaction.channel} deleted by ${interaction.user} (${interaction.user.id}) -> https://discord.com/channels/${interaction.guildId}/${originalChannelID}/${originalMsgID}`
+						);
 				}
-			});
-		}
+			} catch (error) {
+				console.error("[Starboard] Error deleting message:", error);
+			}
+		});
 	}
 
 	async isMsgStarred(msgId: string): Promise<boolean> {
@@ -191,7 +200,9 @@ export class Starboard extends Service {
 										new Discord.ButtonBuilder()
 											.setLabel("Delete")
 											.setStyle(Discord.ButtonStyle.Danger)
-											.setCustomId(`starboard:${msg.id}:${msg.channelId}`),
+											.setCustomId(
+												`starboard:${msg.id}:${msg.channelId}:${msg.author.id}`
+											),
 								  ]
 								: [])
 						),
