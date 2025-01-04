@@ -75,7 +75,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						break;
 					}
 				}
-				const banner = event.coverImageURL();
+				const banner = event.coverImageURL({ size: 4096 });
 				if (banner) {
 					await bot.setServerBanner(banner, "Event banner");
 				}
