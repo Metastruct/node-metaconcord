@@ -7,7 +7,7 @@ export class Container {
 	readonly app: App;
 	private providers: ProviderFactory;
 	private services = {} as ServiceMap;
-	private initPromises = new Map<string, Promise<Service>>();
+	private pendingServices = new Map<string, Promise<Service>>();
 
 	constructor(app: App, providers: ProviderFactory) {
 		this.app = app;
@@ -27,40 +27,43 @@ export class Container {
 			service = await service;
 		}
 		this.services[service.name] = service;
+
+		// Resolve any pending waiters
+		const pendingPromise = this.pendingServices.get(service.name);
+		if (pendingPromise) {
+			this.pendingServices.delete(service.name);
+		}
 	}
 
-	async getService<T extends keyof ServiceMap>(name: T): Promise<ServiceMap[T]> {
-		const service = this.services[name];
-		if (service) {
-			return service as ServiceMap[T];
+	async getService<Name extends string>(
+		type: Name,
+		timeoutMs = 30000
+	): Promise<ServiceMap[Name]> {
+		if (this.services[type]) {
+			return this.services[type];
 		}
 
-		// If already initializing, wait for it
-		if (this.initPromises.has(String(name))) {
-			return this.initPromises.get(String(name)) as Promise<ServiceMap[T]>;
+		// Create or return existing promise for this service
+		if (!this.pendingServices.has(type)) {
+			this.pendingServices.set(
+				type,
+				new Promise((resolve, reject) => {
+					const timeoutId = setTimeout(() => {
+						this.pendingServices.delete(type);
+						reject(new Error(`Timeout waiting for service: ${type}`));
+					}, timeoutMs);
+
+					const checkInterval = setInterval(() => {
+						if (this.services[type]) {
+							clearTimeout(timeoutId);
+							clearInterval(checkInterval);
+							resolve(this.services[type]);
+						}
+					}, 100);
+				})
+			);
 		}
 
-		// Find the provider
-		const provider = this.providers.find(p => {
-			const temp = p(this);
-			if (temp instanceof Promise) {
-				return temp.then(s => s.name === name);
-			}
-			return temp.name === name;
-		});
-
-		if (!provider) {
-			throw new Error(`Service ${String(name)} not found`);
-		}
-
-		// Initialize the service
-		const promise = Promise.resolve(provider(this)).then(service => {
-			this.services[name] = service;
-			this.initPromises.delete(String(name));
-			return service as ServiceMap[T];
-		});
-
-		this.initPromises.set(String(name), promise);
-		return promise;
+		return this.pendingServices.get(type) as Promise<ServiceMap[Name]>;
 	}
 }
