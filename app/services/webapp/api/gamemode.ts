@@ -4,9 +4,8 @@ import servers from "@/config/gamebridge.servers.json";
 const HOSTING_IDS = { 3: true, 1: true };
 
 export default async (webApp: WebApp): Promise<void> => {
-	const bot = await webApp.container.getService("DiscordBot");
-
 	webApp.app.get("/gamemode/:id/", async (req, res) => {
+		const bot = await webApp.container.getService("DiscordBot");
 		const ip = req.header("x-forwarded-for")?.split(",")[0];
 		if (!ip) return res.sendStatus(403);
 		const isOkIp = servers.find(srv => srv.ip === ip);

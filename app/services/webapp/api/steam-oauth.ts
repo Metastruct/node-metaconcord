@@ -18,9 +18,8 @@ import axios from "axios";
 // openid.sig=W0u5DRbtHE1GG0ZKXjerUZDUGmc=
 
 export default async (webApp: WebApp): Promise<void> => {
-	const sql = await webApp.container.getService("SQL");
-
 	webApp.app.get("/steam/auth/callback/:id", rateLimit(), async (req, res) => {
+		const sql = await webApp.container.getService("SQL");
 		const query = req.query;
 		const userId = req.params.id;
 		if (!userId) res.status(403).send("Missing userid for linking");

@@ -5,9 +5,8 @@ import path from "path";
 import pug from "pug";
 
 export default async (webApp: WebApp): Promise<void> => {
-	const gameBridge = await webApp.container.getService("GameBridge");
-
 	webApp.app.get("/server-status/:id/:bruh?", async (req, res) => {
+		const gameBridge = await webApp.container.getService("GameBridge");
 		const server: GameServer = gameBridge.servers[req.params.id];
 
 		if (!server) {
