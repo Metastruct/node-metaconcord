@@ -364,12 +364,7 @@ export default async (bot: DiscordBot) => {
 					.then(() => {
 						db.run("DELETE FROM media_urls WHERE url = ?", url);
 					})
-					.catch(err =>
-						console.error(
-							"[shitposting] Failed to delete requested message from cache",
-							err
-						)
-					);
+					.catch(); // if it doesn't exist, who cares could be an external link too
 			}
 		}
 
