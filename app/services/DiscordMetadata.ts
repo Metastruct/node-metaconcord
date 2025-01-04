@@ -70,13 +70,13 @@ export class DiscordMetadata extends Service {
 
 	constructor(container: Container) {
 		super(container);
-		const sql = this.container.getService("SQL");
-		const bot = this.container.getService("DiscordBot");
-		const bans = this.container.getService("Bans");
-		if (!sql || !bot || !bans) return;
-		this.sql = sql;
-		this.bot = bot;
-		this.bans = bans;
+		this.initServices();
+	}
+
+	private async initServices() {
+		this.sql = await this.container.getService("SQL");
+		this.bot = await this.container.getService("DiscordBot");
+		this.bans = await this.container.getService("Bans");
 	}
 
 	private async getAccessToken(userId: string, data: LocalDatabaseEntry) {
@@ -202,8 +202,8 @@ export class DiscordMetadata extends Service {
 		if (query3[0]) {
 			nick = bytea.toString("utf-8").replace(/<[^>]*>/g, "");
 		} else {
-			const steam = this.bot.container.getService("Steam");
-			const summary = await steam?.getUserSummaries(data.steam_id);
+			const steam = await this.bot.container.getService("Steam");
+			const summary = await steam.getUserSummaries(data.steam_id);
 			nick = summary?.personaname;
 		}
 

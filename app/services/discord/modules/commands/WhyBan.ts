@@ -21,17 +21,15 @@ export const SlashWhyBanCommand: SlashCommand = {
 
 	async execute(ctx, bot) {
 		await ctx.deferReply({ ephemeral: true });
-		const banService = bot.container.getService("Bans");
-		if (!banService) {
-			ctx.followUp(EphemeralResponse("ban service offline for some reason :("));
-			return;
-		}
+		const banService = await bot.container.getService("Bans");
 		const ban = await banService.getBan(ctx.options.getString("query", true));
 		if (!ban) {
 			ctx.followUp(EphemeralResponse("That SteamID has never been banned before."));
 			return;
 		}
-		const banner = await bot.container.getService("Steam")?.getUserSummaries(ban.bannersid);
+		const banner = await (
+			await bot.container.getService("Steam")
+		).getUserSummaries(ban.bannersid);
 
 		if (!ban.b) {
 			ctx.followUp(
@@ -71,8 +69,7 @@ export const SlashWhyBanCommand: SlashCommand = {
 	},
 
 	async autocomplete(ctx, bot) {
-		const banService = bot.container.getService("Bans");
-		if (!banService) return;
+		const banService = await bot.container.getService("Bans");
 		const list = await banService.getBanList();
 		if (!list) {
 			ctx.respond([]);

@@ -25,13 +25,13 @@ export default class BanPayload extends Payload {
 		const notificationsChannel = guild.channels.cache.get(bridge.config.banUnbanChannelId);
 		if (!notificationsChannel) return;
 
-		const steam = bridge.container.getService("Steam");
+		const steam = await bridge.container.getService("Steam");
 		let steamId64 = "";
 		let bannerName = "";
 		let avatar = "";
 		try {
 			steamId64 = new SteamID(player.steamId).getSteamID64();
-			const summary: PlayerSummary | undefined = await steam?.getUserSummaries(steamId64);
+			const summary: PlayerSummary | undefined = await steam.getUserSummaries(steamId64);
 			if (summary) {
 				bannerName = summary.personaname;
 				avatar = summary.avatarfull;
@@ -41,7 +41,7 @@ export default class BanPayload extends Payload {
 		}
 
 		const bannedSteamId64 = new SteamID(banned.steamId).getSteamID64();
-		const bannedAvatar = await steam?.getUserAvatar(bannedSteamId64);
+		const bannedAvatar = await steam.getUserAvatar(bannedSteamId64);
 		const unixTime = parseInt(unbanTime);
 		if (!unixTime || isNaN(unixTime))
 			throw new Error(`Unban time is not a number? Supplied time: ${unbanTime}`);
@@ -87,12 +87,10 @@ export default class BanPayload extends Payload {
 			embeds: [embed],
 		});
 
-		const metadata = bridge.container.getService("DiscordMetadata");
-		if (metadata) {
-			const discordId = await metadata.discordIDfromSteam64(bannedSteamId64);
-			if (discordId) {
-				metadata.update(discordId);
-			}
+		const metadata = await bridge.container.getService("DiscordMetadata");
+		const discordId = await metadata.discordIDfromSteam64(bannedSteamId64);
+		if (discordId) {
+			metadata.update(discordId);
 		}
 	}
 }

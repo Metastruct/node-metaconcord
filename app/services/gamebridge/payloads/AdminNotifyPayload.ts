@@ -18,7 +18,7 @@ export default class AdminNotifyPayload extends Payload {
 			server.discord.config.threads.reports
 		) as Discord.ThreadChannel;
 		if (!notificationsChannel) return;
-		const steam = server.bridge.container.getService("Steam");
+		const steam = await server.bridge.container.getService("Steam");
 
 		const filter = (btn: Discord.MessageComponentInteraction) =>
 			btn.customId.endsWith("_REPORT_KICK");
@@ -46,7 +46,7 @@ export default class AdminNotifyPayload extends Payload {
 				);
 
 				if (res.data.returns[0] !== "false") {
-					const summary = await steam?.getUserSummaries(interactionId64);
+					const summary = await steam.getUserSummaries(interactionId64);
 					await ctx.followUp({
 						content: `${ctx.user.mention} kicked player \`${
 							summary ? summary.personaname : "[nickname not found]"
@@ -88,9 +88,9 @@ export default class AdminNotifyPayload extends Payload {
 
 		const steamId64 = new SteamID(player.steamId).getSteamID64();
 		const reportedSteamId64 = new SteamID(reported.steamId).getSteamID64();
-		const steam = bridge.container.getService("Steam");
-		const avatar = await steam?.getUserAvatar(steamId64);
-		const reportedAvatar = await steam?.getUserAvatar(reportedSteamId64);
+		const steam = await bridge.container.getService("Steam");
+		const avatar = await steam.getUserAvatar(steamId64);
+		const reportedAvatar = await steam.getUserAvatar(reportedSteamId64);
 		if (message.trim().length < 1) message = "No message provided..?";
 
 		const embed = new Discord.EmbedBuilder()
@@ -110,28 +110,27 @@ export default class AdminNotifyPayload extends Payload {
 			.setThumbnail(reportedAvatar)
 			.setColor(0xc4af21);
 
-		const sql = bridge.container.getService("SQL");
-		if (sql) {
-			if (!this.reportCache[reportedSteamId64]) {
-				const res = await sql.queryPool(
-					`SELECT report_amount FROM playerstats WHERE accountid = ${
-						new SteamID(reported.steamId).accountid
-					}`
-				);
-				if (res[0]) {
-					this.reportCache[reportedSteamId64] = res[0].report_amount;
-				} else {
-					this.reportCache[reportedSteamId64] = 0;
-				}
-			}
-			this.reportCache[reportedSteamId64]++;
-
-			if (this.reportCache[reportedSteamId64] > 0) {
-				embed.addFields(
-					f("Total Report Amount", this.reportCache[reportedSteamId64].toString())
-				);
+		const sql = await bridge.container.getService("SQL");
+		if (!this.reportCache[reportedSteamId64]) {
+			const res = await sql.queryPool(
+				`SELECT report_amount FROM playerstats WHERE accountid = ${
+					new SteamID(reported.steamId).accountid
+				}`
+			);
+			if (res[0]) {
+				this.reportCache[reportedSteamId64] = res[0].report_amount;
+			} else {
+				this.reportCache[reportedSteamId64] = 0;
 			}
 		}
+		this.reportCache[reportedSteamId64]++;
+
+		if (this.reportCache[reportedSteamId64] > 0) {
+			embed.addFields(
+				f("Total Report Amount", this.reportCache[reportedSteamId64].toString())
+			);
+		}
+
 		// You can have a maximum of five ActionRows per message, and five buttons within an ActionRow.
 		const row = new Discord.ActionRowBuilder<Discord.ButtonBuilder>().addComponents(
 			new Discord.ButtonBuilder()

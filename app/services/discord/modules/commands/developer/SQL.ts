@@ -45,7 +45,7 @@ export const SlashSQLCommand: SlashCommand = {
 	execute: async (ctx, bot) => {
 		const target = ctx.options.getString("target");
 		const query = ctx.options.getString("query", true);
-		const sql = bot.container.getService("SQL");
+		const sql = await bot.container.getService("SQL");
 		if (!ctx.member) {
 			await ctx.reply(EphemeralResponse("if this happens ping @techbot"));
 			console.error("SlashSQL: WTF");
@@ -64,27 +64,20 @@ export const SlashSQLCommand: SlashCommand = {
 								`You need the <@&${bot.config.roles.elevated}> role to run SQL commands on me!`
 							)
 						);
-					if (sql) {
-						await ctx.deferReply();
-						const db = await sql?.getLocalDatabase();
-						const res = await db?.all(query);
-						const file = makeFile(res);
-						await ctx.followUp(file);
-					} else {
-						await ctx.reply(EphemeralResponse("SQL service not running"));
-					}
+					await ctx.deferReply();
+					const db = await sql?.getLocalDatabase();
+					const res = await db?.all(query);
+					const file = makeFile(res);
+					await ctx.followUp(file);
 					break;
 				}
 				case "metastruct":
 				default:
-					if (sql) {
-						await ctx.deferReply();
-						const res = await sql.queryPool(query);
-						const file = makeFile(res);
-						await ctx.followUp(file);
-					} else {
-						await ctx.reply(EphemeralResponse("SQL service not running"));
-					}
+					await ctx.deferReply();
+					const res = await sql.queryPool(query);
+					const file = makeFile(res);
+					await ctx.followUp(file);
+
 					break;
 			}
 		} catch (err) {

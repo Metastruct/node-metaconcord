@@ -26,12 +26,7 @@ export const SlashVoiceCommand: SlashCommand = {
 	},
 
 	async execute(ctx, bot) {
-		const data = bot.container.getService("Data");
-		if (!data) {
-			await ctx.reply(EphemeralResponse("data provider missing :("));
-			console.error("TempVoiceChannel: data provider missing?");
-			return;
-		}
+		const data = await bot.container.getService("Data");
 
 		const existing = data.tempVoiceChannels[ctx.user.id];
 		if (existing) {

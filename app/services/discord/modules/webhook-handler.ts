@@ -68,9 +68,8 @@ const isRemoteMergeCommit = (message: string) =>
 const isMergeCommit = (message: string) =>
 	message.startsWith("Merge branch") || isRemoteMergeCommit(message);
 
-export default (bot: DiscordBot): void => {
-	const webapp = bot.container.getService("WebApp");
-	if (!webapp) return;
+export default async (bot: DiscordBot): Promise<void> => {
+	const webapp = await bot.container.getService("WebApp");
 
 	webapp.app.use(createNodeMiddleware(GitHub, { path: "/webhooks/github" }));
 

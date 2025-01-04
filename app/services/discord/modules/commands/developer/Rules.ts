@@ -7,12 +7,7 @@ import Discord from "discord.js";
 let ruleCache: Rule[] = [];
 
 const refreshRules = async (ctx: Discord.ChatInputCommandInteraction, bot: DiscordBot) => {
-	const data = bot.container.getService("Data");
-	if (!bot || !data) {
-		await ctx.reply(EphemeralResponse("wtf"));
-		console.error("RefreshRules: bot or data missing???");
-		return;
-	}
+	const data = await bot.container.getService("Data");
 	if (ruleCache.length === 0) {
 		await ctx.reply(EphemeralResponse("Something went wrong with saving the rules"));
 		return;
@@ -234,11 +229,7 @@ export const SlashRuleCommand: SlashCommand = {
 				})
 			);
 		} else {
-			const data = bot.container.getService("Data");
-			if (!data) {
-				await ctx.respond([]);
-				return;
-			}
+			const data = await bot.container.getService("Data");
 			ruleCache = data.rules;
 			await ctx.respond(
 				ruleCache.map((rule, idx) => {

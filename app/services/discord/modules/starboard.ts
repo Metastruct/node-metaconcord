@@ -10,8 +10,8 @@ export default (bot: DiscordBot): void => {
 				return;
 			}
 		}
-		await bot.container
-			.getService("Starboard")
-			?.handleReactionAdded(reaction as MessageReaction);
+		await (
+			await bot.container.getService("Starboard")
+		).handleReactionAdded(reaction as MessageReaction);
 	});
 };

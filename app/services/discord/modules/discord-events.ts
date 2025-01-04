@@ -5,7 +5,7 @@ import DiscordConfig from "@/config/discord.json";
 
 const iconsPath = join(process.cwd(), "resources/discord-event-icons");
 
-export default (bot: DiscordBot): void => {
+export default async (bot: DiscordBot): Promise<void> => {
 	const events = [
 		{
 			icon: "vr",
@@ -16,17 +16,14 @@ export default (bot: DiscordBot): void => {
 			icon: "ttt",
 			triggers: ["ttt"],
 			nicks: ["terror", "detective", "innocent", "trouble", "clue", "banana", "protogen"],
-			execute: () =>
-				bot.container
-					.getService("GameBridge")
-					?.servers[3]?.sendLua(
+			execute: async () =>
+				(await bot.container.getService("GameBridge")).servers[3]?.sendLua(
 						`local request = require("gm_request") if request and not request:IsServerGamemode(3,"terrortown") then request:SwitchGamemodeAsync("terrortown",print) end`
 					),
 		},
 	];
 
-	const data = bot.container.getService("Data");
-	if (!data) return;
+	const data = await bot.container.getService("Data");
 
 	const GetParticipants = async (
 		event: Discord.GuildScheduledEvent | Discord.PartialGuildScheduledEvent

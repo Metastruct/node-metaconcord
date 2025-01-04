@@ -73,8 +73,7 @@ export const getOAuthTokens = async (code: any) => {
 };
 
 export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
-	const sql: SQL = globalThis.MetaConcord.container.getService("SQL");
-	if (!sql) return false;
+	const sql: SQL = await globalThis.MetaConcord.container.getService("SQL");
 
 	if (!localOnly) {
 		const res = await axios
@@ -110,10 +109,9 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 	return true;
 };
 
-export default (webApp: WebApp): void => {
-	const sql = webApp.container.getService("SQL");
-	let metadata: DiscordMetadata | undefined;
-	if (!sql) return;
+export default async (webApp: WebApp): Promise<void> => {
+	const sql = await webApp.container.getService("SQL");
+	const metadata = await webApp.container.getService("DiscordMetadata");
 
 	const getAuthorizationData = async (tokens: AccessTokenResponse) => {
 		const res = await axios
@@ -154,14 +152,12 @@ export default (webApp: WebApp): void => {
 		res.redirect(url);
 	});
 	webApp.app.get("/discord/link/:id", async (req, res) => {
-		metadata = metadata || webApp.container.getService("DiscordMetadata");
-		const data = await metadata?.get(req.params.id);
+		const data = await metadata.get(req.params.id);
 		if (!data) return res.status(404).send("no data");
 		res.send(data);
 	});
 	webApp.app.get("/discord/link/:id/refresh", rateLimit(), async (req, res) => {
-		metadata = metadata || webApp.container.getService("DiscordMetadata");
-		res.send((await metadata?.update(req.params.id)) ? "👌" : "👎");
+		res.send((await metadata.update(req.params.id)) ? "👌" : "👎");
 	});
 	webApp.app.get("/discord/link/:id/revoke", rateLimit(), async (req, res) => {
 		const secret = req.query.secret;
@@ -189,7 +185,6 @@ export default (webApp: WebApp): void => {
 		res.send("👌");
 	});
 	webApp.app.get("/discord/linkrefreshall", rateLimit(), async (req, res) => {
-		metadata = metadata || webApp.container.getService("DiscordMetadata");
 		const secret = req.query.secret;
 		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
 		const entries = await (
@@ -197,12 +192,11 @@ export default (webApp: WebApp): void => {
 		).all<LocalDatabaseEntry[]>("SELECT user_id FROM discord_tokens");
 		if (!entries || entries.length === 0)
 			for (const entry of entries) {
-				await metadata?.update(entry.user_id);
+				await metadata.update(entry.user_id);
 			}
 		res.send("👌");
 	});
 	webApp.app.get("/discord/auth/callback", rateLimit(), async (req, res) => {
-		metadata = metadata || webApp.container.getService("DiscordMetadata");
 		try {
 			const code = req.query["code"];
 			if (!code) return res.sendStatus(403);
@@ -260,7 +254,7 @@ export default (webApp: WebApp): void => {
 					}
 				);
 
-				await metadata?.update(userId);
+				await metadata.update(userId);
 
 				res.send(
 					"👍" +

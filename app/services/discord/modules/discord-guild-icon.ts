@@ -44,10 +44,8 @@ const fileExists = async (filePath: PathLike) =>
 		.then(stats => stats.isFile())
 		.catch(() => false);
 
-export default (bot: DiscordBot): void => {
-	const data = bot.container.getService("Data");
-	if (!data) return;
-
+export default async (bot: DiscordBot): Promise<void> => {
+	const data = await bot.container.getService("Data");
 	bot.discord.on("ready", async () => {
 		const guild = bot.getGuild();
 		if (!guild) return;

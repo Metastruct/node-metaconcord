@@ -57,19 +57,19 @@ export {
 };
 
 export type ServiceMap = {
-	[key: string]: Service | undefined;
-	Bans?: Bans;
-	Data?: Data;
-	DiscordBot?: DiscordBot;
-	DiscordMetadata?: DiscordMetadata;
-	GameBridge?: GameBridge;
-	IRC?: IRC;
-	Markov?: Markov;
-	Motd?: Motd;
-	Resonite?: Resonite;
-	SQL?: SQL;
-	Starboard?: Starboard;
-	Steam?: Steam;
-	Tenor?: Tenor;
-	WebApp?: WebApp;
+	[key: string]: Service;
+	Bans: Bans;
+	Data: Data;
+	DiscordBot: DiscordBot;
+	DiscordMetadata: DiscordMetadata;
+	GameBridge: GameBridge;
+	IRC: IRC;
+	Markov: Markov;
+	Motd: Motd;
+	Resonite: Resonite;
+	SQL: SQL;
+	Starboard: Starboard;
+	Steam: Steam;
+	Tenor: Tenor;
+	WebApp: WebApp;
 };

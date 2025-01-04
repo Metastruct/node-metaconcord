@@ -145,8 +145,8 @@ export const SlashBanCommand: SlashCommand = {
 	},
 
 	async execute(ctx, bot) {
-		const steam = bot.container.getService("Steam");
-		const summary = await steam?.getUserSummaries(ctx.options.getString("steamid", true));
+		const steam = await bot.container.getService("Steam");
+		const summary = await steam.getUserSummaries(ctx.options.getString("steamid", true));
 		if (!summary) {
 			await ctx.showModal(<Discord.APIModalInteractionResponseCallbackData>{
 				title: "couldn't get nick please enter manually:",

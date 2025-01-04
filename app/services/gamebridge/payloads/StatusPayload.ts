@@ -80,7 +80,7 @@ export default class StatusPayload extends Payload {
 		const {
 			config: { host, port, url },
 		} = bridge.webApp;
-		const Steam = bridge.container.getService("Steam");
+		const Steam = await bridge.container.getService("Steam");
 
 		const updateStatus = async () => {
 			const current_countdown = countdown;
@@ -220,7 +220,7 @@ export default class StatusPayload extends Payload {
 			}
 
 			if (mapThumbnail === null && current_workshopMap) {
-				const res = await Steam?.getPublishedFileDetails([current_workshopMap.id]).catch(
+				const res = await Steam.getPublishedFileDetails([current_workshopMap.id]).catch(
 					console.error
 				);
 				const thumbnailURI = res?.publishedfiledetails?.[0]?.preview_url;
@@ -258,7 +258,7 @@ export default class StatusPayload extends Payload {
 				if (!player.avatar) {
 					let avatar: string | undefined;
 					if (player.accountId) {
-						avatar = await Steam?.getUserAvatar(
+						avatar = await Steam.getUserAvatar(
 							SteamID.fromIndividualAccountID(player.accountId).getSteamID64()
 						);
 					}

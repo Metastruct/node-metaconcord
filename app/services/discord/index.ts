@@ -1,8 +1,7 @@
 import { Container } from "@/app/Container";
-import { Service } from "@/app/services";
+import { Data, GameBridge, Service } from "@/app/services";
 import Discord from "discord.js";
 import DiscordConfig from "@/config/discord.json";
-import axios from "axios";
 import modules from "./modules";
 import motdConfig from "@/config/motd.json";
 
@@ -18,9 +17,9 @@ const ImgurRegex = /https?:\/\/(?:i.)?imgur.com\/(\w+)(?:.mp4)?/g;
 
 export class DiscordBot extends Service {
 	name = "DiscordBot";
-	bridge = this.container.getService("GameBridge");
-	config = DiscordConfig;
-	discord: Discord.Client = new Discord.Client({
+	bridge: GameBridge;
+	readonly config = DiscordConfig;
+	readonly discord: Discord.Client = new Discord.Client({
 		allowedMentions: { parse: ["users", "roles"] },
 		intents: [
 			"Guilds",
@@ -41,9 +40,12 @@ export class DiscordBot extends Service {
 		rest: { timeout: 30000 },
 	});
 	ready: boolean;
+	private data: Data;
 
 	constructor(container: Container) {
 		super(container);
+
+		this.initServices();
 
 		this.discord.on("ready", async client => {
 			this.ready = true;
@@ -63,6 +65,10 @@ export class DiscordBot extends Service {
 		this.discord.login(this.config.bot.token);
 	}
 
+	private async initServices() {
+		this.data = await this.container.getService("Data");
+		this.bridge = await this.container.getService("GameBridge");
+	}
 	getTextChannel(channelId: string): Discord.TextChannel | undefined {
 		if (!this.ready) return;
 		return this.discord.channels.cache.get(channelId) as Discord.TextChannel;
@@ -139,8 +145,8 @@ export class DiscordBot extends Service {
 		if (!perms.has("SendMessages", false)) return; // don't get text from channels that are not "public"
 
 		const content = msg.content;
-		if (this.container.getService("Motd")?.isValidMsg(content))
-			this.container.getService("Markov")?.learn(msg.content);
+		if ((await this.container.getService("Motd")).isValidMsg(content))
+			(await this.container.getService("Markov")).learn(msg.content);
 	}
 
 	async fixEmbeds(msg: Discord.Message): Promise<void> {
@@ -156,7 +162,7 @@ export class DiscordBot extends Service {
 		if (imgurUrls) {
 			for (const imageUrl of imgurUrls) {
 				const id = Array.from(imageUrl.matchAll(ImgurRegex), m => m[1])[0]; // wtf there has to be a better way
-				const info = await this.container.getService("Motd")?.getImageInfo(id);
+				const info = await (await this.container.getService("Motd")).getImageInfo(id);
 				if (info?.has_sound) {
 					urls.push(imageUrl.replace(/(?:i\.)?imgur\.com/g, "i.imgur.io"));
 				}

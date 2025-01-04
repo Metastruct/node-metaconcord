@@ -111,7 +111,9 @@ export default class ChatPayload extends Payload {
 
 		const webhook = discordWH;
 
-		const avatar = await bridge.container.getService("Steam")?.getUserAvatar(player.steamId64);
+		const avatar = await (
+			await bridge.container.getService("Steam")
+		).getUserAvatar(player.steamId64);
 
 		const matches = content.matchAll(/@(\S*)/g);
 
@@ -128,10 +130,10 @@ export default class ChatPayload extends Payload {
 
 		content = content.substring(0, 2000);
 
-		const motd = bridge.container.getService("Motd");
-		if (motd?.isValidMsg(content)) {
+		const motd = await bridge.container.getService("Motd");
+		if (motd.isValidMsg(content)) {
 			motd.pushMessage(content);
-			bridge.container.getService("Markov")?.learn(content);
+			(await bridge.container.getService("Markov")).learn(content);
 		}
 
 		// 9312 = ①, 9313 = ②, and so on until 20

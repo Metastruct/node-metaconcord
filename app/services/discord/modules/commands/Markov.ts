@@ -39,13 +39,13 @@ export const SlashMarkovCommand: SlashCommand = {
 	execute: async (ctx, bot) => {
 		await ctx.deferReply();
 
-		const res = await bot.container
-			.getService("Markov")
-			?.generate(ctx.options.getString("sentence") ?? undefined, {
-				depth: ctx.options.getInteger("insanity") ?? undefined,
-				length: ctx.options.getInteger("length") ?? undefined,
-				continuation: ctx.options.getBoolean("continuation") ?? undefined,
-			});
+		const res = await (
+			await bot.container.getService("Markov")
+		).generate(ctx.options.getString("sentence") ?? undefined, {
+			depth: ctx.options.getInteger("insanity") ?? undefined,
+			length: ctx.options.getInteger("length") ?? undefined,
+			continuation: ctx.options.getBoolean("continuation") ?? undefined,
+		});
 
 		if (res) {
 			await ctx.followUp(res);
