@@ -23,8 +23,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 		},
 	];
 
-	const data = await bot.container.getService("Data");
-
 	const GetParticipants = async (
 		event: Discord.GuildScheduledEvent | Discord.PartialGuildScheduledEvent
 	) => {
@@ -43,10 +41,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 					usr.roles.remove(DiscordConfig.roles.event);
 			});
 		}
-		await event.guild?.setIcon(data.lastDiscordGuildIcon);
-		await event.guild?.setBanner(data.lastDiscordBanner);
-		await bot.discord.user?.setAvatar(data.lastDiscordGuildIcon);
-		await bot.setNickname(data.lastDiscordNickName, event.name + " ended");
+		await bot.setIcon();
+		await bot.setServerBanner();
+		await bot.setNickname(undefined, event.name + " ended");
 	};
 
 	bot.discord.on("guildScheduledEventUpdate", async (old, now) => {

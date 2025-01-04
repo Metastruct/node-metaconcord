@@ -132,7 +132,10 @@ export class DiscordBot extends Service {
 		}
 	}
 
-	async setNickname(name = "Meta", reason?: string): Promise<boolean> {
+	async setNickname(
+		name = this.data.lastDiscordNickName ?? "Meta",
+		reason?: string
+	): Promise<boolean> {
 		if (!this.ready || !this.discord.user || name.length > 22) return false;
 		try {
 			const nick = name.charAt(0).toUpperCase() + name.slice(1);
