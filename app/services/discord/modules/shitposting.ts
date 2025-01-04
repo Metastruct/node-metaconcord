@@ -99,7 +99,7 @@ export const Shat = async (options?: {
 
 		return shat ? { content: shat } : undefined;
 	} else {
-		const images = globalThis.MetaConcord.container.getService("Motd")?.images;
+		const images = (await globalThis.MetaConcord.container.getService("Motd")).images;
 		let word =
 			options?.msg && !options.msg.startsWith("http") ? getWord(options.msg) : undefined;
 
@@ -112,9 +112,9 @@ export const Shat = async (options?: {
 				? { files: [{ attachment: result, description: imgur.title }] }
 				: undefined;
 		} else {
-			const res: AxiosResponse<TenorResponse> = await globalThis.MetaConcord.container
-				.getService("Tenor")
-				?.search(word, 4);
+			const res: AxiosResponse<TenorResponse> = await (
+				await globalThis.MetaConcord.container.getService("Tenor")
+			).search(word, 4);
 			if (!res || res.data.results.length === 0)
 				return {
 					content: await markov?.generate(undefined, DefaultMarkovConfig),
