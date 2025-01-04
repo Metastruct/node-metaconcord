@@ -24,36 +24,36 @@ import TenorProvider, { Tenor } from "./Tenor";
 import WebAppProvider, { WebApp } from "./webapp";
 
 export default [
-	SQLProvider,
-	MarkovProvider,
-	SteamProvider,
-	DataProvider,
 	BanProvider,
-	WebAppProvider,
-	ResoniteProvider,
-	GameBridgeProvider,
+	DataProvider,
 	DiscordBotProvider,
 	DiscordMetadataProvider,
-	MotdProvider,
-	StarboardProvider,
-	TenorProvider,
+	GameBridgeProvider,
 	IRCProvider,
-]; // The order is important
+	MarkovProvider,
+	MotdProvider,
+	ResoniteProvider,
+	SQLProvider,
+	StarboardProvider,
+	SteamProvider,
+	TenorProvider,
+	WebAppProvider,
+];
 
 export {
-	SQL,
-	Markov,
-	Data,
-	Resonite,
-	DiscordBot,
-	GameBridge,
 	Bans,
-	Steam,
+	Data,
+	DiscordBot,
 	DiscordMetadata,
+	GameBridge,
+	IRC,
+	Markov,
+	Motd,
+	Resonite,
+	SQL,
+	Steam,
 	Tenor,
 	WebApp,
-	Motd,
-	IRC,
 };
 
 export type ServiceMap = {
