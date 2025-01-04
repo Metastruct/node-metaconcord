@@ -1,5 +1,5 @@
 import { AddonURIS, getOrFetchGmodFile } from "@/utils";
-import { GameBridge, GameServer, Player } from "../../gamebridge";
+import { GameServer, Player } from "../../gamebridge";
 import { WebApp } from "..";
 import Discord from "discord.js";
 import SteamID from "steamid";
@@ -84,8 +84,8 @@ const ignoreRegex = [
 ];
 //const fileIgnore = [];
 
-export default (webApp: WebApp): void => {
-	let gameBridge: GameBridge | undefined;
+export default async (webApp: WebApp): Promise<void> => {
+	const gameBridge = await webApp.container.getService("GameBridge");
 
 	const webhook = new Discord.WebhookClient({
 		url: config.webhookUrl,
@@ -103,9 +103,6 @@ export default (webApp: WebApp): void => {
 		if (!body) return res.status(400).end();
 		res.status(204);
 		res.end();
-
-		gameBridge = gameBridge || webApp.container.getService("GameBridge");
-		if (!gameBridge) return res.sendStatus(400);
 
 		const server = servers.find(srv => srv.ip === ip);
 		let gameserver: GameServer;

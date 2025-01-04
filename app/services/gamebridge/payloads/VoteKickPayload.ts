@@ -17,7 +17,7 @@ export default class NotificationPayload extends Payload {
 
 		const { offender, reporter, reason, result } = payload.data;
 		const { bridge, discord: discordClient } = server;
-		const steam = bridge.container.getService("Steam");
+		const steam = await bridge.container.getService("Steam");
 
 		if (!discordClient.ready) return;
 
@@ -81,8 +81,8 @@ export default class NotificationPayload extends Payload {
 
 		const reporterSteamId64 = new SteamID(reporter.steamID).getSteamID64();
 		const offenderSteamId64 = new SteamID(offender.steamID).getSteamID64();
-		const reporterAvatar = await steam?.getUserAvatar(reporterSteamId64);
-		const offenderAvatar = await steam?.getUserAvatar(offenderSteamId64);
+		const reporterAvatar = await steam.getUserAvatar(reporterSteamId64);
+		const offenderAvatar = await steam.getUserAvatar(offenderSteamId64);
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
@@ -101,26 +101,24 @@ export default class NotificationPayload extends Payload {
 			.setThumbnail(offenderAvatar)
 			.setColor(0xc4af21);
 
-		const sql = bridge.container.getService("SQL");
-		if (sql) {
-			if (!this.votekickCache[offenderSteamId64]) {
-				const res = await sql.queryPool(
-					`SELECT votekick_amount FROM playerstats WHERE accountid = ${
-						new SteamID(offender.steamID).accountid
-					}`
-				);
-				if (res[0]) {
-					this.votekickCache[offenderSteamId64] = res[0].votekick_amount;
-				} else {
-					this.votekickCache[offenderSteamId64] = 0;
-				}
+		const sql = await bridge.container.getService("SQL");
+		if (!this.votekickCache[offenderSteamId64]) {
+			const res = await sql.queryPool(
+				`SELECT votekick_amount FROM playerstats WHERE accountid = ${
+					new SteamID(offender.steamID).accountid
+				}`
+			);
+			if (res[0]) {
+				this.votekickCache[offenderSteamId64] = res[0].votekick_amount;
+			} else {
+				this.votekickCache[offenderSteamId64] = 0;
 			}
-			this.votekickCache[offenderSteamId64]++;
-			if (this.votekickCache[offenderSteamId64] > 0) {
-				embed.addFields(
-					f("Total Votekick Amount", this.votekickCache[offenderSteamId64].toString())
-				);
-			}
+		}
+		this.votekickCache[offenderSteamId64]++;
+		if (this.votekickCache[offenderSteamId64] > 0) {
+			embed.addFields(
+				f("Total Votekick Amount", this.votekickCache[offenderSteamId64].toString())
+			);
 		}
 
 		await (notificationsChannel as TextChannel).send({

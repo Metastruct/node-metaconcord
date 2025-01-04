@@ -53,11 +53,8 @@ export class IRC extends Service {
 		this.client.say(config.relayIRCChannel, `\u000314[Discord]\u000f ${text}`);
 	}
 
-	constructor(container: Container) {
-		super(container);
-		const bot = this.container.getService("DiscordBot");
-
-		if (!bot) return;
+	private async setupDiscord() {
+		const bot = await this.container.getService("DiscordBot");
 		// Discord
 		bot.discord.on("messageCreate", async msg => {
 			if (msg.channelId === config.relayDiscordChannel) {
@@ -76,6 +73,11 @@ export class IRC extends Service {
 				);
 			}
 		});
+	}
+
+	constructor(container: Container) {
+		super(container);
+		this.setupDiscord();
 		// IRC
 		this.client.on("registered", () => {
 			this.client.say("NICKSERV", `IDENTIFY ${config.nick} ${config.password}`);

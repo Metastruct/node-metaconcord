@@ -159,9 +159,8 @@ const COMMON_EMOJIS = [
 ];
 
 export default async (bot: DiscordBot) => {
-	const data = bot.container.getService("Data");
-	const db = await bot.container.getService("SQL")?.getLocalDatabase();
-	if (!data || !db) return;
+	const data = await bot.container.getService("Data");
+	const db = await (await bot.container.getService("SQL")).getLocalDatabase();
 	db.exec("CREATE TABLE IF NOT EXISTS media_urls (url VARCHAR(255) NOT NULL UNIQUE);");
 	const now = Date.now();
 	let lastActivityChange = now;
@@ -265,7 +264,9 @@ export default async (bot: DiscordBot) => {
 
 		const prefix = selection.ctx[(Math.random() * selection.ctx.length) | 0];
 
-		const sentence = await bot.container.getService("Markov")?.generate(prefix, {
+		const sentence = await (
+			await bot.container.getService("Markov")
+		).generate(prefix, {
 			...DefaultMarkovConfig,
 			continuation: false,
 		});
@@ -377,9 +378,9 @@ export default async (bot: DiscordBot) => {
 			!lastRespondedReactionMsgs.includes(message.id) &&
 			Math.random() <= (reaction.emoji.name === "h_" ? 0.025 : MSG_REPLY_REACTION_FREQ)
 		) {
-			const mk = await bot.container
-				.getService("Markov")
-				?.generate(reaction.emoji.toString(), DefaultMarkovConfig);
+			const mk = await (
+				await bot.container.getService("Markov")
+			).generate(reaction.emoji.toString(), DefaultMarkovConfig);
 			if (mk) {
 				lastReactionUserId = user.id;
 				lastRespondedReactionMsgs.push(message.id);

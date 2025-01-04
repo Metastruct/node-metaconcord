@@ -1,11 +1,10 @@
-import { DiscordBot } from "../../discord";
 import { WebApp } from "..";
 import servers from "@/config/gamebridge.servers.json";
 
 const HOSTING_IDS = { 3: true, 1: true };
 
-export default (webApp: WebApp): void => {
-	let bot: DiscordBot | undefined;
+export default async (webApp: WebApp): Promise<void> => {
+	const bot = await webApp.container.getService("DiscordBot");
 
 	webApp.app.get("/gamemode/:id/", async (req, res) => {
 		const ip = req.header("x-forwarded-for")?.split(",")[0];
@@ -18,9 +17,7 @@ export default (webApp: WebApp): void => {
 			return res.sendStatus(403);
 		}
 
-		bot = bot || webApp.container.getService("DiscordBot");
-
-		const server = bot?.bridge?.servers[id];
+		const server = bot.bridge.servers[id];
 		if (!server) {
 			return res.sendStatus(404);
 		}

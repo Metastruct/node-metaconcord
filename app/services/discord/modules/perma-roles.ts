@@ -9,8 +9,7 @@ function isEmpty(obj: { [roleId: string]: { adderId: string; timeStamp: number }
 }
 
 export default async (bot: DiscordBot): Promise<void> => {
-	const data = bot.container.getService("Data");
-	if (!data) return;
+	const data = await bot.container.getService("Data");
 	const permaRoles = data.permaRoles;
 	const permaPrefix = "#";
 

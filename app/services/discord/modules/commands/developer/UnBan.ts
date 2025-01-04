@@ -37,11 +37,6 @@ export const SlashUnBanCommand: SlashCommand = {
 
 	async execute(ctx, bot) {
 		const bridge = bot.bridge;
-		if (!bridge) {
-			ctx.reply(EphemeralResponse("GameBridge is missing :("));
-			console.error(`SlashUnBan: GameBridge missing?`, ctx);
-			return;
-		}
 		await ctx.deferReply();
 		const server = bridge.servers[ctx.options.getInteger("server") ?? 2];
 		const steamid = ctx.options.getString("steamid", true);
@@ -72,8 +67,7 @@ export const SlashUnBanCommand: SlashCommand = {
 	},
 
 	async autocomplete(ctx, bot) {
-		const banService = bot.container.getService("Bans");
-		if (!banService) return;
+		const banService = await bot.container.getService("Bans");
 		const list = await banService.getBanList();
 		if (!list) {
 			ctx.respond([]);

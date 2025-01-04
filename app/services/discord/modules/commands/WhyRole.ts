@@ -10,11 +10,7 @@ export const MenuWhyRoleCommand: MenuCommand = {
 		default_member_permissions: Discord.PermissionsBitField.Flags.ManageRoles.toString(),
 	},
 	execute: async (ctx: Discord.MessageContextMenuCommandInteraction, bot: DiscordBot) => {
-		const dataService = bot.container.getService("Data");
-		if (!dataService) {
-			ctx.reply(EphemeralResponse("DataProvider missing :("));
-			return;
-		}
+		const dataService = await bot.container.getService("Data");
 		const { permaRoles } = dataService;
 		const userId = ctx.targetId;
 		if (!userId) {

@@ -1,6 +1,5 @@
 import { Container } from "../Container";
-import { SQL } from "./SQL";
-import { Service } from ".";
+import { DiscordBot, SQL, Service } from ".";
 import Discord from "discord.js";
 import config from "@/config/starboard.json";
 import discordConfig from "@/config/discord.json";
@@ -14,18 +13,22 @@ const STARBOARD_CONFIG = {
 export class Starboard extends Service {
 	name = "Starboard";
 	private isBusy = false;
-	private sql: SQL | undefined;
+	private sql: SQL;
+	private bot: DiscordBot;
 
 	constructor(container: Container) {
 		super(container);
-		this.sql = this.container.getService("SQL");
+		this.initServices();
+	}
 
-		const bot = this.container.getService("DiscordBot");
-		if (bot) {
+	private async initServices(): Promise<void> {
+		this.sql = await this.container.getService("SQL");
+		this.bot = await this.container.getService("DiscordBot");
+
 			const filter = (btn: Discord.MessageComponentInteraction) =>
 				btn.customId.startsWith("starboard");
 
-			bot.discord.on("interactionCreate", async interaction => {
+		this.bot.discord.on("interactionCreate", async interaction => {
 				if (!interaction.isButton()) return;
 				if (!filter(interaction)) return;
 				if (interaction.message.author.username !== interaction.user.username) return;
@@ -43,7 +46,6 @@ export class Starboard extends Service {
 	}
 
 	async isMsgStarred(msgId: string): Promise<boolean> {
-		if (!this.sql) return true;
 		const db = await this.sql.getLocalDatabase();
 		if (!(await this.sql.tableExists("starboard"))) {
 			await db.exec(`CREATE TABLE starboard (MessageId VARCHAR(1000));`);
@@ -54,7 +56,6 @@ export class Starboard extends Service {
 	}
 
 	private async starMsg(msgId: string): Promise<void> {
-		if (!this.sql) return;
 		const db = await this.sql.getLocalDatabase();
 		await db.run("INSERT INTO starboard(MessageId) VALUES(?)", msgId);
 	}

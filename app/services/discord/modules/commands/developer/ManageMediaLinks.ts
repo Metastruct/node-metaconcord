@@ -29,7 +29,7 @@ export const SlashManageMediaLinks: SlashCommand = {
 			case "remove":
 				const url = ctx.options.getString("url", true);
 				await ctx.deferReply({ ephemeral: true });
-				const db = await bot.container.getService("SQL")?.getLocalDatabase();
+				const db = await (await bot.container.getService("SQL")).getLocalDatabase();
 				if (!db) {
 					ctx.followUp(EphemeralResponse("Could not get the DB :("));
 					return;
@@ -71,7 +71,7 @@ export const MenuManageMediaLinksCommand: MenuCommand = {
 			return;
 		}
 		await ctx.deferReply({ ephemeral: true });
-		const db = await bot.container.getService("SQL")?.getLocalDatabase();
+		const db = await (await bot.container.getService("SQL")).getLocalDatabase();
 		if (!db) {
 			ctx.followUp(EphemeralResponse("Could not get the DB :("));
 			return;
