@@ -1,4 +1,3 @@
-import { DiscordMetadata } from "../../DiscordMetadata";
 import { SQL } from "../../SQL";
 import { WebApp } from "..";
 import { rateLimit } from "express-rate-limit";
