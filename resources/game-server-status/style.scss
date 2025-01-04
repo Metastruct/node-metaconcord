@@ -73,7 +73,7 @@ main {
 		}
 
 		&.is-pirate a .nick {
-			color: darken(adjust-hue($link, 180), 20%) !important;
+			color: adjust-hue($link, 180) !important;
 		}
 
 		&.is-afk {
