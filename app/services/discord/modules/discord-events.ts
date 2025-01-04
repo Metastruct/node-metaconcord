@@ -84,11 +84,11 @@ export default (bot: DiscordBot): void => {
 						break;
 					}
 				}
+				data.lastDiscordBanner = event.guild?.bannerURL() ?? data.lastDiscordBanner;
+				await data.save();
 				const banner = event.image;
 				if (banner) {
-					data.lastDiscordBanner = event.guild?.bannerURL() ?? data.lastDiscordBanner;
 					await event.guild?.setBanner(banner, "Event banner");
-					await data.save();
 				}
 				break;
 			}
