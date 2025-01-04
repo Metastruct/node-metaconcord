@@ -118,12 +118,13 @@ export class DiscordBot extends Service {
 
 	// sets both the bot's avatar and the guild's icon
 	async setIcon(
-		path = this.data?.lastDiscordGuildIcon ?? "resources/discord-guild-icons/default.png"
+		path = this.data?.lastDiscordGuildIcon ?? "resources/discord-guild-icons/default.png",
+		reason?: string
 	): Promise<boolean> {
 		if (!this.ready || !this.discord.user) return false;
 		try {
 			await this.discord.user.setAvatar(path);
-			await this.getGuild()?.setIcon(path);
+			await this.getGuild()?.setIcon(path, reason);
 			if (this.data) {
 				this.data.lastDiscordGuildIcon = path;
 				await this.data.save();

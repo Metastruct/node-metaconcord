@@ -45,10 +45,10 @@ const fileExists = async (filePath: PathLike) =>
 		.catch(() => false);
 
 export default async (bot: DiscordBot): Promise<void> => {
-	const data = await bot.container.getService("Data");
 	bot.discord.on("ready", async () => {
 		const guild = bot.getGuild();
 		if (!guild) return;
+		const data = await bot.container.getService("Data");
 
 		const changeIcon = async (filePath: string, eventName: string) => {
 			const eventChange = data.lastDiscordGuildEvent !== eventName;
@@ -57,21 +57,19 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 			if (eventChange && !guildEvents.find(ev => ev.isActive())) {
 				try {
-					await guild.setIcon(
+					await bot.setIcon(
 						filePath,
 						eventName !== "None"
 							? `It's ${eventName}!`
 							: "Back to regularly scheduled activities."
 					);
-					await bot.discord.user?.setAvatar(filePath);
-					data.lastDiscordGuildIcon = filePath;
+					data.lastDiscordGuildEvent = eventName;
+					await data.save();
 				} catch (err) {
 					console.error(err);
 					return;
 				}
-				data.lastDiscordGuildEvent = eventName;
 			}
-			await data.save();
 		};
 
 		const checkDate = async () => {

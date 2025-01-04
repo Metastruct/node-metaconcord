@@ -67,7 +67,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 					if (match) {
 						const path = join(iconsPath, `${icon}.png`);
 						await bot.setIcon(path);
-						await bot.discord.user?.setAvatar(path);
 						await bot.setNickname(
 							nicks[(Math.random() * nicks.length) | 0],
 							event.name
