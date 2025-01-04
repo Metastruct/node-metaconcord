@@ -26,6 +26,10 @@ export default class GameBridge extends Service {
 	constructor(container: Container) {
 		super(container);
 		this.setupWebApp();
+	}
+
+	private async setupWebApp() {
+		this.webApp = await this.container.getService("WebApp");
 		this.ws = new WebSocketServer({
 			httpServer: this.webApp.http,
 			autoAcceptConnections: false,
@@ -37,10 +41,6 @@ export default class GameBridge extends Service {
 
 		console.log(`Web socket server listening on ${this.webApp.config.port}`);
 		this.handleResoniteConnection();
-	}
-
-	private async setupWebApp() {
-		this.webApp = await this.container.getService("WebApp");
 	}
 
 	async handleConnection(req: WebSocketRequest): Promise<void> {
