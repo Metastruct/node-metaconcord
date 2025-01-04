@@ -18,8 +18,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 			nicks: ["terror", "detective", "innocent", "trouble", "clue", "banana", "protogen"],
 			execute: async () =>
 				(await bot.container.getService("GameBridge")).servers[3]?.sendLua(
-						`local request = require("gm_request") if request and not request:IsServerGamemode(3,"terrortown") then request:SwitchGamemodeAsync("terrortown",print) end`
-					),
+					`local request = require("gm_request") if request and not request:IsServerGamemode(3,"terrortown") then request:SwitchGamemodeAsync("terrortown",print) end`
+				),
 		},
 	];
 
@@ -69,10 +69,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 							: false);
 					if (match) {
 						const path = join(iconsPath, `${icon}.png`);
-						await event.guild?.setIcon(path);
+						await bot.setIcon(path);
 						await bot.discord.user?.setAvatar(path);
-						data.lastDiscordNickName = (await bot.getNickname()) ?? "Meta";
-						await data.save();
 						await bot.setNickname(
 							nicks[(Math.random() * nicks.length) | 0],
 							event.name
@@ -81,11 +79,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 						break;
 					}
 				}
-				data.lastDiscordBanner = event.guild?.bannerURL() ?? data.lastDiscordBanner;
-				await data.save();
 				const banner = event.image;
 				if (banner) {
-					await event.guild?.setBanner(banner, "Event banner");
+					await bot.setServerBanner(banner, "Event banner");
 				}
 				break;
 			}
