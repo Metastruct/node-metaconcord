@@ -20,7 +20,7 @@ html(lang="en")
 		main(style=`background-image: url(${server.status.mapThumbnail})`)
 			ul.playerlist
 				each player in server.status.players
-					li.player(class={ 'is-admin': player.isAdmin, 'is-banned': player.isBanned, 'is-afk': player.isAfk })
+					li.player(class={ 'is-admin': player.isAdmin, 'is-banned': player.isBanned, 'is-afk': player.isAfk, 'is-pirate': player.isPirate })
 						a(title="View profile", href=player.accountId ? `https://steamcommunity.com/profiles/[U:1:${player.accountId}]` : "#", target="_blank")
 							if (player.avatar)
 								img.avatar(src=player.avatar)

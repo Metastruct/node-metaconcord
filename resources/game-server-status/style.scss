@@ -72,6 +72,10 @@ main {
 			color: lighten(adjust-hue($link, 80), 5%) !important;
 		}
 
+		&.is-pirate a .nick {
+			color: darken(adjust-hue($link, 180), 20%) !important;
+		}
+
 		&.is-afk {
 			opacity: 0.5;
 		}
