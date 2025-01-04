@@ -116,24 +116,53 @@ export class DiscordBot extends Service {
 		this.discord.user?.setActivity(activity);
 	}
 
+	async setIcon(
+		path = this.data?.lastDiscordGuildIcon ?? "resources/discord-guild-icons/default.png"
+	): Promise<boolean> {
+		if (!this.ready || !this.discord.user) return false;
+		try {
+			await this.discord.user.setAvatar(path);
+			if (this.data) {
+				this.data.lastDiscordGuildIcon = path;
+				await this.data.save();
+			}
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
 	async setNickname(name = "Meta", reason?: string): Promise<boolean> {
 		if (!this.ready || !this.discord.user || name.length > 22) return false;
-		const nick = name.charAt(0).toUpperCase() + name.slice(1);
-		this.getGuild()?.members.me?.setNickname(nick + " Construct", reason);
-		return true;
+		try {
+			const nick = name.charAt(0).toUpperCase() + name.slice(1);
+			await this.getGuild()?.members.me?.setNickname(nick + " Construct", reason);
+			if (this.data) {
+				this.data.lastDiscordNickName = nick;
+				await this.data.save();
+			}
+			return true;
+		} catch {
+			return false;
+		}
 	}
 
-	async getNickname(): Promise<string | undefined> {
-		if (!this.ready || !this.discord.user) return;
-		return (await this.getGuildMember(this.discord.user.id))?.nickname?.split(" ")[0];
-	}
-
-	async setServerBanner(url: string): Promise<void> {
-		if (!this.ready || !(await this.overLvl2())) return;
-		const guild = this.getGuild();
-		const response = await axios.get(url, { responseType: "arraybuffer" });
-		if (!response) return;
-		guild?.setBanner(response.data, "motd");
+	async setServerBanner(
+		url = this.data?.lastDiscordBanner ?? null,
+		reason?: string
+	): Promise<boolean> {
+		if (!this.ready || !(await this.overLvl2())) return false;
+		try {
+			const guild = this.getGuild();
+			await guild?.setBanner(url, reason);
+			if (this.data && url) {
+				this.data.lastDiscordBanner = url;
+				await this.data.save();
+			}
+			return true;
+		} catch {
+			return false;
+		}
 	}
 
 	async feedMarkov(msg: Discord.Message): Promise<void> {
