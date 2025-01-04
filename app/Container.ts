@@ -35,35 +35,35 @@ export class Container {
 		}
 	}
 
-	async getService<Name extends string>(
-		type: Name,
+	async getService<ServiceName extends string>(
+		service: ServiceName,
 		timeoutMs = 30000
-	): Promise<ServiceMap[Name]> {
-		if (this.services[type]) {
-			return this.services[type];
+	): Promise<ServiceMap[ServiceName]> {
+		if (this.services[service]) {
+			return this.services[service];
 		}
 
 		// Create or return existing promise for this service
-		if (!this.pendingServices.has(type)) {
+		if (!this.pendingServices.has(service)) {
 			this.pendingServices.set(
-				type,
+				service,
 				new Promise((resolve, reject) => {
 					const timeoutId = setTimeout(() => {
-						this.pendingServices.delete(type);
-						reject(new Error(`Timeout waiting for service: ${type}`));
+						this.pendingServices.delete(service);
+						reject(new Error(`Timeout waiting for service: ${service}`));
 					}, timeoutMs);
 
 					const checkInterval = setInterval(() => {
-						if (this.services[type]) {
+						if (this.services[service]) {
 							clearTimeout(timeoutId);
 							clearInterval(checkInterval);
-							resolve(this.services[type]);
+							resolve(this.services[service]);
 						}
 					}, 100);
 				})
 			);
 		}
 
-		return this.pendingServices.get(type) as Promise<ServiceMap[Name]>;
+		return this.pendingServices.get(service) as Promise<ServiceMap[ServiceName]>;
 	}
 }
