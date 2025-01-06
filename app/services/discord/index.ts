@@ -145,10 +145,12 @@ export class DiscordBot extends Service {
 	): Promise<boolean> {
 		if (!this.ready || name.length > 22) return false;
 		try {
-			const nick = name.charAt(0).toUpperCase() + name.slice(1);
-			this.data.lastDiscordNickName = this.getNickname() ?? "Meta";
+			let newNick = name.charAt(0).toUpperCase() + name.slice(1);
+			const currentNick = this.getNickname();
+			this.data.lastDiscordNickName = currentNick ?? "Meta";
+			if (currentNick === newNick) newNick = "Meta";
 			await this.data.save();
-			await this.getGuild()?.members.me?.setNickname(nick + " Construct", reason);
+			await this.getGuild()?.members.me?.setNickname(newNick + " Construct", reason);
 			return true;
 		} catch {
 			return false;
