@@ -1,5 +1,6 @@
 import { Container } from "@/app/Container";
 import { Data, GameBridge, Service } from "@/app/services";
+import { getAsBase64 } from "@/utils";
 import Discord from "discord.js";
 import DiscordConfig from "@/config/discord.json";
 import modules from "./modules";
@@ -125,8 +126,10 @@ export class DiscordBot extends Service {
 		try {
 			const guild = this.getGuild();
 			if (!guild) return false;
-			this.data.lastDiscordGuildIcon =
-				this.discord.user.avatarURL() ?? guild.iconURL() ?? this.data.lastDiscordGuildIcon;
+			const iconURL = this.discord.user.avatarURL() ?? guild.iconURL();
+			this.data.lastDiscordGuildIcon = iconURL
+				? (await getAsBase64(iconURL)) ?? this.data.lastDiscordGuildIcon
+				: this.data.lastDiscordGuildIcon;
 			await this.data.save();
 			await this.discord.user.setAvatar(path);
 			await guild.setIcon(path, reason);
@@ -163,9 +166,13 @@ export class DiscordBot extends Service {
 		if (!this.ready || !(await this.overLvl2())) return false;
 		try {
 			const guild = this.getGuild();
-			this.data.lastDiscordBanner = guild?.bannerURL() ?? this.data.lastDiscordBanner;
+			if (!guild) return false;
+			const bannerURL = guild.bannerURL();
+			this.data.lastDiscordBanner = bannerURL
+				? (await getAsBase64(bannerURL)) ?? this.data.lastDiscordBanner
+				: this.data.lastDiscordBanner;
 			await this.data.save();
-			await guild?.setBanner(url, reason);
+			await guild.setBanner(url, reason);
 			return true;
 		} catch {
 			return false;
