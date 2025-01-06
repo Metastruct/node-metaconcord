@@ -64,6 +64,20 @@ const LOOKUP_PATH = webappconfig.lookupPath;
 export const GMOD_PATH_MATCH =
 	/^(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?|)?(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>[a-z]*))?(?::-?(?<linenos>\d+)-?(?<linenoe>\d+)?)?$/g;
 
+export const getAsBase64 = async (url: string): Promise<string | null> => {
+	if (!url.match(/^https?:\/\/.+/)) return null;
+	try {
+		const res = await axios.get(url, { responseType: "arraybuffer" });
+
+		const contentType = res.headers["content-type"] || "image/png";
+		const base64 = Buffer.from(res.data, "binary").toString("base64");
+
+		return `data:${contentType};base64,${base64}`;
+	} catch (error) {
+		return null;
+	}
+};
+
 export const getOrFetchGmodFile = async (path: PathLike) => {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [, fpath, addon, filename, ext, linenos, linenoe] =
