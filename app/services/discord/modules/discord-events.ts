@@ -41,9 +41,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 					usr.roles.remove(DiscordConfig.roles.event);
 			});
 		}
-		await bot.setIcon();
-		await bot.setServerBanner();
-		await bot.setNickname(undefined, event.name + " ended");
+		const reason = event.name + " ended";
+		await bot.setIcon(undefined, reason);
+		await bot.setServerBanner(undefined, reason);
+		await bot.setNickname(undefined, reason);
 	};
 
 	bot.discord.on("guildScheduledEventUpdate", async (old, now) => {
