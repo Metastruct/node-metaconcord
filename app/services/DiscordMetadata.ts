@@ -98,40 +98,45 @@ export class DiscordMetadata extends Service {
 				.catch(async (err: AxiosError<OAuthErrorData>) => {
 					const discordResponse = err.response?.data;
 					if (discordResponse?.error === "invalid_grant") {
-						// The provided authorization grant (e.g., authorization
-						// 	code, resource owner credentials) or refresh token is
-						// 	invalid, expired, revoked, does not match the redirection
-						// 	URI used in the authorization request, or was issued to
-						// 	another client.
+						// The provided authorization grant or refresh token is
+						// invalid, expired, revoked, doesn't match redirection
+						// URI, or was issued to another client.
 						const res = await revokeOAuthToken(data.access_token);
 						console.warn(
 							`[Metadata] InValID_GraNT revoking token (${res})! ${userId} [${
 								err.code
 							}] ${JSON.stringify(discordResponse)}`
 						);
-					} else
+					} else {
 						console.error(
 							`[Metadata] failed fetching tokens: [${err.code}] ${JSON.stringify(
 								discordResponse
 							)}`
 						);
+					}
 				});
-			if (!res) return;
 
-			const token = res.data;
-			await (
-				await this.sql.getLocalDatabase()
-			).run(
-				"UPDATE discord_tokens SET access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at WHERE user_id = $user_id",
-				{
-					$user_id: userId,
-					$access_token: token.access_token,
-					$refresh_token: token.refresh_token,
-					$expires_at: Date.now() + token.expires_in * 1000,
-				}
+			if (res && "data" in res) {
+				const token = res.data;
+				const db = await this.sql.getLocalDatabase();
+				await db.run(
+					"UPDATE discord_tokens SET access_token = ?, refresh_token = ?, expires_at = ? WHERE user_id = ?",
+					[
+						token.access_token,
+						token.refresh_token,
+						Date.now() + token.expires_in * 1000,
+						userId,
+					]
+				);
+				return token.access_token;
+			}
+			console.error(
+				`[Metadata] failed to get access token for ${userId} data: ${JSON.stringify(
+					data
+				)} res: ${JSON.stringify(res)}`
 			);
-			return token.access_token;
 		}
+
 		return data.access_token;
 	}
 
