@@ -1,6 +1,7 @@
 import { Container } from "@/app/Container";
 import { Data, GameBridge, Service } from "@/app/services";
 import { getAsBase64 } from "@/utils";
+import { getEventIcon } from "./modules/discord-guild-icon";
 import Discord from "discord.js";
 import DiscordConfig from "@/config/discord.json";
 import modules from "./modules";
@@ -118,14 +119,16 @@ export class DiscordBot extends Service {
 	}
 
 	// sets both the bot's avatar and the guild's icon
-	async setIcon(
-		path = this.data.lastDiscordGuildIcon ?? "resources/discord-guild-icons/default.png",
-		reason?: string
-	): Promise<boolean> {
+	async setIcon(path?: string, reason?: string): Promise<boolean> {
 		if (!this.ready || !this.discord.user) return false;
 		try {
 			const guild = this.getGuild();
 			if (!guild) return false;
+
+			if (!path) {
+				path = (await getEventIcon()).filePath;
+			}
+
 			const iconURL = this.discord.user.avatarURL() ?? guild.iconURL();
 			this.data.lastDiscordGuildIcon = iconURL
 				? (await getAsBase64(iconURL)) ?? this.data.lastDiscordGuildIcon
