@@ -1,5 +1,4 @@
 import { DiscordBot } from "..";
-import { GuildPremiumTier } from "discord.js";
 import { PathLike } from "fs";
 import { join } from "path";
 import { scheduleJob } from "node-schedule";
@@ -44,6 +43,48 @@ const fileExists = async (filePath: PathLike) =>
 		.then(stats => stats.isFile())
 		.catch(() => false);
 
+const checkDate = async () => {
+	let filePath = defaultIconPath;
+	let eventName = "None";
+
+	for (const { icon, range } of events) {
+		const [start, end] = range;
+		const [startDay, startMonth] = start.split("/").map(n => +n);
+		const [endDay, endMonth] = end.split("/").map(n => +n);
+
+		const now = dayjs();
+		const day = now.date();
+		const month = now.month() + 1;
+
+		const inMonth = month >= startMonth && month <= endMonth;
+		const correctDay =
+			startDay <= (month > startMonth ? startDay : day) &&
+			endDay >= (month < endMonth ? endDay : day);
+
+		if (inMonth && correctDay) {
+			filePath = join(iconsPath, `${icon}.gif`);
+			if (!(await fileExists(filePath))) {
+				filePath = join(iconsPath, `${icon}.png`);
+			}
+			if (!(await fileExists(filePath))) {
+				filePath = defaultIconPath;
+			}
+			eventName = icon
+				.split("-")
+				.map(str => str.charAt(0).toUpperCase() + str.slice(1))
+				.join(" ");
+			break;
+		}
+	}
+
+	return { filePath: filePath, eventName };
+};
+
+export const getEventIcon = async () => {
+	const { filePath, eventName } = await checkDate();
+	return { filePath, eventName };
+};
+
 export default async (bot: DiscordBot): Promise<void> => {
 	bot.discord.on("ready", async () => {
 		const guild = bot.getGuild();
@@ -70,46 +111,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 					return;
 				}
 			}
-		};
-
-		const checkDate = async () => {
-			let filePath = defaultIconPath;
-			let eventName = "None";
-
-			for (const { icon, range } of events) {
-				const [start, end] = range;
-				const [startDay, startMonth] = start.split("/").map(n => +n);
-				const [endDay, endMonth] = end.split("/").map(n => +n);
-
-				const now = dayjs();
-				const day = now.date();
-				const month = now.month() + 1;
-
-				const inMonth = month >= startMonth && month <= endMonth;
-				const correctDay =
-					startDay <= (month > startMonth ? startDay : day) &&
-					endDay >= (month < endMonth ? endDay : day);
-
-				if (inMonth && correctDay) {
-					filePath = join(iconsPath, `${icon}.gif`);
-					if (
-						guild.premiumTier === GuildPremiumTier.None ||
-						!(await fileExists(filePath))
-					) {
-						filePath = join(iconsPath, `${icon}.png`);
-					}
-					if (!(await fileExists(filePath))) {
-						filePath = defaultIconPath;
-					}
-					eventName = icon
-						.split("-")
-						.map(str => str.charAt(0).toUpperCase() + str.slice(1))
-						.join(" ");
-					break;
-				}
-			}
-
-			return { filePath: filePath, eventName };
 		};
 
 		const doIt = async () => {
