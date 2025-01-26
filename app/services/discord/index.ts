@@ -129,7 +129,8 @@ export class DiscordBot extends Service {
 				path = (await getEventIcon()).filePath;
 			}
 
-			const iconURL = this.discord.user.avatarURL() ?? guild.iconURL();
+			const iconURL =
+				this.discord.user.avatarURL({ size: 4096 }) ?? guild.iconURL({ size: 4096 });
 			this.data.lastDiscordGuildIcon = iconURL
 				? (await getAsBase64(iconURL)) ?? this.data.lastDiscordGuildIcon
 				: this.data.lastDiscordGuildIcon;
@@ -172,7 +173,7 @@ export class DiscordBot extends Service {
 		try {
 			const guild = this.getGuild();
 			if (!guild) return false;
-			const bannerURL = guild.bannerURL();
+			const bannerURL = guild.bannerURL({ size: 4096 });
 			this.data.lastDiscordBanner = bannerURL
 				? (await getAsBase64(bannerURL)) ?? this.data.lastDiscordBanner
 				: this.data.lastDiscordBanner;
@@ -239,7 +240,7 @@ export class DiscordBot extends Service {
 	async overLvl2(): Promise<boolean> {
 		const guild = this.discord.guilds.cache.get(this.config.bot.primaryGuildId);
 		if (!guild) return false;
-		return guild.premiumTier > Discord.GuildPremiumTier.Tier1 ?? false;
+		return guild.premiumTier > Discord.GuildPremiumTier.Tier1;
 	}
 
 	async removeMotdReactions(): Promise<void> {
