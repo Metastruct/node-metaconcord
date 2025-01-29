@@ -377,13 +377,13 @@ export default async (bot: DiscordBot) => {
 				await bot.container.getService("Markov")
 			).generate(reaction.emoji.toString(), DefaultMarkovConfig);
 			if (mk) {
-				lastReactionUserId = user.id;
 				lastRespondedReactionMsgs.push(message.id);
 				await (message.channel as Discord.TextChannel)
 					.send(`${user.mention} ` + mk)
 					.catch();
 			}
 		}
+		lastReactionUserId = user.id;
 	});
 
 	bot.discord.on("messageCreate", async msg => {
