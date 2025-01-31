@@ -82,7 +82,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				}
 				break;
 			}
-			case Discord.GuildScheduledEventStatus.Canceled:
+			case Discord.GuildScheduledEventStatus.Scheduled:
 			case Discord.GuildScheduledEventStatus.Completed: {
 				if (old && !now.isActive()) {
 					endEvent(old);
