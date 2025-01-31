@@ -205,7 +205,7 @@ export default (bot: DiscordBot): void => {
 				iconURL: user?.avatarURL() ?? user?.user.avatarURL() ?? undefined,
 			})
 			.setFooter({
-				text: `${actionName}${
+				text: `${actionName ?? entry.action}${
 					actionName !== entry.targetType + entry.actionType
 						? ` (${entry.targetType} ${entry.actionType})`
 						: ""

@@ -277,6 +277,7 @@ export class Motd extends Service {
 		const wordList = motd
 			.split(" ")
 			.filter(w => w.length <= 22 && !filter.includes(w.toLowerCase()));
+		if (wordList.length === 0) return;
 		const word = wordList[(Math.random() * wordList?.length) | 0];
 		nick = word.charAt(0).toUpperCase() + word.slice(1);
 		return await this.bot.setNickname(nick, "Random Motd name");
