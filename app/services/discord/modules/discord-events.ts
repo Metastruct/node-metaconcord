@@ -34,13 +34,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 		event: Discord.GuildScheduledEvent | Discord.PartialGuildScheduledEvent
 	) => {
 		console.log(`Event "${event.name}" ended! Removing roles...`);
-		const users = await GetParticipants(event);
-		if (users.length > 0) {
-			users.forEach(usr => {
-				if (usr.roles.cache.some(role => role.id === DiscordConfig.roles.event))
+		const users = (await event.guild?.roles.fetch(DiscordConfig.roles.event))?.members;
+		users?.forEach(usr => {
 					usr.roles.remove(DiscordConfig.roles.event);
-			});
-		}
+		})
 		const reason = event.name + " ended";
 		await bot.setIcon(undefined, reason);
 		await bot.setServerBanner(undefined, reason);
