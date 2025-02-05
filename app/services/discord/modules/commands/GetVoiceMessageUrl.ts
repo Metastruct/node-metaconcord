@@ -19,7 +19,7 @@ export const MenuGetVoiceMessageUrlCommand: MenuCommand = {
 		}
 		await ctx.reply({
 			content: voiceUris.url,
-			ephemeral: true,
+			flags: Discord.MessageFlags.Ephemeral,
 		});
 	},
 };

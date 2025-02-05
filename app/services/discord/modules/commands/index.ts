@@ -23,7 +23,7 @@ import { SlashWhyBanCommand } from "./WhyBan";
 import Discord, { REST } from "discord.js";
 
 export function EphemeralResponse(content: string): Discord.InteractionReplyOptions {
-	return { content: content, ephemeral: true };
+	return { content: content, flags: Discord.MessageFlags.Ephemeral };
 }
 
 export const slashCommands = [

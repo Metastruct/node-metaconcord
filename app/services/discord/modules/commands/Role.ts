@@ -311,7 +311,7 @@ export const SlashRoleCommand: SlashCommand = {
 		],
 	},
 	execute: async ctx => {
-		await ctx.deferReply({ ephemeral: true });
+		await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
 		const cmd = ctx.options.getSubcommand();
 		try {
 			switch (cmd) {

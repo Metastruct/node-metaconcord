@@ -43,7 +43,7 @@ export const SlashVoiceCommand: SlashCommand = {
 			return;
 		}
 
-		await ctx.deferReply({ ephemeral: true });
+		await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
 
 		try {
 			const channel = await bot.getGuild()?.channels.create({

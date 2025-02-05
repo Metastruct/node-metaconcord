@@ -24,7 +24,7 @@ export const MenuGetStickerUrlCommand: MenuCommand = {
 						}`
 				)
 				.join("\n"),
-			ephemeral: true,
+			flags: Discord.MessageFlags.Ephemeral,
 		});
 	},
 };

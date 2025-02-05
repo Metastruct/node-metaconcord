@@ -28,7 +28,7 @@ export const SlashManageMediaLinks: SlashCommand = {
 		switch (cmd) {
 			case "remove":
 				const url = ctx.options.getString("url", true);
-				await ctx.deferReply({ ephemeral: true });
+				await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
 				const db = await (await bot.container.getService("SQL")).getLocalDatabase();
 				if (!db) {
 					ctx.followUp(EphemeralResponse("Could not get the DB :("));
@@ -70,7 +70,7 @@ export const MenuManageMediaLinksCommand: MenuCommand = {
 			await ctx.reply(EphemeralResponse("this doesn't look like a media link"));
 			return;
 		}
-		await ctx.deferReply({ ephemeral: true });
+		await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
 		const db = await (await bot.container.getService("SQL")).getLocalDatabase();
 		if (!db) {
 			ctx.followUp(EphemeralResponse("Could not get the DB :("));

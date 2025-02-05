@@ -29,7 +29,7 @@ export default class AdminNotifyPayload extends Payload {
 			if (!(await server.discord.isAllowed(ctx.user))) {
 				await ctx.reply({
 					content: "you're not allowed to use this button...",
-					ephemeral: true,
+					flags: Discord.MessageFlags.Ephemeral,
 				});
 				return;
 			}
