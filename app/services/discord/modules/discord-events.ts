@@ -10,7 +10,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		{
 			icon: "vr",
 			triggers: ["vrchat", "vr"],
-			nicks: ["VR"],
+			nicks: ["VR", "Virtual"],
 		},
 		{
 			icon: "ttt",
@@ -20,6 +20,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 				(await bot.container.getService("GameBridge")).servers[3]?.sendLua(
 					`local request = require("gm_request") if request and not request:IsServerGamemode(3,"terrortown") then request:SwitchGamemodeAsync("terrortown",print) end`
 				),
+		},
+		{
+			icon: "ss13",
+			triggers: ["ss13", "(ss13)"],
+			nicks: ["Syndicate", "Revolutionary", "NanoTrasen", "Nano", "Robust", "Supermatter", "Borg", "AI", "Cyborg", "AI Core", "Greytide", "Law 2", "Captain", "Clown", "Mime", "Chaplain", "Botanist", "Chemist", "Geneticist", "Virologist"],
 		},
 	];
 
@@ -36,7 +41,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		console.log(`Event "${event.name}" ended! Removing roles...`);
 		const users = (await event.guild?.roles.fetch(DiscordConfig.roles.event))?.members;
 		users?.forEach(usr => {
-					usr.roles.remove(DiscordConfig.roles.event);
+			usr.roles.remove(DiscordConfig.roles.event);
 		})
 		const reason = event.name + " ended";
 		await bot.setIcon(undefined, reason);
@@ -46,7 +51,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 	bot.discord.on("guildScheduledEventUpdate", async (old, now) => {
 		const event = now;
-
+		
 		switch (event.status) {
 			case Discord.GuildScheduledEventStatus.Active: {
 				console.log(`Event "${event.name}" running! Setting roles...`); // logging because I don't trust discord
@@ -65,10 +70,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 					if (match) {
 						const path = join(iconsPath, `${icon}.png`);
 						await bot.setIcon(path);
-						await bot.setNickname(
-							nicks[(Math.random() * nicks.length) | 0],
-							event.name
-						);
+						if (nicks) {
+							await bot.setNickname(
+								nicks[(Math.random() * nicks.length) | 0],
+								event.name
+							);
+						}
 						if (execute) execute();
 						break;
 					}
