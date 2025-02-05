@@ -220,7 +220,7 @@ export const MenuDeeplCommand: MenuCommand = {
 					description: `
 						\`\`\`\n${msg.content}\`\`\`\n**${res.data.translations[0].detected_source_language} -> EN**\n\`\`\`\n${res.data.translations[0].text}\`\`\``,
 				};
-				await ctx.reply({ embeds: [embed], ephemeral: true });
+				await ctx.reply({ embeds: [embed], flags: Discord.MessageFlags.Ephemeral });
 			} else {
 				await ctx.reply(
 					EphemeralResponse("Something went wrong while trying to translate.")

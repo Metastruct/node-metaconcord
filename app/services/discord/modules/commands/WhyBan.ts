@@ -20,7 +20,7 @@ export const SlashWhyBanCommand: SlashCommand = {
 	},
 
 	async execute(ctx, bot) {
-		await ctx.deferReply({ ephemeral: true });
+		await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
 		const banService = await bot.container.getService("Bans");
 		const ban = await banService.getBan(ctx.options.getString("query", true));
 		if (!ban) {
