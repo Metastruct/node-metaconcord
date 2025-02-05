@@ -24,7 +24,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		{
 			icon: "ss13",
 			triggers: ["ss13", "(ss13)"],
-			nicks: ["Syndicate", "Revolutionary", "NanoTrasen", "Nano", "Robust", "Supermatter", "Borg", "AI", "Cyborg", "AI Core", "Greytide", "Law 2", "Captain", "Clown", "Mime", "Chaplain", "Botanist", "Chemist", "Geneticist", "Virologist"],
+			nicks: ["AI", "Blob", "Borg", "Botanist", "Captain", "Chaplain", "Chemist", "Clown", "Cyborg", "Fried", "Geneticist", "Greytide", "Honk", "Janny", "Law 2", "Mime", "Nano", "NanoTrasen", "Nukie", "Poly", "Revolutionary", "Robust", "Space", "Supermatter", "Syndicate", "Virologist", "Xeno"],
 		},
 	];
 
