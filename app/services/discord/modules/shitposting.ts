@@ -158,6 +158,9 @@ const COMMON_EMOJIS = [
 	"🙏",
 ];
 
+const lastMsgs: Discord.Message<boolean>[] = [];
+const lastReactedMessages = new Set<string>();
+
 export default async (bot: DiscordBot) => {
 	const data = await bot.container.getService("Data");
 	const db = await (await bot.container.getService("SQL")).getLocalDatabase();
@@ -167,9 +170,6 @@ export default async (bot: DiscordBot) => {
 	let lastSetActivity: Discord.ActivitiesOptions | undefined;
 	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? now);
 	let lastChatTime = now;
-	let lastReactionUserId: string | undefined;
-	const lastMsgs: Discord.Message<boolean>[] = [];
-	const lastRespondedReactionMsgs: string[] = [];
 	let posting = false;
 	let replied = false;
 
@@ -308,7 +308,7 @@ export default async (bot: DiscordBot) => {
 		}, SAVE_INTERVAL); // save data
 
 		setInterval(async () => {
-			lastRespondedReactionMsgs.splice(0, lastRespondedReactionMsgs.length - 1);
+			lastReactedMessages.clear();
 		}, MSG_REPLY_REACTION_CLEAR_INTERVAL);
 
 		setInterval(async () => {
@@ -369,21 +369,19 @@ export default async (bot: DiscordBot) => {
 		}
 
 		if (
-			user.id !== lastReactionUserId &&
-			!lastRespondedReactionMsgs.includes(message.id) &&
+			!lastReactedMessages.has(message.id) &&
 			Math.random() <= (reaction.emoji.name === "h_" ? 0.025 : MSG_REPLY_REACTION_FREQ)
 		) {
 			const mk = await (
 				await bot.container.getService("Markov")
 			).generate(reaction.emoji.toString(), DefaultMarkovConfig);
 			if (mk) {
-				lastRespondedReactionMsgs.push(message.id);
+				lastReactedMessages.add(message.id);
 				await (message.channel as Discord.TextChannel)
 					.send(`${user.mention} ` + mk)
 					.catch();
 			}
 		}
-		lastReactionUserId = user.id;
 	});
 
 	bot.discord.on("messageCreate", async msg => {
