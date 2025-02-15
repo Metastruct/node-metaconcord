@@ -54,7 +54,10 @@ const GetGithubChanges = (
 
 const getGitHubDiff = async (url: string) => {
 	const res = await axios.get<string>(url + ".diff");
-	if (res) return res.data;
+	if (res) return res.data
+		.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n")
+		.replaceAll(/diff.+\nindex.+\n/g, "")
+		.replaceAll("```", "​`​`​`");
 };
 
 const FIELD_REGEX = /^(?:Add|Mod|Del) \[(.+)\]/g;
@@ -64,6 +67,16 @@ const SERVER_EMOJI_MAP = {
 	"2": "2️⃣",
 	"3": "3️⃣",
 };
+
+const REPO_SERVER_MAP = new Map([
+	["Lumiens-Map-Vote", [3]],
+	["MTA-Gamemode", [3]],
+	["terrortown_modding", [3]],
+	["ttt_player_tumbler", [3]],
+	["ttt_ragmod", [3]],
+	["TTT2", [3]],
+]);
+
 const isRemoteMergeCommit = (message: string) =>
 	message.startsWith("Merge remote-tracking") || message.startsWith("Merge pull request");
 const isMergeCommit = (message: string) =>
@@ -225,23 +238,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}
 	});
 
-	const REPO_SERVER_MAP: [repo: string, servers: number[]][] = [
-		// maybe move this to a config?
-		["Lumiens-Map-Vote", [3]],
-		["MTA-Gamemode", [3]],
-		["terrortown_modding", [3]],
-		["ttt_player_tumbler", [3]],
-		["ttt_ragmod", [3]],
-		["TTT2", [3]],
-	];
-
 	GitHub.on("push", async event => {
 		if (!webhook) return;
 		const payload = event.payload;
 		const repo = payload.repository;
-		const serverOverride = REPO_SERVER_MAP.filter(r => r[1].length > 0).find(
-			r => r[0] === repo.name
-		)?.[1];
+		const serverOverride = REPO_SERVER_MAP.get(repo.name);
 		const commits = payload.commits;
 		const branch = payload.ref.split("/")[2];
 
@@ -308,11 +309,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 				}
 
 				let diff = isMergeCommit(commit.message) ? undefined : await getGitHubDiff(commit.url);
-				if (diff) {
-					diff = diff.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n");
-					diff = diff.replaceAll(/diff.+\nindex.+\n/g, "");
-					diff = diff.replaceAll("```", "​`​`​`");
-				}
 
 				embeds.push({
 					title:
