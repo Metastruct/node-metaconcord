@@ -10,6 +10,7 @@ const COLOR_BASE = 50;
 
 const DIFF_SIZE = 2048;
 const MAX_FIELDS = 10;
+const MAX_COMMITS = 5;
 
 const GitHub = new Webhooks({
 	secret: webhookConfig.github.secret,
@@ -250,58 +251,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		if (payload.head_commit && isRemoteMergeCommit(payload.head_commit.message))
 			commits.splice(0, commits.length, payload.head_commit);
-
-		for (const commit of commits) {
-			const fields: Discord.APIEmbedField[] = [];
-			const changes = GetGithubChanges(
-				commit.added,
-				commit.removed,
-				commit.modified,
-				repo.full_name,
-				payload.ref
-			);
-
-			includesLua =
-				commit.added.some(str => str.endsWith(".lua")) ||
-				commit.modified.some(str => str.endsWith(".lua")) ||
-				commit.removed.some(str => str.endsWith(".lua"));
-
-			const oversize = changes.length > MAX_FIELDS;
-			const changeLen = oversize ? MAX_FIELDS : changes.length;
-
-			for (let i = 0; i < changeLen; i++) {
-				const change = changes[i];
-				if (i === 24 || oversize ? i === changeLen - 1 : false) {
-					fields.push({
-						name: "​",
-						value: `... and ${changes.length - changeLen} more changes`,
-					});
-					break;
-				} else {
-					fields.push({
-						name: i > 0 ? "​" : "---",
-						value: change.length > 1024 ? "<LINK TOO LONG>" : change,
-					});
-				}
-			}
-
-			let diff = isMergeCommit(commit.message) ? undefined : await getGitHubDiff(commit.url);
-			if (diff) {
-				diff = diff.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n");
-				diff = diff.replaceAll(/diff.+\nindex.+\n/g, "");
-				diff = diff.replaceAll("```", "​`​`​`");
-			}
-
-			embeds.push({
-				title:
-					commit.message.length > 256
-						? `${commit.message.substring(0, 250)}. . .`
-						: commit.message,
-				description: diff
-					? `\`\`\`diff\n${
-							diff.length > DIFF_SIZE - 12 ? diff.substring(0, 4079) + ". . ." : diff
-					  }\`\`\``
-					: undefined,
+		
+		if (commits.length > MAX_COMMITS) {
+			const embed: Discord.APIEmbed = {
+				title: `${commits.length} commits in this push`,
+				description: `[View all changes](${payload.compare})`,
 				author: {
 					name:
 						branch !== repo.default_branch
@@ -310,23 +264,92 @@ export default async (bot: DiscordBot): Promise<void> => {
 					url: repo.html_url,
 					icon_url: repo.owner.avatar_url,
 				},
-				color:
-					clamp(COLOR_BASE + COLOR_MOD * commit.removed.length, COLOR_BASE, 255) * 65536 +
-					clamp(COLOR_BASE + COLOR_MOD * commit.added.length, COLOR_BASE, 255) * 256 +
-					clamp(COLOR_BASE + COLOR_MOD * commit.modified.length, COLOR_BASE, 255),
-				url: commit.url,
-				fields: fields,
-				timestamp: commit.timestamp,
+				color: 0xFFD700,
+				timestamp: new Date().toISOString(),
 				footer: {
-					text: `${commit.id.substring(0, 6)} by ${
-						commit.author.username ?? commit.author.name
-					}${
-						commit.author.name !== commit.committer.name
-							? ` via ${commit.committer.username ?? commit.committer.name}`
-							: ""
-					}`,
+					text: `by ${payload.sender.name ?? payload.sender.login}`,
 				},
-			});
+			};
+			
+			embeds.push(embed);
+		} else {
+			for (const commit of commits) {
+				const fields: Discord.APIEmbedField[] = [];
+				const changes = GetGithubChanges(
+					commit.added,
+					commit.removed,
+					commit.modified,
+					repo.full_name,
+					payload.ref
+				);
+
+				includesLua =
+					commit.added.some(str => str.endsWith(".lua")) ||
+					commit.modified.some(str => str.endsWith(".lua")) ||
+					commit.removed.some(str => str.endsWith(".lua"));
+
+				const oversize = changes.length > MAX_FIELDS;
+				const changeLen = oversize ? MAX_FIELDS : changes.length;
+
+				for (let i = 0; i < changeLen; i++) {
+					const change = changes[i];
+					if (i === 24 || oversize ? i === changeLen - 1 : false) {
+						fields.push({
+							name: "︎",
+							value: `... and ${changes.length - changeLen} more changes`,
+						});
+						break;
+					} else {
+						fields.push({
+							name: i > 0 ? "︎" : "---",
+							value: change.length > 1024 ? "<LINK TOO LONG>" : change,
+						});
+					}
+				}
+
+				let diff = isMergeCommit(commit.message) ? undefined : await getGitHubDiff(commit.url);
+				if (diff) {
+					diff = diff.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n");
+					diff = diff.replaceAll(/diff.+\nindex.+\n/g, "");
+					diff = diff.replaceAll("```", "​`​`​`");
+				}
+
+				embeds.push({
+					title:
+						commit.message.length > 256
+							? `${commit.message.substring(0, 250)}. . .`
+							: commit.message,
+					description: diff
+						? `\`\`\`diff\n${
+								diff.length > DIFF_SIZE - 12 ? diff.substring(0, 4079) + ". . ." : diff
+						  }\`\`\``
+						: undefined,
+					author: {
+						name:
+							branch !== repo.default_branch
+								? (repo.name + "/" + branch).substring(0, 256)
+								: repo.name.substring(0, 256),
+						url: repo.html_url,
+						icon_url: repo.owner.avatar_url,
+					},
+					color:
+						clamp(COLOR_BASE + COLOR_MOD * commit.removed.length, COLOR_BASE, 255) * 65536 +
+						clamp(COLOR_BASE + COLOR_MOD * commit.added.length, COLOR_BASE, 255) * 256 +
+						clamp(COLOR_BASE + COLOR_MOD * commit.modified.length, COLOR_BASE, 255),
+					url: commit.url,
+					fields: fields,
+					timestamp: commit.timestamp,
+					footer: {
+						text: `${commit.id.substring(0, 6)} by ${
+							commit.author.username ?? commit.author.name
+						}${
+							commit.author.name !== commit.committer.name
+								? ` via ${commit.committer.username ?? commit.committer.name}`
+								: ""
+						}`,
+					},
+				});
+			}
 		}
 		const messagePayload = <Discord.WebhookMessageCreateOptions>{
 			...BaseEmbed,
