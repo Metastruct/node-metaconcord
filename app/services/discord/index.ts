@@ -174,14 +174,16 @@ export class DiscordBot extends Service {
 			const guild = this.getGuild();
 			if (!guild) return false;
 
+			let banner = "";
 			const bannerURL = guild.bannerURL({ size: 4096 });
 			if (bannerURL) {
 				const bannerBase64 = await getAsBase64(bannerURL);
-				this.data.lastDiscordBanner = bannerBase64 ?? this.data.lastDiscordBanner;
-				await this.data.save();
+				banner = bannerBase64 ?? "";
 			}
+			this.data.lastDiscordBanner = banner ?? this.data.lastDiscordBanner;
+			await this.data.save();
 
-			await guild.setBanner(url, reason);
+			await guild.setBanner(url === "" ? null : url, reason);
 			return true;
 		} catch {
 			return false;
