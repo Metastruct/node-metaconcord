@@ -13,16 +13,16 @@ const GetParticipants = async (
 };
 
 export const endEvent = async (
-	event?: Discord.GuildScheduledEvent | Discord.PartialGuildScheduledEvent,
+	event?: Discord.GuildScheduledEvent | Discord.PartialGuildScheduledEvent
 ) => {
 	const bot = await globalThis.MetaConcord.container.getService("DiscordBot");
 	const guild = bot.getGuild();
-	const name = event?.name ?? "A event"
+	const name = event?.name ?? "A event";
 	console.log(`"${name}" ended! Removing roles...`);
 	const users = (await guild?.roles.fetch(DiscordConfig.roles.event))?.members;
 	users?.forEach(usr => {
 		usr.roles.remove(DiscordConfig.roles.event);
-	})
+	});
 	const reason = name + " ended";
 	await bot.setIcon(undefined, reason);
 	await bot.setServerBanner(undefined, reason);
@@ -48,13 +48,41 @@ export default async (bot: DiscordBot): Promise<void> => {
 		{
 			icon: "ss13",
 			triggers: ["ss13", "(ss13)"],
-			nicks: ["AI", "Blob", "Borg", "Botanist", "Captain", "Chaplain", "Chemist", "Clown", "Cyborg", "Fried", "Geneticist", "Greytide", "Honk", "Janny", "Law 2", "Mime", "Nano", "NanoTrasen", "Nukie", "Poly", "Revolutionary", "Robust", "Space", "Supermatter", "Syndicate", "Virologist", "Xeno"],
+			nicks: [
+				"AI",
+				"Blob",
+				"Borg",
+				"Botanist",
+				"Captain",
+				"Chaplain",
+				"Chemist",
+				"Clown",
+				"Cyborg",
+				"Fried",
+				"Geneticist",
+				"Greytide",
+				"Honk",
+				"Janny",
+				"Law 2",
+				"Mime",
+				"Nano",
+				"NanoTrasen",
+				"Nukie",
+				"Poly",
+				"Revolutionary",
+				"Robust",
+				"Space",
+				"Supermatter",
+				"Syndicate",
+				"Virologist",
+				"Xeno",
+			],
 		},
 	];
 
 	bot.discord.on("guildScheduledEventUpdate", async (old, now) => {
 		const event = now;
-		
+
 		switch (event.status) {
 			case Discord.GuildScheduledEventStatus.Active: {
 				console.log(`Event "${event.name}" running! Setting roles...`); // logging because I don't trust discord
