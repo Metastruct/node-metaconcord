@@ -1,6 +1,12 @@
 import { Container } from "./Container";
 import providers from "./services";
 
+declare global {
+	var MetaConcord: {
+		container: Container;
+	}
+}
+
 export class App {
 	container: Container;
 
