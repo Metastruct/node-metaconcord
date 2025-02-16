@@ -5,6 +5,30 @@ import DiscordConfig from "@/config/discord.json";
 
 const iconsPath = join(process.cwd(), "resources/discord-event-icons");
 
+const GetParticipants = async (
+	event: Discord.GuildScheduledEvent | Discord.PartialGuildScheduledEvent
+) => {
+	const eventUsers = await event.fetchSubscribers({ withMember: true });
+	return eventUsers.map(evu => evu.member);
+};
+
+export const endEvent = async (
+	event?: Discord.GuildScheduledEvent | Discord.PartialGuildScheduledEvent,
+) => {
+	const bot = await globalThis.MetaConcord.container.getService("DiscordBot");
+	const guild = bot.getGuild();
+	const name = event?.name ?? "A event"
+	console.log(`"${name}" ended! Removing roles...`);
+	const users = (await guild?.roles.fetch(DiscordConfig.roles.event))?.members;
+	users?.forEach(usr => {
+		usr.roles.remove(DiscordConfig.roles.event);
+	})
+	const reason = name + " ended";
+	await bot.setIcon(undefined, reason);
+	await bot.setServerBanner(undefined, reason);
+	await bot.setNickname(undefined, reason);
+};
+
 export default async (bot: DiscordBot): Promise<void> => {
 	const events = [
 		{
@@ -27,27 +51,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 			nicks: ["AI", "Blob", "Borg", "Botanist", "Captain", "Chaplain", "Chemist", "Clown", "Cyborg", "Fried", "Geneticist", "Greytide", "Honk", "Janny", "Law 2", "Mime", "Nano", "NanoTrasen", "Nukie", "Poly", "Revolutionary", "Robust", "Space", "Supermatter", "Syndicate", "Virologist", "Xeno"],
 		},
 	];
-
-	const GetParticipants = async (
-		event: Discord.GuildScheduledEvent | Discord.PartialGuildScheduledEvent
-	) => {
-		const eventUsers = await event.fetchSubscribers({ withMember: true });
-		return eventUsers.map(evu => evu.member);
-	};
-
-	const endEvent = async (
-		event: Discord.GuildScheduledEvent | Discord.PartialGuildScheduledEvent
-	) => {
-		console.log(`Event "${event.name}" ended! Removing roles...`);
-		const users = (await event.guild?.roles.fetch(DiscordConfig.roles.event))?.members;
-		users?.forEach(usr => {
-			usr.roles.remove(DiscordConfig.roles.event);
-		})
-		const reason = event.name + " ended";
-		await bot.setIcon(undefined, reason);
-		await bot.setServerBanner(undefined, reason);
-		await bot.setNickname(undefined, reason);
-	};
 
 	bot.discord.on("guildScheduledEventUpdate", async (old, now) => {
 		const event = now;

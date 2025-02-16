@@ -114,7 +114,7 @@ export const Shat = async (options?: {
 		} else {
 			const res: AxiosResponse<TenorResponse> = await (
 				await globalThis.MetaConcord.container.getService("Tenor")
-			).search(word, 4);
+			).search(word ?? "random", 4);
 			if (!res || res.data.results.length === 0)
 				return {
 					content: await markov?.generate(undefined, DefaultMarkovConfig),
