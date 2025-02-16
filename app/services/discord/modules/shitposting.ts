@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios";
 import { DiscordBot } from "..";
-import { IGenerateOptions, Markov } from "../../Markov";
+import { Markov } from "../../Markov";
 import { TenorResponse } from "../../Tenor";
 import { makeSpeechBubble } from "@/utils";
 import Discord from "discord.js";
@@ -61,10 +61,6 @@ function getWord(msg?: string) {
 	return search;
 }
 
-const DefaultMarkovConfig: IGenerateOptions = {
-	depth: ((Math.random() * 2) | 0) + 3, // random number from 3 to 4
-};
-
 export const Shat = async (options?: {
 	msg?: string;
 	fallback?: string;
@@ -90,12 +86,9 @@ export const Shat = async (options?: {
 			search = getWord(message);
 		}
 
-		let shat = await markov?.generate(
-			getWord(search ?? options?.fallback),
-			DefaultMarkovConfig
-		);
+		let shat = await markov?.generate(getWord(search ?? options?.fallback));
 
-		if (!shat) shat = await markov?.generate(undefined, DefaultMarkovConfig);
+		if (!shat) shat = await markov?.generate();
 
 		return shat ? { content: shat } : undefined;
 	} else {
@@ -103,7 +96,7 @@ export const Shat = async (options?: {
 		let word =
 			options?.msg && !options.msg.startsWith("http") ? getWord(options.msg) : undefined;
 
-		if (!word) word = getWord(await markov?.generate(undefined, DefaultMarkovConfig));
+		if (!word) word = getWord(await markov?.generate());
 
 		if (images.length !== 0 && (Math.random() <= 0.5 || !word)) {
 			const imgur = images[(Math.random() * images.length) | 0];
@@ -117,7 +110,7 @@ export const Shat = async (options?: {
 			).search(word ?? "random", 4);
 			if (!res || res.data.results.length === 0)
 				return {
-					content: await markov?.generate(undefined, DefaultMarkovConfig),
+					content: await markov?.generate(),
 				}; // if for some reason we get no result;
 			return {
 				content:
@@ -267,7 +260,6 @@ export default async (bot: DiscordBot) => {
 		const sentence = await (
 			await bot.container.getService("Markov")
 		).generate(prefix, {
-			...DefaultMarkovConfig,
 			continuation: false,
 		});
 
@@ -374,7 +366,7 @@ export default async (bot: DiscordBot) => {
 		) {
 			const mk = await (
 				await bot.container.getService("Markov")
-			).generate(reaction.emoji.toString(), DefaultMarkovConfig);
+			).generate(reaction.emoji.toString());
 			if (mk) {
 				lastReactedMessages.add(message.id);
 				await (message.channel as Discord.TextChannel)
