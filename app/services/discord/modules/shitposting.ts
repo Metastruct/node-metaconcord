@@ -153,6 +153,7 @@ const COMMON_EMOJIS = [
 
 const lastMsgs: Discord.Message<boolean>[] = [];
 const lastReactedMessages = new Set<string>();
+const lastReactedUsers = new Set<string>();
 
 export default async (bot: DiscordBot) => {
 	const data = await bot.container.getService("Data");
@@ -301,6 +302,7 @@ export default async (bot: DiscordBot) => {
 
 		setInterval(async () => {
 			lastReactedMessages.clear();
+			lastReactedUsers.clear();
 		}, MSG_REPLY_REACTION_CLEAR_INTERVAL);
 
 		setInterval(async () => {
@@ -362,6 +364,7 @@ export default async (bot: DiscordBot) => {
 
 		if (
 			!lastReactedMessages.has(message.id) &&
+			!lastReactedMessages.has(user.id) &&
 			Math.random() <= (reaction.emoji.name === "h_" ? 0.025 : MSG_REPLY_REACTION_FREQ)
 		) {
 			const mk = await (
@@ -369,6 +372,7 @@ export default async (bot: DiscordBot) => {
 			).generate(reaction.emoji.toString());
 			if (mk) {
 				lastReactedMessages.add(message.id);
+				lastReactedUsers.add(user.id);
 				await (message.channel as Discord.TextChannel)
 					.send(`${user.mention} ` + mk)
 					.catch();
