@@ -166,7 +166,7 @@ export class DiscordBot extends Service {
 	}
 
 	async setServerBanner(
-		url = this.data?.lastDiscordBanner ?? null,
+		url?: string,
 		reason?: string
 	): Promise<boolean> {
 		if (!this.ready || !(await this.overLvl2())) return false;
@@ -183,7 +183,7 @@ export class DiscordBot extends Service {
 			this.data.lastDiscordBanner = banner ?? this.data.lastDiscordBanner;
 			await this.data.save();
 
-			await guild.setBanner(url === "" ? null : url, reason);
+			await guild.setBanner(url ?? null, reason);
 			return true;
 		} catch {
 			return false;
