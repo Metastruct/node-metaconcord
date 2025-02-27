@@ -33,9 +33,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			const guild = bot.getGuild();
 			if (guild) {
 				const channel = bot.getTextChannel(bot.config.channels.notifications);
-				await channel?.send(
-					`<@&${bot.config.roles.appDeveloper}> GSERV FAILED ON SERVER ${id}, PLEASE FIX`
-				);
+				await channel?.send(`GSERV FAILED ON SERVER ${id}, PLEASE FIX`);
 				console.error("gamemode switcher", output);
 			}
 		}
