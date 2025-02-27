@@ -85,6 +85,10 @@ export class Steam extends Service {
 	} = {};
 
 	async getUserSummaries(steamId64: string): Promise<PlayerSummary | undefined> {
+		if (!steamId64) return;
+		if (steamId64.startsWith("STEAM_")) {
+			steamId64 = this.steamIDToSteamID64(steamId64);
+		}
 		const userCache = this.getUserCache(steamId64);
 		if (!userCache.summary) {
 			try {
