@@ -24,48 +24,131 @@ export const SlashWhyBanCommand: SlashCommand = {
 		const banService = await bot.container.getService("Bans");
 		const ban = await banService.getBan(ctx.options.getString("query", true));
 		if (!ban) {
-			ctx.followUp(EphemeralResponse("That SteamID has never been banned before."));
+			await ctx.followUp(EphemeralResponse("That SteamID has never been banned before."));
 			return;
 		}
-		const banner = await (
-			await bot.container.getService("Steam")
-		).getUserSummaries(ban.bannersid);
 
-		if (!ban.b) {
-			ctx.followUp(
-				EphemeralResponse(
-					`\`\`\`ansi\n\u001b[1;33m${
-						ban.name
-					}\u001b[0;0m is currently \u001b[0;32mnot banned\u001b[0;0m but was banned${
-						ban.numbans && ban.numbans > 1 ? ` ${ban.numbans} times` : ""
-					}\u001b[0;0m before \u001b[4;36m${
-						ban.gamemode ? `on ${ban.gamemode}` : "globally"
-					}\u001b[0;0m.\nLast ban reason:\n\u001b[0;40m${ban.banreason.replaceAll(
-						"```",
-						"​`​`​`"
-					)}\u001b[0;0m\`\`\``
-				)
-			);
-		} else {
-			ctx.followUp(
-				EphemeralResponse(
-					`\`\`\`ansi\n\u001b[1;33m${
-						ban.name
-					}\u001b[0;0m is currently \u001b[0;31mbanned\u001b[0;0m by \u001b[1;33m${
-						banner ? `${banner.personaname} ` : ""
-					}(${ban.bannersid})\u001b[0;0m ${`\u001b[4;36m${
-						ban.gamemode ? `on ${ban.gamemode}` : "globally"
-					}`}\u001b[0;0m for:\n\u001b[0;40m${ban.banreason.replaceAll(
-						"```",
-						"​`​`​`"
-					)}\u001b[0;0m\`\`\`expires: <t:${ban.whenunban}:R>${
-						ban.numbans && ban.numbans > 1
-							? `\n\`${ban.name}\` has been banned \`${ban.numbans} times\` so far`
-							: ""
-					}`
-				)
-			);
+		const steam = await bot.container.getService("Steam");
+
+		const banner = await steam.getUserSummaries(ban.bannersid);
+
+		const banned = await steam.getUserSummaries(ban.sid);
+
+		const unbanned = ban.unbannersid
+			? await steam.getUserSummaries(ban.unbannersid)
+			: undefined;
+
+		const embed = new Discord.EmbedBuilder();
+
+		const bannerAvatar = banner?.avatarfull;
+		let bannerName = banner?.personaname ?? ban.bannersid;
+		let bannerMention = "";
+
+		// const unbannerAvatar = unbanned?.avatarfull;
+		let unbannerName = unbanned?.personaname ?? ban.unbannersid;
+		let unbannerMention = "";
+
+		const bannedAvatar = banned?.avatarfull;
+		const bannedName = `${ban.name}${
+			ban.name !== banned?.personaname ? ` (${banned?.personaname})` : ""
+		}`;
+
+		if (bannerName.startsWith("Discord")) {
+			const [name, mention] = bannerName
+				.replaceAll("Discord ", "")
+				.replaceAll(")", "")
+				.replaceAll("(", "")
+				.split("|")
+				.map(x => x.trim());
+
+			bannerName = name;
+			bannerMention = mention;
 		}
+
+		if (unbannerName && unbannerName.startsWith("Discord")) {
+			const [name, mention] = unbannerName
+				.replaceAll("Discord ", "")
+				.replaceAll(")", "")
+				.replaceAll("(", "")
+				.split("|")
+				.map(x => x.trim());
+
+			unbannerName = name;
+			unbannerMention = mention;
+		}
+
+		if (bannedAvatar) {
+			embed.setThumbnail(bannedAvatar);
+		}
+
+		if (bannerMention) {
+			embed.addFields({
+				name: "Mention",
+				value: bannerMention,
+			});
+		}
+
+		embed.setColor(ban.b ? "Red" : "Green").addFields(
+			{
+				name: "Nick",
+				value: bannedName,
+				inline: true,
+			},
+			{
+				name: "Expiration",
+				value: ban.whenunban ? `<t:${ban.whenunban}:R>` : "N/A",
+				inline: true,
+			},
+			{
+				name: "Reason",
+				value: ban.banreason.replaceAll("```", "​`​`​`"),
+			},
+			{
+				name: "Gamemode",
+				value: ban.gamemode ? ban.gamemode : "GLOBAL",
+			},
+			{
+				name: "SteamID",
+				value: `[${ban.sid}](https://steamcommunity.com/profiles/${ban.sid})`,
+			},
+			{
+				name: "Times banned",
+				value: ban.numbans?.toString() ?? "1",
+			}
+		);
+
+		if (bannerAvatar) {
+			embed.setAuthor({
+				name: `${bannerName} has banned`,
+				iconURL: bannerAvatar,
+				url: `https://steamcommunity.com/profiles/${ban.bannersid}`,
+			});
+		} else {
+			embed.setAuthor({
+				name: `${bannerName} has banned`,
+			});
+		}
+
+		if (unbannerName) {
+			embed.addFields({
+				name: "Unbanned by",
+				value: unbannerName ?? "??",
+			});
+
+			if (unbannerMention) {
+				embed.addFields({
+					name: "Mention",
+					value: unbannerMention,
+				});
+			}
+
+			embed.addFields({
+				name: "Unban reason",
+				value: ban.unbanreason ?? "No Reason",
+			});
+		}
+
+		await ctx.followUp({ embeds: [embed], flags: Discord.MessageFlags.Ephemeral });
 	},
 
 	async autocomplete(ctx, bot) {
