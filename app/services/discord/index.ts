@@ -165,10 +165,7 @@ export class DiscordBot extends Service {
 		return this.getGuild()?.members.me?.nickname?.split(" ")[0] ?? undefined;
 	}
 
-	async setServerBanner(
-		url?: string,
-		reason?: string
-	): Promise<boolean> {
+	async setServerBanner(url?: string, reason?: string): Promise<boolean> {
 		if (!this.ready || !(await this.overLvl2())) return false;
 		try {
 			const guild = this.getGuild();
@@ -256,13 +253,7 @@ export class DiscordBot extends Service {
 
 	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	async fetchPartial(obj): Promise<any> {
-		if (obj && obj.partial) {
-			try {
-				await obj.fetch();
-			} catch {}
-			return obj;
-		}
-		return obj;
+		return obj.partial ? await obj.fetch() : obj;
 	}
 }
 
