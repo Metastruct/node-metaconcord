@@ -91,6 +91,8 @@ export default class AdminNotifyPayload extends Payload {
 		const steam = await bridge.container.getService("Steam");
 		const avatar = await steam.getUserAvatar(steamId64);
 		const reportedAvatar = await steam.getUserAvatar(reportedSteamId64);
+		const selfReport = player.steamId === reported.steamId;
+
 		if (message.trim().length < 1) message = "No message provided..?";
 
 		const embed = new Discord.EmbedBuilder()
@@ -131,20 +133,30 @@ export default class AdminNotifyPayload extends Payload {
 			);
 		}
 
-		// You can have a maximum of five ActionRows per message, and five buttons within an ActionRow.
-		const row = new Discord.ActionRowBuilder<Discord.ButtonBuilder>().addComponents(
-			new Discord.ButtonBuilder()
-				.setStyle(Discord.ButtonStyle.Secondary)
-				.setCustomId(`${reportedSteamId64}_REPORT_KICK`)
-				.setEmoji("🥾")
-				.setLabel("KICK Offender"),
-			new Discord.ButtonBuilder()
-				.setStyle(Discord.ButtonStyle.Secondary)
-				.setCustomId(`${steamId64}_REPORT_KICK`)
-				.setEmoji("🥾")
-				.setLabel("KICK Reporter")
-		);
-
+		const row = new Discord.ActionRowBuilder<Discord.ButtonBuilder>();
+		if (selfReport) {
+			row.addComponents(
+				new Discord.ButtonBuilder()
+					.setStyle(Discord.ButtonStyle.Secondary)
+					.setCustomId(`${reportedSteamId64}_REPORT_KICK`)
+					.setEmoji("🥾")
+					.setLabel("KICK Self Reporter")
+			);
+		} else {
+			// You can have a maximum of five ActionRows per message, and five buttons within an ActionRow.
+			row.addComponents(
+				new Discord.ButtonBuilder()
+					.setStyle(Discord.ButtonStyle.Secondary)
+					.setCustomId(`${reportedSteamId64}_REPORT_KICK`)
+					.setEmoji("🥾")
+					.setLabel("KICK Offender"),
+				new Discord.ButtonBuilder()
+					.setStyle(Discord.ButtonStyle.Secondary)
+					.setCustomId(`${steamId64}_REPORT_KICK`)
+					.setEmoji("🥾")
+					.setLabel("KICK Reporter")
+			);
+		}
 		try {
 			await thread.send({
 				content: callAdminRole && `<@&${callAdminRole.id}>`,
