@@ -284,9 +284,9 @@ export default async (bot: DiscordBot) => {
 		return lastSetActivity;
 	};
 
-	bot.discord.on("presenceUpdate", async (old, now) => {
-		if (now.userId !== bot.discord.user?.id) return;
-	});
+	// bot.discord.on("presenceUpdate", async (old, now) => {
+	// 	if (now.userId !== bot.discord.user?.id) return;
+	// });
 
 	bot.discord.once("ready", async client => {
 		bot.setActivity(undefined, await getRandomStatus());
@@ -338,7 +338,9 @@ export default async (bot: DiscordBot) => {
 	});
 
 	bot.discord.on("messageReactionAdd", async (reaction, user) => {
-		const message = reaction.message;
+		const message = reaction.message.partial
+			? await reaction.message.fetch()
+			: reaction.message;
 		if (
 			!bot.config.bot.allowedShitpostingChannels.includes(message.channelId) ||
 			message.author?.id !== bot.discord.user?.id
@@ -364,7 +366,7 @@ export default async (bot: DiscordBot) => {
 
 		if (
 			!lastReactedMessages.has(message.id) &&
-			!lastReactedMessages.has(user.id) &&
+			!lastReactedUsers.has(user.id) &&
 			Math.random() <= (reaction.emoji.name === "h_" ? 0.025 : MSG_REPLY_REACTION_FREQ)
 		) {
 			const mk = await (
@@ -421,7 +423,9 @@ export default async (bot: DiscordBot) => {
 			(rng <= REACTION_FREQ ||
 				(!isAllowedChannel && (isTriggerWord || isMaybeTriggerWord || isMention)))
 		) {
-			setTimeout(async () => msg.react(getRandomEmoji()).catch(), 1000 * 10);
+			setTimeout(async () => {
+				await msg.react(getRandomEmoji()).catch();
+			}, 1000 * 10);
 		}
 
 		// Chatting
