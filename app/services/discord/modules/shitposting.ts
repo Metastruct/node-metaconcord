@@ -14,7 +14,7 @@ const MSG_TRIGGER_COUNT = 10; // how many msgs in above interval until a msg is 
 const MSG_CHAT_INTERVAL = 1000 * 60 * 60 * 2; // total time until a message is forced if below interval wasn't met (active chatters)
 const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.75; // idle (no active chatters) time until post, can be delayed by chatting
 const MSG_USE_AUTHOR_FREQ = 0.3; // use the author name instead of message
-const MSG_REPLY_REACTION_FREQ = 0.1;
+const MSG_REPLY_REACTION_FREQ = 0.05;
 const MSG_REPLY_REACTION_CLEAR_INTERVAL = 1000 * 60 * 60;
 const REACTION_FREQ = 0.0025; // how often to react on messages;
 const SAVE_INTERVAL = 1000 * 60 * 60 * 0.25; // saves lastmsg/mk at that interval
@@ -367,7 +367,7 @@ export default async (bot: DiscordBot) => {
 		if (
 			!lastReactedMessages.has(message.id) &&
 			!lastReactedUsers.has(user.id) &&
-			Math.random() <= (reaction.emoji.name === "h_" ? 0.025 : MSG_REPLY_REACTION_FREQ)
+			Math.random() <= (reaction.emoji.name === "h_" ? 0.01 : MSG_REPLY_REACTION_FREQ)
 		) {
 			const mk = await (
 				await bot.container.getService("Markov")
