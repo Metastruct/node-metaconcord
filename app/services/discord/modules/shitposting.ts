@@ -10,7 +10,6 @@ import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
 // #chat and #shat constants
 const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 60 * 0.25; // interval for changing the bot status to a random message
 const MSG_INTERVAL = 1000 * 60; // interval for checking messages for below trigger count, also resets activity if it was set manually or by other means
-const MSG_TRIGGER_COUNT = 10; // how many msgs in above interval until a msg is posted
 const MSG_CHAT_INTERVAL = 1000 * 60 * 60 * 2; // total time until a message is forced if below interval wasn't met (active chatters)
 const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.75; // idle (no active chatters) time until post, can be delayed by chatting
 const MSG_USE_AUTHOR_FREQ = 0.3; // use the author name instead of message
@@ -21,7 +20,6 @@ const SAVE_INTERVAL = 1000 * 60 * 60 * 0.25; // saves lastmsg/mk at that interva
 const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
 const COMMON_EMOJI_RATIO = 0.7;
-const TYPING_TRIGGER_THRESHOLD = 0.9; // at how much msgs to trigger the typing (related to MSG_TRIGGER_COUNT)
 
 // trigger word constants
 const TRIGGER_WORDS = ["meta bot", "metabot", "metaconcord", "the bot"]; // these will always count like a normal reply/ping
@@ -313,7 +311,6 @@ export default async (bot: DiscordBot) => {
 					(await bot.getTextChannel(bot.config.channels.chat)?.lastMessage?.fetch())
 						?.author.id) !== client.user.id &&
 				(now - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
-					lastMsgs.length >= MSG_TRIGGER_COUNT ||
 					now - lastMsgTime > MSG_CHAT_INTERVAL) &&
 				!posting
 			) {
@@ -455,12 +452,6 @@ export default async (bot: DiscordBot) => {
 		if (isChatChannel) {
 			lastChatTime = Date.now();
 			lastMsgs.push(msg);
-			if (
-				lastMsgs.length < MSG_TRIGGER_COUNT &&
-				lastMsgs.length / MSG_TRIGGER_COUNT >= TYPING_TRIGGER_THRESHOLD
-			) {
-				(msg.channel as Discord.TextChannel).sendTyping();
-			}
 		}
 
 		// image collector
