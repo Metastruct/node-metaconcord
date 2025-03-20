@@ -253,7 +253,11 @@ export class DiscordBot extends Service {
 
 	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	async fetchPartial(obj): Promise<any> {
-		return obj.partial ? await obj.fetch() : obj;
+		try {
+			return obj.partial ? await obj.fetch() : obj;
+		} catch (e) {
+			return obj;
+		}
 	}
 }
 
