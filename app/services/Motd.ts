@@ -4,7 +4,6 @@ import { scheduleJob } from "node-schedule";
 import FormData from "form-data";
 import axios, { AxiosResponse } from "axios";
 import config from "@/config/motd.json";
-import dayjs from "dayjs";
 
 type ImgurImage = {
 	id: string;
@@ -103,19 +102,6 @@ export class Motd extends Service {
 		this.messages = [];
 		this.initServices();
 		scheduleJob("0 12 * * *", this.executeMessageJob.bind(this));
-		// scheduleJob("0 20 * * *", this.executeImageJob.bind(this));
-		// scheduleJob("0 0 * * 0", this.clearImageAlbumAndHistory.bind(this));
-		// axios
-		// 	.get(`https://api.imgur.com/3/album/${config.imgurAlbumId}/images`, {
-		// 		headers: {
-		// 			Authorization: `Client-ID ${config.imgurClientId}`,
-		// 		},
-		// 	})
-		// 	.then(res => {
-		// 		if (res.status === 200) {
-		// 			this.images = res.data.data;
-		// 		}
-		// 	});
 	}
 	private async initServices() {
 		const bot = await this.container.getService("DiscordBot");
@@ -178,85 +164,6 @@ export class Motd extends Service {
 		);
 		await this.setNicknameFromSentence(msg);
 	}
-
-	// private async executeImageJob(patch?: boolean, msgId?: string): Promise<void> {
-	// 	const res = await axios.get(`https://api.imgur.com/3/album/${config.imgurAlbumId}/images`, {
-	// 		headers: {
-	// 			Authorization: `Client-ID ${config.imgurClientId}`,
-	// 		},
-	// 	});
-
-	// 	if (res.status === 200) {
-	// 		const yesterday = dayjs().subtract(1, "d").unix();
-	// 		this.images = res.data.data;
-	// 		const urls: ImgurImage[] = res.data.data.filter(
-	// 			(img: ImgurImage) =>
-	// 				img.datetime >= yesterday &&
-	// 				!this.lastimages.includes(img) &&
-	// 				!this.ignorelist.some(id => img.title.includes(id))
-	// 		); // keep only recent images
-	// 		const authors = [...new Set(urls.map(image => image.title))];
-	// 		const index = (Math.random() * urls.length) | 0;
-	// 		const image = urls[index];
-	// 		const url: string = image.link;
-	// 		if (!url) return;
-
-	// 		let msg = `Image of the day\n(No. ${index + 1} out of ${urls.length} total from ${
-	// 			authors.length
-	// 		} user${authors.length > 1 ? "s" : ""})`;
-
-	// 		if (patch !== undefined && msgId) {
-	// 			this.rerolls++;
-	// 			msg = `Image of the day\n(No. ${index + 1} out of ${urls.length} total from ${
-	// 				authors.length
-	// 			} user${authors.length > 1 ? "s" : ""})\n(♻ rerolled ${this.rerolls}x)`;
-	// 			await axios.patch(
-	// 				`${config.webhook}/messages/${msgId}`,
-	// 				JSON.stringify({
-	// 					content: msg + `\n${url}`,
-	// 					username: "Meta Construct",
-	// 					avatar_url:
-	// 						"https://pbs.twimg.com/profile_images/1503242277/meta4_crop.png",
-	// 				}),
-	// 				{
-	// 					headers: {
-	// 						"Content-Type": "application/json",
-	// 					},
-	// 				}
-	// 			);
-	// 		} else {
-	// 			this.rerolls = 0;
-	// 			await axios.post(
-	// 				config.webhook,
-	// 				JSON.stringify({
-	// 					content: msg + `\n${url}`,
-	// 					username: "Meta Construct",
-	// 					avatar_url:
-	// 						"https://pbs.twimg.com/profile_images/1503242277/meta4_crop.png",
-	// 				}),
-	// 				{
-	// 					headers: {
-	// 						"Content-Type": "application/json",
-	// 					},
-	// 				}
-	// 			);
-	// 		}
-	// 		this.bot.setServerBanner(url);
-	// 		this.lastimages.push(image);
-	// 		setTimeout(async () => {
-	// 			const last = await this.bot.getLastMotdMsg();
-	// 			await last?.react("♻️");
-	// 		}, 1000 * 10);
-	// 	}
-	// }
-	// async rerollImageJob(): Promise<void> {
-	// 	if (!(await this.bot.overLvl2())) return;
-	// 	const lastmsg = await this.bot.getLastMotdMsg();
-	// 	if (!lastmsg) return;
-
-	// 	await this.executeImageJob(true, lastmsg.id);
-	// 	await this.bot.removeMotdReactions();
-	// }
 
 	async getImageInfo(id: string): Promise<ImgurImage | undefined> {
 		try {
