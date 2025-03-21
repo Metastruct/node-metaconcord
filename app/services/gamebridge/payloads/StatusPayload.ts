@@ -154,15 +154,24 @@ export default class StatusPayload extends Payload {
 				discord.user.setPresence(presence);
 			}
 			// Permanent status message
-			let desc = `:busts_in_silhouette: **${count > 0 ? count : "no"} player${
+			// Map name w/ workshop link
+			let desc = `>>> ### ${
+				current_workshopMap
+					? `[${current_workshopMap.name}](https://steamcommunity.com/sharedfiles/filedetails/?id=${current_workshopMap.id})`
+					: current_map
+			}`;
+
+			// Player count
+			desc += `\n:busts_in_silhouette: Player${
 				count > 1 || count == 0 ? "s" : ""
-			}**`;
-			// Time, kinda sucks we need to calculate but that's just how it is.
+			}: **${count}**`;
+
+			// Map and Server Uptime
 			const servertime = dayjs().subtract(current_serverUptime, "s").unix();
 			const maptime = dayjs().subtract(current_mapUptime, "s").unix();
 
-			desc += `\n:repeat: <t:${maptime}:R>`;
-			desc += `\n:file_cabinet: <t:${servertime}:R>`;
+			desc += `\n:repeat: Map	uptime: <t:${maptime}:R>`;
+			desc += `\n:file_cabinet: Server uptime: <t:${servertime}:R>`;
 			if (current_countdown)
 				desc += `\n<a:ALERTA:843518761160015933> \`${current_countdown.text} in ${current_countdown.time} seconds\` <a:ALERTA:843518761160015933>`;
 			if (current_defcon && current_defcon !== 5)
@@ -198,7 +207,6 @@ export default class StatusPayload extends Payload {
 						server.config.label ? "join/" + server.config.label : ""
 					}`,
 				})
-				.setTitle(current_map)
 				.setDescription(desc)
 				.setThumbnail(mapThumbnail);
 
