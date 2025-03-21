@@ -153,7 +153,7 @@ export class Motd extends Service {
 		this.lastimages = [];
 	}
 
-	private async executeMessageJob(): Promise<void> {
+	async executeMessageJob(): Promise<void> {
 		if (this.messages.length <= 0) return;
 
 		const msg: string = this.messages[(Math.random() * this.messages.length) | 0];
