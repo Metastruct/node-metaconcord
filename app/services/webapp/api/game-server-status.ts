@@ -19,7 +19,10 @@ export default async (webApp: WebApp): Promise<void> => {
 		}
 
 		// Discord Bot and Cloudflare
-		const discordBot = req.headers.accept == "*/*" || !req.headers.accept;
+		const discordBot =
+			req.headers.accept == "*/*" ||
+			!req.headers.accept ||
+			req.headers["user-agent"]?.includes("+https://discordapp.com");
 
 		const html = pug.renderFile(
 			path.join(process.cwd(), "resources/game-server-status/view.pug"),
