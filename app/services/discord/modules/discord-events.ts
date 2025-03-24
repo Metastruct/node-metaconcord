@@ -17,7 +17,7 @@ export const endEvent = async (
 ) => {
 	const bot = await globalThis.MetaConcord.container.getService("DiscordBot");
 	const guild = bot.getGuild();
-	const name = event?.name ?? "A event";
+	const name = event?.name ?? "An event";
 	console.log(`"${name}" ended! Removing roles...`);
 	const users = (await guild?.roles.fetch(DiscordConfig.roles.event))?.members;
 	users?.forEach(usr => {

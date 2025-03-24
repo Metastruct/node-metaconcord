@@ -6,6 +6,7 @@ import { MenuManageMediaLinksCommand, SlashManageMediaLinks } from "./developer/
 import { MenuRemoveHighlightMessageCommand } from "./RemoveHighlightMessage";
 import { MenuWhyRoleCommand } from "./WhyRole";
 import { SlashBanCommand } from "./developer/Ban";
+import { SlashEndEvent } from "./developer/Events";
 import { SlashFileCommand } from "./developer/File";
 import { SlashGservCommand } from "./developer/Gserv";
 import { SlashKickCommand } from "./developer/Kick";
@@ -29,6 +30,7 @@ export function EphemeralResponse(content: string): Discord.InteractionReplyOpti
 export const slashCommands = [
 	// restricted commands
 	SlashBanCommand,
+	SlashEndEvent,
 	SlashFileCommand,
 	SlashGservCommand,
 	SlashKickCommand,
