@@ -8,8 +8,7 @@ export const SlashEndEvent: SlashCommand = {
 		description: "forcibly ends an event and removes the event role from users",
 		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
 	},
-	execute: async ctx => {
-		await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
+	execute: async () => {
 		await endEvent();
 	},
 };
