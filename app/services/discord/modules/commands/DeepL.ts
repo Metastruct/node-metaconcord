@@ -1,7 +1,6 @@
 import { EphemeralResponse } from ".";
 import { MenuCommand, SlashCommand } from "@/extensions/discord";
 import Discord from "discord.js";
-import QueryString from "qs";
 import axios, { AxiosResponse } from "axios";
 import config from "@/config/deepl.json";
 
@@ -88,8 +87,7 @@ interface DeeplResponse {
 	}[];
 }
 interface DeeplOptions {
-	auth_key: string;
-	text: string;
+	text: string[];
 	source_lang?: SupportedLanguages;
 	target_lang: SupportedLanguages;
 	context?: string;
@@ -105,7 +103,11 @@ interface DeeplOptions {
 }
 
 async function translate(options: DeeplOptions): Promise<AxiosResponse<DeeplResponse>> {
-	return axios.post("https://api-free.deepl.com/v2/translate", QueryString.stringify(options));
+	return axios.post("https://api-free.deepl.com/v2/translate", options, {
+		headers: {
+			Authorization: `DeepL-Auth-Key ${config.key}`,
+		},
+	});
 }
 
 export const SlashDeeplCommand: SlashCommand = {
@@ -151,8 +153,7 @@ export const SlashDeeplCommand: SlashCommand = {
 			const formality =
 				<DeeplOptions["formality"]>ctx.options.getString("formality") ?? "default";
 			const res = await translate({
-				auth_key: config.key,
-				text: text,
+				text: [text],
 				target_lang: to,
 				source_lang: from,
 				formality: formality,
@@ -202,8 +203,7 @@ export const MenuDeeplCommand: MenuCommand = {
 		const text = msg.content;
 		if (text && Buffer.from(text).length < 128 * 1024) {
 			const res = await translate({
-				auth_key: config.key,
-				text: text,
+				text: [text],
 				target_lang: "EN",
 			});
 			if (res) {
