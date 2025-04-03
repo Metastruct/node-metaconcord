@@ -139,7 +139,7 @@ export class Motd extends Service {
 		this.lastimages = [];
 	}
 
-	async executeMessageJob(): Promise<void> {
+	async executeMessageJob(): Promise<string | undefined> {
 		if (this.messages.length <= 0) return;
 
 		const msg: string = this.messages[(Math.random() * this.messages.length) | 0];
@@ -163,6 +163,7 @@ export class Motd extends Service {
 			}
 		);
 		await this.setNicknameFromSentence(msg);
+		return msg;
 	}
 
 	async getImageInfo(id: string): Promise<ImgurImage | undefined> {

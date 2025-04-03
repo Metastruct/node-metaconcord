@@ -55,8 +55,12 @@ export const SlashForceMotd: SlashCommand = {
 		description: "forces the bot to send the motd",
 		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
 	},
-	execute: async (_, bot) => {
-		(await bot.container.getService("Motd")).executeMessageJob();
+	execute: async (ctx, bot) => {
+		const msg = await (await bot.container.getService("Motd")).executeMessageJob();
+		if (msg) {
+			await ctx.reply(EphemeralResponse("👍"));
+		}
+		await ctx.reply(EphemeralResponse("👎"));
 	},
 };
 
