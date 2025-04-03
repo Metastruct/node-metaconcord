@@ -49,6 +49,17 @@ export const SlashManageMediaLinks: SlashCommand = {
 	},
 };
 
+export const SlashForceMotd: SlashCommand = {
+	options: {
+		name: "force_motd",
+		description: "forces the bot to send the motd",
+		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+	},
+	execute: async (_, bot) => {
+		(await bot.container.getService("Motd")).executeMessageJob();
+	},
+};
+
 export const MenuManageMediaLinksCommand: MenuCommand = {
 	options: {
 		name: "remove media from bot cache",

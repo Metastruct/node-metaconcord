@@ -2,7 +2,11 @@ import { DiscordBot } from "../..";
 import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL";
 import { MenuGetStickerUrlCommand } from "./GetStickerUrl";
 import { MenuGetVoiceMessageUrlCommand } from "./GetVoiceMessageUrl";
-import { MenuManageMediaLinksCommand, SlashManageMediaLinks } from "./developer/ManageMediaLinks";
+import {
+	MenuManageMediaLinksCommand,
+	SlashForceMotd,
+	SlashManageMediaLinks,
+} from "./developer/BotRelated";
 import { MenuRemoveHighlightMessageCommand } from "./RemoveHighlightMessage";
 import { MenuWhyRoleCommand } from "./WhyRole";
 import { SlashBanCommand } from "./developer/Ban";
@@ -32,6 +36,7 @@ export const slashCommands = [
 	SlashBanCommand,
 	SlashEndEvent,
 	SlashFileCommand,
+	SlashForceMotd,
 	SlashGservCommand,
 	SlashKickCommand,
 	SlashLuaCommand,
