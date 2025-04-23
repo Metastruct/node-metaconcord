@@ -55,7 +55,9 @@ export default class ChatPayload extends Payload {
 			}
 			let reply: Discord.Message | undefined;
 			if (msg.reference) {
-				reply = await msg.fetchReference();
+    try {
+					reply = await msg.fetchReference();
+				} catch {}
 			}
 
 			const username = msg.author.username;
