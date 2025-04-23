@@ -5,6 +5,8 @@ import { GameServer } from "..";
 import Discord from "discord.js";
 import Payload from "./Payload";
 
+const MEDIA_URL = /https?:\/\/media\.discordapp\.net\/attachments\/\d+\/\d+\/\S+/;
+
 async function formatDiscordMessage(msg: Discord.Message | Discord.MessageSnapshot): Promise<{
 	content: string;
 	username?: string;
@@ -42,6 +44,15 @@ async function formatDiscordMessage(msg: Discord.Message | Discord.MessageSnapsh
 	}
 	for (const [, sticker] of msg.stickers) {
 		content += (content.length > 0 ? "\n" : "") + sticker.url;
+	}
+
+	// workaround for getting the thumbnail with expiry, so it's visible ingame
+	const media = content.match(MEDIA_URL);
+	if (media) {
+		const thumbnail = msg.embeds.find(e => e.thumbnail?.url.match(media[0]))?.thumbnail;
+		if (thumbnail) {
+			content = content.replace(MEDIA_URL, thumbnail.url);
+		}
 	}
 
 	if (content.length === 0 && !msg.messageSnapshots) {
