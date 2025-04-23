@@ -44,7 +44,7 @@ async function formatDiscordMessage(msg: Discord.Message | Discord.MessageSnapsh
 		content += (content.length > 0 ? "\n" : "") + sticker.url;
 	}
 
-	if (content.length === 0) {
+	if (content.length === 0 && !msg.messageSnapshots) {
 		// no content, stickers or attachments, so it must be an embed or components
 		// at this point it's better to just check on discord what the message was.
 		if (msg.embeds.length > 0) {
