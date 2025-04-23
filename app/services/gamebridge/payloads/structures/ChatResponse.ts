@@ -3,7 +3,7 @@ export default interface ChatResponse {
 		avatar_url: string;
 		color: number;
 		id: string;
-		nick: string;
+		nick: string | "";
 		username: string;
 	};
 	replied_message?: {

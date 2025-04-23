@@ -2,9 +2,87 @@ import * as requestSchema from "./structures/ChatRequest.json";
 import * as responseSchema from "./structures/ChatResponse.json";
 import { ChatRequest, ChatResponse } from "./structures";
 import { GameServer } from "..";
-import Discord, { GuildMember, TextChannel } from "discord.js";
+import Discord from "discord.js";
 import Payload from "./Payload";
 
+async function formatDiscordMessage(msg: Discord.Message | Discord.MessageSnapshot): Promise<{
+	content: string;
+	username?: string;
+	nickname: string;
+	avatar?: string;
+	color: number;
+}> {
+	let content = msg.content;
+	content = content.replace(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
+		const extension = !!animated ? "gif" : "png";
+		return `https://media.discordapp.net/emojis/${id}.${extension}?v=1&size=64 `;
+	});
+	content = content.replace(
+		/<#([\d]+)>/g,
+		(_, id) =>
+			`#${
+				msg.guild?.channels.cache.has(id)
+					? (msg.guild.channels.cache.get(id) as Discord.TextChannel).name
+					: "(uncached channel)"
+			}`
+	);
+	content = content.replace(
+		/<@!?(\d+)>/g,
+		(_, id) =>
+			`@${
+				msg.guild?.members.cache.has(id)
+					? (msg.guild.members.cache.get(id) as Discord.GuildMember).displayName
+					: "(uncached user)"
+			}`
+	);
+	content = content.replace(/(https?:\/\/tenor.com\/view\/\S+)/g, (_, url) => url + ".gif");
+
+	for (const [, attachment] of msg.attachments) {
+		content += (content.length > 0 ? "\n" : "") + attachment.url;
+	}
+	for (const [, sticker] of msg.stickers) {
+		content += (content.length > 0 ? "\n" : "") + sticker.url;
+	}
+
+	if (content.length === 0) {
+		// no content, stickers or attachments, so it must be an embed or components
+		// at this point it's better to just check on discord what the message was.
+		if (msg.embeds.length > 0) {
+			content += "[Embed]";
+		} else {
+			content += "[Something]";
+		}
+	}
+
+	const username = msg.author?.username;
+	let nickname = "";
+	let avatar: string | undefined = undefined;
+	const color = msg.member?.displayColor ?? 0;
+
+	if (msg.author) {
+		try {
+			const author = await msg.guild?.members.fetch(msg.author.id);
+			if (author && author.nickname && author.nickname.length > 0) {
+				nickname = author.nickname;
+			}
+		} catch {}
+
+		const avatarhash = msg.author.avatar;
+		avatar = avatarhash
+			? `https://cdn.discordapp.com/avatars/${msg.author.id}/${avatarhash}${
+					avatarhash.startsWith("a_") ? ".gif" : ".png"
+			  }`
+			: msg.author.defaultAvatarURL;
+	}
+
+	return {
+		content,
+		username,
+		nickname,
+		avatar,
+		color,
+	};
+}
 export default class ChatPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	protected static responseSchema = responseSchema;
@@ -19,73 +97,35 @@ export default class ChatPayload extends Payload {
 				msg = await msg.fetch();
 			}
 
-			let content = msg.content;
-			content = content.replace(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
-				const extension = !!animated ? "gif" : "png";
-				return `https://media.discordapp.net/emojis/${id}.${extension}?v=1&size=64 `;
-			});
-			content = content.replace(
-				/<#([\d]+)>/g,
-				(_, id) =>
-					`#${
-						msg.guild?.channels.cache.has(id)
-							? (msg.guild.channels.cache.get(id) as TextChannel).name
-							: "(uncached channel)"
-					}`
-			);
-			content = content.replace(
-				/<@!?(\d+)>/g,
-				(_, id) =>
-					`@${
-						msg.guild?.members.cache.has(id)
-							? (msg.guild.members.cache.get(id) as GuildMember).displayName
-							: "(uncached user)"
-					}`
-			);
-			content = content.replace(
-				/(https?:\/\/tenor.com\/view\/\S+)/g,
-				(_, url) => url + ".gif"
-			);
-
-			for (const [, attachment] of msg.attachments) {
-				content += (content.length > 0 ? "\n" : "") + attachment.url;
-			}
-			for (const [, sticker] of msg.stickers) {
-				content += (content.length > 0 ? "\n" : "") + sticker.url;
-			}
+			const mainMsg = await formatDiscordMessage(msg);
 			let reply: Discord.Message | undefined;
 			if (msg.reference) {
-    try {
-					reply = await msg.fetchReference();
+				try {
+					if (msg.reference.type == 0) {
+						reply = await msg.fetchReference();
+					} else if (msg.reference.type == 1) {
+						// who knows maybe discord will add more
+						reply = undefined;
+						const newContent = mainMsg.content;
+						const snapshot = msg.messageSnapshots.first(); // discord currently only supports one snapshot
+						if (!snapshot) return;
+						const referenceMessage = await formatDiscordMessage(snapshot);
+
+						mainMsg.content = `-> Forwarded\n${referenceMessage.content}\n${newContent}`;
+					}
 				} catch {}
 			}
-
-			const username = msg.author.username;
-			let nickname = "";
-			try {
-				const author = await msg.guild?.members.fetch(msg.author.id);
-				if (author && author.nickname && author.nickname.length > 0) {
-					nickname = author.nickname;
-				}
-			} catch {} // dont care
-
-			const avatarhash = msg.author.avatar;
-			const avatar = avatarhash
-				? `https://cdn.discordapp.com/avatars/${msg.author.id}/${avatarhash}${
-						avatarhash.startsWith("a_") ? ".gif" : ".png"
-				  }`
-				: msg.author.defaultAvatarURL;
 
 			const payload: ChatResponse = {
 				user: {
 					id: msg.author.id,
-					username: username,
-					nick: nickname,
-					color: msg.member?.displayColor ?? 0,
-					avatar_url: avatar,
+					username: mainMsg.username ?? "wtf", // I wish I knew how to typeguard this
+					nick: mainMsg.nickname,
+					color: mainMsg.color,
+					avatar_url: mainMsg.avatar ?? "https://cdn.discordapp.com/embed/avatars/0.png",
 				},
 				msgID: msg.id,
-				content: content,
+				content: mainMsg.content,
 			};
 
 			if (reply) {
