@@ -5,7 +5,7 @@ import { GameServer } from "..";
 import Discord from "discord.js";
 import Payload from "./Payload";
 
-const MEDIA_URL = /https?:\/\/media\.discordapp\.net\/attachments\/\d+\/\d+\/\S+/;
+const MEDIA_URL = /https?:\/\/(?:media|cdn)\.discordapp\.(?:net|com)\/attachments\/\d+\/\d+\/\S+/;
 
 async function formatDiscordMessage(msg: Discord.Message | Discord.MessageSnapshot): Promise<{
 	content: string;
