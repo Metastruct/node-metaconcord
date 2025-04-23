@@ -103,13 +103,16 @@ export const Shat = async (options?: {
 				? { files: [{ attachment: result, description: imgur.title }] }
 				: undefined;
 		} else {
-			const res: AxiosResponse<TenorResponse> = await (
-				await globalThis.MetaConcord.container.getService("Tenor")
-			).search(word ?? "random", 4);
-			if (!res || res.data.results.length === 0)
+			let res: AxiosResponse<TenorResponse>;
+			try {
+				res = await (
+					await globalThis.MetaConcord.container.getService("Tenor")
+				).search(word ?? "random", 4);
+			} catch {
 				return {
-					content: await markov?.generate(),
-				}; // if for some reason we get no result;
+					content: await markov?.generate(), // fallback to msg if tenor failed
+				};
+			}
 			return {
 				content:
 					res.data.results[(Math.random() * res.data.results.length) | 0].url ??
@@ -216,7 +219,7 @@ export default async (bot: DiscordBot) => {
 		});
 		if (shat) {
 			if (options.msg) {
-				await options.msg
+				options.msg
 					.reply({
 						...shat,
 						allowedMentions: options.ping
@@ -227,8 +230,7 @@ export default async (bot: DiscordBot) => {
 						console.error(e, shat, options);
 					});
 			} else {
-				await bot
-					.getTextChannel(bot.config.channels.chat)
+				bot.getTextChannel(bot.config.channels.chat)
 					?.send(shat)
 					.catch(e => {
 						console.error(e, shat, options);
@@ -294,11 +296,11 @@ export default async (bot: DiscordBot) => {
 			if (lastmsg) lastMsgs.push(lastmsg);
 		}
 
-		setInterval(async () => {
-			await data.save();
+		setInterval(() => {
+			data.save();
 		}, SAVE_INTERVAL); // save data
 
-		setInterval(async () => {
+		setInterval(() => {
 			lastReactedMessages.clear();
 			lastReactedUsers.clear();
 		}, MSG_REPLY_REACTION_CLEAR_INTERVAL);
@@ -335,9 +337,12 @@ export default async (bot: DiscordBot) => {
 	});
 
 	bot.discord.on("messageReactionAdd", async (reaction, user) => {
-		const message = reaction.message.partial
-			? await reaction.message.fetch()
-			: reaction.message;
+		let message: Discord.Message<boolean>;
+		try {
+			message = reaction.message.partial ? await reaction.message.fetch() : reaction.message;
+		} catch {
+			return;
+		}
 		if (
 			!bot.config.bot.allowedShitpostingChannels.includes(message.channelId) ||
 			message.author?.id !== bot.discord.user?.id
@@ -352,7 +357,7 @@ export default async (bot: DiscordBot) => {
 		) {
 			const url = getMediaUrl(message.content);
 			if (url) {
-				await message
+				message
 					.delete()
 					.then(() => {
 						db.run("DELETE FROM media_urls WHERE url = ?", url);
@@ -421,7 +426,13 @@ export default async (bot: DiscordBot) => {
 				(!isAllowedChannel && (isTriggerWord || isMaybeTriggerWord || isMention)))
 		) {
 			setTimeout(async () => {
-				await msg.react(getRandomEmoji()).catch();
+				let maybeMsg: Discord.Message<boolean>;
+				try {
+					maybeMsg = await msg.fetch();
+				} catch {
+					return;
+				}
+				if (maybeMsg) msg.react(getRandomEmoji()).catch();
 			}, 1000 * 10);
 		}
 
@@ -433,15 +444,21 @@ export default async (bot: DiscordBot) => {
 		) {
 			if (!posting && (!replied || !isChatChannel)) {
 				if (isChatChannel) replied = true;
+				let reference: Discord.Message<boolean> | undefined;
+				if (msg.reference) {
+					try {
+						reference = await msg.fetchReference();
+					} catch {}
+				}
 				await sendShat(
 					msg.stickers.size > 0
 						? { forceImage: true, ping: true }
 						: {
 								msg: msg,
-								originalMsg: msg.reference ? await msg.fetchReference() : undefined,
+								originalMsg: reference,
 								ping: true,
 						  }
-				).catch(console.error);
+				);
 				data.lastMsgTime = lastMsgTime = Date.now();
 			} else {
 				msg.react(getRandomEmoji()).catch();
