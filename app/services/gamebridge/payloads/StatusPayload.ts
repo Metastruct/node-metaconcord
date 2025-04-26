@@ -1,5 +1,4 @@
 import * as requestSchema from "./structures/StatusRequest.json";
-import { CountdownType } from "./structures/StatusRequest";
 import { GameServer } from "..";
 import { StatusRequest } from "./structures";
 import Discord, { TextChannel } from "discord.js";
@@ -101,9 +100,6 @@ export default class StatusPayload extends Payload {
 			const gamemodeExtras = GamemodeExtras[gamemodeName as keyof typeof GamemodeExtras];
 			const gamemodeIcon = gamemodeExtras?.seagull ?? gamemodeExtras?.icon;
 
-			if (current_countdown && current_countdown.typ === CountdownType.AOWL_COUNTDOWN_CUSTOM)
-				return;
-
 			const count = current_players.length;
 
 			if (!discord) return;
@@ -155,7 +151,7 @@ export default class StatusPayload extends Payload {
 			}
 			// Permanent status message
 			// Map name w/ workshop link
-			let desc = `>>> ### ${
+			let desc = `### ${
 				current_workshopMap
 					? `[${current_workshopMap.name}](https://steamcommunity.com/sharedfiles/filedetails/?id=${current_workshopMap.id})`
 					: current_map
@@ -170,8 +166,8 @@ export default class StatusPayload extends Payload {
 			const servertime = dayjs().subtract(current_serverUptime, "s").unix();
 			const maptime = dayjs().subtract(current_mapUptime, "s").unix();
 
-			desc += `\n:repeat: Map	uptime: <t:${maptime}:R>`;
-			desc += `\n:file_cabinet: Server uptime: <t:${servertime}:R>`;
+			desc += `\n:repeat: Map up since: <t:${maptime}:R>`;
+			desc += `\n:file_cabinet: Server up since: <t:${servertime}:R>`;
 			if (current_countdown)
 				desc += `\n<a:ALERTA:843518761160015933> \`${current_countdown.text} in ${current_countdown.time} seconds\` <a:ALERTA:843518761160015933>`;
 			if (current_defcon && current_defcon !== 5)
@@ -186,58 +182,92 @@ export default class StatusPayload extends Payload {
 				} else if (current_map && current_map.toLowerCase().trim() == "rp_unioncity") {
 					mapThumbnail = `${url}/map-thumbnails/rp_unioncity.png`;
 				}
+
+				if (!mapThumbnail && current_workshopMap) {
+					const res = await Steam.getPublishedFileDetails([current_workshopMap.id]).catch(
+						console.error
+					);
+					const thumbnailURI = res?.publishedfiledetails?.[0]?.preview_url;
+
+					if (thumbnailURI) {
+						mapThumbnail = thumbnailURI;
+					}
+				}
 			}
 
-			const embed = new Discord.EmbedBuilder()
-				.setColor(
+			const container = {
+				type: Discord.ComponentType.Container,
+				accent_color:
 					current_defcon === 1 || current_countdown
 						? 0xff0000
 						: current_gamemode
 						? gamemodeExtras?.color ?? null
-						: null
-				)
-				.setFooter({
-					text: gamemodeName,
-					iconURL: gamemodeExtras?.icon,
-				})
-				.setAuthor({
-					name: server.config.name,
-					iconURL: gamemodeIcon,
-					url: `https://metastruct.net/${
-						server.config.label ? "join/" + server.config.label : ""
-					}`,
-				})
-				.setDescription(desc)
-				.setThumbnail(mapThumbnail);
+						: null,
+				components: [
+					{
+						type: Discord.ComponentType.Section,
+						components: [
+							{
+								type: Discord.ComponentType.TextDisplay,
+								content: desc,
+							},
+						],
+						accessory: {
+							type: Discord.ComponentType.Thumbnail,
+							media: {
+								url: mapThumbnail ?? `${url}/map-thumbnails/gm_construct_m.png`,
+							},
+							description: current_map,
+						},
+					},
+				],
+			} as Discord.APIContainerComponent;
 
 			if (count > 0) {
-				embed
-					.setImage(
-						players
-							? `http://${host}:${port}/server-status/${
-									server.config.id
-							  }/${Date.now()}`
-							: server.status.image
-					)
-					.setFooter({
-						text: `${
-							embed.data.footer ? `${embed.data.footer.text} | ` : ""
-						}Middle-click the player list to open an interactive version`,
-						iconURL: embed.data.footer?.icon_url,
-					});
-			}
-
-			if (mapThumbnail === null && current_workshopMap) {
-				const res = await Steam.getPublishedFileDetails([current_workshopMap.id]).catch(
-					console.error
+				container.components.push(
+					{ type: Discord.ComponentType.Separator },
+					{
+						type: Discord.ComponentType.MediaGallery,
+						items: [
+							{
+								media: {
+									url: players
+										? `http://${host}:${port}/server-status/${
+												server.config.id
+										  }/${Date.now()}`
+										: server.status.image ?? "",
+								},
+							},
+						],
+					}
 				);
-				const thumbnailURI = res?.publishedfiledetails?.[0]?.preview_url;
-
-				if (thumbnailURI) {
-					embed.setThumbnail(thumbnailURI);
-					mapThumbnail = thumbnailURI;
-				}
 			}
+			// footer
+			container.components.push(
+				{ type: Discord.ComponentType.Separator },
+				{
+					type: Discord.ComponentType.TextDisplay,
+					content: `-# ${gamemodeName}${
+						count > 0
+							? " | Middle-click the player list to open an interactive version"
+							: ""
+					}`,
+				}
+			);
+
+			container.components.push({
+				type: Discord.ComponentType.ActionRow,
+				components: [
+					{
+						type: Discord.ComponentType.Button,
+						style: Discord.ButtonStyle.Link,
+						label: "Connect",
+						url: `https://metastruct.net/${
+							server.config.label ? "join/" + server.config.label : ""
+						}`,
+					},
+				],
+			});
 
 			if (mapThumbnail && server.discordBanner !== mapThumbnail) {
 				server.changeBanner(mapThumbnail);
@@ -257,7 +287,12 @@ export default class StatusPayload extends Payload {
 			server.mapName = current_map;
 			server.mapUptime = current_mapUptime;
 			server.serverUptime = current_serverUptime;
-			server.status.image = embed.data.image?.url ?? null;
+			server.status.image =
+				(
+					container.components.find(
+						c => c.type === Discord.ComponentType.MediaGallery
+					) as Discord.APIMediaGalleryComponent
+				)?.items[0].media.url ?? null;
 			server.status.mapThumbnail = mapThumbnail;
 			server.status.players = current_players;
 			server.workshopMap = current_workshopMap;
@@ -294,9 +329,9 @@ export default class StatusPayload extends Payload {
 				.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
 				.first();
 			if (message) {
-				await message.edit({ embeds: [embed] }).catch();
+				await message.edit({ components: [container], flags: 1 << 15 }).catch();
 			} else {
-				channel.send({ embeds: [embed] }).catch();
+				channel.send({ components: [container], flags: 1 << 15 }).catch();
 			}
 		};
 
