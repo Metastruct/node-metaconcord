@@ -54,10 +54,11 @@ const GetGithubChanges = (
 
 const getGitHubDiff = async (url: string) => {
 	const res = await axios.get<string>(url + ".diff");
-	if (res) return res.data
-		.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n")
-		.replaceAll(/diff.+\nindex.+\n/g, "")
-		.replaceAll("```", "​`​`​`");
+	if (res)
+		return res.data
+			.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n")
+			.replaceAll(/diff.+\nindex.+\n/g, "")
+			.replaceAll("```", "​`​`​`");
 };
 
 const FIELD_REGEX = /^(?:Add|Mod|Del) \[(.+)\]/g;
@@ -252,7 +253,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		if (payload.head_commit && isRemoteMergeCommit(payload.head_commit.message))
 			commits.splice(0, commits.length, payload.head_commit);
-		
+
 		if (commits.length > MAX_COMMITS) {
 			const embed: Discord.APIEmbed = {
 				title: `${commits.length} commits in this push`,
@@ -265,13 +266,13 @@ export default async (bot: DiscordBot): Promise<void> => {
 					url: repo.html_url,
 					icon_url: repo.owner.avatar_url,
 				},
-				color: 0xFFD700,
+				color: 0xffd700,
 				timestamp: new Date().toISOString(),
 				footer: {
 					text: `by ${payload.sender.name ?? payload.sender.login}`,
 				},
 			};
-			
+
 			embeds.push(embed);
 		} else {
 			for (const commit of commits) {
@@ -308,7 +309,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 					}
 				}
 
-				let diff = isMergeCommit(commit.message) ? undefined : await getGitHubDiff(commit.url);
+				const diff = isMergeCommit(commit.message)
+					? undefined
+					: await getGitHubDiff(commit.url);
 
 				embeds.push({
 					title:
@@ -317,7 +320,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 							: commit.message,
 					description: diff
 						? `\`\`\`diff\n${
-								diff.length > DIFF_SIZE - 12 ? diff.substring(0, 4079) + ". . ." : diff
+								diff.length > DIFF_SIZE - 12
+									? diff.substring(0, 4079) + ". . ."
+									: diff
 						  }\`\`\``
 						: undefined,
 					author: {
@@ -329,7 +334,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 						icon_url: repo.owner.avatar_url,
 					},
 					color:
-						clamp(COLOR_BASE + COLOR_MOD * commit.removed.length, COLOR_BASE, 255) * 65536 +
+						clamp(COLOR_BASE + COLOR_MOD * commit.removed.length, COLOR_BASE, 255) *
+							65536 +
 						clamp(COLOR_BASE + COLOR_MOD * commit.added.length, COLOR_BASE, 255) * 256 +
 						clamp(COLOR_BASE + COLOR_MOD * commit.modified.length, COLOR_BASE, 255),
 					url: commit.url,
@@ -356,7 +362,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				: "",
 			embeds: embeds,
 		};
-		const components = <Discord.APIActionRowComponent<Discord.APIMessageActionRowComponent>>{
+		const components = <Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow>>{
 			components: [
 				{
 					type: Discord.ComponentType.Button,
