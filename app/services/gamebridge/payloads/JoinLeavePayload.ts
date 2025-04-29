@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { JoinLeaveRequest } from "./structures/index.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
-import requestSchema from "./structures/JoinLeaveRequest.json" assert { type: "json" };
+import requestSchema from "./structures/JoinLeaveRequest.json" with { type: "json" };
 
 export default class JoinLeavePayload extends Payload {
 	protected static requestSchema = requestSchema;

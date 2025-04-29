@@ -4,8 +4,8 @@ import { GMOD_PATH_MATCH, getOrFetchGmodFile } from "@/utils.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
 import dayjs from "dayjs";
-import requestSchema from "./structures/ErrorRequest.json" assert { type: "json" };
-import responseSchema from "./structures/ErrorResponse.json" assert { type: "json" };
+import requestSchema from "./structures/ErrorRequest.json" with { type: "json" };
+import responseSchema from "./structures/ErrorResponse.json" with { type: "json" };
 
 export default class ErrorPayload extends Payload {
 	protected static requestSchema = requestSchema;

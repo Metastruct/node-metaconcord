@@ -3,7 +3,7 @@ import { DiscordBot } from "../index.js";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
 import { clamp } from "@/utils.js";
 import axios from "axios";
-import webhookConfig from "@/config/webhooks.json" assert { type: "json" };
+import webhookConfig from "@/config/webhooks.json" with { type: "json" };
 
 const COLOR_MOD = 75;
 const COLOR_BASE = 50;
@@ -86,7 +86,7 @@ const isMergeCommit = (message: string) =>
 export default async (bot: DiscordBot): Promise<void> => {
 	const webapp = await bot.container.getService("WebApp");
 
-	const middleware = createNodeMiddleware(GitHub, { path: "/webhooks/github" });
+	const middleware = createNodeMiddleware(GitHub, { path: "/" });
 
 	webapp.app.use("/webhooks/github", async (req, res, next) => {
 		if (await middleware(req, res, next)) return;

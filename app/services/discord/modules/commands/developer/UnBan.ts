@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import { SlashCommand } from "@/extensions/discord.js";
 import SteamID from "steamid";
-import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
+import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 export const SlashUnBanCommand: SlashCommand = {
 	options: {

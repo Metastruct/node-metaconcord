@@ -1,6 +1,6 @@
 import { WebApp } from "@/app/services/webapp/index.js";
 import { spawn } from "child_process";
-import config from "@/config/ci.json" assert { type: "json" };
+import config from "@/config/ci.json" with { type: "json" };
 
 const FORBIDDEN = 403;
 const SUCCESS = 200;

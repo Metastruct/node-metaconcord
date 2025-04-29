@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
-import DiscordConfig from "@/config/discord.json" assert { type: "json" };
+import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import axios from "axios";
 
 const ROLE_IDENTIFIER = "\u2063";

@@ -8,8 +8,8 @@ import { WebApp } from "@/app/services/webapp/index.js";
 import { request as WebSocketRequest } from "websocket";
 import { server as WebSocketServer } from "websocket";
 import GameServer from "./GameServer.js";
-import config from "@/config/gamebridge.json" assert { type: "json" };
-import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
+import config from "@/config/gamebridge.json" with { type: "json" };
+import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 export default class GameBridge extends Service {
 	name = "GameBridge";

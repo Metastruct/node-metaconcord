@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { DiscordBot } from "@/app/services/discord/index.js";
 import { SlashCommand } from "@/extensions/discord.js";
 import SteamID from "steamid";
-import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
+import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 const DEFAULT_BAN_LENGTHS = ["1d", "1w", "4w", "6mo", "1y"];
 const DEFAULT_BAN_REASONS = ["Mingebag", "Prop Spam", "Harassment"];

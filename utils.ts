@@ -1,9 +1,9 @@
 import { PathLike, promises as fs } from "fs";
 import { createCanvas, loadImage } from "@napi-rs/canvas";
-import apikeys from "@/config/apikeys.json" assert { type: "json" };
+import apikeys from "@/config/apikeys.json" with { type: "json" };
 import axios from "axios";
 import request, { gql } from "graphql-request";
-import webappconfig from "@/config/webapp.json" assert { type: "json" };
+import webappconfig from "@/config/webapp.json" with { type: "json" };
 
 export const sleep = (ms: number): Promise<any> => new Promise(resolve => setTimeout(resolve, ms));
 

@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { EphemeralResponse, MenuCommand } from "@/extensions/discord.js";
-import discordConfig from "@/config/discord.json" assert { type: "json" };
+import discordConfig from "@/config/discord.json" with { type: "json" };
 
 export const MenuRemoveHighlightMessageCommand: MenuCommand = {
 	options: {

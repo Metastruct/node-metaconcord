@@ -1,7 +1,7 @@
 import { Container, Service } from "../Container.js";
 import { createHash, randomUUID } from "crypto";
 import axios from "axios";
-import config from "@/config/resonite.json" assert { type: "json" };
+import config from "@/config/resonite.json" with { type: "json" };
 
 export type ResoniteSignalLSessionResponse = {
 	entity: {

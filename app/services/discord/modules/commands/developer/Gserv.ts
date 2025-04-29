@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
-import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
+import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 // order matters for the menu
 const VALID_GSERV_COMMANDS: [string, string][] = [
