@@ -1,8 +1,8 @@
-import * as requestSchema from "./structures/JoinLeaveRequest.json";
-import { GameServer } from "..";
-import { JoinLeaveRequest } from "./structures";
-import Discord, { TextChannel } from "discord.js";
-import Payload from "./Payload";
+import * as Discord from "discord.js";
+import { JoinLeaveRequest } from "./structures/index.js";
+import GameServer from "@/app/services/gamebridge/GameServer.js";
+import Payload from "./Payload.js";
+import requestSchema from "./structures/JoinLeaveRequest.json" assert { type: "json" };
 
 export default class JoinLeavePayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -32,6 +32,6 @@ export default class JoinLeavePayload extends Payload {
 			})
 			.setColor(spawned ? 0x4bb543 : 0xb54343);
 		if (reason) embed.setDescription(`Reason: ${reason}`);
-		(relayChannel as TextChannel).send({ embeds: [embed] });
+		(relayChannel as Discord.TextChannel).send({ embeds: [embed] });
 	}
 }

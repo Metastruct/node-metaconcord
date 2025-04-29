@@ -1,2 +1,2 @@
-import "./discord";
-import "./websocket";
+import "./discord.js";
+import "./websocket.js";

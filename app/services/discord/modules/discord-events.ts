@@ -1,7 +1,7 @@
-import { DiscordBot } from "..";
+import * as Discord from "discord.js";
+import { DiscordBot } from "../index.js";
 import { join } from "path";
-import Discord from "discord.js";
-import DiscordConfig from "@/config/discord.json";
+import DiscordConfig from "@/config/discord.json" assert { type: "json" };
 
 const iconsPath = join(process.cwd(), "resources/discord-event-icons");
 

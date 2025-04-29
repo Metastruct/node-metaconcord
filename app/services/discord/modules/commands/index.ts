@@ -1,35 +1,31 @@
-import { DiscordBot } from "../..";
-import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL";
-import { MenuGetStickerUrlCommand } from "./GetStickerUrl";
-import { MenuGetVoiceMessageUrlCommand } from "./GetVoiceMessageUrl";
+import * as Discord from "discord.js";
+import { DiscordBot } from "@/app/services/discord/index.js";
+import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL.js";
+import { MenuGetStickerUrlCommand } from "./GetStickerUrl.js";
+import { MenuGetVoiceMessageUrlCommand } from "./GetVoiceMessageUrl.js";
 import {
 	MenuManageMediaLinksCommand,
 	SlashForceMotd,
 	SlashManageMediaLinks,
-} from "./developer/BotRelated";
-import { MenuRemoveHighlightMessageCommand } from "./RemoveHighlightMessage";
-import { MenuWhyRoleCommand } from "./WhyRole";
-import { SlashBanCommand } from "./developer/Ban";
-import { SlashEndEvent } from "./developer/Events";
-import { SlashFileCommand } from "./developer/File";
-import { SlashGservCommand } from "./developer/Gserv";
-import { SlashKickCommand } from "./developer/Kick";
-import { SlashLuaCommand } from "./developer/Lua";
-import { SlashMarkovCommand } from "./Markov";
-import { SlashRconCommand } from "./developer/Rcon";
-import { SlashRefreshLuaCommand } from "./developer/RefreshLua";
-import { SlashRoleCommand } from "./Role";
-import { SlashRuleCommand } from "./developer/Rules";
-import { SlashSQLCommand } from "./developer/SQL";
-import { SlashSpeechbubbleCommand } from "./Speechbubble";
-import { SlashUnBanCommand } from "./developer/UnBan";
-import { SlashVoiceCommand } from "./TempVoiceChannel";
-import { SlashWhyBanCommand } from "./WhyBan";
-import Discord, { REST } from "discord.js";
-
-export function EphemeralResponse(content: string): Discord.InteractionReplyOptions {
-	return { content: content, flags: Discord.MessageFlags.Ephemeral };
-}
+} from "./developer/BotRelated.js";
+import { MenuRemoveHighlightMessageCommand } from "./RemoveHighlightMessage.js";
+import { MenuWhyRoleCommand } from "./WhyRole.js";
+import { SlashBanCommand } from "./developer/Ban.js";
+import { SlashEndEvent } from "./developer/Events.js";
+import { SlashFileCommand } from "./developer/File.js";
+import { SlashGservCommand } from "./developer/Gserv.js";
+import { SlashKickCommand } from "./developer/Kick.js";
+import { SlashLuaCommand } from "./developer/Lua.js";
+import { SlashMarkovCommand } from "./Markov.js";
+import { SlashRconCommand } from "./developer/Rcon.js";
+import { SlashRefreshLuaCommand } from "./developer/RefreshLua.js";
+import { SlashRoleCommand } from "./Role.js";
+import { SlashRuleCommand } from "./developer/Rules.js";
+import { SlashSQLCommand } from "./developer/SQL.js";
+import { SlashSpeechbubbleCommand } from "./Speechbubble.js";
+import { SlashUnBanCommand } from "./developer/UnBan.js";
+import { SlashVoiceCommand } from "./TempVoiceChannel.js";
+import { SlashWhyBanCommand } from "./WhyBan.js";
 
 export const slashCommands = [
 	// restricted commands
@@ -83,7 +79,7 @@ export default (bot: DiscordBot): void => {
 		commands.push(menuCommand.options);
 	}
 
-	const rest = new REST().setToken(bot.config.bot.token);
+	const rest = new Discord.REST().setToken(bot.config.bot.token);
 
 	(async () => {
 		try {

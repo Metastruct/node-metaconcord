@@ -1,12 +1,11 @@
-import * as requestSchema from "./structures/BanRequest.json";
-import { BanRequest } from "./structures";
-import { GameServer } from "..";
-import { PlayerSummary } from "../../Steam";
-import { TextChannel } from "discord.js";
-import { f } from "@/utils";
-import Discord from "discord.js";
-import Payload from "./Payload";
+import * as Discord from "discord.js";
+import { BanRequest } from "./structures/index.js";
+import { PlayerSummary } from "@/app/services/Steam.js";
+import { f } from "@/utils.js";
+import GameServer from "@/app/services/gamebridge/GameServer.js";
+import Payload from "./Payload.js";
 import SteamID from "steamid";
+import requestSchema from "./structures/BanRequest.json" assert { type: "json" };
 
 export default class BanPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -82,8 +81,8 @@ export default class BanPayload extends Payload {
 		);
 		embed.setThumbnail(bannedAvatar);
 		embed.setColor(0xc42144);
-		(notificationsChannel as TextChannel).send({ embeds: [embed] });
-		(guild.channels.cache.get(bridge.config.relayChannelId) as TextChannel).send({
+		(notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
+		(guild.channels.cache.get(bridge.config.relayChannelId) as Discord.TextChannel).send({
 			embeds: [embed],
 		});
 

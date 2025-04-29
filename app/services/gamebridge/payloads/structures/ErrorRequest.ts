@@ -1,4 +1,4 @@
-import PayloadRequest from "./PayloadRequest";
+import PayloadRequest from "./PayloadRequest.js";
 export default interface ErrorRequest extends PayloadRequest {
 	name: "ErrorPayload";
 	data: {

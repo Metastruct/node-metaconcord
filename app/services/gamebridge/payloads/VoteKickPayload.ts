@@ -1,10 +1,10 @@
-import * as requestSchema from "./structures/VoteKickRequest.json";
-import { GameServer } from "..";
-import { VoteKickRequest } from "./structures";
-import { f } from "@/utils";
-import Discord, { Message, TextChannel } from "discord.js";
-import Payload from "./Payload";
+import * as Discord from "discord.js";
+import { VoteKickRequest } from "./structures/index.js";
+import { f } from "@/utils.js";
+import GameServer from "@/app/services/gamebridge/GameServer.js";
+import Payload from "./Payload.js";
 import SteamID from "steamid";
+import requestSchema from "./structures/VoteKickRequest.json" assert { type: "json" };
 
 export default class NotificationPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -34,17 +34,20 @@ export default class NotificationPayload extends Payload {
 			const reason = result.reason;
 			if (success) {
 				if (relayChannel) {
-					await this.getLastReport(payload.data, relayChannel as TextChannel)
+					await this.getLastReport(payload.data, relayChannel as Discord.TextChannel)
 						.then(msg => msg?.react("✅"))
 						.catch(err => console.error(err));
 				}
-				await this.getLastReport(payload.data, notificationsChannel as TextChannel)
+				await this.getLastReport(payload.data, notificationsChannel as Discord.TextChannel)
 					.then(msg => msg?.react("✅"))
 					.catch(err => console.error(err));
 				return;
 			} else {
 				if (relayChannel) {
-					await this.getLastReport(payload.data, relayChannel as TextChannel).then(msg =>
+					await this.getLastReport(
+						payload.data,
+						relayChannel as Discord.TextChannel
+					).then(msg =>
 						msg?.react(
 							reason?.includes("Player left")
 								? "🏃‍♂️"
@@ -58,19 +61,21 @@ export default class NotificationPayload extends Payload {
 						)
 					);
 				}
-				await this.getLastReport(payload.data, notificationsChannel as TextChannel).then(
-					msg =>
-						msg?.react(
-							reason?.includes("Player left")
-								? "🏃‍♂️"
-								: reason?.includes("not enough coins")
-								? "💲"
-								: reason?.includes("caller has left")
-								? "🤦‍♂️"
-								: reason?.includes("Vote was aborted")
-								? "⛔"
-								: "❌"
-						)
+				await this.getLastReport(
+					payload.data,
+					notificationsChannel as Discord.TextChannel
+				).then(msg =>
+					msg?.react(
+						reason?.includes("Player left")
+							? "🏃‍♂️"
+							: reason?.includes("not enough coins")
+							? "💲"
+							: reason?.includes("caller has left")
+							? "🤦‍♂️"
+							: reason?.includes("Vote was aborted")
+							? "⛔"
+							: "❌"
+					)
 				);
 				return;
 			}
@@ -121,11 +126,11 @@ export default class NotificationPayload extends Payload {
 			);
 		}
 
-		await (notificationsChannel as TextChannel).send({
+		await (notificationsChannel as Discord.TextChannel).send({
 			embeds: [embed],
 		});
 		if (relayChannel) {
-			await (relayChannel as TextChannel).send({
+			await (relayChannel as Discord.TextChannel).send({
 				embeds: [embed],
 			});
 		}
@@ -138,8 +143,8 @@ export default class NotificationPayload extends Payload {
 			reason: string;
 			success?: boolean;
 		},
-		channel: TextChannel
-	): Promise<Message | undefined> {
+		channel: Discord.TextChannel
+	): Promise<Discord.Message | undefined> {
 		return channel.messages.cache
 			.filter(
 				msg =>

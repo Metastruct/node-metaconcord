@@ -1,8 +1,8 @@
-import * as requestSchema from "./structures/NotificationResponse.json";
-import { GameServer } from "..";
-import { NotificationResponse } from "./structures";
-import Discord, { TextChannel } from "discord.js";
-import Payload from "./Payload";
+import * as Discord from "discord.js";
+import { NotificationResponse } from "./structures/index.js";
+import GameServer from "@/app/services/gamebridge/GameServer.js";
+import Payload from "./Payload.js";
+import requestSchema from "./structures/NotificationResponse.json" assert { type: "json" };
 
 export default class NotificationPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -25,7 +25,7 @@ export default class NotificationPayload extends Payload {
 			.setTitle(title.substring(0, 256))
 			.setDescription(message.substring(0, 4096))
 			.setColor(color ?? 0xc4af21);
-		await (notificationsChannel as TextChannel).send({
+		await (notificationsChannel as Discord.TextChannel).send({
 			embeds: [embed],
 		});
 	}

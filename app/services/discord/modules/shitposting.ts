@@ -1,11 +1,11 @@
+import * as Discord from "discord.js";
 import { AxiosResponse } from "axios";
-import { DiscordBot } from "..";
-import { Markov } from "../../Markov";
-import { TenorResponse } from "../../Tenor";
-import { makeSpeechBubble } from "@/utils";
-import Discord from "discord.js";
-import DiscordConfig from "@/config/discord.json";
-import EmojiList from "unicode-emoji-json/data-ordered-emoji.json";
+import { DiscordBot } from "../index.js";
+import { Markov } from "@/app/services/Markov.js";
+import { TenorResponse } from "@/app/services/Tenor.js";
+import { makeSpeechBubble } from "@/utils.js";
+import DiscordConfig from "@/config/discord.json" assert { type: "json" };
+import EmojiList from "unicode-emoji-json/data-ordered-emoji.json" assert { type: "json" };
 
 // #chat and #shat constants
 const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 60 * 0.25; // interval for changing the bot status to a random message
@@ -268,7 +268,7 @@ export default async (bot: DiscordBot) => {
 			const split = prefix.split(" ");
 			let joint = "";
 			if (split.length > 1 && selection.type !== 2 && selection.type !== 5) {
-				joint = ` ${split.at(-1)}` ?? "";
+				joint = ` ${split.at(-1)}`;
 			}
 
 			const maxLength = 127 - joint.length;

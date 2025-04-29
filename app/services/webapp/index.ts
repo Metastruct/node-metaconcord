@@ -1,8 +1,7 @@
-import { Container } from "@/app/Container";
+import { Container, Service } from "@/app/Container.js";
 import { Server as HTTPServer } from "http";
-import { Service } from "@/app/services";
-import APIs from "./api";
-import config from "@/config/webapp.json";
+import APIs from "./api/index.js";
+import config from "@/config/webapp.json" assert { type: "json" };
 import express from "express";
 
 export class WebApp extends Service {
@@ -21,6 +20,8 @@ export class WebApp extends Service {
 		this.http = this.app.listen(this.config.port, "0.0.0.0", () => {
 			console.log(`HTTP server listening on ${this.config.port}`);
 		});
+
+		this.app.set("trust proxy", 2);
 	}
 }
 

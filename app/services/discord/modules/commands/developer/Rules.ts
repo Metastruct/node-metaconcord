@@ -1,8 +1,6 @@
-import { DiscordBot } from "@/app/services";
-import { EphemeralResponse } from "..";
-import { Rule } from "../../..";
-import { SlashCommand } from "@/extensions/discord";
-import Discord from "discord.js";
+import * as Discord from "discord.js";
+import { DiscordBot, Rule } from "@/app/services/discord/index.js";
+import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
 
 let ruleCache: Rule[] = [];
 

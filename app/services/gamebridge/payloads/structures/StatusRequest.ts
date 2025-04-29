@@ -1,4 +1,4 @@
-import PayloadRequest from "./PayloadRequest";
+import PayloadRequest from "./PayloadRequest.js";
 
 export enum CountdownType {
 	AOWL_COUNTDOWN_FINISHED = -1,

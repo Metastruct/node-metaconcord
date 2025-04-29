@@ -1,3 +1,3 @@
-import DiscordClient from "./DiscordClient";
+import DiscordClient from "./DiscordClient.js";
 
 export { DiscordClient };

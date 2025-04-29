@@ -1,9 +1,9 @@
-import { Container } from "@/app/Container";
-import { DiscordBot, Service } from "@/app/services";
+import { Container, Service } from "../Container.js";
+import { DiscordBot } from "./index.js";
 import { scheduleJob } from "node-schedule";
 import FormData from "form-data";
 import axios, { AxiosResponse } from "axios";
-import config from "@/config/motd.json";
+import config from "@/config/motd.json" assert { type: "json" };
 
 type ImgurImage = {
 	id: string;

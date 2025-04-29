@@ -1,5 +1,5 @@
-import { connection } from "websocket";
-
+import pkg from "websocket";
+const { connection } = pkg;
 const drop = connection.prototype.drop;
 
 connection.prototype.drop = function (reasonCode, ...args) {

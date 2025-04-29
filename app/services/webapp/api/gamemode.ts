@@ -1,24 +1,32 @@
-import { WebApp } from "..";
-import servers from "@/config/gamebridge.servers.json";
+import { WebApp } from "@/app/services/webapp/index.js";
+import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
 
 const HOSTING_IDS = { 3: true, 1: true };
 
 export default async (webApp: WebApp): Promise<void> => {
-	webApp.app.get("/gamemode/:id/", async (req, res) => {
+	webApp.app.get("/gamemode/:id", async (req, res) => {
 		const bot = await webApp.container.getService("DiscordBot");
 		const ip = req.header("x-forwarded-for")?.split(",")[0];
-		if (!ip) return res.sendStatus(403);
+		if (!ip) {
+			res.sendStatus(403);
+			return;
+		}
 		const isOkIp = servers.find(srv => srv.ip === ip);
-		if (!isOkIp) return res.sendStatus(403);
+		if (!isOkIp) {
+			res.sendStatus(403);
+			return;
+		}
 
 		const id = parseInt(req.params.id);
 		if (isNaN(id) || !HOSTING_IDS[id]) {
-			return res.sendStatus(403);
+			res.sendStatus(403);
+			return;
 		}
 
 		const server = bot.bridge.servers[id];
 		if (!server) {
-			return res.sendStatus(404);
+			res.sendStatus(404);
+			return;
 		}
 		let output = "";
 
@@ -38,8 +46,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			}
 		}
 
-		return res
-			.status(failed ? 500 : 200)
+		res.status(failed ? 500 : 200)
 			.contentType("text/plain")
 			.send(output);
 	});

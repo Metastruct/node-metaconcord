@@ -1,27 +1,18 @@
-import { Container } from "@/app/Container";
-
-export class Service {
-	readonly name: string;
-	container: Container;
-
-	constructor(container: Container) {
-		this.container = container;
-	}
-}
-import BanProvider, { Bans } from "./Bans";
-import DataProvider, { Data } from "./Data";
-import DiscordBotProvider, { DiscordBot } from "./discord";
-import DiscordMetadataProvider, { DiscordMetadata } from "./DiscordMetadata";
-import GameBridgeProvider, { GameBridge } from "./gamebridge";
-import IRCProvider, { IRC } from "./IRC";
-import MarkovProvider, { Markov } from "./Markov";
-import MotdProvider, { Motd } from "./Motd";
-import ResoniteProvider, { Resonite } from "./Resonite";
-import SQLProvider, { SQL } from "./SQL";
-import StarboardProvider, { Starboard } from "./Starboard";
-import SteamProvider, { Steam } from "./Steam";
-import TenorProvider, { Tenor } from "./Tenor";
-import WebAppProvider, { WebApp } from "./webapp";
+import { Service } from "../Container.js";
+import BanProvider, { Bans } from "./Bans.js";
+import DataProvider, { Data } from "./Data.js";
+import DiscordBotProvider, { DiscordBot } from "./discord/index.js";
+import DiscordMetadataProvider, { DiscordMetadata } from "./DiscordMetadata.js";
+import GameBridgeProvider, { GameBridge } from "./gamebridge/index.js";
+import IRCProvider, { IRC } from "./IRC.js";
+import MarkovProvider, { Markov } from "./Markov.js";
+import MotdProvider, { Motd } from "./Motd.js";
+import ResoniteProvider, { Resonite } from "./Resonite.js";
+import SQLProvider, { SQL } from "./SQL.js";
+import StarboardProvider, { Starboard } from "./Starboard.js";
+import SteamProvider, { Steam } from "./Steam.js";
+import TenorProvider, { Tenor } from "./Tenor.js";
+import WebAppProvider, { WebApp } from "./webapp/index.js";
 
 export default [
 	BanProvider,

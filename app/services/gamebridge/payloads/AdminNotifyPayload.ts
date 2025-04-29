@@ -1,10 +1,10 @@
-import * as requestSchema from "./structures/AdminNotifyRequest.json";
-import { AdminNotifyRequest } from "./structures";
-import { GameServer } from "..";
-import { f } from "@/utils";
-import Discord from "discord.js";
-import Payload from "./Payload";
+import * as Discord from "discord.js";
+import { AdminNotifyRequest } from "./structures/index.js";
+import { f } from "@/utils.js";
+import GameServer from "@/app/services/gamebridge/GameServer.js";
+import Payload from "./Payload.js";
 import SteamID from "steamid";
+import requestSchema from "./structures/AdminNotifyRequest.json" assert { type: "json" };
 
 export default class AdminNotifyPayload extends Payload {
 	protected static requestSchema = requestSchema;

@@ -1,4 +1,4 @@
-import { DiscordBot } from "..";
+import { DiscordBot } from "../index.js";
 import { PathLike } from "fs";
 import { join } from "path";
 import { scheduleJob } from "node-schedule";

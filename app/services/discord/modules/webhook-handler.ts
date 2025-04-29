@@ -1,9 +1,9 @@
-import { DiscordBot } from "..";
+import * as Discord from "discord.js";
+import { DiscordBot } from "../index.js";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
-import { clamp } from "@/utils";
-import Discord from "discord.js";
+import { clamp } from "@/utils.js";
 import axios from "axios";
-import webhookConfig from "@/config/webhooks.json";
+import webhookConfig from "@/config/webhooks.json" assert { type: "json" };
 
 const COLOR_MOD = 75;
 const COLOR_BASE = 50;
@@ -21,11 +21,11 @@ const BaseEmbed = <Discord.WebhookMessageCreateOptions>{
 };
 
 const GetGithubChanges = (
-	added: string[],
-	removed: string[],
-	modified: string[],
 	repoPath: string,
-	sha: string
+	sha: string,
+	added: string[] = [],
+	removed: string[] = [],
+	modified: string[] = []
 ): string[] => {
 	return [
 		...added.map(
@@ -86,7 +86,12 @@ const isMergeCommit = (message: string) =>
 export default async (bot: DiscordBot): Promise<void> => {
 	const webapp = await bot.container.getService("WebApp");
 
-	webapp.app.use(createNodeMiddleware(GitHub, { path: "/webhooks/github" }));
+	const middleware = createNodeMiddleware(GitHub, { path: "/webhooks/github" });
+
+	webapp.app.use("/webhooks/github", async (req, res, next) => {
+		if (await middleware(req, res, next)) return;
+		res.status(404).end();
+	});
 
 	let webhook: Discord.Webhook;
 	const bridge = bot.bridge;
@@ -264,12 +269,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 							? (repo.name + "/" + branch).substring(0, 256)
 							: repo.name.substring(0, 256),
 					url: repo.html_url,
-					icon_url: repo.owner.avatar_url,
+					icon_url: repo.owner?.avatar_url,
 				},
 				color: 0xffd700,
 				timestamp: new Date().toISOString(),
 				footer: {
-					text: `by ${payload.sender.name ?? payload.sender.login}`,
+					text: `by ${payload.sender?.name ?? payload.sender?.login ?? "unkown"}`,
 				},
 			};
 
@@ -278,17 +283,18 @@ export default async (bot: DiscordBot): Promise<void> => {
 			for (const commit of commits) {
 				const fields: Discord.APIEmbedField[] = [];
 				const changes = GetGithubChanges(
+					repo.full_name,
+					payload.ref,
 					commit.added,
 					commit.removed,
-					commit.modified,
-					repo.full_name,
-					payload.ref
+					commit.modified
 				);
 
 				includesLua =
-					commit.added.some(str => str.endsWith(".lua")) ||
-					commit.modified.some(str => str.endsWith(".lua")) ||
-					commit.removed.some(str => str.endsWith(".lua"));
+					commit.added?.some(str => str.endsWith(".lua")) ||
+					commit.modified?.some(str => str.endsWith(".lua")) ||
+					commit.removed?.some(str => str.endsWith(".lua")) ||
+					false;
 
 				const oversize = changes.length > MAX_FIELDS;
 				const changeLen = oversize ? MAX_FIELDS : changes.length;
@@ -331,13 +337,26 @@ export default async (bot: DiscordBot): Promise<void> => {
 								? (repo.name + "/" + branch).substring(0, 256)
 								: repo.name.substring(0, 256),
 						url: repo.html_url,
-						icon_url: repo.owner.avatar_url,
+						icon_url: repo.owner?.avatar_url,
 					},
 					color:
-						clamp(COLOR_BASE + COLOR_MOD * commit.removed.length, COLOR_BASE, 255) *
+						clamp(
+							COLOR_BASE + COLOR_MOD * (commit.removed?.length ?? 0),
+							COLOR_BASE,
+							255
+						) *
 							65536 +
-						clamp(COLOR_BASE + COLOR_MOD * commit.added.length, COLOR_BASE, 255) * 256 +
-						clamp(COLOR_BASE + COLOR_MOD * commit.modified.length, COLOR_BASE, 255),
+						clamp(
+							COLOR_BASE + COLOR_MOD * (commit.added?.length ?? 0),
+							COLOR_BASE,
+							255
+						) *
+							256 +
+						clamp(
+							COLOR_BASE + COLOR_MOD * (commit.modified?.length ?? 0),
+							COLOR_BASE,
+							255
+						),
 					url: commit.url,
 					fields: fields,
 					timestamp: commit.timestamp,
@@ -355,8 +374,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}
 		const messagePayload = <Discord.WebhookMessageCreateOptions>{
 			...BaseEmbed,
-			username: payload.sender.name ?? payload.sender.login,
-			avatarURL: payload.sender.avatar_url,
+			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
+			avatarURL: payload.sender?.avatar_url,
 			content: payload.forced
 				? "<a:ALERTA:843518761160015933> Force Pushed <a:ALERTA:843518761160015933>"
 				: "",
@@ -418,29 +437,35 @@ export default async (bot: DiscordBot): Promise<void> => {
 		switch (payload.action) {
 			case "member_invited":
 				title = "member invited";
-				description = `[${payload.invitation.inviter.login}](${payload.invitation.inviter.html_url}) invited [${payload.user.login}](${payload.user.html_url}) as \`${payload.invitation.role}\``;
-				thumbnail = {
-					url: payload.user.avatar_url,
-				};
+				description = `[${payload.invitation.inviter?.login}](${payload.invitation.inviter?.html_url}) invited [${payload.user?.login}](${payload.user?.html_url}) as \`${payload.invitation.role}\``;
+				thumbnail = payload.user?.avatar_url
+					? {
+							url: payload.user.avatar_url,
+					  }
+					: undefined;
 				timestamp = payload.invitation.created_at;
 				break;
 			case "member_added":
 				title = "member joined";
-				description = `[${payload.membership.user.login}](${payload.membership.user.html_url}) joined ${payload.organization.login} as \`${payload.membership.role}\``;
-				thumbnail = {
-					url: payload.membership.user.avatar_url,
-				};
+				description = `[${payload.membership.user?.login}](${payload.membership.user?.html_url}) joined ${payload.organization.login} as \`${payload.membership.role}\``;
+				thumbnail = payload.membership.user?.avatar_url
+					? {
+							url: payload.membership.user.avatar_url,
+					  }
+					: undefined;
 				break;
 			case "member_removed":
 				title = "member removed";
-				description = `[${payload.membership.user.login}](${payload.membership.user.html_url}) left ${payload.organization.login}`;
-				thumbnail = {
-					url: payload.membership.user.avatar_url,
-				};
+				description = `[${payload.membership.user?.login}](${payload.membership.user?.html_url}) left ${payload.organization.login}`;
+				thumbnail = payload.membership.user?.avatar_url
+					? {
+							url: payload.membership.user.avatar_url,
+					  }
+					: undefined;
 				break;
 			case "renamed":
 				title = "renamed organisation";
-				description = `${payload.changes.login.from} -> ${payload.organization.login}`;
+				description = `${payload.changes?.login?.from} -> ${payload.organization.login}`;
 				break;
 			case "deleted":
 				title = `deleted organisation ${payload.organization.login}`;
@@ -458,7 +483,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				{
 					author: {
 						name: payload.organization.login,
-						url: payload.organization.html_url,
+						url: payload.organization.url,
 						icon_url: payload.organization.avatar_url,
 					},
 					thumbnail: thumbnail,
@@ -478,20 +503,20 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const messagePayload = <Discord.WebhookMessageCreateOptions>{
 			...BaseEmbed,
-			username: payload.sender.name ?? payload.sender.login,
-			avatarURL: payload.sender.avatar_url,
+			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
+			avatarURL: payload.sender?.avatar_url,
 			embeds: [
 				{
 					author: {
 						name: payload.organization.login,
-						url: payload.organization.html_url,
+						url: payload.organization.url,
 						icon_url: payload.organization.avatar_url,
 					},
 					thumbnail: {
-						url: payload.member.avatar_url,
+						url: payload.member?.avatar_url,
 					},
 					title: "Membership " + event.payload.action,
-					description: `[${payload.sender.login}](${payload.sender.html_url}) ${event.payload.action} [${payload.member.login}](${payload.member.html_url}) to ${payload.team.name}`,
+					description: `[${payload.sender?.login}](${payload.sender?.html_url}) ${event.payload.action} [${payload.member?.login}](${payload.member?.html_url}) to ${payload.team.name}`,
 					timestamp: new Date().toISOString(),
 				},
 			],
@@ -509,21 +534,21 @@ export default async (bot: DiscordBot): Promise<void> => {
 		switch (event.payload.action) {
 			case "added_to_repository":
 				title = "team added to repository";
-				description = `[${payload.sender.login}](${payload.sender.html_url}) added [${payload.team.name}](${payload.team.html_url}) to [${payload.repository?.name}](${payload.repository?.html_url})`;
+				description = `[${payload.sender?.login}](${payload.sender?.html_url}) added [${payload.team.name}](${payload.team.html_url}) to [${payload.repository?.name}](${payload.repository?.html_url})`;
 				break;
 			case "removed_from_repository":
 				title = "team removed from repository";
-				description = `[${payload.sender.login}](${payload.sender.html_url}) removed [${payload.team.name}](${payload.team.html_url}) from [${payload.repository?.name}](${payload.repository?.html_url})`;
+				description = `[${payload.sender?.login}](${payload.sender?.html_url}) removed [${payload.team.name}](${payload.team.html_url}) from [${payload.repository?.name}](${payload.repository?.html_url})`;
 				break;
 			case "created":
 				title = "team created";
-				description = `[${payload.sender.login}](${payload.sender.html_url}) created [${payload.team.name}](${payload.team.html_url})`;
+				description = `[${payload.sender?.login}](${payload.sender?.html_url}) created [${payload.team.name}](${payload.team.html_url})`;
 			case "deleted":
 				title = "team deleted";
-				description = `[${payload.sender.login}](${payload.sender.html_url}) deleted [${payload.team.name}](${payload.team.html_url})`;
+				description = `[${payload.sender?.login}](${payload.sender?.html_url}) deleted [${payload.team.name}](${payload.team.html_url})`;
 			case "edited":
 				title = "team edited";
-				description = `[${payload.sender.login}](${payload.sender.html_url}) edited [${payload.team.name}](${payload.team.html_url})`;
+				description = `[${payload.sender?.login}](${payload.sender?.html_url}) edited [${payload.team.name}](${payload.team.html_url})`;
 			default:
 				title = "unknown team action???";
 				break;
@@ -531,13 +556,13 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const messagePayload: Discord.WebhookMessageCreateOptions = {
 			...BaseEmbed,
-			username: payload.sender.name ?? payload.sender.login,
-			avatarURL: payload.sender.avatar_url,
+			username: payload.sender?.name ?? payload.sender?.login,
+			avatarURL: payload.sender?.avatar_url,
 			embeds: [
 				{
 					author: {
 						name: payload.organization.login,
-						url: payload.organization.html_url,
+						url: payload.organization.url,
 						icon_url: payload.organization.avatar_url,
 					},
 					title: title,

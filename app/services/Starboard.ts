@@ -1,8 +1,8 @@
-import { Container } from "../Container";
-import { DiscordBot, SQL, Service } from ".";
-import Discord from "discord.js";
-import config from "@/config/starboard.json";
-import discordConfig from "@/config/discord.json";
+import * as Discord from "discord.js";
+import { Container, Service } from "../Container.js";
+import { DiscordBot, SQL } from "./index.js";
+import config from "@/config/starboard.json" assert { type: "json" };
+import discordConfig from "@/config/discord.json" assert { type: "json" };
 
 const STARBOARD_CONFIG = {
 	MESSAGE_AGE_LIMIT_MS: 3 * 28 * 24 * 60 * 60 * 1000, // 3 months

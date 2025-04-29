@@ -1,4 +1,4 @@
-import PayloadRequest from "./PayloadRequest";
+import PayloadRequest from "./PayloadRequest.js";
 
 export default interface NotificationResponse extends PayloadRequest {
 	name: "NotificationPayload";

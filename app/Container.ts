@@ -1,7 +1,15 @@
-import { App } from ".";
-import { Service, ServiceMap } from "./services";
+import { App } from "./index.js";
+import { ServiceMap } from "./services/index.js";
 
 type ProviderFactory = { (container: Container): Service | Promise<Service> }[];
+export class Service {
+	readonly name: string;
+	container: Container;
+
+	constructor(container: Container) {
+		this.container = container;
+	}
+}
 
 export class Container {
 	readonly app: App;

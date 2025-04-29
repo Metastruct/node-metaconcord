@@ -1,10 +1,10 @@
-import * as requestSchema from "./structures/StatusRequest.json";
-import { GameServer } from "..";
-import { StatusRequest } from "./structures";
-import Discord, { TextChannel } from "discord.js";
-import Payload from "./Payload";
+import * as Discord from "discord.js";
+import { StatusRequest } from "./structures/index.js";
+import GameServer from "@/app/services/gamebridge/GameServer.js";
+import Payload from "./Payload.js";
 import SteamID from "steamid";
 import dayjs from "dayjs";
+import requestSchema from "./structures/StatusRequest.json" assert { type: "json" };
 
 const GamemodeAlias = {
 	qbox: "metastruct",
@@ -321,7 +321,7 @@ export default class StatusPayload extends Payload {
 
 			const channel = guild.channels.cache.get(
 				bridge.config.serverInfoChannelId
-			) as TextChannel;
+			) as Discord.TextChannel;
 			if (!channel) return;
 
 			const messages = await channel.messages.fetch();

@@ -1,12 +1,12 @@
-import { AddonURIS, getOrFetchGmodFile } from "@/utils";
-import { GameServer, Player } from "../../gamebridge";
-import { WebApp } from "..";
-import Discord from "discord.js";
+import * as Discord from "discord.js";
+import { AddonURIS, getOrFetchGmodFile } from "@/utils.js";
+import { WebApp } from "@/app/services/webapp/index.js";
+import GameServer, { Player } from "@/app/services/gamebridge/GameServer.js";
 import SteamID from "steamid";
-import config from "@/config/webapp.json";
+import config from "@/config/webapp.json" assert { type: "json" };
 import dayjs from "dayjs";
 import express from "express";
-import servers from "@/config/gamebridge.servers.json";
+import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
 
 type GmodResponse = {
 	addon: string;
@@ -95,10 +95,16 @@ export default async (webApp: WebApp): Promise<void> => {
 
 	webApp.app.post("/gmod/errors", express.urlencoded({ extended: false }), async (req, res) => {
 		const ip = req.header("x-forwarded-for")?.split(",")[0];
-		if (!ip) return res.sendStatus(403);
+		if (!ip) {
+			res.sendStatus(403);
+			return;
+		}
 
 		const body = req.body as GmodResponse;
-		if (!body) return res.status(400).end();
+		if (!body) {
+			res.status(400).end();
+			return;
+		}
 		res.status(204);
 		res.end();
 

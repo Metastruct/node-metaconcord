@@ -1,9 +1,9 @@
 import { PathLike, promises as fs } from "fs";
 import { createCanvas, loadImage } from "@napi-rs/canvas";
-import apikeys from "@/config/apikeys.json";
+import apikeys from "@/config/apikeys.json" assert { type: "json" };
 import axios from "axios";
 import request, { gql } from "graphql-request";
-import webappconfig from "@/config/webapp.json";
+import webappconfig from "@/config/webapp.json" assert { type: "json" };
 
 export const sleep = (ms: number): Promise<any> => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -78,6 +78,23 @@ export const getAsBase64 = async (url: string): Promise<string | null> => {
 	}
 };
 
+interface GithubResponse {
+	repository: {
+		content: {
+			text: string;
+		};
+	};
+}
+interface GitlabResponse {
+	project: {
+		repository: {
+			blobs: {
+				nodes: { rawTextBlob: string }[];
+			};
+		};
+	};
+}
+
 export const getOrFetchGmodFile = async (path: PathLike) => {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [, fpath, addon, filename, ext, linenos, linenoe] =
@@ -128,13 +145,18 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 	}
 	`;
 			try {
-				const res = await request(endpoint, query, undefined, {
-					authorization: `Bearer ${isGithub ? apikeys.github : apikeys.gitlab}`,
-				});
-				if (res) {
+				const data = await request<GithubResponse | GitlabResponse>(
+					endpoint,
+					query,
+					{},
+					{
+						authorization: `Bearer ${isGithub ? apikeys.github : apikeys.gitlab}`,
+					}
+				);
+				if (data) {
 					const filecontent = isGithub
-						? (res.data.repository.content.text as string)
-						: (res.data.project.repository.blobs.nodes[0].rawTextBlob as string);
+						? (data as GithubResponse).repository.content.text
+						: (data as GitlabResponse).project.repository.blobs.nodes[0].rawTextBlob;
 					return linenos
 						? getStackLines(filecontent, Number(linenos), Number(linenoe))
 						: filecontent;

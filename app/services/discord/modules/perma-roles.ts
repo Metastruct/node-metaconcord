@@ -1,5 +1,5 @@
-import { DiscordBot } from "..";
-import Discord from "discord.js";
+import * as Discord from "discord.js";
+import { DiscordBot } from "../index.js";
 
 function isEmpty(obj: { [roleId: string]: { adderId: string; timeStamp: number } }) {
 	for (const _roleId in obj) {

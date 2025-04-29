@@ -1,18 +1,18 @@
-import AdminNotifyRequest from "./AdminNotifyRequest";
-import BanAppealRequest from "./BanAppealRequest";
-import BanRequest from "./BanRequest";
-import ChatRequest from "./ChatRequest";
-import ChatResponse from "./ChatResponse";
-import ErrorRequest from "./ErrorRequest";
-import ErrorResponse from "./ErrorResponse";
-import JoinLeaveRequest from "./JoinLeaveRequest";
-import NotificationResponse from "./NotificationResponse";
-import PayloadRequest from "./PayloadRequest";
-import RconRequest from "./RconRequest";
-import RconResponse from "./RconResponse";
-import StatusRequest from "./StatusRequest";
-import UnbanRequest from "./UnbanRequest";
-import VoteKickRequest from "./VoteKickRequest";
+import AdminNotifyRequest from "./AdminNotifyRequest.js";
+import BanAppealRequest from "./BanAppealRequest.js";
+import BanRequest from "./BanRequest.js";
+import ChatRequest from "./ChatRequest.js";
+import ChatResponse from "./ChatResponse.js";
+import ErrorRequest from "./ErrorRequest.js";
+import ErrorResponse from "./ErrorResponse.js";
+import JoinLeaveRequest from "./JoinLeaveRequest.js";
+import NotificationResponse from "./NotificationResponse.js";
+import PayloadRequest from "./PayloadRequest.js";
+import RconRequest from "./RconRequest.js";
+import RconResponse from "./RconResponse.js";
+import StatusRequest from "./StatusRequest.js";
+import UnbanRequest from "./UnbanRequest.js";
+import VoteKickRequest from "./VoteKickRequest.js";
 export {
 	AdminNotifyRequest,
 	BanAppealRequest,

@@ -5,10 +5,10 @@ dotenv.config();
 // console.log(process.version);
 
 // Load module extensions
-import "@/extensions";
+import "./extensions/index.js";
 
 // Main
-import { App } from "./app";
+import { App } from "./app/index.js";
 const MetaConcord = new App();
 (global as any).MetaConcord = MetaConcord;
 

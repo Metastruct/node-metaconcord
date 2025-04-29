@@ -1,15 +1,15 @@
-import AdminNotifyPayload from "./AdminNotifyPayload";
-import BanAppealPayload from "./BanAppealPayload";
-import BanPayload from "./BanPayload";
-import ChatPayload from "./ChatPayload";
-import ErrorPayload from "./ErrorPayload";
-import JoinLeavePayload from "./JoinLeavePayload";
-import NotificationPayload from "./NotificationPayload";
-import Payload from "./Payload";
-import RconPayload from "./RconPayload";
-import StatusPayload from "./StatusPayload";
-import UnbanPayload from "./UnbanPayload";
-import VoteKickPayload from "./VoteKickPayload";
+import AdminNotifyPayload from "./AdminNotifyPayload.js";
+import BanAppealPayload from "./BanAppealPayload.js";
+import BanPayload from "./BanPayload.js";
+import ChatPayload from "./ChatPayload.js";
+import ErrorPayload from "./ErrorPayload.js";
+import JoinLeavePayload from "./JoinLeavePayload.js";
+import NotificationPayload from "./NotificationPayload.js";
+import Payload from "./Payload.js";
+import RconPayload from "./RconPayload.js";
+import StatusPayload from "./StatusPayload.js";
+import UnbanPayload from "./UnbanPayload.js";
+import VoteKickPayload from "./VoteKickPayload.js";
 export {
 	Payload,
 	AdminNotifyPayload,

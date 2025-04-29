@@ -1,7 +1,6 @@
-import { DiscordBot } from "@/app/services";
-import { EphemeralResponse } from ".";
-import { MenuCommand } from "@/extensions/discord";
-import Discord from "discord.js";
+import * as Discord from "discord.js";
+import { DiscordBot } from "@/app/services/index.js";
+import { EphemeralResponse, MenuCommand } from "@/extensions/discord.js";
 
 export const MenuWhyRoleCommand: MenuCommand = {
 	options: {

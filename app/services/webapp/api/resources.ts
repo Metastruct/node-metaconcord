@@ -1,4 +1,4 @@
-import { WebApp } from "..";
+import { WebApp } from "@/app/services/webapp/index.js";
 import express from "express";
 import path from "path";
 

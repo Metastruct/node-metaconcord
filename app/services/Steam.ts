@@ -1,7 +1,6 @@
-import { Container } from "@/app/Container";
-import { Service } from ".";
+import { Container, Service } from "../Container.js";
 import SteamID from "steamid";
-import apikeys from "@/config/apikeys.json";
+import apikeys from "@/config/apikeys.json" assert { type: "json" };
 import axios from "axios";
 import qs from "qs";
 

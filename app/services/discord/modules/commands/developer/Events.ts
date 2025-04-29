@@ -1,6 +1,6 @@
-import { SlashCommand } from "@/extensions/discord";
-import { endEvent } from "../../discord-events";
-import Discord from "discord.js";
+import * as Discord from "discord.js";
+import { SlashCommand } from "@/extensions/discord.js";
+import { endEvent } from "@/app/services/discord/modules/discord-events.js";
 
 export const SlashEndEvent: SlashCommand = {
 	options: {

@@ -1,4 +1,4 @@
-import { DiscordBot } from "..";
+import { DiscordBot } from "../index.js";
 import { MessageReaction } from "discord.js";
 
 export default (bot: DiscordBot): void => {

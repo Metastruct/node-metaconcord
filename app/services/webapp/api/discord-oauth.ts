@@ -1,12 +1,12 @@
-import { SQL } from "../../SQL";
-import { WebApp } from "..";
+import * as Discord from "discord.js";
+import { SQL } from "@/app/services/SQL.js";
+import { WebApp } from "@/app/services/webapp/index.js";
 import { rateLimit } from "express-rate-limit";
-import DiscordConfig from "@/config/discord.json";
+import DiscordConfig from "@/config/discord.json" assert { type: "json" };
 import SteamID from "steamid";
 import axios, { AxiosError } from "axios";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
-import discord from "discord.js";
 
 type AccessTokenResponse = {
 	access_token: string;
@@ -24,13 +24,13 @@ type LocalDatabaseEntry = {
 	expires_at: number;
 };
 
-type ConnectionObject = discord.APIConnection;
+type ConnectionObject = Discord.APIConnection;
 
 type CurrentAuthorizationInformation = {
-	application: discord.APIApplication; // partial application missing?
+	application: Discord.APIApplication; // partial application missing?
 	scopes: string[];
 	expires: string;
-	user: discord.APIUser;
+	user: Discord.APIUser;
 };
 
 export const getOAuthURL = () => {
@@ -61,7 +61,7 @@ export const getOAuthTokens = async (code: any) => {
 				},
 			}
 		)
-		.catch((err: AxiosError<discord.OAuthErrorData>) => {
+		.catch((err: AxiosError<Discord.OAuthErrorData>) => {
 			console.error(
 				`[OAuth Callback] failed fetching tokens: [${err.code}] ${JSON.stringify(
 					err.response?.data
@@ -152,7 +152,10 @@ export default async (webApp: WebApp): Promise<void> => {
 	});
 	webApp.app.get("/discord/link/:id", async (req, res) => {
 		const data = await metadata.get(req.params.id);
-		if (!data) return res.status(404).send("no data");
+		if (!data) {
+			res.status(404).send("no data");
+			return;
+		}
 		res.send(data);
 	});
 	webApp.app.get("/discord/link/:id/refresh", rateLimit(), async (req, res) => {
@@ -160,24 +163,36 @@ export default async (webApp: WebApp): Promise<void> => {
 	});
 	webApp.app.get("/discord/link/:id/revoke", rateLimit(), async (req, res) => {
 		const secret = req.query.secret;
-		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
+		if (secret !== webApp.config.cookieSecret) {
+			res.sendStatus(403);
+			return;
+		}
 		const entry = await (
 			await sql.getLocalDatabase()
 		).get<LocalDatabaseEntry>(
 			"SELECT access_token FROM discord_tokens WHERE user_id = ?",
 			req.params.id
 		);
-		if (!entry) return res.status(404).send("no data");
+		if (!entry) {
+			res.status(404).send("no data");
+			return;
+		}
 		await revokeOAuthToken(entry.access_token);
 		res.send("👌");
 	});
 	webApp.app.get("/discord/revokealltokens", rateLimit(), async (req, res) => {
 		const secret = req.query.secret;
-		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
+		if (secret !== webApp.config.cookieSecret) {
+			res.sendStatus(403);
+			return;
+		}
 		const entries = await (
 			await sql.getLocalDatabase()
 		).all<LocalDatabaseEntry[]>("SELECT access_token FROM discord_tokens");
-		if (!entries || entries.length === 0) return res.status(404).send("no data");
+		if (!entries || entries.length === 0) {
+			res.status(404).send("no data");
+			return;
+		}
 		for (const entry of entries) {
 			await revokeOAuthToken(entry.access_token);
 		}
@@ -185,7 +200,10 @@ export default async (webApp: WebApp): Promise<void> => {
 	});
 	webApp.app.get("/discord/linkrefreshall", rateLimit(), async (req, res) => {
 		const secret = req.query.secret;
-		if (secret !== webApp.config.cookieSecret) return res.sendStatus(403);
+		if (secret !== webApp.config.cookieSecret) {
+			res.sendStatus(403);
+			return;
+		}
 		const entries = await (
 			await sql.getLocalDatabase()
 		).all<LocalDatabaseEntry[]>("SELECT user_id FROM discord_tokens");
@@ -198,17 +216,27 @@ export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/discord/auth/callback", rateLimit(), async (req, res) => {
 		try {
 			const code = req.query["code"];
-			if (!code) return res.sendStatus(403);
+			if (!code) {
+				res.sendStatus(403);
+				return;
+			}
 			const discordState = req.query["state"];
 			const { clientState } = req.signedCookies;
 			if (clientState !== discordState) {
 				console.error("[OAuth Callback] State mismatch?");
-				return res.sendStatus(403);
+				res.sendStatus(403);
+				return;
 			}
 			const tokens = await getOAuthTokens(code);
-			if (!tokens) return res.sendStatus(500);
+			if (!tokens) {
+				res.sendStatus(500);
+				return;
+			}
 			const data = await getAuthorizationData(tokens);
-			if (!data) return res.sendStatus(500);
+			if (!data) {
+				res.sendStatus(500);
+				return;
+			}
 
 			const userId = data.user.id;
 			const db = await sql.getLocalDatabase();
@@ -229,10 +257,12 @@ export default async (webApp: WebApp): Promise<void> => {
 						`SELECT * FROM discord_link WHERE discorduserid = $1;`,
 						[userId]
 					);
-					if (links.length === 0)
-						return res.send(
+					if (links.length === 0) {
+						res.send(
 							`<p>Steam not linked on Discord, please click on the button below to start linking here instead.</p> <a href="/steam/link/${userId}"><img src="https://community.cloudflare.steamstatic.com/public/images/signinthroughsteam/sits_02.png">`
 						);
+						return;
+					}
 					const selected = SteamID.fromIndividualAccountID(
 						links[0].accountid
 					).getSteamID64();
@@ -240,7 +270,10 @@ export default async (webApp: WebApp): Promise<void> => {
 					steamId = selected;
 				}
 
-				if (!steamId) return res.status(500).send("Could get not your SteamID :(");
+				if (!steamId) {
+					res.status(500).send("Could get not your SteamID :(");
+					return;
+				}
 
 				await db.run(
 					"INSERT INTO discord_tokens VALUES($user_id, $steam_id, $access_token, $refresh_token, $expires_at) ON CONFLICT (user_id) DO UPDATE SET steam_id = $steam_id, access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at",
