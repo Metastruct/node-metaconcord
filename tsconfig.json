@@ -4,9 +4,9 @@
 		"paths": {
 			"@/*": ["./*"]
 		},
-		"target": "ES2021",
+		"target": "ES2022",
 		"lib": ["es2021.string", "dom"],
-		"module": "Node18",
+		"module": "NodeNext",
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"allowSyntheticDefaultImports": true,
