@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
-import config from "@/config/discord.json" assert { type: "json" };
+import config from "@/config/discord.json" with { type: "json" };
 
 export default class DiscordClient extends Discord.Client {
 	config = config;

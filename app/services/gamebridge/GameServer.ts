@@ -9,7 +9,7 @@ import { NodeSSH, SSHExecOptions } from "node-ssh";
 import { RconResponse } from "./payloads/structures/index.js";
 import { WebhookClient } from "discord.js";
 import GameBridge from "./GameBridge.js";
-import sshConfig from "@/config/ssh.json" assert { type: "json" };
+import sshConfig from "@/config/ssh.json" with { type: "json" };
 
 export type GameServerConfig = {
 	defaultGamemode?: string;

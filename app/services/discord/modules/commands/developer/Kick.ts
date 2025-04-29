@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import { Player } from "@/app/services/gamebridge/GameServer.js";
 import { SlashCommand } from "@/extensions/discord.js";
-import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
+import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 export const SlashKickCommand: SlashCommand = {
 	options: {

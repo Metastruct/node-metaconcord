@@ -1,8 +1,8 @@
 import { RconRequest, RconResponse } from "./structures/index.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
-import requestSchema from "./structures/RconRequest.json" assert { type: "json" };
-import responseSchema from "./structures/RconResponse.json" assert { type: "json" };
+import requestSchema from "./structures/RconRequest.json" with { type: "json" };
+import responseSchema from "./structures/RconResponse.json" with { type: "json" };
 
 export default class RconPayload extends Payload {
 	protected static requestSchema = requestSchema;

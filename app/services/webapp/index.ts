@@ -1,7 +1,7 @@
 import { Container, Service } from "@/app/Container.js";
 import { Server as HTTPServer } from "http";
 import APIs from "./api/index.js";
-import config from "@/config/webapp.json" assert { type: "json" };
+import config from "@/config/webapp.json" with { type: "json" };
 import express from "express";
 
 export class WebApp extends Service {

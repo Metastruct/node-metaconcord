@@ -5,7 +5,7 @@ import { isAdmin } from "@/utils.js";
 import { revokeOAuthToken } from "./webapp/api/discord-oauth.js";
 import SteamID from "steamid";
 import axios, { AxiosError } from "axios";
-import config from "@/config/metadata.json" assert { type: "json" };
+import config from "@/config/metadata.json" with { type: "json" };
 
 export type MetaMetadata = {
 	banned?: 1 | 0;

@@ -3,10 +3,10 @@ import { AddonURIS, getOrFetchGmodFile } from "@/utils.js";
 import { WebApp } from "@/app/services/webapp/index.js";
 import GameServer, { Player } from "@/app/services/gamebridge/GameServer.js";
 import SteamID from "steamid";
-import config from "@/config/webapp.json" assert { type: "json" };
+import config from "@/config/webapp.json" with { type: "json" };
 import dayjs from "dayjs";
 import express from "express";
-import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
+import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 type GmodResponse = {
 	addon: string;

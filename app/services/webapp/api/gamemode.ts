@@ -1,5 +1,5 @@
 import { WebApp } from "@/app/services/webapp/index.js";
-import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
+import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 const HOSTING_IDS = { 3: true, 1: true };
 

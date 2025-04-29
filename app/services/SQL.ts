@@ -1,7 +1,7 @@
 import { Container, Service } from "../Container.js";
 import { Database, open } from "sqlite";
 import { Pool } from "pg";
-import config from "@/config/psql.json" assert { type: "json" };
+import config from "@/config/psql.json" with { type: "json" };
 import sqlite3 from "sqlite3";
 
 const pool = new Pool({

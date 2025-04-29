@@ -4,7 +4,7 @@ import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
 import SteamID from "steamid";
 import dayjs from "dayjs";
-import requestSchema from "./structures/StatusRequest.json" assert { type: "json" };
+import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
 
 const GamemodeAlias = {
 	qbox: "metastruct",

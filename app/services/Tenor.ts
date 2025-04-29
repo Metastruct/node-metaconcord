@@ -1,6 +1,6 @@
 import { Container, Service } from "../Container.js";
 import axios from "axios";
-import config from "@/config/tenor.json" assert { type: "json" };
+import config from "@/config/tenor.json" with { type: "json" };
 
 const ENDPOINT = "https://tenor.googleapis.com/v2/search";
 

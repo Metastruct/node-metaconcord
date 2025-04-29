@@ -5,7 +5,7 @@ import { f } from "@/utils.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
 import SteamID from "steamid";
-import requestSchema from "./structures/BanAppealRequest.json" assert { type: "json" };
+import requestSchema from "./structures/BanAppealRequest.json" with { type: "json" };
 
 export default class UnbanPayload extends Payload {
 	protected static requestSchema = requestSchema;
