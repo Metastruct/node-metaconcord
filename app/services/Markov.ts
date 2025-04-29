@@ -1,7 +1,6 @@
 // thank u mr swadical https://github.com/SwadicalRag/node-markov-lite
-import * as sqlite from "sqlite3";
-import { Container } from "../Container";
-import { Service } from ".";
+import { Container, Service } from "../Container.js";
+import sqlite3 from "sqlite3";
 
 export interface IGenerateOptions {
 	depth?: number;
@@ -136,12 +135,12 @@ abstract class MarkovChainBase {
 }
 
 class MarkovChain extends MarkovChainBase {
-	db: sqlite.Database;
+	db: sqlite3.Database;
 
 	constructor(public location: string) {
 		super();
 
-		this.db = new sqlite.Database(this.location);
+		this.db = new sqlite3.Database(this.location);
 
 		this.db.serialize(() => {
 			this.ready();
@@ -176,15 +175,18 @@ class MarkovChain extends MarkovChainBase {
 			const sentence = chain.join(" ");
 
 			if (sentence.trim() === "") {
-				this.db.get(`SELECT * FROM markov ORDER BY RANDOM() LIMIT 1`, (err, res) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve(res.message);
+				this.db.get<{ message: string }>(
+					`SELECT * FROM markov ORDER BY RANDOM() LIMIT 1`,
+					(err, res) => {
+						if (err) {
+							reject(err);
+						} else {
+							resolve(res.message);
+						}
 					}
-				});
+				);
 			} else {
-				this.db.all(
+				this.db.all<{ message: string }>(
 					`SELECT * FROM markov WHERE (message LIKE $sentence1 OR [message] Like $sentence3 ) ORDER BY RANDOM() LIMIT 1`,
 					{
 						$sentence1: `_% ${sentence} %_`,

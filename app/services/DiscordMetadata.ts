@@ -1,11 +1,11 @@
-import { Bans, DiscordBot, SQL, Service } from ".";
-import { Container } from "../Container";
+import { Bans, DiscordBot, SQL } from "./index.js";
+import { Container, Service } from "../Container.js";
 import { DiscordErrorData, OAuthErrorData } from "discord.js";
-import { isAdmin } from "@/utils";
-import { revokeOAuthToken } from "./webapp/api/discord-oauth";
+import { isAdmin } from "@/utils.js";
+import { revokeOAuthToken } from "./webapp/api/discord-oauth.js";
 import SteamID from "steamid";
 import axios, { AxiosError } from "axios";
-import config from "@/config/metadata.json";
+import config from "@/config/metadata.json" assert { type: "json" };
 
 export type MetaMetadata = {
 	banned?: 1 | 0;

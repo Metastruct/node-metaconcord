@@ -1,6 +1,5 @@
-import { Container } from "@/app/Container";
-import { Rule } from "./discord";
-import { Service } from ".";
+import { Container, Service } from "../Container.js";
+import { Rule } from "./discord/index.js";
 import { promises as fs } from "fs";
 import path from "path";
 

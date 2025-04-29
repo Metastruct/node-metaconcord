@@ -1,19 +1,22 @@
-import { WebApp } from "..";
+import { WebApp } from "@/app/services/webapp/index.js";
 
 export default async (webApp: WebApp): Promise<void> => {
 	const bot = await webApp.container.getService("DiscordBot");
 
 	webApp.app.get("/discord/guild/emojis", async (_, res) => {
-		if (!bot.discord.readyAt)
-			return res.status(500).json({
+		if (!bot.discord.readyAt) {
+			res.status(500).json({
 				error: "Bot is not connected",
 			});
+			return;
+		}
 
 		const guild = bot.getGuild();
 		if (!guild) {
-			return res.status(500).json({
+			res.status(500).json({
 				error: "Bot is not part of guild",
 			});
+			return;
 		}
 
 		const emojis = JSON.parse(JSON.stringify(guild.emojis.cache));
@@ -22,6 +25,6 @@ export default async (webApp: WebApp): Promise<void> => {
 			emoji.url = `https://cdn.discordapp.com/emojis/${emoji.id}.${extension}?v=1`;
 		}
 
-		return res.status(200).json(emojis);
+		res.status(200).json(emojis);
 	});
 };

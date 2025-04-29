@@ -1,11 +1,11 @@
-import { GameServer } from "../../gamebridge";
-import { WebApp } from "..";
+import { WebApp } from "@/app/services/webapp/index.js";
+import GameServer from "@/app/services/gamebridge/GameServer.js";
 import nodeHtmlToImage from "node-html-to-image";
 import path from "path";
 import pug from "pug";
 
 export default async (webApp: WebApp): Promise<void> => {
-	webApp.app.get("/server-status/:id/:bruh?", async (req, res) => {
+	webApp.app.get("/server-status/:id{/:bruh}", async (req, res) => {
 		const gameBridge = await webApp.container.getService("GameBridge");
 		const server: GameServer = gameBridge.servers[req.params.id];
 
@@ -15,7 +15,8 @@ export default async (webApp: WebApp): Promise<void> => {
 		}
 
 		if (!Array.isArray(server.status?.players) && server.status?.mapThumbnail != null) {
-			return res.sendStatus(204);
+			res.sendStatus(204);
+			return;
 		}
 
 		// Discord Bot and Cloudflare

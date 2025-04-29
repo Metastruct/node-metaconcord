@@ -1,12 +1,11 @@
-import * as requestSchema from "./structures/BanAppealRequest.json";
-import { BanAppealRequest } from "./structures";
-import { GameServer } from "..";
-import { PlayerSummary } from "../../Steam";
-import { TextChannel } from "discord.js";
-import { f } from "@/utils";
-import Discord from "discord.js";
-import Payload from "./Payload";
+import * as Discord from "discord.js";
+import { BanAppealRequest } from "./structures/index.js";
+import { PlayerSummary } from "@/app/services/Steam.js";
+import { f } from "@/utils.js";
+import GameServer from "@/app/services/gamebridge/GameServer.js";
+import Payload from "./Payload.js";
 import SteamID from "steamid";
+import requestSchema from "./structures/BanAppealRequest.json" assert { type: "json" };
 
 export default class UnbanPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -68,6 +67,6 @@ export default class UnbanPayload extends Payload {
 				`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
 			)
 		);
-		(notificationsChannel as TextChannel).send({ embeds: [embed] });
+		(notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
 	}
 }

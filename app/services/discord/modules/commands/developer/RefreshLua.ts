@@ -1,7 +1,6 @@
-import { EphemeralResponse } from "..";
-import { SlashCommand } from "@/extensions/discord";
-import Discord from "discord.js";
-import servers from "@/config/gamebridge.servers.json";
+import * as Discord from "discord.js";
+import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
+import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
 
 export const SlashRefreshLuaCommand: SlashCommand = {
 	options: {

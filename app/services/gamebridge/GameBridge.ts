@@ -1,16 +1,15 @@
-import * as payloads from "./payloads";
+import * as Discord from "discord.js";
+import * as payloads from "./payloads/index.js";
 import * as signalR from "@microsoft/signalr";
-import { Container } from "@/app/Container";
-import { GameServerConfig } from "./GameServer";
-import { ResoniteSession } from "../Resonite";
-import { Service } from "@/app/services";
-import { WebApp } from "@/app/services/webapp";
+import { Container, Service } from "@/app/Container.js";
+import { GameServerConfig } from "./GameServer.js";
+import { ResoniteSession } from "../Resonite.js";
+import { WebApp } from "@/app/services/webapp/index.js";
 import { request as WebSocketRequest } from "websocket";
 import { server as WebSocketServer } from "websocket";
-import Discord from "discord.js";
-import GameServer from "./GameServer";
-import config from "@/config/gamebridge.json";
-import servers from "@/config/gamebridge.servers.json";
+import GameServer from "./GameServer.js";
+import config from "@/config/gamebridge.json" assert { type: "json" };
+import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
 
 export default class GameBridge extends Service {
 	name = "GameBridge";

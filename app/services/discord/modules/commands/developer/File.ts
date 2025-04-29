@@ -1,7 +1,6 @@
-import { EphemeralResponse } from "..";
-import { SlashCommand } from "@/extensions/discord";
-import { getOrFetchGmodFile } from "@/utils";
-import Discord from "discord.js";
+import * as Discord from "discord.js";
+import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
+import { getOrFetchGmodFile } from "@/utils.js";
 
 const PATH_MATCH = /(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>[a-z]*)/g;
 

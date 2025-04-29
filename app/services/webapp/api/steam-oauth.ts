@@ -1,6 +1,6 @@
 // not really oauth, but yeah, currently tied to discord role linking
 
-import { WebApp } from "..";
+import { WebApp } from "@/app/services/webapp/index.js";
 //import { createHash } from "crypto";
 import { rateLimit } from "express-rate-limit";
 import SteamID from "steamid";
@@ -22,7 +22,10 @@ export default async (webApp: WebApp): Promise<void> => {
 		const sql = await webApp.container.getService("SQL");
 		const query = req.query;
 		const userId = req.params.id;
-		if (!userId) res.status(403).send("Missing userid for linking");
+		if (!userId) {
+			res.status(403).send("Missing userid for linking");
+			return;
+		}
 		// const signed: string[] = params["openid.signed"].split(",");
 		// const buffer = Buffer.from(
 		// 	signed.map(entry => `${entry}:${params["openid." + entry]}`).join("\n") + "\n",
@@ -34,17 +37,21 @@ export default async (webApp: WebApp): Promise<void> => {
 			params: query,
 		});
 		const ident = query["openid.identity"]?.toString();
-		if (!valid || valid.data.length === 0 || !valid.data.includes("is_valid:true") || !ident)
-			return res.status(403).send("Invalid Steam Response?");
-
+		if (!valid || valid.data.length === 0 || !valid.data.includes("is_valid:true") || !ident) {
+			res.status(403).send("Invalid Steam Response?");
+			return;
+		}
 		const steamId = ident.match(/https:\/\/steamcommunity\.com\/openid\/id\/(\d+)/)?.[1];
-		if (!steamId || steamId.length === 0) return res.status(403).send("Invalid SteamID?");
+		if (!steamId || steamId.length === 0) {
+			res.status(403).send("Invalid SteamID?");
+			return;
+		}
 		await sql.queryPool(
 			"INSERT INTO discord_link (accountid, discorduserid, linked_at) VALUES($1, $2, $3) ON CONFLICT (accountid) DO UPDATE SET linked_at = EXCLUDED.linked_at, discorduserid = EXCLUDED.discorduserid;",
 			[new SteamID(steamId).accountid, userId, new Date()]
 		);
 
-		return res.redirect("/discord/link");
+		res.redirect("/discord/link");
 	});
 
 	webApp.app.get("/steam/link/:id", async (req, res) => {

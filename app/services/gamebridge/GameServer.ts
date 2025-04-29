@@ -1,14 +1,15 @@
-import { DiscordClient, GameBridge } from ".";
-import { ErrorPayload } from "./payloads";
+import { DiscordClient } from "./discord/index.js";
+import { ErrorPayload } from "./payloads/index.js";
 import {
 	IUtf8Message,
 	connection as WebSocketConnection,
 	request as WebSocketRequest,
 } from "websocket";
 import { NodeSSH, SSHExecOptions } from "node-ssh";
-import { RconResponse } from "./payloads/structures";
+import { RconResponse } from "./payloads/structures/index.js";
 import { WebhookClient } from "discord.js";
-import sshConfig from "@/config/ssh.json";
+import GameBridge from "./GameBridge.js";
+import sshConfig from "@/config/ssh.json" assert { type: "json" };
 
 export type GameServerConfig = {
 	defaultGamemode?: string;

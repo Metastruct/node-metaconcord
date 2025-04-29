@@ -1,11 +1,11 @@
-import * as requestSchema from "./structures/ErrorRequest.json";
-import * as responseSchema from "./structures/ErrorResponse.json";
 import { APIEmbed } from "discord.js";
-import { ErrorRequest, ErrorResponse } from "./structures";
-import { GMOD_PATH_MATCH, getOrFetchGmodFile } from "@/utils";
-import { GameServer } from "..";
-import Payload from "./Payload";
+import { ErrorRequest, ErrorResponse } from "./structures/index.js";
+import { GMOD_PATH_MATCH, getOrFetchGmodFile } from "@/utils.js";
+import GameServer from "@/app/services/gamebridge/GameServer.js";
+import Payload from "./Payload.js";
 import dayjs from "dayjs";
+import requestSchema from "./structures/ErrorRequest.json" assert { type: "json" };
+import responseSchema from "./structures/ErrorResponse.json" assert { type: "json" };
 
 export default class ErrorPayload extends Payload {
 	protected static requestSchema = requestSchema;

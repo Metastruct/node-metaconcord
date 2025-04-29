@@ -1,8 +1,8 @@
-import { DiscordBot } from "..";
+import * as Discord from "discord.js";
+import { DiscordBot } from "../index.js";
 import { InspectOptions, inspect } from "node:util";
 import { diffJson, diffWords } from "diff";
-import { f } from "@/utils";
-import Discord from "discord.js";
+import { f } from "@/utils.js";
 
 const RED_COLOR = Discord.Colors.Red;
 const YELLOW_COLOR = Discord.Colors.Yellow;
@@ -201,7 +201,7 @@ export default (bot: DiscordBot): void => {
 		const actionName = Discord.AuditLogEvent[entry.action];
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
-				name: `${user?.user.username} (${user?.displayName})` ?? "unknown user",
+				name: `${user?.user.username} (${user?.displayName})`,
 				iconURL: user?.avatarURL() ?? user?.user.avatarURL() ?? undefined,
 			})
 			.setFooter({
@@ -270,7 +270,10 @@ export default (bot: DiscordBot): void => {
 							const isObject = typeof change.new === "object";
 							const diffList =
 								typeof change.old === "object" && typeof change.new === "object"
-									? diffJson(change.old, change.new)
+									? diffJson(
+											JSON.stringify(change.old, null, 2),
+											JSON.stringify(change.new, null, 2)
+									  )
 									: diffWords(
 											change.old && hastoString(change.old)
 												? change.old.toString()

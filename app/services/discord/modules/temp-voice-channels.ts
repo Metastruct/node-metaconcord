@@ -1,4 +1,4 @@
-import { DiscordBot } from "..";
+import { DiscordBot } from "../index.js";
 
 export default async (bot: DiscordBot): Promise<void> => {
 	const data = await bot.container.getService("Data");

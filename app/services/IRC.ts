@@ -1,7 +1,6 @@
-import { Container } from "../Container";
-import { Service } from ".";
-import Discord from "discord.js";
-import config from "@/config/irc.json";
+import * as Discord from "discord.js";
+import { Container, Service } from "../Container.js";
+import config from "@/config/irc.json" assert { type: "json" };
 import nIRC from "irc-upd";
 
 type message = {

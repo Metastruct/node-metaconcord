@@ -1,7 +1,7 @@
-import { Player } from "@/app/services/gamebridge";
-import { SlashCommand } from "@/extensions/discord";
-import Discord from "discord.js";
-import servers from "@/config/gamebridge.servers.json";
+import * as Discord from "discord.js";
+import { Player } from "@/app/services/gamebridge/GameServer.js";
+import { SlashCommand } from "@/extensions/discord.js";
+import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
 
 export const SlashKickCommand: SlashCommand = {
 	options: {

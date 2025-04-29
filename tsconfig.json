@@ -4,15 +4,21 @@
 		"paths": {
 			"@/*": ["./*"]
 		},
-		"target": "ES2020",
+		"target": "ES2021",
 		"lib": ["es2021.string", "dom"],
-		"module": "commonjs",
+		"module": "Node18",
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"allowSyntheticDefaultImports": true,
-		"moduleResolution": "node",
+		"moduleResolution": "node16",
 		"outDir": "./dist",
 		"strictNullChecks": true,
 		"skipLibCheck": true // discord.js moment
+	},
+	"ts-node": {
+		"transpileOnly": true,
+		"files": true,
+		"experimentalResolver": true,
+		"esm": true
 	}
 }

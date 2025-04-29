@@ -1,5 +1,4 @@
-import { Container } from "../Container";
-import { Service } from ".";
+import { Container, Service } from "../Container.js";
 import SteamID from "steamid";
 import axios from "axios";
 

@@ -1,8 +1,7 @@
-import { EphemeralResponse } from ".";
-import { MenuCommand, SlashCommand } from "@/extensions/discord";
-import Discord from "discord.js";
+import * as Discord from "discord.js";
+import { EphemeralResponse, MenuCommand, SlashCommand } from "@/extensions/discord.js";
 import axios, { AxiosResponse } from "axios";
-import config from "@/config/deepl.json";
+import config from "@/config/deepl.json" assert { type: "json" };
 
 const LANG = [
 	"AR",

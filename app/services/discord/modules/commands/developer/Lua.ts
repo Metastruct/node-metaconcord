@@ -1,9 +1,8 @@
-import { EphemeralResponse } from "..";
-import { RconResponse } from "@/app/services/gamebridge/payloads/structures";
-import { SlashCommand } from "@/extensions/discord";
-import { f } from "@/utils";
-import Discord from "discord.js";
-import servers from "@/config/gamebridge.servers.json";
+import * as Discord from "discord.js";
+import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
+import { f } from "@/utils.js";
+import RconResponse from "@/app/services/gamebridge/payloads/structures/RconResponse.js";
+import servers from "@/config/gamebridge.servers.json" assert { type: "json" };
 
 export const SlashLuaCommand: SlashCommand = {
 	options: {

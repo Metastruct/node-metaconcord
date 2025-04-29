@@ -1,8 +1,7 @@
-import { Container } from "../Container";
-import { Service } from ".";
+import { Container, Service } from "../Container.js";
 import { createHash, randomUUID } from "crypto";
 import axios from "axios";
-import config from "@/config/resonite.json";
+import config from "@/config/resonite.json" assert { type: "json" };
 
 export type ResoniteSignalLSessionResponse = {
 	entity: {
@@ -114,10 +113,9 @@ export class Resonite extends Service {
 	async GetResoniteUserAvatarURL(id: string) {
 		const user = await this.GetResoniteUser(id);
 		if (!user || !user.profile) return;
-		return (
-			`https://assets.resonite.com/${/resdb:\/\/\/(.+)\./.exec(user.profile.iconUrl)?.[1]}` ??
-			undefined
-		);
+		return `https://assets.resonite.com/${
+			/resdb:\/\/\/(.+)\./.exec(user.profile.iconUrl)?.[1]
+		}`;
 	}
 
 	async GetOrFetchToken(): Promise<void> {

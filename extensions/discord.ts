@@ -1,5 +1,9 @@
-import { DiscordBot } from "@/app/services";
-import Discord from "discord.js";
+import * as Discord from "discord.js";
+import { DiscordBot } from "../app/services/discord/index.js";
+
+export function EphemeralResponse(content: string): Discord.InteractionReplyOptions {
+	return { content: content, flags: Discord.MessageFlags.Ephemeral };
+}
 
 export interface SlashCommand {
 	options: Discord.RESTPostAPIChatInputApplicationCommandsJSONBody;

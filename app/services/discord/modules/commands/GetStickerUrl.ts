@@ -1,6 +1,5 @@
-import { EphemeralResponse } from ".";
-import { MenuCommand } from "@/extensions/discord";
-import Discord from "discord.js";
+import * as Discord from "discord.js";
+import { EphemeralResponse, MenuCommand } from "@/extensions/discord.js";
 
 export const MenuGetStickerUrlCommand: MenuCommand = {
 	options: {

@@ -1,11 +1,11 @@
-import { Container } from "@/app/Container";
-import { Data, GameBridge, Service } from "@/app/services";
-import { getAsBase64 } from "@/utils";
-import { getEventIcon } from "./modules/discord-guild-icon";
-import Discord from "discord.js";
-import DiscordConfig from "@/config/discord.json";
-import modules from "./modules";
-import motdConfig from "@/config/motd.json";
+import * as Discord from "discord.js";
+import { Container, Service } from "@/app/Container.js";
+import { Data, GameBridge } from "@/app/services/index.js";
+import { getAsBase64 } from "@/utils.js";
+import { getEventIcon } from "./modules/discord-guild-icon.js";
+import DiscordConfig from "@/config/discord.json" assert { type: "json" };
+import modules from "./modules/index.js";
+import motdConfig from "@/config/motd.json" assert { type: "json" };
 
 export type Rule = {
 	title: string;

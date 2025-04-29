@@ -1,9 +1,9 @@
-import * as requestSchema from "./structures/ChatRequest.json";
-import * as responseSchema from "./structures/ChatResponse.json";
-import { ChatRequest, ChatResponse } from "./structures";
-import { GameServer } from "..";
-import Discord from "discord.js";
-import Payload from "./Payload";
+import * as Discord from "discord.js";
+import { ChatRequest, ChatResponse } from "./structures/index.js";
+import GameServer from "@/app/services/gamebridge/GameServer.js";
+import Payload from "./Payload.js";
+import requestSchema from "./structures/ChatRequest.json" assert { type: "json" };
+import responseSchema from "./structures/ChatResponse.json" assert { type: "json" };
 
 const MEDIA_URL = /https?:\/\/(?:media|cdn)\.discordapp\.(?:net|com)\/attachments\/\d+\/\d+\/\S+/;
 

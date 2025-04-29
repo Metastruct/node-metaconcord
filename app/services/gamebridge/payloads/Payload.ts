@@ -1,6 +1,6 @@
-import { PayloadRequest } from "./structures";
-import Ajv from "ajv";
-import GameServer from "../GameServer";
+import { Ajv } from "ajv";
+import { PayloadRequest } from "./structures/index.js";
+import GameServer from "../GameServer.js";
 import util from "util";
 
 export default abstract class Payload {
