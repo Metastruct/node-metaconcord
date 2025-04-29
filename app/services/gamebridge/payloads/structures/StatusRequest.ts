@@ -19,7 +19,7 @@ export default interface StatusRequest extends PayloadRequest {
 		hostname?: string;
 		players?: {
 			accountId: number;
-			avatar?: string | false; // Metastruct SteamCache can return false...
+			avatar?: string;
 			ip: string;
 			isAdmin: boolean;
 			isAfk?: boolean;
