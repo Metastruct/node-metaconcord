@@ -53,12 +53,14 @@ const GetGithubChanges = (
 };
 
 const getGitHubDiff = async (url: string) => {
-	const res = await axios.get<string>(url + ".diff");
-	if (res)
-		return res.data
-			.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n")
-			.replaceAll(/diff.+\nindex.+\n/g, "")
-			.replaceAll("```", "​`​`​`");
+	try {
+		const res = await axios.get<string>(url + ".diff");
+		if (res)
+			return res.data
+				.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n")
+				.replaceAll(/diff.+\nindex.+\n/g, "")
+				.replaceAll("```", "​`​`​`");
+	} catch {}
 };
 
 const FIELD_REGEX = /^(?:Add|Mod|Del) \[(.+)\]/g;
@@ -142,9 +144,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 								stream: "stderr",
 							})
 							.then(async () =>
-								(
-									await ctx.fetchReply()
-								).react(SERVER_EMOJI_MAP[server.config.id] ?? "❓")
+								(await ctx.fetchReply()).react(
+									SERVER_EMOJI_MAP[server.config.id] ?? "❓"
+								)
 							);
 					})
 				)
@@ -329,7 +331,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 								diff.length > DIFF_SIZE - 12
 									? diff.substring(0, 4079) + ". . ."
 									: diff
-						  }\`\`\``
+							}\`\`\``
 						: undefined,
 					author: {
 						name:
@@ -441,7 +443,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				thumbnail = payload.user?.avatar_url
 					? {
 							url: payload.user.avatar_url,
-					  }
+						}
 					: undefined;
 				timestamp = payload.invitation.created_at;
 				break;
@@ -451,7 +453,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				thumbnail = payload.membership.user?.avatar_url
 					? {
 							url: payload.membership.user.avatar_url,
-					  }
+						}
 					: undefined;
 				break;
 			case "member_removed":
@@ -460,7 +462,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				thumbnail = payload.membership.user?.avatar_url
 					? {
 							url: payload.membership.user.avatar_url,
-					  }
+						}
 					: undefined;
 				break;
 			case "renamed":
