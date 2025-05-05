@@ -333,11 +333,16 @@ export default async (bot: DiscordBot): Promise<void> => {
 					continue;
 				}
 
-				includesLua =
-					commit.added?.some(str => str.endsWith(".lua")) ||
-					commit.modified?.some(str => str.endsWith(".lua")) ||
-					commit.removed?.some(str => str.endsWith(".lua")) ||
-					false;
+				const allFiles = [
+					...(commit.added ?? []),
+					...(commit.modified ?? []),
+					...(commit.removed ?? []),
+				];
+
+				includesLua = allFiles.length > 0 && allFiles.some(str => str.endsWith(".lua"));
+
+				const isOnlyOgg =
+					allFiles.length > 0 && allFiles.every(str => str.endsWith(".ogg"));
 
 				const oversize = changes.length > MAX_FIELDS;
 				const changeLen = oversize ? MAX_FIELDS : changes.length;
@@ -358,9 +363,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 					}
 				}
 
-				const diff = isMergeCommit(commit.message)
-					? undefined
-					: await getGitHubDiff(commit.url);
+				const diff =
+					isMergeCommit(commit.message) || isOnlyOgg
+						? undefined
+						: await getGitHubDiff(commit.url);
 
 				embeds.push({
 					title:
