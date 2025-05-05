@@ -126,12 +126,12 @@ export default class StatusPayload extends Payload {
 								],
 								status:
 									current_defcon === 1 || current_countdown ? "dnd" : "online",
-						  }
+							}
 						: {
 								afk: true,
 								status: current_defcon === 1 || current_countdown ? "dnd" : "idle",
 								activities: [],
-						  };
+							};
 
 				if (current_countdown) {
 					presence.activities = [
@@ -201,8 +201,8 @@ export default class StatusPayload extends Payload {
 					current_defcon === 1 || current_countdown
 						? 0xff0000
 						: current_gamemode
-						? gamemodeExtras?.color ?? null
-						: null,
+							? (gamemodeExtras?.color ?? null)
+							: null,
 				components: [
 					{
 						type: Discord.ComponentType.Section,
@@ -234,8 +234,8 @@ export default class StatusPayload extends Payload {
 									url: players
 										? `http://${host}:${port}/server-status/${
 												server.config.id
-										  }/${Date.now()}`
-										: server.status.image ?? "",
+											}/${Date.now()}`
+										: (server.status.image ?? ""),
 								},
 							},
 						],
@@ -329,9 +329,13 @@ export default class StatusPayload extends Payload {
 				.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
 				.first();
 			if (message) {
-				await message.edit({ components: [container], flags: 1 << 15 }).catch();
+				await message
+					.edit({ components: [container], flags: Discord.MessageFlags.IsComponentsV2 })
+					.catch();
 			} else {
-				channel.send({ components: [container], flags: 1 << 15 }).catch();
+				channel
+					.send({ components: [container], flags: Discord.MessageFlags.IsComponentsV2 })
+					.catch();
 			}
 		};
 
