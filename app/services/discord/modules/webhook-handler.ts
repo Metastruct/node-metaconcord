@@ -98,7 +98,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 	});
 
 	let webhook: Discord.Webhook;
-	const bridge = bot.bridge;
+	const bridge = await bot.container.getService("GameBridge");
 	const chatWebhook = bot.bridge.discordChatWH;
 
 	bot.discord.on("ready", async () => {
