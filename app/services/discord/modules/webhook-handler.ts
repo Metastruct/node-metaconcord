@@ -446,6 +446,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 					embeds: chunk,
 					components: i === embeds.length - 1 && includesLua ? [components] : undefined,
 				});
+				bot
+					.getTextChannel(bot.config.channels.ingameChat)
+					?.send({ ...messagePayload, embeds: chunk });
 			}
 		} else {
 			webhook
@@ -454,6 +457,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					components: includesLua ? [components] : undefined,
 				})
 				.catch(console.error);
+			bot.getTextChannel(bot.config.channels.ingameChat)?.send(messagePayload);
 		}
 	});
 
