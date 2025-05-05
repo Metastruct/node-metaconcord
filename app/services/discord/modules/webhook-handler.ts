@@ -99,6 +99,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 	let webhook: Discord.Webhook;
 	const bridge = bot.bridge;
+	const chatWebhook = bot.bridge.servers.find(s => s.discordChatWH)?.discordChatWH;
 
 	bot.discord.on("ready", async () => {
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
@@ -446,9 +447,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					embeds: chunk,
 					components: i === embeds.length - 1 && includesLua ? [components] : undefined,
 				});
-				bot
-					.getTextChannel(bot.config.channels.ingameChat)
-					?.send({ ...messagePayload, embeds: chunk });
+				chatWebhook?.send({ ...messagePayload, embeds: chunk });
 			}
 		} else {
 			webhook
@@ -457,7 +456,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					components: includesLua ? [components] : undefined,
 				})
 				.catch(console.error);
-			bot.getTextChannel(bot.config.channels.ingameChat)?.send(messagePayload);
+			chatWebhook?.send(messagePayload);
 		}
 	});
 
