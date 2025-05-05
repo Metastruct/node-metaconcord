@@ -12,6 +12,8 @@ const DIFF_SIZE = 2048;
 const MAX_FIELDS = 10;
 const MAX_COMMITS = 5;
 
+const MinimalPushUsers = ["MetaAutomator"];
+
 const GitHub = new Webhooks({
 	secret: webhookConfig.github.secret,
 });
@@ -292,6 +294,45 @@ export default async (bot: DiscordBot): Promise<void> => {
 					commit.modified
 				);
 
+				const color =
+					clamp(COLOR_BASE + COLOR_MOD * (commit.removed?.length ?? 0), COLOR_BASE, 255) *
+						65536 +
+					clamp(COLOR_BASE + COLOR_MOD * (commit.added?.length ?? 0), COLOR_BASE, 255) *
+						256 +
+					clamp(COLOR_BASE + COLOR_MOD * (commit.modified?.length ?? 0), COLOR_BASE, 255);
+
+				if (MinimalPushUsers.includes(commit.author.username ?? commit.author.name)) {
+					embeds.push({
+						title:
+							commit.message.length > 256
+								? `${commit.message.substring(0, 250)}. . .`
+								: commit.message,
+						description: `[${changes.length} files changed.](${payload.compare}`,
+						author: {
+							name:
+								branch !== repo.default_branch
+									? (repo.name + "/" + branch).substring(0, 256)
+									: repo.name.substring(0, 256),
+							url: repo.html_url,
+							icon_url: repo.owner?.avatar_url,
+						},
+						color,
+						url: commit.url,
+						fields,
+						timestamp: commit.timestamp,
+						footer: {
+							text: `${commit.id.substring(0, 6)} by ${
+								commit.author.username ?? commit.author.name
+							}${
+								commit.author.name !== commit.committer.name
+									? ` via ${commit.committer.username ?? commit.committer.name}`
+									: ""
+							}`,
+						},
+					});
+					continue;
+				}
+
 				includesLua =
 					commit.added?.some(str => str.endsWith(".lua")) ||
 					commit.modified?.some(str => str.endsWith(".lua")) ||
@@ -341,26 +382,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 						url: repo.html_url,
 						icon_url: repo.owner?.avatar_url,
 					},
-					color:
-						clamp(
-							COLOR_BASE + COLOR_MOD * (commit.removed?.length ?? 0),
-							COLOR_BASE,
-							255
-						) *
-							65536 +
-						clamp(
-							COLOR_BASE + COLOR_MOD * (commit.added?.length ?? 0),
-							COLOR_BASE,
-							255
-						) *
-							256 +
-						clamp(
-							COLOR_BASE + COLOR_MOD * (commit.modified?.length ?? 0),
-							COLOR_BASE,
-							255
-						),
+					color,
 					url: commit.url,
-					fields: fields,
+					fields,
 					timestamp: commit.timestamp,
 					footer: {
 						text: `${commit.id.substring(0, 6)} by ${
@@ -381,7 +405,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			content: payload.forced
 				? "<a:ALERTA:843518761160015933> Force Pushed <a:ALERTA:843518761160015933>"
 				: "",
-			embeds: embeds,
+			embeds,
 		};
 		const components = <Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow>>{
 			components: [
@@ -488,10 +512,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 						url: payload.organization.url,
 						icon_url: payload.organization.avatar_url,
 					},
-					thumbnail: thumbnail,
-					title: title,
-					description: description,
-					timestamp: timestamp,
+					thumbnail,
+					title,
+					description,
+					timestamp,
 				},
 			],
 		};
@@ -567,8 +591,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 						url: payload.organization.url,
 						icon_url: payload.organization.avatar_url,
 					},
-					title: title,
-					description: description,
+					title,
+					description,
 					timestamp: new Date().toISOString(),
 				},
 			],
