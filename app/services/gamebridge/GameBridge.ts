@@ -21,6 +21,9 @@ export default class GameBridge extends Service {
 	webApp: WebApp;
 	ws: WebSocketServer;
 	servers: GameServer[] = [];
+	discordChatWH: Discord.WebhookClient;
+	discordErrorWH: Discord.WebhookClient;
+	discordPacErrorWH: Discord.WebhookClient;
 
 	constructor(container: Container) {
 		super(container);
@@ -32,6 +35,15 @@ export default class GameBridge extends Service {
 		this.ws = new WebSocketServer({
 			httpServer: this.webApp.http,
 			autoAcceptConnections: false,
+		});
+		this.discordChatWH = new Discord.WebhookClient({
+			url: config.chatWebhookUrl,
+		});
+		this.discordErrorWH = new Discord.WebhookClient({
+			url: config.errorWebhookUrl,
+		});
+		this.discordPacErrorWH = new Discord.WebhookClient({
+			url: config.pacErrorWebhookUrl,
 		});
 
 		this.ws.on("request", req => {
@@ -131,12 +143,12 @@ export default class GameBridge extends Service {
 											type: 3,
 										},
 									],
-							  }
+								}
 							: {
 									status: "idle",
 									afk: true,
 									activities: [],
-							  };
+								};
 
 					discord.user?.setPresence(presence);
 
