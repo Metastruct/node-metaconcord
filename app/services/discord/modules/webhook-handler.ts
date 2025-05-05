@@ -381,7 +381,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 								{ type: Discord.ComponentType.TextDisplay, content: diff },
 								{
 									type: Discord.ComponentType.Separator,
-									devider: true,
+									divider: true,
 									spacing: 2,
 								},
 								{
