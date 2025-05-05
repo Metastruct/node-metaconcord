@@ -8,15 +8,15 @@ import webhookConfig from "@/config/webhooks.json" with { type: "json" };
 const COLOR_MOD = 75;
 const COLOR_BASE = 50;
 
+const DIFF_SIZE = 2048;
+const MAX_FIELDS = 10;
 const MAX_COMMITS = 5;
-
-const MinimalPushUsers = ["MetaAutomator"];
 
 const GitHub = new Webhooks({
 	secret: webhookConfig.github.secret,
 });
 
-const CreateOptions = <Discord.WebhookMessageCreateOptions>{
+const BaseEmbed = <Discord.WebhookMessageCreateOptions>{
 	allowedMentions: { parse: ["users"] },
 };
 
@@ -256,49 +256,34 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		let includesLua = false;
 
-		const components: Discord.Component[] = [];
+		const embeds: Discord.APIEmbed[] = [];
 
 		if (payload.head_commit && isRemoteMergeCommit(payload.head_commit.message))
 			commits.splice(0, commits.length, payload.head_commit);
 
 		if (commits.length > MAX_COMMITS) {
-			components.push(<Discord.ContainerComponent>{
-				type: Discord.ComponentType.Container,
-				accentColor: 0xffd700,
-				components: [
-					{
-						type: Discord.ComponentType.Section,
-						accessory: {
-							type: Discord.ComponentType.Thumbnail,
-							media: {
-								url: repo.owner?.avatar_url,
-							},
-							description: repo.name + " avatar",
-						},
-						components: [
-							{
-								type: Discord.ComponentType.TextDisplay,
-								content: `## [${
-									branch !== repo.default_branch
-										? repo.name + "/" + branch
-										: repo.name
-								}](${repo.html_url})\n\n# ${commits.length} commits in this push`,
-							},
-							{
-								type: Discord.ComponentType.TextDisplay,
-								content: `[View all changes](${payload.compare})`,
-							},
-							{
-								type: Discord.ComponentType.TextDisplay,
-								content: `-# by ${payload.sender?.name ?? payload.sender?.login ?? "unkown"}`,
-							},
-						],
-					},
-				],
-			});
+			const embed: Discord.APIEmbed = {
+				title: `${commits.length} commits in this push`,
+				description: `[View all changes](${payload.compare})`,
+				author: {
+					name:
+						branch !== repo.default_branch
+							? (repo.name + "/" + branch).substring(0, 256)
+							: repo.name.substring(0, 256),
+					url: repo.html_url,
+					icon_url: repo.owner?.avatar_url,
+				},
+				color: 0xffd700,
+				timestamp: new Date().toISOString(),
+				footer: {
+					text: `by ${payload.sender?.name ?? payload.sender?.login ?? "unkown"}`,
+				},
+			};
+
+			embeds.push(embed);
 		} else {
 			for (const commit of commits) {
-				//const fields: Discord.APIEmbedField[] = [];
+				const fields: Discord.APIEmbedField[] = [];
 				const changes = GetGithubChanges(
 					repo.full_name,
 					payload.ref,
@@ -313,118 +298,96 @@ export default async (bot: DiscordBot): Promise<void> => {
 					commit.removed?.some(str => str.endsWith(".lua")) ||
 					false;
 
-				const links = changes.join("\n");
+				const oversize = changes.length > MAX_FIELDS;
+				const changeLen = oversize ? MAX_FIELDS : changes.length;
+
+				for (let i = 0; i < changeLen; i++) {
+					const change = changes[i];
+					if (i === 24 || oversize ? i === changeLen - 1 : false) {
+						fields.push({
+							name: "︎",
+							value: `... and ${changes.length - changeLen} more changes`,
+						});
+						break;
+					} else {
+						fields.push({
+							name: i > 0 ? "︎" : "---",
+							value: change.length > 1024 ? "<LINK TOO LONG>" : change,
+						});
+					}
+				}
 
 				const diff = isMergeCommit(commit.message)
 					? undefined
 					: await getGitHubDiff(commit.url);
 
-				const color =
-					clamp(COLOR_BASE + COLOR_MOD * (commit.removed?.length ?? 0), COLOR_BASE, 255) *
-						65536 +
-					clamp(COLOR_BASE + COLOR_MOD * (commit.added?.length ?? 0), COLOR_BASE, 255) *
-						256 +
-					clamp(COLOR_BASE + COLOR_MOD * (commit.modified?.length ?? 0), COLOR_BASE, 255);
-
-				if (MinimalPushUsers.includes(commit.author.username ?? commit.author.name)) {
-					components.push(<Discord.ContainerComponent>{
-						type: Discord.ComponentType.Container,
-						accentColor: color,
-						components: [
-							{
-								type: Discord.ComponentType.TextDisplay,
-								content: `### [${
-									branch !== repo.default_branch
-										? repo.name + "/" + branch
-										: repo.name
-								}](${repo.html_url})\n\n## [${commit.message}](${commit.url})`,
-							},
-							{
-								type: Discord.ComponentType.TextDisplay,
-								content: `[${changes.length} files changed.](${payload.compare}`,
-							},
-							{
-								type: Discord.ComponentType.TextDisplay,
-								content: `-# ${commit.id.substring(0, 6)} by ${commit.author.username ?? commit.author.name}${
-									commit.author.name !== commit.committer.name
-										? ` via ${commit.committer.username ?? commit.committer.name}`
-										: ""
-								}`,
-							},
-						],
-					});
-					continue;
-				}
-
-				components.push(<Discord.ContainerComponent>{
-					type: Discord.ComponentType.Container,
-					accentColor: color,
-					components: [
-						{
-							type: Discord.ComponentType.Section,
-							accessory: {
-								type: Discord.ComponentType.Thumbnail,
-								media: {
-									url: repo.owner?.avatar_url,
-								},
-								description: repo.name + " avatar",
-							},
-							components: [
-								{
-									type: Discord.ComponentType.TextDisplay,
-									content: `## [${
-										branch !== repo.default_branch
-											? repo.name + "/" + branch
-											: repo.name
-									}](${repo.html_url})\n\n# [${commit.message}](${commit.url})`,
-								},
-								{ type: Discord.ComponentType.TextDisplay, content: diff },
-								{
-									type: Discord.ComponentType.Separator,
-									divider: true,
-									spacing: 2,
-								},
-								{
-									type: Discord.ComponentType.TextDisplay,
-									content: links,
-								},
-								{
-									type: Discord.ComponentType.TextDisplay,
-									content: `-# ${commit.id.substring(0, 6)} by ${commit.author.username ?? commit.author.name}${
-										commit.author.name !== commit.committer.name
-											? ` via ${commit.committer.username ?? commit.committer.name}`
-											: ""
-									}`,
-								},
-							],
-						},
-					],
+				embeds.push({
+					title:
+						commit.message.length > 256
+							? `${commit.message.substring(0, 250)}. . .`
+							: commit.message,
+					description: diff
+						? `\`\`\`diff\n${
+								diff.length > DIFF_SIZE - 12
+									? diff.substring(0, 4079) + ". . ."
+									: diff
+							}\`\`\``
+						: undefined,
+					author: {
+						name:
+							branch !== repo.default_branch
+								? (repo.name + "/" + branch).substring(0, 256)
+								: repo.name.substring(0, 256),
+						url: repo.html_url,
+						icon_url: repo.owner?.avatar_url,
+					},
+					color:
+						clamp(
+							COLOR_BASE + COLOR_MOD * (commit.removed?.length ?? 0),
+							COLOR_BASE,
+							255
+						) *
+							65536 +
+						clamp(
+							COLOR_BASE + COLOR_MOD * (commit.added?.length ?? 0),
+							COLOR_BASE,
+							255
+						) *
+							256 +
+						clamp(
+							COLOR_BASE + COLOR_MOD * (commit.modified?.length ?? 0),
+							COLOR_BASE,
+							255
+						),
+					url: commit.url,
+					fields: fields,
+					timestamp: commit.timestamp,
+					footer: {
+						text: `${commit.id.substring(0, 6)} by ${
+							commit.author.username ?? commit.author.name
+						}${
+							commit.author.name !== commit.committer.name
+								? ` via ${commit.committer.username ?? commit.committer.name}`
+								: ""
+						}`,
+					},
 				});
 			}
 		}
-
 		const messagePayload = <Discord.WebhookMessageCreateOptions>{
-			...CreateOptions,
+			...BaseEmbed,
 			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
 			avatarURL: payload.sender?.avatar_url,
-			components: [
-				payload.forced
-					? {
-							type: Discord.ComponentType.TextDisplay,
-							content:
-								"<a:ALERTA:843518761160015933> Force Pushed <a:ALERTA:843518761160015933>",
-						}
-					: undefined,
-				...components,
-			],
+			content: payload.forced
+				? "<a:ALERTA:843518761160015933> Force Pushed <a:ALERTA:843518761160015933>"
+				: "",
+			embeds: embeds,
 		};
-
-		const buttons = <Discord.ActionRow<Discord.MessageActionRowComponent>>{
-			type: Discord.ComponentType.ActionRow,
+		const components = <Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow>>{
 			components: [
 				{
 					type: Discord.ComponentType.Button,
-					customId: serverOverride ? `update_${serverOverride.join()}` : "update",
+					custom_id: serverOverride ? `update_${serverOverride.join()}` : "update",
 					label: serverOverride
 						? `Update Files on ${serverOverride.map(s => `#${s}`).join()}`
 						: "Update Files on all Servers",
@@ -432,34 +395,33 @@ export default async (bot: DiscordBot): Promise<void> => {
 				},
 				{
 					type: Discord.ComponentType.Button,
-					customId: serverOverride ? `everything_${serverOverride.join()}` : "everything",
+					custom_id: serverOverride
+						? `everything_${serverOverride.join()}`
+						: "everything",
 					label: serverOverride
 						? `Update and Refresh Files on ${serverOverride.map(s => `#${s}`).join()}`
 						: `Update and Refresh Files on all Servers`,
 					style: 1,
 				},
 			],
+			type: Discord.ComponentType.ActionRow,
 		};
 
 		// todo: figure out a good way to keep the embed size below the maximum size of 6000
-		if (components.length > 1) {
-			for (let i = 0; i < components.length; i++) {
-				const chunk = components.slice(i, i + 1);
+		if (embeds.length > 1) {
+			for (let i = 0; i < embeds.length; i++) {
+				const chunk = embeds.slice(i, i + 1);
 				webhook.send({
 					...messagePayload,
-					components:
-						i === components.length && includesLua
-							? [...components, buttons]
-							: components,
-					flags: Discord.MessageFlags.IsComponentsV2,
+					embeds: chunk,
+					components: i === embeds.length - 1 && includesLua ? [components] : undefined,
 				});
 			}
 		} else {
 			webhook
 				.send({
 					...messagePayload,
-					components: components,
-					flags: Discord.MessageFlags.IsComponentsV2,
+					components: includesLua ? [components] : undefined,
 				})
 				.catch(console.error);
 		}
@@ -516,7 +478,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}
 
 		const messagePayload = <Discord.WebhookMessageCreateOptions>{
-			...CreateOptions,
+			...BaseEmbed,
 			username: payload.sender.name ?? payload.sender.login,
 			avatarURL: payload.sender.avatar_url,
 			embeds: [
@@ -542,7 +504,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const payload = event.payload;
 
 		const messagePayload = <Discord.WebhookMessageCreateOptions>{
-			...CreateOptions,
+			...BaseEmbed,
 			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
 			avatarURL: payload.sender?.avatar_url,
 			embeds: [
@@ -595,7 +557,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}
 
 		const messagePayload: Discord.WebhookMessageCreateOptions = {
-			...CreateOptions,
+			...BaseEmbed,
 			username: payload.sender?.name ?? payload.sender?.login,
 			avatarURL: payload.sender?.avatar_url,
 			embeds: [
