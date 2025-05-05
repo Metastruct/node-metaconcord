@@ -307,7 +307,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 							commit.message.length > 256
 								? `${commit.message.substring(0, 250)}. . .`
 								: commit.message,
-						description: `[${changes.length} files changed.](${payload.compare}`,
+						description: `[${changes.length} file${changes.length > 1 ? "s" : ""} changed.](${payload.compare})`,
 						author: {
 							name:
 								branch !== repo.default_branch
