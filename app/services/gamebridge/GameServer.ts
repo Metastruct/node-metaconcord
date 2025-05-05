@@ -45,9 +45,6 @@ export default class GameServer {
 	discord: DiscordClient;
 	discordIcon: string | undefined = undefined;
 	discordBanner: string | undefined = undefined;
-	discordChatWH?: WebhookClient; // chat relay webhook
-	discordErrorWH?: WebhookClient; // error relay webhook
-	discordPacErrorWH?: WebhookClient; // pac3 specific error webhook todo: remove???
 	gamemode: {
 		folderName: string;
 		name: string;
@@ -77,15 +74,6 @@ export default class GameServer {
 		this.bridge = config.bridge;
 		this.discord = new DiscordClient(this, {
 			intents: ["Guilds", "GuildMessages", "MessageContent"],
-		});
-		this.discordChatWH = new WebhookClient({
-			url: config.bridge.config.chatWebhookUrl,
-		});
-		this.discordErrorWH = new WebhookClient({
-			url: config.bridge.config.errorWebhookUrl,
-		});
-		this.discordPacErrorWH = new WebhookClient({
-			url: config.bridge.config.pacErrorWebhookUrl,
 		});
 
 		this.discord.run(this.config.discordToken);

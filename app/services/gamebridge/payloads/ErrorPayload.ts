@@ -17,14 +17,14 @@ export default class ErrorPayload extends Payload {
 
 	static async handle(payload: ErrorRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
-		const { discordErrorWH: discordEWH, discordPacErrorWH: discordPEWH } = server;
+		const { bridge } = server;
 
 		const { hook_error } = payload.data;
 
 		if (hook_error.name.includes("@repl_") || this.lastError === hook_error) return;
 
-		const webhook = discordEWH;
-		const pacWebhook = discordPEWH;
+		const webhook = bridge.discordErrorWH;
+		const pacWebhook = bridge.discordPacErrorWH;
 
 		const lines = hook_error.errormsg.split(/\r?\n/);
 		const err = lines[0];

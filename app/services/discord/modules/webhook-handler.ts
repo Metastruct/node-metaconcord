@@ -99,7 +99,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 	let webhook: Discord.Webhook;
 	const bridge = bot.bridge;
-	const chatWebhook = bot.bridge.servers.find(s => s.discordChatWH)?.discordChatWH;
+	const chatWebhook = bot.bridge.discordChatWH;
 
 	bot.discord.on("ready", async () => {
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
