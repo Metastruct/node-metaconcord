@@ -17,7 +17,7 @@ export default class ErrorPayload extends Payload {
 
 	static async handle(payload: ErrorRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
-		const { discordEWH, discordPEWH } = server;
+		const { discordErrorWH: discordEWH, discordPacErrorWH: discordPEWH } = server;
 
 		const { hook_error } = payload.data;
 
@@ -41,7 +41,7 @@ export default class ErrorPayload extends Payload {
 			footer: {
 				text: `${
 					server.gamemode
-						? server.gamemode.name ?? server.gamemode.folderName
+						? (server.gamemode.name ?? server.gamemode.folderName)
 						: "No gamemode name"
 				}@${server.config.name}`,
 			},

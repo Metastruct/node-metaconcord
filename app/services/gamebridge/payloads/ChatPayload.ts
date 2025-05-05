@@ -82,7 +82,7 @@ async function formatDiscordMessage(msg: Discord.Message | Discord.MessageSnapsh
 		avatar = avatarhash
 			? `https://cdn.discordapp.com/avatars/${msg.author.id}/${avatarhash}${
 					avatarhash.startsWith("a_") ? ".gif" : ".png"
-			  }`
+				}`
 			: msg.author.defaultAvatarURL;
 	}
 
@@ -155,7 +155,7 @@ export default class ChatPayload extends Payload {
 		super.handle(payload, server);
 		const { player } = payload.data;
 		let { content } = payload.data;
-		const { bridge, discord, discordWH } = server;
+		const { bridge, discord, discordChatWH: discordWH } = server;
 
 		if (!discord.ready) return;
 
