@@ -4,9 +4,18 @@ import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
 import { clamp } from "@/utils.js";
 import axios from "axios";
 import webhookConfig from "@/config/webhooks.json" with { type: "json" };
+import { EmitterWebhookEvent } from "@octokit/webhooks/types";
 
 const COLOR_MOD = 75;
 const COLOR_BASE = 50;
+
+function GetColorFromChanges(added: number, removed: number, modified: number) {
+	return (
+		clamp(COLOR_BASE + COLOR_MOD * removed, COLOR_BASE, 255) * 65536 +
+		clamp(COLOR_BASE + COLOR_MOD * added, COLOR_BASE, 255) * 256 +
+		clamp(COLOR_BASE + COLOR_MOD * modified, COLOR_BASE, 255)
+	);
+}
 
 const DIFF_SIZE = 2048;
 const MAX_FIELDS = 10;
@@ -21,6 +30,11 @@ const GitHub = new Webhooks({
 const BaseEmbed = <Discord.WebhookMessageCreateOptions>{
 	allowedMentions: { parse: ["users"] },
 };
+
+const DefaultSeparator = {
+	type: Discord.ComponentType.Separator,
+	divider: true,
+} as Discord.SeparatorComponent;
 
 const GetGithubChanges = (
 	repoPath: string,
@@ -249,8 +263,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}
 	});
 
-	GitHub.on("push", async event => {
-		if (!webhook) return;
+	async function DefaultHandler(event: EmitterWebhookEvent<"push">) {
 		const payload = event.payload;
 		const repo = payload.repository;
 		const serverOverride = REPO_SERVER_MAP.get(repo.name);
@@ -279,7 +292,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				color: 0xffd700,
 				timestamp: new Date().toISOString(),
 				footer: {
-					text: `by ${payload.sender?.name ?? payload.sender?.login ?? "unkown"}`,
+					text: `by ${payload.sender?.name ?? payload.sender?.login ?? "unknown"}`,
 				},
 			};
 
@@ -294,13 +307,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 					commit.removed,
 					commit.modified
 				);
-
-				const color =
-					clamp(COLOR_BASE + COLOR_MOD * (commit.removed?.length ?? 0), COLOR_BASE, 255) *
-						65536 +
-					clamp(COLOR_BASE + COLOR_MOD * (commit.added?.length ?? 0), COLOR_BASE, 255) *
-						256 +
-					clamp(COLOR_BASE + COLOR_MOD * (commit.modified?.length ?? 0), COLOR_BASE, 255);
 
 				if (MinimalPushUsers.includes(commit.author.username ?? commit.author.name)) {
 					embeds.push({
@@ -317,7 +323,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 							url: repo.html_url,
 							icon_url: repo.owner?.avatar_url,
 						},
-						color,
+						color: GetColorFromChanges(
+							commit.added?.length ?? 0,
+							commit.removed?.length ?? 0,
+							commit.modified?.length ?? 0
+						),
 						url: commit.url,
 						fields,
 						timestamp: commit.timestamp,
@@ -389,7 +399,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 						url: repo.html_url,
 						icon_url: repo.owner?.avatar_url,
 					},
-					color,
+					color: GetColorFromChanges(
+						commit.added?.length ?? 0,
+						commit.removed?.length ?? 0,
+						commit.modified?.length ?? 0
+					),
 					url: commit.url,
 					fields,
 					timestamp: commit.timestamp,
@@ -447,7 +461,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 					embeds: chunk,
 					components: i === embeds.length - 1 && includesLua ? [components] : undefined,
 				});
-				chatWebhook?.send({ ...messagePayload, embeds: chunk });
 			}
 		} else {
 			webhook
@@ -456,7 +469,111 @@ export default async (bot: DiscordBot): Promise<void> => {
 					components: includesLua ? [components] : undefined,
 				})
 				.catch(console.error);
-			chatWebhook?.send(messagePayload);
+		}
+	}
+
+	function GroupSoundFilesByFolder(paths: string[]) {
+		// behold my newest creation that no one will get on their first read
+		// example path "sound/chatsounds/autoadd/{foldername}/{soundname}"
+		return paths.reduce((map, path) => {
+			const [mainFolder, , , folderName, soundName] = path.split("/");
+			if (mainFolder !== "sound" || !folderName || !soundName) return map;
+			map.set(folderName, [
+				...(map.get(folderName) ?? []),
+				soundName.replace(/\.[^/.]+$/, ""),
+			]);
+			return map;
+		}, new Map<string, string[]>());
+	}
+
+	async function ChatsoundsHandler(event: EmitterWebhookEvent<"push">) {
+		const payload = event.payload;
+		const commits = payload.commits;
+
+		if (payload.head_commit && isRemoteMergeCommit(payload.head_commit.message))
+			commits.splice(0, commits.length, payload.head_commit);
+
+		const container = new Discord.ContainerBuilder();
+
+		for (const commit of commits) {
+			container.setAccentColor(
+				GetColorFromChanges(
+					commit.added?.length ?? 0,
+					commit.removed?.length ?? 0,
+					commit.modified?.length ?? 0
+				)
+			);
+
+			container.addTextDisplayComponents({
+				type: Discord.ComponentType.TextDisplay,
+				content: `# [Chatsound Update](${commit.url})`,
+			});
+
+			container.addSeparatorComponents(DefaultSeparator);
+
+			const addedSounds = GroupSoundFilesByFolder(commit.added ?? []);
+			const removedSounds = GroupSoundFilesByFolder(commit.removed ?? []);
+			const modifiedSounds = GroupSoundFilesByFolder(commit.modified ?? []);
+
+			const formatSounds = ([folderName, sounds]: [string, string[]]) =>
+				`[${folderName}](${payload.repository.html_url}/tree/master/sound/chatsounds/autoadd/${folderName}) -> ${[...new Set(sounds)].map(s => `\`${s}\``).join(", ")}`;
+
+			// maybe there is a better way instead of if-chaining this but whatever
+			if (commit.added && addedSounds.size > 0) {
+				container.addTextDisplayComponents({
+					type: Discord.ComponentType.TextDisplay,
+					content: `### Added ${commit.added.length} new sound${commit.added.length > 1 ? "s" : ""}:\n${Array.from(
+						addedSounds
+					)
+						.map(formatSounds)
+						.join("\n\n")}`,
+				});
+
+				container.addSeparatorComponents(DefaultSeparator);
+			}
+			if (commit.removed && removedSounds.size > 0) {
+				container.addTextDisplayComponents({
+					type: Discord.ComponentType.TextDisplay,
+					content: `### Removed ${commit.removed.length} sound${commit.removed.length > 1 ? "s" : ""}:\n${Array.from(
+						removedSounds
+					)
+						.map(formatSounds)
+						.join("\n\n")}`,
+				});
+
+				container.addSeparatorComponents(DefaultSeparator);
+			}
+			if (commit.modified && modifiedSounds.size > 0) {
+				container.addTextDisplayComponents({
+					type: Discord.ComponentType.TextDisplay,
+					content: `### Changed ${commit.modified.length} sound${commit.modified.length > 1 ? "s" : ""}:\n${Array.from(
+						modifiedSounds
+					)
+						.map(formatSounds)
+						.join("\n\n")}`,
+				});
+
+				container.addSeparatorComponents(DefaultSeparator);
+			}
+			container.addTextDisplayComponents({
+				type: Discord.ComponentType.TextDisplay,
+				content: `-# added by ${commit.author.username ?? commit.author.name} via \`${commit.message.split("\n\n")[0]}\`, approved by ${payload.pusher.username ?? payload.pusher.name}`,
+			});
+		}
+		webhook.send({ components: [container], flags: Discord.MessageFlags.IsComponentsV2 });
+		chatWebhook.send({ components: [container], flags: Discord.MessageFlags.IsComponentsV2 });
+	}
+
+	GitHub.on("push", async event => {
+		if (!webhook) return;
+		switch (event.payload.repository.name) {
+			case "garrysmod-chatsounds":
+				ChatsoundsHandler(event);
+				break;
+
+			default:
+				DefaultHandler(event);
+				break;
 		}
 	});
 
