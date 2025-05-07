@@ -113,7 +113,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 	let webhook: Discord.Webhook;
 	const bridge = await bot.container.getService("GameBridge");
-	const chatWebhook = bot.bridge.discordChatWH;
+	const chatWebhook = bridge.discordChatWH;
 
 	bot.discord.on("ready", async () => {
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
@@ -515,8 +515,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 			const removedSounds = GroupSoundFilesByFolder(commit.removed ?? []);
 			const modifiedSounds = GroupSoundFilesByFolder(commit.modified ?? []);
 
-			const formatSounds = ([folderName, sounds]: [string, string[]]) =>
-				`[${folderName}](${payload.repository.html_url}/tree/master/sound/chatsounds/autoadd/${folderName}) -> ${[...new Set(sounds)].map(s => `\`${s}\``).join(", ")}`;
+			const formatSounds = ([folderName, sounds]) =>
+				`[**${folderName}**](${payload.repository.html_url}/tree/master/sound/chatsounds/autoadd/${folderName})\n${[...new Set(sounds)].map(s => `- \`${s}\``).join("\n")}`;
 
 			// maybe there is a better way instead of if-chaining this but whatever
 			if (commit.added && addedSounds.size > 0) {
