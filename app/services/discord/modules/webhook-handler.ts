@@ -5,7 +5,7 @@ import { clamp } from "@/utils.js";
 import axios from "axios";
 import webhookConfig from "@/config/webhooks.json" with { type: "json" };
 import { EmitterWebhookEvent } from "@octokit/webhooks/types";
-
+import { components } from "@octokit/openapi-types";
 const COLOR_MOD = 75;
 const COLOR_BASE = 50;
 
@@ -263,7 +263,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}
 	});
 
-	async function DefaultHandler(event: EmitterWebhookEvent<"push">) {
+	async function DefaultPushHandler(event: EmitterWebhookEvent<"push">) {
 		const payload = event.payload;
 		const repo = payload.repository;
 		const serverOverride = REPO_SERVER_MAP.get(repo.name);
@@ -486,7 +486,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}, new Map<string, string[]>());
 	}
 
-	async function ChatsoundsHandler(event: EmitterWebhookEvent<"push">) {
+	const formatSounds = ([folderName, sounds]) =>
+		`[**${folderName}**](https://github.com/Metastruct/garrysmod-chatsounds/tree/master/sound/chatsounds/autoadd/${folderName})\n${[...new Set(sounds)].map(s => `- \`${s}\``).join("\n")}`;
+
+	async function ChatsoundsPushHandler(event: EmitterWebhookEvent<"push">) {
 		const payload = event.payload;
 		const commits = payload.commits;
 
@@ -514,9 +517,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 			const addedSounds = GroupSoundFilesByFolder(commit.added ?? []);
 			const removedSounds = GroupSoundFilesByFolder(commit.removed ?? []);
 			const modifiedSounds = GroupSoundFilesByFolder(commit.modified ?? []);
-
-			const formatSounds = ([folderName, sounds]) =>
-				`[**${folderName}**](${payload.repository.html_url}/tree/master/sound/chatsounds/autoadd/${folderName})\n${[...new Set(sounds)].map(s => `- \`${s}\``).join("\n")}`;
 
 			// maybe there is a better way instead of if-chaining this but whatever
 			if (commit.added && addedSounds.size > 0) {
@@ -560,19 +560,84 @@ export default async (bot: DiscordBot): Promise<void> => {
 				content: `-# added by ${commit.author.username ?? commit.author.name} via \`${commit.message.split("\n\n")[0]}\`, approved by ${payload.pusher.username ?? payload.pusher.name}`,
 			});
 		}
-		webhook.send({ components: [container], flags: Discord.MessageFlags.IsComponentsV2 });
-		chatWebhook.send({ components: [container], flags: Discord.MessageFlags.IsComponentsV2 });
+		webhook.send({
+			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
+			avatarURL: payload.sender?.avatar_url,
+			components: [container],
+			flags: Discord.MessageFlags.IsComponentsV2,
+		});
+		chatWebhook.send({
+			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
+			avatarURL: payload.sender?.avatar_url,
+			components: [container],
+			flags: Discord.MessageFlags.IsComponentsV2,
+		});
 	}
 
 	GitHub.on("push", async event => {
 		if (!webhook) return;
 		switch (event.payload.repository.name) {
 			case "garrysmod-chatsounds":
-				ChatsoundsHandler(event);
+				ChatsoundsPushHandler(event);
 				break;
 
 			default:
-				DefaultHandler(event);
+				DefaultPushHandler(event);
+				break;
+		}
+	});
+
+	async function ChatsoundsPullrequestOpenedHandler(
+		event: EmitterWebhookEvent<"pull_request.opened">
+	) {
+		const payload = event.payload;
+
+		const diff = await axios.get<components["schemas"]["diff-entry"][]>(
+			event.payload.pull_request.url + "/files"
+		); // why this isn't in the payload I have no idea
+
+		const changedFiles = GroupSoundFilesByFolder(diff.data.map(d => d.filename));
+
+		const container = new Discord.ContainerBuilder();
+
+		container.setAccentColor(payload.pull_request.state === "open" ? 5763719 : 15277667);
+
+		container.addTextDisplayComponents({
+			type: Discord.ComponentType.TextDisplay,
+			content: `# [Chatsound Request \`#${payload.number} ${payload.pull_request.title}\`](${payload.pull_request.html_url})`,
+		});
+
+		container.addSeparatorComponents(DefaultSeparator);
+
+		container.addTextDisplayComponents({
+			type: Discord.ComponentType.TextDisplay,
+			content: `### [${payload.sender.login}](${payload.sender.html_url}) wants to add/change ${payload.pull_request.changed_files} sounds:\n${Array.from(
+				changedFiles
+			)
+				.map(formatSounds)
+				.join("\n\n")}`,
+		});
+
+		webhook.send({
+			username: payload.sender.name ?? payload.sender.login ?? "unknown",
+			avatarURL: payload.sender.avatar_url,
+			components: [container],
+			flags: Discord.MessageFlags.IsComponentsV2,
+		});
+	}
+
+	GitHub.on("pull_request", async event => {
+		if (!webhook) return;
+		switch (event.payload.repository.name) {
+			case "garrysmod-chatsounds":
+				if (event.payload.action === "opened")
+					ChatsoundsPullrequestOpenedHandler(
+						event as EmitterWebhookEvent<"pull_request.opened">
+					);
+				break;
+
+			default:
+				// todo lol
 				break;
 		}
 	});
