@@ -156,26 +156,28 @@ export class Starboard extends Service {
 				}
 
 				let text = title ? `## ${title}\n` : "";
+				const files: string[] = [];
 
 				const reference = msg.reference;
 				if (reference && reference.messageId) {
-					const refMsg = await (
-						client.channels.cache.get(reference.channelId) as Discord.TextChannel
-					).messages.fetch(reference.messageId);
+					if (reference.type === 0) {
+						const refMsg = await (
+							client.channels.cache.get(reference.channelId) as Discord.TextChannel
+						).messages.fetch(reference.messageId);
 
-					text += `${
-						reference
-							? `[replying to ${
-									refMsg.system ? "System Message" : refMsg.author.username
-							  }](${refMsg.url})\n`
-							: ""
-					}`;
+						text += `${`-# [replying to ${
+							refMsg.system ? "System Message" : refMsg.author.username
+						}](${refMsg.url})\n`}`;
+					} else if (reference.type === 1) {
+						const snap = msg.messageSnapshots.first();
+						text += `-# [forwarded message]\n${snap?.content}`;
+						snap?.attachments.map(a => files.push(a.url));
+					}
 				}
 
 				text += msg.content;
 				text += msg.stickers.size > 0 ? msg.stickers.first()?.url : "";
 
-				const files: string[] = [];
 				msg.attachments.map(a => files.push(a.url));
 
 				const channel = targetChannel as Discord.TextChannel;
@@ -203,7 +205,7 @@ export class Starboard extends Service {
 											.setCustomId(
 												`starboard:${msg.id}:${msg.channelId}:${msg.author.id}`
 											),
-								  ]
+									]
 								: [])
 						),
 					];
@@ -214,7 +216,7 @@ export class Starboard extends Service {
 							avatarURL: msg.author.avatarURL() ?? "",
 							username: msg.author.username,
 							allowedMentions: { parse: ["users", "roles"] },
-							files: files,
+							files,
 							embeds: msg.author.bot ? msg.embeds : undefined,
 							components,
 						})
