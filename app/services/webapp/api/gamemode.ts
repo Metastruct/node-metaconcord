@@ -1,7 +1,7 @@
 import { WebApp } from "@/app/services/webapp/index.js";
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
-const HOSTING_IDS = { 3: true, 1: true };
+const HOSTING_IDS = servers.filter(s => s.ssh !== undefined).map(s => s.id);
 
 export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/gamemode/:id", async (req, res) => {
