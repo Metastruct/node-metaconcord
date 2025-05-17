@@ -88,12 +88,12 @@ const SERVER_EMOJI_MAP = {
 };
 
 const REPO_SERVER_MAP = new Map([
-	["Lumiens-Map-Vote", [3]],
-	["MTA-Gamemode", [3]],
-	["terrortown_modding", [3]],
-	["ttt_player_tumbler", [3]],
-	["ttt_ragmod", [3]],
-	["TTT2", [3]],
+	["Lumiens-Map-Vote", [3, 4]],
+	["MTA-Gamemode", [3, 4]],
+	["terrortown_modding", [3, 4]],
+	["ttt_player_tumbler", [3, 4]],
+	["ttt_ragmod", [3, 4]],
+	["TTT2", [3, 4]],
 ]);
 
 const isRemoteMergeCommit = (message: string) =>
