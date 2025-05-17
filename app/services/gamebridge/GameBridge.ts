@@ -51,7 +51,7 @@ export default class GameBridge extends Service {
 		});
 
 		console.log(`Web socket server listening on ${this.webApp.config.port}`);
-		this.handleResoniteConnection();
+		// this.handleResoniteConnection();
 	}
 
 	async handleConnection(req: WebSocketRequest): Promise<void> {
