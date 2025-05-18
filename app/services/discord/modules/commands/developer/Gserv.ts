@@ -17,6 +17,7 @@ const SERVER_EMOJI_MAP = {
 	"1": "1️⃣",
 	"2": "2️⃣",
 	"3": "3️⃣",
+	"4": "4️⃣",
 };
 
 const gserv = async (
@@ -85,33 +86,33 @@ export const SlashGservCommand: SlashCommand = {
 			return;
 		}
 
-		const response = await ctx.reply({
-			content: "What command do you want to run?",
-			components: [
-				{
-					type: Discord.ComponentType.ActionRow,
-					components: [
-						{
-							type: Discord.ComponentType.StringSelect,
-							custom_id: "gserv_command",
-							placeholder: "Choose a command.",
-							min_values: 1,
-							max_values: VALID_GSERV_COMMANDS.length,
-							options: VALID_GSERV_COMMANDS.map(
-								cmd =>
-									<Discord.APISelectMenuOption>{
-										label: cmd[0],
-										value: cmd[0],
-										description: cmd[1],
-									}
-							),
-						},
-					],
-				},
-			],
-		});
-
 		try {
+			const response = await ctx.reply({
+				content: "What command do you want to run?",
+				components: [
+					{
+						type: Discord.ComponentType.ActionRow,
+						components: [
+							{
+								type: Discord.ComponentType.StringSelect,
+								custom_id: "gserv_command",
+								placeholder: "Choose a command.",
+								min_values: 1,
+								max_values: VALID_GSERV_COMMANDS.length,
+								options: VALID_GSERV_COMMANDS.map(
+									cmd =>
+										<Discord.APISelectMenuOption>{
+											label: cmd[0],
+											value: cmd[0],
+											description: cmd[1],
+										}
+								),
+							},
+						],
+					},
+				],
+			});
+
 			const result = await response.awaitMessageComponent({
 				componentType: Discord.ComponentType.StringSelect,
 				filter: filter,
