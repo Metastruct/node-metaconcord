@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
-import GameServer from "@/app/services/gamebridge/GameServer.js";
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 // order matters for the menu
 const VALID_GSERV_COMMANDS: [string, string][] = [
+	["qu rehash", "runs both qu and rehash"],
 	["qu", "Quickly updates repositories."],
 	["rehash", "Rehashes the server."],
 	["merge_repos", "Prepares all repositories for rehash."],
@@ -13,217 +13,115 @@ const VALID_GSERV_COMMANDS: [string, string][] = [
 	["status", "Shows server status."],
 ];
 
-const SERVER_EMOJI_MAP = {
-	"1": "1️⃣",
-	"2": "2️⃣",
-	"3": "3️⃣",
-	"4": "4️⃣",
-};
-
-const gserv = async (
-	ctx: Discord.ButtonInteraction,
-	gameServer: GameServer,
-	commands: string[],
-	solo: boolean,
-	output: boolean
-): Promise<boolean> => {
-	try {
-		let buffer = "";
-
-		await gameServer.sshExec("gserv", commands, {
-			stream: "stderr",
-			onStdout: buff => (buffer += buff),
-			onStderr: buff => (buffer += buff),
-		});
-
-		const success = !buffer.includes("GSERV FAILED");
-
-		const fileName = `${commands.join("_")}_${gameServer.config.id}_${Date.now()}.ansi`;
-		let msgContent = gameServer.config.name;
-		if (!success) msgContent += " FAILED";
-
-		const response: Discord.BaseMessageOptions = {
-			content: msgContent,
-			files: [{ attachment: Buffer.from(buffer), name: fileName }],
-		};
-
-		if (output || success === false) {
-			solo ? await ctx.editReply(response) : await ctx.followUp(response);
-
-			if (solo) {
-				const msg = await ctx.fetchReply();
-				await msg.react(success ? "✅" : "❌");
-			}
-		} else {
-			const msg = await ctx.fetchReply();
-			await msg.react(SERVER_EMOJI_MAP[gameServer.config.id] ?? "❓");
-		}
-		return success;
-	} catch (err) {
-		const msg = gameServer.config.name + `\ngserv failed!\`\`\`\n${err}\`\`\``;
-		if (solo) {
-			await ctx.editReply(msg);
-		} else {
-			await ctx.followUp(msg);
-		}
-		return false;
-	}
-};
-
 export const SlashGservCommand: SlashCommand = {
 	options: {
 		name: "gserv",
 		description: "Gserv from discord",
 		default_member_permissions: "0",
+		options: [
+			{
+				type: Discord.ApplicationCommandOptionType.String,
+				name: "command",
+				description: "the command to run",
+				choices: VALID_GSERV_COMMANDS.map(c => {
+					return { name: c[0], value: c[0] };
+				}),
+				required: true,
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Integer,
+				name: "server",
+				description: "The server to run the command on",
+				choices: servers
+					.filter(s => !!s.ssh)
+					.map(s => {
+						return { name: s.name, value: s.id };
+					}),
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Boolean,
+				name: "show_output",
+				description: "show gserv output",
+			},
+		],
 	},
 
 	async execute(ctx, bot) {
-		const filter = (i: Discord.Interaction) => i.user.id === ctx.user.id;
 		const bridge = bot.bridge;
 		if (!bridge) {
 			await ctx.reply(EphemeralResponse("GameBridge is missing :("));
 			console.error(`SlashGserv: GameBridge missing?`, ctx);
 			return;
 		}
+		const selectedServer = ctx.options.getInteger("server");
+		const servers = selectedServer ? [bridge.servers[selectedServer]] : bridge.servers;
+		const command = ctx.options.getString("command", true);
+		const showOutput = ctx.options.getBoolean("show_output") ?? false;
 
-		try {
-			const response = await ctx.reply({
-				content: "What command do you want to run?",
-				components: [
-					{
-						type: Discord.ComponentType.ActionRow,
-						components: [
-							{
-								type: Discord.ComponentType.StringSelect,
-								custom_id: "gserv_command",
-								placeholder: "Choose a command.",
-								min_values: 1,
-								max_values: VALID_GSERV_COMMANDS.length,
-								options: VALID_GSERV_COMMANDS.map(
-									cmd =>
-										<Discord.APISelectMenuOption>{
-											label: cmd[0],
-											value: cmd[0],
-											description: cmd[1],
-										}
-								),
-							},
-						],
-					},
-				],
-			});
+		const reply = await ctx.deferReply({ withResponse: true });
 
-			const result = await response.awaitMessageComponent({
-				componentType: Discord.ComponentType.StringSelect,
-				filter: filter,
-				time: 60000,
-			});
-			const commands = result.values;
-
-			const server = await result.update({
-				content: "What server do you want the command to run on?",
-				components: [
-					{
-						type: Discord.ComponentType.ActionRow,
-						components: [
-							{
-								type: Discord.ComponentType.StringSelect,
-								custom_id: "gserv_server",
-								placeholder: "Choose a server.",
-								min_values: 1,
-								max_values: servers.filter(s => !!s.ssh).length,
-								options: servers
-									.filter(s => !!s.ssh)
-									.map(
-										server =>
-											<Discord.APISelectMenuOption>{
-												label: server.ssh?.host.slice(0, 2), // [g1].metastruct.net
-												value: server.id.toString(), // g[1].metastruct.net
-												description: server.name, // g1.metastruct.net
-											}
-									),
-							},
-						],
-					},
-				],
-			});
-
-			try {
-				const result = await server.awaitMessageComponent({
-					componentType: Discord.ComponentType.StringSelect,
-					filter: filter,
-					time: 60000,
-				});
-				const selectedServers = result.values;
-
-				const output = await result.update({
-					content: "Display output?",
-					components: [
-						{
-							type: Discord.ComponentType.ActionRow,
-							components: [
-								{
-									type: Discord.ComponentType.Button,
-									custom_id: "gserv_output_n",
-									label: "No",
-									style: Discord.ButtonStyle.Danger,
-								},
-								{
-									type: Discord.ComponentType.Button,
-									custom_id: "gserv_output_y",
-									label: "Yes",
-									style: Discord.ButtonStyle.Success,
-								},
-							],
-						},
-					],
-				});
-
+		await Promise.all(
+			servers.map(async gameServer => {
+				const gSDiscord = gameServer.discord;
 				try {
-					const result = await output.awaitMessageComponent({
-						componentType: Discord.ComponentType.Button,
-						filter: filter,
-						time: 60000,
-					});
-					await result.update({
-						content: `Running ${commands.join(" and ")} on ${selectedServers
-							.slice()
-							.sort()
-							.join(", ")} please wait...`,
-						components: [],
+					let buffer = "";
+
+					await gameServer.sshExec("gserv", [command], {
+						stream: "stderr",
+						onStdout: buff => (buffer += buff),
+						onStderr: buff => (buffer += buff),
 					});
 
-					await Promise.all(
-						bridge.servers
-							.filter(s => selectedServers.includes(s.config.id.toString()))
-							.map(gameServer =>
-								gserv(
-									result,
-									gameServer,
-									commands,
-									selectedServers.length === 1,
-									result.customId === "gserv_output_y"
+					const success = !buffer.includes("GSERV FAILED");
+
+					const fileName = `${command}_${gameServer.config.id}_${Date.now()}.ansi`;
+
+					if (showOutput || success === false) {
+						gSDiscord.rest.post(Discord.Routes.channelMessages(ctx.channelId), {
+							body: {
+								content: !success
+									? "<a:ALERTA:843518761160015933> FAILED <a:ALERTA:843518761160015933> "
+									: undefined,
+								message_reference: reply.interaction.responseMessageId
+									? {
+											type: 0,
+											message_id: reply.interaction.responseMessageId,
+										}
+									: undefined,
+							},
+							files: [{ data: Buffer.from(buffer), name: fileName }],
+						});
+					} else {
+						if (reply.interaction.responseMessageId) {
+							gSDiscord.rest.put(
+								Discord.Routes.channelMessageReaction(
+									ctx.channelId,
+									reply.interaction.responseMessageId,
+									"👍"
 								)
-							)
-					)
-						.then(() => {
-							if (selectedServers.length === 1) return;
-							result.editReply(`sent ${commands.join(" and ")} successfully!`);
-						})
-						.catch(err =>
-							result.editReply(`something went wrong!\`\`\`\n${err}\`\`\``)
-						);
+							);
+						}
+					}
+					return success;
 				} catch (err) {
-					console.error(err);
-					await ctx.editReply(JSON.stringify(err));
+					const msg = gameServer.config.name + `\ngserv failed!\`\`\`\n${err}\`\`\``;
+					gSDiscord.rest.post(Discord.Routes.channelMessages(ctx.channelId), {
+						body: {
+							content: `<a:ALERTA:843518761160015933> failed to run gerv <a:ALERTA:843518761160015933>\n\`\`\`${err}\`\`\``,
+
+							message_reference: {
+								type: 0,
+								message_id: reply.interaction.responseMessageId,
+							},
+						},
+					});
+					return false;
 				}
-			} catch (err) {
-				console.error(err);
-				await ctx.deleteReply();
-			}
-		} catch (err) {
-			console.error(err);
-			await ctx.deleteReply();
-		}
+			})
+		)
+			.then(() => {
+				ctx.editReply(`sent \`${command}\` successfully!`);
+			})
+			.catch(err => ctx.editReply(`something went wrong!\`\`\`\n${err}\`\`\``));
 	},
 };
