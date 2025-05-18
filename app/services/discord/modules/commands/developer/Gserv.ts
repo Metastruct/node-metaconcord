@@ -74,7 +74,7 @@ export const SlashGservCommand: SlashCommand = {
 	options: {
 		name: "gserv",
 		description: "Gserv from discord",
-		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+		default_member_permissions: "0",
 	},
 
 	async execute(ctx, bot) {

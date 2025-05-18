@@ -6,7 +6,7 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 	options: {
 		name: "refreshlua",
 		description: "Refreshes a lua file on one of the servers",
-		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+		default_member_permissions: "0",
 		options: [
 			{
 				type: Discord.ApplicationCommandOptionType.String,

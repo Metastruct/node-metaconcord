@@ -8,7 +8,7 @@ export const SlashLuaCommand: SlashCommand = {
 	options: {
 		name: "l",
 		description: "Executes lua on one of the gmod servers",
-		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+		default_member_permissions: "0",
 		options: [
 			{
 				type: Discord.ApplicationCommandOptionType.String,

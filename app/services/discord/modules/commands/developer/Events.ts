@@ -6,7 +6,7 @@ export const SlashEndEvent: SlashCommand = {
 	options: {
 		name: "end_event",
 		description: "forcibly ends an event and removes the event role from users",
-		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+		default_member_permissions: "0",
 	},
 	execute: async () => {
 		await endEvent();

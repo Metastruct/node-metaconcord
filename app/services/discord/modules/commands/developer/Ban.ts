@@ -104,7 +104,7 @@ export const SlashBanCommand: SlashCommand = {
 	options: {
 		name: "ban",
 		description: "ban a player in-game",
-		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+		default_member_permissions: "0",
 		options: [
 			{
 				type: Discord.ApplicationCommandOptionType.String,
