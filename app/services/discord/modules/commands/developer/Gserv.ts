@@ -59,10 +59,16 @@ export const SlashGservCommand: SlashCommand = {
 		const showOutput = ctx.options.getBoolean("show_output") ?? false;
 
 		const reply = await ctx.deferReply({ withResponse: true });
+		const messageID = reply.interaction.responseMessageId ?? (await ctx.fetchReply()).id;
 
 		await Promise.all(
 			servers.map(async gameServer => {
 				const gSDiscord = gameServer.discord;
+				const channel = gSDiscord.channels.cache.get(
+					ctx.channelId
+				) as Discord.GuildTextBasedChannel;
+				const message = channel.messages.cache.get(messageID);
+
 				try {
 					let buffer = "";
 
@@ -75,46 +81,30 @@ export const SlashGservCommand: SlashCommand = {
 					const success = !buffer.includes("GSERV FAILED");
 
 					const fileName = `${command}_${gameServer.config.id}_${Date.now()}.ansi`;
+					const response = {
+						content: !success
+							? "<a:ALERTA:843518761160015933> FAILED <a:ALERTA:843518761160015933> "
+							: undefined,
+						files: [{ attachment: Buffer.from(buffer), name: fileName }],
+					};
 
 					if (showOutput || success === false) {
-						gSDiscord.rest.post(Discord.Routes.channelMessages(ctx.channelId), {
-							body: {
-								content: !success
-									? "<a:ALERTA:843518761160015933> FAILED <a:ALERTA:843518761160015933> "
-									: undefined,
-								message_reference: reply.interaction.responseMessageId
-									? {
-											type: 0,
-											message_id: reply.interaction.responseMessageId,
-										}
-									: undefined,
-							},
-							files: [{ data: Buffer.from(buffer), name: fileName }],
-						});
-					} else {
-						if (reply.interaction.responseMessageId) {
-							gSDiscord.rest.put(
-								Discord.Routes.channelMessageReaction(
-									ctx.channelId,
-									reply.interaction.responseMessageId,
-									"👍"
-								)
-							);
+						if (message) {
+							message.reply(response);
+						} else {
+							channel.send(response);
 						}
+					} else {
+						if (message) message.react("👍");
 					}
 					return success;
 				} catch (err) {
-					const msg = gameServer.config.name + `\ngserv failed!\`\`\`\n${err}\`\`\``;
-					gSDiscord.rest.post(Discord.Routes.channelMessages(ctx.channelId), {
-						body: {
-							content: `<a:ALERTA:843518761160015933> failed to run gerv <a:ALERTA:843518761160015933>\n\`\`\`${err}\`\`\``,
-
-							message_reference: {
-								type: 0,
-								message_id: reply.interaction.responseMessageId,
-							},
-						},
-					});
+					const response = `<a:ALERTA:843518761160015933> failed to run gerv <a:ALERTA:843518761160015933>\n\`\`\`${err}\`\`\``;
+					if (message) {
+						await message.reply(response);
+					} else {
+						channel.send(response);
+					}
 					return false;
 				}
 			})
