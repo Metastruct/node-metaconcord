@@ -18,7 +18,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		}
 
 		const id = parseInt(req.params.id);
-		if (isNaN(id) || !HOSTING_IDS[id]) {
+		if (isNaN(id) || !HOSTING_IDS.includes(id)) {
 			res.sendStatus(403);
 			return;
 		}
