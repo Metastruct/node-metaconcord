@@ -7,7 +7,7 @@ export const SlashUnBanCommand: SlashCommand = {
 	options: {
 		name: "unban",
 		description: "Unbans a player in-game",
-		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+		default_member_permissions: "0",
 		options: [
 			{
 				type: Discord.ApplicationCommandOptionType.String,

@@ -115,7 +115,7 @@ export const SlashRuleCommand: SlashCommand = {
 	options: {
 		name: "rule",
 		description: "Adds, removes or edits a Rule.",
-		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+		default_member_permissions: "0",
 		options: [
 			{
 				type: Discord.ApplicationCommandOptionType.Subcommand,

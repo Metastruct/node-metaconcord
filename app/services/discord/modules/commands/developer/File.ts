@@ -8,7 +8,7 @@ export const SlashFileCommand: SlashCommand = {
 	options: {
 		name: "file",
 		description: "gets a file from #2",
-		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+		default_member_permissions: "0",
 		options: [
 			{
 				type: Discord.ApplicationCommandOptionType.String,

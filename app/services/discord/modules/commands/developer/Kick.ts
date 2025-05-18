@@ -7,7 +7,7 @@ export const SlashKickCommand: SlashCommand = {
 	options: {
 		name: "kick",
 		description: "Kick a player in-game",
-		default_member_permissions: Discord.PermissionsBitField.Flags.ManageGuild.toString(),
+		default_member_permissions: "0",
 		options: [
 			{
 				type: Discord.ApplicationCommandOptionType.Integer,
