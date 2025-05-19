@@ -85,6 +85,7 @@ const SERVER_EMOJI_MAP = {
 	"1": "1️⃣",
 	"2": "2️⃣",
 	"3": "3️⃣",
+ "4": "4️⃣"
 };
 
 const REPO_SERVER_MAP = new Map([
