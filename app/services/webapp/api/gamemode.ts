@@ -30,7 +30,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		}
 		let output = "";
 
-		await server.sshExec("gserv", ["update_repos", "rehash"], {
+		await server.sshExecCommand("gserv update_repos rehash", {
 			stream: "stderr",
 			onStdout: buff => (output += buff),
 			onStderr: buff => (output += buff),
