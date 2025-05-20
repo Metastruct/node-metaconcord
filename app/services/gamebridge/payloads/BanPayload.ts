@@ -24,6 +24,8 @@ export default class BanPayload extends Payload {
 		const notificationsChannel = guild.channels.cache.get(bridge.config.banUnbanChannelId);
 		if (!notificationsChannel) return;
 
+		const pastBans = await (await bridge.container.getService("Bans")).getBan(player.steamId);
+
 		const steam = await bridge.container.getService("Steam");
 		let steamId64 = "";
 		let bannerName = "";
@@ -73,12 +75,16 @@ export default class BanPayload extends Payload {
 		embed.addFields(f("Expiration", `<t:${unixTime}:R>`, true));
 		embed.addFields(f("Reason", reason.substring(0, 1900)));
 		embed.addFields(f("Gamemode", gamemode ?? "GLOBAL"));
+		if (pastBans?.numbans) {
+			embed.addFields(f("Past Bans", pastBans.numbans.toString()));
+		}
 		embed.addFields(
 			f(
 				"SteamID",
 				`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
 			)
 		);
+
 		embed.setThumbnail(bannedAvatar);
 		embed.setColor(0xc42144);
 		(notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
