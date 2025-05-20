@@ -24,6 +24,7 @@ export default class GameBridge extends Service {
 	discordChatWH: Discord.WebhookClient;
 	discordErrorWH: Discord.WebhookClient;
 	discordPacErrorWH: Discord.WebhookClient;
+	ready: boolean = false;
 
 	constructor(container: Container) {
 		super(container);
@@ -51,6 +52,7 @@ export default class GameBridge extends Service {
 		});
 
 		console.log(`Web socket server listening on ${this.webApp.config.port}`);
+		this.ready = true;
 		// this.handleResoniteConnection();
 	}
 
