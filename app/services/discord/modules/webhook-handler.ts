@@ -85,7 +85,7 @@ const SERVER_EMOJI_MAP = {
 	"1": "1️⃣",
 	"2": "2️⃣",
 	"3": "3️⃣",
- "4": "4️⃣"
+	"4": "4️⃣",
 };
 
 const REPO_SERVER_MAP = new Map([
@@ -114,7 +114,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 	let webhook: Discord.Webhook;
 	const bridge = await bot.container.getService("GameBridge");
-	const chatWebhook = bridge.discordChatWH;
 
 	bot.discord.on("ready", async () => {
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
@@ -487,10 +486,21 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}, new Map<string, string[]>());
 	}
 
-	const formatSounds = ([folderName, sounds]) =>
-		`[**${folderName}**](https://github.com/Metastruct/garrysmod-chatsounds/tree/master/sound/chatsounds/autoadd/${folderName})\n${[...new Set(sounds)].map(s => `- \`${s}\``).join("\n")}`;
+	const formatSounds = ([folderName, sounds]: [string, string[]]) => {
+		// idk why but I feel like there has to be a better way to do this
+		// but this seems fine after for now after 3 beer
+		const soundCount = new Map<string, number>();
+		for (const sound of sounds) {
+			soundCount.set(sound, (soundCount.get(sound) ?? 0) + 1);
+		}
+		const fileName = Array.from(soundCount, ([sound, count]) => {
+			return `- \`${sound}\`${count > 1 ? ` x${count}` : ""}`;
+		}).join("\n");
+		return `[**${folderName}**](https://github.com/Metastruct/garrysmod-chatsounds/tree/master/sound/chatsounds/autoadd/${folderName})\n${fileName}`;
+	};
 
 	async function ChatsoundsPushHandler(event: EmitterWebhookEvent<"push">) {
+		const chatWebhook = bridge.discordChatWH;
 		const payload = event.payload;
 		const commits = payload.commits;
 
