@@ -72,7 +72,7 @@ export const SlashGservCommand: SlashCommand = {
 				try {
 					let buffer = "";
 
-					await gameServer.sshExec("gserv", [command], {
+					await gameServer.sshExecCommand("gserv " + command, {
 						stream: "stderr",
 						onStdout: buff => (buffer += buff),
 						onStderr: buff => (buffer += buff),

@@ -157,7 +157,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				await Promise.all(
 					where.map(async server => {
 						await server
-							.sshExec("gserv", ["qu", "rehash"], {
+							.sshExecCommand("gserv qu rehash", {
 								stream: "stderr",
 							})
 							.then(async () =>
@@ -204,7 +204,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						const reply = await ctx.fetchReply();
 
 						await server
-							.sshExec("gserv", ["qu", "rehash"], {
+							.sshExecCommand("gserv qu rehash", {
 								stream: "stderr",
 							})
 							.then(async () => {

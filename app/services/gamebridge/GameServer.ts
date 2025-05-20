@@ -154,11 +154,7 @@ export default class GameServer {
 		return this.bridge.payloads["RconPayload"].callLua(code, realm, this, runner);
 	}
 
-	async sshExec(
-		command: string,
-		parameters: string[],
-		options: (SSHExecOptions & { stream?: "stdout" | "stderr" | undefined }) | undefined
-	) {
+	async sshExecCommand(command: string, options: SSHExecOptions | undefined) {
 		if (!this.config.ssh) return;
 		const ssh = new NodeSSH();
 		try {
@@ -168,7 +164,7 @@ export default class GameServer {
 				port: this.config.ssh.port,
 				privateKeyPath: sshConfig.keyPath,
 			});
-			return await connection.exec(command, parameters, options);
+			return await connection.execCommand(command, options);
 		} catch (err) {
 			console.error(err);
 		}
