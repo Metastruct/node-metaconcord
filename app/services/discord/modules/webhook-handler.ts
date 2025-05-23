@@ -622,7 +622,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		container.addTextDisplayComponents({
 			type: Discord.ComponentType.TextDisplay,
-			content: `### [${payload.sender.login}](${payload.sender.html_url}) wants to add/change ${payload.pull_request.changed_files} sounds:\n${Array.from(
+			content: `### [${payload.sender.login}](${payload.sender.html_url}) wants to add/change ${payload.pull_request.changed_files} sound${changedFiles.size > 1 ? "s" : ""}:\n${Array.from(
 				changedFiles
 			)
 				.map(formatSounds)
