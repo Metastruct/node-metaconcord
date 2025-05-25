@@ -79,9 +79,10 @@ export class DiscordBot extends Service {
 	async getGuildMember(userId: string): Promise<Discord.GuildMember | undefined> {
 		if (!this.ready) return;
 		try {
-			return this.discord.guilds.cache
+			const user = this.discord.guilds.cache
 				.get(this.config.bot.primaryGuildId)
 				?.members.fetch(userId);
+			return user;
 		} catch {
 			return;
 		}
@@ -132,7 +133,7 @@ export class DiscordBot extends Service {
 			const iconURL =
 				this.discord.user.avatarURL({ size: 4096 }) ?? guild.iconURL({ size: 4096 });
 			this.data.lastDiscordGuildIcon = iconURL
-				? (await getAsBase64(iconURL)) ?? this.data.lastDiscordGuildIcon
+				? ((await getAsBase64(iconURL)) ?? this.data.lastDiscordGuildIcon)
 				: this.data.lastDiscordGuildIcon;
 			await this.data.save();
 			await this.discord.user.setAvatar(path);
