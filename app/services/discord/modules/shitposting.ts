@@ -199,8 +199,8 @@ export default async (bot: DiscordBot) => {
 		const shouldSendEmoji = Math.random() <= EMOJI_REPLY_FREQ;
 		const shat = await Shat({
 			msg: shouldUseAuthor
-				? options.msg?.author.globalName?.toLowerCase() ??
-				  options.msg?.author.username?.toLowerCase()
+				? (options.msg?.author.globalName?.toLowerCase() ??
+					options.msg?.author.username?.toLowerCase())
 				: options.msg?.content,
 			fallback: shouldUseAuthor ? options.msg?.content : undefined,
 			forceImage: options.forceImage,
@@ -208,14 +208,13 @@ export default async (bot: DiscordBot) => {
 			forceMessage: shouldSendSticker
 				? ({
 						stickers: [bot.getGuild()?.stickers.cache.random()],
-				  } as Discord.MessageCreateOptions)
+					} as Discord.MessageCreateOptions)
 				: shouldSendImg
-				? (
-						await db.get<any>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1")
-				  ).url
-				: shouldSendEmoji
-				? getRandomEmoji().toString()
-				: undefined,
+					? (await db.get<any>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1"))
+							.url
+					: shouldSendEmoji
+						? getRandomEmoji().toString()
+						: undefined,
 		});
 		if (shat) {
 			if (options.msg) {
@@ -230,7 +229,8 @@ export default async (bot: DiscordBot) => {
 						console.error(e, shat, options);
 					});
 			} else {
-				bot.getTextChannel(bot.config.channels.chat)
+				bot
+					.getTextChannel(bot.config.channels.chat)
 					?.send(shat)
 					.catch(e => {
 						console.error(e, shat, options);
@@ -375,12 +375,12 @@ export default async (bot: DiscordBot) => {
 				await bot.container.getService("Markov")
 			).generate(reaction.emoji.toString());
 			if (mk) {
-				lastReactedMessages.add(message.id);
-				lastReactedUsers.add(user.id);
 				await (message.channel as Discord.TextChannel)
 					.send(`${user.mention} ` + mk)
 					.catch();
 			}
+			lastReactedMessages.add(message.id);
+			lastReactedUsers.add(user.id);
 		}
 	});
 
@@ -457,7 +457,7 @@ export default async (bot: DiscordBot) => {
 								msg: msg,
 								originalMsg: reference,
 								ping: true,
-						  }
+							}
 				);
 				data.lastMsgTime = lastMsgTime = Date.now();
 			} else {
