@@ -65,7 +65,7 @@ export class IRC extends Service {
 				}
 				this.relayIRC(
 					`\u000312${msg.author.username}${
-						msg.reference
+						msg.reference && msg.reference.type === 0
 							? ` (replying to ${(await msg.fetchReference()).author.username})`
 							: ""
 					}\u000f: ${content}`
