@@ -77,8 +77,6 @@ export default class AdminNotifyPayload extends Payload {
 		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
 		if (!guild) return;
 
-		const callAdminRole = guild.roles.cache.get(bridge.config.callAdminRoleId);
-
 		const notificationsChannel = (await guild.channels.fetch(
 			bridge.config.notificationsChannelId
 		)) as Discord.TextChannel;
@@ -157,9 +155,10 @@ export default class AdminNotifyPayload extends Payload {
 					.setLabel("KICK Reporter")
 			);
 		}
+		const callAdminRole = server.discord.config.roles.callAdmin;
 		try {
 			await thread.send({
-				content: callAdminRole && `<@&${callAdminRole.id}>`,
+				content: `<@&${callAdminRole}> new ingame report from ${player.nick}`,
 				embeds: [embed],
 				components: [row],
 			});
@@ -168,7 +167,8 @@ export default class AdminNotifyPayload extends Payload {
 			// embed.data.fields = embed.data.fields.filter(f => f.name !== "Message");
 
 			await thread.send({
-				content: callAdminRole && `<@&${callAdminRole.id}>`,
+				content:
+					callAdminRole && `<@&${callAdminRole}> new ingame report from ${player.nick}`,
 				files: [
 					{
 						name: `${player.nick} Report.txt`,
