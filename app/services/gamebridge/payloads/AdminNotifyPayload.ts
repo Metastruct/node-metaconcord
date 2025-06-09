@@ -167,8 +167,7 @@ export default class AdminNotifyPayload extends Payload {
 			// embed.data.fields = embed.data.fields.filter(f => f.name !== "Message");
 
 			await thread.send({
-				content:
-					callAdminRole && `<@&${callAdminRole}> new ingame report from ${player.nick}`,
+				content: `<@&${callAdminRole}> new ingame report from ${player.nick}`,
 				files: [
 					{
 						name: `${player.nick} Report.txt`,
