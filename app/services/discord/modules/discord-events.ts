@@ -34,12 +34,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 		{
 			icon: "vr",
 			triggers: ["vrchat", "vr"],
-			nicks: ["VR", "Virtual"],
+			nicks: ["VR", "Virtual", "Black Cat", "Pug"],
 		},
 		{
 			icon: "ttt",
 			triggers: ["ttt"],
-			nicks: ["terror", "detective", "innocent", "trouble", "clue", "banana", "protogen"],
+			nicks: ["terror", "detective", "innocent", "trouble", "clue", "banana"],
 			execute: async () =>
 				(await bot.container.getService("GameBridge")).servers[4]?.sendLua(
 					`local request = require("gm_request") if request and not request:IsServerGamemode(3,"terrortown") then request:SwitchGamemodeAsync("terrortown",print) end`
