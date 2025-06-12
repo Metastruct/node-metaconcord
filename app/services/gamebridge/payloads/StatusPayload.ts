@@ -324,19 +324,27 @@ export default class StatusPayload extends Payload {
 			) as Discord.TextChannel;
 			if (!channel) return;
 
-			const messages = await channel.messages.fetch();
-			const message = messages
-				.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
-				.first();
-			if (message) {
-				await message
-					.edit({ components: [container], flags: Discord.MessageFlags.IsComponentsV2 })
-					.catch();
-			} else {
-				channel
-					.send({ components: [container], flags: Discord.MessageFlags.IsComponentsV2 })
-					.catch();
-			}
+			try {
+				const messages = await channel.messages.fetch();
+				const message = messages
+					.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
+					.first();
+				if (message) {
+					await message
+						.edit({
+							components: [container],
+							flags: Discord.MessageFlags.IsComponentsV2,
+						})
+						.catch();
+				} else {
+					channel
+						.send({
+							components: [container],
+							flags: Discord.MessageFlags.IsComponentsV2,
+						})
+						.catch();
+				}
+			} catch {}
 		};
 
 		if (discord.ready && this.retryCount < 5) {
