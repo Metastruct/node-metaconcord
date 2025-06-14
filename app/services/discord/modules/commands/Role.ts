@@ -202,11 +202,11 @@ const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> =
 
 	let targetRole = roles.cache.find((r: { name: string }) => r.name === roleName);
 	if (!targetRole) {
-		// if we have an another existing role, remove it
+		// if we have an another existing role, remove it instead of renaming to prevent hijacking
 		if (customRole) {
 			await member.roles.remove(customRole);
 			if (customRole.members.size === 0) {
-				await customRole.delete();
+				await customRole.delete("role name changed, deleting old empty role");
 			}
 		}
 
