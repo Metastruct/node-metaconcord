@@ -7,7 +7,7 @@ const ROLE_IDENTIFIER = "\u2063";
 const IMG_TYPES = ["image/png", "image/gif", "image/jpeg"];
 
 const removeRoleIcon = async (ctx: Discord.ChatInputCommandInteraction) => {
-	const role = (<Discord.GuildMember>ctx.member).getCustomRole;
+	const role = (ctx.member as Discord.GuildMember).getCustomRole;
 	if (!role) {
 		await ctx.followUp(EphemeralResponse("You don't have a custom role yet!"));
 		return;
@@ -21,6 +21,45 @@ const removeRoleIcon = async (ctx: Discord.ChatInputCommandInteraction) => {
 	await ctx.followUp(EphemeralResponse("Your icon is now gone."));
 };
 
+const addRoleColorSpecial = async (ctx: Discord.ChatInputCommandInteraction) => {
+	const possible = ctx.guild && ctx.guild.features.includes("ENHANCED_ROLE_COLORS" as any);
+	if (!possible) {
+		await ctx.followUp(
+			EphemeralResponse("Sorry we need enhanced role colors to use this feature...")
+		);
+		return;
+	}
+	const role = (ctx.member as Discord.GuildMember).getCustomRole;
+	if (!role) {
+		await ctx.followUp(EphemeralResponse("You don't have a custom role yet!"));
+		return;
+	}
+	try {
+		// super hacky but should work
+		const primary = ctx.options.getString("primary_color");
+
+		const primaryColor = primary ? parseInt(primary.replace(/^#+/, ""), 16) : role.color;
+		const secondaryColor = parseInt(
+			ctx.options.getString("secondary_color", true).replace(/^#+/, ""),
+			16
+		);
+
+		await ctx.client.rest.patch(Discord.Routes.guildRole(ctx.guild.id, role.id), {
+			body: {
+				colors: {
+					primary_color: primaryColor,
+					secondary_color: secondaryColor,
+				},
+			},
+			reason: "Added gradient via command",
+		} as any);
+		await ctx.followUp(EphemeralResponse("👍"));
+	} catch (error) {
+		console.error(error);
+		await ctx.followUp(EphemeralResponse("Something went wrong trying to add the gradient :("));
+	}
+};
+
 const addRoleIcon = async (ctx: Discord.ChatInputCommandInteraction, download: boolean) => {
 	const premiumTier = ctx.guild?.premiumTier;
 	if (premiumTier && premiumTier < 2) {
@@ -29,7 +68,7 @@ const addRoleIcon = async (ctx: Discord.ChatInputCommandInteraction, download: b
 		);
 		return;
 	}
-	const role = (<Discord.GuildMember>ctx.member).getCustomRole;
+	const role = (ctx.member as Discord.GuildMember).getCustomRole;
 	if (!role) {
 		await ctx.followUp(EphemeralResponse("You don't have a custom role yet!"));
 		return;
@@ -46,8 +85,8 @@ const uploadIcon = async (ctx: Discord.ChatInputCommandInteraction, role: Discor
 	const reqURL = attachment
 		? attachment.url
 		: url
-		? url.match(/(https?:\/\/.*\.(?:png|jpg))/)?.[0]
-		: undefined;
+			? url.match(/(https?:\/\/.*\.(?:png|jpg))/)?.[0]
+			: undefined;
 
 	if (reqURL) {
 		try {
@@ -124,8 +163,8 @@ const addEmoji = async (
 };
 
 const removeRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> => {
-	const role = (<Discord.GuildMember>ctx.member).getCustomRole;
-	const member = <Discord.GuildMember>ctx.member;
+	const role = (ctx.member as Discord.GuildMember).getCustomRole;
+	const member = ctx.member as Discord.GuildMember;
 	if (role && member) {
 		await member.roles.remove(role, "Removed role via command");
 		if (role.members.size === 0) {
@@ -138,17 +177,10 @@ const removeRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any
 };
 
 const addRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> => {
-	const isRGB = ctx.options.getSubcommand() === "add_rgb";
 	const roleName = ctx.options.getString("name", true) + ROLE_IDENTIFIER;
-	const r = ctx.options.getInteger("red")?.toString() ?? "255",
-		g = ctx.options.getInteger("green")?.toString() ?? "255",
-		b = ctx.options.getInteger("blue")?.toString() ?? "255";
 
-	const roleColor = Discord.resolveColor(
-		isRGB
-			? [parseInt(r), parseInt(g), parseInt(b)]
-			: <Discord.HexColorString>ctx.options.getString("hex") ?? "Random"
-	);
+	const roleColor =
+		parseInt(ctx.options.getString("hex", true).replace(/^#+/, ""), 16) ?? "Random";
 
 	const guild = ctx.guild;
 	if (!guild) {
@@ -157,11 +189,11 @@ const addRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> =
 	}
 
 	const roles = guild.roles;
-	const member = <Discord.GuildMember>ctx.member;
+	const member = ctx.member as Discord.GuildMember;
 	let targetRole = roles.cache.find((r: { name: string }) => r.name === roleName);
 	if (!targetRole) {
 		// if we have an another existing role, remove it
-		const existingRole = (<Discord.GuildMember>ctx.member).getCustomRole;
+		const existingRole = (ctx.member as Discord.GuildMember).getCustomRole;
 		if (existingRole) {
 			await member.roles.remove(existingRole);
 			if (existingRole.members.size === 0) {
@@ -213,43 +245,6 @@ export const SlashRoleCommand: SlashCommand = {
 			},
 			{
 				type: Discord.ApplicationCommandOptionType.Subcommand,
-				name: "add_rgb",
-				description: "Adds a custom role with rgb colors",
-				options: [
-					{
-						type: Discord.ApplicationCommandOptionType.String,
-						name: "name",
-						description: "The name of your role",
-						required: true,
-					},
-					{
-						type: Discord.ApplicationCommandOptionType.Integer,
-						name: "red",
-						description: "The red component of your color 0 - 255",
-						min_value: 0,
-						max_value: 255,
-						required: true,
-					},
-					{
-						type: Discord.ApplicationCommandOptionType.Integer,
-						name: "green",
-						description: "The green component of your color 0 - 255",
-						min_value: 0,
-						max_value: 255,
-						required: true,
-					},
-					{
-						type: Discord.ApplicationCommandOptionType.Integer,
-						name: "blue",
-						description: "The blue component of your color 0 - 255",
-						min_value: 0,
-						max_value: 255,
-						required: true,
-					},
-				],
-			},
-			{
-				type: Discord.ApplicationCommandOptionType.Subcommand,
 				name: "add_hex",
 				description: "Adds a custom role with a hex color",
 				options: [
@@ -271,6 +266,24 @@ export const SlashRoleCommand: SlashCommand = {
 				type: Discord.ApplicationCommandOptionType.Subcommand,
 				name: "remove",
 				description: "Removes your custom role",
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Subcommand,
+				name: "add_gradient",
+				description: "Adds a secondary color to make a gradient, if it's unlocked.",
+				options: [
+					{
+						type: Discord.ApplicationCommandOptionType.String,
+						name: "secondary_color",
+						description: "Hex color value for the tail example #465f83",
+						required: true,
+					},
+					{
+						type: Discord.ApplicationCommandOptionType.String,
+						name: "primary_color",
+						description: "Hex color value for the primary example #465f83",
+					},
+				],
 			},
 			{
 				type: Discord.ApplicationCommandOptionType.Subcommand,
@@ -315,9 +328,11 @@ export const SlashRoleCommand: SlashCommand = {
 		try {
 			switch (cmd) {
 				case "add":
-				case "add_rgb":
 				case "add_hex":
 					await addRole(ctx);
+					break;
+				case "add_gradient":
+					await addRoleColorSpecial(ctx);
 					break;
 				case "add_emoji":
 					await addRoleIcon(ctx, false);
