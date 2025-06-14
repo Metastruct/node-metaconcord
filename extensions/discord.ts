@@ -36,7 +36,7 @@ declare module "discord.js" {
 	interface GuildMember {
 		mention: string;
 		hasCustomRole: boolean;
-		getCustomRole: Discord.Role;
+		getCustomRole: Discord.Role | undefined;
 	}
 }
 
