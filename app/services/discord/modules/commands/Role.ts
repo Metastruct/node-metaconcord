@@ -24,7 +24,13 @@ const removeRoleIcon = async (ctx: Discord.ChatInputCommandInteraction) => {
 	await ctx.followUp(EphemeralResponse("Your icon is now gone."));
 };
 
-const setRoleColorSpecial = async (ctx: Discord.ChatInputCommandInteraction) => {
+const setRoleColorSpecial = async (
+	ctx: Discord.ChatInputCommandInteraction,
+	options?: {
+		holographic?: boolean;
+		remove?: boolean;
+	}
+) => {
 	const possible = ctx.guild && ctx.guild.features.includes("ENHANCED_ROLE_COLORS" as any);
 	if (!possible) {
 		await ctx.followUp(
@@ -39,24 +45,46 @@ const setRoleColorSpecial = async (ctx: Discord.ChatInputCommandInteraction) => 
 	}
 	try {
 		// super hacky but should work
-		const primary = ctx.options.getString("primary_color");
+		let colors = {};
+		let reason: string;
+		if (options?.remove) {
+			reason = "Removed gradient via command";
+		} else {
+			const primary = ctx.options.getString("primary_color");
+			const secondary = !options?.holographic
+				? ctx.options.getString("secondary_color", true)
+				: null;
 
-		const primaryColor = primary ? parseInt(primary.replace(/^#+/, ""), 16) : role.color;
-		const secondaryColor = parseInt(
-			ctx.options.getString("secondary_color", true).replace(/^#+/, ""),
-			16
-		);
+			let primaryColor = primary ? parseInt(primary.replace(/^#+/, ""), 16) : role.color;
+			let secondaryColor = secondary ? parseInt(secondary.replace(/^#+/, ""), 16) : null;
+			let tertiary_color: number | null = null;
+
+			if (options?.holographic) {
+				// for some reason only this one has a third colour option and it's static
+				primaryColor = 11127295;
+				secondaryColor = 16759788;
+				tertiary_color = 16761760;
+			}
+			colors = {
+				primary_color: primaryColor,
+				secondary_color: secondaryColor,
+				tertiary_color: tertiary_color,
+			};
+			reason = "Added/Changed gradient via command";
+		}
 
 		await ctx.client.rest.patch(Discord.Routes.guildRole(ctx.guild.id, role.id), {
 			body: {
-				colors: {
-					primary_color: primaryColor,
-					secondary_color: secondaryColor,
-				},
+				colors,
 			},
-			reason: "Added gradient via command",
+			reason,
 		} as any);
-		await ctx.followUp(EphemeralResponse("👍"));
+
+		await ctx.followUp(
+			EphemeralResponse(
+				`👍\nhere is your old role color if you want to change back: \`${role.hexColor}\``
+			)
+		);
 	} catch (error) {
 		console.error(error);
 		await ctx.followUp(EphemeralResponse("Something went wrong trying to add the gradient :("));
@@ -295,6 +323,16 @@ export const SlashRoleCommand: SlashCommand = {
 			},
 			{
 				type: Discord.ApplicationCommandOptionType.Subcommand,
+				name: "set_holographic",
+				description: "Sets the role color to holographic, if it's unlocked.",
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Subcommand,
+				name: "remove_gradient",
+				description: "Sets your role color back to a single color.",
+			},
+			{
+				type: Discord.ApplicationCommandOptionType.Subcommand,
 				name: "set_icon",
 				description: "adds a custom icon to your role",
 				options: [
@@ -339,17 +377,22 @@ export const SlashRoleCommand: SlashCommand = {
 				case "set_color":
 					await setRole(ctx);
 					break;
+				case "remove":
+					await removeRole(ctx);
+					break;
 				case "set_gradient":
 					await setRoleColorSpecial(ctx);
 					break;
+				case "set_holographic":
+					await setRoleColorSpecial(ctx, { holographic: true });
+					break;
+				case "remove_gradient":
+					await setRoleColorSpecial(ctx, { remove: true });
 				case "set_emoji":
 					await setRoleIcon(ctx, false);
 					break;
 				case "set_icon":
 					await setRoleIcon(ctx, true);
-					break;
-				case "remove":
-					await removeRole(ctx);
 					break;
 				case "remove_icon":
 					await removeRoleIcon(ctx);
