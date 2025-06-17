@@ -21,7 +21,7 @@ const removeRoleIcon = async (ctx: Discord.ChatInputCommandInteraction) => {
 	}
 	await role.setIcon("");
 	await role.setUnicodeEmoji("");
-	await ctx.followUp(EphemeralResponse("Your icon is now gone."));
+	await ctx.followUp(EphemeralResponse("👍"));
 };
 
 const setRoleColorSpecial = async (
@@ -146,7 +146,7 @@ const uploadIcon = async (ctx: Discord.ChatInputCommandInteraction, role: Discor
 			);
 			return;
 		}
-		await ctx.followUp(EphemeralResponse("set custom icon successfully"));
+		await ctx.followUp(EphemeralResponse("👍"));
 		return;
 	}
 
@@ -166,7 +166,7 @@ const setEmoji = async (
 	if (unicode) {
 		const emoji = unicode[0];
 		await role.setUnicodeEmoji(emoji);
-		await ctx.followUp(EphemeralResponse(`Set your role emoji to ${emoji}`));
+		await ctx.followUp(EphemeralResponse("👍"));
 		return;
 	}
 	if (custom) {
@@ -187,7 +187,7 @@ const setEmoji = async (
 			}
 		}
 		await role.setIcon(emoji);
-		await ctx.followUp(EphemeralResponse(`Set your role emoji successfully!`));
+		await ctx.followUp(EphemeralResponse("👍"));
 		return;
 	}
 	await ctx.followUp(EphemeralResponse("that doesn't seem to be a vaild emoji 🤔"));
@@ -203,7 +203,7 @@ const removeRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any
 		}
 	}
 	role
-		? await ctx.followUp(EphemeralResponse("Removed your custom role"))
+		? await ctx.followUp(EphemeralResponse("👍"))
 		: await ctx.followUp(EphemeralResponse("You don't have a custom role..."));
 };
 
@@ -259,7 +259,7 @@ const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> =
 	}
 
 	await member.roles.add(targetRole);
-	await ctx.followUp(EphemeralResponse("Role added"));
+	await ctx.followUp(EphemeralResponse("👍"));
 };
 
 export const SlashRoleCommand: SlashCommand = {
