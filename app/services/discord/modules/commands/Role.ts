@@ -388,6 +388,7 @@ export const SlashRoleCommand: SlashCommand = {
 					break;
 				case "remove_gradient":
 					await setRoleColorSpecial(ctx, { remove: true });
+					break;
 				case "set_emoji":
 					await setRoleIcon(ctx, false);
 					break;
