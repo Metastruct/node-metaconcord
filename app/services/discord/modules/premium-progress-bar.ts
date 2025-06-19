@@ -4,15 +4,17 @@ const LVL_MAP = [
 	[0, 2],
 	[1, 7],
 	[2, 14],
-	[3, 14],
+	[3, 20], // level 3 + two perks
 ];
 
 export default (bot: DiscordBot): void => {
 	const setProgressBar = async () => {
 		const guild = bot.getGuild();
 		const count = guild?.premiumSubscriptionCount;
+		const validPerks = ["ENHANCED_ROLE_COLORS", "GUILD_TAGS"];
+		const addedPerks = guild?.features.filter(f => validPerks.includes(f));
 		if (!count) return;
-		const needed = LVL_MAP[guild.premiumTier][1];
+		const needed = LVL_MAP[guild.premiumTier][1] + (addedPerks?.length ?? 0) * 3;
 		if (count < needed && count / needed >= 0.8) {
 			if (!guild.premiumProgressBarEnabled) {
 				await guild.setPremiumProgressBarEnabled(true);
