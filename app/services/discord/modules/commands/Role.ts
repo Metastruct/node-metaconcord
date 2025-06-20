@@ -208,7 +208,7 @@ const removeRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any
 };
 
 const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> => {
-	const roleName = ctx.options.getString("name") + ROLE_IDENTIFIER;
+	const roleName = ctx.options.getString("name") ?? ctx.user.displayName + ROLE_IDENTIFIER;
 	const hex = ctx.options.getString("hex");
 
 	const guild = ctx.guild;
