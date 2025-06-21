@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { DiscordBot } from "../app/services/discord/index.js";
+import DiscordConfig from "@/config/discord.json" with { type: "json" };
 
 export function EphemeralResponse(content: string): Discord.InteractionReplyOptions {
 	return { content: content, flags: Discord.MessageFlags.Ephemeral };
@@ -57,7 +58,10 @@ Object.defineProperty(Discord.GuildMember.prototype, "mention", {
 
 Object.defineProperty(Discord.Role.prototype, "isCustomRole", {
 	get(this: Discord.Role) {
-		return this.name.endsWith("\u2063");
+		return (
+			this.name.endsWith(DiscordConfig.bot.roleIdentifier) || // legacy roles
+			this.name.charAt(1) === DiscordConfig.bot.roleIdentifier
+		);
 	},
 });
 
