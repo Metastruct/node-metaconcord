@@ -4,7 +4,7 @@ const LVL_MAP = [
 	[0, 2],
 	[1, 7],
 	[2, 14],
-	[3, 20], // level 3 + two perks
+	[3, 14],
 ];
 
 export default (bot: DiscordBot): void => {
@@ -26,7 +26,10 @@ export default (bot: DiscordBot): void => {
 		}
 	};
 	bot.discord.on("ready", setProgressBar);
-	setInterval(setProgressBar, 1000 * 60 * 60 * 24);
+	bot.discord.on("guildUpdate", (oldGuild, newGuild) => {
+		// not sure if this actually works
+		if (oldGuild.premiumTier !== newGuild.premiumTier) setProgressBar();
+	});
 	bot.discord.on("guildMemberUpdate", async (oldMember, updatedMember) => {
 		if (
 			updatedMember.premiumSinceTimestamp &&
