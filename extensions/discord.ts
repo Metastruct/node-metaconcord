@@ -38,6 +38,9 @@ declare module "discord.js" {
 		hasCustomRole: boolean;
 		getCustomRole: Discord.Role | undefined;
 	}
+	interface Role {
+		readonly isCustomRole: boolean;
+	}
 }
 
 Object.defineProperty(Discord.User.prototype, "mention", {
@@ -52,14 +55,20 @@ Object.defineProperty(Discord.GuildMember.prototype, "mention", {
 	},
 });
 
+Object.defineProperty(Discord.Role.prototype, "isCustomRole", {
+	get(this: Discord.Role) {
+		return this.name.endsWith("\u2063");
+	},
+});
+
 Object.defineProperty(Discord.GuildMember.prototype, "hasCustomRole", {
 	get(this: Discord.GuildMember) {
-		return this.roles.cache.some(role => role.name.endsWith("\u2063"));
+		return this.roles.cache.some(role => role.isCustomRole);
 	},
 });
 
 Object.defineProperty(Discord.GuildMember.prototype, "getCustomRole", {
 	get(this: Discord.GuildMember) {
-		return this.roles.cache.find(role => role.name.endsWith("\u2063"));
+		return this.roles.cache.find(role => role.isCustomRole);
 	},
 });

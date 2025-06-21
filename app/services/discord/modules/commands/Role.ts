@@ -409,7 +409,10 @@ export const SlashRoleCommand: SlashCommand = {
 	initialize: async bot => {
 		bot.discord.on("guildMemberRemove", async member => {
 			const role = member.getCustomRole;
-			if (role) await role.delete("User left the Guild...");
+			if (role) role.delete("User left the Guild...");
+		});
+		bot.discord.on("roleUpdate", (oldRole, newRole) => {
+			if (oldRole.isCustomRole && oldRole.members.size === 0) oldRole.delete("Role empty...");
 		});
 	},
 };
