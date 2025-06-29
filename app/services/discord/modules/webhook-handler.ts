@@ -504,6 +504,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const payload = event.payload;
 		const commits = payload.commits;
 
+		if (payload.sender?.type === "Bot") {
+			return;
+		}
+
 		if (payload.head_commit && isRemoteMergeCommit(payload.head_commit.message))
 			commits.splice(0, commits.length, payload.head_commit);
 
