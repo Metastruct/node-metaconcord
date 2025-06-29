@@ -21,9 +21,15 @@ export default class GameBridge extends Service {
 	webApp: WebApp;
 	ws: WebSocketServer;
 	servers: GameServer[] = [];
-	discordChatWH: Discord.WebhookClient;
-	discordErrorWH: Discord.WebhookClient;
-	discordPacErrorWH: Discord.WebhookClient;
+	discordChatWH = new Discord.WebhookClient({
+		url: config.chatWebhookUrl,
+	});
+	discordErrorWH = new Discord.WebhookClient({
+		url: config.errorWebhookUrl,
+	});
+	discordPacErrorWH = new Discord.WebhookClient({
+		url: config.pacErrorWebhookUrl,
+	});
 	ready: boolean = false;
 
 	constructor(container: Container) {
@@ -33,18 +39,10 @@ export default class GameBridge extends Service {
 
 	private async init() {
 		this.webApp = await this.container.getService("WebApp");
+
 		this.ws = new WebSocketServer({
 			httpServer: this.webApp.http,
 			autoAcceptConnections: false,
-		});
-		this.discordChatWH = new Discord.WebhookClient({
-			url: config.chatWebhookUrl,
-		});
-		this.discordErrorWH = new Discord.WebhookClient({
-			url: config.errorWebhookUrl,
-		});
-		this.discordPacErrorWH = new Discord.WebhookClient({
-			url: config.pacErrorWebhookUrl,
 		});
 
 		this.ws.on("request", req => {
