@@ -575,18 +575,15 @@ export default async (bot: DiscordBot): Promise<void> => {
 				content: `-# added by ${commit.author.username ?? commit.author.name} via \`${commit.message.split("\n\n")[0]}\`, approved by ${payload.pusher.username ?? payload.pusher.name}`,
 			});
 		}
-		webhook.send({
+		const message = {
 			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
 			avatarURL: payload.sender?.avatar_url,
 			components: [container],
 			flags: Discord.MessageFlags.IsComponentsV2,
-		});
-		chatWebhook.send({
-			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
-			avatarURL: payload.sender?.avatar_url,
-			components: [container],
-			flags: Discord.MessageFlags.IsComponentsV2,
-		});
+		} as Discord.MessageCreateOptions;
+
+		webhook.send(message);
+		chatWebhook.send({ ...message, withComponents: true });
 	}
 
 	GitHub.on("push", async event => {
