@@ -32,15 +32,18 @@ export class Bans extends Service {
 
 	async getBan(steamid: string, force?: boolean): Promise<MetaBan | undefined> {
 		let steam2: string;
+		let steam2N: string;
 		try {
-			steam2 = new SteamID(steamid).getSteam2RenderedID();
-		} catch (err) {
-			return;
+			const sid = new SteamID(steamid);
+			steam2 = sid.getSteam2RenderedID();
+			steam2N = sid.getSteam2RenderedID(true);
+		} catch {
+			return undefined;
 		}
-		if (Date.now() - this.lastUpdate > 5 * 60 * 1000 || force) await this.updateCache();
-		const cached = this.banCache.find(ban => ban.sid === steam2);
-		if (cached) return cached;
-		return undefined;
+		if (force || Date.now() - this.lastUpdate > 5 * 60 * 1000) {
+			await this.updateCache();
+		}
+		return this.banCache.find(ban => ban.sid === steam2 || ban.sid === steam2N);
 	}
 
 	async getBanList(): Promise<MetaBan[] | undefined> {
