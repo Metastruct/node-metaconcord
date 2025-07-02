@@ -24,7 +24,9 @@ export default class BanPayload extends Payload {
 		const notificationsChannel = guild.channels.cache.get(bridge.config.banUnbanChannelId);
 		if (!notificationsChannel) return;
 
-		const pastBans = await (await bridge.container.getService("Bans")).getBan(player.steamId);
+		const pastBans = await (
+			await bridge.container.getService("Bans")
+		).getBan(player.steamId, true);
 
 		const steam = await bridge.container.getService("Steam");
 		let steamId64 = "";
