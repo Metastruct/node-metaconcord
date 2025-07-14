@@ -121,6 +121,7 @@ export default class StatusPayload extends Payload {
 										name: `${count === 1 ? "a" : count} player${count !== 1 ? "s" : ""} ${
 											getRandomActivity(gamemodeName) ?? ""
 										}`,
+										state: `on ${current_map}`,
 										type: 3,
 									},
 								],
