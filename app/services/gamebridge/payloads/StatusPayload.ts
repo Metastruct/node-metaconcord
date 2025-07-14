@@ -147,7 +147,7 @@ export default class StatusPayload extends Payload {
 
 				if (current_defcon !== 5) {
 					presence.activities = [
-						{ name: "oh no", state: "DEFCON " + current_defcon, type: 5 },
+						{ name: "oh no", state: "DEFCON " + current_defcon, type: 4 },
 					];
 				}
 				discord.user.setPresence(presence);
