@@ -118,7 +118,7 @@ export default class StatusPayload extends Payload {
 						? {
 								activities: [
 									{
-										name: `${count} player${count !== 1 ? "s" : ""} ${
+										name: `${count === 1 ? "a" : count} player${count !== 1 ? "s" : ""} ${
 											getRandomActivity(gamemodeName) ?? ""
 										}`,
 										type: 3,
@@ -136,16 +136,19 @@ export default class StatusPayload extends Payload {
 				if (current_countdown) {
 					presence.activities = [
 						{
-							name: `${current_countdown.text} in ${current_countdown.time} second${
+							name: "countdown",
+							state: `${current_countdown.text} in ${current_countdown.time} second${
 								current_countdown.time > 1 ? "s" : ""
 							}`,
-							type: 3,
+							type: 4,
 						},
 					];
 				}
 
 				if (current_defcon !== 5) {
-					presence.activities = [{ name: "DEFCON " + current_defcon, type: 5 }];
+					presence.activities = [
+						{ name: "oh no", state: "DEFCON " + current_defcon, type: 5 },
+					];
 				}
 				discord.user.setPresence(presence);
 			}

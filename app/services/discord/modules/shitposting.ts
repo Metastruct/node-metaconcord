@@ -240,7 +240,7 @@ export default async (bot: DiscordBot) => {
 		posting = false;
 	};
 
-	const getRandomStatus = async () => {
+	const getRandomActivity = async () => {
 		const validActivities = [
 			{ type: 0, ctx: ["playing"] },
 			{
@@ -249,6 +249,7 @@ export default async (bot: DiscordBot) => {
 			},
 			{ type: 2, ctx: ["listening to", "hearing", "following"] },
 			{ type: 3, ctx: ["watching", "looking at", "observing", "following", "noticing"] },
+			{ type: 4, ctx: "custom" },
 			{ type: 5, ctx: ["competing in", "participate in", "take part in", "play in"] },
 		];
 
@@ -258,28 +259,35 @@ export default async (bot: DiscordBot) => {
 
 		const prefix = selection.ctx[(Math.random() * selection.ctx.length) | 0];
 
-		const sentence = await (
-			await bot.container.getService("Markov")
-		).generate(prefix, {
-			continuation: false,
-		});
+		if (prefix !== "custom") {
+			const sentence = await (
+				await bot.container.getService("Markov")
+			).generate(prefix, {
+				continuation: false,
+			});
 
-		if (sentence) {
-			const split = prefix.split(" ");
-			let joint = "";
-			if (split.length > 1 && selection.type !== 2 && selection.type !== 5) {
-				joint = ` ${split.at(-1)}`;
+			if (sentence) {
+				const split = prefix.split(" ");
+				let joint = "";
+				if (split.length > 1 && selection.type !== 2 && selection.type !== 5) {
+					joint = ` ${split.at(-1)}`;
+				}
+
+				const maxLength = 127 - joint.length;
+
+				status =
+					sentence.length > maxLength
+						? joint + sentence.substring(0, 120) + "..."
+						: joint + sentence;
 			}
-
-			const maxLength = 127 - joint.length;
-
-			status =
-				sentence.length > maxLength
-					? joint + sentence.substring(0, 120) + "..."
-					: joint + sentence;
 		}
+		const state = (await (await bot.container.getService("Markov")).generate()) ?? "wtf";
 
-		lastSetActivity = { name: status, type: selection.type } as Discord.ActivitiesOptions;
+		lastSetActivity = {
+			name: status,
+			state,
+			type: selection.type,
+		} as Discord.ActivitiesOptions;
 
 		return lastSetActivity;
 	};
@@ -289,7 +297,7 @@ export default async (bot: DiscordBot) => {
 	// });
 
 	bot.discord.once("ready", async client => {
-		bot.setActivity(undefined, await getRandomStatus());
+		bot.setActivity(undefined, await getRandomActivity());
 
 		if (lastMsgs.length === 0) {
 			const lastmsg = bot.getTextChannel(bot.config.channels.chat)?.lastMessage;
@@ -323,7 +331,7 @@ export default async (bot: DiscordBot) => {
 				replied = false;
 			}
 			if (now - lastActivityChange > ACTIVITY_CHANGE_INTERVAL) {
-				bot.setActivity(undefined, await getRandomStatus());
+				bot.setActivity(undefined, await getRandomActivity());
 				lastActivityChange = now;
 			}
 			lastMsgs.splice(0, lastMsgs.length - 1); // delete lastmsg cache
