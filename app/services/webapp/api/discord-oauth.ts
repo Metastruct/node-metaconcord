@@ -271,7 +271,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				}
 
 				if (!steamId) {
-					res.status(500).send("Could get not your SteamID :(");
+					res.status(500).send("Could not get your SteamID :(");
 					return;
 				}
 
