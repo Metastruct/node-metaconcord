@@ -17,7 +17,7 @@ html(lang="en")
 					justify-content: center;
 				}
 	body
-		main(style=`background-image: url(${server.status.mapThumbnail})`)
+		main(style=`background-image: url(${mapThumbnail})`)
 			ul.playerlist
 				each player in server.status.players
 					li.player(class={ 'is-admin': player.isAdmin, 'is-banned': player.isBanned, 'is-afk': player.isAfk, 'is-pirate': player.isPirate })

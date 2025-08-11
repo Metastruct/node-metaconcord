@@ -5,6 +5,9 @@ import Payload from "./Payload.js";
 import SteamID from "steamid";
 import dayjs from "dayjs";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
+import nodeHtmlToImage from "node-html-to-image";
+import pug from "pug";
+import path from "path";
 
 const GamemodeAlias = {
 	qbox: "metastruct",
@@ -57,6 +60,7 @@ const getRandomActivity = (gamemode: string) => {
 	return activities[(Math.random() * activities.length) | 0];
 };
 
+const DEFAULT_THUMBNAIL = path.join(process.cwd(), "resources/map-thumbnails/gm_construct_m.png");
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	private static retryCount = 0;
@@ -76,9 +80,6 @@ export default class StatusPayload extends Payload {
 			gamemodes,
 		} = payload.data;
 		const { bridge, discord } = server;
-		const {
-			config: { host, port, url },
-		} = bridge.webApp;
 		const Steam = await bridge.container.getService("Steam");
 
 		const updateStatus = async () => {
@@ -182,9 +183,12 @@ export default class StatusPayload extends Payload {
 			let mapThumbnail: string | null = mapChanged ? null : server.status.mapThumbnail;
 			if (mapThumbnail === null) {
 				if (current_map && /^gm_construct_m/i.test(current_map)) {
-					mapThumbnail = `${url}/map-thumbnails/gm_construct_m.png`;
+					mapThumbnail = DEFAULT_THUMBNAIL;
 				} else if (current_map && current_map.toLowerCase().trim() == "rp_unioncity") {
-					mapThumbnail = `${url}/map-thumbnails/rp_unioncity.png`;
+					mapThumbnail = path.join(
+						process.cwd(),
+						"resources/map-thumbnails/rp_unioncity.png"
+					);
 				}
 
 				if (!mapThumbnail && current_workshopMap) {
@@ -219,7 +223,7 @@ export default class StatusPayload extends Payload {
 						accessory: {
 							type: Discord.ComponentType.Thumbnail,
 							media: {
-								url: mapThumbnail ?? `${url}/map-thumbnails/gm_construct_m.png`,
+								url: "attachment://map.png",
 							},
 							description: current_map,
 						},
@@ -235,11 +239,7 @@ export default class StatusPayload extends Payload {
 						items: [
 							{
 								media: {
-									url: players
-										? `http://${host}:${port}/server-status/${
-												server.config.id
-											}/${Date.now()}`
-										: (server.status.image ?? ""),
+									url: "attachment://players.png",
 								},
 							},
 						],
@@ -251,11 +251,7 @@ export default class StatusPayload extends Payload {
 				{ type: Discord.ComponentType.Separator },
 				{
 					type: Discord.ComponentType.TextDisplay,
-					content: `-# ${gamemodeName}${
-						count > 0
-							? " | Middle-click the player list to open an interactive version"
-							: ""
-					}`,
+					content: `-# ${gamemodeName}`,
 				}
 			);
 
@@ -329,6 +325,24 @@ export default class StatusPayload extends Payload {
 			if (!channel) return;
 
 			try {
+				const html = pug.renderFile(
+					path.join(process.cwd(), "resources/game-server-status/view.pug"),
+					{
+						server,
+						mapThumbnail,
+						image: true,
+					}
+				);
+
+				server.playerListImage = (await nodeHtmlToImage({
+					html,
+					transparent: true,
+					selector: "main",
+					puppeteerArgs: {
+						args: ["--no-sandbox"],
+					},
+				})) as Buffer;
+
 				const messages = await channel.messages.fetch();
 				const message = messages
 					.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
@@ -337,6 +351,14 @@ export default class StatusPayload extends Payload {
 					await message
 						.edit({
 							components: [container],
+							files: [
+								new Discord.AttachmentBuilder(server.playerListImage, {
+									name: "players.png",
+								}),
+								new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, {
+									name: "map.png",
+								}),
+							],
 							flags: Discord.MessageFlags.IsComponentsV2,
 						})
 						.catch();
@@ -344,6 +366,14 @@ export default class StatusPayload extends Payload {
 					channel
 						.send({
 							components: [container],
+							files: [
+								new Discord.AttachmentBuilder(server.playerListImage, {
+									name: "players.png",
+								}),
+								new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, {
+									name: "map.png",
+								}),
+							],
 							flags: Discord.MessageFlags.IsComponentsV2,
 						})
 						.catch();
