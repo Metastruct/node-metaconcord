@@ -56,7 +56,7 @@ export default class GameBridge extends Service {
 
 	async handleConnection(req: WebSocketRequest): Promise<void> {
 		const ip = req.httpRequest.socket.remoteAddress;
-		const forwarded = req.httpRequest.headers["x-forwarded-for"]?.[0].split(",")[0];
+		const forwarded = req.httpRequest.headers["x-forwarded-for"]?.toString()?.split(",")[0];
 
 		for (const connection of this.ws.connections) {
 			if (ip == connection.remoteAddress) {
