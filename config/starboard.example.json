@@ -1,7 +1,12 @@
 {
-	"amount": "",
-	"channelId": "",
-	"emoteId": "",
+	"amount": 10,
+	"categoryIgnores": [""],
+	"channelIgnores": ["", "", "", ""],
+	"defaultEmote": "",
 	"webhookId": "",
-	"webhookToken": ""
+	"webhookToken": "",
+	"extraWebhookId": "",
+	"extraWebhookToken": "",
+	"artWebhookId": "",
+	"artWebhookToken": ""
 }

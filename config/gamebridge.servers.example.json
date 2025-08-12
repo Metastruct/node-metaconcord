@@ -3,7 +3,15 @@
 		"id": 1,
 		"ip": "",
 		"name": "",
+		"defaultGamemode": "",
 		"label": "",
-		"discordToken": ""
+		"discordToken": "",
+		"applicationID": "",
+		"publicKey": "",
+		"ssh": {
+			"host": "",
+			"port": 22,
+			"username": ""
+		}
 	}
 ]

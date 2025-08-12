@@ -1,10 +1,14 @@
 {
-	"callAdminRoleId": "",
 	"token": "",
 	"chatWebhookUrl": "",
 	"errorWebhookUrl": "",
-	"serverInfoChannelId": "",
+	"pacErrorWebhookUrl": "",
 	"relayChannelId": "",
+	"serverInfoChannelId": "",
 	"notificationsChannelId": "",
+	"reportsChannelId": "",
+	"votekicksChannelId": "",
+	"banUnbanChannelId": "",
+	"callAdminRoleId": "",
 	"guildId": ""
 }
