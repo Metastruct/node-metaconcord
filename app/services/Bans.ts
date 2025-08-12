@@ -23,11 +23,13 @@ export class Bans extends Service {
 	private lastUpdate = 0;
 
 	async updateCache(): Promise<void> {
-		const res = await axios.get<Array<MetaBan>>("http://g2.metastruct.net/bans");
-		if (res.status === 200) {
-			this.banCache = res.data;
-		}
-		this.lastUpdate = Date.now();
+		try {
+			const res = await axios.get<Array<MetaBan>>("http://g2.metastruct.net/bans");
+			if (res.status === 200) {
+				this.banCache = res.data;
+			}
+			this.lastUpdate = Date.now();
+		} catch {}
 	}
 
 	async getBan(steamid: string, force?: boolean): Promise<MetaBan | undefined> {
