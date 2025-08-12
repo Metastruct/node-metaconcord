@@ -13,6 +13,10 @@ RUN for f in ./config/*.example.json; do \
 RUN ./schema_gen.sh
 RUN yarn build
 
+#hack, remove config after building so we can mount it
+#todo: handle empty config in the app
+RUN rm -rf ./config
+
 EXPOSE 20122
 
 CMD [ "yarn", "start" ]
