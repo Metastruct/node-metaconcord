@@ -1,8 +1,56 @@
 {
 	"roles": {
+		"administrator": "",
+		"callAdmin": "",
+		"vaccination": "",
+		"event": "",
+		"serverbooster": "",
+		"elevated": "",
+		"developer": "",
+		"appDeveloper": "",
+		"muted": ""
 	},
 	"channels": {
+		"eventStage": "",
+		"afk": "",
+		"chat": "",
+		"gamingVoice": "",
+		"rules": "",
+		"notifications": "",
+		"muted": "",
+		"log": "",
+		"ingameChat": "",
+		"relay": "",
+		"h": "",
+		"hBot": "",
+		"hArt": "",
+		"postYourStuff": "",
+		"artChat": "",
+		"publicCommits": "",
+		"privateCommits": "",
+		"mapCommits": ""
+	},
+	"threads": {
+		"VR": "",
+		"reports": "",
+		"votekicks": "",
+		"bans/unbans": ""
+	},
+	"categories": {
+		"information": "",
+		"voiceChat": "",
+		"highlights": "",
+		"artsAndCrafts": ""
 	},
 	"bot": {
+		"roleIdentifier": "",
+		"primaryGuildId": "",
+		"token": "",
+		"publicKey": "",
+		"applicationId": "",
+		"clientSecret": "",
+		"userId": "",
+		"allowedShitpostingChannels": [""],
+		"oAuthCallbackUri": ""
 	}
 }
