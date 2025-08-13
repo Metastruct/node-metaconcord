@@ -361,7 +361,7 @@ export default class StatusPayload extends Payload {
 							],
 							flags: Discord.MessageFlags.IsComponentsV2,
 						})
-						.catch(e => console.error("StatusPayload", e));
+						.catch(e => console.error("StatusPayload: Message edit failed", e));
 				} else {
 					channel
 						.send({
@@ -378,7 +378,9 @@ export default class StatusPayload extends Payload {
 						})
 						.catch();
 				}
-			} catch {}
+			} catch (error) {
+				console.error("StatusPayload", error);
+			}
 		};
 
 		if (discord.ready && this.retryCount < 5) {
