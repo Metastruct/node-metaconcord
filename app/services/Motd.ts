@@ -101,7 +101,7 @@ export class Motd extends Service {
 		super(container);
 		this.messages = [];
 		this.initServices();
-		scheduleJob("0 12 * * *", this.executeMessageJob.bind(this));
+		scheduleJob({ minute: 0, hour: 12, tz: "Etc/GMT-2" }, this.executeMessageJob.bind(this));
 	}
 	private async initServices() {
 		const bot = await this.container.getService("DiscordBot");
@@ -176,7 +176,7 @@ export class Motd extends Service {
 			if (res.data.status === 200) {
 				return res.data.data;
 			}
-		} catch {}
+		} catch { }
 	}
 
 	async setNicknameFromSentence(motd: string): Promise<boolean | undefined> {
