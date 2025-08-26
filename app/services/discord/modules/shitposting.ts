@@ -151,6 +151,7 @@ const COMMON_EMOJIS = [
 	"🙄",
 	"🙏",
 	"🥀",
+	"<:h_:536265505649197066>"
 ];
 
 const lastMsgs: Discord.Message<boolean>[] = [];
