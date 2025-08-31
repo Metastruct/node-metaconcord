@@ -31,11 +31,6 @@ const BaseEmbed = <Discord.WebhookMessageCreateOptions>{
 	allowedMentions: { parse: ["users"] },
 };
 
-const DefaultSeparator = {
-	type: Discord.ComponentType.Separator,
-	divider: true,
-} as Discord.SeparatorComponent;
-
 const GetGithubChanges = (
 	repoPath: string,
 	sha: string,
@@ -522,12 +517,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 				)
 			);
 
-			container.addTextDisplayComponents({
-				type: Discord.ComponentType.TextDisplay,
-				content: `# [Chatsound Update](${commit.url})`,
-			});
+			container.addTextDisplayComponents(text =>
+				text.setContent(`# [Chatsound Update](${commit.url})`)
+			);
 
-			container.addSeparatorComponents(DefaultSeparator);
+			container.addSeparatorComponents(sep => sep);
 
 			const addedSounds = GroupSoundFilesByFolder(commit.added ?? []);
 			const removedSounds = GroupSoundFilesByFolder(commit.removed ?? []);
@@ -535,45 +529,49 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 			// maybe there is a better way instead of if-chaining this but whatever
 			if (commit.added && addedSounds.size > 0) {
-				container.addTextDisplayComponents({
-					type: Discord.ComponentType.TextDisplay,
-					content: `### Added ${commit.added.length} new sound${commit.added.length > 1 ? "s" : ""}:\n${Array.from(
-						addedSounds
+				container.addTextDisplayComponents(text =>
+					text.setContent(
+						`### Added ${commit.added?.length} new sound${(commit.added?.length ?? 0 > 1) ? "s" : ""}:\n${Array.from(
+							addedSounds
+						)
+							.map(formatSounds)
+							.join("\n\n")}`
 					)
-						.map(formatSounds)
-						.join("\n\n")}`,
-				});
+				);
 
-				container.addSeparatorComponents(DefaultSeparator);
+				container.addSeparatorComponents(sep => sep);
 			}
 			if (commit.removed && removedSounds.size > 0) {
-				container.addTextDisplayComponents({
-					type: Discord.ComponentType.TextDisplay,
-					content: `### Removed ${commit.removed.length} sound${commit.removed.length > 1 ? "s" : ""}:\n${Array.from(
-						removedSounds
+				container.addTextDisplayComponents(text =>
+					text.setContent(
+						`### Removed ${commit.removed?.length} sound${(commit.removed?.length ?? 0 > 1) ? "s" : ""}:\n${Array.from(
+							removedSounds
+						)
+							.map(formatSounds)
+							.join("\n\n")}`
 					)
-						.map(formatSounds)
-						.join("\n\n")}`,
-				});
+				);
 
-				container.addSeparatorComponents(DefaultSeparator);
+				container.addSeparatorComponents(sep => sep);
 			}
 			if (commit.modified && modifiedSounds.size > 0) {
-				container.addTextDisplayComponents({
-					type: Discord.ComponentType.TextDisplay,
-					content: `### Changed ${commit.modified.length} sound${commit.modified.length > 1 ? "s" : ""}:\n${Array.from(
-						modifiedSounds
+				container.addTextDisplayComponents(text =>
+					text.setContent(
+						`### Changed ${commit.modified?.length} sound${(commit.modified?.length ?? 0 > 1) ? "s" : ""}:\n${Array.from(
+							modifiedSounds
+						)
+							.map(formatSounds)
+							.join("\n\n")}`
 					)
-						.map(formatSounds)
-						.join("\n\n")}`,
-				});
+				);
 
-				container.addSeparatorComponents(DefaultSeparator);
+				container.addSeparatorComponents(sep => sep);
 			}
-			container.addTextDisplayComponents({
-				type: Discord.ComponentType.TextDisplay,
-				content: `-# added by ${commit.author.username ?? commit.author.name} via \`${commit.message.split("\n\n")[0]}\`, approved by ${payload.pusher.username ?? payload.pusher.name}`,
-			});
+			container.addTextDisplayComponents(text =>
+				text.setContent(
+					`-# added by ${commit.author.username ?? commit.author.name} via \`${commit.message.split("\n\n")[0]}\`, approved by ${payload.pusher.username ?? payload.pusher.name}`
+				)
+			);
 		}
 		const message = {
 			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
@@ -614,21 +612,23 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		container.setAccentColor(payload.pull_request.state === "open" ? 5763719 : 15277667);
 
-		container.addTextDisplayComponents({
-			type: Discord.ComponentType.TextDisplay,
-			content: `# [Chatsound Request \`#${payload.number} ${payload.pull_request.title}\`](${payload.pull_request.html_url})`,
-		});
-
-		container.addSeparatorComponents(DefaultSeparator);
-
-		container.addTextDisplayComponents({
-			type: Discord.ComponentType.TextDisplay,
-			content: `### [${payload.sender.login}](${payload.sender.html_url}) wants to add/change ${payload.pull_request.changed_files} sound${changedFiles.size > 1 ? "s" : ""}:\n${Array.from(
-				changedFiles
+		container.addTextDisplayComponents(text =>
+			text.setContent(
+				`# [Chatsound Request \`#${payload.number} ${payload.pull_request.title}\`](${payload.pull_request.html_url})`
 			)
-				.map(formatSounds)
-				.join("\n\n")}`,
-		});
+		);
+
+		container.addSeparatorComponents(sep => sep);
+
+		container.addTextDisplayComponents(text =>
+			text.setContent(
+				`### [${payload.sender.login}](${payload.sender.html_url}) wants to add/change ${payload.pull_request.changed_files} sound${changedFiles.size > 1 ? "s" : ""}:\n${Array.from(
+					changedFiles
+				)
+					.map(formatSounds)
+					.join("\n\n")}`
+			)
+		);
 
 		webhook.send({
 			username: payload.sender.name ?? payload.sender.login ?? "unknown",
