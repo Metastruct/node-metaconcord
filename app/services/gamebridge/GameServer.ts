@@ -7,7 +7,6 @@ import {
 } from "websocket";
 import { NodeSSH, SSHExecOptions } from "node-ssh";
 import { RconResponse } from "./payloads/structures/index.js";
-import { WebhookClient } from "discord.js";
 import GameBridge from "./GameBridge.js";
 import sshConfig from "@/config/ssh.json" with { type: "json" };
 
@@ -128,6 +127,7 @@ export default class GameServer {
 		this.connection?.on("close", (code, desc) => {
 			this.discord.destroy();
 			console.log(`'${this.config.name}' Game Server disconnected - [${code}] ${desc}`);
+			delete this.bridge.servers[this.config.id];
 		});
 
 		console.log(`'${this.config.name}' Game Server connected`);
