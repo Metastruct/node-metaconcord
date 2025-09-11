@@ -31,7 +31,7 @@ const setRoleColorSpecial = async (
 		remove?: boolean;
 	}
 ) => {
-	const possible = ctx.guild && ctx.guild.features.includes("ENHANCED_ROLE_COLORS" as any);
+	const possible = ctx.guild && ctx.guild.features.includes("ENHANCED_ROLE_COLORS");
 	if (!possible) {
 		await ctx.followUp(
 			EphemeralResponse("Sorry we need enhanced role colors to use this feature...")
@@ -44,8 +44,7 @@ const setRoleColorSpecial = async (
 		return;
 	}
 	try {
-		// super hacky but should work
-		let colors = {};
+		let colors: Discord.RoleColorsResolvable = { primaryColor: role.colors.primaryColor };
 		let reason: string;
 		if (options?.remove) {
 			reason = "Removed gradient via command";
@@ -55,34 +54,31 @@ const setRoleColorSpecial = async (
 				? ctx.options.getString("secondary_color", true)
 				: null;
 
-			let primaryColor = primary ? parseInt(primary.replace(/^#+/, ""), 16) : role.color;
-			let secondaryColor = secondary ? parseInt(secondary.replace(/^#+/, ""), 16) : null;
-			let tertiary_color: number | null = null;
+			let primaryColor = primary
+				? parseInt(primary.replace(/^#+/, ""), 16)
+				: role.colors.primaryColor;
+			let secondaryColor = secondary ? parseInt(secondary.replace(/^#+/, ""), 16) : undefined;
+			let tertiaryColor: number | undefined = undefined;
 
 			if (options?.holographic) {
 				// for some reason only this one has a third colour option and it's static
 				primaryColor = 11127295;
 				secondaryColor = 16759788;
-				tertiary_color = 16761760;
+				tertiaryColor = 16761760;
 			}
 			colors = {
-				primary_color: primaryColor,
-				secondary_color: secondaryColor,
-				tertiary_color: tertiary_color,
+				primaryColor,
+				secondaryColor,
+				tertiaryColor,
 			};
 			reason = "Added/Changed gradient via command";
 		}
 
-		await ctx.client.rest.patch(Discord.Routes.guildRole(ctx.guild.id, role.id), {
-			body: {
-				colors,
-			},
-			reason,
-		} as any);
+		await role.setColors(colors, reason);
 
 		await ctx.followUp(
 			EphemeralResponse(
-				`👍\nhere is your old role color if you want to change back: \`${role.hexColor}\``
+				`👍\nhere is your old role color if you want to change back: Primary: \`${role.hexColor}\`${role.colors.secondaryColor ? ` Secondary: ${`#${role.colors.secondaryColor.toString(16).padStart(6, "0")}`}` : ""}${role.colors.tertiaryColor ? ` Tertiary: ${`#${role.colors.tertiaryColor.toString(16).padStart(6, "0")}`}` : ""}`
 			)
 		);
 	} catch (error) {
@@ -223,10 +219,10 @@ const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> =
 	const customRole = member.getCustomRole;
 
 	// if a colour is defined replace it. Otherwise fall back to the existing one (to change the name only) or get a random one
-	const roleColor = hex
+	const roleColor: Discord.ColorResolvable = hex
 		? parseInt(hex.replace(/^#+/, ""), 16)
 		: customRole
-			? customRole.color
+			? customRole.colors.primaryColor
 			: "Random";
 
 	let targetRole = roles.cache.find((r: { name: string }) => r.name === roleName);
@@ -244,12 +240,15 @@ const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> =
 		targetRole = await roles.create({
 			reason: "Added role via command",
 			name: roleName.toString(),
-			color: roleColor,
+			colors: { primaryColor: roleColor },
 			position: boosterRole ? boosterRole?.position + 1 : 2,
 		});
 	} else {
 		try {
-			await targetRole.setColor(roleColor, "Updated role color via command");
+			await targetRole.setColors(
+				{ primaryColor: roleColor },
+				"Updated role color via command"
+			);
 		} catch (ex) {
 			console.error(ex);
 			await ctx.followUp(
