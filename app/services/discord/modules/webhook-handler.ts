@@ -220,7 +220,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 									.map(f => `RefreshLua([[${f}]])`)
 									.join("\n"),
 							"sv",
-							ctx.user.globalName ?? ctx.user.displayName
+							ctx.user.displayName
 						);
 						if (res) {
 							const channel = <Discord.TextBasedChannel>(

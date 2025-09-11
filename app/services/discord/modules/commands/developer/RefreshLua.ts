@@ -44,11 +44,7 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 		await ctx.deferReply();
 
 		try {
-			const res = await server.sendLua(
-				code,
-				"sv",
-				ctx.user.globalName ?? ctx.user.displayName
-			);
+			const res = await server.sendLua(code, "sv", ctx.user.displayName);
 
 			if (!res) {
 				await ctx.editReply("GameServer not connected :(");
