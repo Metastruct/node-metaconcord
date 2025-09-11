@@ -15,8 +15,8 @@ const format = (input: any, options?: InspectOptions) =>
 const trimfield = (input: string, limit: number, isCodeBlock: boolean) =>
 	input.length >= limit
 		? input.substring(0, limit - (isCodeBlock ? 17 : 6)) +
-		  "\n. . ." +
-		  (isCodeBlock ? "```" : "")
+			"\n. . ." +
+			(isCodeBlock ? "```" : "")
 		: input + (isCodeBlock ? "```" : "");
 
 const hastoString = (obj: object | string | number | boolean) =>
@@ -25,7 +25,7 @@ const hastoString = (obj: object | string | number | boolean) =>
 export default (bot: DiscordBot): void => {
 	let logChannel: Discord.TextChannel | undefined;
 
-	bot.discord.once("ready", () => {
+	bot.discord.once("clientReady", () => {
 		logChannel = bot.getTextChannel(bot.config.channels.log);
 	});
 
@@ -45,7 +45,7 @@ export default (bot: DiscordBot): void => {
 			msg.attachments.size > 0
 				? msg.attachments.map(a => {
 						return `[${a.name}](${a.url})`;
-				  })
+					})
 				: undefined;
 
 		const embeds =
@@ -53,7 +53,7 @@ export default (bot: DiscordBot): void => {
 				? msg.embeds.map(e => {
 						const data = "```ansi\n" + format(e.data);
 						return trimfield(data, 1024, true);
-				  })
+					})
 				: undefined;
 
 		const embed = new Discord.EmbedBuilder()
@@ -110,10 +110,10 @@ export default (bot: DiscordBot): void => {
 			newMsg.embeds.length > 0 && oldMsg.embeds.length > 0
 				? [true, true] // embed was changed
 				: newMsg.embeds.length > 0 && oldMsg.embeds.length === 0
-				? [true, false] // embed was added
-				: newMsg.embeds.length === 0 && oldMsg.embeds.length > 0
-				? [false, true] // embed was removed
-				: [false, false]; // no embed was present at all
+					? [true, false] // embed was added
+					: newMsg.embeds.length === 0 && oldMsg.embeds.length > 0
+						? [false, true] // embed was removed
+						: [false, false]; // no embed was present at all
 
 		let diff = "";
 		if (oldText.length > 0 || newText.length > 0) {
@@ -123,8 +123,8 @@ export default (bot: DiscordBot): void => {
 				diff += part.added
 					? `\u001b[1;40m${part.value}\u001b[0m`
 					: part.removed
-					? `\u001b[1;30;41m${part.value}\u001b[0m`
-					: part.value;
+						? `\u001b[1;30;41m${part.value}\u001b[0m`
+						: part.value;
 			}
 		}
 		diff = diff.replaceAll("```", "​`​`​`");
@@ -151,8 +151,8 @@ export default (bot: DiscordBot): void => {
 						embeds[0] && embeds[1]
 							? "modified"
 							: embeds[0] && !embeds[1]
-							? "added"
-							: "removed"
+								? "added"
+								: "removed"
 					}`
 				)
 			);
@@ -273,25 +273,25 @@ export default (bot: DiscordBot): void => {
 									? diffJson(
 											JSON.stringify(change.old, null, 2),
 											JSON.stringify(change.new, null, 2)
-									  )
+										)
 									: diffWords(
 											change.old && hastoString(change.old)
 												? change.old.toString()
-												: format(change.old, { colors: false }) ??
-														"undefined",
+												: (format(change.old, { colors: false }) ??
+														"undefined"),
 											change.new && hastoString(change.new)
 												? change.new.toString()
-												: format(change.new, { colors: false }) ??
-														"undefined"
-									  );
+												: (format(change.new, { colors: false }) ??
+														"undefined")
+										);
 							for (const part of diffList) {
 								changef += part.added
 									? `\u001b[1;40m${part.value}\u001b[0m`
 									: part.removed
-									? `\u001b[1;30;41m${part.value}\u001b[0m`
-									: isObject
-									? "" // skip value printing on object comparison
-									: part.value;
+										? `\u001b[1;30;41m${part.value}\u001b[0m`
+										: isObject
+											? "" // skip value printing on object comparison
+											: part.value;
 							}
 							return changef;
 						})
