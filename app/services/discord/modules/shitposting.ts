@@ -415,7 +415,7 @@ export default async (bot: DiscordBot) => {
 				msg.content.toLowerCase()
 			);
 		const isChatChannel = bot.config.channels.chat === msg.channelId;
-		const isBot = msg.author.id === id;
+		const isBot = msg.author.id === id || msg.author.bot;
 		const isMention = msg.mentions.users.first()?.id === id;
 		const isAllowedChannel = bot.config.bot.allowedShitpostingChannels.includes(msg.channelId);
 		const isHidden = msg.guild
