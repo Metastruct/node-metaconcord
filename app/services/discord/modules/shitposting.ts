@@ -295,7 +295,7 @@ export default async (bot: DiscordBot) => {
 	// 	if (now.userId !== bot.discord.user?.id) return;
 	// });
 
-	bot.discord.once("ready", async client => {
+	bot.discord.once("clientReady", async client => {
 		bot.setActivity(undefined, await getRandomActivity());
 
 		if (lastMsgs.length === 0) {
