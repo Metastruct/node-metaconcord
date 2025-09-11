@@ -110,7 +110,7 @@ export default class GameBridge extends Service {
 					bridge: this,
 					serverConfig: servers.find(s => s.id === id) as GameServerConfig,
 				}));
-				server.discord.on("ready", () => {
+				server.discord.on("clientReady", () => {
 					server.changeIcon(
 						"https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull_resonite.png?&inline=true"
 					);

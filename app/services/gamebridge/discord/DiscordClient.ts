@@ -12,7 +12,7 @@ export default class DiscordClient extends Discord.Client {
 
 		this.gameServer = gameServer;
 
-		this.on("ready", () => {
+		this.on("clientReady", () => {
 			this.ready = true;
 		});
 

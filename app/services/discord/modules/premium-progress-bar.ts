@@ -25,7 +25,7 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 	};
-	bot.discord.on("ready", setProgressBar);
+	bot.discord.on("clientReady", setProgressBar);
 	bot.discord.on("guildUpdate", (oldGuild, newGuild) => {
 		// not sure if this actually works
 		if (oldGuild.premiumTier !== newGuild.premiumTier) setProgressBar();

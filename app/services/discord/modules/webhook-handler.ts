@@ -110,7 +110,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 	let webhook: Discord.Webhook;
 	const bridge = await bot.container.getService("GameBridge");
 
-	bot.discord.on("ready", async () => {
+	bot.discord.on("clientReady", async () => {
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
 		if (channel) {
 			const hooks = await channel.fetchWebhooks();

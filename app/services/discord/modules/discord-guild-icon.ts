@@ -86,7 +86,7 @@ export const getEventIcon = async () => {
 };
 
 export default async (bot: DiscordBot): Promise<void> => {
-	bot.discord.on("ready", async () => {
+	bot.discord.on("clientReady", async () => {
 		const guild = bot.getGuild();
 		if (!guild) return;
 		const data = await bot.container.getService("Data");
