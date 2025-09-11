@@ -54,7 +54,7 @@ export class DiscordBot extends Service {
 		this.data = await this.container.getService("Data");
 		this.bridge = await this.container.getService("GameBridge");
 
-		this.discord.on("ready", async client => {
+		this.discord.on("clientReady", async client => {
 			this.ready = true;
 			console.log(`'${client.user.username}' Discord Bot has logged in`);
 		});

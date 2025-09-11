@@ -19,7 +19,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}
 	});
 
-	bot.discord.on("ready", async () => {
+	bot.discord.on("clientReady", async () => {
 		if (!channels) return;
 		const guildChannels = bot.getGuild()?.channels;
 		if (guildChannels) {
