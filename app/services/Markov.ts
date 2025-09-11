@@ -234,15 +234,11 @@ export class Markov extends Service {
 		}
 	}
 
-	// private sanitizeString(input: string): string {  // unsure if still needed?
-	// 	if (!input) return "";
-
-	// 	return input
-	// 		.replace(/\(|\)|\[|\]|\@|\<|\>|\"|\{|\}|\\|\,|\.|\;/g, "")
-	// 		.replace(/-|\t|_|\n/g, " ")
-	// 		.replace(/\s{2,}/g, " ")
-	// 		.trim();
-	// }
+	async exists(word: string | undefined) {
+		if (!word || word?.trim() === "") return word;
+		const data = await this.markov.queryDB([word]);
+		if (data) return word;
+	}
 }
 
 export default (container: Container): Service => {
