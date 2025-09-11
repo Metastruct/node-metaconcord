@@ -61,7 +61,6 @@ function getWord(msg?: string) {
 
 export const Shat = async (options?: {
 	msg?: string;
-	fallback?: string;
 	forceImage?: boolean;
 	forceReply?: boolean;
 	forceMessage?: string | Discord.MessageCreateOptions;
@@ -84,7 +83,7 @@ export const Shat = async (options?: {
 			search = getWord(message);
 		}
 
-		let shat = await markov?.generate(getWord(search ?? options?.fallback));
+		let shat = await markov?.generate(getWord(search));
 
 		if (!shat) shat = await markov?.generate();
 
@@ -151,7 +150,7 @@ const COMMON_EMOJIS = [
 	"🙄",
 	"🙏",
 	"🥀",
-	"<:h_:536265505649197066>"
+	"<:h_:536265505649197066>",
 ];
 
 const lastMsgs: Discord.Message<boolean>[] = [];
@@ -160,6 +159,7 @@ const lastReactedUsers = new Set<string>();
 
 export default async (bot: DiscordBot) => {
 	const data = await bot.container.getService("Data");
+	const mk = await bot.container.getService("Markov");
 	const db = await (await bot.container.getService("SQL")).getLocalDatabase();
 	db.exec("CREATE TABLE IF NOT EXISTS media_urls (url VARCHAR(255) NOT NULL UNIQUE);");
 	const now = Date.now();
@@ -201,10 +201,9 @@ export default async (bot: DiscordBot) => {
 		const shouldSendEmoji = Math.random() <= EMOJI_REPLY_FREQ;
 		const shat = await Shat({
 			msg: shouldUseAuthor
-				? (options.msg?.author.globalName?.toLowerCase() ??
-					options.msg?.author.username?.toLowerCase())
+				? ((await mk.exists(options.msg?.author.globalName?.toLowerCase())) ??
+					(await mk.exists(options.msg?.author.username?.toLowerCase())))
 				: options.msg?.content,
-			fallback: shouldUseAuthor ? options.msg?.content : undefined,
 			forceImage: options.forceImage,
 			forceReply: options.forceReply,
 			forceMessage: shouldSendSticker
@@ -262,9 +261,7 @@ export default async (bot: DiscordBot) => {
 		const prefix = selection.ctx[(Math.random() * selection.ctx.length) | 0];
 
 		if (prefix !== "custom") {
-			const sentence = await (
-				await bot.container.getService("Markov")
-			).generate(prefix, {
+			const sentence = await mk.generate(prefix, {
 				continuation: false,
 			});
 
@@ -283,7 +280,7 @@ export default async (bot: DiscordBot) => {
 						: joint + sentence;
 			}
 		}
-		const state = (await (await bot.container.getService("Markov")).generate()) ?? "wtf";
+		const state = (await mk.generate()) ?? "wtf";
 
 		lastSetActivity = {
 			name: status,
@@ -381,12 +378,10 @@ export default async (bot: DiscordBot) => {
 			!lastReactedUsers.has(user.id) &&
 			Math.random() <= (reaction.emoji.name === "h_" ? 0.01 : MSG_REPLY_REACTION_FREQ)
 		) {
-			const mk = await (
-				await bot.container.getService("Markov")
-			).generate(reaction.emoji.toString());
-			if (mk) {
+			const theFunny = await mk.generate(reaction.emoji.toString());
+			if (theFunny) {
 				await (message.channel as Discord.TextChannel)
-					.send(`${user.mention} ` + mk)
+					.send(`${user.mention} ` + theFunny)
 					.catch();
 			}
 			lastReactedMessages.add(message.id);
