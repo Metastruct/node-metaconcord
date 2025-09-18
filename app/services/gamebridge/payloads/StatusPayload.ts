@@ -246,6 +246,24 @@ export default class StatusPayload extends Payload {
 					}
 				);
 			}
+
+			container.components.push(
+				{ type: Discord.ComponentType.Separator },
+				{
+					type: Discord.ComponentType.ActionRow,
+					components: [
+						{
+							type: Discord.ComponentType.Button,
+							style: Discord.ButtonStyle.Link,
+							label: "Connect",
+							url: `https://metastruct.net/${
+								server.config.label ? "join/" + server.config.label : ""
+							}`,
+						},
+					],
+				}
+			);
+
 			// footer
 			container.components.push(
 				{ type: Discord.ComponentType.Separator },
@@ -254,20 +272,6 @@ export default class StatusPayload extends Payload {
 					content: `-# ${gamemodeName}`,
 				}
 			);
-
-			container.components.push({
-				type: Discord.ComponentType.ActionRow,
-				components: [
-					{
-						type: Discord.ComponentType.Button,
-						style: Discord.ButtonStyle.Link,
-						label: "Connect",
-						url: `https://metastruct.net/${
-							server.config.label ? "join/" + server.config.label : ""
-						}`,
-					},
-				],
-			});
 
 			if (mapThumbnail && server.discordBanner !== mapThumbnail) {
 				server.changeBanner(mapThumbnail);
