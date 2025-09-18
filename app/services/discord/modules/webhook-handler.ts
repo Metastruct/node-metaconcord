@@ -521,7 +521,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				text.setContent(`# [Chatsound Update](${commit.url})`)
 			);
 
-			container.addSeparatorComponents(sep => sep);
+			container.addSeparatorComponents();
 
 			const addedSounds = GroupSoundFilesByFolder(commit.added ?? []);
 			const removedSounds = GroupSoundFilesByFolder(commit.removed ?? []);
@@ -539,7 +539,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					)
 				);
 
-				container.addSeparatorComponents(sep => sep);
+				container.addSeparatorComponents();
 			}
 			if (commit.removed && removedSounds.size > 0) {
 				container.addTextDisplayComponents(text =>
@@ -552,7 +552,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					)
 				);
 
-				container.addSeparatorComponents(sep => sep);
+				container.addSeparatorComponents();
 			}
 			if (commit.modified && modifiedSounds.size > 0) {
 				container.addTextDisplayComponents(text =>
@@ -565,7 +565,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					)
 				);
 
-				container.addSeparatorComponents(sep => sep);
+				container.addSeparatorComponents();
 			}
 			container.addTextDisplayComponents(text =>
 				text.setContent(
