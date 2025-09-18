@@ -208,11 +208,13 @@ export default class GameBridge extends Service {
 						);
 
 						if (count > 0) {
-							container.addSeparatorComponents();
+							container.addSeparatorComponents(sep => sep);
 							container.addMediaGalleryComponents(gallery =>
 								gallery.addItems(item => item.setURL("attachment://players.png"))
 							);
 						}
+
+						container.addSeparatorComponents(sep => sep);
 
 						container.addActionRowComponents(row =>
 							row.setComponents(
@@ -223,7 +225,7 @@ export default class GameBridge extends Service {
 							)
 						);
 
-						container.addSectionComponents();
+						container.addSeparatorComponents(sep => sep);
 
 						container.addTextDisplayComponents(text =>
 							text.setContent("-# metastruct @ Resonite")
