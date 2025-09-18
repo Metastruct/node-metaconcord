@@ -25,10 +25,12 @@ export class DiscordBot extends Service {
 		allowedMentions: { parse: ["users", "roles"] },
 		intents: [
 			"Guilds",
-			"GuildEmojisAndStickers",
+			"GuildExpressions",
 			"GuildMembers",
 			"GuildMessages",
+			"GuildMessagePolls",
 			"GuildMessageReactions",
+			"GuildMessageTyping",
 			"GuildModeration",
 			"GuildPresences",
 			"GuildScheduledEvents",
