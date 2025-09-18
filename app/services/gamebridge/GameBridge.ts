@@ -201,7 +201,7 @@ export default class GameBridge extends Service {
 								.addTextDisplayComponents(text => text.setContent(desc))
 								.setThumbnailAccessory(accessory =>
 									accessory
-										.setURL("attachment://thumb.png")
+										.setURL(mapThumbnail)
 										.setDescription(session.tags.join())
 								)
 						);
@@ -257,9 +257,6 @@ export default class GameBridge extends Service {
 									new Discord.AttachmentBuilder(server.playerListImage).setName(
 										"players.png"
 									),
-									new Discord.AttachmentBuilder(mapThumbnail).setName(
-										"thumb.png"
-									),
 								],
 								flags: Discord.MessageFlags.IsComponentsV2,
 							});
@@ -269,9 +266,6 @@ export default class GameBridge extends Service {
 								files: [
 									new Discord.AttachmentBuilder(server.playerListImage).setName(
 										"players.png"
-									),
-									new Discord.AttachmentBuilder(mapThumbnail).setName(
-										"thumb.png"
 									),
 								],
 								flags: Discord.MessageFlags.IsComponentsV2,
