@@ -54,7 +54,7 @@ export type ResoniteSession = {
 			userSessionId: unknown;
 			isPresent: boolean;
 			outputDevice: unknown;
-		}
+		},
 	];
 	thumbnailUrl: string;
 	joinedUsers: number;

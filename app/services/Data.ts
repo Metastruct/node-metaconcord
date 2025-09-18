@@ -41,7 +41,7 @@ export class Data extends Service {
 		"lastDiscordGuildIcon",
 		"lastDiscordNickName",
 		"lastResoniteToken",
-		"lastResoniteTime",
+		"lastResoniteTokenTime",
 		"lastMotd",
 		"lastMsgTime",
 		"muted",
