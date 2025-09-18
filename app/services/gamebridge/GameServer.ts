@@ -14,7 +14,7 @@ export type GameServerConfig = {
 	defaultGamemode?: string;
 	discordToken: string;
 	id: number;
-	ip: string;
+	ip?: string;
 	label?: string;
 	name: string;
 	ssh?: {
