@@ -125,108 +125,109 @@ export default class GameBridge extends Service {
 			.catch();
 
 		con.on("ReceiveSessionUpdate", async (session: ResoniteSession) => {
-			const server = this.servers[id];
-			if (!server) return;
-			if (session.hostUserId === resonite.UserID) {
-				const discord = server.discord;
-				if (discord.ready) {
-					const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
-					if (!guild) return;
-					const channel = guild.channels.cache.get(
-						config.serverInfoChannelId
-					) as Discord.TextChannel;
-					if (!channel) return;
+			try {
+				const server = this.servers[id];
+				if (!server) throw new Error("Server not found");
+				if (session.hostUserId === resonite.UserID) {
+					const discord = server.discord;
+					if (discord.ready) {
+						const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
+						if (!guild) throw new Error("Guild not found");
 
-					const count = session.activeUsers;
+						const channel = guild.channels.cache.get(
+							config.serverInfoChannelId
+						) as Discord.TextChannel;
+						if (!channel) throw new Error("Channel not found");
 
-					const presence: Discord.PresenceData =
-						count > 0
-							? {
-									status: "online",
-									activities: [
-										{
-											name: `${count} player${count !== 1 ? "s" : ""}`,
-											type: 3,
-										},
-									],
-								}
-							: {
-									status: "idle",
-									afk: true,
-									activities: [],
+						const count = session.activeUsers;
+
+						const presence: Discord.PresenceData =
+							count > 0
+								? {
+										status: "online",
+										activities: [
+											{
+												name: `${count} player${count !== 1 ? "s" : ""}`,
+												type: 3,
+											},
+										],
+									}
+								: {
+										status: "idle",
+										afk: true,
+										activities: [],
+									};
+
+						discord.user?.setPresence(presence);
+
+						const mapThumbnail = session.thumbnailUrl;
+						server.changeBanner(mapThumbnail);
+						server.status.mapThumbnail = mapThumbnail;
+
+						server.status.players = session.sessionUsers
+							.filter(u => u.userID !== resonite.UserID)
+							.map(sessionUser => {
+								return {
+									nick: sessionUser.username,
+									isAfk: !sessionUser.isPresent,
+									accountId: 0,
+									isAdmin: false,
+									isBanned: false,
+									ip: sessionUser.userID,
+									avatar: undefined,
 								};
+							});
 
-					discord.user?.setPresence(presence);
-
-					const mapThumbnail = session.thumbnailUrl;
-					server.changeBanner(mapThumbnail);
-					server.status.mapThumbnail = mapThumbnail;
-
-					server.status.players = session.sessionUsers
-						.filter(u => u.userID !== resonite.UserID)
-						.map(sessionUser => {
-							return {
-								nick: sessionUser.username,
-								isAfk: !sessionUser.isPresent,
-								accountId: 0,
-								isAdmin: false,
-								isBanned: false,
-								ip: sessionUser.userID,
-								avatar: undefined,
-							};
-						});
-
-					server.status.players.forEach(
-						async u => (u.avatar = await resonite.GetResoniteUserAvatarURL(u.ip))
-					);
-
-					const container = new Discord.ContainerBuilder();
-
-					container.setAccentColor(4796260);
-
-					const desc =
-						`### ${session.tags[0] ?? session.name}\n` +
-						`:busts_in_silhouette: Player${
-							count > 1 || count == 0 ? "s" : ""
-						}: **${count}**\n` +
-						`:repeat: Last Update: <t:${
-							(new Date(session.lastUpdate).getTime() / 1000) | 0
-						}:R\n` +
-						`:file_cabinet: Server up since: <t:${(new Date(session.sessionBeginTime).getTime() / 1000) | 0}:R>`;
-
-					container.addSectionComponents(section =>
-						section
-							.addTextDisplayComponents(text => text.setContent(desc))
-							.setThumbnailAccessory(accessory =>
-								accessory
-									.setURL("attachment://thumb.png")
-									.setDescription(session.tags.join())
-							)
-					);
-
-					if (count > 0) {
-						container.addSeparatorComponents();
-						container.addMediaGalleryComponents(gallery =>
-							gallery.addItems(item => item.setURL("attachment://players.png"))
+						server.status.players.forEach(
+							async u => (u.avatar = await resonite.GetResoniteUserAvatarURL(u.ip))
 						);
-					}
 
-					container.addActionRowComponents(row =>
-						row.setComponents(
-							new Discord.ButtonBuilder()
-								.setStyle(Discord.ButtonStyle.Link)
-								.setLabel("Connect")
-								.setURL(`https://go.resonite.com/session/${session.sessionId}`)
-						)
-					);
+						const container = new Discord.ContainerBuilder();
 
-					container.addSectionComponents();
+						container.setAccentColor(4796260);
 
-					container.addTextDisplayComponents(text =>
-						text.setContent("-# metastruct @ Resonite")
-					);
+						const desc =
+							`### ${session.tags[0] ?? session.name}\n` +
+							`:busts_in_silhouette: Player${
+								count > 1 || count == 0 ? "s" : ""
+							}: **${count}**\n` +
+							`:repeat: Last Update: <t:${
+								(new Date(session.lastUpdate).getTime() / 1000) | 0
+							}:R\n` +
+							`:file_cabinet: Server up since: <t:${(new Date(session.sessionBeginTime).getTime() / 1000) | 0}:R>`;
 
-					try {
+						container.addSectionComponents(section =>
+							section
+								.addTextDisplayComponents(text => text.setContent(desc))
+								.setThumbnailAccessory(accessory =>
+									accessory
+										.setURL("attachment://thumb.png")
+										.setDescription(session.tags.join())
+								)
+						);
+
+						if (count > 0) {
+							container.addSeparatorComponents();
+							container.addMediaGalleryComponents(gallery =>
+								gallery.addItems(item => item.setURL("attachment://players.png"))
+							);
+						}
+
+						container.addActionRowComponents(row =>
+							row.setComponents(
+								new Discord.ButtonBuilder()
+									.setStyle(Discord.ButtonStyle.Link)
+									.setLabel("Connect")
+									.setURL(`https://go.resonite.com/session/${session.sessionId}`)
+							)
+						);
+
+						container.addSectionComponents();
+
+						container.addTextDisplayComponents(text =>
+							text.setContent("-# metastruct @ Resonite")
+						);
+
 						const html = pug.renderFile(
 							path.join(process.cwd(), "resources/game-server-status/view.pug"),
 							{
@@ -250,40 +251,36 @@ export default class GameBridge extends Service {
 							.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
 							.first();
 						if (message) {
-							await message
-								.edit({
-									components: [container],
-									files: [
-										new Discord.AttachmentBuilder(
-											server.playerListImage
-										).setName("players.png"),
-										new Discord.AttachmentBuilder(mapThumbnail).setName(
-											"thumb.png"
-										),
-									],
-									flags: Discord.MessageFlags.IsComponentsV2,
-								})
-								.catch();
+							await message.edit({
+								components: [container],
+								files: [
+									new Discord.AttachmentBuilder(server.playerListImage).setName(
+										"players.png"
+									),
+									new Discord.AttachmentBuilder(mapThumbnail).setName(
+										"thumb.png"
+									),
+								],
+								flags: Discord.MessageFlags.IsComponentsV2,
+							});
 						} else {
-							channel
-								.send({
-									components: [container],
-									files: [
-										new Discord.AttachmentBuilder(
-											server.playerListImage
-										).setName("players.png"),
-										new Discord.AttachmentBuilder(mapThumbnail).setName(
-											"thumb.png"
-										),
-									],
-									flags: Discord.MessageFlags.IsComponentsV2,
-								})
-								.catch();
+							channel.send({
+								components: [container],
+								files: [
+									new Discord.AttachmentBuilder(server.playerListImage).setName(
+										"players.png"
+									),
+									new Discord.AttachmentBuilder(mapThumbnail).setName(
+										"thumb.png"
+									),
+								],
+								flags: Discord.MessageFlags.IsComponentsV2,
+							});
 						}
-					} catch (error) {
-						console.error("GameBridge:Resonite", error);
 					}
 				}
+			} catch (error) {
+				console.log("GameBridge:Resonite", error);
 			}
 		});
 
