@@ -139,7 +139,7 @@ export default class GameBridge extends Service {
 						) as Discord.TextChannel;
 						if (!channel) throw new Error("Channel not found");
 
-						const count = session.activeUsers;
+						const count = session.joinedUsers;
 
 						const presence: Discord.PresenceData =
 							count > 0
@@ -191,7 +191,7 @@ export default class GameBridge extends Service {
 							`### ${session.tags[0] ?? session.name}\n` +
 							`:busts_in_silhouette: Player${
 								count > 1 || count == 0 ? "s" : ""
-							}: **${count}/${session.joinedUsers}**\n` +
+							}: **${session.activeUsers}/${count}**\n` +
 							`:repeat: Last Update: <t:${
 								(new Date(session.lastUpdate).getTime() / 1000) | 0
 							}:R>\n` +
