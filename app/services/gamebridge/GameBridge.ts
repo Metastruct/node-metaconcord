@@ -160,7 +160,8 @@ export default class GameBridge extends Service {
 
 						discord.user?.setPresence(presence);
 
-						const mapThumbnail = session.thumbnailUrl;
+						const mapThumbnail =
+							session.thumbnailUrl ?? "https://metastruct.net/img/logo.png";
 						server.changeBanner(mapThumbnail);
 						server.status.mapThumbnail = mapThumbnail;
 
@@ -190,10 +191,10 @@ export default class GameBridge extends Service {
 							`### ${session.tags[0] ?? session.name}\n` +
 							`:busts_in_silhouette: Player${
 								count > 1 || count == 0 ? "s" : ""
-							}: **${count}**\n` +
+							}: **${count}/${session.joinedUsers}**\n` +
 							`:repeat: Last Update: <t:${
 								(new Date(session.lastUpdate).getTime() / 1000) | 0
-							}:R\n` +
+							}:R>\n` +
 							`:file_cabinet: Server up since: <t:${(new Date(session.sessionBeginTime).getTime() / 1000) | 0}:R>`;
 
 						container.addSectionComponents(section =>
