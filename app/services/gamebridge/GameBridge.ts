@@ -10,6 +10,10 @@ import { server as WebSocketServer } from "websocket";
 import GameServer from "./GameServer.js";
 import config from "@/config/gamebridge.json" with { type: "json" };
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
+import resoniteConfig from "@/config/resonite.json" with { type: "json" };
+import pug from "pug";
+import path from "path";
+import nodeHtmlToImage from "node-html-to-image";
 
 export default class GameBridge extends Service {
 	name = "GameBridge";
@@ -51,7 +55,7 @@ export default class GameBridge extends Service {
 
 		console.log(`Web socket server listening on ${this.webApp.config.port}`);
 		this.ready = true;
-		// this.handleResoniteConnection();
+		this.handleResoniteConnection();
 	}
 
 	async handleConnection(req: WebSocketRequest): Promise<void> {
@@ -108,12 +112,13 @@ export default class GameBridge extends Service {
 			.then(() => {
 				const server = (this.servers[id] = new GameServer({
 					bridge: this,
-					serverConfig: servers.find(s => s.id === id) as GameServerConfig,
+					serverConfig: {
+						name: "#resonite 🇪🇺",
+						id,
+						discordToken: resoniteConfig.discordToken,
+					},
 				}));
 				server.discord.on("clientReady", () => {
-					server.changeIcon(
-						"https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull_resonite.png?&inline=true"
-					);
 					if (server.status.mapThumbnail) server.changeBanner(server.status.mapThumbnail);
 				});
 			})
@@ -153,7 +158,9 @@ export default class GameBridge extends Service {
 
 					discord.user?.setPresence(presence);
 
-					server.status.mapThumbnail = session.thumbnailUrl;
+					const mapThumbnail = session.thumbnailUrl;
+					server.changeBanner(mapThumbnail);
+					server.status.mapThumbnail = mapThumbnail;
 
 					server.status.players = session.sessionUsers
 						.filter(u => u.userID !== resonite.UserID)
@@ -173,42 +180,108 @@ export default class GameBridge extends Service {
 						async u => (u.avatar = await resonite.GetResoniteUserAvatarURL(u.ip))
 					);
 
-					const embed: Discord.APIEmbed = {
-						title: session.name,
-						description: `:busts_in_silhouette: **${count > 0 ? count : "no"} player${
+					const container = new Discord.ContainerBuilder();
+
+					container.setAccentColor(4796260);
+
+					const desc =
+						`### ${session.tags[0] ?? session.name}\n` +
+						`:busts_in_silhouette: Player${
 							count > 1 || count == 0 ? "s" : ""
-						}**\n:repeat: <t:${
+						}: **${count}**\n` +
+						`:repeat: Last Update: <t:${
 							(new Date(session.lastUpdate).getTime() / 1000) | 0
-						}:R>\n:file_cabinet: <t:${
-							(new Date(session.sessionBeginTime).getTime() / 1000) | 0
-						}:R>`,
-						color: 4796260,
-						author: {
-							name: server.config.name,
-							icon_url: server.discordIcon,
-							url: `https://go.resonite.com/session/${session.sessionId}`,
-						},
-						thumbnail: { url: session.thumbnailUrl },
-						footer: {
-							text: "metastruct @ Resonite",
-						},
-					};
+						}:R\n` +
+						`:file_cabinet: Server up since: <t:${(new Date(session.sessionBeginTime).getTime() / 1000) | 0}:R>`;
 
-					if (server.status.players.length > 0)
-						embed.image = {
-							url: `http://${server.bridge.webApp.config.host}:${
-								server.bridge.webApp.config.port
-							}/server-status/${server.config.id}/${Date.now()}`,
-						};
+					container.addSectionComponents(section =>
+						section
+							.addTextDisplayComponents(text => text.setContent(desc))
+							.setThumbnailAccessory(accessory =>
+								accessory
+									.setURL("attachment://thumb.png")
+									.setDescription(session.tags.join())
+							)
+					);
 
-					const messages = await channel.messages.fetch();
-					const message = messages
-						.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
-						.first();
-					if (message) {
-						await message.edit({ embeds: [embed] }).catch();
-					} else {
-						channel.send({ embeds: [embed] }).catch();
+					if (count > 0) {
+						container.addSeparatorComponents();
+						container.addMediaGalleryComponents(gallery =>
+							gallery.addItems(item => item.setURL("attachment://players.png"))
+						);
+					}
+
+					container.addActionRowComponents(row =>
+						row.setComponents(
+							new Discord.ButtonBuilder()
+								.setStyle(Discord.ButtonStyle.Link)
+								.setLabel("Connect")
+								.setURL(`https://go.resonite.com/session/${session.sessionId}`)
+						)
+					);
+
+					container.addSectionComponents();
+
+					container.addTextDisplayComponents(text =>
+						text.setContent("-# metastruct @ Resonite")
+					);
+
+					try {
+						const html = pug.renderFile(
+							path.join(process.cwd(), "resources/game-server-status/view.pug"),
+							{
+								server,
+								mapThumbnail,
+								image: true,
+							}
+						);
+
+						server.playerListImage = (await nodeHtmlToImage({
+							html,
+							transparent: true,
+							selector: "main",
+							puppeteerArgs: {
+								args: ["--no-sandbox"],
+							},
+						})) as Buffer;
+
+						const messages = await channel.messages.fetch();
+						const message = messages
+							.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
+							.first();
+						if (message) {
+							await message
+								.edit({
+									components: [container],
+									files: [
+										new Discord.AttachmentBuilder(
+											server.playerListImage
+										).setName("players.png"),
+										new Discord.AttachmentBuilder(mapThumbnail).setName(
+											"thumb.png"
+										),
+									],
+									flags: Discord.MessageFlags.IsComponentsV2,
+								})
+								.catch();
+						} else {
+							channel
+								.send({
+									components: [container],
+									files: [
+										new Discord.AttachmentBuilder(
+											server.playerListImage
+										).setName("players.png"),
+										new Discord.AttachmentBuilder(mapThumbnail).setName(
+											"thumb.png"
+										),
+									],
+									flags: Discord.MessageFlags.IsComponentsV2,
+								})
+								.catch();
+						}
+					} catch (error) {
+						console.error("GameBridge:Resonite", error);
 					}
 				}
 			}
