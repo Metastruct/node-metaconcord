@@ -128,7 +128,7 @@ export default class GameBridge extends Service {
 			try {
 				const server = this.servers[id];
 				if (!server) throw new Error("Server not found");
-				if (session.hostUserId === resonite.UserID) {
+				if (session.hostUserId === resonite.UserID && session.joinedUsers > 0) {
 					const discord = server.discord;
 					if (discord.ready) {
 						const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
