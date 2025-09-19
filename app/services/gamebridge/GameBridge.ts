@@ -124,13 +124,18 @@ export default class GameBridge extends Service {
 			})
 			.catch();
 
+		let lastCount = 1;
 		con.on("ReceiveSessionUpdate", async (session: ResoniteSession) => {
 			try {
 				const server = this.servers[id];
 				if (!server) throw new Error("Server not found");
-				if (session.hostUserId === resonite.UserID && session.joinedUsers > 0) {
+				if (session.hostUserId === resonite.UserID) {
 					const discord = server.discord;
-					if (discord.ready) {
+					const count = session.joinedUsers;
+
+					// update until last person leaves
+					if (discord.ready && (lastCount !== count || count !== 0)) {
+						lastCount = count;
 						const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 						if (!guild) throw new Error("Guild not found");
 
@@ -138,8 +143,6 @@ export default class GameBridge extends Service {
 							config.serverInfoChannelId
 						) as Discord.TextChannel;
 						if (!channel) throw new Error("Channel not found");
-
-						const count = session.joinedUsers;
 
 						const presence: Discord.PresenceData =
 							count > 0
