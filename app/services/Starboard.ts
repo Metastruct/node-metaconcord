@@ -73,9 +73,13 @@ export class Starboard extends Service {
 		if (this.isBusy) return;
 
 		try {
+			const message = reaction.message;
+
+			const channel = message.channel as Discord.GuildChannel;
 			const client = reaction.client;
-			const channel = reaction.message.channel as Discord.GuildChannel;
+			const emoji = reaction.emoji;
 			const parent = channel.parentId;
+			const users = reaction.users;
 
 			if (config.channelIgnores.includes(channel.id)) return;
 			if (parent && config.categoryIgnores.includes(parent)) return;
@@ -88,7 +92,7 @@ export class Starboard extends Service {
 			let title: string | undefined;
 			let shouldReact = false;
 
-			if (reaction.emoji.name !== STARBOARD_CONFIG.DEFAULT_EMOTE) {
+			if (emoji.name !== STARBOARD_CONFIG.DEFAULT_EMOTE) {
 				switch (parent) {
 					// the parent of a thread is the main channel, so we sadly can't get the category without fetching, so much for dry
 					case discordConfig.channels.postYourStuff:
@@ -96,9 +100,8 @@ export class Starboard extends Service {
 						shouldReact = true;
 						needed = 6;
 						title =
-							reaction.message.channel.isThread() &&
-							reaction.message.id === reaction.message.channel.id
-								? reaction.message.channel.name
+							message.channel.isThread() && message.id === message.channel.id
+								? message.channel.name
 								: undefined;
 						targetChannel = client.channels.cache.get(discordConfig.channels.hArt);
 						break;
@@ -116,18 +119,22 @@ export class Starboard extends Service {
 				}
 			}
 
-			const ego = reaction.message.author
-				? reaction.users.cache.has(reaction.message.author.id)
-				: false;
+			const ego = message.author ? users.cache.has(message.author.id) : false;
 			const count = ego ? reaction.count - 1 : reaction.count;
 
 			if (
 				count >= needed &&
 				!this.isBusy &&
-				(emojiFilter ? emojiFilter.includes(reaction.emoji.name ?? "") : true)
+				(emojiFilter ? emojiFilter.includes(emoji.name ?? "") : true) &&
+				!message.reactions.cache.find(
+					e =>
+						e.emoji.name === "⛔" &&
+						message.author &&
+						e.users.cache.has(message.author.id)
+				)
 			) {
 				this.isBusy = true;
-				const msg = await reaction.message.fetch();
+				const msg = await message.fetch();
 				if (!msg) {
 					console.error("[Starboard] couldn't fetch message", reaction);
 					this.isBusy = false;
@@ -222,7 +229,7 @@ export class Starboard extends Service {
 						.catch();
 					if (starred) {
 						await this.starMsg(msg.id);
-						if (shouldReact) await starred.react(reaction.emoji);
+						if (shouldReact) await starred.react(emoji);
 					}
 				}
 
