@@ -150,7 +150,7 @@ export default class GameBridge extends Service {
 										status: "online",
 										activities: [
 											{
-												name: `${count === 1 ? "a" : ""} player${count !== 1 ? "s" : ""}`,
+												name: `${count === 1 ? "a" : count} player${count !== 1 ? "s" : ""}`,
 												type: 3,
 											},
 										],
