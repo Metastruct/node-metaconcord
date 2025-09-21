@@ -52,12 +52,12 @@ export default class NotificationPayload extends Payload {
 							reason?.includes("Player left")
 								? "🏃‍♂️"
 								: reason?.includes("not enough coins")
-								? "💲"
-								: reason?.includes("caller has left")
-								? "🤦‍♂️"
-								: reason?.includes("Vote was aborted")
-								? "⛔"
-								: "❌"
+									? "💲"
+									: reason?.includes("caller has left")
+										? "🤦‍♂️"
+										: reason?.includes("Vote was aborted")
+											? "⛔"
+											: "❌"
 						)
 					);
 				}
@@ -69,12 +69,12 @@ export default class NotificationPayload extends Payload {
 						reason?.includes("Player left")
 							? "🏃‍♂️"
 							: reason?.includes("not enough coins")
-							? "💲"
-							: reason?.includes("caller has left")
-							? "🤦‍♂️"
-							: reason?.includes("Vote was aborted")
-							? "⛔"
-							: "❌"
+								? "💲"
+								: reason?.includes("caller has left")
+									? "🤦‍♂️"
+									: reason?.includes("Vote was aborted")
+										? "⛔"
+										: "❌"
 					)
 				);
 				return;
@@ -85,7 +85,9 @@ export default class NotificationPayload extends Payload {
 		if (message.trim().length < 1) message = "No reason provided..?";
 
 		const reporterSteamId64 = new SteamID(reporter.steamID).getSteamID64();
-		const offenderSteamId64 = new SteamID(offender.steamID).getSteamID64();
+		const offenderSteamId64 = offender.steamID.startsWith("STEAM")
+			? new SteamID(offender.steamID).getSteamID64()
+			: offender.steamID;
 		const reporterAvatar = await steam.getUserAvatar(reporterSteamId64);
 		const offenderAvatar = await steam.getUserAvatar(offenderSteamId64);
 
