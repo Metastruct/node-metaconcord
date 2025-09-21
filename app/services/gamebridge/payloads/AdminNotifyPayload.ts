@@ -85,7 +85,9 @@ export default class AdminNotifyPayload extends Payload {
 		if (!thread) return;
 
 		const steamId64 = new SteamID(player.steamId).getSteamID64();
-		const reportedSteamId64 = new SteamID(reported.steamId).getSteamID64();
+		const reportedSteamId64 = reported.steamId.startsWith("STEAM")
+			? new SteamID(reported.steamId).getSteamID64()
+			: reported.steamId;
 		const steam = await bridge.container.getService("Steam");
 		const avatar = await steam.getUserAvatar(steamId64);
 		const reportedAvatar = await steam.getUserAvatar(reportedSteamId64);
