@@ -72,7 +72,7 @@ export default class GameServer {
 		this.config = config.serverConfig;
 		this.bridge = config.bridge;
 		this.discord = new DiscordClient(this, {
-			intents: ["Guilds", "GuildMessages"],
+			intents: ["Guilds", "GuildMessages", "MessageContent"],
 		});
 
 		this.discord.run(this.config.discordToken);
