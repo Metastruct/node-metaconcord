@@ -80,9 +80,9 @@ export const getAsBase64 = async (url: string): Promise<string | null> => {
 
 interface GithubResponse {
 	repository: {
-		content: {
+		object: {
 			text: string;
-		};
+		} | null;
 	};
 }
 interface GitlabResponse {
@@ -115,26 +115,13 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 			const provider = url.match(/([^\.\/]+)\.com/);
 			if (!provider) return;
 			const isGithub = provider[1] === "github";
-			const endpoint = isGithub
-				? "https://api.github.com/graphql"
-				: "https://gitlab.com/api/graphql";
+			const gitlabEndpoint = "https://gitlab.com/api/graphql";
 			const repo = addon;
 			const owner = url.match(/\.com\/(.+?)\//);
 			const branch = url.split("/").at(-2);
 
 			if (!owner) return;
-			const query = isGithub
-				? gql`{
-			repository(owner:"${owner[1]}", name:"${repo}") {
-				content: object(expression:"${branch}:${path}") {
-					... on Blob {
-						text
-					}
-				}
-			}
-	}
-	`
-				: gql`{
+			const query = gql`{
 		project(fullPath:"${url.match(/\.com\/(.+?)\/\-/)?.[1]}") {
 			repository {
 				blobs(paths:"${path}"){
@@ -145,23 +132,40 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 	}
 	`;
 			try {
-				const data = await request<GithubResponse | GitlabResponse>(
-					endpoint,
-					query,
-					{},
-					{
-						authorization: `Bearer ${isGithub ? apikeys.github : apikeys.gitlab}`,
+				if (isGithub) {
+					const github = await globalThis.MetaConcord.container.getService("Github");
+					const request: { data: GithubResponse } = await github.octokit.graphql(
+						`query text($owner: String!, $repo: String!) {
+							repository(owner: $owner, name: $repo) {
+								object(expression: "${branch ?? "HEAD"}:${path}") {
+								... on Blob {
+									text
+								}
+							}
+						}`,
+						{ owner, repo }
+					);
+					if (request.data.repository.object?.text)
+						return request.data.repository.object.text;
+					return;
+				} else {
+					const data = await request<GithubResponse | GitlabResponse>(
+						gitlabEndpoint,
+						query,
+						{},
+						{
+							authorization: `Bearer ${apikeys.gitlab}`,
+						}
+					);
+					if (data) {
+						const filecontent = (data as GitlabResponse).project.repository.blobs
+							.nodes[0].rawTextBlob;
+						return linenos
+							? getStackLines(filecontent, Number(linenos), Number(linenoe))
+							: filecontent;
 					}
-				);
-				if (data) {
-					const filecontent = isGithub
-						? (data as GithubResponse).repository.content.text
-						: (data as GitlabResponse).project.repository.blobs.nodes[0].rawTextBlob;
-					return linenos
-						? getStackLines(filecontent, Number(linenos), Number(linenoe))
-						: filecontent;
+					return;
 				}
-				return;
 			} catch (err) {
 				console.error(JSON.stringify(err, undefined, 2));
 				return;

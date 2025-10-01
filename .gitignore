@@ -10,6 +10,7 @@ resources/game-server-status/style.css
 
 # Our files
 .env
+*.pem
 *.json
 !*.example.json
 deploy.sh
