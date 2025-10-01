@@ -431,13 +431,12 @@ export default async (bot: DiscordBot) => {
 				(!isAllowedChannel && (isTriggerWord || isMaybeTriggerWord || isMention)))
 		) {
 			setTimeout(async () => {
-				let maybeMsg: Discord.Message<boolean>;
 				try {
-					maybeMsg = await msg.fetch();
+					const maybeMsg = await msg.fetch();
+					if (maybeMsg) msg.react(getRandomEmoji()).catch();
 				} catch {
 					return;
 				}
-				if (maybeMsg) msg.react(getRandomEmoji()).catch();
 			}, 1000 * 10);
 		}
 
@@ -466,7 +465,9 @@ export default async (bot: DiscordBot) => {
 				);
 				data.lastMsgTime = lastMsgTime = Date.now();
 			} else {
-				msg.react(getRandomEmoji()).catch();
+				try {
+					msg.react(getRandomEmoji()).catch();
+				} catch {}
 			}
 		}
 
