@@ -167,11 +167,10 @@ export default class StatusPayload extends Payload {
 				count > 1 || count == 0 ? "s" : ""
 			}: **${count}**`;
 
-			// Map and Server Uptime
+			// Server Uptime
 			const servertime = dayjs().subtract(current_serverUptime, "s").unix();
-			const maptime = dayjs().subtract(current_mapUptime, "s").unix();
 
-			desc += `\n:repeat: Map up since: <t:${maptime}:R>`;
+			desc += `\n:repeat: Last Update: <t:${dayjs().unix()}:R>`;
 			desc += `\n:file_cabinet: Server up since: <t:${servertime}:R>`;
 			if (current_countdown)
 				desc += `\n<a:ALERTA:843518761160015933> \`${current_countdown.text} in ${current_countdown.time} seconds\` <a:ALERTA:843518761160015933>`;
