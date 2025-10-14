@@ -81,8 +81,9 @@ export default class StatusPayload extends Payload {
 		} = payload.data;
 		const { bridge, discord } = server;
 		const {
-			config: { port },
+			config: { port, url },
 		} = bridge.webApp;
+		const statusApiUri = `http://0.0.0.0:${port}/server-status/${server.config.id}/${Date.now()}`;
 		const Steam = await bridge.container.getService("Steam");
 
 		const updateStatus = async () => {
@@ -205,76 +206,58 @@ export default class StatusPayload extends Payload {
 				}
 			}
 
-			const container = {
-				type: Discord.ComponentType.Container,
-				accent_color:
-					current_defcon === 1 || current_countdown
-						? 0xff0000
-						: current_gamemode
-							? (gamemodeExtras?.color ?? null)
-							: null,
-				components: [
-					{
-						type: Discord.ComponentType.Section,
-						components: [
-							{
-								type: Discord.ComponentType.TextDisplay,
-								content: desc,
-							},
-						],
-						accessory: {
-							type: Discord.ComponentType.Thumbnail,
-							media: {
-								url: "attachment://map.png",
-							},
-							description: current_map,
-						},
-					},
-				],
-			} as Discord.APIContainerComponent;
+			const container = new Discord.ContainerBuilder();
+
+			container.setAccentColor(
+				current_defcon === 1 || current_countdown
+					? 0xff0000
+					: current_gamemode
+						? (gamemodeExtras?.color ?? null)
+						: undefined
+			);
+
+			container.addSectionComponents(section =>
+				section
+					.addTextDisplayComponents(text => text.setContent(desc))
+					.setThumbnailAccessory(accessory =>
+						accessory.setURL("attachment://map.png").setDescription(current_map)
+					)
+			);
 
 			if (count > 0) {
-				container.components.push(
-					{ type: Discord.ComponentType.Separator },
-					{
-						type: Discord.ComponentType.MediaGallery,
-						items: [
-							{
-								media: {
-									url: "attachment://players.png",
-								},
-							},
-						],
-					}
+				container.addSectionComponents(sep => sep);
+				container.addMediaGalleryComponents(gallery =>
+					gallery.addItems(item => item.setURL("attachment://players.png"))
+				);
+				container.addTextDisplayComponents(text =>
+					text.setContent(
+						`[Click here to open an interactive version.](${url}/server-status/${
+							server.config.id
+						})`
+					)
 				);
 			}
 
-			container.components.push(
-				{ type: Discord.ComponentType.Separator },
-				{
-					type: Discord.ComponentType.ActionRow,
-					components: [
-						{
-							type: Discord.ComponentType.Button,
-							style: Discord.ButtonStyle.Link,
-							label: "Connect",
-							url: `https://metastruct.net/${
+			container.addSectionComponents(sep => sep);
+
+			container.addActionRowComponents(row =>
+				row.setComponents(
+					new Discord.ButtonBuilder()
+						.setStyle(Discord.ButtonStyle.Link)
+						.setLabel("Connect")
+						.setURL(
+							`https://metastruct.net/${
 								server.config.label ? "join/" + server.config.label : ""
-							}`,
-						},
-					],
-				}
+							}`
+						)
+				)
 			);
 
 			// footer
-			container.components.push(
-				{ type: Discord.ComponentType.Separator },
-				{
-					type: Discord.ComponentType.TextDisplay,
-					content: `-# ${gamemodeName}`,
-				}
-			);
+			container.addSeparatorComponents(sep => sep);
+			container.addTextDisplayComponents(text => text.setContent(`-# ${gamemodeName}`));
 
+			// icons and banners
 			if (mapThumbnail && server.discordBanner !== mapThumbnail) {
 				server.changeBanner(mapThumbnail);
 			}
@@ -293,12 +276,7 @@ export default class StatusPayload extends Payload {
 			server.mapName = current_map;
 			server.mapUptime = current_mapUptime;
 			server.serverUptime = current_serverUptime;
-			server.status.image =
-				(
-					container.components.find(
-						c => c.type === Discord.ComponentType.MediaGallery
-					) as Discord.APIMediaGalleryComponent
-				)?.items[0].media.url ?? null;
+			server.status.image = statusApiUri;
 			server.status.mapThumbnail = mapThumbnail;
 			server.status.players = current_players;
 			server.workshopMap = current_workshopMap;
@@ -335,16 +313,13 @@ export default class StatusPayload extends Payload {
 				const message = messages
 					.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
 					.first();
-				const imageUri = `http://0.0.0.0:${port}/server-status/${
-					server.config.id
-				}/${Date.now()}`;
 
 				if (message) {
 					await message
 						.edit({
 							components: [container],
 							files: [
-								new Discord.AttachmentBuilder(imageUri, {
+								new Discord.AttachmentBuilder(statusApiUri, {
 									name: "players.png",
 								}),
 								new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, {
@@ -359,7 +334,7 @@ export default class StatusPayload extends Payload {
 						.send({
 							components: [container],
 							files: [
-								new Discord.AttachmentBuilder(imageUri, {
+								new Discord.AttachmentBuilder(statusApiUri, {
 									name: "players.png",
 								}),
 								new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, {
