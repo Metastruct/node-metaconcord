@@ -225,7 +225,7 @@ export default class StatusPayload extends Payload {
 			);
 
 			if (count > 0) {
-				container.addSectionComponents(sep => sep);
+				container.addSeparatorComponents(sep => sep);
 				container.addMediaGalleryComponents(gallery =>
 					gallery.addItems(item => item.setURL("attachment://players.png"))
 				);
@@ -238,7 +238,7 @@ export default class StatusPayload extends Payload {
 				);
 			}
 
-			container.addSectionComponents(sep => sep);
+			container.addSeparatorComponents(sep => sep);
 
 			container.addActionRowComponents(row =>
 				row.setComponents(
