@@ -80,6 +80,9 @@ export default class StatusPayload extends Payload {
 			gamemodes,
 		} = payload.data;
 		const { bridge, discord } = server;
+		const {
+			config: { port },
+		} = bridge.webApp;
 		const Steam = await bridge.container.getService("Steam");
 
 		const updateStatus = async () => {
@@ -328,34 +331,20 @@ export default class StatusPayload extends Payload {
 			if (!channel) return;
 
 			try {
-				const html = pug.renderFile(
-					path.join(process.cwd(), "resources/game-server-status/view.pug"),
-					{
-						server,
-						mapThumbnail,
-						image: true,
-					}
-				);
-
-				server.playerListImage = (await nodeHtmlToImage({
-					html,
-					transparent: true,
-					selector: "main",
-					puppeteerArgs: {
-						args: ["--no-sandbox"],
-					},
-				})) as Buffer;
-
 				const messages = await channel.messages.fetch();
 				const message = messages
 					.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
 					.first();
+				const imageUri = `http://0.0.0.0:${port}/server-status/${
+					server.config.id
+				}/${Date.now()}`;
+
 				if (message) {
 					await message
 						.edit({
 							components: [container],
 							files: [
-								new Discord.AttachmentBuilder(server.playerListImage, {
+								new Discord.AttachmentBuilder(imageUri, {
 									name: "players.png",
 								}),
 								new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, {
@@ -370,7 +359,7 @@ export default class StatusPayload extends Payload {
 						.send({
 							components: [container],
 							files: [
-								new Discord.AttachmentBuilder(server.playerListImage, {
+								new Discord.AttachmentBuilder(imageUri, {
 									name: "players.png",
 								}),
 								new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, {
