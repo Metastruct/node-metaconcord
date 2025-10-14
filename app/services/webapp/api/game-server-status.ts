@@ -79,7 +79,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		} else {
 			thumbFilepath = mapThumbnail as string;
 		}
-		const mapThumbnail64 = await imageToDataURL(thumbFilepath);
+		const mapThumbnail64 = thumbFilepath ? await imageToDataURL(thumbFilepath) : "";
 		// #endregion
 
 		const html = pug.renderFile(
