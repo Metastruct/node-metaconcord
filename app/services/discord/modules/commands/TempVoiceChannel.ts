@@ -49,14 +49,12 @@ export const SlashVoiceCommand: SlashCommand = {
 				name: ctx.options.getString("name", true),
 				type: Discord.ChannelType.GuildVoice,
 				parent: bot.config.categories.voiceChat,
+				permissionOverwrites: [
+					{ id: ctx.user.id, allow: ["ManageChannels", "ManageRoles"] },
+				],
 				reason: `temp channel command from <@${ctx.user.id}> (${ctx.user.id})`,
 			});
 			if (channel) {
-				await channel.edit({
-					permissionOverwrites: [
-						{ id: ctx.user.id, allow: ["ManageChannels", "ManageRoles"] },
-					],
-				});
 				pending.push(ctx.user.id);
 				setTimeout(async () => {
 					const updatedChannel = (await bot
