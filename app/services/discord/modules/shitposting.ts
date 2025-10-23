@@ -102,21 +102,37 @@ export const Shat = async (options?: {
 				? { files: [{ attachment: result, description: imgur.title }] }
 				: undefined;
 		} else {
-			let res: AxiosResponse<TenorResponse>;
-			try {
-				res = await (
-					await globalThis.MetaConcord.container.getService("Tenor")
-				).search(word ?? "random", 4);
-			} catch {
+			if (rng <= DISCORD_IMAGE_FREQ) {
+				try {
+					const db = await (
+						await globalThis.MetaConcord.container.getService("SQL")
+					).getLocalDatabase();
+
+					const url = (
+						await db.get<any>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1")
+					).url;
+
+					return { content: url ?? "wtf" };
+				} catch {
+					return { content: "wtf" };
+				}
+			} else {
+				let res: AxiosResponse<TenorResponse>;
+				try {
+					res = await (
+						await globalThis.MetaConcord.container.getService("Tenor")
+					).search(word ?? "random", 4);
+				} catch {
+					return {
+						content: await markov?.generate(), // fallback to msg if tenor failed
+					};
+				}
 				return {
-					content: await markov?.generate(), // fallback to msg if tenor failed
+					content:
+						res.data.results[(Math.random() * res.data.results.length) | 0].url ??
+						"wtf tenor error",
 				};
 			}
-			return {
-				content:
-					res.data.results[(Math.random() * res.data.results.length) | 0].url ??
-					"wtf tenor error",
-			};
 		}
 	}
 };
@@ -204,18 +220,15 @@ export default async (bot: DiscordBot) => {
 				? ((await mk.exists(options.msg?.author.globalName?.toLowerCase())) ??
 					(await mk.exists(options.msg?.author.username?.toLowerCase())))
 				: options.msg?.content,
-			forceImage: options.forceImage,
+			forceImage: shouldSendImg || options.forceImage,
 			forceReply: options.forceReply,
 			forceMessage: shouldSendSticker
 				? ({
 						stickers: [bot.getGuild()?.stickers.cache.random()],
 					} as Discord.MessageCreateOptions)
-				: shouldSendImg
-					? (await db.get<any>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1"))
-							.url
-					: shouldSendEmoji
-						? getRandomEmoji().toString()
-						: undefined,
+				: shouldSendEmoji
+					? getRandomEmoji().toString()
+					: undefined,
 		});
 		if (shat) {
 			if (options.msg) {
