@@ -17,12 +17,13 @@ import { SlashGservCommand } from "./developer/Gserv.js";
 import { SlashKickCommand } from "./developer/Kick.js";
 import { SlashLuaCommand } from "./developer/Lua.js";
 import { SlashMarkovCommand } from "./Markov.js";
+import { SlashRandomImageCommand } from "./Shitposting.js";
 import { SlashRconCommand } from "./developer/Rcon.js";
 import { SlashRefreshLuaCommand } from "./developer/RefreshLua.js";
 import { SlashRoleCommand } from "./Role.js";
 import { SlashRuleCommand } from "./developer/Rules.js";
-import { SlashSQLCommand } from "./developer/SQL.js";
 import { SlashSpeechbubbleCommand } from "./Speechbubble.js";
+import { SlashSQLCommand } from "./developer/SQL.js";
 import { SlashUnBanCommand } from "./developer/UnBan.js";
 import { SlashVoiceCommand } from "./TempVoiceChannel.js";
 import { SlashWhyBanCommand } from "./WhyBan.js";
@@ -46,6 +47,7 @@ export const slashCommands = [
 	SlashDeeplCommand,
 	SlashMarkovCommand,
 	SlashRoleCommand,
+	SlashRandomImageCommand,
 	SlashSpeechbubbleCommand,
 	SlashVoiceCommand,
 	SlashWhyBanCommand,
