@@ -75,7 +75,7 @@ export const Shat = async (options?: {
 
 	const rng = Math.random();
 
-	if (rng > TENOR_IMAGE_FREQ && !options?.forceImage) {
+	if (rng > DISCORD_IMAGE_FREQ && !options?.forceImage) {
 		const message = options?.msg?.replaceAll(`<@${DiscordConfig.bot.userId}> `, "");
 		let search: string | undefined;
 
