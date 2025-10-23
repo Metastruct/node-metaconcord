@@ -212,7 +212,6 @@ export default async (bot: DiscordBot) => {
 		posting = true;
 		if (options.msg) (options.msg.channel as Discord.TextChannel).sendTyping();
 		const shouldUseAuthor = Math.random() <= MSG_USE_AUTHOR_FREQ;
-		const shouldSendImg = Math.random() <= DISCORD_IMAGE_FREQ;
 		const shouldSendSticker = Math.random() <= STICKER_FREQ;
 		const shouldSendEmoji = Math.random() <= EMOJI_REPLY_FREQ;
 		const shat = await Shat({
@@ -220,7 +219,7 @@ export default async (bot: DiscordBot) => {
 				? ((await mk.exists(options.msg?.author.globalName?.toLowerCase())) ??
 					(await mk.exists(options.msg?.author.username?.toLowerCase())))
 				: options.msg?.content,
-			forceImage: shouldSendImg || options.forceImage,
+			forceImage: options.forceImage,
 			forceReply: options.forceReply,
 			forceMessage: shouldSendSticker
 				? ({
