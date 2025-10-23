@@ -102,7 +102,7 @@ export const Shat = async (options?: {
 				? { files: [{ attachment: result, description: imgur.title }] }
 				: undefined;
 		} else {
-			if (rng <= DISCORD_IMAGE_FREQ) {
+			if (rng <= 0.8) {
 				try {
 					const db = await (
 						await globalThis.MetaConcord.container.getService("SQL")
