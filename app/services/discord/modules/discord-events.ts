@@ -32,6 +32,11 @@ export const endEvent = async (
 export default async (bot: DiscordBot): Promise<void> => {
 	const events = [
 		{
+			icon: "jackbox",
+			triggers: ["jackbox"],
+			nicks: ["jack"], // need some more funny ones
+		},
+		{
 			icon: "vr",
 			triggers: ["vrchat", "vr"],
 			nicks: ["VR", "Virtual", "Black Cat", "Pug"],
