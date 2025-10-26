@@ -34,7 +34,20 @@ export default async (bot: DiscordBot): Promise<void> => {
 		{
 			icon: "jackbox",
 			triggers: ["jackbox"],
-			nicks: ["jack"], // need some more funny ones
+			nicks: [
+				"jacking",
+				"job",
+				"watercooler",
+				"quip",
+				"fib",
+				"fibbing",
+				"trivia",
+				"drawing",
+				"sketchy",
+				"sus",
+				"scribbler",
+				"prompt",
+			],
 		},
 		{
 			icon: "vr",
