@@ -112,25 +112,27 @@ export default class AdminNotifyPayload extends Payload {
 			.setThumbnail(reportedAvatar)
 			.setColor(0xc4af21);
 
-		const sql = await bridge.container.getService("SQL");
-		if (!this.reportCache[reportedSteamId64]) {
-			const res = await sql.queryPool(
-				`SELECT report_amount FROM playerstats WHERE accountid = ${
-					new SteamID(reported.steamId).accountid
-				}`
-			);
-			if (res[0]) {
-				this.reportCache[reportedSteamId64] = res[0].report_amount;
-			} else {
-				this.reportCache[reportedSteamId64] = 0;
+		if (reportedSteamId64 !== "BOT") {
+			const sql = await bridge.container.getService("SQL");
+			if (!this.reportCache[reportedSteamId64]) {
+				const res = await sql.queryPool(
+					`SELECT report_amount FROM playerstats WHERE accountid = ${
+						new SteamID(reported.steamId).accountid
+					}`
+				);
+				if (res[0]) {
+					this.reportCache[reportedSteamId64] = res[0].report_amount;
+				} else {
+					this.reportCache[reportedSteamId64] = 0;
+				}
 			}
-		}
-		this.reportCache[reportedSteamId64]++;
+			this.reportCache[reportedSteamId64]++;
 
-		if (this.reportCache[reportedSteamId64] > 0) {
-			embed.addFields(
-				f("Total Report Amount", this.reportCache[reportedSteamId64].toString())
-			);
+			if (this.reportCache[reportedSteamId64] > 0) {
+				embed.addFields(
+					f("Total Report Amount", this.reportCache[reportedSteamId64].toString())
+				);
+			}
 		}
 
 		const row = new Discord.ActionRowBuilder<Discord.ButtonBuilder>();
