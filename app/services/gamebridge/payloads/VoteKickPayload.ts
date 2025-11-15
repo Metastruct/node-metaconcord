@@ -108,24 +108,26 @@ export default class NotificationPayload extends Payload {
 			.setThumbnail(offenderAvatar)
 			.setColor(0xc4af21);
 
-		const sql = await bridge.container.getService("SQL");
-		if (!this.votekickCache[offenderSteamId64]) {
-			const res = await sql.queryPool(
-				`SELECT votekick_amount FROM playerstats WHERE accountid = ${
-					new SteamID(offender.steamID).accountid
-				}`
-			);
-			if (res[0]) {
-				this.votekickCache[offenderSteamId64] = res[0].votekick_amount;
-			} else {
-				this.votekickCache[offenderSteamId64] = 0;
+		if (offenderSteamId64 !== "BOT") {
+			const sql = await bridge.container.getService("SQL");
+			if (!this.votekickCache[offenderSteamId64]) {
+				const res = await sql.queryPool(
+					`SELECT votekick_amount FROM playerstats WHERE accountid = ${
+						new SteamID(offender.steamID).accountid
+					}`
+				);
+				if (res[0]) {
+					this.votekickCache[offenderSteamId64] = res[0].votekick_amount;
+				} else {
+					this.votekickCache[offenderSteamId64] = 0;
+				}
 			}
-		}
-		this.votekickCache[offenderSteamId64]++;
-		if (this.votekickCache[offenderSteamId64] > 0) {
-			embed.addFields(
-				f("Total Votekick Amount", this.votekickCache[offenderSteamId64].toString())
-			);
+			this.votekickCache[offenderSteamId64]++;
+			if (this.votekickCache[offenderSteamId64] > 0) {
+				embed.addFields(
+					f("Total Votekick Amount", this.votekickCache[offenderSteamId64].toString())
+				);
+			}
 		}
 
 		await (notificationsChannel as Discord.TextChannel).send({
