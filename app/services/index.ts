@@ -5,6 +5,7 @@ import DiscordBotProvider, { DiscordBot } from "./discord/index.js";
 import DiscordMetadataProvider, { DiscordMetadata } from "./DiscordMetadata.js";
 import GameBridgeProvider, { GameBridge } from "./gamebridge/index.js";
 import GithubProvider, { Github } from "./Github.js";
+import GitlabProvider, { Gitlab } from "./Gitlab.js";
 import IRCProvider, { IRC } from "./IRC.js";
 import MarkovProvider, { Markov } from "./Markov.js";
 import MotdProvider, { Motd } from "./Motd.js";
@@ -22,6 +23,7 @@ export default [
 	DiscordMetadataProvider,
 	GameBridgeProvider,
 	GithubProvider,
+	GitlabProvider,
 	IRCProvider,
 	MarkovProvider,
 	MotdProvider,
@@ -40,6 +42,7 @@ export {
 	DiscordMetadata,
 	GameBridge,
 	Github,
+	Gitlab,
 	IRC,
 	Markov,
 	Motd,
@@ -58,6 +61,7 @@ export type ServiceMap = {
 	DiscordMetadata: DiscordMetadata;
 	GameBridge: GameBridge;
 	Github: Github;
+	Gitlab: Gitlab;
 	IRC: IRC;
 	Markov: Markov;
 	Motd: Motd;
