@@ -186,7 +186,23 @@ export default async (bot: DiscordBot): Promise<void> => {
 					});
 				break;
 			case "everything":
-				//await ctx.update({ components: [] });
+				const msg = ctx.message;
+				// so far we only have github so...
+				const [, owner, repo, ref] =
+					/https?:\/\/github.com\/(?<owner>\S+)\/(?<repo>\S+)\/(?<sha>\S+)/.exec(
+						msg.embeds[msg.embeds.length - 1].url ?? ""
+					) || [];
+
+				const res = await (
+					await bot.container.getService("Github")
+				).octokit.rest.repos.getCommit({ owner, repo, ref });
+				const files = res.data.files?.flatMap(f => f.filename);
+
+				if (!files || files.length === 0) {
+					await ctx.reply("no files found for refreshing :( ... aborting");
+					return;
+				}
+
 				await ctx.reply(
 					`<@${ctx.user.id}> updating and refreshing files on ${where
 						.map(s =>
@@ -194,6 +210,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						)
 						.join()}...`
 				);
+
 				await Promise.all(
 					where.map(async server => {
 						const reply = await ctx.fetchReply();
@@ -209,10 +226,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 								(await channel.messages.fetch(reply)).react("📥");
 							});
 
-						const msg = ctx.message;
-						const files = msg.embeds
-							.flatMap(e => e.fields)
-							.map(f => [...f.value.matchAll(FIELD_REGEX)].map(m => m[1])[0]);
 						const res = await server.sendLua(
 							'if not RefreshLua then return false, "RefreshLua missing?" end\n' +
 								files
