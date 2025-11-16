@@ -1,6 +1,6 @@
 import { Container, Service } from "../Container.js";
 import { Octokit } from "@octokit/rest";
-import { createAppAuth } from "@octokit/auth-app";
+import { createAppAuth, StrategyOptions } from "@octokit/auth-app";
 import config from "@/config/github.json" with { type: "json" };
 
 export class Github extends Service {
@@ -12,7 +12,7 @@ export class Github extends Service {
 			appId: config.appId,
 			privateKey: config.privateKey,
 			installationId: config.installationId,
-		},
+		} as StrategyOptions,
 	});
 }
 
