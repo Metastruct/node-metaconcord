@@ -1,5 +1,5 @@
 import { Container, Service } from "../Container.js";
-import { Octokit } from "octokit";
+import { Octokit } from "@octokit/rest";
 import { createAppAuth } from "@octokit/auth-app";
 import config from "@/config/github.json" with { type: "json" };
 
