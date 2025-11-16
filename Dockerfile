@@ -1,4 +1,4 @@
-FROM node:22
+FROM node:24
 
 # install chrome for puppeteer (how annoying)
 RUN apt-get update \
