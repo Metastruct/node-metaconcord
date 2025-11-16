@@ -201,20 +201,35 @@ export default async (bot: DiscordBot): Promise<void> => {
 						/https?:\/\/github\.com\/(?<owner>\S+)\/(?<repo>\S+)\/(?<sha>\S+)/.exec(
 							url ?? ""
 						) || [];
-
-					const res = await (
-						await bot.container.getService("Github")
-					).octokit.rest.repos.getCommit({ owner, repo, ref });
-					files = res.data.files?.flatMap(f => f.filename);
+					try {
+						const res = await (
+							await bot.container.getService("Github")
+						).octokit.rest.repos.getCommit({ owner, repo, ref });
+						files = res.data.files?.flatMap(f => f.filename);
+					} catch (err) {
+						await ctx.reply(
+							"something went wrong fetching the files from github :( ... aborting"
+						);
+						console.error(err);
+						return;
+					}
 				} else if (url.startsWith("https://gitlab.com")) {
 					const [, id, sha] =
 						/https?:\/\/gitlab\.com\/(?<id>\S+)\/-\/commit\/(?<sha>\S+)/.exec(
 							url ?? ""
 						) || [];
-					const res = await (
-						await bot.container.getService("Gitlab")
-					).api.Commits.showDiff(encodeURIComponent(id), sha);
-					files = res.filter(f => !f.deleted_file).flatMap(f => f.new_path);
+					try {
+						const res = await (
+							await bot.container.getService("Gitlab")
+						).api.Commits.showDiff(encodeURIComponent(id), sha);
+						files = res.filter(f => !f.deleted_file).flatMap(f => f.new_path);
+					} catch (err) {
+						await ctx.reply(
+							"something went wrong fetching the files from gitlab :( ... aborting"
+						);
+						console.error(err);
+						return;
+					}
 				}
 
 				if (!files || files.length === 0) {
