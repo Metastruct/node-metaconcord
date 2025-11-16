@@ -10,10 +10,8 @@ export class Github extends Service {
 		authStrategy: createAppAuth,
 		auth: {
 			appId: config.appId,
-			installationID: config.installationId,
 			privateKey: config.privateKey,
-			clientId: config.clientId,
-			clientSecret: config.clientSecret,
+			installationId: config.installationId,
 		},
 	});
 }
