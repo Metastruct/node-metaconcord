@@ -187,16 +187,35 @@ export default async (bot: DiscordBot): Promise<void> => {
 				break;
 			case "everything":
 				const msg = ctx.message;
-				// so far we only have github so...
-				const [, owner, repo, ref] =
-					/https?:\/\/github.com\/(?<owner>\S+)\/(?<repo>\S+)\/(?<sha>\S+)/.exec(
-						msg.embeds[msg.embeds.length - 1].url ?? ""
-					) || [];
+				const url = msg.embeds[msg.embeds.length - 1].url;
+				if (!url) {
+					await ctx.reply("url not found for refreshing :( ... aborting");
+					return;
+				}
 
-				const res = await (
-					await bot.container.getService("Github")
-				).octokit.rest.repos.getCommit({ owner, repo, ref });
-				const files = res.data.files?.flatMap(f => f.filename);
+				let files: string[] | undefined;
+
+				// what could go wrong
+				if (url.startsWith("https://github.com")) {
+					const [, owner, repo, ref] =
+						/https?:\/\/github\.com\/(?<owner>\S+)\/(?<repo>\S+)\/(?<sha>\S+)/.exec(
+							url ?? ""
+						) || [];
+
+					const res = await (
+						await bot.container.getService("Github")
+					).octokit.rest.repos.getCommit({ owner, repo, ref });
+					files = res.data.files?.flatMap(f => f.filename);
+				} else if (url.startsWith("https://gitlab.com")) {
+					const [, id, sha] =
+						/https?:\/\/gitlab\.com\/(?<id>\S+)\/-\/commit\/(?<sha>\S+)/.exec(
+							url ?? ""
+						) || [];
+					const res = await (
+						await bot.container.getService("Gitlab")
+					).api.Commits.showDiff(encodeURIComponent(id), sha);
+					files = res.filter(f => !f.deleted_file).flatMap(f => f.new_path);
+				}
 
 				if (!files || files.length === 0) {
 					await ctx.reply("no files found for refreshing :( ... aborting");
