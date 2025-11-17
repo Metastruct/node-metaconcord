@@ -198,7 +198,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				// what could go wrong
 				if (url.startsWith("https://github.com")) {
 					const [, owner, repo, ref] =
-						/https?:\/\/github\.com\/(?<owner>\S+)\/(?<repo>\S+)\/(?<sha>\S+)/.exec(
+						/https?:\/\/github\.com\/(?<owner>\S+)\/(?<repo>\S+)\/commit\/(?<sha>\S+)/.exec(
 							url ?? ""
 						) || [];
 					try {
