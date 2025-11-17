@@ -5,8 +5,6 @@ import Payload from "./Payload.js";
 import SteamID from "steamid";
 import dayjs from "dayjs";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
-import nodeHtmlToImage from "node-html-to-image";
-import pug from "pug";
 import path from "path";
 
 const GamemodeAlias = {
@@ -36,12 +34,12 @@ const GamemodeExtras = {
 	},
 	ttt2: {
 		activities: [
-			"die",
+			"dying",
 			"getting bricked",
-			"discombobulate",
+			"discombobulating",
 			"dying to fall damage",
-			"argue",
-			"kill jester",
+			"arguing",
+			"killing jester",
 			"swapping",
 		],
 		icon: "https://github.com/Metastruct/TTT2/blob/master/gamemodes/terrortown/logo.png?raw=true",
