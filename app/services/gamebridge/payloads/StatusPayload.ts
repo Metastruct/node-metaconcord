@@ -20,7 +20,16 @@ const GamemodeExtras = {
 		seagull: undefined,
 	},
 	metastruct: {
-		activities: ["idling", "micspamming", "spamming chatsounds"],
+		activities: [
+			"idling",
+			"micspamming",
+			"spamming chatsounds",
+			"minging",
+			"casting magic",
+			"mining in the cave",
+			"afk in apartments",
+			"crashing the server",
+		],
 		icon: "https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
 		color: 0x4bf5ca,
 		seagull:
