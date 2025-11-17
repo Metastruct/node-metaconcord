@@ -266,7 +266,7 @@ export default async (bot: DiscordBot) => {
 			{ type: 5, ctx: ["competing in", "participate in", "take part in", "play in"] },
 		];
 
-		const selection = validActivities[(Math.random() * validActivities.length) | 0];
+		const selection = validActivities[4]; //validActivities[(Math.random() * validActivities.length) | 0];
 
 		let status = "crashing the source engine";
 
