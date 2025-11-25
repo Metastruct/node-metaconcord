@@ -1,14 +1,11 @@
-FROM node:24
+FROM zenika/alpine-chrome:with-puppeteer
 
-# install chrome for puppeteer (how annoying)
-RUN apt-get update \
-  && apt-get install -y wget gnupg \
-  && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-  && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-  && apt-get update \
-  && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
-  --no-install-recommends \
-  && rm -rf /var/lib/apt/lists/*
+USER root
+RUN set -eux \
+  & apk add \
+  --no-cache \
+  yarn \
+  bash 
 
 WORKDIR /app
 
@@ -16,10 +13,12 @@ COPY package.json .
 COPY yarn.lock .
 RUN yarn install
 COPY . .
-RUN for f in ./config/*.example.json; do \
-  cp "$f" "./config/$(basename "$f" .example.json).json"; \
+RUN cd ./config && \
+  for f in *.example.json; do \
+  cp "$f" "${f/.example.json/.json}"; \
   done
-
+  
+#todo: remove/replace schema_gen.sh it is so slow..
 RUN ./schema_gen.sh
 RUN yarn build
 
