@@ -27,5 +27,5 @@ RUN yarn build
 RUN rm -rf ./config
 
 EXPOSE 20122
-
+ENTRYPOINT ["/tini", "--"]
 CMD [ "yarn", "start" ]
