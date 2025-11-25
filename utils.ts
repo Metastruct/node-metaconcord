@@ -117,7 +117,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 			const isGithub = provider[1] === "github";
 			const gitlabEndpoint = "https://gitlab.com/api/graphql";
 			const repo = addon;
-			const owner = url.match(/\.com\/(.+?)\//);
+			const owner = url.match(/\.com\/(.+?)\//)?.[1];
 			const branch = url.split("/").at(-2);
 
 			if (!owner) return;
