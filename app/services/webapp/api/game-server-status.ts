@@ -6,6 +6,9 @@ import pug from "pug";
 import { access, mkdir, readFile, writeFile } from "fs/promises";
 import { constants as fs_constants } from "fs";
 import mime from "mime";
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 const cacheFolder = path.join(process.cwd(), "cache", "map-thumbnails");
 
@@ -71,7 +74,8 @@ export default async (webApp: WebApp): Promise<void> => {
 
 						thumbFilepath = [_thumbFilepath, ext.toLowerCase()].join(".");
 
-						const buffer = Buffer.from(await response.arrayBuffer());
+						const arrayBuffer = await response.arrayBuffer();
+						const buffer = new Uint8Array(Buffer.from(arrayBuffer));
 						await writeFile(thumbFilepath, buffer);
 					}
 				} catch (err) {}
@@ -107,7 +111,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				});
 				res.send(server.playerListImage);
 			} catch (err) {
-				console.error("game-server-status image failed", err);
+				log.error(err, "image failed");
 				res.send(err);
 			}
 		} else {

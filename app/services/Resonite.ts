@@ -2,6 +2,9 @@ import { Container, Service } from "../Container.js";
 import { createHash, randomUUID } from "crypto";
 import axios from "axios";
 import config from "@/config/resonite.json" with { type: "json" };
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 export type ResoniteSignalLSessionResponse = {
 	entity: {
@@ -152,10 +155,10 @@ export class Resonite extends Service {
 						res.data.entity.created
 					).getTime();
 					await data.save();
-					console.log("Retrieved and saved Resonite Token!");
+					log.info("Retrieved and saved Resonite Token!");
 				}
 			} catch (error) {
-				console.error(error);
+				log.error(error);
 			}
 		}
 		this.ResoniteToken = lastToken;

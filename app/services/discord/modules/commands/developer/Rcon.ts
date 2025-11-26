@@ -40,7 +40,6 @@ export const SlashRconCommand: SlashCommand = {
 		const bridge = bot.bridge;
 		if (!bridge) {
 			ctx.reply(EphemeralResponse("GameBridge is missing :("));
-			console.error(`SlashRcon: GameBridge missing?`, ctx);
 			return;
 		}
 		await ctx.deferReply();

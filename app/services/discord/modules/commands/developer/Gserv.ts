@@ -50,7 +50,6 @@ export const SlashGservCommand: SlashCommand = {
 		const bridge = bot.bridge;
 		if (!bridge) {
 			await ctx.reply(EphemeralResponse("GameBridge is missing :("));
-			console.error(`SlashGserv: GameBridge missing?`, ctx);
 			return;
 		}
 		const selectedServer = ctx.options.getInteger("server");

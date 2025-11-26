@@ -3,6 +3,10 @@ import { Server as HTTPServer } from "http";
 import APIs from "./api/index.js";
 import config from "@/config/webapp.json" with { type: "json" };
 import express from "express";
+import { pinoHttp } from "pino-http";
+import { logger } from "@/utils.js";
+
+const log = logger("WebApp");
 
 export class WebApp extends Service {
 	name = "WebApp";
@@ -13,12 +17,14 @@ export class WebApp extends Service {
 	constructor(container: Container) {
 		super(container);
 
+		this.app.use(pinoHttp());
+
 		for (const addAPI of APIs) {
 			addAPI(this);
 		}
 
 		this.http = this.app.listen(this.config.port, "0.0.0.0", () => {
-			console.log(`HTTP server listening on ${this.config.port}`);
+			log.info(`HTTP server listening on ${this.config.port}`);
 		});
 
 		this.app.set("trust proxy", 2);

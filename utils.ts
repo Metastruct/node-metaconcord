@@ -4,6 +4,16 @@ import apikeys from "@/config/apikeys.json" with { type: "json" };
 import axios from "axios";
 import request, { gql } from "graphql-request";
 import webappconfig from "@/config/webapp.json" with { type: "json" };
+import pino from "pino";
+import path from "path";
+
+const baseLogger = pino({
+	base: undefined,
+	level: process.env.LOG_LEVEL || "info",
+});
+
+export const logger = (meta: ImportMeta | string) =>
+	baseLogger.child({ file: typeof meta === "string" ? meta : path.basename(meta.filename) });
 
 export const sleep = (ms: number): Promise<any> => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -167,7 +177,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 					return;
 				}
 			} catch (err) {
-				console.error(JSON.stringify(err, undefined, 2));
+				baseLogger.error(err);
 				return;
 			}
 		}

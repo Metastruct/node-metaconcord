@@ -14,6 +14,9 @@ import resoniteConfig from "@/config/resonite.json" with { type: "json" };
 import pug from "pug";
 import path from "path";
 import nodeHtmlToImage from "node-html-to-image";
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 export default class GameBridge extends Service {
 	name = "GameBridge";
@@ -53,7 +56,7 @@ export default class GameBridge extends Service {
 			this.handleConnection(req);
 		});
 
-		console.log(`Web socket server listening on ${this.webApp.config.port}`);
+		log.info(`Web socket server listening on ${this.webApp.config.port}`);
 		this.ready = true;
 		this.handleResoniteConnection();
 	}
@@ -64,7 +67,7 @@ export default class GameBridge extends Service {
 
 		for (const connection of this.ws.connections) {
 			if (ip == connection.remoteAddress) {
-				console.log(
+				log.info(
 					`${ip} is trying to connect multiple times, dropping previous connection.`
 				);
 				connection.close();
@@ -79,13 +82,13 @@ export default class GameBridge extends Service {
 			}
 		}
 		if (!serverConfig) {
-			console.log(`Bad IP - ${ip}`);
+			log.info(`Bad IP - ${ip}`);
 			return req.reject(403);
 		}
 
 		const requestToken = req.httpRequest.headers["x-auth-token"];
 		if (requestToken !== config.token) {
-			console.log(`Bad X-Auth-Token - ${requestToken}`);
+			log.info(`Bad X-Auth-Token - ${requestToken}`);
 			return req.reject(401);
 		}
 
@@ -279,8 +282,8 @@ export default class GameBridge extends Service {
 						}
 					}
 				}
-			} catch (error) {
-				console.log("GameBridge:Resonite", error);
+			} catch (err) {
+				log.error(err, "ReceiveSessionUpdate");
 			}
 		});
 

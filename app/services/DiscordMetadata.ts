@@ -1,11 +1,13 @@
 import { Bans, DiscordBot, SQL } from "./index.js";
 import { Container, Service } from "../Container.js";
 import { DiscordErrorData, OAuthErrorData } from "discord.js";
-import { isAdmin } from "@/utils.js";
+import { isAdmin, logger } from "@/utils.js";
 import { revokeOAuthToken } from "./webapp/api/discord-oauth.js";
 import SteamID from "steamid";
 import axios, { AxiosError } from "axios";
 import config from "@/config/metadata.json" with { type: "json" };
+
+const log = logger(import.meta);
 
 export type MetaMetadata = {
 	banned?: 1 | 0;
@@ -102,17 +104,12 @@ export class DiscordMetadata extends Service {
 						// invalid, expired, revoked, doesn't match redirection
 						// URI, or was issued to another client.
 						const res = await revokeOAuthToken(data.access_token);
-						console.warn(
-							`[Metadata] InValID_GraNT revoking token (${res})! ${userId} [${
-								err.code
-							}] ${JSON.stringify(discordResponse)}`
+						log.warn(
+							discordResponse,
+							`InValID_GraNT revoking token (${res})! ${userId} [${err.code}]`
 						);
 					} else {
-						console.error(
-							`[Metadata] failed fetching tokens: [${err.code}] ${JSON.stringify(
-								discordResponse
-							)}`
-						);
+						log.error(discordResponse, `failed fetching tokens: [${err.code}]}`);
 					}
 				});
 
@@ -130,11 +127,7 @@ export class DiscordMetadata extends Service {
 				);
 				return token.access_token;
 			}
-			console.error(
-				`[Metadata] failed to get access token for ${userId} data: ${JSON.stringify(
-					data
-				)} res: ${JSON.stringify(res)}`
-			);
+			log.error({ data, res }, "failed to get access token");
 		}
 
 		return data.access_token;
@@ -159,11 +152,7 @@ export class DiscordMetadata extends Service {
 					},
 				})
 				.catch((err: AxiosError<DiscordErrorData>) => {
-					console.error(
-						`[Metadata] failed getting discord metadata: [${err.code}] ${JSON.stringify(
-							err.response?.data
-						)}`
-					);
+					log.error(err, "failed to get metadata");
 				});
 			if (res) {
 				this.ARCOCache[userId] = res.data;
@@ -238,9 +227,7 @@ export class DiscordMetadata extends Service {
 		const body = { platform_name: "Metastruct", platform_username: userName, metadata };
 
 		if (!accessToken) {
-			console.error(
-				`[Metadata] failed pushing discord metadata invalid Accesstoken?: ${userName}(${userId})`
-			);
+			log.error({ userId, userName }, "accesstoken missing?");
 			return false;
 		}
 
@@ -253,13 +240,10 @@ export class DiscordMetadata extends Service {
 			.catch((err: AxiosError<DiscordErrorData>) => {
 				if (err.response?.status === 401) {
 					// unauthorised, user probably revoked the token.
+					log.info({ err, accessToken }, "unauthorized removing token");
 					revokeOAuthToken(accessToken, true);
 				} else {
-					console.error(
-						`[Metadata] failed pushing discord metadata: [${err.code}] ${JSON.stringify(
-							err.response?.data
-						)}`
-					);
+					log.error(err, "metadata push failed.");
 				}
 				return false;
 			});

@@ -1,11 +1,13 @@
 import * as Discord from "discord.js";
 import { Container, Service } from "@/app/Container.js";
 import { Data, GameBridge } from "@/app/services/index.js";
-import { getAsBase64 } from "@/utils.js";
+import { getAsBase64, logger } from "@/utils.js";
 import { getEventIcon } from "./modules/discord-guild-icon.js";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import modules from "./modules/index.js";
 import motdConfig from "@/config/motd.json" with { type: "json" };
+
+const log = logger("DiscordBot");
 
 export type Rule = {
 	title: string;
@@ -58,14 +60,14 @@ export class DiscordBot extends Service {
 
 		this.discord.on("clientReady", async client => {
 			this.ready = true;
-			console.log(`'${client.user.username}' Discord Bot has logged in`);
+			log.info(`'${client.user.username}' Discord Bot has logged in`);
 		});
 
 		this.discord.on("shardDisconnect", () => {
 			this.ready = false;
 		});
 
-		this.discord.on("warn", console.log);
+		this.discord.on("warn", log.warn);
 
 		for (const loadModule of modules) {
 			loadModule(this);

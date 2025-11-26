@@ -1,6 +1,9 @@
 // thank u mr swadical https://github.com/SwadicalRag/node-markov-lite
+import { logger } from "@/utils.js";
 import { Container, Service } from "../Container.js";
 import sqlite3 from "sqlite3";
+
+const log = logger(import.meta);
 
 export interface IGenerateOptions {
 	depth?: number;
@@ -229,7 +232,7 @@ export class Markov extends Service {
 				options?.continuation
 			);
 		} catch (err) {
-			console.error(err);
+			log.error(err);
 			return;
 		}
 	}

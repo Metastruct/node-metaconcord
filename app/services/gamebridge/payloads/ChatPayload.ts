@@ -4,6 +4,9 @@ import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
 import requestSchema from "./structures/ChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ChatResponse.json" with { type: "json" };
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 const MEDIA_URL = /https?:\/\/(?:media|cdn)\.discordapp\.(?:net|com)\/attachments\/\d+\/\d+\/\S+/;
 
@@ -203,7 +206,7 @@ export default class ChatPayload extends Payload {
 				avatarURL: avatar,
 				allowedMentions: { parse: ["users", "roles"] },
 			})
-			.catch(console.error);
+			.catch(log.error);
 	}
 
 	static async send(payload: ChatResponse, server: GameServer): Promise<void> {

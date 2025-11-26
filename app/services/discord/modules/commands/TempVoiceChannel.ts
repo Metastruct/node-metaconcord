@@ -1,5 +1,8 @@
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 const pending: string[] = [];
 
@@ -78,7 +81,7 @@ export const SlashVoiceCommand: SlashCommand = {
 				);
 			}
 		} catch (err) {
-			console.error(err);
+			log.error(err);
 			await ctx.followUp(
 				EphemeralResponse(
 					"Something went wrong while creating the channel.\nDiscord probably didn't like your channel name."

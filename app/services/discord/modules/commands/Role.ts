@@ -2,6 +2,9 @@ import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import axios from "axios";
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 const ROLE_IDENTIFIER = DiscordConfig.bot.roleIdentifier;
 const IMG_TYPES = ["image/png", "image/gif", "image/jpeg"];
@@ -81,8 +84,8 @@ const setRoleColorSpecial = async (
 				`👍\nhere is your old role color if you want to change back: Primary: \`${role.hexColor}\`${role.colors.secondaryColor ? ` Secondary: ${`#${role.colors.secondaryColor.toString(16).padStart(6, "0")}`}` : ""}${role.colors.tertiaryColor ? ` Tertiary: ${`#${role.colors.tertiaryColor.toString(16).padStart(6, "0")}`}` : ""}`
 			)
 		);
-	} catch (error) {
-		console.error(error);
+	} catch (err) {
+		log.error(err);
 		await ctx.followUp(EphemeralResponse("Something went wrong trying to add the gradient :("));
 	}
 };
@@ -249,8 +252,8 @@ const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> =
 				{ primaryColor: roleColor },
 				"Updated role color via command"
 			);
-		} catch (ex) {
-			console.error(ex);
+		} catch (err) {
+			log.error(err);
 			await ctx.followUp(
 				EphemeralResponse("Something went wrong changing the color of the role :(")
 			);
@@ -400,7 +403,7 @@ export const SlashRoleCommand: SlashCommand = {
 					break;
 			}
 		} catch (err) {
-			console.error(err);
+			log.error(err);
 			await ctx.followUp(
 				EphemeralResponse(`Something went wrong adding your role :(\n` + err)
 			);

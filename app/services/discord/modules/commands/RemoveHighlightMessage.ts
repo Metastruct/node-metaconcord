@@ -1,6 +1,9 @@
 import * as Discord from "discord.js";
 import { EphemeralResponse, MenuCommand } from "@/extensions/discord.js";
 import discordConfig from "@/config/discord.json" with { type: "json" };
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 export const MenuRemoveHighlightMessageCommand: MenuCommand = {
 	options: {
@@ -52,7 +55,7 @@ export const MenuRemoveHighlightMessageCommand: MenuCommand = {
 					m.attachments.size > 0 &&
 					m.attachments.first()?.name === ctx.targetMessage.attachments.first()?.name
 			);
-			const deleted = await targetMessage?.delete().catch(console.error);
+			const deleted = await targetMessage?.delete().catch(log.error);
 
 			if (deleted) {
 				await ctx.reply(EphemeralResponse("👍"));
@@ -66,8 +69,8 @@ export const MenuRemoveHighlightMessageCommand: MenuCommand = {
 					)
 				);
 			}
-		} catch (error) {
-			console.error("[RemoveHighlightMessage]", error);
+		} catch (err) {
+			log.error(err);
 			await ctx.reply(
 				EphemeralResponse(
 					"something went wrong with deleting your message :( ping @techbot if you want it removed"

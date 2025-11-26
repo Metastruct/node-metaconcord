@@ -27,6 +27,9 @@ import { SlashSQLCommand } from "./developer/SQL.js";
 import { SlashUnBanCommand } from "./developer/UnBan.js";
 import { SlashVoiceCommand } from "./TempVoiceChannel.js";
 import { SlashWhyBanCommand } from "./WhyBan.js";
+import { logger } from "@/utils.js";
+
+const log = logger("Commands");
 
 export const slashCommands = [
 	// restricted commands
@@ -85,7 +88,7 @@ export default (bot: DiscordBot): void => {
 
 	(async () => {
 		try {
-			console.debug(`Refreshing ${commands.length} commands.`);
+			log.debug(`Refreshing ${commands.length} commands.`);
 			await rest.put(
 				Discord.Routes.applicationGuildCommands(
 					bot.config.bot.applicationId,
@@ -93,9 +96,9 @@ export default (bot: DiscordBot): void => {
 				),
 				{ body: commands }
 			);
-			console.debug(`Successfully refreshed ${commands.length} commands.`);
+			log.debug(`Successfully refreshed ${commands.length} commands.`);
 		} catch (err) {
-			console.error(err);
+			log.error(err);
 		}
 	})();
 
@@ -106,7 +109,7 @@ export default (bot: DiscordBot): void => {
 			try {
 				await command.execute(interaction, bot);
 			} catch (err) {
-				console.error("slash commands:", interaction, err);
+				log.error({ interaction, err }, "slash commands");
 			}
 		} else if (interaction.isContextMenuCommand()) {
 			const command = interaction.client.menuCommands.get(interaction.commandName);
@@ -114,7 +117,7 @@ export default (bot: DiscordBot): void => {
 			try {
 				await command.execute(interaction, bot);
 			} catch (err) {
-				console.error("menu commands:", interaction, err);
+				log.error({ interaction, err }, "menu commands");
 			}
 		} else if (interaction.isAutocomplete()) {
 			const command = interaction.client.slashCommands.get(interaction.commandName);
@@ -122,7 +125,7 @@ export default (bot: DiscordBot): void => {
 			try {
 				await command.autocomplete(interaction, bot);
 			} catch (err) {
-				console.error("autocomplete:", interaction, err);
+				log.error({ interaction, err }, "autocomplete");
 			}
 		}
 	});

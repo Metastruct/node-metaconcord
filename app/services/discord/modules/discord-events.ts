@@ -2,6 +2,9 @@ import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
 import { join } from "path";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 const iconsPath = join(process.cwd(), "resources/discord-event-icons");
 
@@ -18,7 +21,7 @@ export const endEvent = async (
 	const bot = await globalThis.MetaConcord.container.getService("DiscordBot");
 	const guild = bot.getGuild();
 	const name = event?.name ?? "An event";
-	console.log(`"${name}" ended! Removing roles...`);
+	log.info(`"${name}" ended! Removing roles...`);
 	const users = (await guild?.roles.fetch(DiscordConfig.roles.event))?.members;
 	users?.forEach(usr => {
 		usr.roles.remove(DiscordConfig.roles.event);
@@ -103,7 +106,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		switch (event.status) {
 			case Discord.GuildScheduledEventStatus.Active: {
-				console.log(`Event "${event.name}" running! Setting roles...`); // logging because I don't trust discord
+				log.info(`Event "${event.name}" running! Setting roles...`); // logging because I don't trust discord
 				const users = await GetParticipants(event);
 				users.forEach(usr => {
 					if (!usr.roles.cache.some(role => role.id === DiscordConfig.roles.event))

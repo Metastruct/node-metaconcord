@@ -9,7 +9,10 @@ import "./extensions/index.js";
 
 // Main
 import { App } from "./app/index.js";
+import { logger } from "./utils.js";
 const MetaConcord = new App();
 (global as any).MetaConcord = MetaConcord;
+
+process.on("uncaughtException", err => logger("App").fatal(err));
 
 export default MetaConcord;

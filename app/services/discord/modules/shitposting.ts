@@ -3,9 +3,11 @@ import { AxiosResponse } from "axios";
 import { DiscordBot } from "../index.js";
 import { Markov } from "@/app/services/Markov.js";
 import { TenorResponse } from "@/app/services/Tenor.js";
-import { makeSpeechBubble } from "@/utils.js";
+import { logger, makeSpeechBubble } from "@/utils.js";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json" with { type: "json" };
+
+const log = logger(import.meta);
 
 // #chat and #shat constants
 const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 60 * 0.25; // interval for changing the bot status to a random message
@@ -239,14 +241,13 @@ export default async (bot: DiscordBot) => {
 							: { repliedUser: false },
 					})
 					.catch(e => {
-						console.error(e, shat, options);
+						log.error({ e, shat, options });
 					});
 			} else {
-				bot
-					.getTextChannel(bot.config.channels.chat)
+				bot.getTextChannel(bot.config.channels.chat)
 					?.send(shat)
 					.catch(e => {
-						console.error(e, shat, options);
+						log.error({ e, shat, options });
 					});
 			}
 		}
