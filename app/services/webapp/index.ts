@@ -17,7 +17,7 @@ export class WebApp extends Service {
 	constructor(container: Container) {
 		super(container);
 
-		this.app.use(pinoHttp());
+		this.app.use(pinoHttp({ base: undefined }));
 
 		for (const addAPI of APIs) {
 			addAPI(this);
