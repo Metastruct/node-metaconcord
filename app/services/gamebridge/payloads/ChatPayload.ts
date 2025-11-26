@@ -187,10 +187,8 @@ export default class ChatPayload extends Payload {
 		content = content.substring(0, 2000);
 
 		const motd = await bridge.container.getService("Motd");
-		if (motd.isValidMsg(content)) {
-			motd.pushMessage(content);
-			(await bridge.container.getService("Markov")).learn(content);
-		}
+		motd.pushMessage(content);
+		(await bridge.container.getService("Markov")).learn(content);
 
 		// 9312 = ①, 9313 = ②, and so on until 20
 		const serverId = `#${server.config.id}`; // String.fromCodePoint(9311 + +(server.config.id ?? 0));
