@@ -53,7 +53,6 @@ export const SlashLuaCommand: SlashCommand = {
 		const bridge = bot.bridge;
 		if (!bridge) {
 			ctx.reply(EphemeralResponse("GameBridge is missing :("));
-			console.error(`SlashLua: GameBridge missing?`, ctx);
 			return;
 		}
 		await ctx.deferReply();

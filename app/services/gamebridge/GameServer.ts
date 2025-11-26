@@ -9,6 +9,9 @@ import { NodeSSH, SSHExecOptions } from "node-ssh";
 import { RconResponse } from "./payloads/structures/index.js";
 import GameBridge from "./GameBridge.js";
 import sshConfig from "@/config/ssh.json" with { type: "json" };
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 export type GameServerConfig = {
 	defaultGamemode?: string;
@@ -109,13 +112,11 @@ export default class GameServer {
 					}
 				}
 			} catch (err) {
-				console.error(`${data.name} exception:`, err);
-				console.log("with payload: ", data.data);
+				log.error({ data, err });
 				return new Promise((_, reject) => reject(err.message));
 			}
 
-			console.log("Invalid payload:");
-			console.log(data);
+			log.info(data, "Invalid payload");
 			return ErrorPayload.send(
 				{
 					error: { message: "Payload doesn't exist, nothing was done" },
@@ -126,11 +127,11 @@ export default class GameServer {
 
 		this.connection?.on("close", (code, desc) => {
 			this.discord.destroy();
-			console.log(`'${this.config.name}' Game Server disconnected - [${code}] ${desc}`);
+			log.info(`'${this.config.name}' Game Server disconnected - [${code}] ${desc}`);
 			delete this.bridge.servers[this.config.id];
 		});
 
-		console.log(`'${this.config.name}' Game Server connected`);
+		log.info(`'${this.config.name}' Game Server connected`);
 	}
 
 	async changeIcon(path: string) {
@@ -166,7 +167,7 @@ export default class GameServer {
 			});
 			return await connection.execCommand(command, options);
 		} catch (err) {
-			console.error(err);
+			log.error(err);
 		}
 	}
 }

@@ -1,5 +1,8 @@
 import { WebApp } from "@/app/services/webapp/index.js";
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 const HOSTING_IDS = servers.filter(s => s.ssh !== undefined).map(s => s.id);
 
@@ -42,7 +45,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			if (guild) {
 				const channel = bot.getTextChannel(bot.config.channels.notifications);
 				await channel?.send(`GSERV FAILED ON SERVER ${id}, PLEASE FIX`);
-				console.error("gamemode switcher", output);
+				log.error(output);
 			}
 		}
 

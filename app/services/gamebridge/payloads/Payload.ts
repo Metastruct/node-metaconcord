@@ -2,6 +2,9 @@ import { Ajv } from "ajv";
 import { PayloadRequest } from "./structures/index.js";
 import GameServer from "../GameServer.js";
 import util from "util";
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 export default abstract class Payload {
 	protected static requestSchema: Record<any, unknown>;
@@ -21,8 +24,7 @@ export default abstract class Payload {
 	static validate(schema: Record<string, unknown>, payload: PayloadRequest | unknown): void {
 		const invalid = this.isInvalid(schema, payload);
 		if (invalid) {
-			console.warn(util.inspect(payload, { showHidden: false, depth: null }));
-			console.warn(invalid);
+			log.warn({ invalid, payload }, "invalid payload.");
 		}
 	}
 

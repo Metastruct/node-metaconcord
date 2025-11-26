@@ -1,7 +1,10 @@
+import { logger } from "@/utils.js";
 import { Container, Service } from "../Container.js";
 import { Rule } from "./discord/index.js";
 import { promises as fs } from "fs";
 import path from "path";
+
+const log = logger(import.meta);
 
 export class Data extends Service {
 	name = "Data";
@@ -71,7 +74,7 @@ export class Data extends Service {
 				} catch (err) {
 					data = {};
 				}
-				console.log(`Loaded ${filePath} with`, data);
+				log.info({ file, data });
 				this[path.basename(filePath, ".json")] = data;
 			}
 		}

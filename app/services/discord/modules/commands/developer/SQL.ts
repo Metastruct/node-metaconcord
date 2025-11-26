@@ -47,7 +47,6 @@ export const SlashSQLCommand: SlashCommand = {
 		const sql = await bot.container.getService("SQL");
 		if (!ctx.member) {
 			await ctx.reply(EphemeralResponse("if this happens ping @techbot"));
-			console.error("SlashSQL: WTF");
 			return;
 		}
 		try {

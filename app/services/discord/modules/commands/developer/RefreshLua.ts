@@ -32,7 +32,6 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 		const bridge = bot.bridge;
 		if (!bridge) {
 			ctx.reply(EphemeralResponse("GameBridge is missing :("));
-			console.error(`SlashRefreshLua: GameBridge missing?`, ctx);
 			return;
 		}
 

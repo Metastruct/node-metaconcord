@@ -7,6 +7,9 @@ import SteamID from "steamid";
 import axios, { AxiosError } from "axios";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 type AccessTokenResponse = {
 	access_token: string;
@@ -62,11 +65,7 @@ export const getOAuthTokens = async (code: any) => {
 			}
 		)
 		.catch((err: AxiosError<Discord.OAuthErrorData>) => {
-			console.error(
-				`[OAuth Callback] failed fetching tokens: [${err.code}] ${JSON.stringify(
-					err.response?.data
-				)}`
-			);
+			log.error(err, "failed fetching tokens");
 		});
 	if (res) return res.data;
 };
@@ -90,11 +89,7 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 				}
 			)
 			.catch((err: AxiosError) => {
-				console.error(
-					`[OAuth Callback] failed revoking token ${token}: [${
-						err.code
-					}] ${JSON.stringify(err.response?.data)}`
-				);
+				log.error(err, "failed revoking token");
 				return;
 			});
 		if (!res) return false;
@@ -118,11 +113,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				headers: { Authorization: `Bearer ${tokens.access_token}` },
 			})
 			.catch((err: AxiosError) => {
-				console.error(
-					`[OAuth] failed fetching user data: [${err.code}] ${JSON.stringify(
-						err.response?.data
-					)}`
-				);
+				log.error(err, "failed fetching authorization data");
 			});
 		if (res) return res.data;
 	};
@@ -133,11 +124,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				headers: { Authorization: `Bearer ${tokens.access_token}` },
 			})
 			.catch((err: AxiosError) => {
-				console.error(
-					`[OAuth] failed fetching user connection data: [${err.code}] ${JSON.stringify(
-						err.response?.data
-					)}`
-				);
+				log.error(err, "failed fetching user connections");
 			});
 		if (res) return res.data;
 	};
@@ -223,7 +210,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			const discordState = req.query["state"];
 			const { clientState } = req.signedCookies;
 			if (clientState !== discordState) {
-				console.error("[OAuth Callback] State mismatch?");
+				log.error("[OAuth Callback] State mismatch?");
 				res.sendStatus(403);
 				return;
 			}
@@ -296,7 +283,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				);
 			}
 		} catch (err) {
-			console.error(err);
+			log.error(err);
 			res.sendStatus(500);
 		}
 	});

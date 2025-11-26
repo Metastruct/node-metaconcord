@@ -1,10 +1,12 @@
 import * as Discord from "discord.js";
 import { VoteKickRequest } from "./structures/index.js";
-import { f } from "@/utils.js";
+import { f, logger } from "@/utils.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
 import SteamID from "steamid";
 import requestSchema from "./structures/VoteKickRequest.json" with { type: "json" };
+
+const log = logger(import.meta);
 
 export default class NotificationPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -36,11 +38,11 @@ export default class NotificationPayload extends Payload {
 				if (relayChannel) {
 					await this.getLastReport(payload.data, relayChannel as Discord.TextChannel)
 						.then(msg => msg?.react("✅"))
-						.catch(err => console.error(err));
+						.catch(err => log.error(err));
 				}
 				await this.getLastReport(payload.data, notificationsChannel as Discord.TextChannel)
 					.then(msg => msg?.react("✅"))
-					.catch(err => console.error(err));
+					.catch(err => log.error(err));
 				return;
 			} else {
 				if (relayChannel) {

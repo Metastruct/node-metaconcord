@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { AddonURIS, getOrFetchGmodFile } from "@/utils.js";
+import { AddonURIS, getOrFetchGmodFile, logger } from "@/utils.js";
 import { WebApp } from "@/app/services/webapp/index.js";
 import GameServer, { Player } from "@/app/services/gamebridge/GameServer.js";
 import SteamID from "steamid";
@@ -7,6 +7,8 @@ import config from "@/config/webapp.json" with { type: "json" };
 import dayjs from "dayjs";
 import express from "express";
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
+
+const log = logger(import.meta);
 
 type GmodResponse = {
 	addon: string;
@@ -50,29 +52,29 @@ const SuperReplacer = (_: string, ...args: any[]) => {
 		groups.steamid
 			? `\[[${groups.steamid}\]${
 					groups.steamnick
-			  }](http://steamcommunity.com/profiles/${new SteamID(groups.steamid).getSteamID64()})`
+				}](http://steamcommunity.com/profiles/${new SteamID(groups.steamid).getSteamID64()})`
 			: groups.partialsteamid
-			? groups.rfilename
-				? `<[${groups.partialsteamid} |${
-						groups.nick
-				  }](http://steamcommunity.com/profiles/${new SteamID(
-						`STEAM_${groups.partialsteamid}`
-				  ).getSteamID64()})><${groups.rfilename}>`
-				: `<[${groups.partialsteamid} |${
-						groups.nick
-				  }](http://steamcommunity.com/profiles/${new SteamID(
-						`STEAM_${groups.partialsteamid}`
-				  ).getSteamID64()})><${groups.cmdname}:${groups.cmdrealm}>`
-			: groups.path
-			? groups.addon &&
-			  AddonURIS[
-					groups.addon === "mta" && groups.path.split("/", 1)[0] === "gamemodes"
-						? "mta_gamemode"
-						: groups.addon
-			  ]
-				? `[${groups.path}](${AddonURIS[groups.addon] + groups.path}#L${groups.lineno})`
+				? groups.rfilename
+					? `<[${groups.partialsteamid} |${
+							groups.nick
+						}](http://steamcommunity.com/profiles/${new SteamID(
+							`STEAM_${groups.partialsteamid}`
+						).getSteamID64()})><${groups.rfilename}>`
+					: `<[${groups.partialsteamid} |${
+							groups.nick
+						}](http://steamcommunity.com/profiles/${new SteamID(
+							`STEAM_${groups.partialsteamid}`
+						).getSteamID64()})><${groups.cmdname}:${groups.cmdrealm}>`
 				: groups.path
-			: groups.engine
+					? groups.addon &&
+						AddonURIS[
+							groups.addon === "mta" && groups.path.split("/", 1)[0] === "gamemodes"
+								? "mta_gamemode"
+								: groups.addon
+						]
+						? `[${groups.path}](${AddonURIS[groups.addon] + groups.path}#L${groups.lineno})`
+						: groups.path
+					: groups.engine
 	}:${groups.lineno}`;
 };
 
@@ -178,10 +180,10 @@ export default async (webApp: WebApp): Promise<void> => {
 				footer: {
 					text: `${body.gamemode}@${
 						body.realm === "server"
-							? server?.name ?? `unknown server(${ip})`
+							? (server?.name ?? `unknown server(${ip})`)
 							: gameserver
-							? gameserver.config.name
-							: body.realm
+								? gameserver.config.name
+								: body.realm
 					}`,
 				},
 				color: server ? 0x03a9f4 : 0xdea909,
@@ -251,9 +253,9 @@ export default async (webApp: WebApp): Promise<void> => {
 			}
 			if (body.v === "test") return;
 			if (matches.some(m => (m.groups as StackMatchGroups).addon === "pac3")) {
-				pac_error_webhook.send(payload).catch(console.error);
+				pac_error_webhook.send(payload).catch(log.error);
 			} else {
-				webhook.send(payload).catch(console.error);
+				webhook.send(payload).catch(log.error);
 			}
 		}
 	});

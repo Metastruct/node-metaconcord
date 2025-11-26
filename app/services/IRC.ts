@@ -2,6 +2,9 @@ import * as Discord from "discord.js";
 import { Container, Service } from "../Container.js";
 import config from "@/config/irc.json" with { type: "json" };
 import nIRC from "irc-upd";
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 type message = {
 	prefix: string;
@@ -45,7 +48,7 @@ export class IRC extends Service {
 				avatarURL: `https://robohash.org/${nick}.png`,
 				allowedMentions: { parse: ["users", "roles"] },
 			})
-			.catch(console.error);
+			.catch(log.error);
 	}
 
 	private relayIRC(text: string): void {
@@ -88,7 +91,7 @@ export class IRC extends Service {
 			}
 		);
 
-		this.client.on("error", msg => console.error(msg));
+		this.client.on("error", err => log.error(err));
 	}
 }
 

@@ -3,6 +3,9 @@ import { Container, Service } from "../Container.js";
 import { DiscordBot, SQL } from "./index.js";
 import config from "@/config/starboard.json" with { type: "json" };
 import discordConfig from "@/config/discord.json" with { type: "json" };
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 const STARBOARD_CONFIG = {
 	MESSAGE_AGE_LIMIT_MS: 3 * 28 * 24 * 60 * 60 * 1000, // 3 months
@@ -40,7 +43,7 @@ export class Starboard extends Service {
 			if (originalAuthorID && originalAuthorID !== interaction.user.id) return;
 
 			try {
-				const res = await interaction.message.delete().catch(console.error);
+				const res = await interaction.message.delete().catch(log.error);
 				if (res) {
 					this.bot
 						.getTextChannel(this.bot.config.channels.log)
@@ -48,8 +51,8 @@ export class Starboard extends Service {
 							`Highlighted Message in ${interaction.channel} deleted by ${interaction.user} (${interaction.user.id}) -> https://discord.com/channels/${interaction.guildId}/${originalChannelID}/${originalMsgID}`
 						);
 				}
-			} catch (error) {
-				console.error("[Starboard] Error deleting message:", error);
+			} catch (err) {
+				log.error(err, "failed to delete message");
 			}
 		});
 	}
@@ -136,7 +139,7 @@ export class Starboard extends Service {
 				this.isBusy = true;
 				const msg = await message.fetch();
 				if (!msg) {
-					console.error("[Starboard] couldn't fetch message", reaction);
+					log.error(reaction, "fetch message failed.");
 					this.isBusy = false;
 					return;
 				}
@@ -145,7 +148,7 @@ export class Starboard extends Service {
 					targetChannel = client.channels.cache.get(discordConfig.channels.hBot);
 
 				if (!targetChannel) {
-					console.error("[Starboard] wtf invalid channel", reaction);
+					log.error(reaction, "invalid channel?");
 					this.isBusy = false;
 					return;
 				}
@@ -235,8 +238,8 @@ export class Starboard extends Service {
 
 				this.isBusy = false;
 			}
-		} catch (error) {
-			console.error("[Starboard] Error handling reaction:", error);
+		} catch (err) {
+			log.error(err);
 		} finally {
 			this.isBusy = false;
 		}

@@ -1,11 +1,14 @@
 import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
-import { clamp } from "@/utils.js";
+import { clamp, logger } from "@/utils.js";
 import axios from "axios";
 import webhookConfig from "@/config/webhooks.json" with { type: "json" };
 import { EmitterWebhookEvent } from "@octokit/webhooks/types";
 import { components } from "@octokit/openapi-types";
+
+const log = logger(import.meta);
+
 const COLOR_MOD = 75;
 const COLOR_BASE = 50;
 
@@ -182,7 +185,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						ctx.editReply(
 							`<@${ctx.user.id}> something went wrong :(\`\`\`\n${err}\`\`\``
 						);
-						console.error(err);
+						log.error(err);
 					});
 				break;
 			case "everything":
@@ -210,7 +213,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						await ctx.reply(
 							"something went wrong fetching the files from github :( ... aborting"
 						);
-						console.error(err);
+						log.error(err);
 						return;
 					}
 				} else if (url.startsWith("https://gitlab.com")) {
@@ -227,7 +230,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						await ctx.reply(
 							"something went wrong fetching the files from gitlab :( ... aborting"
 						);
-						console.error(err);
+						log.error(err);
 						return;
 					}
 				}
@@ -299,7 +302,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						ctx.editReply(
 							`<@${ctx.user.id}> something went wrong :(\`\`\`\n${err}\`\`\``
 						);
-						console.error(err);
+						log.error(err);
 					});
 				break;
 		}
@@ -510,7 +513,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					...messagePayload,
 					components: includesLua ? [components] : undefined,
 				})
-				.catch(console.error);
+				.catch(log.error);
 		}
 	}
 
@@ -770,7 +773,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			],
 		};
 
-		webhook.send(messagePayload).catch(console.error);
+		webhook.send(messagePayload).catch(log.error);
 	});
 
 	GitHub.on("membership", async event => {
@@ -798,7 +801,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			],
 		};
 
-		webhook.send(messagePayload).catch(console.error);
+		webhook.send(messagePayload).catch(log.error);
 	});
 
 	GitHub.on("team", async event => {
@@ -848,6 +851,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 			],
 		};
 
-		webhook.send(messagePayload).catch(console.error);
+		webhook.send(messagePayload).catch(log.error);
 	});
 };

@@ -4,17 +4,14 @@ module.exports = {
 	env: {
 		node: true,
 	},
-	extends: ["plugin:@typescript-eslint/recommended", "plugin:prettier/recommended", "prettier"],
-	plugins: ["sort-imports-es6-autofix"],
+	extends: ["eslint:recommended, plugin:@typescript-eslint/recommended", "plugin:prettier/recommended", "prettier"],
 	// add your custom rules here
 	rules: {
-		"nuxt/no-cjs-in-config": "off",
-		"no-console": "off",
-		"max-len": ["off", 80, 4],
-		"no-prototype-builtins": "off",
-		"require-await": "off",
-		"one-var": "off",
-		"sort-imports-es6-autofix/sort-imports-es6": "warn",
 		"@typescript-eslint/no-explicit-any": "off",
+		"no-console": "off",
+		"no-prototype-builtins": "off",
+		"nuxt/no-cjs-in-config": "off",
+		"one-var": "off",
+		"require-await": "off",
 	},
 };

@@ -1,6 +1,9 @@
 import * as Discord from "discord.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import config from "@/config/discord.json" with { type: "json" };
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 export default class DiscordClient extends Discord.Client {
 	config = config;
@@ -20,7 +23,7 @@ export default class DiscordClient extends Discord.Client {
 			this.ready = false;
 		});
 
-		this.on("warn", console.log);
+		this.on("warn", log.warn);
 	}
 
 	public run(token: string): void {

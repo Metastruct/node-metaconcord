@@ -4,6 +4,9 @@ import { join } from "path";
 import { scheduleJob } from "node-schedule";
 import { stat } from "fs/promises";
 import dayjs from "dayjs";
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 export const events = [
 	{
@@ -107,7 +110,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					data.lastDiscordGuildEvent = eventName;
 					await data.save();
 				} catch (err) {
-					console.error(err);
+					log.error(err);
 					return;
 				}
 			}

@@ -1,6 +1,8 @@
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
-import { getOrFetchGmodFile } from "@/utils.js";
+import { getOrFetchGmodFile, logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 const PATH_MATCH = /(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>[a-z]*)/g;
 
@@ -27,7 +29,7 @@ export const SlashFileCommand: SlashCommand = {
 		const file = await getOrFetchGmodFile(path);
 		if (!file) {
 			ctx.followUp(EphemeralResponse("file not found :("));
-			console.error(`SlashFile: file missing?`, ctx.user, path);
+			log.error({ user: ctx.user, path }, "missing path?");
 			return;
 		}
 

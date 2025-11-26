@@ -6,6 +6,9 @@ import SteamID from "steamid";
 import dayjs from "dayjs";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
 import path from "path";
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 const GamemodeAlias = {
 	qbox: "metastruct",
@@ -203,7 +206,7 @@ export default class StatusPayload extends Payload {
 
 				if (!mapThumbnail && current_workshopMap) {
 					const res = await Steam.getPublishedFileDetails([current_workshopMap.id]).catch(
-						console.error
+						log.error
 					);
 					const thumbnailURI = res?.publishedfiledetails?.[0]?.preview_url;
 
@@ -335,7 +338,7 @@ export default class StatusPayload extends Payload {
 							],
 							flags: Discord.MessageFlags.IsComponentsV2,
 						})
-						.catch(e => console.error("StatusPayload: Message edit failed", e));
+						.catch(e => log.error(e, "message edit failed"));
 				} else {
 					channel
 						.send({
@@ -352,17 +355,17 @@ export default class StatusPayload extends Payload {
 						})
 						.catch();
 				}
-			} catch (error) {
-				console.error("StatusPayload", error);
+			} catch (err) {
+				log.error(err);
 			}
 		};
 
 		if (discord.ready && this.retryCount < 5) {
 			try {
 				updateStatus();
-			} catch (e) {
+			} catch (err) {
 				this.retryCount++;
-				console.error(e);
+				log.error(err);
 			}
 		}
 	}

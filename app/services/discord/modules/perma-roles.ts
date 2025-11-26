@@ -1,5 +1,8 @@
 import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 function isEmpty(obj: { [roleId: string]: { adderId: string; timeStamp: number } }) {
 	for (const _roleId in obj) {
@@ -35,7 +38,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		});
 		const lastLog = auditLogs.entries.first();
 		if (!lastLog || lastLog.executorId === null) {
-			console.error("[perma-roles] wtf:", lastLog);
+			log.error(lastLog);
 			return;
 		}
 		const adderId = lastLog.executorId;
