@@ -179,6 +179,7 @@ export default async (bot: DiscordBot) => {
 	const data = await bot.container.getService("Data");
 	const mk = await bot.container.getService("Markov");
 	const db = await (await bot.container.getService("SQL")).getLocalDatabase();
+	const motd = await bot.container.getService("Motd");
 	db.exec("CREATE TABLE IF NOT EXISTS media_urls (url VARCHAR(255) NOT NULL UNIQUE);");
 	const now = Date.now();
 	let lastActivityChange = now;
@@ -436,6 +437,11 @@ export default async (bot: DiscordBot) => {
 					.permissionsFor(msg.guild.roles.everyone)
 					.has("ViewChannel")
 			: true;
+
+		// Motd Messages
+		if (!isBot && !isHidden) {
+			motd.pushMessage(msg.content);
+		}
 
 		// Message Reactions
 		if (
