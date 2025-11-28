@@ -13,6 +13,9 @@ import { logger } from "./utils.js";
 const MetaConcord = new App();
 (global as any).MetaConcord = MetaConcord;
 
-process.on("uncaughtException", err => logger("App").fatal(err));
+process.on("uncaughtException", err => {
+	logger("App").fatal(err);
+	process.exit(1);
+});
 
 export default MetaConcord;
