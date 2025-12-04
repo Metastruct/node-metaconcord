@@ -134,7 +134,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 			const query = gql`{
 		project(fullPath:"${url.match(/\.com\/(.+?)\/\-/)?.[1]}") {
 			repository {
-				blobs(paths:"${path}"){
+				blobs(paths:"${fpath}"){
 					nodes{rawTextBlob}
 				}
 			}
@@ -147,9 +147,10 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 					const request: { data: GithubResponse } = await github.octokit.graphql(
 						`query text($owner: String!, $repo: String!) {
 							repository(owner: $owner, name: $repo) {
-								object(expression: "${branch ?? "HEAD"}:${path}") {
-								... on Blob {
-									text
+								object(expression: "${branch ?? "HEAD"}:${fpath}") {
+									... on Blob {
+										text
+									}
 								}
 							}
 						}`,
