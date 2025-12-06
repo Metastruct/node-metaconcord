@@ -17,7 +17,14 @@ export class WebApp extends Service {
 	constructor(container: Container) {
 		super(container);
 
-		this.app.use(pinoHttp({ base: undefined, level: process.env.LOG_LEVEL || "info" }));
+		this.app.use(
+			pinoHttp({
+				logger: log,
+				base: undefined,
+				level: process.env.LOG_LEVEL || "info",
+				autoLogging: { ignore: req => req.url.startsWith("/server-status") },
+			})
+		);
 
 		for (const addAPI of APIs) {
 			addAPI(this);
