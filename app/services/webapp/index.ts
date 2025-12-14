@@ -8,6 +8,8 @@ import { logger } from "@/utils.js";
 
 const log = logger("WebApp");
 
+const PATH_IGNORE = ["/server-status","/discord/guild/emojis", "/gmod/errors"];
+
 export class WebApp extends Service {
 	name = "WebApp";
 	config = config;
@@ -22,7 +24,7 @@ export class WebApp extends Service {
 				logger: log,
 				base: undefined,
 				level: process.env.LOG_LEVEL || "info",
-				autoLogging: { ignore: req => req.url.startsWith("/server-status") },
+				autoLogging: { ignore: req => PATH_IGNORE.includes(req.path)},
 			})
 		);
 
