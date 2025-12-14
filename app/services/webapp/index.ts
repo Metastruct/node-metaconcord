@@ -24,7 +24,7 @@ export class WebApp extends Service {
 				logger: log,
 				base: undefined,
 				level: process.env.LOG_LEVEL || "info",
-				autoLogging: { ignore: req => PATH_IGNORE.includes(req.path)},
+				autoLogging: { ignore: req => PATH_IGNORE.some(p => req.path.startsWith(p))},
 			})
 		);
 
