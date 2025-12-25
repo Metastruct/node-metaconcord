@@ -4,13 +4,12 @@ USER root
 RUN set -eux \
   & apk add \
   --no-cache \
-  yarn \
   bash 
 
 WORKDIR /app
 
-COPY package.json .
-COPY yarn.lock .
+RUN yarn set version berry
+COPY package.json yarn.lock .yarn .yarnrc.yml ./
 RUN yarn install
 COPY . .
 RUN cd ./config && \
