@@ -1,0 +1,71 @@
+{
+  "$ref": "#/definitions/ChatResponse",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ChatResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "msgID": {
+          "type": "string"
+        },
+        "replied_message": {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "type": "string"
+            },
+            "ingameName": {
+              "type": "string"
+            },
+            "msgID": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "content",
+            "ingameName",
+            "msgID"
+          ],
+          "type": "object"
+        },
+        "user": {
+          "additionalProperties": false,
+          "properties": {
+            "avatar_url": {
+              "type": "string"
+            },
+            "color": {
+              "type": "number"
+            },
+            "id": {
+              "type": "string"
+            },
+            "nick": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "avatar_url",
+            "color",
+            "id",
+            "nick",
+            "username"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "user",
+        "content",
+        "msgID"
+      ],
+      "type": "object"
+    }
+  }
+}

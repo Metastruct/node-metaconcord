@@ -1,0 +1,152 @@
+{
+  "$ref": "#/definitions/StatusRequest",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "CountdownType": {
+      "enum": [
+        -1,
+        0,
+        1,
+        2,
+        3
+      ],
+      "type": "number"
+    },
+    "StatusRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "additionalProperties": false,
+          "properties": {
+            "countdown": {
+              "additionalProperties": false,
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "time": {
+                  "type": "number"
+                },
+                "typ": {
+                  "$ref": "#/definitions/CountdownType"
+                }
+              },
+              "required": [
+                "typ",
+                "time",
+                "text"
+              ],
+              "type": "object"
+            },
+            "defcon": {
+              "type": "number"
+            },
+            "gamemode": {
+              "additionalProperties": false,
+              "properties": {
+                "folderName": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "folderName",
+                "name"
+              ],
+              "type": "object"
+            },
+            "gamemodes": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "hostname": {
+              "type": "string"
+            },
+            "mapName": {
+              "type": "string"
+            },
+            "mapUptime": {
+              "type": "number"
+            },
+            "players": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "accountId": {
+                    "type": "number"
+                  },
+                  "avatar": {
+                    "type": "string"
+                  },
+                  "ip": {
+                    "type": "string"
+                  },
+                  "isAdmin": {
+                    "type": "boolean"
+                  },
+                  "isAfk": {
+                    "type": "boolean"
+                  },
+                  "isBanned": {
+                    "type": "boolean"
+                  },
+                  "isLinux": {
+                    "type": "boolean"
+                  },
+                  "isPirate": {
+                    "type": "boolean"
+                  },
+                  "nick": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "accountId",
+                  "ip",
+                  "isAdmin",
+                  "isBanned",
+                  "nick"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "serverUptime": {
+              "type": "number"
+            },
+            "workshopMap": {
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "id"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "name": {
+          "const": "StatusPayload",
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "name"
+      ],
+      "type": "object"
+    }
+  }
+}

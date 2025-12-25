@@ -1,0 +1,50 @@
+{
+  "$ref": "#/definitions/RconRequest",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "RconRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "additionalProperties": false,
+          "properties": {
+            "errors": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "identifier": {
+              "type": "string"
+            },
+            "returns": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "stdout": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "identifier",
+            "returns",
+            "errors",
+            "stdout"
+          ],
+          "type": "object"
+        },
+        "name": {
+          "const": "RconPayload",
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "name"
+      ],
+      "type": "object"
+    }
+  }
+}

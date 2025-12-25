@@ -1,0 +1,74 @@
+{
+  "$ref": "#/definitions/UnbanRequest",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "UnbanRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "additionalProperties": false,
+          "properties": {
+            "banReason": {
+              "type": "string"
+            },
+            "banTime": {
+              "type": "string"
+            },
+            "banned": {
+              "additionalProperties": false,
+              "properties": {
+                "nick": {
+                  "type": "string"
+                },
+                "steamId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "nick",
+                "steamId"
+              ],
+              "type": "object"
+            },
+            "player": {
+              "additionalProperties": false,
+              "properties": {
+                "nick": {
+                  "type": "string"
+                },
+                "steamId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "nick",
+                "steamId"
+              ],
+              "type": "object"
+            },
+            "unbanReason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "player",
+            "banned",
+            "banReason",
+            "unbanReason",
+            "banTime"
+          ],
+          "type": "object"
+        },
+        "name": {
+          "const": "UnbanPayload",
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "name"
+      ],
+      "type": "object"
+    }
+  }
+}

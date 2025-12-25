@@ -1,0 +1,66 @@
+{
+  "$ref": "#/definitions/AdminNotifyRequest",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AdminNotifyRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "additionalProperties": false,
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "player": {
+              "additionalProperties": false,
+              "properties": {
+                "nick": {
+                  "type": "string"
+                },
+                "steamId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "nick",
+                "steamId"
+              ],
+              "type": "object"
+            },
+            "reported": {
+              "additionalProperties": false,
+              "properties": {
+                "nick": {
+                  "type": "string"
+                },
+                "steamId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "nick",
+                "steamId"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "player",
+            "reported",
+            "message"
+          ],
+          "type": "object"
+        },
+        "name": {
+          "const": "AdminNotifyPayload",
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "name"
+      ],
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "$ref": "#/definitions/ErrorResponse",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ErrorResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "error": {}
+      },
+      "required": [
+        "error"
+      ],
+      "type": "object"
+    }
+  }
+}

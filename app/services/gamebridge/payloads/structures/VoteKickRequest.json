@@ -1,0 +1,81 @@
+{
+  "$ref": "#/definitions/VoteKickRequest",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "VoteKickRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "additionalProperties": false,
+          "properties": {
+            "offender": {
+              "additionalProperties": false,
+              "properties": {
+                "nick": {
+                  "type": "string"
+                },
+                "steamID": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "nick",
+                "steamID"
+              ],
+              "type": "object"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "reporter": {
+              "additionalProperties": false,
+              "properties": {
+                "nick": {
+                  "type": "string"
+                },
+                "steamID": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "nick",
+                "steamID"
+              ],
+              "type": "object"
+            },
+            "result": {
+              "additionalProperties": false,
+              "properties": {
+                "reason": {
+                  "type": "string"
+                },
+                "success": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "success"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "offender",
+            "reporter",
+            "reason"
+          ],
+          "type": "object"
+        },
+        "name": {
+          "const": "VoteKickPayload",
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "name"
+      ],
+      "type": "object"
+    }
+  }
+}

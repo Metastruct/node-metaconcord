@@ -1,0 +1,49 @@
+{
+  "$ref": "#/definitions/ErrorRequest",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ErrorRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "additionalProperties": false,
+          "properties": {
+            "hook_error": {
+              "additionalProperties": false,
+              "properties": {
+                "errormsg": {
+                  "type": "string"
+                },
+                "identifier": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "identifier",
+                "errormsg"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "hook_error"
+          ],
+          "type": "object"
+        },
+        "name": {
+          "const": "ErrorPayload",
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "name"
+      ],
+      "type": "object"
+    }
+  }
+}
