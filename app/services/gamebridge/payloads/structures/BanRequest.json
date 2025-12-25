@@ -1,0 +1,73 @@
+{
+  "$ref": "#/definitions/BanRequest",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "BanRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "additionalProperties": false,
+          "properties": {
+            "banned": {
+              "additionalProperties": false,
+              "properties": {
+                "nick": {
+                  "type": "string"
+                },
+                "steamId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "nick",
+                "steamId"
+              ],
+              "type": "object"
+            },
+            "gamemode": {
+              "type": "string"
+            },
+            "player": {
+              "additionalProperties": false,
+              "properties": {
+                "nick": {
+                  "type": "string"
+                },
+                "steamId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "nick",
+                "steamId"
+              ],
+              "type": "object"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "unbanTime": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "player",
+            "banned",
+            "reason",
+            "unbanTime"
+          ],
+          "type": "object"
+        },
+        "name": {
+          "const": "BanPayload",
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "name"
+      ],
+      "type": "object"
+    }
+  }
+}

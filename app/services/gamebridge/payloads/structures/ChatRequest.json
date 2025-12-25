@@ -1,0 +1,49 @@
+{
+  "$ref": "#/definitions/ChatRequest",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ChatRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "type": "string"
+            },
+            "player": {
+              "additionalProperties": false,
+              "properties": {
+                "nick": {
+                  "type": "string"
+                },
+                "steamId64": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "nick",
+                "steamId64"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "player",
+            "content"
+          ],
+          "type": "object"
+        },
+        "name": {
+          "const": "ChatPayload",
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "name"
+      ],
+      "type": "object"
+    }
+  }
+}

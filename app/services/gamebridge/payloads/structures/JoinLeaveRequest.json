@@ -1,0 +1,51 @@
+{
+  "$ref": "#/definitions/JoinLeaveRequest",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "JoinLeaveRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "additionalProperties": false,
+          "properties": {
+            "player": {
+              "additionalProperties": false,
+              "properties": {
+                "nick": {
+                  "type": "string"
+                },
+                "steamId64": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "nick",
+                "steamId64"
+              ],
+              "type": "object"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "spawned": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "player"
+          ],
+          "type": "object"
+        },
+        "name": {
+          "const": "JoinLeavePayload",
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "name"
+      ],
+      "type": "object"
+    }
+  }
+}

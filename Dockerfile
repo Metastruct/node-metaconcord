@@ -17,8 +17,6 @@ RUN cd ./config && \
   cp "$f" "${f/.example.json/.json}"; \
   done
   
-#todo: remove/replace schema_gen.sh it is so slow..
-RUN ./schema_gen.sh
 RUN yarn build
 
 #hack, remove config after building so we can mount it
