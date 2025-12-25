@@ -48,7 +48,7 @@ export class IRC extends Service {
 				avatarURL: `https://robohash.org/${nick}.png`,
 				allowedMentions: { parse: ["users", "roles"] },
 			})
-			.catch(log.error);
+			.catch(log.error.bind(log));
 	}
 
 	private relayIRC(text: string): void {

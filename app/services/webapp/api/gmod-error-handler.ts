@@ -253,9 +253,9 @@ export default async (webApp: WebApp): Promise<void> => {
 			}
 			if (body.v === "test") return;
 			if (matches.some(m => (m.groups as StackMatchGroups).addon === "pac3")) {
-				pac_error_webhook.send(payload).catch(log.error);
+				pac_error_webhook.send(payload).catch(log.error.bind(log));
 			} else {
-				webhook.send(payload).catch(log.error);
+				webhook.send(payload).catch(log.error.bind(log));
 			}
 		}
 	});

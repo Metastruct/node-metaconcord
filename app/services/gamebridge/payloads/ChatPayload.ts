@@ -204,7 +204,7 @@ export default class ChatPayload extends Payload {
 				avatarURL: avatar,
 				allowedMentions: { parse: ["users", "roles"] },
 			})
-			.catch(log.error);
+			.catch(log.error.bind(log));
 	}
 
 	static async send(payload: ChatResponse, server: GameServer): Promise<void> {
