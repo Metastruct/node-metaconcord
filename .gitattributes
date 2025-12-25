@@ -1,3 +1,6 @@
 # This is a font in Base64 format, causes the whole project to be detected as mainly SCSS...
 # We don't want that
 resources/game-server-status/_whitney.scss -linguist-detectable
+
+/.yarn/releases/** binary
+/.yarn/plugins/** binary
