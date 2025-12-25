@@ -11,5 +11,5 @@ for schema in $requestspath*.ts; do
 	schema=${schema/%.ts/}
 	if [[ $schema == "index" ]]; then continue; fi
 	echo "Generating schema for $schema"
-	npx ts-json-schema-generator -p "$requestspath*.ts" -t "$schema" -o "$requestspath$schema.json"
+	yarn dlx ts-json-schema-generator -p "$requestspath*.ts" -t "$schema" -o "$requestspath$schema.json"
 done
