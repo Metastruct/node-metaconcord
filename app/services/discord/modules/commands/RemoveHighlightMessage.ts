@@ -55,7 +55,7 @@ export const MenuRemoveHighlightMessageCommand: MenuCommand = {
 					m.attachments.size > 0 &&
 					m.attachments.first()?.name === ctx.targetMessage.attachments.first()?.name
 			);
-			const deleted = await targetMessage?.delete().catch(log.error);
+			const deleted = await targetMessage?.delete().catch(log.error.bind(log));
 
 			if (deleted) {
 				await ctx.reply(EphemeralResponse("👍"));

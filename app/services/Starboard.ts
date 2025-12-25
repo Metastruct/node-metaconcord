@@ -43,7 +43,7 @@ export class Starboard extends Service {
 			if (originalAuthorID && originalAuthorID !== interaction.user.id) return;
 
 			try {
-				const res = await interaction.message.delete().catch(log.error);
+				const res = await interaction.message.delete().catch(log.error.bind(log));
 				if (res) {
 					this.bot
 						.getTextChannel(this.bot.config.channels.log)

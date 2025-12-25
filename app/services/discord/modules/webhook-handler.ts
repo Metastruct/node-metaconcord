@@ -513,7 +513,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					...messagePayload,
 					components: includesLua ? [components] : undefined,
 				})
-				.catch(log.error);
+				.catch(log.error.bind(log));
 		}
 	}
 
@@ -773,7 +773,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			],
 		};
 
-		webhook.send(messagePayload).catch(log.error);
+		webhook.send(messagePayload).catch(log.error.bind(log));
 	});
 
 	GitHub.on("membership", async event => {
@@ -801,7 +801,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			],
 		};
 
-		webhook.send(messagePayload).catch(log.error);
+		webhook.send(messagePayload).catch(log.error.bind(log));
 	});
 
 	GitHub.on("team", async event => {
@@ -851,6 +851,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 			],
 		};
 
-		webhook.send(messagePayload).catch(log.error);
+		webhook.send(messagePayload).catch(log.error.bind(log));
 	});
 };
