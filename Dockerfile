@@ -8,8 +8,8 @@ RUN set -eux \
 
 WORKDIR /app
 
-RUN yarn set version berry
-COPY package.json yarn.lock .yarn .yarnrc.yml ./
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY .yarn ./.yarn
 RUN yarn install
 COPY . .
 RUN cd ./config && \
