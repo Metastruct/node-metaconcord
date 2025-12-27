@@ -160,7 +160,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 						return request.data.repository.object.text;
 					return;
 				} else {
-					const data = await request<GithubResponse | GitlabResponse>(
+					const data = await request<GitlabResponse>(
 						gitlabEndpoint,
 						query,
 						{},
@@ -169,7 +169,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 						}
 					);
 					if (data) {
-						const filecontent = (data as GitlabResponse).project.repository.blobs
+						const filecontent = data.project.repository.blobs
 							.nodes[0].rawTextBlob;
 						return linenos
 							? getStackLines(filecontent, Number(linenos), Number(linenoe))
@@ -178,7 +178,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 					return;
 				}
 			} catch (err) {
-				baseLogger.error(err);
+				baseLogger.error({err, path, url});
 				return;
 			}
 		}
