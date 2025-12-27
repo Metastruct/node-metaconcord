@@ -61,7 +61,8 @@ export const SlashGservCommand: SlashCommand = {
 		const messageID = reply.interaction.responseMessageId ?? (await ctx.fetchReply()).id;
 
 		await Promise.all(
-			servers.map(async gameServer => {
+            servers.filter(s => !!s.config.ssh)
+			.map(async gameServer => {
 				const gSDiscord = gameServer.discord;
 				const channel = gSDiscord.channels.cache.get(
 					ctx.channelId
