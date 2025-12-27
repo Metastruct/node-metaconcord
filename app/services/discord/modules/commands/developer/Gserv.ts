@@ -61,53 +61,54 @@ export const SlashGservCommand: SlashCommand = {
 		const messageID = reply.interaction.responseMessageId ?? (await ctx.fetchReply()).id;
 
 		await Promise.all(
-            servers.filter(s => !!s.config.ssh)
-			.map(async gameServer => {
-				const gSDiscord = gameServer.discord;
-				const channel = gSDiscord.channels.cache.get(
-					ctx.channelId
-				) as Discord.GuildTextBasedChannel;
-				const message = channel.messages.cache.get(messageID);
+			servers
+				.filter(s => !!s.config.ssh)
+				.map(async gameServer => {
+					const gSDiscord = gameServer.discord;
+					const channel = gSDiscord.channels.cache.get(
+						ctx.channelId
+					) as Discord.GuildTextBasedChannel;
+					const message = channel.messages.cache.get(messageID);
 
-				try {
-					let buffer = "";
+					try {
+						let buffer = "";
 
-					await gameServer.sshExecCommand("gserv " + command, {
-						stream: "stderr",
-						onStdout: buff => (buffer += buff),
-						onStderr: buff => (buffer += buff),
-					});
+						await gameServer.sshExecCommand("gserv " + command, {
+							stream: "stderr",
+							onStdout: buff => (buffer += buff),
+							onStderr: buff => (buffer += buff),
+						});
 
-					const success = !buffer.includes("GSERV FAILED");
+						const success = !buffer.includes("GSERV FAILED");
 
-					const fileName = `${command}_${gameServer.config.id}_${Date.now()}.ansi`;
-					const response = {
-						content: !success
-							? "<a:ALERTA:843518761160015933> FAILED <a:ALERTA:843518761160015933> "
-							: undefined,
-						files: [{ attachment: Buffer.from(buffer), name: fileName }],
-					};
+						const fileName = `${command}_${gameServer.config.id}_${Date.now()}.ansi`;
+						const response = {
+							content: !success
+								? "<a:ALERTA:843518761160015933> FAILED <a:ALERTA:843518761160015933> "
+								: undefined,
+							files: [{ attachment: Buffer.from(buffer), name: fileName }],
+						};
 
-					if (showOutput || success === false) {
+						if (showOutput || success === false) {
+							if (message) {
+								message.reply(response);
+							} else {
+								channel.send(response);
+							}
+						} else {
+							if (message) message.react("👍");
+						}
+						return success;
+					} catch (err) {
+						const response = `<a:ALERTA:843518761160015933> failed to run gerv <a:ALERTA:843518761160015933>\n\`\`\`${err}\`\`\``;
 						if (message) {
-							message.reply(response);
+							await message.reply(response);
 						} else {
 							channel.send(response);
 						}
-					} else {
-						if (message) message.react("👍");
+						return false;
 					}
-					return success;
-				} catch (err) {
-					const response = `<a:ALERTA:843518761160015933> failed to run gerv <a:ALERTA:843518761160015933>\n\`\`\`${err}\`\`\``;
-					if (message) {
-						await message.reply(response);
-					} else {
-						channel.send(response);
-					}
-					return false;
-				}
-			})
+				})
 		)
 			.then(() => {
 				ctx.editReply(`sent \`${command}\` successfully!`);
