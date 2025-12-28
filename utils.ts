@@ -1,16 +1,31 @@
-import { PathLike, promises as fs } from "fs";
-import { createCanvas, loadImage } from "@napi-rs/canvas";
 import apikeys from "@/config/apikeys.json" with { type: "json" };
-import axios from "axios";
-import request, { gql } from "graphql-request";
+import lokiConfig from "@/config/loki.json" with { type: "json" };
 import webappconfig from "@/config/webapp.json" with { type: "json" };
-import pino from "pino";
+import { createCanvas, loadImage } from "@napi-rs/canvas";
+import axios from "axios";
+import { PathLike, promises as fs } from "fs";
+import request, { gql } from "graphql-request";
 import path from "path";
+import pino from "pino";
+import type { LokiOptions } from "pino-loki";
 
-const baseLogger = pino({
-	base: undefined,
+const transport = pino.transport<LokiOptions>({
+	target: "pino-loki",
 	level: process.env.LOG_LEVEL || "info",
+	options: {
+		labels: { application: "metaconcord" },
+		host: lokiConfig.host,
+		basicAuth: {
+			username: lokiConfig.username,
+			password: lokiConfig.password,
+		},
+		headers: {
+			"X-Scope-OrgID": lokiConfig.header,
+		},
+	},
 });
+
+const baseLogger = pino(transport);
 
 export const logger = (meta: ImportMeta | string) =>
 	baseLogger.child({ file: typeof meta === "string" ? meta : path.basename(meta.filename) });
@@ -169,8 +184,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 						}
 					);
 					if (data) {
-						const filecontent = data.project.repository.blobs
-							.nodes[0].rawTextBlob;
+						const filecontent = data.project.repository.blobs.nodes[0].rawTextBlob;
 						return linenos
 							? getStackLines(filecontent, Number(linenos), Number(linenoe))
 							: filecontent;
@@ -178,7 +192,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 					return;
 				}
 			} catch (err) {
-				baseLogger.error({err, path, url});
+				baseLogger.error({ err, path, url });
 				return;
 			}
 		}
