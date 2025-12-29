@@ -8,7 +8,7 @@ import { logger } from "@/utils.js";
 
 const log = logger("WebApp");
 
-const PATH_IGNORE = ["/server-status", "/discord/guild/emojis", "/gmod/errors"];
+const PATH_IGNORE = ["/server-status", "/discord/guild/emojis"];
 
 export class WebApp extends Service {
 	name = "WebApp";
