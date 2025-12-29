@@ -146,6 +146,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 			const branch = url.split("/").at(-2);
 
 			if (!owner) return;
+			let filecontent: string | undefined;
 			try {
 				if (isGithub) {
 					const github = await globalThis.MetaConcord.container.getService("Github");
@@ -161,9 +162,9 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 						}`,
 						{ owner, repo }
 					);
-					if (request.data.repository.object?.text)
-						return request.data.repository.object.text;
-					return;
+					if (request.data.repository.object?.text) {
+						filecontent = request.data.repository.object.text;
+					}
 				} else {
 					const query = gql`{
 		project(fullPath:"${url.match(/\.com\/(.+?)\/\-/)?.[1]}") {
@@ -183,18 +184,18 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 							authorization: `Bearer ${apikeys.gitlab}`,
 						}
 					);
-					if (data) {
-						const filecontent = data.project.repository.blobs.nodes[0].rawTextBlob;
-						return linenos
-							? getStackLines(filecontent, Number(linenos), Number(linenoe))
-							: filecontent;
+					if (data.project.repository.blobs.nodes[0].rawTextBlob) {
+						filecontent = data.project.repository.blobs.nodes[0].rawTextBlob;
 					}
-					return;
 				}
 			} catch (err) {
-				baseLogger.error({ err, path, fpath, url, request }, "GraphQL request failed");
+				baseLogger.error({ err, path, fpath, owner, repo, url }, "GraphQL request failed");
 				return;
 			}
+
+			if (filecontent && linenos)
+				filecontent = getStackLines(filecontent, Number(linenos), Number(linenoe));
+			return filecontent;
 		}
 	}
 };
