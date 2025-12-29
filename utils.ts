@@ -146,16 +146,6 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 			const branch = url.split("/").at(-2);
 
 			if (!owner) return;
-			const query = gql`{
-		project(fullPath:"${url.match(/\.com\/(.+?)\/\-/)?.[1]}") {
-			repository {
-				blobs(paths:"${fpath}"){
-					nodes{rawTextBlob}
-				}
-			}
-		}
-	}
-	`;
 			try {
 				if (isGithub) {
 					const github = await globalThis.MetaConcord.container.getService("Github");
@@ -175,6 +165,16 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 						return request.data.repository.object.text;
 					return;
 				} else {
+					const query = gql`{
+		project(fullPath:"${url.match(/\.com\/(.+?)\/\-/)?.[1]}") {
+			repository {
+				blobs(paths:"${fpath}"){
+					nodes{rawTextBlob}
+				}
+			}
+		}
+	}
+`;
 					const data = await request<GitlabResponse>(
 						gitlabEndpoint,
 						query,
@@ -192,7 +192,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 					return;
 				}
 			} catch (err) {
-				baseLogger.error({ err, path, url });
+				baseLogger.error({ err, path, fpath, url, request }, "GraphQL request failed");
 				return;
 			}
 		}
