@@ -7,4 +7,9 @@ export default (webApp: WebApp): void => {
 		"/map-thumbnails/",
 		express.static(path.join(process.cwd(), "resources/map-thumbnails"))
 	);
+
+	webApp.app.use(
+		"/favicon.ico",
+		express.static(path.join(process.cwd(), "resources/favicon.ico"))
+	);
 };
