@@ -211,9 +211,13 @@ export default async (bot: DiscordBot): Promise<void> => {
 						files = res.data.files?.flatMap(f => f.filename);
 					} catch (err) {
 						await ctx.reply(
-							"something went wrong fetching the files from github :( ... aborting"
+							"something went wrong fetching the files from github :( ... aborting\n" +
+								`\`${err.message}\``
 						);
-						log.error(err);
+						log.error(
+							{ err: err, context: { url, owner, repo, ref } },
+							"Failed to fetch files from GitHub"
+						);
 						return;
 					}
 				} else if (url.startsWith("https://gitlab.com")) {
@@ -228,9 +232,13 @@ export default async (bot: DiscordBot): Promise<void> => {
 						files = res.filter(f => !f.deleted_file).flatMap(f => f.new_path);
 					} catch (err) {
 						await ctx.reply(
-							"something went wrong fetching the files from gitlab :( ... aborting"
+							"something went wrong fetching the files from gitlab :( ... aborting\n" +
+								`\`${err.message}\``
 						);
-						log.error(err);
+						log.error(
+							{ err: err, context: { url, id, sha } },
+							"Failed to fetch files from Gitlab"
+						);
 						return;
 					}
 				}
