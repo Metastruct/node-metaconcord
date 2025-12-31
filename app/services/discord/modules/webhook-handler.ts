@@ -215,7 +215,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 								`\`${err.message}\``
 						);
 						log.error(
-							{ err: err, context: { url, owner, repo, ref } },
+							{ err, url, owner, repo, ref },
 							"Failed to fetch files from GitHub"
 						);
 						return;
@@ -235,10 +235,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 							"something went wrong fetching the files from gitlab :( ... aborting\n" +
 								`\`${err.message}\``
 						);
-						log.error(
-							{ err: err, context: { url, id, sha } },
-							"Failed to fetch files from Gitlab"
-						);
+						log.error({ err, url, id, sha }, "Failed to fetch files from Gitlab");
 						return;
 					}
 				}
