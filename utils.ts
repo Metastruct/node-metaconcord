@@ -8,6 +8,7 @@ import request, { gql } from "graphql-request";
 import path from "path";
 import pino from "pino";
 import type { LokiOptions } from "pino-loki";
+import type { GraphQlQueryResponseData } from "@octokit/graphql";
 
 const transport = pino.transport<LokiOptions>({
 	target: "pino-loki",
@@ -103,13 +104,6 @@ export const getAsBase64 = async (url: string): Promise<string | null> => {
 	}
 };
 
-interface GithubResponse {
-	repository: {
-		object: {
-			text: string;
-		} | null;
-	};
-}
 interface GitlabResponse {
 	project: {
 		repository: {
@@ -150,8 +144,9 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 			try {
 				if (isGithub) {
 					const github = await globalThis.MetaConcord.container.getService("Github");
-					const request: { data: GithubResponse } = await github.octokit.graphql(
-						`query text($owner: String!, $repo: String!) {
+					const request: { data: GraphQlQueryResponseData } =
+						await github.octokit.graphql(
+							`query text($owner: String!, $repo: String!) {
 							repository(owner: $owner, name: $repo) {
 								object(expression: "${branch ?? "HEAD"}:${fpath}") {
 									... on Blob {
@@ -160,10 +155,12 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 								}
 							}
 						}`,
-						{ owner, repo }
-					);
-					if (request.data.repository.object?.text) {
+							{ owner, repo }
+						);
+					if (request.data.repository?.object?.text) {
 						filecontent = request.data.repository.object.text;
+					} else {
+						baseLogger.warn(request, "unexpected Github GraphQL response");
 					}
 				} else {
 					const query = gql`{
@@ -189,7 +186,10 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 					}
 				}
 			} catch (err) {
-				baseLogger.error({ err, path, fpath, owner, repo, url }, "GraphQL request failed");
+				baseLogger.error(
+					{ err, context: { path, fpath, owner, repo, url } },
+					"GraphQL request failed"
+				);
 				return;
 			}
 
