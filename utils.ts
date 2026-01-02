@@ -193,8 +193,12 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 				return;
 			}
 
-			if (filecontent && linenos)
-				filecontent = getStackLines(filecontent, Number(linenos), Number(linenoe));
+			if (filecontent)
+				filecontent = getStackLines(
+					filecontent,
+					Number(linenos),
+					linenoe ? Number(linenoe) : undefined
+				);
 			return filecontent;
 		}
 	}
