@@ -159,7 +159,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 						}`,
 							{ owner, repo }
 						);
-					if (request.data.repository?.object?.text) {
+					if (request.data?.repository.object?.text) {
 						filecontent = request.data.repository.object.text;
 					} else {
 						baseLogger.warn(request, "unexpected Github GraphQL response");

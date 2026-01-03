@@ -230,13 +230,7 @@ export default (bot: DiscordBot): void => {
 		if (entry.target && entry.targetId) {
 			const targetString =
 				entry.target.toString() !== "[object Object]" ? entry.target.toString() : "";
-			const targetObject = "```ansi\n" + format(entry.target, { depth: 0, colors: true });
-			embed.addFields(
-				f(
-					`${entry.targetType} (${entry.targetId})`,
-					`${targetString}\n${trimfield(targetObject, 1023 - targetString.length, true)}`
-				)
-			);
+			embed.addFields(f(`${entry.targetType} (${entry.targetId})`, targetString));
 		}
 
 		if (entry.reason) embed.addFields(f("Reason", entry.reason));
