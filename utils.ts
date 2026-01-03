@@ -110,7 +110,7 @@ interface GitlabResponse {
 	project: {
 		repository: {
 			blobs: {
-				nodes: { rawTextBlob: string }[];
+				nodes: [{ rawTextBlob: string }] | [];
 			};
 		};
 	};
@@ -146,9 +146,8 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 			try {
 				if (isGithub) {
 					const github = await globalThis.MetaConcord.container.getService("Github");
-					const request: { data: GraphQlQueryResponseData } =
-						await github.octokit.graphql(
-							`query text($owner: String!, $repo: String!) {
+					const data = (await github.octokit.graphql(
+						`query text($owner: String!, $repo: String!) {
 							repository(owner: $owner, name: $repo) {
 								object(expression: "${branch ?? "HEAD"}:${fpath}") {
 									... on Blob {
@@ -157,12 +156,15 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 								}
 							}
 						}`,
-							{ owner, repo }
-						);
-					if (request.data?.repository.object?.text) {
-						filecontent = request.data.repository.object.text;
+						{ owner, repo }
+					)) as GraphQlQueryResponseData;
+					if (data.repository?.object?.text) {
+						filecontent = data.repository.object.text;
 					} else {
-						baseLogger.warn(request, "unexpected Github GraphQL response");
+						baseLogger.warn(
+							{ data, context: { path, url } },
+							"unexpected Github GraphQL response"
+						);
 					}
 				} else {
 					const query = gql`{
@@ -183,8 +185,10 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 							authorization: `Bearer ${apikeys.gitlab}`,
 						}
 					);
-					if (data.project.repository.blobs.nodes[0].rawTextBlob) {
+					if (data.project.repository.blobs.nodes[0]?.rawTextBlob) {
 						filecontent = data.project.repository.blobs.nodes[0].rawTextBlob;
+					} else {
+						baseLogger.info({ path, url }, "missing file from Gitlab repo");
 					}
 				}
 			} catch (err) {
