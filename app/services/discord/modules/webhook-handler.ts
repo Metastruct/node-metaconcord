@@ -6,6 +6,8 @@ import axios from "axios";
 import webhookConfig from "@/config/webhooks.json" with { type: "json" };
 import { EmitterWebhookEvent } from "@octokit/webhooks/types";
 import { components } from "@octokit/openapi-types";
+import apiKeys from "@/config/apikeys.json" with { type: "json" };
+import type { CommitDiffSchema } from "@gitbeaker/rest";
 
 const log = logger(import.meta);
 
@@ -67,14 +69,37 @@ const GetGithubChanges = (
 };
 
 const getGitHubDiff = async (url: string) => {
-	try {
-		const res = await axios.get<string>(url + ".diff");
-		if (res)
-			return res.data
-				.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n")
-				.replaceAll(/diff.+\nindex.+\n/g, "")
-				.replaceAll("```", "​`​`​`");
-	} catch {}
+	const res = await fetch(url + ".diff");
+
+	const text = await res.text();
+	if (!res.ok) {
+		log.error({ text }, "failed to fetch Github diff");
+		return;
+	}
+
+	return text
+		.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n")
+		.replaceAll(/diff.+\nindex.+\n/g, "")
+		.replaceAll("```", "​`​`​`");
+};
+
+const getGitlabDiff = async (id: string, sha: string) => {
+	const res = await fetch(
+		`https://gitlab.com/api/v4/projects/${encodeURIComponent(id)}/repository/commits/${sha}/diff`,
+		{
+			headers: {
+				"PRIVATE-TOKEN": apiKeys.gitlab,
+			},
+		}
+	);
+
+	if (!res.ok) {
+		const text = await res.text();
+		log.error({ text }, "failed to fetch Gitlab diff");
+		return;
+	}
+
+	return res.json() as Promise<CommitDiffSchema[]>;
 };
 
 const FIELD_REGEX = /^(?:Add|Mod|Del) \[(.+)\]/g;
@@ -114,7 +139,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 	const bridge = await bot.container.getService("GameBridge");
 
 	const github = await bot.container.getService("Github");
-	const gitlab = await bot.container.getService("Gitlab");
 
 	bot.discord.on("clientReady", async () => {
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
@@ -227,8 +251,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 							url ?? ""
 						) || [];
 					try {
-						const res = await gitlab.api.Commits.showDiff(encodeURIComponent(id), sha);
-						files = res.filter(f => !f.deleted_file).flatMap(f => f.new_path);
+						const diffs = await getGitlabDiff(id, sha);
+						files = diffs?.filter(f => !f.deleted_file).flatMap(f => f.new_path);
 					} catch (err) {
 						await ctx.reply(
 							"something went wrong fetching the files from gitlab :( ... aborting\n" +
@@ -239,9 +263,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 								err,
 								context: {
 									url,
-									id: encodeURIComponent(id),
+									id,
 									sha,
-									authHeaders: gitlab.api.authHeaders,
 								},
 							},
 							"Failed to fetch files from Gitlab"
