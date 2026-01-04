@@ -6,7 +6,7 @@ import axios from "axios";
 import webhookConfig from "@/config/webhooks.json" with { type: "json" };
 import { EmitterWebhookEvent } from "@octokit/webhooks/types";
 import { components } from "@octokit/openapi-types";
-import apiKeys from "@/config/apikeys.json" with { type: "json" };
+import APIKEYS from "@/config/apikeys.json" with { type: "json" };
 import type { CommitDiffSchema } from "@gitbeaker/rest";
 
 const log = logger(import.meta);
@@ -88,7 +88,7 @@ const getGitlabDiff = async (id: string, sha: string) => {
 		`https://gitlab.com/api/v4/projects/${encodeURIComponent(id)}/repository/commits/${sha}/diff`,
 		{
 			headers: {
-				"PRIVATE-TOKEN": apiKeys.gitlab,
+				"PRIVATE-TOKEN": APIKEYS.gitlab,
 			},
 		}
 	);
