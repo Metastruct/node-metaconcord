@@ -113,6 +113,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 	let webhook: Discord.Webhook;
 	const bridge = await bot.container.getService("GameBridge");
 
+	const github = await bot.container.getService("Github");
+	const gitlab = await bot.container.getService("Gitlab");
+
 	bot.discord.on("clientReady", async () => {
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
 		if (channel) {
@@ -205,9 +208,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 							url ?? ""
 						) || [];
 					try {
-						const res = await (
-							await bot.container.getService("Github")
-						).octokit.rest.repos.getCommit({ owner, repo, ref });
+						const res = await github.octokit.rest.repos.getCommit({ owner, repo, ref });
 						files = res.data.files?.flatMap(f => f.filename);
 					} catch (err) {
 						await ctx.reply(
@@ -215,7 +216,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 								`\`${err.message}\``
 						);
 						log.error(
-							{ err: err, context: { url, owner, repo, ref } },
+							{ err, context: { url, owner, repo, ref } },
 							"Failed to fetch files from GitHub"
 						);
 						return;
@@ -226,9 +227,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 							url ?? ""
 						) || [];
 					try {
-						const res = await (
-							await bot.container.getService("Gitlab")
-						).api.Commits.showDiff(encodeURIComponent(id), sha);
+						const res = await gitlab.api.Commits.showDiff(encodeURIComponent(id), sha);
 						files = res.filter(f => !f.deleted_file).flatMap(f => f.new_path);
 					} catch (err) {
 						await ctx.reply(
@@ -236,7 +235,15 @@ export default async (bot: DiscordBot): Promise<void> => {
 								`\`${err.message}\``
 						);
 						log.error(
-							{ err: err, context: { url, id, sha } },
+							{
+								err,
+								context: {
+									url,
+									id: encodeURIComponent(id),
+									sha,
+									authHeaders: gitlab.api.authHeaders,
+								},
+							},
 							"Failed to fetch files from Gitlab"
 						);
 						return;
