@@ -118,28 +118,37 @@ interface GitlabResponse {
 	};
 }
 
-export const getOrFetchGmodFile = async (path: PathLike) => {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const matchGmodPath = (path: PathLike) => {
 	const [, fpath, addon, filename, ext, linenos, linenoe] =
 		new RegExp(GMOD_PATH_MATCH).exec(<string>path) || [];
-	const fullpath = LOOKUP_PATH + fpath;
+	return { fpath, addon, filename, ext, linenos, linenoe };
+};
+
+export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
+	if (path === undefined) return;
+	const gpath = matchGmodPath(path);
+	const fullpath = LOOKUP_PATH + gpath.fpath;
 
 	if (await exists(fullpath)) {
 		const path = await fs.realpath(fullpath);
 		if (!path.startsWith(LOOKUP_PATH)) return undefined;
 		const file = await fs.readFile(fullpath, "utf8");
-		return linenos
-			? getStackLines(file, Number(linenos), linenoe ? Number(linenoe) : undefined)
+		return gpath.linenos
+			? getStackLines(
+					file,
+					Number(gpath.linenos),
+					gpath.linenoe ? Number(gpath.linenoe) : undefined
+				)
 			: file;
 	} else {
-		const url: string | undefined = addon ? AddonURIS[addon] : undefined;
+		const url: string | undefined = gpath.addon ? AddonURIS[gpath.addon] : undefined;
 
 		if (url) {
 			const provider = url.match(/([^\.\/]+)\.com/);
 			if (!provider) return;
 			const isGithub = provider[1] === "github";
 			const gitlabEndpoint = "https://gitlab.com/api/graphql";
-			const repo = addon;
+			const repo = gpath.addon;
 			const owner = url.match(/\.com\/(.+?)\//)?.[1];
 			const branch = url.split("/").at(-2);
 
@@ -151,7 +160,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 					const data = (await github.octokit.graphql(
 						`query text($owner: String!, $repo: String!) {
 							repository(owner: $owner, name: $repo) {
-								object(expression: "${branch ?? "HEAD"}:${fpath}") {
+								object(expression: "${branch ?? "HEAD"}:${gpath.fpath}") {
 									... on Blob {
 										text
 									}
@@ -172,7 +181,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 					const query = gql`{
 		project(fullPath:"${url.match(/\.com\/(.+?)\/\-/)?.[1]}") {
 			repository {
-				blobs(paths:"${fpath}"){
+				blobs(paths:"${gpath.fpath}"){
 					nodes{rawTextBlob}
 				}
 			}
@@ -195,7 +204,7 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 				}
 			} catch (err) {
 				baseLogger.error(
-					{ err, context: { path, fpath, owner, repo, url } },
+					{ err, context: { path, gmod: gpath.fpath, owner, repo, url } },
 					"GraphQL request failed"
 				);
 				return;
@@ -204,8 +213,8 @@ export const getOrFetchGmodFile = async (path: PathLike) => {
 			if (filecontent)
 				filecontent = getStackLines(
 					filecontent,
-					Number(linenos),
-					linenoe ? Number(linenoe) : undefined
+					Number(gpath.linenos),
+					gpath.linenoe ? Number(gpath.linenoe) : undefined
 				);
 			return filecontent;
 		}
