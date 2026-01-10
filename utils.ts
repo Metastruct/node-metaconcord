@@ -55,9 +55,11 @@ export const exists = async (path: PathLike): Promise<boolean> =>
 		.catch(() => false);
 
 export const getStackLines = (input: string, linestart: number, lineend?: number): string => {
-	const lines = input.split(/\r?\n/).map(str => "  " + str);
+	const lines = input.split(/\r?\n/).map(str => "   " + str);
 	const line = clamp(linestart, 0, lines.length) - 1;
-	const replace = lines.slice(line, lineend ?? line + 1).map(line => ">>" + line.substring(2));
+	const replace = lines
+		.slice(line, lineend ?? line + 1)
+		.map(line => ">>" + line.substring(2) + " <<");
 	lines.splice(line, lineend ? lineend - linestart : 1, ...replace);
 	return lines
 		.slice(clamp(line - 10 / 2, 0, lines.length), clamp(line + 10 / 2, 0, lines.length))
@@ -68,7 +70,7 @@ export const AddonURIS = {
 	acf: "https://github.com/metastruct/ACF/blob/master/",
 	advdupe2: "https://github.com/wiremod/advdupe2/blob/master/",
 	aowl: "https://gitlab.com/metastruct/internal/aowl/-/blob/master/",
-	arcana: "https://github.com/Metastruct/Arcana/blob/master",
+	arcana: "https://github.com/Metastruct/Arcana/blob/master/",
 	easychat: "https://github.com/Earu/EasyChat/blob/master/",
 	epoe: "https://github.com/Metastruct/EPOE/blob/master/",
 	fast_addons: "https://gitlab.com/metastruct/internal/fast_addons/-/blob/master/",
