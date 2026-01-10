@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { AddonURIS, getOrFetchGmodFile, logger } from "@/utils.js";
+import { AddonURIS, getOrFetchGmodFile, matchGmodPath, logger } from "@/utils.js";
 import { WebApp } from "@/app/services/webapp/index.js";
 import GameServer, { Player } from "@/app/services/gamebridge/GameServer.js";
 import SteamID from "steamid";
@@ -234,23 +234,25 @@ export default async (webApp: WebApp): Promise<void> => {
 
 			// code embed
 
-			const filematch = matches.filter(
-				m => !m.groups?.engine && Number(m.groups?.stacknr) < 3
+			const filematches = matches.filter(
+				m => !m.groups?.engine && Number(m.groups?.stacknr) <= 3
 			);
-			if (filematch.length > 0) {
-				const smg = filematch[0].groups as StackMatchGroups;
-				if (!smg.fpath) return;
-				await getOrFetchGmodFile(smg.fpath).then(res => {
-					if (res && smg.filename) {
-						payload.files = [
-							{
-								attachment: Buffer.from(res),
-								name: `${smg.filename}.${smg.ext}`,
-							},
-						];
-					}
-				});
+			for (const match of filematches) {
+				const smg = match.groups as StackMatchGroups;
+
+				if (!smg.fpath) continue;
+				const file = await getOrFetchGmodFile(smg.fpath);
+				if (file && smg.filename) {
+					payload.files = [
+						{
+							attachment: Buffer.from(file),
+							name: `${smg.stacknr}-${smg.filename}.${smg.ext}`,
+						},
+					];
+					break;
+				}
 			}
+
 			if (body.v === "test") return;
 			if (matches.some(m => (m.groups as StackMatchGroups).addon === "pac3")) {
 				pac_error_webhook.send(payload).catch(log.error.bind(log));
