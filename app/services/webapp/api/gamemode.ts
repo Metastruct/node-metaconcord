@@ -33,24 +33,28 @@ export default async (webApp: WebApp): Promise<void> => {
 		}
 		let output = "";
 
-		await server.sshExecCommand("gserv update_repos rehash", {
-			stream: "stderr",
-			onStdout: buff => (output += buff),
-			onStderr: buff => (output += buff),
-		});
+		try {
+			await server.sshExecCommand("gserv update_repos rehash", {
+				stream: "stderr",
+				onStdout: buff => (output += buff),
+				onStderr: buff => (output += buff),
+			});
 
-		const failed = output.includes("GSERV FAILED");
-		if (failed && bot) {
-			const guild = bot.getGuild();
-			if (guild) {
-				const channel = bot.getTextChannel(bot.config.channels.notifications);
-				await channel?.send(`GSERV FAILED ON SERVER ${id}, PLEASE FIX`);
-				log.error(output);
+			const failed = output.includes("GSERV FAILED");
+			if (failed && bot) {
+				const guild = bot.getGuild();
+				if (guild) {
+					const channel = bot.getTextChannel(bot.config.channels.notifications);
+					await channel?.send(`GSERV FAILED ON SERVER ${id}, PLEASE FIX`);
+					log.error(output);
+				}
 			}
-		}
 
-		res.status(failed ? 500 : 200)
-			.contentType("text/plain")
-			.send(output);
+			res.status(failed ? 500 : 200)
+				.contentType("text/plain")
+				.send(output);
+		} catch {
+			res.status(500);
+		}
 	});
 };
