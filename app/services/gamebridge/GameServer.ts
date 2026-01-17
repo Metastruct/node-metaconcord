@@ -165,9 +165,10 @@ export default class GameServer {
 				port: this.config.ssh.port,
 				privateKeyPath: sshConfig.keyPath,
 			});
-			return await connection.execCommand(command, options);
+			return connection.execCommand(command, options);
 		} catch (err) {
-			log.error(err);
+			log.error({ err, command, options }, "sshExecCommand failed.");
+			throw err;
 		}
 	}
 }
