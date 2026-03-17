@@ -74,26 +74,21 @@ export const SlashUnBanCommand: SlashCommand = {
 		}
 		await ctx.respond(
 			list
-				.filter(
-					function (ban) {
-						if (this.limit < 25) {
-							const name = ban.sid.toLowerCase().includes(ctx.options.getFocused());
-							const sid = new SteamID(ban.sid);
-							const sid2 = sid
-								.getSteam2RenderedID()
-								.includes(ctx.options.getFocused().toUpperCase());
-							const sid3 = sid
-								.getSteam3RenderedID()
-								.includes(ctx.options.getFocused().toUpperCase());
-							const sid64 = sid.getSteamID64().includes(ctx.options.getFocused());
-							const res = name || sid2 || sid64 || sid3;
-							if (!res) return false;
-							this.limit++;
-							return res;
-						}
-					},
-					{ limit: 0 }
-				)
+				.filter(ban => {
+					const name = ban.sid.toLowerCase().includes(ctx.options.getFocused());
+					const sid = new SteamID(ban.sid);
+					const sid2 = sid
+						.getSteam2RenderedID()
+						.includes(ctx.options.getFocused().toUpperCase());
+					const sid3 = sid
+						.getSteam3RenderedID()
+						.includes(ctx.options.getFocused().toUpperCase());
+					const sid64 = sid.getSteamID64().includes(ctx.options.getFocused());
+					const res = name || sid2 || sid64 || sid3;
+					if (!res) return false;
+					return res;
+				})
+				.slice(0, 25)
 				.map(ban => {
 					const namefix = ban.name.replace(/(\u180C|\u0020)/g, ""); // that one ban I swear on me mum is driving me insane
 					return {

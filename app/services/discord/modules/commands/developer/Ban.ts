@@ -195,18 +195,13 @@ export const SlashBanCommand: SlashCommand = {
 				}
 				await ctx.respond(
 					players
-						.filter(
-							function (player) {
-								if (this.limit < 25) {
-									this.limit++;
-									const steamID64 = SteamID.fromIndividualAccountID(
-										player.accountId
-									).getSteamID64();
-									return steamID64.includes(focused.value);
-								}
-							},
-							{ limit: 0 }
-						)
+						.filter(player => {
+							const steamID64 = SteamID.fromIndividualAccountID(
+								player.accountId
+							).getSteamID64();
+							return steamID64.includes(focused.value);
+						})
+						.slice(0, 25)
 						.map(player => {
 							const steamID64 = SteamID.fromIndividualAccountID(
 								player.accountId

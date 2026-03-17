@@ -321,17 +321,11 @@ export const SlashDeeplCommand: SlashCommand = {
 
 		const L = focused.name === "to" ? TargetLanguages : SourceLanguages;
 		await ctx.respond(
-			L.filter(
-				function (lang) {
-					if (this.limit < 25) {
-						this.limit++;
-						return lang.name.toLowerCase().includes(focused.value.toLowerCase());
-					}
-				},
-				{ limit: 0 }
-			).map(lang => {
-				return { name: lang.name, value: lang.language };
-			})
+			L.filter(lang => lang.name.toLowerCase().includes(focused.value.toLowerCase()))
+				.slice(0, 25)
+				.map(lang => {
+					return { name: lang.name, value: lang.language };
+				})
 		);
 	},
 };
