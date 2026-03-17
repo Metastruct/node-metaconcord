@@ -70,15 +70,8 @@ export const SlashKickCommand: SlashCommand = {
 		const focused = ctx.options.getFocused();
 		await ctx.respond(
 			players
-				.filter(
-					function (player: Player) {
-						if (this.limit < 25) {
-							this.limit++;
-							return player.nick.includes(focused);
-						}
-					},
-					{ limit: 0 }
-				)
+				.filter(player => player.nick.includes(focused))
+				.slice(0, 25)
 				.map(player => {
 					return {
 						name: player.nick.substring(0, 100),
