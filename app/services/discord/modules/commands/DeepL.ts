@@ -245,7 +245,9 @@ async function translate(options: DeeplOptions): Promise<DeeplResponse> {
 		method: "POST",
 		headers: {
 			Authorization: `DeepL-Auth-Key ${config.key}`,
+			"Content-Type": "application/json",
 		},
+		body: JSON.stringify(options),
 	});
 	return res.json() as Promise<DeeplResponse>;
 }
@@ -298,7 +300,7 @@ export const SlashDeeplCommand: SlashCommand = {
 				source_lang: from,
 				formality: formality,
 			});
-			if (res) {
+			if (res && res.translations) {
 				await ctx.reply(
 					`**${res.translations[0].detected_source_language} -> ${to}${
 						formality
@@ -347,7 +349,7 @@ export const MenuDeeplCommand: MenuCommand = {
 				text: [text],
 				target_lang: "EN-GB",
 			});
-			if (res) {
+			if (res && res.translations) {
 				const embed: Discord.APIEmbed = {
 					author: {
 						name: msg.author.username,
