@@ -193,7 +193,7 @@ export default async (bot: DiscordBot) => {
 
 	const getRandomEmoji = () => {
 		let emoji: Discord.EmojiIdentifierResolvable;
-		const eventEmoji = EVENTS.find(e => e.icon === bot.currentEvent && e.emoji)?.emoji;
+		const eventEmoji = EVENTS.find(e => e.icon === bot.currentEvent)?.emoji;
 		if (Math.random() <= GUILD_EMOJI_RATIO) {
 			emoji = bot.discord.emojis.cache.random() as Discord.EmojiIdentifierResolvable;
 		} else {
@@ -203,7 +203,9 @@ export default async (bot: DiscordBot) => {
 					: EmojiList[(Math.random() * EmojiList.length) | 0];
 		}
 		if (eventEmoji) {
-			emoji = bot.discord.emojis.cache.get(eventEmoji) || emoji;
+			emoji =
+				(bot.discord.emojis.cache.get(eventEmoji) as Discord.EmojiIdentifierResolvable) ||
+				emoji;
 		}
 		return emoji;
 	};

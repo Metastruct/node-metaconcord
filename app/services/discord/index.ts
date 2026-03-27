@@ -46,7 +46,7 @@ export class DiscordBot extends Service {
 		rest: { timeout: 30000 },
 	});
 	ready: boolean;
-	currentEvent = "None";
+	currentEvent = "none";
 	private data: Data;
 
 	constructor(container: Container) {
