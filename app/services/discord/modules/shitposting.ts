@@ -6,6 +6,7 @@ import { TenorResponse } from "@/app/services/Tenor.js";
 import { logger, makeSpeechBubble } from "@/utils.js";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json" with { type: "json" };
+import { events } from "./discord-guild-icon.js";
 
 const log = logger(import.meta);
 
@@ -170,6 +171,7 @@ const COMMON_EMOJIS = [
 	"🥀",
 	"<:h_:536265505649197066>",
 ];
+const EVENTS = events;
 
 const lastMsgs: Discord.Message<boolean>[] = [];
 const lastReactedMessages = new Set<string>();
@@ -191,6 +193,7 @@ export default async (bot: DiscordBot) => {
 
 	const getRandomEmoji = () => {
 		let emoji: Discord.EmojiIdentifierResolvable;
+		const eventEmoji = EVENTS.find(e => e.icon === bot.currentEvent && e.emoji)?.emoji;
 		if (Math.random() <= GUILD_EMOJI_RATIO) {
 			emoji = bot.discord.emojis.cache.random() as Discord.EmojiIdentifierResolvable;
 		} else {
@@ -198,6 +201,9 @@ export default async (bot: DiscordBot) => {
 				Math.random() <= COMMON_EMOJI_RATIO
 					? COMMON_EMOJIS[(Math.random() * COMMON_EMOJIS.length) | 0]
 					: EmojiList[(Math.random() * EmojiList.length) | 0];
+		}
+		if (eventEmoji) {
+			emoji = bot.discord.emojis.cache.get(eventEmoji) || emoji;
 		}
 		return emoji;
 	};

@@ -12,6 +12,7 @@ export const events = [
 	{
 		icon: "haaugh",
 		range: ["27/03", "28/03"],
+		emoji: "957790929111117835",
 	},
 	{
 		icon: "summer",
@@ -119,6 +120,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const doIt = async () => {
 			const { filePath, eventName } = await checkDate();
 			changeIcon(filePath, eventName);
+			bot.currentEvent = eventName;
 		};
 
 		scheduleJob("0 0 * * *", doIt);
