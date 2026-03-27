@@ -49,7 +49,7 @@ const fileExists = async (filePath: PathLike) =>
 
 const checkDate = async () => {
 	let filePath = defaultIconPath;
-	let eventName = "None";
+	let eventName = "none";
 
 	for (const { icon, range } of events) {
 		const [start, end] = range;
@@ -73,10 +73,7 @@ const checkDate = async () => {
 			if (!(await fileExists(filePath))) {
 				filePath = defaultIconPath;
 			}
-			eventName = icon
-				.split("-")
-				.map(str => str.charAt(0).toUpperCase() + str.slice(1))
-				.join(" ");
+			eventName = icon;
 			break;
 		}
 	}
@@ -104,7 +101,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				try {
 					await bot.setIcon(
 						filePath,
-						eventName !== "None"
+						eventName !== "none"
 							? `It's ${eventName}!`
 							: "Back to regularly scheduled activities."
 					);
