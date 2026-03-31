@@ -41,6 +41,8 @@ export default (bot: DiscordBot): void => {
 
 		const message = msg.content && msg.content.length > 0 ? msg.content : undefined;
 
+		if (!msg.author && !message) return;
+
 		const attachments =
 			msg.attachments.size > 0
 				? msg.attachments.map(a => {
