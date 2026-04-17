@@ -207,9 +207,9 @@ const removeRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any
 };
 
 const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> => {
-	let roleName = ctx.options.getString("name") ?? ctx.user.displayName;
+	let roleName = ctx.options.getString("name")?.trim() ?? ctx.user.displayName;
 	roleName = roleName.substring(0, 1) + ROLE_IDENTIFIER + roleName.substring(1);
-	const hex = ctx.options.getString("hex");
+	const hex = ctx.options.getString("hex")?.trim();
 
 	const guild = ctx.guild;
 	if (!guild) {
@@ -414,13 +414,13 @@ export const SlashRoleCommand: SlashCommand = {
 			const role = member.getCustomRole;
 			if (role) role.delete("User left the Guild...");
 		});
-		bot.discord.on("roleUpdate", (oldRole, newRole) => {
+		bot.discord.on("roleUpdate", oldRole => {
 			if (
 				oldRole.isCustomRole &&
 				oldRole.members.size === 0 &&
 				Date.now() - oldRole.createdTimestamp > 3600 * 60 // to prevent instant deletion when creating it, maybe there is a better way?
 			)
-				oldRole.delete("Role empty...");
+				oldRole.delete("Role is empty...");
 		});
 	},
 };
