@@ -122,7 +122,7 @@ export class Starboard extends Service {
 				}
 			}
 
-			const ego = message.author ? users.cache.has(message.author.id) : false;
+			const ego = message.author ? users.has(message.author.id) : false;
 			const count = ego ? reaction.count - 1 : reaction.count;
 
 			if (
