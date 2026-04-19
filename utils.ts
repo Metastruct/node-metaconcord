@@ -1,5 +1,4 @@
 import apikeys from "@/config/apikeys.json" with { type: "json" };
-import lokiConfig from "@/config/loki.json" with { type: "json" };
 import webappconfig from "@/config/webapp.json" with { type: "json" };
 import { createCanvas, loadImage } from "@napi-rs/canvas";
 import axios from "axios";
@@ -7,26 +6,9 @@ import { PathLike, promises as fs } from "fs";
 import request, { gql } from "graphql-request";
 import path from "path";
 import pino from "pino";
-import type { LokiOptions } from "pino-loki";
 import type { GraphQlQueryResponseData } from "@octokit/graphql";
 
-const transport = pino.transport<LokiOptions>({
-	target: "pino-loki",
-	level: process.env.LOG_LEVEL || "info",
-	options: {
-		labels: { application: "metaconcord" },
-		host: lokiConfig.host,
-		basicAuth: {
-			username: lokiConfig.username,
-			password: lokiConfig.password,
-		},
-		headers: {
-			"X-Scope-OrgID": lokiConfig.header,
-		},
-	},
-});
-
-const baseLogger = pino(transport);
+const baseLogger = pino();
 
 export const logger = (meta: ImportMeta | string) =>
 	baseLogger.child({ file: typeof meta === "string" ? meta : path.basename(meta.filename) });
