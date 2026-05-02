@@ -123,9 +123,9 @@ export default (bot: DiscordBot): void => {
 
 			for (const part of diffList) {
 				diff += part.added
-					? `\u001b[1;40m${part.value}\u001b[0m`
+					? `\u001b[1;42m${part.value}\u001b[0m`
 					: part.removed
-						? `\u001b[1;30;41m${part.value}\u001b[0m`
+						? `\u001b[1;41m${part.value}\u001b[0m`
 						: part.value;
 			}
 		}
