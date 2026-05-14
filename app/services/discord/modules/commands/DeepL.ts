@@ -301,13 +301,22 @@ export const SlashDeeplCommand: SlashCommand = {
 				formality: formality,
 			});
 			if (res && res.translations) {
-				await ctx.reply(
-					`\`\`\`\n${text}\`\`\`**${res.translations[0].detected_source_language} -> ${to}${
+				const embed: Discord.APIEmbed = {
+					author: {
+						name: ctx.user.username,
+						icon_url: ctx.user.displayAvatarURL(),
+					},
+					footer: {
+						text: "DeepL translate",
+						icon_url: "https://avatars.githubusercontent.com/u/83310993?s=200&v=4",
+					},
+					description: `\`\`\`\n${text}\`\`\`\n**${res.translations[0].detected_source_language} -> ${to}${
 						formality
 							? ` (${formality === "prefer_more" ? "formal" : "less formal"})`
 							: ""
-					}**\`\`\`\n${res.translations[0].text}\`\`\``
-				);
+					}**\`\`\`\n${res.translations[0].text}\`\`\``,
+				};
+				await ctx.reply({ embeds: [embed] });
 			} else {
 				await ctx.reply("Something went wrong while trying to translate.");
 			}
