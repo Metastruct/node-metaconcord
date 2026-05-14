@@ -302,7 +302,7 @@ export const SlashDeeplCommand: SlashCommand = {
 			});
 			if (res && res.translations) {
 				await ctx.reply(
-					`**${res.translations[0].detected_source_language} -> ${to}${
+					`\`\`\`\n${text}\`\`\`\n**${res.translations[0].detected_source_language} -> ${to}${
 						formality
 							? ` (${formality === "prefer_more" ? "formal" : "less formal"})`
 							: ""
