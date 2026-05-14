@@ -215,6 +215,9 @@ const TargetLanguages = [
 	{ language: "ZU", name: "Zulu", supports_formality: false },
 ] as const;
 
+const sourceLangName = new Map<string, string>(SourceLanguages.map(l => [l.language, l.name]));
+const targetLangName = new Map<string, string>(TargetLanguages.map(l => [l.language, l.name]));
+
 type SourceLanguageCodes = (typeof SourceLanguages)[number]["language"];
 type TargetLanguageCodes = (typeof TargetLanguages)[number]["language"];
 
@@ -310,7 +313,7 @@ export const SlashDeeplCommand: SlashCommand = {
 						text: "DeepL translate",
 						icon_url: "https://avatars.githubusercontent.com/u/83310993?s=200&v=4",
 					},
-					description: `\`\`\`\n${text}\`\`\`\n**${res.translations[0].detected_source_language} -> ${to}${
+					description: `\`\`\`\n${text}\`\`\`\n**${sourceLangName.get(res.translations[0].detected_source_language ?? res.translations[0].detected_source_language)} -> ${targetLangName.get(to)}${
 						formality
 							? ` (${formality === "prefer_more" ? "formal" : "less formal"})`
 							: ""
@@ -353,6 +356,9 @@ export const MenuDeeplCommand: MenuCommand = {
 				target_lang: "EN-GB",
 			});
 			if (res && res.translations) {
+				const from =
+					sourceLangName.get(res.translations[0].detected_source_language) ??
+					res.translations[0].detected_source_language;
 				const embed: Discord.APIEmbed = {
 					author: {
 						name: msg.author.username,
@@ -364,7 +370,7 @@ export const MenuDeeplCommand: MenuCommand = {
 						icon_url: "https://avatars.githubusercontent.com/u/83310993?s=200&v=4",
 					},
 					description: `
-						\`\`\`\n${msg.content}\`\`\`\n**${res.translations[0].detected_source_language} -> EN-GB**\n\`\`\`\n${res.translations[0].text}\`\`\``,
+						\`\`\`\n${msg.content}\`\`\`\n**${from} -> English (British)**\n\`\`\`\n${res.translations[0].text}\`\`\``,
 				};
 				await ctx.reply({ embeds: [embed], flags: Discord.MessageFlags.Ephemeral });
 			} else {
