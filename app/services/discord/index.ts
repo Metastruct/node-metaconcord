@@ -234,7 +234,7 @@ export class DiscordBot extends Service {
 			filter: (reaction, user) => {
 				return reaction.emoji.name === emoji && user.id === msg.author.id;
 			},
-			time: 15_000,
+			time: 10_000,
 		});
 		if (collected.size > 0)
 			msg.reply({ content: fix, allowedMentions: { repliedUser: false } });
