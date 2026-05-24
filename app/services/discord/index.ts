@@ -229,18 +229,15 @@ export class DiscordBot extends Service {
 
 		const fix = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
 		const emoji = "🔉";
-		await msg.react(emoji);
-		await msg
-			.awaitReactions({
-				filter: (reaction, user) => {
-					return reaction.emoji.name === emoji && user.id === msg.author.id;
-				},
-				time: 15_000,
-			})
-			.then(collected => {
-				if (collected.size > 0)
-					msg.reply({ content: fix, allowedMentions: { repliedUser: false } });
-			});
+		await msg.react(emoji).catch(() => {});
+		const collected = await msg.awaitReactions({
+			filter: (reaction, user) => {
+				return reaction.emoji.name === emoji && user.id === msg.author.id;
+			},
+			time: 15_000,
+		});
+		if (collected.size > 0)
+			msg.reply({ content: fix, allowedMentions: { repliedUser: false } });
 	}
 
 	async getLastMotdMsg(): Promise<Discord.Message | undefined> {
