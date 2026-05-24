@@ -394,7 +394,7 @@ export default async (bot: DiscordBot) => {
 					.then(() => {
 						db.run("DELETE FROM media_urls WHERE url = ?", url);
 					})
-					.catch(); // if it doesn't exist, who cares could be an external link too
+					.catch(() => {}); // if it doesn't exist, who cares could be an external link too
 			}
 		}
 
@@ -407,7 +407,7 @@ export default async (bot: DiscordBot) => {
 			if (theFunny) {
 				await (message.channel as Discord.TextChannel)
 					.send(`${user.mention} ` + theFunny)
-					.catch();
+					.catch(() => {});
 			}
 			lastReactedMessages.add(message.id);
 			lastReactedUsers.add(user.id);
@@ -463,7 +463,7 @@ export default async (bot: DiscordBot) => {
 			setTimeout(async () => {
 				try {
 					const maybeMsg = await msg.fetch();
-					if (maybeMsg) msg.react(getRandomEmoji()).catch();
+					if (maybeMsg) msg.react(getRandomEmoji()).catch(() => {});
 				} catch {
 					return;
 				}
@@ -482,7 +482,9 @@ export default async (bot: DiscordBot) => {
 				if (msg.reference) {
 					try {
 						reference = await msg.fetchReference();
-					} catch {}
+					} catch {
+						() => {};
+					}
 				}
 				await sendShat(
 					msg.stickers.size > 0
@@ -496,8 +498,10 @@ export default async (bot: DiscordBot) => {
 				data.lastMsgTime = lastMsgTime = Date.now();
 			} else {
 				try {
-					msg.react(getRandomEmoji()).catch();
-				} catch {}
+					msg.react(getRandomEmoji()).catch(() => {});
+				} catch {
+					() => {};
+				}
 			}
 		}
 

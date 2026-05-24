@@ -353,7 +353,7 @@ export default class StatusPayload extends Payload {
 							],
 							flags: Discord.MessageFlags.IsComponentsV2,
 						})
-						.catch();
+						.catch(() => {});
 				}
 			} catch (err) {
 				log.error(err);

@@ -229,7 +229,7 @@ export class Starboard extends Service {
 							files,
 							components,
 						})
-						.catch();
+						.catch(() => {});
 					if (starred) {
 						await this.starMsg(msg.id);
 						if (shouldReact) await starred.react(emoji);

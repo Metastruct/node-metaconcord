@@ -125,7 +125,7 @@ export default class GameBridge extends Service {
 					if (server.status.mapThumbnail) server.changeBanner(server.status.mapThumbnail);
 				});
 			})
-			.catch();
+			.catch(() => {});
 
 		let lastCount = 1;
 		con.on("ReceiveSessionUpdate", async (session: ResoniteSession) => {
