@@ -238,6 +238,10 @@ export class DiscordBot extends Service {
 		});
 		if (collected.size > 0)
 			msg.reply({ content: fix, allowedMentions: { repliedUser: false } });
+		msg.reactions.cache
+			.get(emoji)
+			?.remove()
+			.catch(() => {});
 	}
 
 	async getLastMotdMsg(): Promise<Discord.Message | undefined> {
