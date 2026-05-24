@@ -105,7 +105,9 @@ export class Resonite extends Service {
 	async GetResoniteUser(id: string, forceFetch = false) {
 		const cached = this.ResoniteUserCache[id];
 		if (cached && !forceFetch) return cached;
-		const res = await axios.get<ResoniteUser>(`https://api.resonite.com/users/${id}`).catch();
+		const res = await axios
+			.get<ResoniteUser>(`https://api.resonite.com/users/${id}`)
+			.catch(() => {});
 		if (res) {
 			this.ResoniteUserCache[id] = res.data;
 			return res.data;
@@ -148,7 +150,7 @@ export class Resonite extends Service {
 							},
 						}
 					)
-					.catch();
+					.catch(() => {});
 				if (res && data) {
 					data.lastResoniteToken = lastToken = res.data.entity.token;
 					data.lastResoniteTokenTime = lastTokenTime = new Date(

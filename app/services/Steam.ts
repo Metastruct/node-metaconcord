@@ -141,7 +141,7 @@ export class Steam extends Service {
 	}
 
 	async getUserAvatar(steamId64: string): Promise<any> {
-		return (await this.getUserSummaries(steamId64).catch())?.avatarfull;
+		return (await this.getUserSummaries(steamId64).catch(() => {}))?.avatarfull;
 	}
 
 	private getUserCache(steamId64: string): UserCache {
