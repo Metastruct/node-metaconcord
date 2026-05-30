@@ -95,10 +95,9 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 		if (!res) return false;
 	}
 
-	(await sql.getLocalDatabase()).db.run(
-		"DELETE FROM discord_tokens WHERE access_token = ?;",
-		token
-	);
+	await (
+		await sql.getLocalDatabase()
+	).run("DELETE FROM discord_tokens WHERE access_token = ?", token);
 
 	return true;
 };
@@ -131,7 +130,7 @@ export default async (webApp: WebApp): Promise<void> => {
 
 	webApp.app.use(cookieParser(webApp.config.cookieSecret));
 
-	webApp.app.get("/discord/link", async (req, res) => {
+	webApp.app.get("/discord/link", async (_, res) => {
 		const { state, url } = getOAuthURL();
 		res.cookie("clientState", state, { maxAge: 1000 * 60 * 5, signed: true });
 
