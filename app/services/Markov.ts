@@ -1,7 +1,7 @@
 // thank u mr swadical https://github.com/SwadicalRag/node-markov-lite
 import { logger } from "@/utils.js";
 import { Container, Service } from "../Container.js";
-import sqlite3 from "sqlite3";
+import { Database } from "sqlite";
 
 const log = logger(import.meta);
 
@@ -138,99 +138,68 @@ abstract class MarkovChainBase {
 }
 
 class MarkovChain extends MarkovChainBase {
-	db: sqlite3.Database;
+	private db: Database;
 
-	constructor(public location: string) {
+	constructor(db: Database) {
 		super();
-
-		this.db = new sqlite3.Database(this.location);
-
-		this.db.serialize(() => {
-			this.ready();
-		});
+		this.db = db;
 	}
 
-	ready(): void {
-		this.db.run("CREATE TABLE IF NOT EXISTS markov (`message` VARCHAR(255));");
+	async ready(): Promise<void> {
+		await this.db.run("CREATE TABLE IF NOT EXISTS markov (`message` VARCHAR(255));");
 	}
-	learn(data: string): Promise<void> {
-		return new Promise<void>((resolve, reject) => {
-			data = data.trim().replace(/\s+/g, " "); // standardise whitespace
-
-			this.db.run(
-				"INSERT INTO markov VALUES ($message)",
-				{
-					$message: data,
-				},
-				err => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve();
-					}
-				}
-			);
-		});
-	}
-
-	queryDB(chain: string[]): Promise<string | null> {
-		return new Promise((resolve, reject) => {
-			const sentence = chain.join(" ");
-
-			if (sentence.trim() === "") {
-				this.db.get<{ message: string }>(
-					`SELECT * FROM markov ORDER BY RANDOM() LIMIT 1`,
-					(err, res) => {
-						if (err) {
-							reject(err);
-						} else {
-							resolve(res.message);
-						}
-					}
-				);
-			} else {
-				this.db.all<{ message: string }>(
-					`SELECT * FROM markov WHERE (message LIKE $sentence1 OR [message] Like $sentence3 ) ORDER BY RANDOM() LIMIT 1`,
-					{
-						$sentence1: `_% ${sentence} %_`,
-						// $sentence2: `% ${sentence}`,
-						$sentence3: `${sentence} %_`,
-						// $sentence4: `${sentence}`,
-					},
-					(err, resArr) => {
-						if (err) {
-							reject(err);
-						} else {
-							for (const res of resArr) {
-								if (!res.message.endsWith(sentence)) {
-									resolve(res.message);
-									return;
-								}
-							}
-							resolve(null);
-						}
-					}
-				);
-			}
-		});
-	}
-}
-export class Markov extends Service {
-	name = "Markov";
-	markov = new MarkovChain("./metaconcord.db");
 
 	async learn(data: string): Promise<void> {
-		await this.markov.learn(data);
+		data = data.trim().replace(/\s+/g, " ");
+		await this.db.run("INSERT INTO markov VALUES (?)", [data]);
+	}
+
+	async queryDB(chain: string[]): Promise<string | null> {
+		const sentence = chain.join(" ");
+
+		if (sentence.trim() === "") {
+			const res = await this.db.get<{ message: string }>(
+				"SELECT * FROM markov ORDER BY RANDOM() LIMIT 1"
+			);
+			return res?.message ?? null;
+		}
+
+		const resArr = await this.db.all<{ message: string }[]>(
+			"SELECT * FROM markov WHERE (message LIKE ? OR message LIKE ?) ORDER BY RANDOM() LIMIT 1",
+			[`_% ${sentence} %_`, `${sentence} %_`]
+		);
+		for (const res of resArr) {
+			if (!res.message.endsWith(sentence)) {
+				return res.message;
+			}
+		}
+		return null;
+	}
+}
+
+export class Markov extends Service {
+	name = "Markov";
+	private _markov: MarkovChain | null = null;
+
+	private async getMarkov(): Promise<MarkovChain> {
+		if (!this._markov) {
+			const sql = await this.container.getService("SQL");
+			const db = await sql.getLocalDatabase();
+			this._markov = new MarkovChain(db);
+			await this._markov.ready();
+		}
+		return this._markov;
+	}
+
+	async learn(data: string): Promise<void> {
+		await (await this.getMarkov()).learn(data);
 	}
 
 	async generate(sentence?: string, options?: IGenerateOptions): Promise<string | undefined> {
 		try {
-			return await this.markov.generate(
-				options?.depth,
-				options?.length,
-				sentence,
-				options?.continuation
-			);
+			return await (
+				await this.getMarkov()
+			).generate(options?.depth, options?.length, sentence, options?.continuation);
 		} catch (err) {
 			log.error(err);
 			return;
@@ -239,7 +208,7 @@ export class Markov extends Service {
 
 	async exists(word: string | undefined) {
 		if (!word || word?.trim() === "") return word;
-		const data = await this.markov.queryDB([word]);
+		const data = await (await this.getMarkov()).queryDB([word]);
 		if (data) return word;
 	}
 }

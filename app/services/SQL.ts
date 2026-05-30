@@ -24,6 +24,9 @@ export class SQL extends Service {
 			filename: "metaconcord.db",
 		});
 
+		await this.database.exec("PRAGMA journal_mode=WAL;");
+		await this.database.exec("PRAGMA busy_timeout=5000;");
+
 		return this.database;
 	}
 
