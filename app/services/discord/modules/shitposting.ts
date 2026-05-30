@@ -178,7 +178,7 @@ const COMMON_EMOJIS = [
 ];
 const EVENTS = events;
 
-const PEDANTIC_PREFIXES = ["more like", "actually", "☝️🤓"];
+const PEDANTIC_PREFIXES = ["more like", "actually it's"];
 
 const lastMsgs: Discord.Message<boolean>[] = [];
 const lastReactedMessages = new Set<string>();
