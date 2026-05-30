@@ -5,6 +5,27 @@ import { Database } from "sqlite";
 
 const log = logger(import.meta);
 
+function levenshtein(a: string, b: string): number {
+	const n = a.length;
+	const m = b.length;
+	if (n === 0) return m;
+	if (m === 0) return n;
+	const matrix: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+	for (let i = 0; i <= n; i++) matrix[i][0] = i;
+	for (let j = 0; j <= m; j++) matrix[0][j] = j;
+	for (let i = 1; i <= n; i++) {
+		for (let j = 1; j <= m; j++) {
+			const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+			matrix[i][j] = Math.min(
+				matrix[i - 1][j] + 1,
+				matrix[i][j - 1] + 1,
+				matrix[i - 1][j - 1] + cost
+			);
+		}
+	}
+	return matrix[n][m];
+}
+
 export interface IGenerateOptions {
 	depth?: number;
 	length?: number;
@@ -154,6 +175,25 @@ class MarkovChain extends MarkovChainBase {
 		await this.db.run("INSERT INTO markov VALUES (?)", [data]);
 	}
 
+	async sampleWords(limit = 2000): Promise<Map<number, string[]>> {
+		const rows = await this.db.all<{ message: string }[]>(
+			`SELECT message FROM markov ORDER BY RANDOM() LIMIT ${limit}`
+		);
+		const wordsByLength = new Map<number, string[]>();
+		for (const row of rows) {
+			for (const w of row.message.toLowerCase().split(/\s+/)) {
+				if (w.length < 3) continue;
+				const bucket = wordsByLength.get(w.length);
+				if (bucket) {
+					bucket.push(w);
+				} else {
+					wordsByLength.set(w.length, [w]);
+				}
+			}
+		}
+		return wordsByLength;
+	}
+
 	async queryDB(chain: string[]): Promise<string | null> {
 		const sentence = chain.join(" ");
 
@@ -210,6 +250,30 @@ export class Markov extends Service {
 		if (!word || word?.trim() === "") return word;
 		const data = await (await this.getMarkov()).queryDB([word]);
 		if (data) return word;
+	}
+
+	async findClosestWord(word: string): Promise<string | null> {
+		const lower = word.toLowerCase();
+		if (lower.length < 3) return null;
+
+		const wordsByLength = await (await this.getMarkov()).sampleWords();
+
+		if (wordsByLength.has(lower.length)) {
+			for (const w of wordsByLength.get(lower.length)!) {
+				if (w === lower) return null;
+				if (levenshtein(w, lower) <= 2) return w;
+			}
+		}
+		// check adjacent lengths (±1) for insertions/deletions
+		for (const len of [lower.length - 1, lower.length + 1]) {
+			if (len < 3) continue;
+			const bucket = wordsByLength.get(len);
+			if (!bucket) continue;
+			for (const w of bucket) {
+				if (levenshtein(w, lower) <= 2) return w;
+			}
+		}
+		return null;
 	}
 }
 
