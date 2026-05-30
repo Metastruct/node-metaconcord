@@ -513,7 +513,7 @@ export default async (bot: DiscordBot) => {
 		}
 
 		// Pedantic reply
-		if (!replied && Math.random() <= PEDANTIC_FREQ && !isBot && isChatChannel) {
+		if (!replied && isChatChannel && Math.random() <= PEDANTIC_FREQ && !isBot) {
 			const delay =
 				PEDANTIC_REPLY_DELAY_MIN +
 				Math.random() * (PEDANTIC_REPLY_DELAY_MAX - PEDANTIC_REPLY_DELAY_MIN);
