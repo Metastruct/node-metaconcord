@@ -13,8 +13,6 @@ export class App {
 
 	constructor() {
 		this.container = new Container(this, providers);
-
-		this.init();
 	}
 
 	async init(): Promise<void> {

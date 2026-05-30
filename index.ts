@@ -12,9 +12,15 @@ import { App } from "./app/index.js";
 import { logger } from "./utils.js";
 const MetaConcord = new App();
 (global as any).MetaConcord = MetaConcord;
+await MetaConcord.init();
 
 process.on("uncaughtException", err => {
-	logger("App").fatal(err);
+	logger("App").fatal(err as Error);
+	process.exit(1);
+});
+
+process.on("unhandledRejection", err => {
+	logger("App").fatal(err as Error);
 	process.exit(1);
 });
 
