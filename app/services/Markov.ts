@@ -177,7 +177,10 @@ class MarkovChain extends MarkovChainBase {
 
 	async sampleWords(limit = 2000): Promise<Map<number, string[]>> {
 		const rows = await this.db.all<{ message: string }[]>(
-			`SELECT message FROM markov ORDER BY RANDOM() LIMIT ${limit}`
+			`SELECT message FROM markov WHERE rowid >= (
+       SELECT ABS(RANDOM()) % MAX(rowid) + 1 FROM markov
+     ) LIMIT ?`,
+			[limit]
 		);
 		const wordsByLength = new Map<number, string[]>();
 		for (const row of rows) {
