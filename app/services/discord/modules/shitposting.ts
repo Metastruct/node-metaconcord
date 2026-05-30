@@ -24,7 +24,7 @@ const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in th
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
 const COMMON_EMOJI_RATIO = 0.7;
 
-// pedantic reply constants
+// pedantic mode constants
 const PEDANTIC_FREQ = 0.015;
 const PEDANTIC_REPLY_DELAY_MIN = 5000;
 const PEDANTIC_REPLY_DELAY_MAX = 15000;
@@ -513,7 +513,7 @@ export default async (bot: DiscordBot) => {
 		}
 
 		// Pedantic reply
-		if (!isBot && isAllowedChannel && Math.random() <= PEDANTIC_FREQ && !replied) {
+		if (!replied && Math.random() <= PEDANTIC_FREQ && !isBot && isChatChannel) {
 			const delay =
 				PEDANTIC_REPLY_DELAY_MIN +
 				Math.random() * (PEDANTIC_REPLY_DELAY_MAX - PEDANTIC_REPLY_DELAY_MIN);
@@ -554,7 +554,7 @@ export default async (bot: DiscordBot) => {
 								.catch(() => {});
 						}
 					}
-					if (isChatChannel) replied = true;
+					replied = true;
 				} catch {}
 			}, delay);
 		}
