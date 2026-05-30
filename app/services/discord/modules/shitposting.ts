@@ -24,6 +24,11 @@ const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in th
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
 const COMMON_EMOJI_RATIO = 0.7;
 
+// pedantic reply constants
+const PEDANTIC_FREQ = 0.015;
+const PEDANTIC_REPLY_DELAY_MIN = 5000;
+const PEDANTIC_REPLY_DELAY_MAX = 15000;
+
 // trigger word constants
 const TRIGGER_WORDS = ["meta bot", "metabot", "metaconcord", "the bot"]; // these will always count like a normal reply/ping
 const MAYBE_TRIGGER_WORDS = ["bot", "meta", "meta construct", "metaconstruct", "metastruct"]; // not directly the bot but maybe
@@ -172,6 +177,8 @@ const COMMON_EMOJIS = [
 	"<:h_:536265505649197066>",
 ];
 const EVENTS = events;
+
+const PEDANTIC_PREFIXES = ["more like", "actually", "☝️🤓"];
 
 const lastMsgs: Discord.Message<boolean>[] = [];
 const lastReactedMessages = new Set<string>();
@@ -503,6 +510,53 @@ export default async (bot: DiscordBot) => {
 					() => {};
 				}
 			}
+		}
+
+		// Pedantic reply
+		if (!isBot && isAllowedChannel && Math.random() <= PEDANTIC_FREQ && !replied) {
+			const delay =
+				PEDANTIC_REPLY_DELAY_MIN +
+				Math.random() * (PEDANTIC_REPLY_DELAY_MAX - PEDANTIC_REPLY_DELAY_MIN);
+			setTimeout(async () => {
+				try {
+					const freshMsg = await msg.fetch();
+					if (!freshMsg.content) return;
+
+					if (Math.random() < 0.5) {
+						// "did you mean" check
+						const words = freshMsg.content
+							.replaceAll(`<@${DiscordConfig.bot.userId}> `, "")
+							.split(/\s+/)
+							.filter(Boolean);
+						for (const w of words) {
+							const match = await mk.findClosestWord(w);
+							if (match) {
+								freshMsg
+									.reply({
+										content: `"${match}" ☝️🤓`,
+										allowedMentions: { repliedUser: false },
+									})
+									.catch(() => {});
+								return;
+							}
+						}
+					} else {
+						const word = getWord(freshMsg.content);
+						const correction = await mk.generate(word);
+						if (correction) {
+							const prefix =
+								PEDANTIC_PREFIXES[(Math.random() * PEDANTIC_PREFIXES.length) | 0];
+							freshMsg
+								.reply({
+									content: `${prefix} "${correction}"`,
+									allowedMentions: { repliedUser: false },
+								})
+								.catch(() => {});
+						}
+					}
+					if (isChatChannel) replied = true;
+				} catch {}
+			}, delay);
 		}
 
 		// lastMessage collector
