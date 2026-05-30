@@ -175,7 +175,7 @@ class MarkovChain extends MarkovChainBase {
 		await this.db.run("INSERT INTO markov VALUES (?)", [data]);
 	}
 
-	async sampleWords(limit = 2000): Promise<Map<number, string[]>> {
+	async sampleWords(limit = 5000): Promise<Map<number, string[]>> {
 		const rows = await this.db.all<{ message: string }[]>(
 			`SELECT message FROM markov WHERE rowid >= (
        SELECT ABS(RANDOM()) % MAX(rowid) + 1 FROM markov
