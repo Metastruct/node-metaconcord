@@ -178,8 +178,6 @@ const COMMON_EMOJIS = [
 ];
 const EVENTS = events;
 
-const PEDANTIC_PREFIXES = ["more like", "actually it's"];
-
 const lastMsgs: Discord.Message<boolean>[] = [];
 const lastReactedMessages = new Set<string>();
 const lastReactedUsers = new Set<string>();
@@ -522,36 +520,21 @@ export default async (bot: DiscordBot) => {
 					const freshMsg = await msg.fetch();
 					if (!freshMsg.content) return;
 
-					if (Math.random() < 0.5) {
-						// "did you mean" check
-						const words = freshMsg.content
-							.replaceAll(`<@${DiscordConfig.bot.userId}> `, "")
-							.split(/\s+/)
-							.filter(Boolean);
-						for (const w of words) {
-							const match = await mk.findClosestWord(w);
-							if (match) {
-								freshMsg
-									.reply({
-										content: `"${match}" ☝️🤓`,
-										allowedMentions: { repliedUser: false },
-									})
-									.catch(() => {});
-								return;
-							}
-						}
-					} else {
-						const word = getWord(freshMsg.content);
-						const correction = await mk.generate(word);
-						if (correction) {
-							const prefix =
-								PEDANTIC_PREFIXES[(Math.random() * PEDANTIC_PREFIXES.length) | 0];
+					// "did you mean" check
+					const words = freshMsg.content
+						.replaceAll(`<@${DiscordConfig.bot.userId}> `, "")
+						.split(/\s+/)
+						.filter(Boolean);
+					for (const w of words) {
+						const match = await mk.findClosestWord(w);
+						if (match) {
 							freshMsg
 								.reply({
-									content: `${prefix} "${correction}"`,
+									content: `"${match}" ☝️🤓`,
 									allowedMentions: { repliedUser: false },
 								})
 								.catch(() => {});
+							return;
 						}
 					}
 					replied = true;
