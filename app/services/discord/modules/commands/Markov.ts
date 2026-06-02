@@ -52,6 +52,12 @@ export const SlashMarkovCommand: SlashCommand = {
 						required: true,
 						type: Discord.ApplicationCommandOptionType.String,
 					},
+					{
+						name: "distance",
+						description: "how many edits are allowed?",
+						type: Discord.ApplicationCommandOptionType.Integer,
+						min_value: 1,
+					},
 				],
 			},
 		],
@@ -76,7 +82,10 @@ export const SlashMarkovCommand: SlashCommand = {
 				res =
 					(await (
 						await bot.container.getService("Markov")
-					).findClosestWord(ctx.options.getString("word", true))) ?? undefined;
+					).findClosestWord(
+						ctx.options.getString("word", true),
+						ctx.options.getInteger("distance") ?? 1
+					)) ?? undefined;
 				break;
 			default:
 				break;
