@@ -524,7 +524,8 @@ export default async (bot: DiscordBot) => {
 					const words = freshMsg.content
 						.replaceAll(`<@${DiscordConfig.bot.userId}> `, "")
 						.split(/\s+/)
-						.filter(Boolean);
+						.filter(Boolean)
+						.sort(() => Math.random() - 0.5);
 					for (const w of words) {
 						const match = await mk.findClosestWord(w);
 						if (match) {
