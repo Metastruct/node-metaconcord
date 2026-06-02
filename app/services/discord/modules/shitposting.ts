@@ -534,10 +534,10 @@ export default async (bot: DiscordBot) => {
 									allowedMentions: { repliedUser: false },
 								})
 								.catch(() => {});
+							replied = true;
 							return;
 						}
 					}
-					replied = true;
 				} catch {}
 			}, delay);
 		}
