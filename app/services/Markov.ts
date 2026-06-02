@@ -255,7 +255,7 @@ export class Markov extends Service {
 		if (data) return word;
 	}
 
-	async findClosestWord(word: string): Promise<string | null> {
+	async findClosestWord(word: string, maxDist = 1): Promise<string | null> {
 		const lower = word.toLowerCase();
 		if (lower.length < 3) return null;
 
@@ -264,7 +264,7 @@ export class Markov extends Service {
 		if (wordsByLength.has(lower.length)) {
 			for (const w of wordsByLength.get(lower.length)!) {
 				if (w === lower) return null;
-				if (levenshtein(w, lower) <= 2) return w;
+				if (levenshtein(w, lower) <= maxDist) return w;
 			}
 		}
 		// check adjacent lengths (±1) for insertions/deletions
@@ -273,7 +273,7 @@ export class Markov extends Service {
 			const bucket = wordsByLength.get(len);
 			if (!bucket) continue;
 			for (const w of bucket) {
-				if (levenshtein(w, lower) <= 2) return w;
+				if (levenshtein(w, lower) <= maxDist) return w;
 			}
 		}
 		return null;
