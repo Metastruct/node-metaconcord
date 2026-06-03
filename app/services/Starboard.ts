@@ -15,7 +15,7 @@ const STARBOARD_CONFIG = {
 
 export class Starboard extends Service {
 	name = "Starboard";
-	private isBusy = false;
+	private pendingMessages = new Set<string>();
 	private sql: SQL;
 	private bot: DiscordBot;
 
@@ -72,8 +72,6 @@ export class Starboard extends Service {
 	}
 
 	public async handleReactionAdded(reaction: Discord.MessageReaction): Promise<void> {
-		if (this.isBusy) return;
-
 		try {
 			const message = reaction.message;
 
@@ -84,6 +82,8 @@ export class Starboard extends Service {
 
 			if (config.channelIgnores.includes(channel.id)) return;
 			if (parent && config.categoryIgnores.includes(parent)) return;
+			if (this.pendingMessages.has(message.id)) return;
+			this.pendingMessages.add(message.id);
 
 			let needed: number = STARBOARD_CONFIG.DEFAULT_AMOUNT;
 			let emojiFilter: Set<string> = new Set([STARBOARD_CONFIG.DEFAULT_EMOTE]);
@@ -126,7 +126,6 @@ export class Starboard extends Service {
 
 			if (
 				count >= needed &&
-				!this.isBusy &&
 				(emojiFilter.size === 0 || emojiFilter.has(emoji.name ?? "")) &&
 				!message.reactions.cache.find(
 					e =>
@@ -135,11 +134,9 @@ export class Starboard extends Service {
 						e.users.cache.has(message.author.id)
 				)
 			) {
-				this.isBusy = true;
 				const msg = await message.fetch();
 				if (!msg) {
 					log.error(reaction, "fetch message failed.");
-					this.isBusy = false;
 					return;
 				}
 
@@ -148,19 +145,16 @@ export class Starboard extends Service {
 
 				if (!targetChannel) {
 					log.error(reaction, "invalid channel?");
-					this.isBusy = false;
 					return;
 				}
 
 				// check against our local db first
 				if (await this.isMsgStarred(msg.id)) {
-					this.isBusy = false;
 					return;
 				}
 
 				// skip messages older than 3 months
 				if (Date.now() - msg.createdTimestamp > STARBOARD_CONFIG.MESSAGE_AGE_LIMIT_MS) {
-					this.isBusy = false;
 					return;
 				}
 
@@ -234,13 +228,11 @@ export class Starboard extends Service {
 						if (shouldReact) await starred.react(emoji);
 					}
 				}
-
-				this.isBusy = false;
 			}
 		} catch (err) {
 			log.error(err);
 		} finally {
-			this.isBusy = false;
+			this.pendingMessages.delete(reaction.message.id);
 		}
 	}
 }
