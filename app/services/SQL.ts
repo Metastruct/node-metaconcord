@@ -15,10 +15,17 @@ export class SQL extends Service {
 	name = "SQL";
 
 	private database: Database;
+	private dbInit: Promise<Database> | null = null;
 
 	public async getLocalDatabase(): Promise<Database> {
 		if (this.database != null) return this.database;
+		if (this.dbInit) return this.dbInit;
 
+		this.dbInit = this._initDatabase();
+		return this.dbInit;
+	}
+
+	private async _initDatabase(): Promise<Database> {
 		this.database = await open({
 			driver: sqlite3.Database,
 			filename: "metaconcord.db",
