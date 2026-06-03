@@ -86,7 +86,7 @@ export class Starboard extends Service {
 			if (parent && config.categoryIgnores.includes(parent)) return;
 
 			let needed: number = STARBOARD_CONFIG.DEFAULT_AMOUNT;
-			let emojiFilter: string[] | undefined = [STARBOARD_CONFIG.DEFAULT_EMOTE];
+			let emojiFilter: Set<string> = new Set([STARBOARD_CONFIG.DEFAULT_EMOTE]);
 			let targetChannel: Discord.Channel | undefined = client.channels.cache.get(
 				discordConfig.channels.h
 			);
@@ -97,7 +97,7 @@ export class Starboard extends Service {
 				switch (parent) {
 					// the parent of a thread is the main channel, so we sadly can't get the category without fetching, so much for dry
 					case discordConfig.channels.postYourStuff:
-						emojiFilter = undefined;
+						emojiFilter = new Set();
 						shouldReact = true;
 						needed = 6;
 						title =
@@ -109,7 +109,7 @@ export class Starboard extends Service {
 					default:
 						switch (channel.id) {
 							case discordConfig.channels.artChat:
-								emojiFilter = undefined;
+								emojiFilter = new Set();
 								shouldReact = true;
 								needed = 6;
 								targetChannel = client.channels.cache.get(
@@ -127,7 +127,7 @@ export class Starboard extends Service {
 			if (
 				count >= needed &&
 				!this.isBusy &&
-				(emojiFilter ? emojiFilter.includes(emoji.name ?? "") : true) &&
+				(emojiFilter.size === 0 || emojiFilter.has(emoji.name ?? "")) &&
 				!message.reactions.cache.find(
 					e =>
 						e.emoji.name === "⛔" &&
