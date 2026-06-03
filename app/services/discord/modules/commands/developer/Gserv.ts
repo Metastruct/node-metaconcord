@@ -1,7 +1,6 @@
+import type GameServer from "@/app/services/gamebridge/GameServer.js";
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
-import servers from "@/config/gamebridge.servers.json" with { type: "json" };
-
 // order matters for the menu
 const VALID_GSERV_COMMANDS: [string, string][] = [
 	["qu rehash", "runs both qu and rehash"],
@@ -52,11 +51,11 @@ export const SlashGservCommand: SlashCommand = {
 						type: Discord.ComponentType.StringSelect,
 						custom_id: "server",
 						placeholder: "Select a server (runs on all if not selected)",
-						options: servers
-							.filter(s => !!s.ssh)
+						options: bridge.servers
+							.filter((s): s is GameServer => !!s?.config.ssh)
 							.map(s => ({
-								label: s.name,
-								value: String(s.id),
+								label: s.config.name,
+								value: String(s.config.id),
 							})),
 						min_values: 0,
 						max_values: 1,
