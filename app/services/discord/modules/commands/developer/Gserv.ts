@@ -32,37 +32,35 @@ export const SlashGservCommand: SlashCommand = {
 			custom_id: "gserv_modal",
 			components: [
 				{
-					type: Discord.ComponentType.ActionRow,
-					components: [
-						{
-							type: Discord.ComponentType.StringSelect,
-							custom_id: "command",
-							placeholder: "Select a command to run",
-							options: VALID_GSERV_COMMANDS.map(([name, desc]) => ({
-								label: name,
-								description: desc,
-								value: name,
-							})),
-						},
-					],
+					type: Discord.ComponentType.Label,
+					label: "Command",
+					component: {
+						type: Discord.ComponentType.StringSelect,
+						custom_id: "command",
+						placeholder: "Select a command to run",
+						options: VALID_GSERV_COMMANDS.map(([name, desc]) => ({
+							label: name,
+							description: desc,
+							value: name,
+						})),
+					},
 				},
 				{
-					type: Discord.ComponentType.ActionRow,
-					components: [
-						{
-							type: Discord.ComponentType.StringSelect,
-							custom_id: "server",
-							placeholder: "Select a server (runs on all if not selected)",
-							options: servers
-								.filter(s => !!s.ssh)
-								.map(s => ({
-									label: s.name,
-									value: String(s.id),
-								})),
-							min_values: 0,
-							max_values: 1,
-						},
-					],
+					type: Discord.ComponentType.Label,
+					label: "Server",
+					component: {
+						type: Discord.ComponentType.StringSelect,
+						custom_id: "server",
+						placeholder: "Select a server (runs on all if not selected)",
+						options: servers
+							.filter(s => !!s.ssh)
+							.map(s => ({
+								label: s.name,
+								value: String(s.id),
+							})),
+						min_values: 0,
+						max_values: 1,
+					},
 				},
 				{
 					type: Discord.ComponentType.Label,
