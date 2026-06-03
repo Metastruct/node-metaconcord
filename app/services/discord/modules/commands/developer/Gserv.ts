@@ -60,6 +60,7 @@ export const SlashGservCommand: SlashCommand = {
 							})),
 						min_values: 0,
 						max_values: 1,
+						required: false,
 					},
 				},
 				{
