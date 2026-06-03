@@ -82,7 +82,6 @@ export class Starboard extends Service {
 			const client = reaction.client;
 			const emoji = reaction.emoji;
 			const parent = channel.parentId;
-			const users = await reaction.users.fetch();
 
 			if (config.channelIgnores.includes(channel.id)) return;
 			if (parent && config.categoryIgnores.includes(parent)) return;
@@ -122,6 +121,7 @@ export class Starboard extends Service {
 				}
 			}
 
+			const users = await reaction.users.fetch();
 			const ego = message.author ? users.has(message.author.id) : false;
 			const count = ego ? reaction.count - 1 : reaction.count;
 
