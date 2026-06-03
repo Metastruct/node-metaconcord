@@ -27,6 +27,8 @@ export class Starboard extends Service {
 	private async initServices(): Promise<void> {
 		this.sql = await this.container.getService("SQL");
 		this.bot = await this.container.getService("DiscordBot");
+		const db = await this.sql.getLocalDatabase();
+		await db.exec(`CREATE TABLE IF NOT EXISTS starboard (MessageId VARCHAR(1000));`);
 
 		const filter = (btn: Discord.MessageComponentInteraction) =>
 			btn.customId.startsWith("starboard");
@@ -59,9 +61,6 @@ export class Starboard extends Service {
 
 	async isMsgStarred(msgId: string): Promise<boolean> {
 		const db = await this.sql.getLocalDatabase();
-		if (!(await this.sql.tableExists("starboard"))) {
-			await db.exec(`CREATE TABLE starboard (MessageId VARCHAR(1000));`);
-		}
 
 		const res = await db.get("SELECT * FROM starboard WHERE MessageId = ? LIMIT 1;", msgId);
 		return res ? true : false;
