@@ -18,32 +18,6 @@ export const SlashGservCommand: SlashCommand = {
 		name: "gserv",
 		description: "Gserv from discord",
 		default_member_permissions: "0",
-		options: [
-			{
-				type: Discord.ApplicationCommandOptionType.String,
-				name: "command",
-				description: "the command to run",
-				choices: VALID_GSERV_COMMANDS.map(c => {
-					return { name: c[0], value: c[0] };
-				}),
-				required: true,
-			},
-			{
-				type: Discord.ApplicationCommandOptionType.Integer,
-				name: "server",
-				description: "The server to run the command on",
-				choices: servers
-					.filter(s => !!s.ssh)
-					.map(s => {
-						return { name: s.name, value: s.id };
-					}),
-			},
-			{
-				type: Discord.ApplicationCommandOptionType.Boolean,
-				name: "show_output",
-				description: "show gserv output",
-			},
-		],
 	},
 
 	async execute(ctx, bot) {
@@ -52,21 +26,83 @@ export const SlashGservCommand: SlashCommand = {
 			await ctx.reply(EphemeralResponse("GameBridge is missing :("));
 			return;
 		}
-		const selectedServer = ctx.options.getInteger("server");
-		const servers = selectedServer ? [bridge.servers[selectedServer]] : bridge.servers;
-		const command = ctx.options.getString("command", true);
-		const showOutput = ctx.options.getBoolean("show_output") ?? false;
 
-		const reply = await ctx.deferReply({ withResponse: true });
-		const messageID = reply.interaction.responseMessageId ?? (await ctx.fetchReply()).id;
+		await ctx.showModal(<Discord.APIModalInteractionResponseCallbackData>{
+			title: "Gserv Command",
+			custom_id: "gserv_modal",
+			components: [
+				{
+					type: Discord.ComponentType.ActionRow,
+					components: [
+						{
+							type: Discord.ComponentType.StringSelect,
+							custom_id: "command",
+							placeholder: "Select a command to run",
+							options: VALID_GSERV_COMMANDS.map(([name, desc]) => ({
+								label: name,
+								description: desc,
+								value: name,
+							})),
+						},
+					],
+				},
+				{
+					type: Discord.ComponentType.ActionRow,
+					components: [
+						{
+							type: Discord.ComponentType.StringSelect,
+							custom_id: "server",
+							placeholder: "Select a server (runs on all if not selected)",
+							options: servers
+								.filter(s => !!s.ssh)
+								.map(s => ({
+									label: s.name,
+									value: String(s.id),
+								})),
+							min_values: 0,
+							max_values: 1,
+						},
+					],
+				},
+				{
+					type: Discord.ComponentType.Label,
+					label: "Show output",
+					component: {
+						type: Discord.ComponentType.Checkbox,
+						custom_id: "show_output",
+					},
+				},
+			],
+		});
+
+		const modalSubmit = await ctx.awaitModalSubmit({ time: 60000 }).catch(() => {});
+		if (!modalSubmit) return;
+
+		const command = modalSubmit.fields.getStringSelectValues("command")[0];
+		const serverId = modalSubmit.fields.getStringSelectValues("server")[0];
+		const showOutput = modalSubmit.fields.getCheckbox("show_output");
+
+		const channelId = modalSubmit.channelId;
+		if (!channelId) {
+			await modalSubmit.reply(
+				EphemeralResponse("This command can only be used in a server channel")
+			);
+			return;
+		}
+
+		const targetServers = serverId ? [bridge.servers[Number(serverId)]] : bridge.servers;
+
+		const reply = await modalSubmit.deferReply({ withResponse: true });
+		const messageID =
+			reply.interaction.responseMessageId ?? (await modalSubmit.fetchReply()).id;
 
 		await Promise.all(
-			servers
+			targetServers
 				.filter(s => !!s.config.ssh)
 				.map(async gameServer => {
 					const gSDiscord = gameServer.discord;
 					const channel = gSDiscord.channels.cache.get(
-						ctx.channelId
+						channelId
 					) as Discord.GuildTextBasedChannel;
 					const message = channel.messages.cache.get(messageID);
 
@@ -100,7 +136,7 @@ export const SlashGservCommand: SlashCommand = {
 						}
 						return success;
 					} catch (err) {
-						const response = `<a:ALERTA:843518761160015933> failed to run gerv <a:ALERTA:843518761160015933>\n\`\`\`${err}\`\`\``;
+						const response = `<a:ALERTA:843518761160015933> failed to run gserv <a:ALERTA:843518761160015933>\n\`\`\`${err}\`\`\``;
 						if (message) {
 							await message.reply(response);
 						} else {
@@ -111,8 +147,8 @@ export const SlashGservCommand: SlashCommand = {
 				})
 		)
 			.then(() => {
-				ctx.editReply(`sent \`${command}\` successfully!`);
+				modalSubmit.editReply(`sent \`${command}\` successfully!`);
 			})
-			.catch(err => ctx.editReply(`something went wrong!\`\`\`\n${err}\`\`\``));
+			.catch(err => modalSubmit.editReply(`something went wrong!\`\`\`\n${err}\`\`\``));
 	},
 };
