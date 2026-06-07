@@ -1,9 +1,8 @@
 import { WebApp } from "@/app/services/webapp/index.js";
 
 export default async (webApp: WebApp): Promise<void> => {
-	const bot = webApp.container.getService("DiscordBot");
-
 	webApp.app.get("/discord/guild/emojis", async (_, res) => {
+		const bot = webApp.container.getService("DiscordBot");
 		if (!bot.discord.readyAt) {
 			res.status(500).json({
 				error: "Bot is not connected",
