@@ -55,6 +55,9 @@ export class IRC extends Service {
 		this.client.say(config.relayIRCChannel, `\u000314[Discord]\u000f ${text}`);
 	}
 
+	async init() {
+		await this.setupDiscord();
+	}
 	private async setupDiscord() {
 		const bot = await this.container.getService("DiscordBot");
 		// Discord
@@ -79,7 +82,6 @@ export class IRC extends Service {
 
 	constructor(container: Container) {
 		super(container);
-		this.setupDiscord();
 		// IRC
 		this.client.on("registered", () => {
 			this.client.say("NICKSERV", `IDENTIFY ${config.nick} ${config.password}`);
@@ -95,6 +97,8 @@ export class IRC extends Service {
 	}
 }
 
-export default (container: Container): Service => {
-	return new IRC(container);
+export default async (container: Container): Promise<Service> => {
+	const svc = new IRC(container);
+	await svc.init();
+	return svc;
 };

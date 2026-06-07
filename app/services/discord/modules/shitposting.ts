@@ -112,7 +112,7 @@ export const Shat = async (options?: {
 		} else {
 			if (rng >= TENOR_IMAGE_FREQ) {
 				try {
-					const db = await (
+					const db = (
 						await globalThis.MetaConcord.container.getService("SQL")
 					).getLocalDatabase();
 
@@ -185,7 +185,7 @@ const lastReactedUsers = new Set<string>();
 export default async (bot: DiscordBot) => {
 	const data = await bot.container.getService("Data");
 	const mk = await bot.container.getService("Markov");
-	const db = await (await bot.container.getService("SQL")).getLocalDatabase();
+	const db = (await bot.container.getService("SQL")).getLocalDatabase();
 	const motd = await bot.container.getService("Motd");
 	db.exec("CREATE TABLE IF NOT EXISTS media_urls (url VARCHAR(255) NOT NULL UNIQUE);");
 	const now = Date.now();

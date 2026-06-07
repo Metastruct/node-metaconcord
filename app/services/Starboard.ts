@@ -19,16 +19,11 @@ export class Starboard extends Service {
 	private sql: SQL;
 	private bot: DiscordBot;
 
-	constructor(container: Container) {
-		super(container);
-		this.initServices();
-	}
-
-	private async initServices(): Promise<void> {
+	async init(): Promise<void> {
 		this.sql = await this.container.getService("SQL");
 		this.bot = await this.container.getService("DiscordBot");
-		const db = await this.sql.getLocalDatabase();
-		await db.exec(`CREATE TABLE IF NOT EXISTS starboard (MessageId VARCHAR(1000));`);
+		const db = this.sql.getLocalDatabase();
+		await db.exec(`CREATE TABLE IF NOT EXISTS starboard (MessageId INTEGER PRIMARY KEY);`);
 
 		const filter = (btn: Discord.MessageComponentInteraction) =>
 			btn.customId.startsWith("starboard");
@@ -41,7 +36,6 @@ export class Starboard extends Service {
 			const [, originalMsgID, originalChannelID, originalAuthorID] =
 				interaction.customId.split(":");
 
-			// additional check in case the username was changed somehow
 			if (originalAuthorID && originalAuthorID !== interaction.user.id) return;
 
 			try {
@@ -60,15 +54,14 @@ export class Starboard extends Service {
 	}
 
 	async isMsgStarred(msgId: string): Promise<boolean> {
-		const db = await this.sql.getLocalDatabase();
-
-		const res = await db.get("SELECT * FROM starboard WHERE MessageId = ? LIMIT 1;", msgId);
-		return res ? true : false;
+		const db = this.sql.getLocalDatabase();
+		const res = await db.get("SELECT 1 FROM starboard WHERE MessageId = ? LIMIT 1;", msgId);
+		return res != null;
 	}
 
 	private async starMsg(msgId: string): Promise<void> {
-		const db = await this.sql.getLocalDatabase();
-		await db.run("INSERT INTO starboard(MessageId) VALUES(?)", msgId);
+		const db = this.sql.getLocalDatabase();
+		await db.run("INSERT OR IGNORE INTO starboard(MessageId) VALUES(?)", msgId);
 	}
 
 	public async handleReactionAdded(reaction: Discord.MessageReaction): Promise<void> {
@@ -237,6 +230,8 @@ export class Starboard extends Service {
 	}
 }
 
-export default (container: Container): Service => {
-	return new Starboard(container);
+export default async (container: Container): Promise<Service> => {
+	const svc = new Starboard(container);
+	await svc.init();
+	return svc;
 };

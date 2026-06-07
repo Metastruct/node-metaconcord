@@ -63,7 +63,7 @@ export const SlashSQLCommand: SlashCommand = {
 							)
 						);
 					await ctx.deferReply();
-					const db = await sql?.getLocalDatabase();
+					const db = sql?.getLocalDatabase();
 					const res = await db?.all(query);
 					const file = makeFile(res);
 					await ctx.followUp(file);

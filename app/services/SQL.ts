@@ -13,19 +13,9 @@ const pool = new Pool({
 
 export class SQL extends Service {
 	name = "SQL";
+	database!: Database;
 
-	private database: Database;
-	private dbInit: Promise<Database> | null = null;
-
-	public async getLocalDatabase(): Promise<Database> {
-		if (this.database != null) return this.database;
-		if (this.dbInit) return this.dbInit;
-
-		this.dbInit = this._initDatabase();
-		return this.dbInit;
-	}
-
-	private async _initDatabase(): Promise<Database> {
+	async init(): Promise<void> {
 		this.database = await open({
 			driver: sqlite3.Database,
 			filename: "metaconcord.db",
@@ -33,7 +23,9 @@ export class SQL extends Service {
 
 		await this.database.exec("PRAGMA journal_mode=WAL;");
 		await this.database.exec("PRAGMA busy_timeout=5000;");
+	}
 
+	getLocalDatabase(): Database {
 		return this.database;
 	}
 
@@ -42,8 +34,7 @@ export class SQL extends Service {
 	}
 
 	public async tableExists(tableName: string): Promise<boolean> {
-		const db = await this.getLocalDatabase();
-		const result = await db.get(
+		const result = await this.database.get(
 			"SELECT name FROM sqlite_master WHERE type='table' AND name=?;",
 			tableName
 		);
@@ -51,6 +42,8 @@ export class SQL extends Service {
 	}
 }
 
-export default (container: Container): Service => {
-	return new SQL(container);
+export default async (container: Container): Promise<Service> => {
+	const svc = new SQL(container);
+	await svc.init();
+	return svc;
 };

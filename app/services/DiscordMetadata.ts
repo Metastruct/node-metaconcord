@@ -72,10 +72,9 @@ export class DiscordMetadata extends Service {
 
 	constructor(container: Container) {
 		super(container);
-		this.initServices();
 	}
 
-	private async initServices() {
+	async init() {
 		this.sql = await this.container.getService("SQL");
 		this.bot = await this.container.getService("DiscordBot");
 		this.bans = await this.container.getService("Bans");
@@ -115,7 +114,7 @@ export class DiscordMetadata extends Service {
 
 			if (res && "data" in res) {
 				const token = res.data;
-				const db = await this.sql.getLocalDatabase();
+				const db = this.sql.getLocalDatabase();
 				await db.run(
 					"UPDATE discord_tokens SET access_token = ?, refresh_token = ?, expires_at = ? WHERE user_id = ?",
 					[
@@ -136,7 +135,7 @@ export class DiscordMetadata extends Service {
 	async get(userId: string) {
 		if (!this.ARCOCache[userId]) {
 			const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.bot.applicationId}/role-connection`;
-			const db = await this.sql.getLocalDatabase();
+			const db = this.sql.getLocalDatabase();
 			const data = await db.get<LocalDatabaseEntry>(
 				"SELECT * FROM discord_tokens where user_id = ?;",
 				userId
@@ -164,7 +163,7 @@ export class DiscordMetadata extends Service {
 	}
 
 	async update(userId: string) {
-		const db = await this.sql.getLocalDatabase();
+		const db = this.sql.getLocalDatabase();
 
 		const data = await db.get<LocalDatabaseEntry>(
 			"SELECT * FROM discord_tokens WHERE user_id = ?;",
@@ -255,7 +254,7 @@ export class DiscordMetadata extends Service {
 	async discordIDfromSteam64(steam64: string) {
 		const cached = this.UserCache.find(user => user.steamId == steam64)?.discordId;
 		if (!cached) {
-			const db = await this.sql.getLocalDatabase();
+			const db = this.sql.getLocalDatabase();
 			const res = await db.get<LocalDatabaseEntry>(
 				"SELECT * FROM discord_tokens where steam_id = ?;",
 				steam64
@@ -271,7 +270,7 @@ export class DiscordMetadata extends Service {
 	async steam64fromDiscordID(discordId: string) {
 		const cached = this.UserCache.find(user => user.steamId == discordId)?.steamId;
 		if (cached) {
-			const db = await this.sql.getLocalDatabase();
+			const db = this.sql.getLocalDatabase();
 			const res = await db.get<LocalDatabaseEntry>(
 				"SELECT * FROM discord_tokens where user_id = ?;",
 				discordId
@@ -286,6 +285,7 @@ export class DiscordMetadata extends Service {
 }
 
 export default async (container: Container): Promise<Service> => {
-	const metadata = new DiscordMetadata(container);
-	return metadata;
+	const svc = new DiscordMetadata(container);
+	await svc.init();
+	return svc;
 };

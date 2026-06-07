@@ -41,10 +41,9 @@ export default class GameBridge extends Service {
 
 	constructor(container: Container) {
 		super(container);
-		this.init();
 	}
 
-	private async init() {
+	async init() {
 		this.webApp = await this.container.getService("WebApp");
 
 		this.ws = new WebSocketServer({
