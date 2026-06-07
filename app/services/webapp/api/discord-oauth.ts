@@ -4,7 +4,6 @@ import { WebApp } from "@/app/services/webapp/index.js";
 import { rateLimit } from "express-rate-limit";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import SteamID from "steamid";
-import axios, { AxiosError } from "axios";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import { logger } from "@/utils.js";
@@ -48,50 +47,41 @@ export const getOAuthURL = () => {
 	return { state, url: url.toString() };
 };
 
+const basicAuth =
+	"Basic " +
+	Buffer.from(DiscordConfig.bot.applicationId + ":" + DiscordConfig.bot.clientSecret).toString(
+		"base64"
+	);
+
 export const getOAuthTokens = async (code: any) => {
-	const res = await axios
-		.post<AccessTokenResponse>(
-			"https://discord.com/api/v10/oauth2/token",
-			new URLSearchParams({
-				grant_type: "authorization_code",
-				code,
-				redirect_uri: DiscordConfig.bot.oAuthCallbackUri,
-			}),
-			{
-				auth: {
-					username: DiscordConfig.bot.applicationId,
-					password: DiscordConfig.bot.clientSecret,
-				},
-			}
-		)
-		.catch((err: AxiosError<Discord.OAuthErrorData>) => {
-			log.error(err, "failed fetching tokens");
-		});
-	if (res) return res.data;
+	const res = await fetch("https://discord.com/api/v10/oauth2/token", {
+		method: "POST",
+		headers: { Authorization: basicAuth },
+		body: new URLSearchParams({
+			grant_type: "authorization_code",
+			code,
+			redirect_uri: DiscordConfig.bot.oAuthCallbackUri,
+		}),
+	}).catch(err => {
+		log.error(err, "failed fetching tokens");
+	});
+	if (res?.ok) return res.json() as Promise<AccessTokenResponse>;
 };
 
 export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 	const sql: SQL = globalThis.MetaConcord.container.getService("SQL");
 
 	if (!localOnly) {
-		const res = await axios
-			.post(
-				"https://discord.com/api/v10/oauth2/token/revoke",
-				new URLSearchParams({
-					token: token,
-					token_type_hint: "access_token",
-				}),
-				{
-					auth: {
-						username: DiscordConfig.bot.applicationId,
-						password: DiscordConfig.bot.clientSecret,
-					},
-				}
-			)
-			.catch((err: AxiosError) => {
-				log.error(err, "failed revoking token");
-				return;
-			});
+		const res = await fetch("https://discord.com/api/v10/oauth2/token/revoke", {
+			method: "POST",
+			headers: { Authorization: basicAuth },
+			body: new URLSearchParams({
+				token: token,
+				token_type_hint: "access_token",
+			}),
+		}).catch(err => {
+			log.error(err, "failed revoking token");
+		});
 		if (!res) return false;
 	}
 
@@ -102,28 +92,24 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 
 export default async (webApp: WebApp): Promise<void> => {
 	const sql = webApp.container.getService("SQL");
-	const metadata = webApp.container.getService("DiscordMetadata");
+	const metadata = () => webApp.container.getService("DiscordMetadata");
 
 	const getAuthorizationData = async (tokens: AccessTokenResponse) => {
-		const res = await axios
-			.get<CurrentAuthorizationInformation>("https://discord.com/api/v10/oauth2/@me", {
-				headers: { Authorization: `Bearer ${tokens.access_token}` },
-			})
-			.catch((err: AxiosError) => {
-				log.error(err, "failed fetching authorization data");
-			});
-		if (res) return res.data;
+		const res = await fetch("https://discord.com/api/v10/oauth2/@me", {
+			headers: { Authorization: `Bearer ${tokens.access_token}` },
+		}).catch(err => {
+			log.error(err, "failed fetching authorization data");
+		});
+		if (res?.ok) return res.json() as Promise<CurrentAuthorizationInformation>;
 	};
 
 	const getConnections = async (tokens: AccessTokenResponse) => {
-		const res = await axios
-			.get<ConnectionObject[]>("https://discord.com/api/v10/users/@me/connections", {
-				headers: { Authorization: `Bearer ${tokens.access_token}` },
-			})
-			.catch((err: AxiosError) => {
-				log.error(err, "failed fetching user connections");
-			});
-		if (res) return res.data;
+		const res = await fetch("https://discord.com/api/v10/users/@me/connections", {
+			headers: { Authorization: `Bearer ${tokens.access_token}` },
+		}).catch(err => {
+			log.error(err, "failed fetching user connections");
+		});
+		if (res?.ok) return res.json() as Promise<ConnectionObject[]>;
 	};
 
 	webApp.app.use(cookieParser(webApp.config.cookieSecret));
@@ -135,7 +121,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		res.redirect(url);
 	});
 	webApp.app.get("/discord/link/:id", async (req, res) => {
-		const data = await metadata.get(req.params.id);
+		const data = await metadata().get(req.params.id);
 		if (!data) {
 			res.status(404).send("no data");
 			return;
@@ -143,7 +129,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		res.send(data);
 	});
 	webApp.app.get("/discord/link/:id/refresh", rateLimit(), async (req, res) => {
-		res.send((await metadata.update(req.params.id)) ? "👌" : "👎");
+		res.send((await metadata().update(req.params.id)) ? "👌" : "👎");
 	});
 	webApp.app.get("/discord/link/:id/revoke", rateLimit(), async (req, res) => {
 		const secret = req.query.secret;
@@ -151,10 +137,12 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.sendStatus(403);
 			return;
 		}
-		const entry = await sql.getLocalDatabase().get<LocalDatabaseEntry>(
-			"SELECT access_token FROM discord_tokens WHERE user_id = ?",
-			req.params.id
-		);
+		const entry = await sql
+			.getLocalDatabase()
+			.get<LocalDatabaseEntry>(
+				"SELECT access_token FROM discord_tokens WHERE user_id = ?",
+				req.params.id
+			);
 		if (!entry) {
 			res.status(404).send("no data");
 			return;
@@ -168,7 +156,9 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.sendStatus(403);
 			return;
 		}
-		const entries = await sql.getLocalDatabase().all<LocalDatabaseEntry[]>("SELECT access_token FROM discord_tokens");
+		const entries = await sql
+			.getLocalDatabase()
+			.all<LocalDatabaseEntry[]>("SELECT access_token FROM discord_tokens");
 		if (!entries || entries.length === 0) {
 			res.status(404).send("no data");
 			return;
@@ -184,10 +174,12 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.sendStatus(403);
 			return;
 		}
-		const entries = await sql.getLocalDatabase().all<LocalDatabaseEntry[]>("SELECT user_id FROM discord_tokens");
+		const entries = await sql
+			.getLocalDatabase()
+			.all<LocalDatabaseEntry[]>("SELECT user_id FROM discord_tokens");
 		if (!entries || entries.length === 0)
 			for (const entry of entries) {
-				await metadata.update(entry.user_id);
+				await metadata().update(entry.user_id);
 			}
 		res.send("👌");
 	});
@@ -264,7 +256,7 @@ export default async (webApp: WebApp): Promise<void> => {
 					}
 				);
 
-				await metadata.update(userId);
+				await metadata().update(userId);
 
 				res.send(
 					"👍" +
