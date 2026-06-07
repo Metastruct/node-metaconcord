@@ -24,7 +24,7 @@ export default class UnbanPayload extends Payload {
 		const notificationsChannel = guild.channels.cache.get(bridge.config.banUnbanChannelId);
 		if (!notificationsChannel) return;
 
-		const steam = await bridge.container.getService("Steam");
+		const steam = bridge.container.getService("Steam");
 		let steamId64 = "";
 		let bannerName = "";
 		let avatar = "";

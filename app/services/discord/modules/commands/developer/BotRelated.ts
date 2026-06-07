@@ -28,7 +28,7 @@ export const SlashManageMediaLinks: SlashCommand = {
 			case "remove":
 				const url = ctx.options.getString("url", true);
 				await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
-				const db = (await bot.container.getService("SQL")).getLocalDatabase();
+				const db = (bot.container.getService("SQL")).getLocalDatabase();
 				if (!db) {
 					ctx.followUp(EphemeralResponse("Could not get the DB :("));
 					return;
@@ -55,7 +55,7 @@ export const SlashForceMotd: SlashCommand = {
 		default_member_permissions: "0",
 	},
 	execute: async (ctx, bot) => {
-		const msg = await (await bot.container.getService("Motd")).executeMessageJob();
+		const msg = await (bot.container.getService("Motd")).executeMessageJob();
 		if (msg) {
 			await ctx.reply(EphemeralResponse("👍"));
 		}
@@ -85,7 +85,7 @@ export const MenuManageMediaLinksCommand: MenuCommand = {
 			return;
 		}
 		await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
-		const db = (await bot.container.getService("SQL")).getLocalDatabase();
+		const db = (bot.container.getService("SQL")).getLocalDatabase();
 		if (!db) {
 			ctx.followUp(EphemeralResponse("Could not get the DB :("));
 			return;

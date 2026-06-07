@@ -22,7 +22,7 @@ export default class JoinLeavePayload extends Payload {
 		if (!relayChannel) return;
 
 		const avatar = await (
-			await bridge.container.getService("Steam")
+			bridge.container.getService("Steam")
 		).getUserAvatar(player.steamId64);
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({

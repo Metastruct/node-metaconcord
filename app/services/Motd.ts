@@ -103,7 +103,7 @@ export class Motd extends Service {
 		scheduleJob({ minute: 0, hour: 12, tz: "Etc/GMT-2" }, this.executeMessageJob.bind(this));
 	}
 	async init() {
-		this.bot = await this.container.getService("DiscordBot");
+		this.bot = this.container.getService("DiscordBot");
 	}
 
 	pushMessage(msg: string): void {
@@ -143,7 +143,7 @@ export class Motd extends Service {
 		const msg: string = this.messages[(Math.random() * this.messages.length) | 0];
 		this.messages = [];
 		if (msg == null || msg.length === 0) return;
-		const data = await this.container.getService("Data");
+		const data = this.container.getService("Data");
 		data.lastMotd = msg;
 		data.save();
 
@@ -189,8 +189,6 @@ export class Motd extends Service {
 		return await this.bot.setNickname(nick, "Random Motd name");
 	}
 }
-export default async (container: Container): Promise<Service> => {
-	const svc = new Motd(container);
-	await svc.init();
-	return svc;
+export default (container: Container): Service => {
+	return new Motd(container);
 };

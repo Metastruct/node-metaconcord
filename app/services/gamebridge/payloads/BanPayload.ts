@@ -25,10 +25,10 @@ export default class BanPayload extends Payload {
 		if (!notificationsChannel) return;
 
 		const pastBans = await (
-			await bridge.container.getService("Bans")
+			bridge.container.getService("Bans")
 		).getBan(player.steamId, true);
 
-		const steam = await bridge.container.getService("Steam");
+		const steam = bridge.container.getService("Steam");
 		let steamId64 = "";
 		let bannerName = "";
 		let avatar = "";
@@ -94,7 +94,7 @@ export default class BanPayload extends Payload {
 			embeds: [embed],
 		});
 
-		const metadata = await bridge.container.getService("DiscordMetadata");
+		const metadata = bridge.container.getService("DiscordMetadata");
 		const discordId = await metadata.discordIDfromSteam64(bannedSteamId64);
 		if (discordId) {
 			metadata.update(discordId);

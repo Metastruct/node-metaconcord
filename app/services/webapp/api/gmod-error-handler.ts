@@ -110,7 +110,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		res.status(204);
 		res.end();
 
-		const gameBridge = await webApp.container.getService("GameBridge");
+		const gameBridge = webApp.container.getService("GameBridge");
 		const server = servers.find(srv => srv.ip === ip);
 		let gameserver: GameServer;
 		let player: Player | undefined;

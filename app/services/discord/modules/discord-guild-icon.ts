@@ -90,7 +90,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 	bot.discord.on("clientReady", async () => {
 		const guild = bot.getGuild();
 		if (!guild) return;
-		const data = await bot.container.getService("Data");
+		const data = bot.container.getService("Data");
 
 		const changeIcon = async (filePath: string, eventName: string) => {
 			const eventChange = data.lastDiscordGuildEvent !== eventName;

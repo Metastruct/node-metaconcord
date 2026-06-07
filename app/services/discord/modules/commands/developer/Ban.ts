@@ -145,7 +145,7 @@ export const SlashBanCommand: SlashCommand = {
 	},
 
 	async execute(ctx, bot) {
-		const steam = await bot.container.getService("Steam");
+		const steam = bot.container.getService("Steam");
 		const summary = await steam.getUserSummaries(ctx.options.getString("steamid", true));
 		if (!summary) {
 			await ctx.showModal(<Discord.APIModalInteractionResponseCallbackData>{

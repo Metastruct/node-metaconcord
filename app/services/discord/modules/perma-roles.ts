@@ -12,7 +12,7 @@ function isEmpty(obj: { [roleId: string]: { adderId: string; timeStamp: number }
 }
 
 export default async (bot: DiscordBot): Promise<void> => {
-	const data = await bot.container.getService("Data");
+	const data = bot.container.getService("Data");
 	const permaRoles = data.permaRoles;
 	const permaPrefix = "#";
 
@@ -30,7 +30,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		if (addedPermaRoles.size === 0 && removedPermaRoles.size === 0) return;
 
 		// update discord metadata
-		(await bot.container.getService("DiscordMetadata")).update(updated.user.id);
+		(bot.container.getService("DiscordMetadata")).update(updated.user.id);
 
 		const auditLogs = await updated.guild.fetchAuditLogs({
 			type: Discord.AuditLogEvent.MemberRoleUpdate,

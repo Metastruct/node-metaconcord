@@ -19,7 +19,7 @@ import axios from "axios";
 
 export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/steam/auth/callback/:id", rateLimit(), async (req, res) => {
-		const sql = await webApp.container.getService("SQL");
+		const sql = webApp.container.getService("SQL");
 		const query = req.query;
 		const userId = req.params.id;
 		if (!userId) {

@@ -168,7 +168,7 @@ export default class ChatPayload extends Payload {
 		const webhook = bridge.discordChatWH;
 
 		const avatar = await (
-			await bridge.container.getService("Steam")
+			bridge.container.getService("Steam")
 		).getUserAvatar(player.steamId64);
 
 		const matches = content.matchAll(/@(\S*)/g);
@@ -186,9 +186,9 @@ export default class ChatPayload extends Payload {
 
 		content = content.substring(0, 2000);
 
-		const motd = await bridge.container.getService("Motd");
+		const motd = bridge.container.getService("Motd");
 		motd.pushMessage(content);
-		(await bridge.container.getService("Markov")).learn(content);
+		(bridge.container.getService("Markov")).learn(content);
 
 		// 9312 = ①, 9313 = ②, and so on until 20
 		const serverId = `#${server.config.id}`; // String.fromCodePoint(9311 + +(server.config.id ?? 0));

@@ -20,14 +20,14 @@ export const SlashWhyBanCommand: SlashCommand = {
 
 	async execute(ctx, bot) {
 		await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
-		const banService = await bot.container.getService("Bans");
+		const banService = bot.container.getService("Bans");
 		const ban = await banService.getBan(ctx.options.getString("query", true));
 		if (!ban) {
 			await ctx.followUp(EphemeralResponse("That SteamID has never been banned before."));
 			return;
 		}
 
-		const steam = await bot.container.getService("Steam");
+		const steam = bot.container.getService("Steam");
 
 		const banner = await steam.getUserSummaries(ban.bannersid);
 
@@ -151,7 +151,7 @@ export const SlashWhyBanCommand: SlashCommand = {
 	},
 
 	async autocomplete(ctx, bot) {
-		const banService = await bot.container.getService("Bans");
+		const banService = bot.container.getService("Bans");
 		const list = await banService.getBanList();
 		if (!list) {
 			ctx.respond([]);

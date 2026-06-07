@@ -74,7 +74,7 @@ export const Shat = async (options?: {
 	forceMessage?: string | Discord.MessageCreateOptions;
 	forceHuggingface?: boolean;
 }): Promise<Discord.MessageCreateOptions | undefined> => {
-	const markov: Markov = await globalThis.MetaConcord.container.getService("Markov");
+	const markov: Markov = globalThis.MetaConcord.container.getService("Markov");
 
 	if (options?.forceMessage)
 		return typeof options.forceMessage === "string"
@@ -97,7 +97,7 @@ export const Shat = async (options?: {
 
 		return shat ? { content: shat } : undefined;
 	} else {
-		const images = (await globalThis.MetaConcord.container.getService("Motd")).images;
+		const images = (globalThis.MetaConcord.container.getService("Motd")).images;
 		let word =
 			options?.msg && !options.msg.startsWith("http") ? getWord(options.msg) : undefined;
 
@@ -113,7 +113,7 @@ export const Shat = async (options?: {
 			if (rng >= TENOR_IMAGE_FREQ) {
 				try {
 					const db = (
-						await globalThis.MetaConcord.container.getService("SQL")
+						globalThis.MetaConcord.container.getService("SQL")
 					).getLocalDatabase();
 
 					const url = (
@@ -128,7 +128,7 @@ export const Shat = async (options?: {
 				let res: AxiosResponse<TenorResponse>;
 				try {
 					res = await (
-						await globalThis.MetaConcord.container.getService("Tenor")
+						globalThis.MetaConcord.container.getService("Tenor")
 					).search(word ?? "random", 4);
 				} catch {
 					return {
@@ -183,10 +183,10 @@ const lastReactedMessages = new Set<string>();
 const lastReactedUsers = new Set<string>();
 
 export default async (bot: DiscordBot) => {
-	const data = await bot.container.getService("Data");
-	const mk = await bot.container.getService("Markov");
-	const db = (await bot.container.getService("SQL")).getLocalDatabase();
-	const motd = await bot.container.getService("Motd");
+	const data = bot.container.getService("Data");
+	const mk = bot.container.getService("Markov");
+	const db = (bot.container.getService("SQL")).getLocalDatabase();
+	const motd = bot.container.getService("Motd");
 	db.exec("CREATE TABLE IF NOT EXISTS media_urls (url VARCHAR(255) NOT NULL UNIQUE);");
 	const now = Date.now();
 	let lastActivityChange = now;

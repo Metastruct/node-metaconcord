@@ -44,7 +44,7 @@ export const SlashSQLCommand: SlashCommand = {
 	execute: async (ctx, bot) => {
 		const target = ctx.options.getString("target");
 		const query = ctx.options.getString("query", true);
-		const sql = await bot.container.getService("SQL");
+		const sql = bot.container.getService("SQL");
 		if (!ctx.member) {
 			await ctx.reply(EphemeralResponse("if this happens ping @techbot"));
 			return;

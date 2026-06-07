@@ -20,6 +20,6 @@
 // 	if (!lastmsg) return; // could be undefined if the bot was just launched and the msg is not cached
 // 	if (reaction.message.id !== lastmsg.id) return;
 // 	if (!lastmsg.content.includes("Image of the day")) return;
-// 	await (await bot.container.getService("Motd")).rerollImageJob();
+// 	await (bot.container.getService("Motd")).rerollImageJob();
 // });
 // };

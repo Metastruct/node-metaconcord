@@ -124,7 +124,7 @@ export class Resonite extends Service {
 	}
 
 	async GetOrFetchToken(): Promise<void> {
-		const data = await this.container.getService("Data");
+		const data = this.container.getService("Data");
 		let lastToken = data.lastResoniteToken;
 		let lastTokenTime = data.lastResoniteTokenTime ?? Date.now();
 
@@ -168,7 +168,5 @@ export class Resonite extends Service {
 	}
 }
 export default (container: Container): Service => {
-	const resonite = new Resonite(container);
-	resonite.GetOrFetchToken();
-	return resonite;
+	return new Resonite(container);
 };

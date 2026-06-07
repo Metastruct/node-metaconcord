@@ -22,7 +22,7 @@ const imageToDataURL = async filePath => {
 
 export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/server-status/:id{/:bruh}", async (req, res) => {
-		const gameBridge = await webApp.container.getService("GameBridge");
+		const gameBridge = webApp.container.getService("GameBridge");
 		const server: GameServer = gameBridge.servers[req.params.id];
 
 		if (!server) {

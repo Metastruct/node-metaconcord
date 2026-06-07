@@ -17,22 +17,26 @@ import TenorProvider, { Tenor } from "./Tenor.js";
 import WebAppProvider, { WebApp } from "./webapp/index.js";
 
 export default [
+	// No dependencies
 	BanProvider,
 	DataProvider,
-	DiscordBotProvider,
-	DiscordMetadataProvider,
-	GameBridgeProvider,
+	SQLProvider,
+	WebAppProvider,
 	GithubProvider,
 	GitlabProvider,
-	IRCProvider,
-	SQLProvider,
-	MarkovProvider,
-	MotdProvider,
-	ResoniteProvider,
-	StarboardProvider,
 	SteamProvider,
 	TenorProvider,
-	WebAppProvider,
+	// Depend on only the above
+	MarkovProvider,
+	ResoniteProvider,
+	GameBridgeProvider,
+	// Depends on Data & GameBridge
+	DiscordBotProvider,
+	// Depend on DiscordBot
+	MotdProvider,
+	IRCProvider,
+	StarboardProvider,
+	DiscordMetadataProvider,
 ];
 
 export {

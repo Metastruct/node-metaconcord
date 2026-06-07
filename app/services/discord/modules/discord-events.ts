@@ -18,7 +18,7 @@ const GetParticipants = async (
 export const endEvent = async (
 	event?: Discord.GuildScheduledEvent | Discord.PartialGuildScheduledEvent
 ) => {
-	const bot = await globalThis.MetaConcord.container.getService("DiscordBot");
+	const bot = globalThis.MetaConcord.container.getService("DiscordBot");
 	const guild = bot.getGuild();
 	const name = event?.name ?? "An event";
 	log.info(`"${name}" ended! Removing roles...`);
@@ -62,7 +62,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			triggers: ["ttt"],
 			nicks: ["terror", "detective", "innocent", "trouble", "clue", "banana"],
 			execute: async () =>
-				(await bot.container.getService("GameBridge")).servers[4]?.sendLua(
+				(bot.container.getService("GameBridge")).servers[4]?.sendLua(
 					`local request = require("gm_request") if request and not request:IsServerGamemode(3,"terrortown") then request:SwitchGamemodeAsync("terrortown",print) end`
 				),
 		},

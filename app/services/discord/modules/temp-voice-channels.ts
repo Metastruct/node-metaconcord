@@ -1,7 +1,7 @@
 import { DiscordBot } from "../index.js";
 
 export default async (bot: DiscordBot): Promise<void> => {
-	const data = await bot.container.getService("Data");
+	const data = bot.container.getService("Data");
 	const channels = data.tempVoiceChannels;
 
 	bot.discord.on("voiceStateUpdate", async oldState => {

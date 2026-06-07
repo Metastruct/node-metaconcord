@@ -94,7 +94,7 @@ export default class StatusPayload extends Payload {
 			config: { port, url },
 		} = bridge.webApp;
 		const statusApiUri = `http://0.0.0.0:${port}/server-status/${server.config.id}/${Date.now()}`;
-		const Steam = await bridge.container.getService("Steam");
+		const Steam = bridge.container.getService("Steam");
 
 		const updateStatus = async () => {
 			const current_countdown = countdown;

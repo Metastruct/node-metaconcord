@@ -19,7 +19,7 @@ export default class NotificationPayload extends Payload {
 
 		const { offender, reporter, reason, result } = payload.data;
 		const { bridge, discord: discordClient } = server;
-		const steam = await bridge.container.getService("Steam");
+		const steam = bridge.container.getService("Steam");
 
 		if (!discordClient.ready) return;
 
@@ -111,7 +111,7 @@ export default class NotificationPayload extends Payload {
 			.setColor(0xc4af21);
 
 		if (offenderSteamId64 !== "BOT") {
-			const sql = await bridge.container.getService("SQL");
+			const sql = bridge.container.getService("SQL");
 			if (!this.votekickCache[offenderSteamId64]) {
 				const res = await sql.queryPool(
 					`SELECT votekick_amount FROM playerstats WHERE accountid = ${

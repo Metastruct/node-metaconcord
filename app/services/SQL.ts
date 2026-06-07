@@ -42,8 +42,6 @@ export class SQL extends Service {
 	}
 }
 
-export default async (container: Container): Promise<Service> => {
-	const svc = new SQL(container);
-	await svc.init();
-	return svc;
+export default (container: Container): Service => {
+	return new SQL(container);
 };

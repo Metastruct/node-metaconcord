@@ -44,7 +44,7 @@ export default class GameBridge extends Service {
 	}
 
 	async init() {
-		this.webApp = await this.container.getService("WebApp");
+		this.webApp = this.container.getService("WebApp");
 
 		this.ws = new WebSocketServer({
 			httpServer: this.webApp.http,
@@ -99,7 +99,7 @@ export default class GameBridge extends Service {
 	}
 
 	async handleResoniteConnection(): Promise<void> {
-		const resonite = await this.container.getService("Resonite");
+		const resonite = this.container.getService("Resonite");
 		const id = 9;
 
 		const con = new signalR.HubConnectionBuilder()
