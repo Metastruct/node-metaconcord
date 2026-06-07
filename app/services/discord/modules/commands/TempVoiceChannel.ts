@@ -28,7 +28,7 @@ export const SlashVoiceCommand: SlashCommand = {
 	},
 
 	async execute(ctx, bot) {
-		const data = await bot.container.getService("Data");
+		const data = bot.container.getService("Data");
 
 		const existing = data.tempVoiceChannels[ctx.user.id];
 		if (existing) {

@@ -56,8 +56,6 @@ export class Bans extends Service {
 	}
 }
 
-export default async (container: Container): Promise<Service> => {
-	const bans = new Bans(container);
-	bans.updateCache();
-	return bans;
+export default (container: Container): Service => {
+	return new Bans(container);
 };

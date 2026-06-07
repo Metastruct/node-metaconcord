@@ -59,7 +59,7 @@ export class IRC extends Service {
 		await this.setupDiscord();
 	}
 	private async setupDiscord() {
-		const bot = await this.container.getService("DiscordBot");
+		const bot = this.container.getService("DiscordBot");
 		// Discord
 		bot.discord.on("messageCreate", async msg => {
 			if (msg.channelId === config.relayDiscordChannel) {
@@ -97,8 +97,6 @@ export class IRC extends Service {
 	}
 }
 
-export default async (container: Container): Promise<Service> => {
-	const svc = new IRC(container);
-	await svc.init();
-	return svc;
+export default (container: Container): Service => {
+	return new IRC(container);
 };

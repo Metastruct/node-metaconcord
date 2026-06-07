@@ -20,8 +20,8 @@ export class Starboard extends Service {
 	private bot: DiscordBot;
 
 	async init(): Promise<void> {
-		this.sql = await this.container.getService("SQL");
-		this.bot = await this.container.getService("DiscordBot");
+		this.sql = this.container.getService("SQL");
+		this.bot = this.container.getService("DiscordBot");
 		const db = this.sql.getLocalDatabase();
 		await db.exec(`CREATE TABLE IF NOT EXISTS starboard (MessageId INTEGER PRIMARY KEY);`);
 
@@ -230,8 +230,6 @@ export class Starboard extends Service {
 	}
 }
 
-export default async (container: Container): Promise<Service> => {
-	const svc = new Starboard(container);
-	await svc.init();
-	return svc;
+export default (container: Container): Service => {
+	return new Starboard(container);
 };

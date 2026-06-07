@@ -17,7 +17,8 @@ export class App {
 
 	async init(): Promise<void> {
 		for (const provider of this.container.getProviders()) {
-			await this.container.addService(provider(this.container));
+			this.container.addService(provider(this.container));
 		}
+		await this.container.initServices();
 	}
 }

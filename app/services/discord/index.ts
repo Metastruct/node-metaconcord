@@ -54,8 +54,8 @@ export class DiscordBot extends Service {
 	}
 
 	async init() {
-		this.data = await this.container.getService("Data");
-		this.bridge = await this.container.getService("GameBridge");
+		this.data = this.container.getService("Data");
+		this.bridge = this.container.getService("GameBridge");
 
 		this.discord.on("clientReady", async client => {
 			this.ready = true;
@@ -200,8 +200,8 @@ export class DiscordBot extends Service {
 		if (!perms.has("SendMessages", false)) return; // don't get text from channels that are not "public"
 
 		const content = msg.content;
-		if ((await this.container.getService("Motd")).isValidMsg(content))
-			(await this.container.getService("Markov")).learn(msg.content);
+		if ((this.container.getService("Motd")).isValidMsg(content))
+			(this.container.getService("Markov")).learn(msg.content);
 	}
 
 	async fixEmbeds(msg: Discord.Message): Promise<void> {
@@ -217,7 +217,7 @@ export class DiscordBot extends Service {
 		if (imgurUrls) {
 			for (const imageUrl of imgurUrls) {
 				const id = Array.from(imageUrl.matchAll(ImgurRegex), m => m[1])[0]; // wtf there has to be a better way
-				const info = await (await this.container.getService("Motd")).getImageInfo(id);
+				const info = await (this.container.getService("Motd")).getImageInfo(id);
 				if (info?.has_sound) {
 					urls.push(imageUrl.replace(/(?:i\.)?imgur\.com/g, "i.imgur.io"));
 				}
@@ -278,8 +278,6 @@ export class DiscordBot extends Service {
 	}
 }
 
-export default async (container: Container): Promise<Service> => {
-	const svc = new DiscordBot(container);
-	await svc.init();
-	return svc;
+export default (container: Container): Service => {
+	return new DiscordBot(container);
 };

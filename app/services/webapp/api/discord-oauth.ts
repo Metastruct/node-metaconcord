@@ -71,7 +71,7 @@ export const getOAuthTokens = async (code: any) => {
 };
 
 export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
-	const sql: SQL = await globalThis.MetaConcord.container.getService("SQL");
+	const sql: SQL = globalThis.MetaConcord.container.getService("SQL");
 
 	if (!localOnly) {
 		const res = await axios
@@ -101,8 +101,8 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 };
 
 export default async (webApp: WebApp): Promise<void> => {
-	const sql = await webApp.container.getService("SQL");
-	const metadata = await webApp.container.getService("DiscordMetadata");
+	const sql = webApp.container.getService("SQL");
+	const metadata = webApp.container.getService("DiscordMetadata");
 
 	const getAuthorizationData = async (tokens: AccessTokenResponse) => {
 		const res = await axios

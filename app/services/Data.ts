@@ -62,9 +62,10 @@ export class Data extends Service {
 		} catch (err) {
 			await fs.mkdir(this.dataPath);
 		}
+		await this.load();
 	}
 
-	async load(): Promise<void> {
+	private async load(): Promise<void> {
 		for (const file of await fs.readdir(this.dataPath)) {
 			const filePath = path.join(this.dataPath, file);
 			if ((await fs.stat(filePath)).isFile() && path.extname(filePath) == ".json") {
@@ -91,9 +92,6 @@ export class Data extends Service {
 	}
 }
 
-export default async (container: Container): Promise<Service> => {
-	const data = new Data(container);
-	await data.init();
-	await data.load();
-	return data;
+export default (container: Container): Service => {
+	return new Data(container);
 };

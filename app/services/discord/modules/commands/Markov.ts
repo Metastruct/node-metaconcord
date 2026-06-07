@@ -71,7 +71,7 @@ export const SlashMarkovCommand: SlashCommand = {
 		switch (cmd) {
 			case "generate":
 				res = await (
-					await bot.container.getService("Markov")
+					bot.container.getService("Markov")
 				).generate(ctx.options.getString("sentence") ?? undefined, {
 					depth: ctx.options.getInteger("insanity") ?? undefined,
 					length: ctx.options.getInteger("length") ?? undefined,
@@ -81,7 +81,7 @@ export const SlashMarkovCommand: SlashCommand = {
 			case "similar":
 				res =
 					(await (
-						await bot.container.getService("Markov")
+						bot.container.getService("Markov")
 					).findClosestWord(
 						ctx.options.getString("word", true),
 						ctx.options.getInteger("distance") ?? 1

@@ -11,7 +11,7 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 		await (
-			await bot.container.getService("Starboard")
+			bot.container.getService("Starboard")
 		).handleReactionAdded(reaction as MessageReaction);
 	});
 };

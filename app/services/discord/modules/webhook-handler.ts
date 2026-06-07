@@ -126,7 +126,7 @@ const isMergeCommit = (message: string) =>
 	message.startsWith("Merge branch") || isRemoteMergeCommit(message);
 
 export default async (bot: DiscordBot): Promise<void> => {
-	const webapp = await bot.container.getService("WebApp");
+	const webapp = bot.container.getService("WebApp");
 
 	const middleware = createNodeMiddleware(GitHub, { path: "/" });
 
@@ -136,9 +136,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 	});
 
 	let webhook: Discord.Webhook;
-	const bridge = await bot.container.getService("GameBridge");
+	const bridge = bot.container.getService("GameBridge");
 
-	const github = await bot.container.getService("Github");
+	const github = bot.container.getService("Github");
 
 	bot.discord.on("clientReady", async () => {
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);

@@ -75,9 +75,9 @@ export class DiscordMetadata extends Service {
 	}
 
 	async init() {
-		this.sql = await this.container.getService("SQL");
-		this.bot = await this.container.getService("DiscordBot");
-		this.bans = await this.container.getService("Bans");
+		this.sql = this.container.getService("SQL");
+		this.bot = this.container.getService("DiscordBot");
+		this.bans = this.container.getService("Bans");
 	}
 
 	private async getAccessToken(userId: string, data: LocalDatabaseEntry) {
@@ -195,7 +195,7 @@ export class DiscordMetadata extends Service {
 		if (query3[0]) {
 			nick = bytea.toString("utf-8").replace(/<[^>]*>/g, "");
 		} else {
-			const steam = await this.bot.container.getService("Steam");
+			const steam = this.bot.container.getService("Steam");
 			const summary = await steam.getUserSummaries(data.steam_id);
 			nick = summary?.personaname;
 		}
@@ -284,8 +284,6 @@ export class DiscordMetadata extends Service {
 	}
 }
 
-export default async (container: Container): Promise<Service> => {
-	const svc = new DiscordMetadata(container);
-	await svc.init();
-	return svc;
+export default (container: Container): Service => {
+	return new DiscordMetadata(container);
 };

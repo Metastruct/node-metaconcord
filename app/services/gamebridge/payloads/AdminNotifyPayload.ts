@@ -18,7 +18,7 @@ export default class AdminNotifyPayload extends Payload {
 			server.discord.config.threads.reports
 		) as Discord.ThreadChannel;
 		if (!notificationsChannel) return;
-		const steam = await server.bridge.container.getService("Steam");
+		const steam = server.bridge.container.getService("Steam");
 
 		const filter = (btn: Discord.MessageComponentInteraction) =>
 			btn.customId.endsWith("_REPORT_KICK");
@@ -88,7 +88,7 @@ export default class AdminNotifyPayload extends Payload {
 		const reportedSteamId64 = reported.steamId.startsWith("STEAM")
 			? new SteamID(reported.steamId).getSteamID64()
 			: reported.steamId;
-		const steam = await bridge.container.getService("Steam");
+		const steam = bridge.container.getService("Steam");
 		const avatar = await steam.getUserAvatar(steamId64);
 		const reportedAvatar = await steam.getUserAvatar(reportedSteamId64);
 		const selfReport = player.steamId === reported.steamId;
@@ -113,7 +113,7 @@ export default class AdminNotifyPayload extends Payload {
 			.setColor(0xc4af21);
 
 		if (reportedSteamId64 !== "BOT") {
-			const sql = await bridge.container.getService("SQL");
+			const sql = bridge.container.getService("SQL");
 			if (!this.reportCache[reportedSteamId64]) {
 				const res = await sql.queryPool(
 					`SELECT report_amount FROM playerstats WHERE accountid = ${

@@ -17,7 +17,7 @@ export const MenuRemoveHighlightMessageCommand: MenuCommand = {
 				return;
 			}
 
-			const starboardService = await bot.container.getService("Starboard");
+			const starboardService = bot.container.getService("Starboard");
 			const starred = await starboardService.isMsgStarred(ctx.targetId);
 
 			if (!starred) {

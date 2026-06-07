@@ -5,7 +5,7 @@ import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
 let ruleCache: Rule[] = [];
 
 const refreshRules = async (ctx: Discord.ChatInputCommandInteraction, bot: DiscordBot) => {
-	const data = await bot.container.getService("Data");
+	const data = bot.container.getService("Data");
 	if (ruleCache.length === 0) {
 		await ctx.reply(EphemeralResponse("Something went wrong with saving the rules"));
 		return;
@@ -227,7 +227,7 @@ export const SlashRuleCommand: SlashCommand = {
 				})
 			);
 		} else {
-			const data = await bot.container.getService("Data");
+			const data = bot.container.getService("Data");
 			ruleCache = data.rules;
 			await ctx.respond(
 				ruleCache.map((rule, idx) => {

@@ -66,7 +66,7 @@ export const SlashUnBanCommand: SlashCommand = {
 	},
 
 	async autocomplete(ctx, bot) {
-		const banService = await bot.container.getService("Bans");
+		const banService = bot.container.getService("Bans");
 		const list = await banService.getBanList();
 		if (!list) {
 			ctx.respond([]);
