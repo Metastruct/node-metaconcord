@@ -49,10 +49,11 @@ export const getStackLines = (input: string, linestart: number, lineend?: number
 };
 
 export const AddonURIS = {
-	acf: "https://github.com/metastruct/ACF/blob/master/",
+	acf: "https://github.com/ACF-Team/ACF-3/blob/master/",
 	advdupe2: "https://github.com/wiremod/advdupe2/blob/master/",
 	aowl: "https://gitlab.com/metastruct/internal/aowl/-/blob/master/",
 	arcana: "https://github.com/Metastruct/Arcana/blob/master/",
+	cfw: "https://github.com/Metastruct/CFW/blob/main/",
 	easychat: "https://github.com/Earu/EasyChat/blob/master/",
 	epoe: "https://github.com/Metastruct/EPOE/blob/master/",
 	fast_addons: "https://gitlab.com/metastruct/internal/fast_addons/-/blob/master/",
