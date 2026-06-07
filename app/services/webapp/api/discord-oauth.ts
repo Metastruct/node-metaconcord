@@ -95,9 +95,7 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 		if (!res) return false;
 	}
 
-	await (
-		await sql.getLocalDatabase()
-	).run("DELETE FROM discord_tokens WHERE access_token = ?", token);
+	await sql.getLocalDatabase().run("DELETE FROM discord_tokens WHERE access_token = ?", token);
 
 	return true;
 };
@@ -153,9 +151,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.sendStatus(403);
 			return;
 		}
-		const entry = await (
-			await sql.getLocalDatabase()
-		).get<LocalDatabaseEntry>(
+		const entry = await sql.getLocalDatabase().get<LocalDatabaseEntry>(
 			"SELECT access_token FROM discord_tokens WHERE user_id = ?",
 			req.params.id
 		);
@@ -172,9 +168,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.sendStatus(403);
 			return;
 		}
-		const entries = await (
-			await sql.getLocalDatabase()
-		).all<LocalDatabaseEntry[]>("SELECT access_token FROM discord_tokens");
+		const entries = await sql.getLocalDatabase().all<LocalDatabaseEntry[]>("SELECT access_token FROM discord_tokens");
 		if (!entries || entries.length === 0) {
 			res.status(404).send("no data");
 			return;
@@ -190,9 +184,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.sendStatus(403);
 			return;
 		}
-		const entries = await (
-			await sql.getLocalDatabase()
-		).all<LocalDatabaseEntry[]>("SELECT user_id FROM discord_tokens");
+		const entries = await sql.getLocalDatabase().all<LocalDatabaseEntry[]>("SELECT user_id FROM discord_tokens");
 		if (!entries || entries.length === 0)
 			for (const entry of entries) {
 				await metadata.update(entry.user_id);
@@ -225,7 +217,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			}
 
 			const userId = data.user.id;
-			const db = await sql.getLocalDatabase();
+			const db = sql.getLocalDatabase();
 			await db.exec(
 				"CREATE TABLE IF NOT EXISTS discord_tokens (user_id VARCHAR(255) PRIMARY KEY, steam_id VARCHAR(255), access_token VARCHAR(255), refresh_token VARCHAR(255), expires_at DATETIME)"
 			);

@@ -100,12 +100,10 @@ export class Motd extends Service {
 	constructor(container: Container) {
 		super(container);
 		this.messages = [];
-		this.initServices();
 		scheduleJob({ minute: 0, hour: 12, tz: "Etc/GMT-2" }, this.executeMessageJob.bind(this));
 	}
-	private async initServices() {
-		const bot = await this.container.getService("DiscordBot");
-		this.bot = bot;
+	async init() {
+		this.bot = await this.container.getService("DiscordBot");
 	}
 
 	pushMessage(msg: string): void {
@@ -191,6 +189,8 @@ export class Motd extends Service {
 		return await this.bot.setNickname(nick, "Random Motd name");
 	}
 }
-export default (container: Container): Service => {
-	return new Motd(container);
+export default async (container: Container): Promise<Service> => {
+	const svc = new Motd(container);
+	await svc.init();
+	return svc;
 };

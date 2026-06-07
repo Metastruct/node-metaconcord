@@ -51,11 +51,9 @@ export class DiscordBot extends Service {
 
 	constructor(container: Container) {
 		super(container);
-
-		this.initServices();
 	}
 
-	private async initServices() {
+	async init() {
 		this.data = await this.container.getService("Data");
 		this.bridge = await this.container.getService("GameBridge");
 
@@ -74,7 +72,7 @@ export class DiscordBot extends Service {
 			loadModule(this);
 		}
 
-		this.discord.login(this.config.bot.token);
+		await this.discord.login(this.config.bot.token);
 	}
 	getTextChannel(channelId: string): Discord.TextChannel | undefined {
 		if (!this.ready) return;
@@ -280,6 +278,8 @@ export class DiscordBot extends Service {
 	}
 }
 
-export default (container: Container): Service => {
-	return new DiscordBot(container);
+export default async (container: Container): Promise<Service> => {
+	const svc = new DiscordBot(container);
+	await svc.init();
+	return svc;
 };

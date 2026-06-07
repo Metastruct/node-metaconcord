@@ -227,7 +227,7 @@ export class Markov extends Service {
 	private async getMarkov(): Promise<MarkovChain> {
 		if (!this._markov) {
 			const sql = await this.container.getService("SQL");
-			const db = await sql.getLocalDatabase();
+			const db = sql.getLocalDatabase();
 			this._markov = new MarkovChain(db);
 			await this._markov.ready();
 		}
