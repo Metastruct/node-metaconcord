@@ -1,10 +1,8 @@
 import { Bans, DiscordBot, SQL } from "./index.js";
 import { Container, Service } from "../Container.js";
-import { DiscordErrorData, OAuthErrorData } from "discord.js";
 import { isAdmin, logger } from "@/utils.js";
 import { revokeOAuthToken } from "./webapp/api/discord-oauth.js";
 import SteamID from "steamid";
-import axios, { AxiosError } from "axios";
 import config from "@/config/metadata.json" with { type: "json" };
 
 const log = logger(import.meta);
@@ -80,86 +78,74 @@ export class DiscordMetadata extends Service {
 		this.bans = this.container.getService("Bans");
 	}
 
-	private async getAccessToken(userId: string, data: LocalDatabaseEntry) {
-		if (Date.now() > data.expires_at) {
-			const res = await axios
-				.post<AccessTokenResponse>(
-					"https://discord.com/api/v10/oauth2/token",
-					new URLSearchParams({
-						grant_type: "refresh_token",
-						refresh_token: data.refresh_token,
-					}),
-					{
-						auth: {
-							username: this.bot.config.bot.applicationId,
-							password: this.bot.config.bot.clientSecret,
-						},
-					}
-				)
-				.catch(async (err: AxiosError<OAuthErrorData>) => {
-					const discordResponse = err.response?.data;
-					if (discordResponse?.error === "invalid_grant") {
-						// The provided authorization grant or refresh token is
-						// invalid, expired, revoked, doesn't match redirection
-						// URI, or was issued to another client.
-						const res = await revokeOAuthToken(data.access_token);
-						log.warn(
-							discordResponse,
-							`InValID_GraNT revoking token (${res})! ${userId} [${err.code}]`
-						);
-					} else {
-						log.error(discordResponse, `failed fetching tokens: [${err.code}]}`);
-					}
-				});
+	private clearUserCaches(userId: string): void {
+		delete this.ARCOCache[userId];
+		this.UserCache = this.UserCache.filter(e => e.discordId !== userId);
+	}
 
-			if (res && "data" in res) {
-				const token = res.data;
-				const db = this.sql.getLocalDatabase();
-				await db.run(
-					"UPDATE discord_tokens SET access_token = ?, refresh_token = ?, expires_at = ? WHERE user_id = ?",
-					[
-						token.access_token,
-						token.refresh_token,
-						Date.now() + token.expires_in * 1000,
-						userId,
-					]
-				);
-				return token.access_token;
+	private async getAccessToken(userId: string, data: LocalDatabaseEntry) {
+		if (Date.now() <= data.expires_at) return data.access_token;
+
+		const res = await fetch("https://discord.com/api/v10/oauth2/token", {
+			method: "POST",
+			headers: {
+				Authorization: "Basic " + Buffer.from(this.bot.config.bot.applicationId + ":" + this.bot.config.bot.clientSecret).toString("base64"),
+			},
+			body: new URLSearchParams({
+				grant_type: "refresh_token",
+				refresh_token: data.refresh_token,
+			}),
+		}).catch(err => {
+			log.error(err, "network error fetching tokens");
+		});
+		if (!res) return;
+
+		if (!res.ok) {
+			const body = await res.json().catch(() => ({})) as Record<string, unknown>;
+			if (body?.error === "invalid_grant") {
+				await revokeOAuthToken(data.access_token);
+				log.warn(body, `InValID_GraNT revoking token! ${userId}`);
+				this.clearUserCaches(userId);
+			} else {
+				log.error(body, `failed fetching tokens: [${res.status}]`);
 			}
-			log.error({ data, res }, "failed to get access token");
+			return;
 		}
 
-		return data.access_token;
+		const token: AccessTokenResponse = await res.json();
+		const db = this.sql.getLocalDatabase();
+		await db.run(
+			"UPDATE discord_tokens SET access_token = ?, refresh_token = ?, expires_at = ? WHERE user_id = ?",
+			[token.access_token, token.refresh_token, Date.now() + token.expires_in * 1000, userId]
+		);
+		return token.access_token;
 	}
 
 	async get(userId: string) {
-		if (!this.ARCOCache[userId]) {
-			const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.bot.applicationId}/role-connection`;
-			const db = this.sql.getLocalDatabase();
-			const data = await db.get<LocalDatabaseEntry>(
-				"SELECT * FROM discord_tokens where user_id = ?;",
-				userId
-			);
-			if (!data) return;
-			const accessToken = await this.getAccessToken(userId, data);
-			if (!accessToken) return;
+		if (this.ARCOCache[userId]) return this.ARCOCache[userId];
 
-			const res = await axios
-				.get<ApplicationRoleConnectionObject>(url, {
-					headers: {
-						Authorization: `Bearer ${accessToken}`,
-					},
-				})
-				.catch((err: AxiosError<DiscordErrorData>) => {
-					log.error(err, "failed to get metadata");
-				});
-			if (res) {
-				this.ARCOCache[userId] = res.data;
-				return res.data;
-			}
-		} else {
-			return this.ARCOCache[userId];
+		const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.bot.applicationId}/role-connection`;
+		const db = this.sql.getLocalDatabase();
+		const data = await db.get<LocalDatabaseEntry>(
+			"SELECT * FROM discord_tokens where user_id = ?;",
+			userId
+		);
+		if (!data) return;
+		const accessToken = await this.getAccessToken(userId, data);
+		if (!accessToken) return;
+
+		const res = await fetch(url, {
+			headers: { Authorization: `Bearer ${accessToken}` },
+		}).catch(err => {
+			log.error(err, "network error fetching metadata");
+		});
+		if (!res?.ok) {
+			delete this.ARCOCache[userId];
+			return;
 		}
+
+		this.ARCOCache[userId] = await res.json() as ApplicationRoleConnectionObject;
+		return this.ARCOCache[userId];
 	}
 
 	async update(userId: string) {
@@ -230,22 +216,30 @@ export class DiscordMetadata extends Service {
 			return false;
 		}
 
-		await axios
-			.put(url, body, {
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-				},
-			})
-			.catch((err: AxiosError<DiscordErrorData>) => {
-				if (err.response?.status === 401) {
-					// unauthorised, user probably revoked the token.
-					log.info({ err, accessToken }, "unauthorized removing token");
-					revokeOAuthToken(accessToken, true);
-				} else {
-					log.error(err, "metadata push failed.");
-				}
-				return false;
-			});
+		const res = await fetch(url, {
+			method: "PUT",
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(body),
+		}).catch(err => {
+			log.error(err, "network error pushing metadata");
+		});
+
+		if (!res) return false;
+
+		if (res.status === 401) {
+			log.info({ accessToken }, "unauthorized removing token");
+			revokeOAuthToken(accessToken, true);
+			this.clearUserCaches(userId);
+			return false;
+		}
+
+		if (!res.ok) {
+			log.error({ status: res.status }, "metadata push failed.");
+			return false;
+		}
 
 		this.ARCOCache[userId] = body;
 		return true;
