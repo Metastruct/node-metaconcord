@@ -123,6 +123,10 @@ export class Resonite extends Service {
 		}`;
 	}
 
+	async init(): Promise<void> {
+		await this.GetOrFetchToken();
+	}
+
 	async GetOrFetchToken(): Promise<void> {
 		const data = this.container.getService("Data");
 		let lastToken = data.lastResoniteToken;
