@@ -10,7 +10,7 @@ const PADDING = 8;
 const MAX_WIDTH = 400;
 const AVATAR_SIZE = 24;
 const GAP = 6;
-
+const JOINING = " (joining)";
 const MIME_MAP: Record<string, string> = {
 	png: "image/png",
 	jpg: "image/jpeg",
@@ -53,6 +53,9 @@ export async function renderPlayerListImage(
 		const x = PADDING + col * (width / 2);
 		const y = PADDING + row * ROW_HEIGHT + AVATAR_SIZE;
 
+		const isJoining = p.nick.endsWith(JOINING);
+		const nick = isJoining ? p.nick.slice(0, -JOINING.length) : p.nick;
+
 		const color = p.isBanned ? "#FF0000" : p.isAdmin ? "#933f93" : "#2a77be";
 		const opacity = p.isAfk ? 0.4 : 1;
 		const avatarDataUri = avatarDataUris[i];
@@ -62,9 +65,14 @@ export async function renderPlayerListImage(
 			? `<image href="${avatarDataUri}" x="${x}" y="${y - AVATAR_SIZE}" width="${AVATAR_SIZE}" height="${AVATAR_SIZE}" clip-path="url(#clip)"/>`
 			: "";
 
+		const indicator = isJoining
+			? `<circle cx="${nickX + nick.length * 8 + 8}" cy="${y - 10}" r="4" fill="#4ade80"/>`
+			: "";
+
 		return `<g opacity="${opacity}">
 			${avatar}
-			<text x="${nickX}" y="${y - 4}" fill="${color}" font-size="14" font-family="sans-serif" font-weight="600">${escapeXml(p.nick)}</text>
+			<text x="${nickX}" y="${y - 4}" fill="${color}" font-size="14" font-family="sans-serif" font-weight="600">${escapeXml(nick)}</text>
+			${indicator}
 		</g>`;
 	});
 
