@@ -53,7 +53,7 @@ export async function renderPlayerListImage(
 		const x = PADDING + col * (width / 2);
 		const y = PADDING + row * ROW_HEIGHT + AVATAR_SIZE;
 
-		const color = p.isBanned ? "#FF0000" : p.isAdmin ? "#9b6dff" : "#2a77be";
+		const color = p.isBanned ? "#FF0000" : p.isAdmin ? "#933f93" : "#2a77be";
 		const opacity = p.isAfk ? 0.4 : 1;
 		const avatarDataUri = avatarDataUris[i];
 		const nickX = x + (avatarDataUri ? AVATAR_SIZE + GAP : 0);
