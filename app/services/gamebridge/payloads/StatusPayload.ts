@@ -73,7 +73,6 @@ const getRandomActivity = (gamemode: string) => {
 const DEFAULT_THUMBNAIL = path.join(process.cwd(), "resources/map-thumbnails/gm_construct_m.png");
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
-	private static retryCount = 0;
 
 	static async handle(payload: StatusRequest, server: GameServer): Promise<void> {
 		super.handle(payload, server);
@@ -214,6 +213,10 @@ export default class StatusPayload extends Payload {
 						mapThumbnail = thumbnailURI;
 					}
 				}
+			}
+
+			if (server.disconnected) {
+				desc = `\n⚠️ **Server disconnected** info may be outdated${desc}`;
 			}
 
 			const container = new Discord.ContainerBuilder();
@@ -360,11 +363,10 @@ export default class StatusPayload extends Payload {
 			}
 		};
 
-		if (discord.ready && this.retryCount < 5) {
+		if (discord.ready) {
 			try {
-				updateStatus();
+				await updateStatus();
 			} catch (err) {
-				this.retryCount++;
 				log.error(err);
 			}
 		}
