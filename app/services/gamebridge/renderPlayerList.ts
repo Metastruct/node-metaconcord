@@ -73,13 +73,10 @@ export async function renderPlayerListImage(
 		<clipPath id="clip" clipPathUnits="objectBoundingBox">
 			<circle cx="0.5" cy="0.5" r="0.5"/>
 		</clipPath>
-		<filter id="blur">
-			<feGaussianBlur stdDeviation="3"/>
-		</filter>
 	</defs>
 	<rect width="${width}" height="${height}" fill="#222"/>
 	<image href="${mapThumbnailDataUri}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice"/>
-	<rect width="${width}" height="${height}" fill="rgba(0,0,0,0.75)" filter="url(#blur)"/>
+	<rect width="${width}" height="${height}" fill="rgba(0,0,0,0.75)"/>
 	${items.join("\n")}
 </svg>`;
 
