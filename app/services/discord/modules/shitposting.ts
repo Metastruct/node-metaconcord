@@ -25,7 +25,7 @@ const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
 const COMMON_EMOJI_RATIO = 0.7;
 
 // pedantic mode constants
-const PEDANTIC_FREQ = 0.015;
+const PEDANTIC_FREQ = 0.005;
 const PEDANTIC_REPLY_DELAY_MIN = 5000;
 const PEDANTIC_REPLY_DELAY_MAX = 15000;
 
@@ -97,7 +97,7 @@ export const Shat = async (options?: {
 
 		return shat ? { content: shat } : undefined;
 	} else {
-		const images = (globalThis.MetaConcord.container.getService("Motd")).images;
+		const images = globalThis.MetaConcord.container.getService("Motd").images;
 		let word =
 			options?.msg && !options.msg.startsWith("http") ? getWord(options.msg) : undefined;
 
@@ -112,9 +112,9 @@ export const Shat = async (options?: {
 		} else {
 			if (rng >= TENOR_IMAGE_FREQ) {
 				try {
-					const db = (
-						globalThis.MetaConcord.container.getService("SQL")
-					).getLocalDatabase();
+					const db = globalThis.MetaConcord.container
+						.getService("SQL")
+						.getLocalDatabase();
 
 					const url = (
 						await db.get<any>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1")
@@ -127,9 +127,9 @@ export const Shat = async (options?: {
 			} else {
 				let res: AxiosResponse<TenorResponse>;
 				try {
-					res = await (
-						globalThis.MetaConcord.container.getService("Tenor")
-					).search(word ?? "random", 4);
+					res = await globalThis.MetaConcord.container
+						.getService("Tenor")
+						.search(word ?? "random", 4);
 				} catch {
 					return {
 						content: await markov?.generate(), // fallback to msg if tenor failed
@@ -185,7 +185,7 @@ const lastReactedUsers = new Set<string>();
 export default async (bot: DiscordBot) => {
 	const data = bot.container.getService("Data");
 	const mk = bot.container.getService("Markov");
-	const db = (bot.container.getService("SQL")).getLocalDatabase();
+	const db = bot.container.getService("SQL").getLocalDatabase();
 	const motd = bot.container.getService("Motd");
 	db.exec("CREATE TABLE IF NOT EXISTS media_urls (url VARCHAR(255) NOT NULL UNIQUE);");
 	const now = Date.now();
