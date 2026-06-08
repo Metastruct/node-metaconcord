@@ -7,7 +7,7 @@ import Payload from "./Payload.js";
 import SteamID from "steamid";
 import requestSchema from "./structures/BanAppealRequest.json" with { type: "json" };
 
-export default class UnbanPayload extends Payload {
+export default class BanAppealPayload extends Payload {
 	protected static requestSchema = requestSchema;
 
 	static async handle(payload: BanAppealRequest, server: GameServer): Promise<void> {
@@ -67,6 +67,6 @@ export default class UnbanPayload extends Payload {
 				`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
 			)
 		);
-		(notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
+		await (notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
 	}
 }

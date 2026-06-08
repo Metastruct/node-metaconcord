@@ -89,15 +89,15 @@ export default class BanPayload extends Payload {
 
 		embed.setThumbnail(bannedAvatar);
 		embed.setColor(0xc42144);
-		(notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
-		(guild.channels.cache.get(bridge.config.relayChannelId) as Discord.TextChannel).send({
+		await (notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
+		await (guild.channels.cache.get(bridge.config.relayChannelId) as Discord.TextChannel).send({
 			embeds: [embed],
 		});
 
 		const metadata = bridge.container.getService("DiscordMetadata");
 		const discordId = await metadata.discordIDfromSteam64(bannedSteamId64);
 		if (discordId) {
-			metadata.update(discordId);
+			await metadata.update(discordId);
 		}
 	}
 }
