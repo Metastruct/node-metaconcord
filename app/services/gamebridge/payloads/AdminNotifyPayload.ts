@@ -38,14 +38,17 @@ export default class AdminNotifyPayload extends Payload {
 				const interactionId64 = new SteamID(
 					ctx.customId.replace("_REPORT_KICK", "")
 				).getSteamID64();
-				const res = await server.bridge.payloads.RconPayload.callLua(
+				const res = await server.sendLua(
 					`local ply = player.GetBySteamID64("${interactionId64}") if not ply then return false end ply:Kick("Kicked by Discord (${ctx.user.username}) for a related report.")`,
 					"sv",
-					server,
 					ctx.user.username
 				);
 
-				if (res.data.returns[0] !== "false") {
+				if (!res) {
+					await ctx.followUp({
+						content: `${ctx.user.mention}, could not kick player: server not connected`,
+					});
+				} else if (res.data.returns[0] !== "false") {
 					const summary = await steam.getUserSummaries(interactionId64);
 					await ctx.followUp({
 						content: `${ctx.user.mention} kicked player \`${

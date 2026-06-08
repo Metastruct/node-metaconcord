@@ -150,7 +150,7 @@ export default class ChatPayload extends Payload {
 				};
 			}
 
-			this.send(payload, server);
+			await this.send(payload, server);
 		});
 	}
 
@@ -188,7 +188,7 @@ export default class ChatPayload extends Payload {
 
 		const motd = bridge.container.getService("Motd");
 		motd.pushMessage(content);
-		(bridge.container.getService("Markov")).learn(content);
+		await (bridge.container.getService("Markov")).learn(content);
 
 		// 9312 = ①, 9313 = ②, and so on until 20
 		const serverId = `#${server.config.id}`; // String.fromCodePoint(9311 + +(server.config.id ?? 0));

@@ -8,7 +8,7 @@ import requestSchema from "./structures/VoteKickRequest.json" with { type: "json
 
 const log = logger(import.meta);
 
-export default class NotificationPayload extends Payload {
+export default class VoteKickPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	private static votekickCache: {
 		[steamId64: string]: number;

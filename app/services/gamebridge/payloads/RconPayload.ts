@@ -43,7 +43,7 @@ export default class RconPayload extends Payload {
 			identifier: identifier.toString(),
 		};
 
-		return new Promise(async (resolve, reject) => {
+		const resultPromise = new Promise<RconRequest>((resolve, reject) => {
 			this.callbackMap.set(identifier, (req: RconRequest) => {
 				this.callbackMap.delete(identifier);
 				resolve(req);
@@ -53,8 +53,10 @@ export default class RconPayload extends Payload {
 				this.callbackMap.delete(identifier);
 				reject("Timeout");
 			}, 30000);
-
-			await this.send(payload, server);
 		});
+
+		await this.send(payload, server);
+
+		return resultPromise;
 	}
 }

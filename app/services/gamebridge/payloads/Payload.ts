@@ -1,7 +1,6 @@
 import { Ajv } from "ajv";
 import { PayloadRequest } from "./structures/index.js";
 import GameServer from "../GameServer.js";
-import util from "util";
 import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
