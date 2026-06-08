@@ -230,45 +230,44 @@ export default async (bot: DiscordBot) => {
 	) => {
 		posting = true;
 		if (options.msg) (options.msg.channel as Discord.TextChannel).sendTyping();
-		const shouldUseAuthor = Math.random() <= MSG_USE_AUTHOR_FREQ;
-		const shouldSendSticker = Math.random() <= STICKER_FREQ;
-		const shouldSendEmoji = Math.random() <= EMOJI_REPLY_FREQ;
-		const shat = await Shat({
-			msg: shouldUseAuthor
-				? ((await mk.exists(options.msg?.author.globalName?.toLowerCase())) ??
-					(await mk.exists(options.msg?.author.username?.toLowerCase())))
-				: options.msg?.content,
-			forceImage: options.forceImage,
-			forceReply: options.forceReply,
-			forceMessage: shouldSendSticker
-				? ({
-						stickers: [bot.getGuild()?.stickers.cache.random()],
-					} as Discord.MessageCreateOptions)
-				: shouldSendEmoji
-					? getRandomEmoji().toString()
-					: undefined,
-		});
-		if (shat) {
-			if (options.msg) {
-				options.msg
-					.reply({
-						...shat,
-						allowedMentions: options.ping
-							? { repliedUser: true }
-							: { repliedUser: false },
-					})
-					.catch(e => {
-						log.error({ e, shat, options });
-					});
-			} else {
-				bot.getTextChannel(bot.config.channels.chat)
-					?.send(shat)
-					.catch(e => {
-						log.error({ e, shat, options });
-					});
+		try {
+			const shouldUseAuthor = Math.random() <= MSG_USE_AUTHOR_FREQ;
+			const shouldSendSticker = Math.random() <= STICKER_FREQ;
+			const shouldSendEmoji = Math.random() <= EMOJI_REPLY_FREQ;
+			const shat = await Shat({
+				msg: shouldUseAuthor
+					? ((await mk.exists(options.msg?.author.globalName?.toLowerCase())) ??
+						(await mk.exists(options.msg?.author.username?.toLowerCase())))
+					: options.msg?.content,
+				forceImage: options.forceImage,
+				forceReply: options.forceReply,
+				forceMessage: shouldSendSticker
+					? ({
+							stickers: [bot.getGuild()?.stickers.cache.random()],
+						} as Discord.MessageCreateOptions)
+					: shouldSendEmoji
+						? getRandomEmoji().toString()
+						: undefined,
+			});
+			if (shat) {
+				try {
+					if (options.msg) {
+						await options.msg.reply({
+							...shat,
+							allowedMentions: options.ping
+								? { repliedUser: true }
+								: { repliedUser: false },
+						});
+					} else {
+						await bot.getTextChannel(bot.config.channels.chat)?.send(shat);
+					}
+				} catch (e) {
+					log.error({ e, shat, options });
+				}
 			}
+		} finally {
+			posting = false;
 		}
-		posting = false;
 	};
 
 	const getRandomActivity = async () => {
@@ -487,9 +486,7 @@ export default async (bot: DiscordBot) => {
 				if (msg.reference) {
 					try {
 						reference = await msg.fetchReference();
-					} catch {
-						() => {};
-					}
+					} catch {}
 				}
 				await sendShat(
 					msg.stickers.size > 0
@@ -502,11 +499,7 @@ export default async (bot: DiscordBot) => {
 				);
 				data.lastMsgTime = lastMsgTime = Date.now();
 			} else {
-				try {
-					msg.react(getRandomEmoji()).catch(() => {});
-				} catch {
-					() => {};
-				}
+				msg.react(getRandomEmoji()).catch(() => {});
 			}
 		}
 
@@ -516,6 +509,7 @@ export default async (bot: DiscordBot) => {
 				PEDANTIC_REPLY_DELAY_MIN +
 				Math.random() * (PEDANTIC_REPLY_DELAY_MAX - PEDANTIC_REPLY_DELAY_MIN);
 			setTimeout(async () => {
+				if (replied) return;
 				try {
 					const freshMsg = await msg.fetch();
 					if (!freshMsg.content) return;
