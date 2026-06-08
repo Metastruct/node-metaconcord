@@ -1252,16 +1252,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ssh2-streams@npm:^0.1.9":
-  version: 0.1.12
-  resolution: "@types/ssh2-streams@npm:0.1.12"
+"@types/ssh2-streams@npm:^0.1.13":
+  version: 0.1.13
+  resolution: "@types/ssh2-streams@npm:0.1.13"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 10c0/6c860066e76391c937723b9f8c3953208737be5adf33b5584d7817ec90913094f2ca578e1d47717182f1d62cb5ca8e83fdec0241d73bf064221e3a2b2d132f0e
+  checksum: 10c0/c0734417ae1d964bcc0681e4cd45f6d25d49e87c1eba54a934dc9a78c40bf76ba4935a414561b6dec5fe0c9c42fe7ad94ef79a4e1592940d934f9c75a704ebb0
   languageName: node
   linkType: hard
 
-"@types/ssh2@npm:^1.11.5":
+"@types/ssh2@npm:^1.15.5":
   version: 1.15.5
   resolution: "@types/ssh2@npm:1.15.5"
   dependencies:
@@ -1270,17 +1270,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/steamapi@npm:^2.2.2":
+"@types/steamapi@npm:^2.2.5":
   version: 2.2.5
   resolution: "@types/steamapi@npm:2.2.5"
   checksum: 10c0/5ee6a2e8021f04c5dc11e0d903e46a256ba04d6c02af17f2366a22ce2d369369d25aa4a6ea514375fa5fdf7bf1ce6336c55d63435ce32098e1fe5eb9c085d885
   languageName: node
   linkType: hard
 
-"@types/steamid@npm:^2.0.1":
-  version: 2.0.3
-  resolution: "@types/steamid@npm:2.0.3"
-  checksum: 10c0/41fb64884fd9d29716e09e841d99b6744f21d2eb0a7ffc1519cf12b8bb196305e285ee2c9e72117dc177e61a9fa4385788276bf2e5acfebad3ed43a521f96892
+"@types/steamid@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "@types/steamid@npm:2.0.4"
+  checksum: 10c0/64ed9fc135e1e80d705782bebfa06a8dc450526e3a6e937b5cae11446d9ac0355f6ed06380973dcf8ae3ee9f60c90993e6be0a3cb65bf31ba67ffc1a344007bc
   languageName: node
   linkType: hard
 
@@ -1805,13 +1805,6 @@ __metadata:
   version: 1.0.0
   resolution: "atomic-sleep@npm:1.0.0"
   checksum: 10c0/e329a6665512736a9bbb073e1761b4ec102f7926cce35037753146a9db9c8104f5044c1662e4a863576ce544fb8be27cd2be6bc8c1a40147d03f31eb1cfb6e8a
-  languageName: node
-  linkType: hard
-
-"audio-buffer@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "audio-buffer@npm:5.0.0"
-  checksum: 10c0/d50caeacc39da7bc37be7dd4261844af406032a54986c0d80ced8e1299a5ec8d9ae9beb4be4e203bcd31d68a04305cb2d57ef2e98a8512fc418262429c4d5b2e
   languageName: node
   linkType: hard
 
@@ -4479,16 +4472,15 @@ __metadata:
     "@types/node-schedule": "npm:^2.1.0"
     "@types/pg": "npm:^8.6.5"
     "@types/pug": "npm:^2.0.4"
-    "@types/ssh2": "npm:^1.11.5"
-    "@types/ssh2-streams": "npm:^0.1.9"
-    "@types/steamapi": "npm:^2.2.2"
-    "@types/steamid": "npm:^2.0.1"
+    "@types/ssh2": "npm:^1.15.5"
+    "@types/ssh2-streams": "npm:^0.1.13"
+    "@types/steamapi": "npm:^2.2.5"
+    "@types/steamid": "npm:^2.0.4"
     "@types/twit": "npm:^2.2.30"
     "@types/websocket": "npm:^1.0.4"
     "@typescript-eslint/eslint-plugin": "npm:^8.48.0"
     "@typescript-eslint/parser": "npm:^8.48.0"
     ajv: "npm:^8.17.1"
-    audio-buffer: "npm:^5.0.0"
     axios: "npm:^1.9.0"
     cookie-parser: "npm:^1.4.7"
     cross-env: "npm:^7.0.2"
@@ -4508,7 +4500,7 @@ __metadata:
     mime: "npm:^4.1.0"
     node-html-to-image: "npm:^5.0.0"
     node-schedule: "npm:^2.1.1"
-    node-ssh: "npm:^13.0.0"
+    node-ssh: "npm:^13.2.1"
     node-wav: "npm:^0.0.2"
     pg: "npm:^8.8.0"
     pino: "npm:^10.1.0"
@@ -4527,7 +4519,7 @@ __metadata:
     tsconfig-replace-paths: "npm:^0.0.14"
     typescript: "npm:^5.8.3"
     typescript-json-schema: "npm:^0.65.1"
-    unicode-emoji-json: "npm:^0.8.0"
+    unicode-emoji-json: "npm:^0.9.0"
     websocket: "npm:^1.0.34"
   languageName: unknown
   linkType: soft
@@ -4950,7 +4942,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-ssh@npm:^13.0.0":
+"node-ssh@npm:^13.2.1":
   version: 13.2.1
   resolution: "node-ssh@npm:13.2.1"
   dependencies:
@@ -7047,10 +7039,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unicode-emoji-json@npm:^0.8.0":
-  version: 0.8.0
-  resolution: "unicode-emoji-json@npm:0.8.0"
-  checksum: 10c0/6a075cbcfd245ad3976047a6b3fccd1401c6bca6035082fe9844838ad5b1d4bd83c574ffeb8a9b0a56d1efaacd62c4a03609e0b5beb39797ca44fc84130a42d9
+"unicode-emoji-json@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "unicode-emoji-json@npm:0.9.0"
+  checksum: 10c0/372e2e48c7a857f90fa790a54ad4ccf5fa097dae778ca2d8f4e83e8eaf74023e195ddb58300c4163524dbf63becfb5cbe60908529fe412252e5c7881c0e1340a
   languageName: node
   linkType: hard
 
