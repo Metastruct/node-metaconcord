@@ -43,6 +43,7 @@ export default class GameServer {
 	connection?: WebSocketConnection;
 	config: GameServerConfig;
 	bridge: GameBridge;
+	disconnected = false;
 	defcon: number;
 	discord: DiscordClient;
 	discordIcon: string | undefined = undefined;
@@ -125,7 +126,16 @@ export default class GameServer {
 			);
 		});
 
-		this.connection?.on("close", (code, desc) => {
+		this.connection?.on("close", async (code, desc) => {
+			this.disconnected = true;
+			const StatusPayload = this.bridge.payloads["StatusPayload"];
+			if (StatusPayload) {
+				try {
+					await StatusPayload.handle({ name: "StatusPayload", data: {} }, this);
+				} catch (e) {
+					log.error(e, "failed to send disconnect status");
+				}
+			}
 			this.discord.destroy();
 			log.info(`'${this.config.name}' Game Server disconnected - [${code}] ${desc}`);
 			delete this.bridge.servers[this.config.id];
