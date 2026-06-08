@@ -11,9 +11,7 @@ import GameServer from "./GameServer.js";
 import config from "@/config/gamebridge.json" with { type: "json" };
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 import resoniteConfig from "@/config/resonite.json" with { type: "json" };
-import pug from "pug";
-import path from "path";
-import nodeHtmlToImage from "node-html-to-image";
+import { renderPlayerListImage } from "./renderPlayerList.js";
 import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
@@ -236,23 +234,10 @@ export default class GameBridge extends Service {
 							text.setContent("-# metastruct @ Resonite")
 						);
 
-						const html = pug.renderFile(
-							path.join(process.cwd(), "resources/game-server-status/view.pug"),
-							{
-								server,
-								mapThumbnail,
-								image: true,
-							}
+						server.playerListImage = await renderPlayerListImage(
+							server.status.players,
+							mapThumbnail,
 						);
-
-						server.playerListImage = (await nodeHtmlToImage({
-							html,
-							transparent: true,
-							selector: "main",
-							puppeteerArgs: {
-								args: ["--no-sandbox"],
-							},
-						})) as Buffer;
 
 						const messages = await channel.messages.fetch();
 						const message = messages

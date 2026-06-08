@@ -1,6 +1,6 @@
 import { WebApp } from "@/app/services/webapp/index.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
-import nodeHtmlToImage from "node-html-to-image";
+import { renderPlayerListImage } from "@/app/services/gamebridge/renderPlayerList.js";
 import path from "path";
 import pug from "pug";
 import { access, mkdir, readFile, writeFile } from "fs/promises";
@@ -96,14 +96,10 @@ export default async (webApp: WebApp): Promise<void> => {
 		);
 		if (discordBot) {
 			try {
-				server.playerListImage = (await nodeHtmlToImage({
-					html,
-					transparent: true,
-					selector: "main",
-					puppeteerArgs: {
-						args: ["--no-sandbox"],
-					},
-				})) as Buffer;
+				server.playerListImage = await renderPlayerListImage(
+					server.status.players,
+					mapThumbnail64,
+				);
 
 				res.set({
 					"content-type": "image/png",
