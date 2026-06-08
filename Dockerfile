@@ -1,27 +1,26 @@
-FROM zenika/alpine-chrome:with-puppeteer
+FROM node:20-alpine
 
-USER root
-RUN set -eux \
-  & apk add \
-  --no-cache \
-  bash 
+RUN apk add --no-cache bash=5.2.37-r0
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 WORKDIR /app
 
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn ./.yarn
-RUN yarn install
+RUN yarn install && yarn cache clean
+
 COPY . .
-RUN cd ./config && \
-  for f in *.example.json; do \
+
+WORKDIR /app/config
+RUN for f in *.example.json; do \
   cp "$f" "${f/.example.json/.json}"; \
   done
-  
-RUN yarn build
 
-#hack, remove config after building so we can mount it
-#todo: handle empty config in the app
-RUN rm -rf ./config
+# hack, remove config after building so we can mount it
+# todo: handle empty config in the app
+WORKDIR /app
+RUN yarn build && rm -rf ./config
 
 EXPOSE 20122
 
