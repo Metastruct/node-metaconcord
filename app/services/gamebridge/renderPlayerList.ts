@@ -66,7 +66,7 @@ export async function renderPlayerListImage(
 			: "";
 
 		const indicator = isJoining
-			? `<circle cx="${nickX + nick.length * 8 + 8}" cy="${y - 10}" r="4" fill="#4ade80"/>`
+			? `<circle cx="${nickX + nick.length * 8 + 14}" cy="${y - 12}" r="4" fill="#4ade80"/>`
 			: "";
 
 		return `<g opacity="${opacity}">
