@@ -216,7 +216,7 @@ export default class StatusPayload extends Payload {
 			}
 
 			if (server.disconnected) {
-				desc = `\n⚠️ **Server disconnected** info may be outdated${desc}`;
+				desc = `⚠️ **Server disconnected** info may be outdated\n\n${desc}`;
 			}
 
 			const container = new Discord.ContainerBuilder();
