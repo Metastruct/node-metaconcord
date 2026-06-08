@@ -22,6 +22,10 @@ export class Bans extends Service {
 	private banCache: MetaBan[] = [];
 	private lastUpdate = 0;
 
+	async init(): Promise<void> {
+		await this.updateCache();
+	}
+
 	async updateCache(): Promise<void> {
 		try {
 			const res = await axios.get<Array<MetaBan>>("http://g2.metastruct.net/bans");
