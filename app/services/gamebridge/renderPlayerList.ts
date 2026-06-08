@@ -30,9 +30,17 @@ async function toDataUri(src: string): Promise<string> {
 
 export async function renderPlayerListImage(
 	players: Player[],
-	mapThumbnailSrc: string,
+	mapThumbnailSrc: string
 ): Promise<Buffer> {
-	const mapThumbnailDataUri = await toDataUri(mapThumbnailSrc);
+	const [mapThumbnailDataUri, ...avatarDataUris] = await Promise.all([
+		toDataUri(mapThumbnailSrc),
+		...players.map(async p => {
+			if (!p.avatar) return;
+			try {
+				return await toDataUri(p.avatar);
+			} catch {}
+		}),
+	]);
 
 	const cols = Math.max(1, Math.min(2, players.length));
 	const width = Math.min(MAX_WIDTH, cols * 200);
@@ -45,22 +53,18 @@ export async function renderPlayerListImage(
 		const x = PADDING + col * (width / 2);
 		const y = PADDING + row * ROW_HEIGHT + AVATAR_SIZE;
 
-		const color = p.isBanned
-			? "#FF0000"
-			: p.isAdmin
-				? "#5adb5a"
-				: "#2a77be";
+		const color = p.isBanned ? "#FF0000" : p.isAdmin ? "#9b6dff" : "#2a77be";
 		const opacity = p.isAfk ? 0.4 : 1;
-		const nickX = x + (p.avatar ? AVATAR_SIZE + GAP : 0);
+		const avatarDataUri = avatarDataUris[i];
+		const nickX = x + (avatarDataUri ? AVATAR_SIZE + GAP : 0);
 
-		const avatar =
-			p.avatar
-				? `<image href="${escapeXml(p.avatar)}" x="${x}" y="${y - AVATAR_SIZE}" width="${AVATAR_SIZE}" height="${AVATAR_SIZE}" clip-path="url(#clip)"/>`
-				: "";
+		const avatar = avatarDataUri
+			? `<image href="${avatarDataUri}" x="${x}" y="${y - AVATAR_SIZE}" width="${AVATAR_SIZE}" height="${AVATAR_SIZE}" clip-path="url(#clip)"/>`
+			: "";
 
 		return `<g opacity="${opacity}">
 			${avatar}
-			<text x="${nickX}" y="${y - 4}" fill="${color}" font-size="14" font-family="sans-serif">${escapeXml(p.nick)}</text>
+			<text x="${nickX}" y="${y - 4}" fill="${color}" font-size="14" font-family="sans-serif" font-weight="600">${escapeXml(p.nick)}</text>
 		</g>`;
 	});
 
