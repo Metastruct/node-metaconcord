@@ -71,7 +71,7 @@ export async function renderPlayerListImage(
 
 		return `<g opacity="${opacity}">
 			${avatar}
-			<text x="${nickX}" y="${y - 4}" fill="${color}" font-size="14" font-family="sans-serif" font-weight="600">${escapeXml(nick)}</text>
+			<text x="${nickX}" y="${y - 7}" fill="${color}" font-size="14" font-family="sans-serif" font-weight="600">${escapeXml(nick)}</text>
 			${indicator}
 		</g>`;
 	});
