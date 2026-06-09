@@ -1,6 +1,6 @@
 FROM node:20-alpine
 
-RUN apk add --no-cache bash font-noto
+RUN apk add --no-cache bash font-noto ffmpeg
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 

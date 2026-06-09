@@ -25,6 +25,7 @@ import { SlashRuleCommand } from "./developer/Rules.js";
 import { SlashSpeechbubbleCommand } from "./Speechbubble.js";
 import { SlashSQLCommand } from "./developer/SQL.js";
 import { SlashUnBanCommand } from "./developer/UnBan.js";
+import { SlashVideoCommand } from "./Video.js";
 import { SlashVoiceCommand } from "./TempVoiceChannel.js";
 import { SlashWhyBanCommand } from "./WhyBan.js";
 import { logger } from "@/utils.js";
@@ -52,6 +53,7 @@ export const slashCommands = [
 	SlashRoleCommand,
 	SlashRandomImageCommand,
 	SlashSpeechbubbleCommand,
+	SlashVideoCommand,
 	SlashVoiceCommand,
 	SlashWhyBanCommand,
 ];
