@@ -10,6 +10,8 @@ const PADDING = 8;
 const MAX_WIDTH = 400;
 const AVATAR_SIZE = 24;
 const GAP = 6;
+const CHAR_WIDTH = 8;
+const TEXT_RIGHT_PAD = 4;
 const JOINING = " (joining)";
 const MIME_MAP: Record<string, string> = {
 	png: "image/png",
@@ -46,14 +48,21 @@ export async function renderPlayerListImage(
 	]);
 
 	const cols = Math.max(1, Math.min(2, players.length));
-	const width = Math.min(MAX_WIDTH, cols * 200);
+	const requiredColWidths = players.map(p => {
+		const nick = p.nick.endsWith(JOINING) ? p.nick.slice(0, -JOINING.length) : p.nick;
+		let w = AVATAR_SIZE + GAP + nick.length * CHAR_WIDTH + TEXT_RIGHT_PAD;
+		if (p.nick.endsWith(JOINING)) w += 18;
+		return w;
+	});
+	const colWidth = Math.max(200, ...requiredColWidths);
+	const width = Math.min(MAX_WIDTH, cols * colWidth);
 	const rows = Math.max(1, Math.ceil(players.length / 2));
 	const height = PADDING * 2 + rows * ROW_HEIGHT;
 
 	const items = players.map((p, i) => {
 		const col = i % 2;
 		const row = Math.floor(i / 2);
-		const x = PADDING + col * (width / 2);
+		const x = PADDING + col * colWidth;
 		const y = PADDING + row * ROW_HEIGHT + AVATAR_SIZE;
 
 		const isJoining = p.nick.endsWith(JOINING);
@@ -69,7 +78,7 @@ export async function renderPlayerListImage(
 			: `<circle cx="${x + AVATAR_SIZE / 2}" cy="${y - AVATAR_SIZE / 2}" r="${AVATAR_SIZE / 2}" fill="#444" stroke="#555" stroke-width="1"/>`;
 
 		const indicator = isJoining
-			? `<circle cx="${nickX + nick.length * 8 + 14}" cy="${y - 12}" r="4" fill="#4ade80"/>`
+			? `<circle cx="${nickX + nick.length * CHAR_WIDTH + 14}" cy="${y - 12}" r="4" fill="#4ade80"/>`
 			: "";
 
 		return `<g opacity="${opacity}">
