@@ -216,7 +216,7 @@ export default class StatusPayload extends Payload {
 			}
 
 			if (server.disconnected) {
-				desc = `⚠️ **Server disconnected** info may be outdated\n\n${desc}`;
+				desc = `⚠️ **Server disconnected** info may be outdated\n${desc}`;
 			}
 
 			const container = new Discord.ContainerBuilder();
@@ -323,7 +323,9 @@ export default class StatusPayload extends Payload {
 
 			const attachments = [
 				new Discord.AttachmentBuilder(statusApiUri, { name: "players.png" }),
-				new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, { name: "map.png" }),
+				new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, {
+					name: "map.png",
+				}),
 			];
 
 			try {
