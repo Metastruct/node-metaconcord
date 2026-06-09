@@ -11,6 +11,7 @@ const AVATAR_SIZE = 24;
 const GAP = 6;
 const CHAR_WIDTH = 8;
 const TEXT_RIGHT_PAD = 4;
+const COL_GAP = 16;
 const JOINING = " (joining)";
 const MIME_MAP: Record<string, string> = {
 	png: "image/png",
@@ -54,14 +55,14 @@ export async function renderPlayerListImage(
 		return w;
 	});
 	const colWidth = Math.max(...requiredColWidths);
-	const width = PADDING * 2 + (ROW_HEIGHT - AVATAR_SIZE) + cols * colWidth;
+	const width = PADDING * 2 + (ROW_HEIGHT - AVATAR_SIZE) + cols * colWidth + (cols - 1) * COL_GAP;
 	const rows = Math.max(1, Math.ceil(players.length / 2));
 	const height = PADDING * 2 + rows * ROW_HEIGHT;
 
 	const items = players.map((p, i) => {
 		const col = i % 2;
 		const row = Math.floor(i / 2);
-		const x = PADDING + (ROW_HEIGHT - AVATAR_SIZE) / 2 + col * colWidth;
+		const x = PADDING + (ROW_HEIGHT - AVATAR_SIZE) / 2 + col * (colWidth + COL_GAP);
 		const y = PADDING + row * ROW_HEIGHT + (ROW_HEIGHT + AVATAR_SIZE) / 2;
 
 		const isJoining = p.nick.endsWith(JOINING);
@@ -78,7 +79,7 @@ export async function renderPlayerListImage(
 
 		return `<g opacity="${opacity}">
 			${avatar}
-			<text x="${nickX}" y="${y - 7}" fill="${color}" font-size="14" font-family="sans-serif" font-weight="600">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80"> ●</tspan>` : ""}</text>
+			<text x="${nickX}" y="${y - 7}" fill="${color}" font-size="14" font-family="sans-serif" font-weight="600">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80" dx="6">●</tspan>` : ""}</text>
 		</g>`;
 	});
 
