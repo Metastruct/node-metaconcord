@@ -187,7 +187,7 @@ function buildStutterFilter(
 
 	const n = concatInputs.length / (info.hasAudio ? 2 : 1);
 	f.push(
-		`${concatInputs.join("")}concat=n=${n}:v=1:a=${info.hasAudio ? 1 : 0}[outv]${
+		`${concatInputs.map(l => `[${l}]`).join("")}concat=n=${n}:v=1:a=${info.hasAudio ? 1 : 0}[outv]${
 			info.hasAudio ? "[outa]" : ""
 		}`
 	);
@@ -237,7 +237,7 @@ function buildFreezeFilter(
 
 	const n = concatInputs.length / (info.hasAudio ? 2 : 1);
 	f.push(
-		`${concatInputs.join("")}concat=n=${n}:v=1:a=${info.hasAudio ? 1 : 0}[outv]${
+		`${concatInputs.map(l => `[${l}]`).join("")}concat=n=${n}:v=1:a=${info.hasAudio ? 1 : 0}[outv]${
 			info.hasAudio ? "[outa]" : ""
 		}`
 	);
@@ -294,7 +294,7 @@ function buildCrushFilter(
 
 	const n = concatInputs.length / (info.hasAudio ? 2 : 1);
 	f.push(
-		`${concatInputs.join("")}concat=n=${n}:v=1:a=${info.hasAudio ? 1 : 0}[outv]${
+		`${concatInputs.map(l => `[${l}]`).join("")}concat=n=${n}:v=1:a=${info.hasAudio ? 1 : 0}[outv]${
 			info.hasAudio ? "[outa]" : ""
 		}`
 	);
