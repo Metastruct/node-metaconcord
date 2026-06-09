@@ -7,7 +7,6 @@ const escapeXml = (s: string) =>
 
 const ROW_HEIGHT = 32;
 const PADDING = 8;
-const MAX_WIDTH = 400;
 const AVATAR_SIZE = 24;
 const GAP = 6;
 const CHAR_WIDTH = 8;
@@ -77,14 +76,9 @@ export async function renderPlayerListImage(
 			? `<image href="${avatarDataUri}" x="${x}" y="${y - AVATAR_SIZE}" width="${AVATAR_SIZE}" height="${AVATAR_SIZE}" clip-path="url(#clip)"/>`
 			: `<circle cx="${x + AVATAR_SIZE / 2}" cy="${y - AVATAR_SIZE / 2}" r="${AVATAR_SIZE / 2}" fill="#444" stroke="#555" stroke-width="1"/>`;
 
-		const indicator = isJoining
-			? `<circle cx="${nickX + nick.length * CHAR_WIDTH + 14}" cy="${y - 12}" r="4" fill="#4ade80"/>`
-			: "";
-
 		return `<g opacity="${opacity}">
 			${avatar}
-			<text x="${nickX}" y="${y - 7}" fill="${color}" font-size="14" font-family="sans-serif" font-weight="600">${escapeXml(nick)}</text>
-			${indicator}
+			<text x="${nickX}" y="${y - 7}" fill="${color}" font-size="14" font-family="sans-serif" font-weight="600">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80"> ●</tspan>` : ""}</text>
 		</g>`;
 	});
 
