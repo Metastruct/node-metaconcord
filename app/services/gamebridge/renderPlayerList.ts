@@ -57,7 +57,7 @@ export async function renderPlayerListImage(
 		const nick = isJoining ? p.nick.slice(0, -JOINING.length) : p.nick;
 
 		const color = p.isBanned ? "#FF0000" : p.isAdmin ? "#933f93" : "#2a77be";
-		const opacity = p.isAfk ? 0.4 : 1;
+		const opacity = p.isAfk ? 0.5 : 1;
 		const avatarDataUri = avatarDataUris[i];
 		const nickX = x + (avatarDataUri ? AVATAR_SIZE + GAP : 0);
 
@@ -84,7 +84,7 @@ export async function renderPlayerListImage(
 	</defs>
 	<rect width="${width}" height="${height}" fill="#222"/>
 	<image href="${mapThumbnailDataUri}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice"/>
-	<rect width="${width}" height="${height}" fill="rgba(0,0,0,0.75)"/>
+	<rect width="${width}" height="${height}" fill="rgba(0,0,0,0.85)"/>
 	${items.join("\n")}
 </svg>`;
 
