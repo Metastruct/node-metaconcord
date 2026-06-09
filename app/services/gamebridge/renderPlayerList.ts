@@ -54,16 +54,16 @@ export async function renderPlayerListImage(
 		if (p.nick.endsWith(JOINING)) w += 18;
 		return w;
 	});
-	const colWidth = Math.max(200, ...requiredColWidths);
-	const width = Math.min(MAX_WIDTH, cols * colWidth);
+	const colWidth = Math.max(...requiredColWidths);
+	const width = PADDING * 2 + (ROW_HEIGHT - AVATAR_SIZE) + cols * colWidth;
 	const rows = Math.max(1, Math.ceil(players.length / 2));
 	const height = PADDING * 2 + rows * ROW_HEIGHT;
 
 	const items = players.map((p, i) => {
 		const col = i % 2;
 		const row = Math.floor(i / 2);
-		const x = PADDING + col * colWidth;
-		const y = PADDING + row * ROW_HEIGHT + AVATAR_SIZE;
+		const x = PADDING + (ROW_HEIGHT - AVATAR_SIZE) / 2 + col * colWidth;
+		const y = PADDING + row * ROW_HEIGHT + (ROW_HEIGHT + AVATAR_SIZE) / 2;
 
 		const isJoining = p.nick.endsWith(JOINING);
 		const nick = isJoining ? p.nick.slice(0, -JOINING.length) : p.nick;
