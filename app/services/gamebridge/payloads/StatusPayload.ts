@@ -177,7 +177,7 @@ export default class StatusPayload extends Payload {
 
 			// Player count
 			desc += `\n:busts_in_silhouette: Player${
-				count > 1 || count == 0 ? "s" : ""
+				count > 1 || count === 0 ? "s" : ""
 			}: **${count}**`;
 
 			// Server Uptime
@@ -294,7 +294,7 @@ export default class StatusPayload extends Payload {
 			server.status.players = current_players;
 			server.workshopMap = current_workshopMap;
 
-			for (const [, player] of Object.entries(server.status.players)) {
+			for (const player of server.status.players) {
 				if (!player.avatar) {
 					let avatar: string | undefined;
 					if (player.accountId) {
@@ -321,6 +321,11 @@ export default class StatusPayload extends Payload {
 			) as Discord.TextChannel;
 			if (!channel) return;
 
+			const attachments = [
+				new Discord.AttachmentBuilder(statusApiUri, { name: "players.png" }),
+				new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, { name: "map.png" }),
+			];
+
 			try {
 				const messages = await channel.messages.fetch();
 				const message = messages
@@ -331,14 +336,7 @@ export default class StatusPayload extends Payload {
 					await message
 						.edit({
 							components: [container],
-							files: [
-								new Discord.AttachmentBuilder(statusApiUri, {
-									name: "players.png",
-								}),
-								new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, {
-									name: "map.png",
-								}),
-							],
+							files: attachments,
 							flags: Discord.MessageFlags.IsComponentsV2,
 						})
 						.catch(e => log.error(e, "message edit failed"));
@@ -346,14 +344,7 @@ export default class StatusPayload extends Payload {
 					channel
 						.send({
 							components: [container],
-							files: [
-								new Discord.AttachmentBuilder(statusApiUri, {
-									name: "players.png",
-								}),
-								new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, {
-									name: "map.png",
-								}),
-							],
+							files: attachments,
 							flags: Discord.MessageFlags.IsComponentsV2,
 						})
 						.catch(() => {});
