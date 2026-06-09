@@ -19,11 +19,16 @@ const MIME_MAP: Record<string, string> = {
 	gif: "image/gif",
 };
 
-async function toDataUri(src: string): Promise<string> {
+async function toDataUri(src: string): Promise<string | undefined> {
 	if (src.startsWith("data:")) return src;
-	const buf = src.startsWith("http")
-		? new Uint8Array(await (await fetch(src)).arrayBuffer())
-		: await readFile(src);
+	let buf: Uint8Array;
+	if (src.startsWith("http")) {
+		const res = await fetch(src);
+		if (!res.ok) return;
+		buf = new Uint8Array(await res.arrayBuffer());
+	} else {
+		buf = await readFile(src);
+	}
 	const ext = src.includes(".") ? (src.split(".").pop() ?? "png") : "png";
 	return `data:${MIME_MAP[ext] ?? "image/png"};base64,${Buffer.from(buf).toString("base64")}`;
 }
@@ -36,9 +41,7 @@ export async function renderPlayerListImage(
 		toDataUri(mapThumbnailSrc),
 		...players.map(async p => {
 			if (!p.avatar) return;
-			try {
-				return await toDataUri(p.avatar);
-			} catch {}
+			return await toDataUri(p.avatar).catch(() => {});
 		}),
 	]);
 
@@ -59,11 +62,11 @@ export async function renderPlayerListImage(
 		const color = p.isBanned ? "#FF0000" : p.isAdmin ? "#933f93" : "#2a77be";
 		const opacity = p.isAfk ? 0.5 : 1;
 		const avatarDataUri = avatarDataUris[i];
-		const nickX = x + (avatarDataUri ? AVATAR_SIZE + GAP : 0);
+		const nickX = x + AVATAR_SIZE + GAP;
 
 		const avatar = avatarDataUri
 			? `<image href="${avatarDataUri}" x="${x}" y="${y - AVATAR_SIZE}" width="${AVATAR_SIZE}" height="${AVATAR_SIZE}" clip-path="url(#clip)"/>`
-			: "";
+			: `<circle cx="${x + AVATAR_SIZE / 2}" cy="${y - AVATAR_SIZE / 2}" r="${AVATAR_SIZE / 2}" fill="#444" stroke="#555" stroke-width="1"/>`;
 
 		const indicator = isJoining
 			? `<circle cx="${nickX + nick.length * 8 + 14}" cy="${y - 12}" r="4" fill="#4ade80"/>`
