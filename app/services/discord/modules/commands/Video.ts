@@ -107,6 +107,8 @@ function buildStutterFilter(
 	const f: string[] = [];
 	const concatInputs: string[] = [];
 	const loopCount = count > 1 ? count - 1 : -1;
+	const frameCount = Math.ceil(segment * info.fps);
+	const sampleCount = Math.ceil(segment * info.sampleRate);
 
 	if (includeBeginning && at > 0) {
 		f.push(`[0:v]trim=duration=${at},setpts=PTS-STARTPTS[begin_v]`);
@@ -127,10 +129,10 @@ function buildStutterFilter(
 
 	if (method === "repeat") {
 		if (loopCount >= 0) {
-			f.push(`[seg_v]loop=${loopCount}:0:0[stutter_v]`);
+			f.push(`[seg_v]loop=${loopCount}:${frameCount}:0[stutter_v]`);
 			stutterV = "stutter_v";
 			if (info.hasAudio) {
-				f.push(`[seg_a]aloop=${loopCount}:0:0[stutter_a]`);
+				f.push(`[seg_a]aloop=${loopCount}:${sampleCount}:0[stutter_a]`);
 				stutterA = "stutter_a";
 			}
 		}
@@ -142,10 +144,10 @@ function buildStutterFilter(
 			stutterA = "rev_a";
 		}
 		if (loopCount >= 0) {
-			f.push(`[rev_v]loop=${loopCount}:0:0[stutter_v]`);
+			f.push(`[rev_v]loop=${loopCount}:${frameCount}:0[stutter_v]`);
 			stutterV = "stutter_v";
 			if (info.hasAudio) {
-				f.push(`[rev_a]aloop=${loopCount}:0:0[stutter_a]`);
+				f.push(`[rev_a]aloop=${loopCount}:${sampleCount}:0[stutter_a]`);
 				stutterA = "stutter_a";
 			}
 		}
@@ -163,34 +165,48 @@ function buildStutterFilter(
 			f.push(`[fw_v][rev_v]concat=n=2:v=1:a=0[pp_v]`);
 			stutterV = "pp_v";
 		}
+		const ppFrameCount = 2 * frameCount;
+		const ppSampleCount = 2 * sampleCount;
 		if (loopCount >= 0) {
-			f.push(`[pp_v]loop=${loopCount}:0:0[stutter_v]`);
+			f.push(`[pp_v]loop=${loopCount}:${ppFrameCount}:0[stutter_v]`);
 			stutterV = "stutter_v";
 			if (info.hasAudio) {
-				f.push(`[pp_a]aloop=${loopCount}:0:0[stutter_a]`);
+				f.push(`[pp_a]aloop=${loopCount}:${ppSampleCount}:0[stutter_a]`);
 				stutterA = "stutter_a";
 			}
 		}
 	}
 
-	concatInputs.push(stutterV);
-	if (stutterA) concatInputs.push(stutterA);
-
 	if (includeEnding && info.duration > at + segment) {
 		f.push(`[0:v]trim=start=${at + segment},setpts=PTS-STARTPTS[end_v]`);
-		concatInputs.push("end_v");
 		if (info.hasAudio) {
 			f.push(`[0:a]atrim=start=${at + segment},asetpts=PTS-STARTPTS[end_a]`);
-			concatInputs.push("end_a");
 		}
 	}
 
-	const n = concatInputs.length / (info.hasAudio ? 2 : 1);
-	f.push(
-		`${concatInputs.map(l => `[${l}]`).join("")}concat=n=${n}:v=1:a=${info.hasAudio ? 1 : 0}[outv]${
-			info.hasAudio ? "[outa]" : ""
-		}`
-	);
+	const segLabels: string[] = [];
+	if (includeBeginning && at > 0) {
+		segLabels.push("begin_v");
+		if (info.hasAudio) segLabels.push("begin_a");
+	}
+	segLabels.push(stutterV);
+	if (stutterA) segLabels.push(stutterA);
+	if (includeEnding && info.duration > at + segment) {
+		segLabels.push("end_v");
+		if (info.hasAudio) segLabels.push("end_a");
+	}
+
+	const n = segLabels.length / (info.hasAudio ? 2 : 1);
+	if (n === 1) {
+		f.push(`[${stutterV}]setpts=PTS[outv]`);
+		if (stutterA) f.push(`[${stutterA}]asetpts=PTS[outa]`);
+	} else {
+		f.push(
+			`${segLabels.map(l => `[${l}]`).join("")}concat=n=${n}:v=1:a=${info.hasAudio ? 1 : 0}[outv]${
+				info.hasAudio ? "[outa]" : ""
+			}`
+		);
+	}
 
 	return f.join(";");
 }
@@ -200,18 +216,16 @@ function buildFreezeFilter(
 	at: number,
 	freezeDuration: number,
 	includeBeginning: boolean,
-	includeEnding: boolean
+	includeEnding: boolean,
+	silence: boolean
 ): string {
 	const f: string[] = [];
-	const concatInputs: string[] = [];
 	const freezeFrames = Math.max(1, Math.round(freezeDuration * info.fps));
 
 	if (includeBeginning && at > 0) {
 		f.push(`[0:v]trim=duration=${at},setpts=PTS-STARTPTS[begin_v]`);
-		concatInputs.push("begin_v");
 		if (info.hasAudio) {
 			f.push(`[0:a]atrim=duration=${at},asetpts=PTS-STARTPTS[begin_a]`);
-			concatInputs.push("begin_a");
 		}
 	}
 
@@ -220,27 +234,52 @@ function buildFreezeFilter(
 	f.push(`[freeze_raw]loop=${freezeFrames - 1}:1:0[freeze_v]`);
 
 	if (info.hasAudio) {
-		f.push(`aevalsrc=0:s=${info.sampleRate}:c=${info.channels}:d=${freezeDuration}[freeze_a]`);
-	}
-
-	concatInputs.push("freeze_v");
-	if (info.hasAudio) concatInputs.push("freeze_a");
-
-	if (includeEnding) {
-		f.push(`[0:v]trim=start=${at},setpts=PTS-STARTPTS[end_v]`);
-		concatInputs.push("end_v");
-		if (info.hasAudio) {
-			f.push(`[0:a]atrim=start=${at},asetpts=PTS-STARTPTS[end_a]`);
-			concatInputs.push("end_a");
+		if (silence) {
+			f.push(`aevalsrc=0:s=${info.sampleRate}:c=${info.channels}:d=${freezeDuration}[freeze_a]`);
+		} else {
+			const sampleDuration = Math.min(0.05, info.duration * 0.5);
+			const audioAt = Math.min(at, Math.max(0, info.duration - sampleDuration));
+			const freezeAudioLoops = Math.max(0, Math.ceil(freezeDuration / sampleDuration) - 1);
+			const freezeAudioSamples = Math.ceil(sampleDuration * info.sampleRate);
+			f.push(`[0:a]atrim=start=${audioAt}:duration=${sampleDuration}[freeze_audio_raw]`);
+			if (freezeAudioLoops > 0) {
+				f.push(`[freeze_audio_raw]aloop=${freezeAudioLoops}:${freezeAudioSamples}:0[freeze_a]`);
+			} else {
+				f.push(`[freeze_audio_raw]asetpts=PTS[freeze_a]`);
+			}
 		}
 	}
 
-	const n = concatInputs.length / (info.hasAudio ? 2 : 1);
-	f.push(
-		`${concatInputs.map(l => `[${l}]`).join("")}concat=n=${n}:v=1:a=${info.hasAudio ? 1 : 0}[outv]${
-			info.hasAudio ? "[outa]" : ""
-		}`
-	);
+	if (includeEnding) {
+		f.push(`[0:v]trim=start=${at},setpts=PTS-STARTPTS[end_v]`);
+		if (info.hasAudio) {
+			f.push(`[0:a]atrim=start=${at},asetpts=PTS-STARTPTS[end_a]`);
+		}
+	}
+
+	const segLabels: string[] = [];
+	if (includeBeginning && at > 0) {
+		segLabels.push("begin_v");
+		if (info.hasAudio) segLabels.push("begin_a");
+	}
+	segLabels.push("freeze_v");
+	if (info.hasAudio) segLabels.push("freeze_a");
+	if (includeEnding) {
+		segLabels.push("end_v");
+		if (info.hasAudio) segLabels.push("end_a");
+	}
+
+	const n = segLabels.length / (info.hasAudio ? 2 : 1);
+	if (n === 1) {
+		f.push(`[freeze_v]setpts=PTS[outv]`);
+		if (info.hasAudio) f.push(`[freeze_a]asetpts=PTS[outa]`);
+	} else {
+		f.push(
+			`${segLabels.map(l => `[${l}]`).join("")}concat=n=${n}:v=1:a=${info.hasAudio ? 1 : 0}[outv]${
+				info.hasAudio ? "[outa]" : ""
+			}`
+		);
+	}
 
 	return f.join(";");
 }
@@ -309,26 +348,24 @@ async function processVideo(
 	effectName: string,
 	buildFilter: (info: VideoInfo) => string
 ): Promise<void> {
+	await ctx.deferReply();
+
 	if (!url && !file) {
-		await ctx.reply(EphemeralResponse("I need either a URL or a file for this."));
+		await ctx.editReply("I need either a URL or a file for this.");
 		return;
 	}
 
 	if (url && !url.match(/^https?:\/\/.+\..+$/g)) {
-		await ctx.reply(EphemeralResponse("That doesn't look like a valid URL."));
+		await ctx.editReply("That doesn't look like a valid URL.");
 		return;
 	}
 
 	if (file && file.contentType && !AllowedVideoTypes.includes(file.contentType)) {
-		await ctx.reply(
-			EphemeralResponse(
-				`${file.contentType} is not a supported video type. Supported: MP4, WebM, QuickTime`
-			)
+		await ctx.editReply(
+			`${file.contentType} is not a supported video type. Supported: MP4, WebM, QuickTime`
 		);
 		return;
 	}
-
-	await ctx.deferReply();
 
 	const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "metaconcord-video-"));
 	const inputPath = path.join(tmpDir, "input.mp4");
@@ -435,6 +472,7 @@ async function handleFreeze(ctx: Discord.ChatInputCommandInteraction) {
 	const freezeDuration = ctx.options.getNumber("duration") ?? 2;
 	const includeBeginning = ctx.options.getBoolean("include_beginning") ?? false;
 	const includeEnding = ctx.options.getBoolean("include_ending") ?? false;
+	const silence = ctx.options.getBoolean("silence") ?? false;
 
 	await processVideo(ctx, url, file, "freeze", info => {
 		const effectiveAt = Math.min(at, info.duration);
@@ -443,7 +481,8 @@ async function handleFreeze(ctx: Discord.ChatInputCommandInteraction) {
 			effectiveAt,
 			freezeDuration,
 			includeBeginning,
-			includeEnding
+			includeEnding,
+			silence
 		);
 	});
 }
@@ -576,6 +615,11 @@ export const SlashVideoCommand: SlashCommand = {
 						type: Discord.ApplicationCommandOptionType.Boolean,
 						name: "include_ending",
 						description: "Include the part after the freeze",
+					},
+					{
+						type: Discord.ApplicationCommandOptionType.Boolean,
+						name: "silence",
+						description: "Use silence instead of audio looping",
 					},
 				],
 			},
