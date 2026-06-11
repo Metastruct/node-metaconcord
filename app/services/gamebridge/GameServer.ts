@@ -85,8 +85,8 @@ export default class GameServer {
 			for (const [, payload] of Object.entries(config.bridge.payloads)) {
 				payload.initialize(this);
 			}
-			this.discordIcon = client.user.avatar ?? undefined;
-			this.discordBanner = client.user.banner ?? undefined;
+			this.discordIcon = client.user.avatarURL() ?? undefined;
+			this.discordBanner = client.user.bannerURL() ?? undefined;
 		});
 
 		this.connection?.on("message", async (msg: IUtf8Message) => {
