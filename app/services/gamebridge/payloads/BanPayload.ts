@@ -26,7 +26,7 @@ export default class BanPayload extends Payload {
 
 		const pastBans = await (
 			bridge.container.getService("Bans")
-		).getBan(player.steamId, true);
+		).getBan(banned.steamId, true);
 
 		const steam = bridge.container.getService("Steam");
 		let steamId64 = "";
