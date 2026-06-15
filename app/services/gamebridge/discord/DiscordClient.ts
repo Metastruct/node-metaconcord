@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import config from "@/config/discord.json" with { type: "json" };
-import { logger } from "@/utils.js";
+import { logger, sleep } from "@/utils.js";
 
 const log = logger(import.meta);
 
@@ -9,6 +9,8 @@ export default class DiscordClient extends Discord.Client {
 	config = config;
 	gameServer: GameServer;
 	ready: boolean;
+	private tokenOverride?: string;
+	private reconnectTimeout?: ReturnType<typeof setTimeout>;
 
 	constructor(gameServer: GameServer, options: Discord.ClientOptions) {
 		super(options);
@@ -17,17 +19,47 @@ export default class DiscordClient extends Discord.Client {
 
 		this.on("clientReady", () => {
 			this.ready = true;
+			this.reconnectTimeout = undefined;
 		});
 
 		this.on("shardDisconnect", () => {
 			this.ready = false;
+			this.scheduleReconnect();
+		});
+
+		this.on("error", err => {
+			log.error(err, "Game bridge Discord client error");
 		});
 
 		this.on("warn", log.warn);
 	}
 
 	public run(token: string): void {
-		this.login(token);
+		this.tokenOverride = token;
+		this.connect(token);
+	}
+
+	private async connect(token: string): Promise<void> {
+		let attempts = 0;
+		while (true) {
+			try {
+				await this.login(token);
+				return;
+			} catch (err) {
+				attempts++;
+				const delay = Math.min(5000 * 2 ** (attempts - 1), 120_000);
+				log.error({ err, attempt: attempts }, `Game bridge Discord login failed, retrying in ${delay}ms`);
+				await sleep(delay);
+			}
+		}
+	}
+
+	private scheduleReconnect(): void {
+		if (this.reconnectTimeout) return;
+		this.reconnectTimeout = setTimeout(() => {
+			this.reconnectTimeout = undefined;
+			if (this.tokenOverride) this.connect(this.tokenOverride);
+		}, 5000);
 	}
 
 	public async isAllowed(user: Discord.User): Promise<boolean> {
