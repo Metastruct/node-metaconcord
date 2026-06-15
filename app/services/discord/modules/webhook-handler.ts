@@ -838,7 +838,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						url: payload.member?.avatar_url,
 					},
 					title: "Membership " + event.payload.action,
-					description: `[${payload.sender?.login}](${payload.sender?.html_url}) ${event.payload.action} [${payload.member?.login}](${payload.member?.html_url}) to ${payload.team.name}`,
+					description: `[${payload.sender?.login}](${payload.sender?.html_url}) ${event.payload.action} [${payload.member?.login}](${payload.member?.html_url}) ${event.payload.action === "removed" ? "from" : "to"} ${payload.team.name}`,
 					timestamp: new Date().toISOString(),
 				},
 			],
