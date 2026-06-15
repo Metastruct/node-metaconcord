@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import { Container, Service } from "@/app/Container.js";
 import { Data, GameBridge } from "@/app/services/index.js";
-import { getAsBase64, logger } from "@/utils.js";
+import { getAsBase64, logger, sleep } from "@/utils.js";
 import { getEventIcon } from "./modules/discord-guild-icon.js";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import modules from "./modules/index.js";
@@ -48,6 +48,7 @@ export class DiscordBot extends Service {
 	ready: boolean;
 	currentEvent = "none";
 	private data: Data;
+	private reconnectTimeout?: ReturnType<typeof setTimeout>;
 
 	constructor(container: Container) {
 		super(container);
@@ -59,11 +60,17 @@ export class DiscordBot extends Service {
 
 		this.discord.on("clientReady", async client => {
 			this.ready = true;
+			this.reconnectTimeout = undefined;
 			log.info(`'${client.user.username}' Discord Bot has logged in`);
 		});
 
 		this.discord.on("shardDisconnect", () => {
 			this.ready = false;
+			this.scheduleReconnect();
+		});
+
+		this.discord.on("error", err => {
+			log.error(err, "Discord client error");
 		});
 
 		this.discord.on("warn", log.warn);
@@ -72,7 +79,31 @@ export class DiscordBot extends Service {
 			loadModule(this);
 		}
 
-		await this.discord.login(this.config.bot.token);
+		// Start connection in background - don't block startup
+		this.connect();
+	}
+
+	private async connect(): Promise<void> {
+		let attempts = 0;
+		while (true) {
+			try {
+				await this.discord.login(this.config.bot.token);
+				return;
+			} catch (err) {
+				attempts++;
+				const delay = Math.min(5000 * 2 ** (attempts - 1), 120_000);
+				log.error({ err, attempt: attempts }, `Discord login failed, retrying in ${delay}ms`);
+				await sleep(delay);
+			}
+		}
+	}
+
+	private scheduleReconnect(): void {
+		if (this.reconnectTimeout) return;
+		this.reconnectTimeout = setTimeout(() => {
+			this.reconnectTimeout = undefined;
+			this.connect();
+		}, 5000);
 	}
 	getTextChannel(channelId: string): Discord.TextChannel | undefined {
 		if (!this.ready) return;
