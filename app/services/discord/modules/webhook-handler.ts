@@ -170,6 +170,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		if (!allowed) return;
 
+		if (where.length === 0) {
+			await ctx.reply(`<@${ctx.user.id}> no servers to update :(`);
+			return;
+		}
+
 		switch (action) {
 			case "update":
 				await ctx.reply(
