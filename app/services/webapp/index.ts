@@ -3,6 +3,7 @@ import { Server as HTTPServer } from "http";
 import APIs from "./api/index.js";
 import config from "@/config/webapp.json" with { type: "json" };
 import express from "express";
+import type pino from "pino";
 import { pinoHttp } from "pino-http";
 import { logger } from "@/utils.js";
 
@@ -21,7 +22,7 @@ export class WebApp extends Service {
 
 		this.app.use(
 			pinoHttp({
-				logger: log,
+				logger: log as pino.Logger<string, boolean>,
 				base: undefined,
 				level: process.env.LOG_LEVEL || "info",
 				autoLogging: { ignore: req => PATH_IGNORE.some(p => req.path.startsWith(p)) },
