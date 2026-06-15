@@ -872,7 +872,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				title = "team edited";
 				description = `[${payload.sender?.login}](${payload.sender?.html_url}) edited [${payload.team.name}](${payload.team.html_url})`;
 			default:
-				title = "unknown team action???";
+				title = `unknown team action (${event.payload.action}) ???`;
 				break;
 		}
 
