@@ -156,6 +156,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}
 	});
 
+	const allowedRoles = new Set([
+		bot.config.roles.developer,
+		bot.config.roles.newDeveloper,
+		bot.config.roles.administrator,
+	]);
+
 	bot.discord.on("interactionCreate", async (ctx: Discord.ButtonInteraction) => {
 		if (!ctx.member || !ctx.isButton() || !bridge) return;
 		const [action, override] = ctx.customId.split("_");
@@ -164,8 +170,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 				? bridge.servers.filter(s => override.split(",").includes(s.config.id.toString()))
 				: bridge.servers.filter(s => !!s.config.ssh);
 
-		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(
-			x => x.id === bot.config.roles.developer || x.id === bot.config.roles.administrator
+		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(x =>
+			allowedRoles.has(x.id)
 		);
 
 		if (!allowed) return;
