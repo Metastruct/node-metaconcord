@@ -56,10 +56,10 @@ export default class GameServer {
 	playerListImage: Buffer;
 	serverUptime: number;
 	status: {
-		mapThumbnail: string | null;
+		mapThumbnail?: string;
 		players: Player[];
-		image: string | null;
-	} = { mapThumbnail: null, players: [], image: null };
+		image?: string;
+	} = { players: [] };
 	mapName: string;
 	mapUptime: number;
 	workshopMap?: {
