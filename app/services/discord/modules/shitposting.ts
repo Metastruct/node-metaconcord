@@ -24,11 +24,6 @@ const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in th
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
 const COMMON_EMOJI_RATIO = 0.7;
 
-// pedantic mode constants
-const PEDANTIC_FREQ = 0.005;
-const PEDANTIC_REPLY_DELAY_MIN = 5000;
-const PEDANTIC_REPLY_DELAY_MAX = 15000;
-
 // trigger word constants
 const TRIGGER_WORDS = ["meta bot", "metabot", "metaconcord", "the bot"]; // these will always count like a normal reply/ping
 const MAYBE_TRIGGER_WORDS = ["bot", "meta", "meta construct", "metaconstruct", "metastruct"]; // not directly the bot but maybe
@@ -501,40 +496,6 @@ export default async (bot: DiscordBot) => {
 			} else {
 				msg.react(getRandomEmoji()).catch(() => {});
 			}
-		}
-
-		// Pedantic reply
-		if (!replied && isChatChannel && Math.random() <= PEDANTIC_FREQ && !isBot) {
-			const delay =
-				PEDANTIC_REPLY_DELAY_MIN +
-				Math.random() * (PEDANTIC_REPLY_DELAY_MAX - PEDANTIC_REPLY_DELAY_MIN);
-			setTimeout(async () => {
-				if (replied) return;
-				try {
-					const freshMsg = await msg.fetch();
-					if (!freshMsg.content) return;
-
-					// "did you mean" check
-					const words = freshMsg.content
-						.replaceAll(`<@${DiscordConfig.bot.userId}> `, "")
-						.split(/\s+/)
-						.filter(Boolean)
-						.sort(() => Math.random() - 0.5);
-					for (const w of words) {
-						const match = await mk.findClosestWord(w);
-						if (match) {
-							freshMsg
-								.reply({
-									content: `"${match}" ☝️🤓`,
-									allowedMentions: { repliedUser: false },
-								})
-								.catch(() => {});
-							replied = true;
-							return;
-						}
-					}
-				} catch {}
-			}, delay);
 		}
 
 		// lastMessage collector
