@@ -21,7 +21,8 @@ const MIME_MAP: Record<string, string> = {
 	gif: "image/gif",
 };
 
-async function toDataUri(src: string): Promise<string | undefined> {
+async function toDataUri(src?: string): Promise<string | undefined> {
+	if (!src) return;
 	if (src.startsWith("data:")) return src;
 	let buf: Uint8Array;
 	if (src.startsWith("http")) {
@@ -37,7 +38,7 @@ async function toDataUri(src: string): Promise<string | undefined> {
 
 export async function renderPlayerListImage(
 	players: Player[],
-	mapThumbnailSrc: string
+	mapThumbnailSrc?: string
 ): Promise<Buffer> {
 	const [mapThumbnailDataUri, ...avatarDataUris] = await Promise.all([
 		toDataUri(mapThumbnailSrc),
@@ -90,7 +91,7 @@ export async function renderPlayerListImage(
 		</clipPath>
 	</defs>
 	<rect width="${width}" height="${height}" fill="#222"/>
-	<image href="${mapThumbnailDataUri}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice"/>
+	${mapThumbnailDataUri ? `<image href="${mapThumbnailDataUri}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice"/>` : ""}
 	<rect width="${width}" height="${height}" fill="rgba(0,0,0,0.85)"/>
 	${items.join("\n")}
 </svg>`;
