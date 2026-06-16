@@ -85,6 +85,7 @@ export class Starboard extends Service {
 			);
 			let title: string | undefined;
 			let shouldReact = false;
+			let countAllUsers = false;
 
 			if (emoji.name !== STARBOARD_CONFIG.DEFAULT_EMOTE) {
 				switch (parent) {
@@ -93,6 +94,7 @@ export class Starboard extends Service {
 						emojiFilter = new Set();
 						shouldReact = true;
 						needed = 6;
+						countAllUsers = true;
 						title =
 							message.channel.isThread() && message.id === message.channel.id
 								? message.channel.name
@@ -105,6 +107,7 @@ export class Starboard extends Service {
 								emojiFilter = new Set();
 								shouldReact = true;
 								needed = 6;
+								countAllUsers = true;
 								targetChannel = client.channels.cache.get(
 									discordConfig.channels.hArt
 								);
@@ -113,9 +116,23 @@ export class Starboard extends Service {
 				}
 			}
 
-			const users = await reaction.users.fetch();
-			const ego = message.author ? users.has(message.author.id) : false;
-			const count = ego ? reaction.count - 1 : reaction.count;
+			let count: number;
+			// sadly we cannot just count them all up, because only one per user is allowed
+			if (countAllUsers) {
+				const allUsers = new Set<string>();
+				for (const [, r] of message.reactions.cache) {
+					const fetchedUsers = await r.users.fetch();
+					for (const user of fetchedUsers.values()) {
+						allUsers.add(user.id);
+					}
+				}
+				if (message.author) allUsers.delete(message.author.id);
+				count = allUsers.size;
+			} else {
+				const users = await reaction.users.fetch();
+				const ego = message.author ? users.has(message.author.id) : false;
+				count = ego ? reaction.count - 1 : reaction.count;
+			}
 
 			if (
 				count >= needed &&
