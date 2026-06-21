@@ -159,7 +159,7 @@ export class Motd extends Service {
 					"Content-Type": "application/json",
 				},
 			}
-		);
+		).catch(() => {});
 		await this.setNicknameFromSentence(msg);
 		return msg;
 	}

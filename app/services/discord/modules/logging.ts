@@ -88,7 +88,7 @@ export default (bot: DiscordBot): void => {
 			embed.addFields(f("Sticker/s", msg.stickers.map(sticker => sticker.url).join("\n")));
 		}
 
-		await logChannel.send({ embeds: [embed] });
+		await logChannel.send({ embeds: [embed] }).catch(() => {});
 	});
 
 	bot.discord.on("messageUpdate", async (oldMsg, newMsg) => {
@@ -160,7 +160,7 @@ export default (bot: DiscordBot): void => {
 			);
 		}
 
-		await logChannel.send({ embeds: [embed] });
+		await logChannel.send({ embeds: [embed] }).catch(() => {});
 	});
 
 	bot.discord.on("guildMemberRemove", async user => {
@@ -177,7 +177,7 @@ export default (bot: DiscordBot): void => {
 			embed.addFields(
 				f("Member since", `<t:${user.joinedTimestamp.toString().substring(0, 10)}:D>`)
 			);
-		await logChannel.send({ embeds: [embed] });
+		await logChannel.send({ embeds: [embed] }).catch(() => {});
 	});
 
 	bot.discord.on("guildMemberAdd", async user => {
@@ -193,7 +193,7 @@ export default (bot: DiscordBot): void => {
 			.addFields(f("Mention", user.mention))
 			.setFooter({ text: "Member joined" })
 			.setTimestamp(Date.now());
-		await logChannel.send({ embeds: [embed] });
+		await logChannel.send({ embeds: [embed] }).catch(() => {});
 	});
 
 	bot.discord.on("guildAuditLogEntryCreate", async (entry, guild) => {
@@ -302,6 +302,6 @@ export default (bot: DiscordBot): void => {
 			embed.addFields(f("Extra", trimfield(extra, 1024, true)));
 		}
 
-		await logChannel.send({ embeds: [embed] });
+		await logChannel.send({ embeds: [embed] }).catch(() => {});
 	});
 };

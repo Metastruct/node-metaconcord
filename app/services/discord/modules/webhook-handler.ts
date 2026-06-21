@@ -554,7 +554,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					...messagePayload,
 					embeds: chunk,
 					components: i === embeds.length - 1 && includesLua ? [components] : undefined,
-				});
+				}).catch(log.error.bind(log));
 			}
 		} else {
 			webhook
@@ -679,8 +679,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 			flags: Discord.MessageFlags.IsComponentsV2,
 		} as Discord.MessageCreateOptions;
 
-		webhook.send(message);
-		chatWebhook.send({ ...message, withComponents: true });
+		webhook.send(message).catch(log.error.bind(log));
+		chatWebhook.send({ ...message, withComponents: true }).catch(log.error.bind(log));
 	}
 
 	GitHub.on("push", async event => {
@@ -734,7 +734,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			avatarURL: payload.sender.avatar_url,
 			components: [container],
 			flags: Discord.MessageFlags.IsComponentsV2,
-		});
+		}).catch(log.error.bind(log));
 	}
 
 	GitHub.on("pull_request", async event => {
