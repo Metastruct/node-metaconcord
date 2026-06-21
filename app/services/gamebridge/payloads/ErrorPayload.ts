@@ -71,13 +71,13 @@ export default class ErrorPayload extends Payload {
 				allowedMentions: { parse: [] },
 				content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
 				embeds: embeds,
-			});
+			}).catch(() => {});
 		} else {
 			await webhook?.send({
 				allowedMentions: { parse: [] },
 				content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
 				embeds: embeds,
-			});
+			}).catch(() => {});
 		}
 	}
 

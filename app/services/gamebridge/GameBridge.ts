@@ -262,7 +262,7 @@ export default class GameBridge extends Service {
 									),
 								],
 								flags: Discord.MessageFlags.IsComponentsV2,
-							});
+							}).catch(() => {});
 						}
 					}
 				}

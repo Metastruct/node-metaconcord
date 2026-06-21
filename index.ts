@@ -17,8 +17,7 @@ process.on("uncaughtException", err => {
 });
 
 process.on("unhandledRejection", err => {
-	logger("App").fatal(err as Error);
-	process.exit(1);
+	logger("App").error(err as Error, "Unhandled rejection, continuing...");
 });
 
 const MetaConcord = new App();
