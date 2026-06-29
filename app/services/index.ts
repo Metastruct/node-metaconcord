@@ -13,7 +13,6 @@ import ResoniteProvider, { Resonite } from "./Resonite.js";
 import SQLProvider, { SQL } from "./SQL.js";
 import StarboardProvider, { Starboard } from "./Starboard.js";
 import SteamProvider, { Steam } from "./Steam.js";
-import TenorProvider, { Tenor } from "./Tenor.js";
 import WebAppProvider, { WebApp } from "./webapp/index.js";
 
 export default [
@@ -25,7 +24,6 @@ export default [
 	GithubProvider,
 	GitlabProvider,
 	SteamProvider,
-	TenorProvider,
 	// Depend on only the above
 	MarkovProvider,
 	ResoniteProvider,
@@ -53,7 +51,6 @@ export {
 	Resonite,
 	SQL,
 	Steam,
-	Tenor,
 	WebApp,
 };
 
@@ -73,6 +70,5 @@ export type ServiceMap = {
 	SQL: SQL;
 	Starboard: Starboard;
 	Steam: Steam;
-	Tenor: Tenor;
 	WebApp: WebApp;
 };

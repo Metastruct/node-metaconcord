@@ -2,7 +2,6 @@ import * as Discord from "discord.js";
 import { AxiosResponse } from "axios";
 import { DiscordBot } from "../index.js";
 import { Markov } from "@/app/services/Markov.js";
-import { TenorResponse } from "@/app/services/Tenor.js";
 import { logger, makeSpeechBubble } from "@/utils.js";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json" with { type: "json" };
@@ -30,7 +29,6 @@ const MAYBE_TRIGGER_WORDS = ["bot", "meta", "meta construct", "metaconstruct", "
 const MAYBE_TRIGGER_FREQ = 0.4; // frequency of triggers above
 
 // shat constants
-const TENOR_IMAGE_FREQ = 0.1; // how often the image will be taken from tenor instead of local cache
 const DISCORD_IMAGE_FREQ = 0.2; // how often the bot will respond with an image instead of text
 const EMOJI_REPLY_FREQ = 0.2; // how often to reply with just an emoji
 const STICKER_FREQ = 0.02; // how often to reply with just a sticker
@@ -105,36 +103,16 @@ export const Shat = async (options?: {
 				? { files: [{ attachment: result, description: imgur.title }] }
 				: undefined;
 		} else {
-			if (rng >= TENOR_IMAGE_FREQ) {
-				try {
-					const db = globalThis.MetaConcord.container
-						.getService("SQL")
-						.getLocalDatabase();
+			try {
+				const db = globalThis.MetaConcord.container.getService("SQL").getLocalDatabase();
 
-					const url = (
-						await db.get<any>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1")
-					).url;
+				const url = (
+					await db.get<any>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1")
+				).url;
 
-					return { content: url ?? "wtf" };
-				} catch {
-					return { content: "wtf" };
-				}
-			} else {
-				let res: AxiosResponse<TenorResponse>;
-				try {
-					res = await globalThis.MetaConcord.container
-						.getService("Tenor")
-						.search(word ?? "random", 4);
-				} catch {
-					return {
-						content: await markov?.generate(), // fallback to msg if tenor failed
-					};
-				}
-				return {
-					content:
-						res.data.results[(Math.random() * res.data.results.length) | 0].url ??
-						"wtf tenor error",
-				};
+				return { content: url ?? "wtf" };
+			} catch {
+				return { content: "wtf" };
 			}
 		}
 	}
