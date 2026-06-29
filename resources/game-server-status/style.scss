@@ -1,12 +1,13 @@
 @import "_whitney.scss";
 
 $link: #2a77be;
-$link-banned: #FF0000;
+$link-banned: #ff0000;
 
 * {
 	box-sizing: border-box;
 }
-html, body {
+html,
+body {
 	height: 100%;
 	padding: 0;
 	margin: 0;

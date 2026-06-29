@@ -1,12 +1,12 @@
 import { DiscordClient } from "./discord/index.js";
-import { ErrorPayload } from "./payloads/index.js";
+import { ErrorPayload, Payload } from "./payloads/index.js";
 import {
 	IUtf8Message,
 	connection as WebSocketConnection,
 	request as WebSocketRequest,
 } from "websocket";
 import { NodeSSH, SSHExecOptions } from "node-ssh";
-import { RconResponse } from "./payloads/structures/index.js";
+import { PayloadRequest, RconResponse } from "./payloads/structures/index.js";
 import GameBridge from "./GameBridge.js";
 import sshConfig from "@/config/ssh.json" with { type: "json" };
 import { logger } from "@/utils.js";
@@ -93,9 +93,9 @@ export default class GameServer {
 			// if (received.utf8Data == "") console.log("Heartbeat");
 			if (!msg || msg.utf8Data == "") return;
 
-			let data: any;
+			let data: PayloadRequest;
 			try {
-				data = JSON.parse(msg.utf8Data);
+				data = JSON.parse(msg.utf8Data) as PayloadRequest;
 				if (!data.name || !data.data) throw new Error("Malformed payload");
 			} catch ({ message }) {
 				return ErrorPayload.send(
@@ -109,7 +109,7 @@ export default class GameServer {
 			try {
 				for (const [name, payload] of Object.entries(config.bridge.payloads)) {
 					if (data.name === name) {
-						return payload.handle(data, this);
+						return (payload.handle as (typeof Payload)["handle"])(data, this);
 					}
 				}
 			} catch (err) {

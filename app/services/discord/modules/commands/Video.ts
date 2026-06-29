@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
 import { spawn } from "child_process";
@@ -79,7 +80,7 @@ async function getVideoInfo(input: string): Promise<VideoInfo> {
 		input,
 	]);
 	const data = JSON.parse(raw);
-	const vs = data.streams.find((s: any) => s.codec_type === "video");
+	const vs = data.streams.find((s: any): boolean => s.codec_type === "video");
 	const as = data.streams.find((s: any) => s.codec_type === "audio");
 	let fps = 30;
 	if (vs?.r_frame_rate) {
@@ -235,7 +236,9 @@ function buildFreezeFilter(
 
 	if (info.hasAudio) {
 		if (silence) {
-			f.push(`aevalsrc=0:s=${info.sampleRate}:c=${info.channels}:d=${freezeDuration}[freeze_a]`);
+			f.push(
+				`aevalsrc=0:s=${info.sampleRate}:c=${info.channels}:d=${freezeDuration}[freeze_a]`
+			);
 		} else {
 			const sampleDuration = Math.min(0.05, info.duration * 0.5);
 			const audioAt = Math.min(at, Math.max(0, info.duration - sampleDuration));
@@ -243,7 +246,9 @@ function buildFreezeFilter(
 			const freezeAudioSamples = Math.ceil(sampleDuration * info.sampleRate);
 			f.push(`[0:a]atrim=start=${audioAt}:duration=${sampleDuration}[freeze_audio_raw]`);
 			if (freezeAudioLoops > 0) {
-				f.push(`[freeze_audio_raw]aloop=${freezeAudioLoops}:${freezeAudioSamples}:0[freeze_a]`);
+				f.push(
+					`[freeze_audio_raw]aloop=${freezeAudioLoops}:${freezeAudioSamples}:0[freeze_a]`
+				);
 			} else {
 				f.push(`[freeze_audio_raw]asetpts=PTS[freeze_a]`);
 			}

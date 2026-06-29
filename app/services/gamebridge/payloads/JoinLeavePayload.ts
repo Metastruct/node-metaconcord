@@ -21,9 +21,7 @@ export default class JoinLeavePayload extends Payload {
 		const relayChannel = guild.channels.cache.get(bridge.config.relayChannelId);
 		if (!relayChannel) return;
 
-		const avatar = await (
-			bridge.container.getService("Steam")
-		).getUserAvatar(player.steamId64);
+		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
 				name: `${player.nick} has ${spawned ? "spawned" : "left"}`,

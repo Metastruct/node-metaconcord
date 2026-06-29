@@ -134,7 +134,7 @@ const uploadIcon = async (ctx: Discord.ChatInputCommandInteraction, role: Discor
 				.get(reqURL, { responseType: "arraybuffer" })
 				.then(response => Buffer.from(response.data));
 			await role.setIcon(data);
-		} catch (err) {
+		} catch {
 			await ctx.followUp(
 				EphemeralResponse(
 					`could not set role icon :( ${
@@ -154,7 +154,7 @@ const setEmoji = async (
 	ctx: Discord.ChatInputCommandInteraction,
 	emoji: string,
 	role: Discord.Role
-): Promise<any> => {
+): Promise<void> => {
 	const unicode = emoji.match(
 		/^(?:\p{RI}\p{RI}|\p{Extended_Pictographic}(?:\uFE0F)?|\p{Emoji_Modifier_Base}\p{Emoji_Modifier})(?:\u200d(?:\p{RI}\p{RI}|\p{Extended_Pictographic}(?:\uFE0F)?|\p{Emoji_Modifier_Base}\p{Emoji_Modifier}))*$/u
 	);
@@ -190,7 +190,7 @@ const setEmoji = async (
 	await ctx.followUp(EphemeralResponse("that doesn't seem to be a vaild emoji 🤔"));
 };
 
-const removeRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> => {
+const removeRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<void> => {
 	const role = (ctx.member as Discord.GuildMember).getCustomRole;
 	const member = ctx.member as Discord.GuildMember;
 	if (role && member) {
@@ -199,12 +199,14 @@ const removeRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any
 			await role.delete("Role has no members anymore");
 		}
 	}
-	role
-		? await ctx.followUp(EphemeralResponse("👍"))
-		: await ctx.followUp(EphemeralResponse("You don't have a custom role..."));
+	if (role) {
+		await ctx.followUp(EphemeralResponse("👍"));
+	} else {
+		await ctx.followUp(EphemeralResponse("You don't have a custom role..."));
+	}
 };
 
-const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<any> => {
+const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<void> => {
 	let roleName = ctx.options.getString("name")?.trim() ?? ctx.user.displayName;
 	roleName = roleName.substring(0, 1) + ROLE_IDENTIFIER + roleName.substring(1);
 	const hex = ctx.options.getString("hex")?.trim();

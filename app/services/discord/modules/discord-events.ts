@@ -62,9 +62,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 			triggers: ["ttt"],
 			nicks: ["terror", "detective", "innocent", "trouble", "clue", "banana"],
 			execute: async () =>
-				(bot.container.getService("GameBridge")).servers[4]?.sendLua(
-					`local request = require("gm_request") if request and not request:IsServerGamemode(3,"terrortown") then request:SwitchGamemodeAsync("terrortown",print) end`
-				),
+				bot.container
+					.getService("GameBridge")
+					.servers[4]?.sendLua(
+						`local request = require("gm_request") if request and not request:IsServerGamemode(3,"terrortown") then request:SwitchGamemodeAsync("terrortown",print) end`
+					),
 		},
 		{
 			icon: "ss13",

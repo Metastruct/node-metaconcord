@@ -206,8 +206,10 @@ export const SlashRuleCommand: SlashCommand = {
 			switch (ctx.options.getSubcommand(true)) {
 				case "add":
 					await addRule(ctx, bot);
+					break;
 				case "remove":
 					await removeRule(ctx, bot);
+					break;
 				case "edit":
 					await editRule(ctx, bot);
 			}

@@ -30,7 +30,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		if (addedPermaRoles.size === 0 && removedPermaRoles.size === 0) return;
 
 		// update discord metadata
-		(bot.container.getService("DiscordMetadata")).update(updated.user.id);
+		bot.container.getService("DiscordMetadata").update(updated.user.id);
 
 		const auditLogs = await updated.guild.fetchAuditLogs({
 			type: Discord.AuditLogEvent.MemberRoleUpdate,

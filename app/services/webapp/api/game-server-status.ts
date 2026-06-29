@@ -3,8 +3,8 @@ import GameServer from "@/app/services/gamebridge/GameServer.js";
 import { renderPlayerListImage } from "@/app/services/gamebridge/renderPlayerList.js";
 import path from "path";
 import pug from "pug";
-import { access, mkdir, readFile, writeFile } from "fs/promises";
-import { constants as fs_constants } from "fs";
+import { access, FileHandle, mkdir, readFile, writeFile } from "fs/promises";
+import { constants as fs_constants, PathLike } from "fs";
 import mime from "mime";
 import { logger } from "@/utils.js";
 
@@ -12,8 +12,8 @@ const log = logger(import.meta);
 
 const cacheFolder = path.join(process.cwd(), "cache", "map-thumbnails");
 
-const imageToDataURL = async filePath => {
-	const mimeType = mime.getType(filePath);
+const imageToDataURL = async (filePath: PathLike | FileHandle) => {
+	const mimeType = mime.getType(filePath as string);
 	if (!mimeType) throw new Error("No MIME type from path?");
 
 	const base64 = await readFile(filePath, { encoding: "base64" });
@@ -78,7 +78,7 @@ export default async (webApp: WebApp): Promise<void> => {
 						const buffer = new Uint8Array(Buffer.from(arrayBuffer));
 						await writeFile(thumbFilepath, buffer);
 					}
-				} catch (err) {}
+				} catch {}
 			}
 		} else {
 			thumbFilepath = mapThumbnail as string;
@@ -98,7 +98,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			try {
 				server.playerListImage = await renderPlayerListImage(
 					server.status.players,
-					mapThumbnail64,
+					mapThumbnail64
 				);
 
 				res.set({

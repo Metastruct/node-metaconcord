@@ -92,7 +92,10 @@ export class DiscordBot extends Service {
 			} catch (err) {
 				attempts++;
 				const delay = Math.min(5000 * 2 ** (attempts - 1), 120_000);
-				log.error({ err, attempt: attempts }, `Discord login failed, retrying in ${delay}ms`);
+				log.error(
+					{ err, attempt: attempts },
+					`Discord login failed, retrying in ${delay}ms`
+				);
 				await sleep(delay);
 			}
 		}
@@ -231,8 +234,8 @@ export class DiscordBot extends Service {
 		if (!perms.has("SendMessages", false)) return; // don't get text from channels that are not "public"
 
 		const content = msg.content;
-		if ((this.container.getService("Motd")).isValidMsg(content))
-			(this.container.getService("Markov")).learn(msg.content);
+		if (this.container.getService("Motd").isValidMsg(content))
+			this.container.getService("Markov").learn(msg.content);
 	}
 
 	async fixEmbeds(msg: Discord.Message): Promise<void> {
@@ -248,7 +251,7 @@ export class DiscordBot extends Service {
 		if (imgurUrls) {
 			for (const imageUrl of imgurUrls) {
 				const id = Array.from(imageUrl.matchAll(ImgurRegex), m => m[1])[0]; // wtf there has to be a better way
-				const info = await (this.container.getService("Motd")).getImageInfo(id);
+				const info = await this.container.getService("Motd").getImageInfo(id);
 				if (info?.has_sound) {
 					urls.push(imageUrl.replace(/(?:i\.)?imgur\.com/g, "i.imgur.io"));
 				}
@@ -299,11 +302,11 @@ export class DiscordBot extends Service {
 		await (await chan.lastMessage.fetch(false)).reactions.removeAll();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async fetchPartial(obj): Promise<any> {
 		try {
 			return obj.partial ? await obj.fetch() : obj;
-		} catch (e) {
+		} catch {
 			return obj;
 		}
 	}

@@ -79,7 +79,7 @@ export default class UnbanPayload extends Payload {
 				`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
 			)
 		);
-		embed.setThumbnail(bannedAvatar);
+		embed.setThumbnail(bannedAvatar ?? null);
 		embed.setColor("Green");
 		await (notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
 		await (guild.channels.cache.get(bridge.config.relayChannelId) as Discord.TextChannel).send({

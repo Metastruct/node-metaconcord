@@ -102,8 +102,6 @@ const getGitlabDiff = async (id: string, sha: string) => {
 	return res.json() as Promise<CommitDiffSchema[]>;
 };
 
-const FIELD_REGEX = /^(?:Add|Mod|Del) \[(.+)\]/g;
-
 const SERVER_EMOJI_MAP = {
 	"1": "1️⃣",
 	"2": "2️⃣",
@@ -226,7 +224,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						log.error(err);
 					});
 				break;
-			case "everything":
+			case "everything": {
 				const msg = ctx.message;
 				const url = msg.embeds[msg.embeds.length - 1].url;
 				if (!url) {
@@ -354,6 +352,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						log.error(err);
 					});
 				break;
+			}
 		}
 	});
 
@@ -550,11 +549,14 @@ export default async (bot: DiscordBot): Promise<void> => {
 		if (embeds.length > 1) {
 			for (let i = 0; i < embeds.length; i++) {
 				const chunk = embeds.slice(i, i + 1);
-				webhook.send({
-					...messagePayload,
-					embeds: chunk,
-					components: i === embeds.length - 1 && includesLua ? [components] : undefined,
-				}).catch(log.error.bind(log));
+				webhook
+					.send({
+						...messagePayload,
+						embeds: chunk,
+						components:
+							i === embeds.length - 1 && includesLua ? [components] : undefined,
+					})
+					.catch(log.error.bind(log));
 			}
 		} else {
 			webhook
@@ -729,12 +731,14 @@ export default async (bot: DiscordBot): Promise<void> => {
 			)
 		);
 
-		webhook.send({
-			username: payload.sender.name ?? payload.sender.login ?? "unknown",
-			avatarURL: payload.sender.avatar_url,
-			components: [container],
-			flags: Discord.MessageFlags.IsComponentsV2,
-		}).catch(log.error.bind(log));
+		webhook
+			.send({
+				username: payload.sender.name ?? payload.sender.login ?? "unknown",
+				avatarURL: payload.sender.avatar_url,
+				components: [container],
+				flags: Discord.MessageFlags.IsComponentsV2,
+			})
+			.catch(log.error.bind(log));
 	}
 
 	GitHub.on("pull_request", async event => {
@@ -760,7 +764,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		let title: string | undefined;
 		let description: string | undefined;
 		let timestamp: string | undefined = new Date().toISOString();
-		let thumbnail: Discord.APIEmbedThumbnail | undefined;
+		let thumbnail: Discord.APIEmbedImage | undefined;
 
 		switch (payload.action) {
 			case "member_invited":
@@ -871,14 +875,16 @@ export default async (bot: DiscordBot): Promise<void> => {
 			case "created":
 				title = "team created";
 				description = `[${payload.sender?.login}](${payload.sender?.html_url}) created [${payload.team.name}](${payload.team.html_url})`;
+				break;
 			case "deleted":
 				title = "team deleted";
 				description = `[${payload.sender?.login}](${payload.sender?.html_url}) deleted [${payload.team.name}](${payload.team.html_url})`;
+				break;
 			case "edited":
 				title = "team edited";
 				description = `[${payload.sender?.login}](${payload.sender?.html_url}) edited [${payload.team.name}](${payload.team.html_url})`;
+				break;
 			default:
-				title = `unknown team action (${event.payload.action}) ???`;
 				break;
 		}
 

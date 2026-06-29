@@ -1,5 +1,4 @@
 import * as Discord from "discord.js";
-import { AxiosResponse } from "axios";
 import { DiscordBot } from "../index.js";
 import { Markov } from "@/app/services/Markov.js";
 import { logger, makeSpeechBubble } from "@/utils.js";
@@ -106,9 +105,8 @@ export const Shat = async (options?: {
 			try {
 				const db = globalThis.MetaConcord.container.getService("SQL").getLocalDatabase();
 
-				const url = (
-					await db.get<any>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1")
-				).url;
+				const url = (await db.get("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1"))
+					.url;
 
 				return { content: url ?? "wtf" };
 			} catch {

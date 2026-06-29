@@ -2,7 +2,6 @@ import { Container } from "./Container.js";
 import providers from "./services/index.js";
 
 declare global {
-	// eslint-disable-next-line no-var
 	var MetaConcord: {
 		container: Container;
 	};

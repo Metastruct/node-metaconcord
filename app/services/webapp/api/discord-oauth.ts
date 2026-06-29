@@ -53,7 +53,7 @@ const basicAuth =
 		"base64"
 	);
 
-export const getOAuthTokens = async (code: any) => {
+export const getOAuthTokens = async (code: string) => {
 	const res = await fetch("https://discord.com/api/v10/oauth2/token", {
 		method: "POST",
 		headers: { Authorization: basicAuth },
@@ -197,7 +197,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				res.sendStatus(403);
 				return;
 			}
-			const tokens = await getOAuthTokens(code);
+			const tokens = await getOAuthTokens(code as string);
 			if (!tokens) {
 				res.sendStatus(500);
 				return;

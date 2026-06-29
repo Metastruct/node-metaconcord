@@ -24,9 +24,7 @@ export default class BanPayload extends Payload {
 		const notificationsChannel = guild.channels.cache.get(bridge.config.banUnbanChannelId);
 		if (!notificationsChannel) return;
 
-		const pastBans = await (
-			bridge.container.getService("Bans")
-		).getBan(banned.steamId, true);
+		const pastBans = await bridge.container.getService("Bans").getBan(banned.steamId, true);
 
 		const steam = bridge.container.getService("Steam");
 		let steamId64 = "";
@@ -87,7 +85,7 @@ export default class BanPayload extends Payload {
 			)
 		);
 
-		embed.setThumbnail(bannedAvatar);
+		embed.setThumbnail(bannedAvatar ?? null);
 		embed.setColor(0xc42144);
 		await (notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
 		await (guild.channels.cache.get(bridge.config.relayChannelId) as Discord.TextChannel).send({

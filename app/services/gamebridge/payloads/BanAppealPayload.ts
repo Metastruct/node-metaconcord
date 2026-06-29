@@ -25,11 +25,10 @@ export default class BanAppealPayload extends Payload {
 		if (!notificationsChannel) return;
 
 		const steam = bridge.container.getService("Steam");
-		let steamId64 = "";
 		let bannerName = "";
 		let avatar = "";
 		try {
-			steamId64 = new SteamID(player.steamId).getSteamID64();
+			const steamId64 = new SteamID(player.steamId).getSteamID64();
 			const summary: PlayerSummary | undefined = await steam.getUserSummaries(steamId64);
 			if (summary) {
 				bannerName = summary.personaname;

@@ -1,6 +1,6 @@
 import { APIEmbed } from "discord.js";
 import { ErrorRequest, ErrorResponse } from "./structures/index.js";
-import { GMOD_PATH_MATCH, getOrFetchGmodFile, matchGmodPath } from "@/utils.js";
+import { getOrFetchGmodFile, matchGmodPath } from "@/utils.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
 import dayjs from "dayjs";
@@ -34,7 +34,6 @@ export default class ErrorPayload extends Payload {
 			? await getOrFetchGmodFile(path + ":" + linenr)
 			: await getOrFetchGmodFile(lines.find(l => matchGmodPath(l.split(":")[0]).addon));
 		const stack = lines.splice(2).map((l, i) => `${i + 1}. ${l}`);
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const embeds: APIEmbed[] = [];
 		const embed = {
 			title: hook_error.name,
@@ -67,17 +66,21 @@ export default class ErrorPayload extends Payload {
 		}
 		this.lastError = hook_error;
 		if (gpath.addon === "pac3") {
-			await pacWebhook?.send({
-				allowedMentions: { parse: [] },
-				content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
-				embeds: embeds,
-			}).catch(() => {});
+			await pacWebhook
+				?.send({
+					allowedMentions: { parse: [] },
+					content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
+					embeds: embeds,
+				})
+				.catch(() => {});
 		} else {
-			await webhook?.send({
-				allowedMentions: { parse: [] },
-				content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
-				embeds: embeds,
-			}).catch(() => {});
+			await webhook
+				?.send({
+					allowedMentions: { parse: [] },
+					content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
+					embeds: embeds,
+				})
+				.catch(() => {});
 		}
 	}
 

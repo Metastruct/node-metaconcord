@@ -38,6 +38,7 @@ export class IRC extends Service {
 		url: `https://discord.com/api/v10/webhooks/${config.webhookId}/${config.webhookToken}`,
 	});
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	private async relayDiscord(nick: string, text: string, message: message) {
 		if (nick.match(/meta\d/)) return;
 		text = text === "" ? "<empty>" : text;

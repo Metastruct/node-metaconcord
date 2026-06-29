@@ -25,7 +25,7 @@ export const SlashManageMediaLinks: SlashCommand = {
 	execute: async (ctx, bot) => {
 		const cmd = ctx.options.getSubcommand();
 		switch (cmd) {
-			case "remove":
+			case "remove": {
 				const url = ctx.options.getString("url", true);
 				await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
 				const db = bot.container.getService("SQL").getLocalDatabase();
@@ -42,6 +42,7 @@ export const SlashManageMediaLinks: SlashCommand = {
 					)
 				);
 				break;
+			}
 			default:
 				break;
 		}
