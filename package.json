@@ -5,7 +5,7 @@
 	"description": "metaluvit but typescript",
 	"exports": "./index.ts",
 	"engines": {
-		"node": ">=18.0.0"
+		"node": ">=22.0.0"
 	},
 	"repository": "git@github.com:metastruct/metaconcord",
 	"author": "marceau-maubert <marceau.maubert2@gmail.com>",
@@ -68,7 +68,7 @@
 		"@types/diff": "^7.0.2",
 		"@types/express": "^5.0.1",
 		"@types/jsonwebtoken": "^8.5.1",
-		"@types/node": "^20.15.0",
+		"@types/node": "^22.0.0",
 		"@types/node-schedule": "^2.1.0",
 		"@types/pg": "^8.6.5",
 		"@types/pug": "^2.0.4",
