@@ -4061,7 +4061,7 @@ __metadata:
     prettier: "npm:^3.9.3"
     prettier-eslint: "npm:^17.1.1"
     pug: "npm:^3.0.2"
-    qs: "npm:^6.11.0"
+    qs: "npm:^6.15.2"
     sass: "npm:^1.30.0"
     sqlite: "npm:^5.1.1"
     sqlite3: "npm:^6.0.1"
@@ -5189,7 +5189,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:^6.11.0, qs@npm:^6.14.0":
+"qs@npm:^6.14.0":
   version: 6.14.0
   resolution: "qs@npm:6.14.0"
   dependencies:
