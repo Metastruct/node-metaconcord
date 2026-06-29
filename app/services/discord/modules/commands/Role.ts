@@ -121,12 +121,11 @@ const uploadIcon = async (ctx: Discord.ChatInputCommandInteraction, role: Discor
 	if (reqURL) {
 		try {
 			const head = await axios.head(reqURL);
-			if (!IMG_TYPES.includes(head.headers["content-type"])) {
+			const type = head.headers["content-type"]?.toString();
+			if (!type || !IMG_TYPES.includes(type)) {
 				await ctx.followUp(
 					EphemeralResponse(
-						`invalid image type \`${
-							head.headers["content-type"]
-						}\`\nOnly \`${IMG_TYPES.join(", ")}\` are supported, sorry.`
+						`invalid image type \`${type}\`\nOnly \`${IMG_TYPES.join(", ")}\` are supported, sorry.`
 					)
 				);
 				return;
