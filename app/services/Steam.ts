@@ -115,7 +115,7 @@ export class Steam extends Service {
 					}
 				}
 				userCache.summary = summary;
-			} catch (err) {
+			} catch {
 				// do nothing
 			}
 		}
@@ -140,7 +140,7 @@ export class Steam extends Service {
 		).data?.response;
 	}
 
-	async getUserAvatar(steamId64: string): Promise<any> {
+	async getUserAvatar(steamId64: string): Promise<string | undefined> {
 		return (await this.getUserSummaries(steamId64).catch(() => {}))?.avatarfull;
 	}
 

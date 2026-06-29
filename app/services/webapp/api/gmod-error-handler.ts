@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { AddonURIS, getOrFetchGmodFile, matchGmodPath, logger } from "@/utils.js";
+import { AddonURIS, getOrFetchGmodFile, logger } from "@/utils.js";
 import { WebApp } from "@/app/services/webapp/index.js";
 import GameServer, { Player } from "@/app/services/gamebridge/GameServer.js";
 import SteamID from "steamid";
@@ -46,11 +46,11 @@ type StackMatchGroups = {
 const megaRex =
 	/(?<stacknr>\d+)\. (?<fn>\S+) - (?<runnables>RunString|LuaCmd|LUACMD)?(\[(?<steamid>STEAM_\d:\d:\d+)\](?<steamnick>.+))?(<(?<partialsteamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<fpath>(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lineno>-?\d+))/g;
 
-const SuperReplacer = (_: string, ...args: any[]) => {
+const SuperReplacer = (_: string, ...args: unknown[]) => {
 	const groups = args.at(-1) as StackMatchGroups;
 	return `${groups.stacknr}. ${groups.fn} - ${
 		groups.steamid
-			? `\[[${groups.steamid}\]${
+			? `[[${groups.steamid}]${
 					groups.steamnick
 				}](http://steamcommunity.com/profiles/${new SteamID(groups.steamid).getSteamID64()})`
 			: groups.partialsteamid

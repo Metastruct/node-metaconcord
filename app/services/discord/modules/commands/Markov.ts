@@ -70,22 +70,22 @@ export const SlashMarkovCommand: SlashCommand = {
 		let res: string | undefined = undefined;
 		switch (cmd) {
 			case "generate":
-				res = await (
-					bot.container.getService("Markov")
-				).generate(ctx.options.getString("sentence") ?? undefined, {
-					depth: ctx.options.getInteger("insanity") ?? undefined,
-					length: ctx.options.getInteger("length") ?? undefined,
-					continuation: ctx.options.getBoolean("continuation") ?? undefined,
-				});
+				res = await bot.container
+					.getService("Markov")
+					.generate(ctx.options.getString("sentence") ?? undefined, {
+						depth: ctx.options.getInteger("insanity") ?? undefined,
+						length: ctx.options.getInteger("length") ?? undefined,
+						continuation: ctx.options.getBoolean("continuation") ?? undefined,
+					});
 				break;
 			case "similar":
 				res =
-					(await (
-						bot.container.getService("Markov")
-					).findClosestWord(
-						ctx.options.getString("word", true),
-						ctx.options.getInteger("distance") ?? 1
-					)) ?? undefined;
+					(await bot.container
+						.getService("Markov")
+						.findClosestWord(
+							ctx.options.getString("word", true),
+							ctx.options.getInteger("distance") ?? 1
+						)) ?? undefined;
 				break;
 			default:
 				break;

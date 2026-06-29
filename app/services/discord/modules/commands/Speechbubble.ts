@@ -65,7 +65,7 @@ export const SlashSpeechbubbleCommand: SlashCommand = {
 		try {
 			const attachment = image;
 			const buffer = await makeSpeechBubble(
-				link ? link : attachment?.url ?? "",
+				link ? link : (attachment?.url ?? ""),
 				ctx.options.getInteger("direction") === 1 ? true : false,
 				<string>ctx.options.getString("fill_color"),
 				<string>ctx.options.getString("line_color"),
@@ -78,20 +78,4 @@ export const SlashSpeechbubbleCommand: SlashCommand = {
 			await ctx.followUp(EphemeralResponse(`something went wrong! (${err})`));
 		}
 	},
-};
-
-const getLink = (msg: Discord.Message) => {
-	const sticker = msg.stickers.first();
-
-	return sticker
-		? sticker.format < 3
-			? `https://cdn.discordapp.com/stickers/${sticker.id}.png`
-			: sticker.format === 4
-			? `https://cdn.discordapp.com/stickers/${sticker.id}.gif`
-			: undefined
-		: msg.content.match(/^https?:\/\/.+\..+$/g)
-		? msg.content
-		: msg.attachments.size > 0
-		? msg.attachments.first()?.url
-		: undefined;
 };

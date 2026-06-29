@@ -70,13 +70,14 @@ export const SlashSQLCommand: SlashCommand = {
 					break;
 				}
 				case "metastruct":
-				default:
+				default: {
 					await ctx.deferReply();
 					const res = await sql.queryPool(query);
 					const file = makeFile(res);
 					await ctx.followUp(file);
 
 					break;
+				}
 			}
 		} catch (err) {
 			if (ctx.deferred) {

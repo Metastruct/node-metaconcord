@@ -13,7 +13,8 @@ const baseLogger = pino();
 export const logger = (meta: ImportMeta | string) =>
 	baseLogger.child({ file: typeof meta === "string" ? meta : path.basename(meta.filename) });
 
-export const sleep = (ms: number): Promise<any> => new Promise(resolve => setTimeout(resolve, ms));
+export const sleep = (ms: number): Promise<unknown> =>
+	new Promise(resolve => setTimeout(resolve, ms));
 
 export const clamp = (input: number, min: number, max: number): number =>
 	input <= min ? min : input >= max ? max : input;
@@ -86,7 +87,7 @@ export const getAsBase64 = async (url: string): Promise<string | null> => {
 		const base64 = Buffer.from(res.data, "binary").toString("base64");
 
 		return `data:${contentType};base64,${base64}`;
-	} catch (error) {
+	} catch {
 		return null;
 	}
 };
@@ -127,7 +128,7 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 		const url: string | undefined = gpath.addon ? AddonURIS[gpath.addon] : undefined;
 
 		if (url) {
-			const provider = url.match(/([^\.\/]+)\.com/);
+			const provider = url.match(/([^./]+)\.com/);
 			if (!provider) return;
 			const isGithub = provider[1] === "github";
 			const gitlabEndpoint = "https://gitlab.com/api/graphql";
@@ -162,7 +163,7 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 					}
 				} else {
 					const query = gql`{
-		project(fullPath:"${url.match(/\.com\/(.+?)\/\-/)?.[1]}") {
+		project(fullPath:"${url.match(/\.com\/(.+?)\/-/)?.[1]}") {
 			repository {
 				blobs(paths:"${gpath.fpath}"){
 					nodes{rawTextBlob}

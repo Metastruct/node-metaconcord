@@ -28,24 +28,23 @@ export type ApplicationRoleConnectionObject = {
 	metadata: MetaMetadata;
 };
 
-enum ApplicationRoleConnectionMetadataType {
-	INTEGER_LESS_THAN_OR_EQUAL = 1,
-	INTEGER_GREATER_THAN_OR_EQUAL,
-	INTEGER_EQUAL,
-	INTEGER_NOT_EQUAL,
-	DATETIME_LESS_THAN_OR_EQUAL,
-	DATETIME_GREATER_THAN_OR_EQUAL,
-	BOOLEAN_EQUAL,
-	BOOLEAN_NOT_EQUAL,
-}
 // for refrence
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type ApplicationRoleConnectionMetadata = {
-	type: ApplicationRoleConnectionMetadataType;
-	key: string;
-	name: string;
-	description: string;
-};
+//enum ApplicationRoleConnectionMetadataType {
+//	INTEGER_LESS_THAN_OR_EQUAL = 1,
+//	INTEGER_GREATER_THAN_OR_EQUAL,
+//	INTEGER_EQUAL,
+//	INTEGER_NOT_EQUAL,
+//	DATETIME_LESS_THAN_OR_EQUAL,
+//	DATETIME_GREATER_THAN_OR_EQUAL,
+//	BOOLEAN_EQUAL,
+//	BOOLEAN_NOT_EQUAL,
+//}
+//type ApplicationRoleConnectionMetadata = {
+//	type: ApplicationRoleConnectionMetadataType;
+//	key: string;
+//	name: string;
+//	description: string;
+//};
 
 type LocalDatabaseEntry = {
 	user_id: string;
@@ -89,7 +88,11 @@ export class DiscordMetadata extends Service {
 		const res = await fetch("https://discord.com/api/v10/oauth2/token", {
 			method: "POST",
 			headers: {
-				Authorization: "Basic " + Buffer.from(this.bot.config.bot.applicationId + ":" + this.bot.config.bot.clientSecret).toString("base64"),
+				Authorization:
+					"Basic " +
+					Buffer.from(
+						this.bot.config.bot.applicationId + ":" + this.bot.config.bot.clientSecret
+					).toString("base64"),
 			},
 			body: new URLSearchParams({
 				grant_type: "refresh_token",
@@ -101,7 +104,7 @@ export class DiscordMetadata extends Service {
 		if (!res) return;
 
 		if (!res.ok) {
-			const body = await res.json().catch(() => ({})) as Record<string, unknown>;
+			const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
 			if (body?.error === "invalid_grant") {
 				await revokeOAuthToken(data.access_token);
 				log.warn(body, `InValID_GraNT revoking token! ${userId}`);
@@ -144,7 +147,7 @@ export class DiscordMetadata extends Service {
 			return;
 		}
 
-		this.ARCOCache[userId] = await res.json() as ApplicationRoleConnectionObject;
+		this.ARCOCache[userId] = (await res.json()) as ApplicationRoleConnectionObject;
 		return this.ARCOCache[userId];
 	}
 

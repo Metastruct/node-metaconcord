@@ -9,7 +9,7 @@ const YELLOW_COLOR = Discord.Colors.Yellow;
 const GREEN_COLOR = Discord.Colors.Green;
 
 const DEFAULT_INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 1 };
-const format = (input: any, options?: InspectOptions) =>
+const format = (input: unknown, options?: InspectOptions) =>
 	inspect(input, options ?? DEFAULT_INSPECT_OPTIONS).replaceAll("```", "​`​`​`");
 
 const trimfield = (input: string, limit: number, isCodeBlock: boolean) =>
@@ -259,7 +259,7 @@ export default (bot: DiscordBot): void => {
 						)
 					);
 					break;
-				case "Update":
+				case "Update": {
 					const changes = entry.changes
 						.map(change => {
 							let changef = `${change.key}: `;
@@ -294,6 +294,7 @@ export default (bot: DiscordBot): void => {
 						.join("\n");
 					embed.addFields(f("Changes", trimfield("```ansi\n" + changes, 1024, true)));
 					break;
+				}
 			}
 		}
 

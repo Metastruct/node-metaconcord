@@ -107,7 +107,7 @@ export default class VoteKickPayload extends Payload {
 					`[${offenderSteamId64}](https://steamcommunity.com/profiles/${offenderSteamId64}) (${offender.steamID})`
 				)
 			)
-			.setThumbnail(offenderAvatar)
+			.setThumbnail(offenderAvatar ?? null)
 			.setColor(0xc4af21);
 
 		if (offenderSteamId64 !== "BOT") {

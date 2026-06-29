@@ -236,7 +236,7 @@ export default class GameBridge extends Service {
 
 						server.playerListImage = await renderPlayerListImage(
 							server.status.players,
-							mapThumbnail,
+							mapThumbnail
 						);
 
 						const messages = await channel.messages.fetch();
@@ -254,15 +254,17 @@ export default class GameBridge extends Service {
 								flags: Discord.MessageFlags.IsComponentsV2,
 							});
 						} else {
-							channel.send({
-								components: [container],
-								files: [
-									new Discord.AttachmentBuilder(server.playerListImage).setName(
-										"players.png"
-									),
-								],
-								flags: Discord.MessageFlags.IsComponentsV2,
-							}).catch(() => {});
+							channel
+								.send({
+									components: [container],
+									files: [
+										new Discord.AttachmentBuilder(
+											server.playerListImage
+										).setName("players.png"),
+									],
+									flags: Discord.MessageFlags.IsComponentsV2,
+								})
+								.catch(() => {});
 						}
 					}
 				}

@@ -1,4 +1,3 @@
-import * as Discord from "discord.js";
 import { SlashCommand } from "@/extensions/discord.js";
 import { endEvent } from "@/app/services/discord/modules/discord-events.js";
 

@@ -35,7 +35,7 @@ type ImgurImage = {
 };
 
 type ImgurResponse = {
-	data: any;
+	data: ImgurImage;
 	success: boolean;
 	status: number;
 };
@@ -147,19 +147,21 @@ export class Motd extends Service {
 		data.lastMotd = msg;
 		data.save();
 
-		await axios.post(
-			config.webhook + "?wait=true",
-			JSON.stringify({
-				content: msg,
-				username: "Meta Construct",
-				avatar_url: "https://pbs.twimg.com/profile_images/1503242277/meta4_crop.png",
-			}),
-			{
-				headers: {
-					"Content-Type": "application/json",
-				},
-			}
-		).catch(() => {});
+		await axios
+			.post(
+				config.webhook + "?wait=true",
+				JSON.stringify({
+					content: msg,
+					username: "Meta Construct",
+					avatar_url: "https://pbs.twimg.com/profile_images/1503242277/meta4_crop.png",
+				}),
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+				}
+			)
+			.catch(() => {});
 		await this.setNicknameFromSentence(msg);
 		return msg;
 	}
@@ -174,18 +176,17 @@ export class Motd extends Service {
 			if (res.data.status === 200) {
 				return res.data.data;
 			}
-		} catch { }
+		} catch {}
 	}
 
 	async setNicknameFromSentence(motd: string): Promise<boolean | undefined> {
 		if (motd.length === 0) return;
-		let nick = "Meta";
 		const wordList = motd
 			.split(" ")
 			.filter(w => w.length <= 22 && !filter.includes(w.toLowerCase()));
 		if (wordList.length === 0) return;
 		const word = wordList[(Math.random() * wordList?.length) | 0];
-		nick = word.charAt(0).toUpperCase() + word.slice(1);
+		const nick = word.charAt(0).toUpperCase() + word.slice(1);
 		return await this.bot.setNickname(nick, "Random Motd name");
 	}
 }

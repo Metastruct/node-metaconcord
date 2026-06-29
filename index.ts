@@ -21,7 +21,7 @@ process.on("unhandledRejection", err => {
 });
 
 const MetaConcord = new App();
-(global as any).MetaConcord = MetaConcord;
+globalThis.MetaConcord = MetaConcord;
 await MetaConcord.init();
 
 export default MetaConcord;

@@ -59,7 +59,7 @@ export class Data extends Service {
 				await fs.unlink(this.dataPath);
 				throw new Error("Data path was not a directory");
 			}
-		} catch (err) {
+		} catch {
 			await fs.mkdir(this.dataPath);
 		}
 		await this.load();
@@ -72,7 +72,7 @@ export class Data extends Service {
 				let data: unknown;
 				try {
 					data = JSON.parse(await fs.readFile(filePath, "utf8"));
-				} catch (err) {
+				} catch {
 					data = {};
 				}
 				log.info({ file, data });

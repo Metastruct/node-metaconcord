@@ -93,7 +93,6 @@ abstract class MarkovChainBase {
 
 					chains.push(out);
 					out = [];
-					acceptable = false;
 				}
 			}
 		}

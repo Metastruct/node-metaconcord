@@ -1,7 +1,7 @@
 {
-    "webhook": "",
-    "imgurClientId": "",
+	"webhook": "",
+	"imgurClientId": "",
 	"imgurAlbumId": "",
-    "imgurAlbumDeleteHash":"",
-    "channelId":""
+	"imgurAlbumDeleteHash": "",
+	"channelId": ""
 }

@@ -112,7 +112,7 @@ export default class AdminNotifyPayload extends Payload {
 					`[${reportedSteamId64}](https://steamcommunity.com/profiles/${reportedSteamId64}) (${reported.steamId})`
 				)
 			)
-			.setThumbnail(reportedAvatar)
+			.setThumbnail(reportedAvatar ?? null)
 			.setColor(0xc4af21);
 
 		if (reportedSteamId64 !== "BOT") {
