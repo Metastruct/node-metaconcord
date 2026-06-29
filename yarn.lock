@@ -3047,7 +3047,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"form-data@npm:^4.0.5, form-data@npm:^4.0.6":
+"form-data@npm:^4.0.5":
   version: 4.0.6
   resolution: "form-data@npm:4.0.6"
   dependencies:
@@ -4021,7 +4021,6 @@ __metadata:
     eslint-config-prettier: "npm:^10.1.8"
     express: "npm:^5.2.1"
     express-rate-limit: "npm:^7.5.1"
-    form-data: "npm:^4.0.6"
     graphql: "npm:^16.14.2"
     graphql-request: "npm:^5.2.0"
     irc-upd: "npm:^0.11.0"
