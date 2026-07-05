@@ -2487,6 +2487,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"discord-interactions@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "discord-interactions@npm:4.4.0"
+  checksum: 10c0/0837deffaf73e6b4fc94c4b01e5323e637f54a56bd6f53186725e1bf0e15d8d63e07d44f45c1866ada80f20e3a000c514603d4a478a0a2a2db974c25e1cfb8ce
+  languageName: node
+  linkType: hard
+
 "discord.js@npm:^14.26.4":
   version: 14.26.4
   resolution: "discord.js@npm:14.26.4"
@@ -4039,6 +4046,7 @@ __metadata:
     cross-env: "npm:^7.0.2"
     dayjs: "npm:^1.11.21"
     diff: "npm:^8.0.4"
+    discord-interactions: "npm:^4.4.0"
     discord.js: "npm:^14.26.4"
     dotenv: "npm:^16.6.1"
     eslint: "npm:10.6.0"
@@ -4070,7 +4078,6 @@ __metadata:
     ts-node-dev: "npm:^2.0.0"
     tsconfig-paths: "npm:^4.2.0"
     tsconfig-replace-paths: "npm:^0.0.14"
-    tweetnacl: "npm:^1.0.3"
     typescript: "npm:^5.8.3"
     typescript-eslint: "npm:^8.62.1"
     typescript-json-schema: "npm:^0.65.1"
@@ -6176,13 +6183,6 @@ __metadata:
   version: 0.14.5
   resolution: "tweetnacl@npm:0.14.5"
   checksum: 10c0/4612772653512c7bc19e61923fbf42903f5e0389ec76a4a1f17195859d114671ea4aa3b734c2029ce7e1fa7e5cc8b80580f67b071ecf0b46b5636d030a0102a2
-  languageName: node
-  linkType: hard
-
-"tweetnacl@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "tweetnacl@npm:1.0.3"
-  checksum: 10c0/069d9df51e8ad4a89fbe6f9806c68e06c65be3c7d42f0701cc43dba5f0d6064686b238bbff206c5addef8854e3ce00c643bff59432ea2f2c639feab0ee1a93f9
   languageName: node
   linkType: hard
 

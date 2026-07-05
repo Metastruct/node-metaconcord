@@ -2,12 +2,11 @@ import * as Discord from "discord.js";
 import { SQL } from "@/app/services/SQL.js";
 import { WebApp } from "@/app/services/webapp/index.js";
 import { rateLimit } from "express-rate-limit";
-import express from "express";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import SteamID from "steamid";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
-import nacl from "tweetnacl";
+import { verifyWebhookEventMiddleware } from "discord-interactions";
 import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
@@ -143,47 +142,32 @@ export default async (webApp: WebApp): Promise<void> => {
 		res.send(result ? "👌" : "no data");
 	});
 
-	webApp.app.post("/discord/webhooks/deauthorized", express.json(), async (req, res) => {
-		const sigEd25519 = req.headers["x-signature-ed25519"] as string | undefined;
-		const timestamp = req.headers["x-signature-timestamp"] as string | undefined;
+	webApp.app.post(
+		"/discord/webhooks/deauthorized",
+		verifyWebhookEventMiddleware(DiscordConfig.bot.publicKey),
+		async (req, res) => {
+			const eventBody = req.body as {
+				event_type?: string;
+				data?: { user_id?: string };
+			};
 
-		if (!sigEd25519 || !timestamp) {
-			log.warn("missing webhook signature headers");
-			res.sendStatus(401);
-			return;
+			if (eventBody.event_type !== "APPLICATION_DEAUTHORIZED") {
+				log.info({ type: eventBody.event_type }, "webhook non-deauthorized event");
+				res.sendStatus(204);
+				return;
+			}
+
+			const userId = eventBody.data?.user_id as string | undefined;
+			if (!userId) {
+				log.warn({ body: req.body }, "webhook missing user.id");
+				res.sendStatus(400);
+				return;
+			}
+
+			await metadata().revoke(userId);
+			res.sendStatus(204);
 		}
-
-		const requestAge = Date.now() - parseInt(timestamp, 10) * 1000;
-		if (requestAge > 300_000) {
-			log.warn("stale webhook rejected");
-			res.sendStatus(401);
-			return;
-		}
-
-		const msg = Buffer.from(`${timestamp}${JSON.stringify(req.body)}`);
-		const sigBuf = Buffer.from(sigEd25519, "hex");
-		const pubKeyBuf = Buffer.from(DiscordConfig.bot.publicKey, "hex");
-
-		if (!nacl.sign.detached.verify(msg, sigBuf, pubKeyBuf)) {
-			log.warn("webhook signature mismatch");
-			res.sendStatus(401);
-			return;
-		}
-
-		const body = req.body as {
-			event?: { data?: { user?: { id: string } } };
-			user?: { id: string };
-		};
-		const userId = body.event?.data?.user?.id || body.user?.id;
-		if (!userId) {
-			log.warn({ body: req.body }, "webhook missing user.id");
-			res.sendStatus(400);
-			return;
-		}
-
-		await metadata().revoke(userId);
-		res.sendStatus(204);
-	});
+	);
 	webApp.app.get("/discord/revokealltokens", rateLimit(), async (req, res) => {
 		const secret = req.query.secret;
 		if (secret !== webApp.config.cookieSecret) {
