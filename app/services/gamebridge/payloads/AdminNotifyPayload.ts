@@ -3,6 +3,7 @@ import { AdminNotifyRequest } from "./structures/index.js";
 import { f } from "@/utils.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
+import ReportChatPayload from "./ReportChatPayload.js";
 import SteamID from "steamid";
 import requestSchema from "./structures/AdminNotifyRequest.json" with { type: "json" };
 
@@ -14,18 +15,19 @@ export default class AdminNotifyPayload extends Payload {
 
 	static async initialize(server: GameServer): Promise<void> {
 		const discord = server.discord;
-		const notificationsChannel = discord.channels.cache.get(
-			server.discord.config.threads.reports
-		) as Discord.ThreadChannel;
-		if (!notificationsChannel) return;
+		const reportsChannel = discord.channels.cache.get(
+			server.discord.config.channels.reports
+		) as Discord.TextChannel;
+		if (!reportsChannel) return;
 		const steam = server.bridge.container.getService("Steam");
 
-		const filter = (btn: Discord.MessageComponentInteraction) =>
+		const kickFilter = (btn: Discord.MessageComponentInteraction) =>
 			btn.customId.endsWith("_REPORT_KICK");
+		const kickCollector = reportsChannel.createMessageComponentCollector({
+			filter: kickFilter,
+		});
 
-		const collector = notificationsChannel.createMessageComponentCollector({ filter });
-
-		collector.on("collect", async (ctx: Discord.ButtonInteraction) => {
+		kickCollector.on("collect", async (ctx: Discord.ButtonInteraction) => {
 			if (!(await server.discord.isAllowed(ctx.user))) {
 				await ctx.reply({
 					content: "you're not allowed to use this button...",
@@ -66,6 +68,44 @@ export default class AdminNotifyPayload extends Payload {
 				});
 			}
 		});
+
+		const resolveFilter = (btn: Discord.MessageComponentInteraction) =>
+			btn.customId.endsWith("_REPORT_RESOLVE");
+		const resolveCollector = reportsChannel.createMessageComponentCollector({
+			filter: resolveFilter,
+		});
+
+		resolveCollector.on("collect", async (ctx: Discord.ButtonInteraction) => {
+			if (!(await server.discord.isAllowed(ctx.user))) {
+				await ctx.reply({
+					content: "you're not allowed to use this button...",
+					flags: Discord.MessageFlags.Ephemeral,
+				});
+				return;
+			}
+			const steamId64 = ctx.customId.replace("_REPORT_RESOLVE", "");
+			if (ReportChatPayload.reportThreads[steamId64]) {
+				ReportChatPayload.reportThreads[steamId64].resolved = true;
+			}
+			await ctx.deferUpdate();
+			try {
+				const newResolveBtn = new Discord.ButtonBuilder()
+					.setStyle(Discord.ButtonStyle.Success)
+					.setCustomId(`${steamId64}_REPORT_RESOLVED`)
+					.setEmoji("✅")
+					.setLabel("Resolved")
+					.setDisabled(true);
+				await ctx.message.edit({
+					components: [
+						new Discord.ActionRowBuilder<Discord.ButtonBuilder>().addComponents(
+							newResolveBtn
+						),
+					],
+				});
+			} catch (err) {
+				ctx.followUp({ content: `Failed to resolve report: ${err}` }).catch(() => {});
+			}
+		});
 	}
 
 	static async handle(payload: AdminNotifyRequest, server: GameServer): Promise<void> {
@@ -80,12 +120,10 @@ export default class AdminNotifyPayload extends Payload {
 		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
 		if (!guild) return;
 
-		const notificationsChannel = (await guild.channels.fetch(
-			bridge.config.notificationsChannelId
-		)) as Discord.TextChannel;
-		if (!notificationsChannel) return;
-		const thread = await notificationsChannel.threads.fetch(bridge.config.reportsChannelId);
-		if (!thread) return;
+		const reportsChannel = (await guild.channels.fetch(
+			server.discord.config.channels.reports
+		)) as Discord.TextChannel | null;
+		if (!reportsChannel || !reportsChannel.isTextBased()) return;
 
 		const steamId64 = new SteamID(player.steamId).getSteamID64();
 		const reportedSteamId64 = reported.steamId.startsWith("STEAM")
@@ -138,9 +176,16 @@ export default class AdminNotifyPayload extends Payload {
 			}
 		}
 
-		const row = new Discord.ActionRowBuilder<Discord.ButtonBuilder>();
+		if (server.status.players) {
+			const isOnline = server.status.players.some(
+				p => new SteamID(String(p.accountId)).getSteamID64() === steamId64
+			);
+			embed.addFields(f("Reporter Status", isOnline ? "🟢 Online" : "🔴 Offline"));
+		}
+
+		const kickRow = new Discord.ActionRowBuilder<Discord.ButtonBuilder>();
 		if (selfReport) {
-			row.addComponents(
+			kickRow.addComponents(
 				new Discord.ButtonBuilder()
 					.setStyle(Discord.ButtonStyle.Secondary)
 					.setCustomId(`${reportedSteamId64}_REPORT_KICK`)
@@ -148,8 +193,7 @@ export default class AdminNotifyPayload extends Payload {
 					.setLabel("KICK Self Reporter")
 			);
 		} else {
-			// You can have a maximum of five ActionRows per message, and five buttons within an ActionRow.
-			row.addComponents(
+			kickRow.addComponents(
 				new Discord.ButtonBuilder()
 					.setStyle(Discord.ButtonStyle.Secondary)
 					.setCustomId(`${reportedSteamId64}_REPORT_KICK`)
@@ -162,28 +206,50 @@ export default class AdminNotifyPayload extends Payload {
 					.setLabel("KICK Reporter")
 			);
 		}
-		const callAdminRole = server.discord.config.roles.callAdmin;
-		try {
-			await thread.send({
-				content: `<@&${callAdminRole}> new ingame report from ${player.nick}`,
-				embeds: [embed],
-				components: [row],
-			});
-		} catch {
-			embed.spliceFields(1, 1);
-			// embed.data.fields = embed.data.fields.filter(f => f.name !== "Message");
 
-			await thread.send({
-				content: `<@&${callAdminRole}> new ingame report from ${player.nick}`,
-				files: [
-					{
-						name: `${player.nick} Report.txt`,
-						attachment: Buffer.from(message, "utf8"),
-					},
-				],
-				embeds: [embed],
-				components: [row],
+		const resolveRow = new Discord.ActionRowBuilder<Discord.ButtonBuilder>();
+		resolveRow.addComponents(
+			new Discord.ButtonBuilder()
+				.setStyle(Discord.ButtonStyle.Primary)
+				.setCustomId(`${steamId64}_REPORT_RESOLVE`)
+				.setEmoji("✅")
+				.setLabel("Resolve Report")
+		);
+
+		const callAdminRole = server.discord.config.roles.callAdmin;
+		const sendReportMessage = async () => {
+			try {
+				return await reportsChannel.send({
+					content: `<@&${callAdminRole}> new ingame report from ${player.nick}`,
+					embeds: [embed],
+					components: [kickRow, resolveRow],
+				});
+			} catch {
+				embed.spliceFields(1, 1);
+
+				return await reportsChannel
+					.send({
+						content: `<@&${callAdminRole}> new ingame report from ${player.nick}`,
+						files: [
+							{
+								name: `${player.nick} Report.txt`,
+								attachment: Buffer.from(message, "utf8"),
+							},
+						],
+						embeds: [embed],
+						components: [kickRow, resolveRow],
+					})
+					.catch(() => undefined);
+			}
+		};
+
+		const sentMsg = await sendReportMessage();
+		if (sentMsg) {
+			const thread = await sentMsg.startThread({
+				name: `Report - ${player.nick} → ${reported.nick}`,
+				autoArchiveDuration: 60,
 			});
+			ReportChatPayload.storeThread(steamId64, thread.id, reportedSteamId64);
 		}
 	}
 }
