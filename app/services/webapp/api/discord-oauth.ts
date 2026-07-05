@@ -7,6 +7,7 @@ import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import SteamID from "steamid";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
+import nacl from "tweetnacl";
 import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
@@ -159,21 +160,12 @@ export default async (webApp: WebApp): Promise<void> => {
 			return;
 		}
 
-		// Discord signs the raw request body; JSON.stringify(req.body) produces equivalent output
-		const bodyRaw = JSON.stringify(req.body);
-		const msgBuf = Buffer.from(`${timestamp}.${bodyRaw}`);
+		const msg = Buffer.from(`${timestamp}${JSON.stringify(req.body)}`);
 		const sigBuf = Buffer.from(sigEd25519, "hex");
 		const pubKeyBuf = Buffer.from(DiscordConfig.bot.publicKey, "hex");
 
-		try {
-			const tweetnacl = await import("tweetnacl");
-			if (!tweetnacl.sign.detached.verify(msgBuf, sigBuf, pubKeyBuf)) {
-				log.warn("webhook signature mismatch");
-				res.sendStatus(401);
-				return;
-			}
-		} catch (err) {
-			log.error(err, "webhook signature verification failed");
+		if (!nacl.sign.detached.verify(msg, sigBuf, pubKeyBuf)) {
+			log.warn("webhook signature mismatch");
 			res.sendStatus(401);
 			return;
 		}
