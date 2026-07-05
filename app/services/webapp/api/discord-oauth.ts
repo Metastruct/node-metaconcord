@@ -178,7 +178,10 @@ export default async (webApp: WebApp): Promise<void> => {
 			return;
 		}
 
-		const body = req.body as { event?: { data?: { user?: { id: string } }; }; user?: { id: string } };
+		const body = req.body as {
+			event?: { data?: { user?: { id: string } } };
+			user?: { id: string };
+		};
 		const userId = body.event?.data?.user?.id || body.user?.id;
 		if (!userId) {
 			log.warn({ body: req.body }, "webhook missing user.id");
