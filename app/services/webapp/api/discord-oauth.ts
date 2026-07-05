@@ -152,7 +152,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			return;
 		}
 
-		const requestAge = Date.now() - parseInt(timestamp, 10);
+		const requestAge = Date.now() - parseInt(timestamp, 10) * 1000;
 		if (requestAge > 300_000) {
 			log.warn("stale webhook rejected");
 			res.sendStatus(401);
