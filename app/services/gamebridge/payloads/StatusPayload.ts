@@ -2,6 +2,7 @@ import * as Discord from "discord.js";
 import { StatusRequest } from "./structures/index.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
+import ReportChatResponse from "./ReportChatPayload.js";
 import SteamID from "steamid";
 import dayjs from "dayjs";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
@@ -317,6 +318,34 @@ export default class StatusPayload extends Payload {
 				if (a.nick.toLowerCase() < b.nick.toLowerCase()) i--;
 				return i;
 			});
+
+			try {
+				const data = bridge.container.getService("Data");
+				if (data && data.reportQueues) {
+					for (const [reporterSteamId64, threadInfo] of Object.entries(
+						ReportChatResponse["reportThreads"]
+					)) {
+						if (!threadInfo.resolved && data.reportQueues[reporterSteamId64]) {
+							const queued = data.reportQueues[reporterSteamId64];
+							delete data.reportQueues[reporterSteamId64];
+
+							for (const msg of queued) {
+								ReportChatResponse.send(
+									{
+										type: "queued",
+										username: msg.username,
+										content: msg.content,
+										reporterSteamId64: reporterSteamId64,
+									},
+									server
+								);
+							}
+						}
+					}
+				}
+			} catch (err) {
+				log.error(err);
+			}
 
 			const channel = guild.channels.cache.get(
 				bridge.config.serverInfoChannelId

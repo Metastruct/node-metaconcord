@@ -29,11 +29,11 @@
 		"artChat": "",
 		"publicCommits": "",
 		"privateCommits": "",
-		"mapCommits": ""
+		"mapCommits": "",
+		"reports": ""
 	},
 	"threads": {
 		"VR": "",
-		"reports": "",
 		"votekicks": "",
 		"bans/unbans": ""
 	},

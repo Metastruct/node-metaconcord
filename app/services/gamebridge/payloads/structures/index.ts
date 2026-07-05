@@ -10,6 +10,7 @@ import NotificationResponse from "./NotificationResponse.js";
 import PayloadRequest from "./PayloadRequest.js";
 import RconRequest from "./RconRequest.js";
 import RconResponse from "./RconResponse.js";
+import ReportChatRequest from "./ReportChatRequest.js";
 import StatusRequest from "./StatusRequest.js";
 import UnbanRequest from "./UnbanRequest.js";
 import VoteKickRequest from "./VoteKickRequest.js";
@@ -26,7 +27,14 @@ export {
 	PayloadRequest,
 	RconRequest,
 	RconResponse,
+	ReportChatRequest,
 	StatusRequest,
 	UnbanRequest,
 	VoteKickRequest,
 };
+
+export type {
+	QueuedReportChatResponse,
+	ResolveReportChatResponse,
+	InfoReportChatResponse,
+} from "./ReportChatResponse.js";

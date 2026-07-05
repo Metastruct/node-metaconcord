@@ -7,6 +7,7 @@ import JoinLeavePayload from "./JoinLeavePayload.js";
 import NotificationPayload from "./NotificationPayload.js";
 import Payload from "./Payload.js";
 import RconPayload from "./RconPayload.js";
+import ReportChatPayload from "./ReportChatPayload.js";
 import StatusPayload from "./StatusPayload.js";
 import UnbanPayload from "./UnbanPayload.js";
 import VoteKickPayload from "./VoteKickPayload.js";
@@ -20,6 +21,7 @@ export {
 	JoinLeavePayload,
 	NotificationPayload,
 	RconPayload,
+	ReportChatPayload,
 	StatusPayload,
 	UnbanPayload,
 	VoteKickPayload,
