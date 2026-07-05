@@ -2,6 +2,7 @@ import * as Discord from "discord.js";
 import { SQL } from "@/app/services/SQL.js";
 import { WebApp } from "@/app/services/webapp/index.js";
 import { rateLimit } from "express-rate-limit";
+import express from "express";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import SteamID from "steamid";
 import cookieParser from "cookie-parser";
@@ -137,18 +138,56 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.sendStatus(403);
 			return;
 		}
-		const entry = await sql
-			.getLocalDatabase()
-			.get<LocalDatabaseEntry>(
-				"SELECT access_token FROM discord_tokens WHERE user_id = ?",
-				req.params.id
-			);
-		if (!entry) {
-			res.status(404).send("no data");
+		const result = await metadata().revoke(req.params.id);
+		res.send(result ? "👌" : "no data");
+	});
+
+	webApp.app.post("/discord/webhooks/deauthorized", express.json(), async (req, res) => {
+		const sigEd25519 = req.headers["x-signature-ed25519"] as string | undefined;
+		const timestamp = req.headers["x-signature-timestamp"] as string | undefined;
+
+		if (!sigEd25519 || !timestamp) {
+			log.warn("missing webhook signature headers");
+			res.sendStatus(401);
 			return;
 		}
-		await revokeOAuthToken(entry.access_token);
-		res.send("👌");
+
+		const requestAge = Date.now() - parseInt(timestamp, 10);
+		if (requestAge > 300_000) {
+			log.warn("stale webhook rejected");
+			res.sendStatus(401);
+			return;
+		}
+
+		// Discord signs the raw request body; JSON.stringify(req.body) produces equivalent output
+		const bodyRaw = JSON.stringify(req.body);
+		const msgBuf = Buffer.from(`${timestamp}.${bodyRaw}`);
+		const sigBuf = Buffer.from(sigEd25519, "hex");
+		const pubKeyBuf = Buffer.from(DiscordConfig.bot.publicKey, "hex");
+
+		try {
+			const tweetnacl = await import("tweetnacl");
+			if (!tweetnacl.sign.detached.verify(msgBuf, sigBuf, pubKeyBuf)) {
+				log.warn("webhook signature mismatch");
+				res.sendStatus(401);
+				return;
+			}
+		} catch (err) {
+			log.error(err, "webhook signature verification failed");
+			res.sendStatus(401);
+			return;
+		}
+
+		const body = req.body as { event?: { data?: { user?: { id: string } }; }; user?: { id: string } };
+		const userId = body.event?.data?.user?.id || body.user?.id;
+		if (!userId) {
+			log.warn({ body: req.body }, "webhook missing user.id");
+			res.sendStatus(400);
+			return;
+		}
+
+		await metadata().revoke(userId);
+		res.sendStatus(204);
 	});
 	webApp.app.get("/discord/revokealltokens", rateLimit(), async (req, res) => {
 		const secret = req.query.secret;
