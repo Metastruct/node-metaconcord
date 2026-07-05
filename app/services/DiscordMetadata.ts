@@ -54,6 +54,8 @@ type LocalDatabaseEntry = {
 	expires_at: number;
 };
 
+type RevokeDBEntry = Pick<LocalDatabaseEntry, "user_id" | "access_token" | "refresh_token">;
+
 type CachedUser = {
 	steamId: string;
 	discordId: string;
@@ -245,6 +247,75 @@ export class DiscordMetadata extends Service {
 		}
 
 		this.ARCOCache[userId] = body;
+		return true;
+	}
+
+	private async revokeRoleConnection(userId: string): Promise<boolean> {
+		const db = this.sql.getLocalDatabase();
+		const data = await db.get<LocalDatabaseEntry>(
+			"SELECT * FROM discord_tokens WHERE user_id = ?;",
+			userId
+		);
+		if (!data) return false;
+
+		const accessToken = await this.getAccessToken(userId, data);
+		if (!accessToken) {
+			log.warn({ userId }, "revoking role connection but no access token available");
+			return false;
+		}
+
+		const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.bot.applicationId}/role-connection`;
+		const res = await fetch(url, {
+			method: "DELETE",
+			headers: { Authorization: `Bearer ${accessToken}` },
+		}).catch(() => null);
+
+		if (!res) return false;
+
+		if (res.status === 401 || res.status === 404) {
+			log.info({ userId }, "role connection already revoked");
+			return false;
+		}
+
+		if (!res.ok) {
+			log.error({ userId, status: res.status }, "role connection revoke failed");
+			return false;
+		}
+
+		this.clearUserCaches(userId);
+		return true;
+	}
+
+	async revoke(userId: string): Promise<boolean> {
+		await this.revokeRoleConnection(userId).catch(() => {});
+
+		const db = this.sql.getLocalDatabase();
+		const data = await db.get<RevokeDBEntry>(
+			"SELECT user_id, access_token, refresh_token FROM discord_tokens WHERE user_id = ?;",
+			userId
+		);
+		if (!data) {
+			this.clearUserCaches(userId);
+			return false;
+		}
+
+		const basicAuthStr =
+			"Basic " +
+			Buffer.from(
+				this.bot.config.bot.applicationId + ":" + this.bot.config.bot.clientSecret
+			).toString("base64");
+
+		await fetch("https://discord.com/api/v10/oauth2/token/revoke", {
+			method: "POST",
+			headers: { Authorization: basicAuthStr },
+			body: new URLSearchParams({
+				token: data.access_token,
+				token_type_hint: "access_token",
+			}),
+		}).catch(() => {});
+
+		await db.run("DELETE FROM discord_tokens WHERE user_id = ?", userId);
+		this.clearUserCaches(userId);
 		return true;
 	}
 
