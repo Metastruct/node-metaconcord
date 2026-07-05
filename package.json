@@ -17,9 +17,8 @@
 		"build": "yarn scss && rm -rf ./dist && tsc && tsconfig-replace-paths -p tsconfig.json -s ./ -o ./dist",
 		"scss": "sass resources/ --no-source-map",
 		"scss-watch": "sass --watch resources/ --no-source-map",
-		"lint": "eslint .",
-		"format": "prettier --write .",
-		"format:check": "prettier --check ."
+		"fix": "prettier --write .",
+		"check": "eslint . && prettier --check ."
 	},
 	"dependencies": {
 		"@ffmpeg.wasm/core-mt": "^0.13.2",
