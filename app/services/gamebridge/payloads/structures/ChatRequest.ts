@@ -6,6 +6,7 @@ export default interface ChatRequest extends PayloadRequest {
 			nick: string;
 			steamId64: string;
 		};
+		/** @maxLength 2000 */
 		content: string;
 	};
 }

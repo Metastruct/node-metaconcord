@@ -1,24 +1,20 @@
+export type ReportChatResponsePayload =
+	| { type: "message"; username: string; content: string; reporterSteamId64: string }
+	| {
+			type: "queued";
+			messages: Array<{ username: string; content: string }>;
+			reporterSteamId64: string;
+	  }
+	| { type: "resolve"; isResolved: true; resolvedBy?: string; reporterSteamId64: string }
+	| { type: "info"; content: string; reporterSteamId64: string };
+
+export type QueuedReportChatResponse = Extract<ReportChatResponsePayload, { type: "queued" }>;
+
+export type ResolveReportChatResponse = Extract<ReportChatResponsePayload, { type: "resolve" }>;
+
+export type InfoReportChatResponse = Extract<ReportChatResponsePayload, { type: "info" }>;
+
 export default interface ReportChatResponse {
-	type: "message";
-	username: string;
-	content: string;
-}
-
-export interface QueuedReportChatResponse {
-	type: "queued";
-	messages: Array<{ username: string; content: string }>;
-	reporterSteamId64: string;
-}
-
-export interface ResolveReportChatResponse {
-	type: "resolve";
-	reporterSteamId64: string;
-	isResolved: true;
-	resolvedBy?: string;
-}
-
-export interface InfoReportChatResponse {
-	type: "info";
-	reporterSteamId64: string;
-	content: string;
+	data: ReportChatResponsePayload;
+	name: "ReportChatPayload";
 }
