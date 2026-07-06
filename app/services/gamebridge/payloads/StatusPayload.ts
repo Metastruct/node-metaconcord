@@ -3,6 +3,7 @@ import { StatusRequest } from "./structures/index.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
 import ReportChatPayload from "./ReportChatPayload.js";
+import AdminNotifyPayload from "./AdminNotifyPayload.js";
 import dayjs from "dayjs";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
 import path from "path";
@@ -315,6 +316,12 @@ export default class StatusPayload extends Payload {
 
 			try {
 				await ReportChatPayload.drainQueuedMessages(server);
+			} catch (err) {
+				log.error(err);
+			}
+
+			try {
+				await AdminNotifyPayload.updateReporterStatus(server);
 			} catch (err) {
 				log.error(err);
 			}

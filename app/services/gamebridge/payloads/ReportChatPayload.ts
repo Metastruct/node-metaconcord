@@ -83,12 +83,23 @@ export default class ReportChatPayload extends Payload {
 				await this.send({ type: "message", username, content, reporterSteamId64 }, server);
 			} else {
 				if (!data.reportThreads[reporterSteamId64]) {
-					data.reportThreads[reporterSteamId64] = [
-						{ channelId: "", reportedSteamId64: "", pendingMessages: [] },
-					];
+					data.reportThreads[reporterSteamId64] = [];
 				}
-				const threadData = data.reportThreads[reporterSteamId64][0];
-				threadData.pendingMessages.push({ username, content });
+
+				let entry = data.reportThreads[reporterSteamId64].find(
+					t => t.channelId === msg.channel.id
+				);
+				if (!entry) {
+					entry = {
+						channelId: msg.channel.id,
+						reportedSteamId64: "",
+						pendingMessages: [],
+					};
+					data.reportThreads[reporterSteamId64].push(entry);
+				}
+
+				entry.pendingMessages.push({ username, content });
+				await data.save?.();
 			}
 		});
 	}
@@ -155,11 +166,15 @@ export default class ReportChatPayload extends Payload {
 			if (!isOnline) continue;
 
 			const messages: Array<{ username: string; content: string }> = [];
-			for (const threadData of threadArray) {
-				if (!threadData.pendingMessages?.length) continue;
+			for (let i = threadArray.length - 1; i >= 0; i--) {
+				const entry = threadArray[i];
+				if (!entry.pendingMessages?.length) {
+					threadArray.splice(i, 1);
+					continue;
+				}
 
-				messages.push(...threadData.pendingMessages);
-				threadData.pendingMessages = [];
+				messages.push(...entry.pendingMessages);
+				entry.pendingMessages = [];
 			}
 			await data.save?.();
 
