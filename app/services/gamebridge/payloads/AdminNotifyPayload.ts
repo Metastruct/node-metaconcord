@@ -142,6 +142,17 @@ export default class AdminNotifyPayload extends Payload {
 			}
 			this.activeReportEmbeds.delete(this.embedKey(server.config.id, steamId64));
 			await ctx.deferUpdate();
+
+			try {
+				const thread = ctx.message.thread;
+				if (thread) {
+					await thread.setLocked(true);
+					await thread.setArchived(true);
+				}
+			} catch (err) {
+				log.error(err, "Failed to lock report thread");
+			}
+
 			try {
 				await ReportChatPayload.send(
 					{
