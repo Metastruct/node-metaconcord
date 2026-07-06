@@ -82,7 +82,8 @@ export default class AdminNotifyPayload extends Payload {
 				});
 				return;
 			}
-			await ctx.deferReply();
+			await ctx.deferUpdate();
+			const thread = ctx.message.thread;
 			try {
 				const interactionId64 = new SteamID(
 					ctx.customId.replace("_REPORT_KICK", "")
@@ -94,23 +95,23 @@ export default class AdminNotifyPayload extends Payload {
 				);
 
 				if (!res) {
-					await ctx.followUp({
+					await thread?.send({
 						content: `${ctx.user.mention}, could not kick player: server not connected`,
 					});
 				} else if (res.data.returns[0] !== "false") {
 					const summary = await steam.getUserSummaries(interactionId64);
-					await ctx.followUp({
+					await thread?.send({
 						content: `${ctx.user.mention} kicked player \`${
 							summary ? summary.personaname : "[nickname not found]"
 						}\``,
 					});
 				} else {
-					await ctx.followUp({
+					await thread?.send({
 						content: `${ctx.user.mention}, could not kick player: not on server`,
 					});
 				}
 			} catch (err) {
-				await ctx.followUp({
+				await thread?.send({
 					content: `${ctx.user.mention}, could not kick player: ${err}`,
 				});
 			}
@@ -131,7 +132,8 @@ export default class AdminNotifyPayload extends Payload {
 				return;
 			}
 			const steamId64 = ctx.customId.replace("_REPORT_RESOLVE", "");
-			const threadChannelId = ctx.message.thread?.id;
+			const thread = ctx.message.thread;
+			const threadChannelId = thread?.id;
 			const data = server.bridge.container.getService("Data");
 			if (data?.reportThreads && data.reportThreads[steamId64]) {
 				const idx = data.reportThreads[steamId64].findIndex(
@@ -144,7 +146,6 @@ export default class AdminNotifyPayload extends Payload {
 			await ctx.deferUpdate();
 
 			try {
-				const thread = ctx.message.thread;
 				if (thread) {
 					await thread.setLocked(true);
 					await thread.setArchived(true);
@@ -181,7 +182,7 @@ export default class AdminNotifyPayload extends Payload {
 					],
 				});
 			} catch (err) {
-				ctx.followUp({ content: `Failed to resolve report: ${err}` }).catch(() => {});
+				thread?.send({ content: `Failed to resolve report: ${err}` }).catch(() => {});
 			}
 		});
 	}
