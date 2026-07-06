@@ -197,7 +197,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				embed.author = {
 					name: player.nick,
 					icon_url: (player.avatar as string) ?? undefined,
-					url: `https://steamcommunity.com/profiles/[U:1:${player.accountId}]`,
+					url: `https://steamcommunity.com/profiles/${player.steamId64}`,
 				};
 				if (player.isLinux) embed.fields = [{ name: "OS:", value: "UNIX", inline: true }];
 			}

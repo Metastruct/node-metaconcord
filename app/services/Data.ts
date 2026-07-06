@@ -38,8 +38,12 @@ export class Data extends Service {
 			createdAt: number;
 		};
 	} = {};
-	reportQueues: {
-		[steamId64: string]: Array<{ username: string; content: string }>;
+	reportThreads: {
+		[steamId64: string]: Array<{
+			channelId: string;
+			reportedSteamId64: string;
+			pendingMessages: Array<{ username: string; content: string }>;
+		}>;
 	} = {};
 	toSave = [
 		"lastDiscordBanner",
@@ -52,7 +56,7 @@ export class Data extends Service {
 		"lastMsgTime",
 		"muted",
 		"permaRoles",
-		"reportQueues",
+		"reportThreads",
 		"rules",
 		"tempVoiceChannels",
 	];

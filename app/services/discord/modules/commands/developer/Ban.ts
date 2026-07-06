@@ -1,7 +1,6 @@
 import * as Discord from "discord.js";
 import { DiscordBot } from "@/app/services/discord/index.js";
 import { SlashCommand } from "@/extensions/discord.js";
-import SteamID from "steamid";
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 const DEFAULT_BAN_LENGTHS = ["1d", "1w", "4w", "6mo", "1y"];
@@ -195,22 +194,12 @@ export const SlashBanCommand: SlashCommand = {
 				}
 				await ctx.respond(
 					players
-						.filter(player => {
-							const steamID64 = SteamID.fromIndividualAccountID(
-								player.accountId
-							).getSteamID64();
-							return steamID64.includes(focused.value);
-						})
+						.filter(player => player.steamId64.includes(focused.value))
 						.slice(0, 25)
-						.map(player => {
-							const steamID64 = SteamID.fromIndividualAccountID(
-								player.accountId
-							).getSteamID64();
-							return {
-								name: `${steamID64} (${player.nick.substring(0, 100)})`,
-								value: steamID64,
-							};
-						})
+						.map(player => ({
+							name: `${player.steamId64} (${player.nick.substring(0, 100)})`,
+							value: player.steamId64,
+						}))
 				);
 				break;
 			}

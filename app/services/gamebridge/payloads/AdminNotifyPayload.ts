@@ -1,11 +1,13 @@
 import * as Discord from "discord.js";
 import { AdminNotifyRequest } from "./structures/index.js";
-import { f } from "@/utils.js";
+import { f, logger } from "@/utils.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
 import ReportChatPayload from "./ReportChatPayload.js";
 import SteamID from "steamid";
 import requestSchema from "./structures/AdminNotifyRequest.json" with { type: "json" };
+
+const log = logger(import.meta);
 
 export default class AdminNotifyPayload extends Payload {
 	protected static requestSchema = requestSchema;
@@ -84,10 +86,29 @@ export default class AdminNotifyPayload extends Payload {
 				return;
 			}
 			const steamId64 = ctx.customId.replace("_REPORT_RESOLVE", "");
-			if (ReportChatPayload.reportThreads[steamId64]) {
-				ReportChatPayload.reportThreads[steamId64].resolved = true;
+			const threadChannelId = ctx.message.thread?.id;
+			const data = server.bridge.container.getService("Data");
+			if (data?.reportThreads && data.reportThreads[steamId64]) {
+				const idx = data.reportThreads[steamId64].findIndex(
+					t => t.channelId === threadChannelId
+				);
+				if (idx !== -1) data.reportThreads[steamId64].splice(idx, 1);
+				await data.save();
 			}
 			await ctx.deferUpdate();
+			try {
+				await ReportChatPayload.send(
+					{
+						type: "resolve",
+						isResolved: true,
+						resolvedBy: ctx.user.username,
+						reporterSteamId64: steamId64,
+					},
+					server
+				);
+			} catch (err) {
+				log.error(err, "Failed to send resolve notification");
+			}
 			try {
 				const newResolveBtn = new Discord.ButtonBuilder()
 					.setStyle(Discord.ButtonStyle.Success)
@@ -177,9 +198,7 @@ export default class AdminNotifyPayload extends Payload {
 		}
 
 		if (server.status.players) {
-			const isOnline = server.status.players.some(
-				p => new SteamID(String(p.accountId)).getSteamID64() === steamId64
-			);
+			const isOnline = server.status.players.some(p => p.steamId64 === steamId64);
 			embed.addFields(f("Reporter Status", isOnline ? "🟢 Online" : "🔴 Offline"));
 		}
 
@@ -249,7 +268,7 @@ export default class AdminNotifyPayload extends Payload {
 				name: `Report - ${player.nick} → ${reported.nick}`,
 				autoArchiveDuration: 60,
 			});
-			ReportChatPayload.storeThread(steamId64, thread.id, reportedSteamId64);
+			ReportChatPayload.storeThread(steamId64, thread.id, reportedSteamId64, server);
 		}
 	}
 }

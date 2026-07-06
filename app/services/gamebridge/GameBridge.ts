@@ -174,7 +174,7 @@ export default class GameBridge extends Service {
 								return {
 									nick: sessionUser.username,
 									isAfk: !sessionUser.isPresent,
-									accountId: 0,
+									steamId64: "0",
 									isAdmin: false,
 									isBanned: false,
 									ip: sessionUser.userID,
