@@ -15,6 +15,51 @@ export default class AdminNotifyPayload extends Payload {
 		[steamId64: string]: number;
 	} = {};
 
+	private static activeReportEmbeds: Map<
+		string,
+		{ guildId: string; channelId: string; messageId: string }
+	> = new Map();
+
+	private static embedKey(serverId: number, steamId64: string): string {
+		return `${serverId}:${steamId64}`;
+	}
+
+	static async updateReporterStatus(server: GameServer): Promise<void> {
+		const prefix = server.config.id + ":";
+		for (const [key, ref] of this.activeReportEmbeds) {
+			if (!key.startsWith(prefix)) continue;
+
+			const steamId64 = key.slice(prefix.length);
+			const isOnline = server.status.players.some(p => p.steamId64 === steamId64);
+
+			try {
+				const guild = server.discord.guilds.cache.get(ref.guildId);
+				if (!guild) continue;
+				const channel = (await guild.channels.fetch(ref.channelId)) as Discord.TextChannel;
+				if (!channel) continue;
+				const message = await channel.messages.fetch(ref.messageId);
+				if (!message) continue;
+
+				const oldEmbed = message.embeds[0];
+				if (!oldEmbed) continue;
+
+				const statusIdx = oldEmbed.fields.findIndex(f => f.name === "Reporter Status");
+				if (statusIdx === -1) continue;
+
+				const newEmbed = Discord.EmbedBuilder.from(oldEmbed);
+				newEmbed.spliceFields(statusIdx, 1, {
+					name: "Reporter Status",
+					value: isOnline ? "🟢 Online" : "🔴 Offline",
+					inline: oldEmbed.fields[statusIdx].inline,
+				});
+
+				await message.edit({ embeds: [newEmbed] });
+			} catch (err) {
+				log.error(err, `Failed to update reporter status for ${steamId64}`);
+			}
+		}
+	}
+
 	static async initialize(server: GameServer): Promise<void> {
 		const discord = server.discord;
 		const reportsChannel = discord.channels.cache.get(
@@ -95,6 +140,7 @@ export default class AdminNotifyPayload extends Payload {
 				if (idx !== -1) data.reportThreads[steamId64].splice(idx, 1);
 				await data.save();
 			}
+			this.activeReportEmbeds.delete(this.embedKey(server.config.id, steamId64));
 			await ctx.deferUpdate();
 			try {
 				await ReportChatPayload.send(
@@ -197,10 +243,7 @@ export default class AdminNotifyPayload extends Payload {
 			}
 		}
 
-		if (server.status.players) {
-			const isOnline = server.status.players.some(p => p.steamId64 === steamId64);
-			embed.addFields(f("Reporter Status", isOnline ? "🟢 Online" : "🔴 Offline"));
-		}
+		embed.addFields(f("Reporter Status", "🟢 Online"));
 
 		const kickRow = new Discord.ActionRowBuilder<Discord.ButtonBuilder>();
 		if (selfReport) {
@@ -264,11 +307,17 @@ export default class AdminNotifyPayload extends Payload {
 
 		const sentMsg = await sendReportMessage();
 		if (sentMsg) {
+			this.activeReportEmbeds.set(this.embedKey(server.config.id, steamId64), {
+				guildId: guild.id,
+				channelId: reportsChannel.id,
+				messageId: sentMsg.id,
+			});
+
 			const thread = await sentMsg.startThread({
 				name: `Report - ${player.nick} → ${reported.nick}`,
 				autoArchiveDuration: 60,
 			});
-			ReportChatPayload.storeThread(steamId64, thread.id, reportedSteamId64, server);
+			await ReportChatPayload.storeThread(steamId64, thread.id, reportedSteamId64, server);
 		}
 	}
 }

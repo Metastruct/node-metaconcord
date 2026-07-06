@@ -63,9 +63,6 @@
 							"items": {
 								"additionalProperties": false,
 								"properties": {
-									"accountId": {
-										"type": "number"
-									},
 									"avatar": {
 										"type": "string"
 									},
@@ -89,9 +86,12 @@
 									},
 									"nick": {
 										"type": "string"
+									},
+									"steamId64": {
+										"type": "string"
 									}
 								},
-								"required": ["accountId", "ip", "isAdmin", "isBanned", "nick"],
+								"required": ["steamId64", "ip", "isAdmin", "isBanned", "nick"],
 								"type": "object"
 							},
 							"type": "array"
