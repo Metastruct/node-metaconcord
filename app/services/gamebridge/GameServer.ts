@@ -28,7 +28,7 @@ export type GameServerConfig = {
 };
 
 export type Player = {
-	accountId: number;
+	steamId64: string;
 	avatar?: string | false; // Metastruct SteamCache can return false...
 	ip: string;
 	isAdmin: boolean;

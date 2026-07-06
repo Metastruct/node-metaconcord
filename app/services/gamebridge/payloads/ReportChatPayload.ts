@@ -2,9 +2,10 @@ import * as Discord from "discord.js";
 import { logger } from "@/utils.js";
 import GameServer from "@/app/services/gamebridge/GameServer.js";
 import Payload from "./Payload.js";
-import SteamID from "steamid";
 import requestSchema from "./structures/ReportChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ReportChatResponse.json" with { type: "json" };
+import { Data } from "../../Data.js";
+import { QueuedReportChatResponse } from "./structures/ReportChatResponse.js";
 
 type ReportChatRequest = import("./structures/ReportChatRequest.js").default;
 
@@ -14,25 +15,23 @@ export default class ReportChatPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	protected static responseSchema = responseSchema;
 
-	static reportThreads: {
-		[reporterSteamId64: string]: {
-			channelId: string;
-			resolved: boolean;
-			reportedSteamId64: string;
-		};
-	} = {};
-
-	private static getReporterSteamId64(threadChannelId: string): string | undefined {
-		for (const [steamId64, thread] of Object.entries(this.reportThreads)) {
-			if (thread.channelId === threadChannelId) return steamId64;
+	private static getReporterSteamId64(threadChannelId: string, data: Data): string | undefined {
+		const threads = data.reportThreads;
+		if (!threads) return undefined;
+		for (const [steamId64, threadArray] of Object.entries(threads)) {
+			if (threadArray.some(t => t.channelId === threadChannelId)) return steamId64;
 		}
 		return undefined;
 	}
 
+	private static getThread(reporterSteamId64: string, data: Data) {
+		const threadArray = data.reportThreads?.[reporterSteamId64];
+		if (!threadArray || !threadArray.length) return null;
+		return threadArray[threadArray.length - 1];
+	}
+
 	private static isPlayerOnline(steamId64: string, server: GameServer): boolean {
-		return server.status.players.some(
-			p => new SteamID(String(p.accountId)).getSteamID64() === steamId64
-		);
+		return server.status.players.some(p => p.steamId64 === steamId64);
 	}
 
 	static async initialize(server: GameServer): Promise<void> {
@@ -55,7 +54,8 @@ export default class ReportChatPayload extends Payload {
 			if (!parentChannelId || parentChannelId !== server.discord.config.channels.reports)
 				return;
 
-			const reporterSteamId64 = this.getReporterSteamId64(msg.channel.id);
+			const data = server.bridge.container.getService("Data");
+			const reporterSteamId64 = this.getReporterSteamId64(msg.channel.id, data);
 			if (!reporterSteamId64) return;
 
 			// Extract message info similar to ChatPayload's formatDiscordMessage
@@ -82,73 +82,13 @@ export default class ReportChatPayload extends Payload {
 			if (this.isPlayerOnline(reporterSteamId64, server)) {
 				await this.send({ type: "message", username, content, reporterSteamId64 }, server);
 			} else {
-				const data = server.bridge.container.getService("Data") as {
-					reportQueues?: Record<string, Array<{ username: string; content: string }>>;
-				};
-				if (!data?.reportQueues) return;
-				if (!data.reportQueues[reporterSteamId64]) {
-					data.reportQueues[reporterSteamId64] = [{ username, content }];
-				} else {
-					data.reportQueues[reporterSteamId64].push({ username, content });
+				if (!data.reportThreads[reporterSteamId64]) {
+					data.reportThreads[reporterSteamId64] = [
+						{ channelId: "", reportedSteamId64: "", pendingMessages: [] },
+					];
 				}
-			}
-		});
-
-		discord.on("interactionCreate", async (interaction: Discord.Interaction) => {
-			if (!interaction.isButton()) return;
-
-			const customId = interaction.customId;
-			if (!customId.endsWith("_REPORT_RESOLVE")) return;
-
-			if (!(await server.discord.isAllowed(interaction.user))) {
-				await interaction.reply({
-					content: "You're not allowed to use this button...",
-					flags: Discord.MessageFlags.Ephemeral,
-				});
-				return;
-			}
-
-			await interaction.deferReply();
-
-			try {
-				const reporterSteamId64 = customId.replace("_REPORT_RESOLVE", "");
-
-				if (!this.reportThreads[reporterSteamId64]) {
-					await interaction.followUp({ content: "Report thread not found." });
-					return;
-				}
-
-				this.reportThreads[reporterSteamId64].resolved = true;
-
-				const resolvedBy = interaction.user.username;
-
-				if (interaction.message) {
-					try {
-						await interaction.message.edit({
-							components: [
-								new Discord.ActionRowBuilder<Discord.ButtonBuilder>().setComponents(
-									new Discord.ButtonBuilder()
-										.setStyle(Discord.ButtonStyle.Success)
-										.setCustomId(`${reporterSteamId64}_REPORT_RESOLVED`)
-										.setLabel("Resolved")
-										.setDisabled(true)
-								),
-							],
-						});
-					} catch (err) {
-						log.error(err, "Failed to edit resolved button");
-					}
-				}
-
-				await this.send(
-					{ type: "resolve", isResolved: true, resolvedBy, reporterSteamId64 },
-					server
-				);
-
-				await interaction.followUp({ content: `Report resolved by ${resolvedBy}` });
-			} catch (err) {
-				log.error(err, "Resolve button error");
-				await interaction.followUp({ content: `Could not resolve report: ${err}` });
+				const threadData = data.reportThreads[reporterSteamId64][0];
+				threadData.pendingMessages.push({ username, content });
 			}
 		});
 	}
@@ -157,12 +97,15 @@ export default class ReportChatPayload extends Payload {
 		super.handle(payload, server);
 
 		const { steamId64, content } = payload.data;
-		const { discord } = server;
+		const { discord, bridge } = server;
 
 		if (!discord.ready) return;
 
-		const threadData = this.reportThreads[steamId64];
-		if (!threadData || threadData.resolved) return;
+		const data = bridge.container.getService("Data");
+		if (!data?.reportThreads) return;
+
+		const threadData = this.getThread(steamId64, data);
+		if (!threadData || !threadData.channelId) return;
 
 		const guild = discord.guilds.cache.get(server.bridge.config.guildId);
 		if (!guild) return;
@@ -173,7 +116,9 @@ export default class ReportChatPayload extends Payload {
 			)) as Discord.ThreadChannel;
 			if (!thread) return;
 
-			await thread.send({ content });
+			const player = server.status.players.find(p => p.steamId64 === steamId64);
+			const username = player?.nick ?? "Unknown";
+			await thread.send({ content: `${username}: ${content}` });
 		} catch (err) {
 			log.error(err, "Failed to send report chat message");
 		}
@@ -182,8 +127,52 @@ export default class ReportChatPayload extends Payload {
 	static async storeThread(
 		reporterSteamId64: string,
 		channelId: string,
-		reportedSteamId64: string
+		reportedSteamId64: string,
+		server: GameServer
 	): Promise<void> {
-		this.reportThreads[reporterSteamId64] = { channelId, resolved: false, reportedSteamId64 };
+		const data = server.bridge.container.getService("Data");
+		if (!data?.reportThreads) return;
+
+		if (!data.reportThreads[reporterSteamId64]) {
+			data.reportThreads[reporterSteamId64] = [];
+		}
+		data.reportThreads[reporterSteamId64].push({
+			channelId,
+			reportedSteamId64,
+			pendingMessages: [],
+		});
+		await data.save?.();
+	}
+
+	static async drainQueuedMessages(server: GameServer): Promise<void> {
+		const data = server.bridge.container.getService("Data");
+		if (!data?.reportThreads) return;
+
+		for (const [reporterSteamId64, threadArray] of Object.entries(data.reportThreads)) {
+			if (!threadArray.length) continue;
+
+			const isOnline = server.status.players.some(p => p.steamId64 === reporterSteamId64);
+			if (!isOnline) continue;
+
+			const messages: Array<{ username: string; content: string }> = [];
+			for (const threadData of threadArray) {
+				if (!threadData.pendingMessages?.length) continue;
+
+				messages.push(...threadData.pendingMessages);
+				threadData.pendingMessages = [];
+			}
+			await data.save?.();
+
+			if (messages.length === 0) continue;
+
+			this.send(
+				{
+					type: "queued",
+					messages: messages,
+					reporterSteamId64: reporterSteamId64,
+				} as QueuedReportChatResponse,
+				server
+			);
+		}
 	}
 }

@@ -18,7 +18,7 @@ export default interface StatusRequest extends PayloadRequest {
 		defcon?: number;
 		hostname?: string;
 		players?: {
-			accountId: number;
+			steamId64: string;
 			avatar?: string;
 			ip: string;
 			isAdmin: boolean;
