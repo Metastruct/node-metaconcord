@@ -6,61 +6,7 @@
 			"additionalProperties": false,
 			"properties": {
 				"data": {
-					"oneOf": [
-						{
-							"type": "object",
-							"properties": {
-								"type": { "const": "message" },
-								"username": { "type": "string" },
-								"content": { "type": "string" },
-								"reporterSteamId64": { "type": "string" }
-							},
-							"required": ["type", "username", "content"],
-							"additionalProperties": false
-						},
-						{
-							"type": "object",
-							"properties": {
-								"type": { "const": "queued" },
-								"messages": {
-									"type": "array",
-									"items": {
-										"type": "object",
-										"properties": {
-											"username": { "type": "string" },
-											"content": { "type": "string" }
-										},
-										"required": ["username", "content"],
-										"additionalProperties": false
-									}
-								},
-								"reporterSteamId64": { "type": "string" }
-							},
-							"required": ["type", "messages"],
-							"additionalProperties": false
-						},
-						{
-							"type": "object",
-							"properties": {
-								"type": { "const": "resolve" },
-								"isResolved": { "const": true },
-								"resolvedBy": { "type": "string" },
-								"reporterSteamId64": { "type": "string" }
-							},
-							"required": ["type", "isResolved"],
-							"additionalProperties": false
-						},
-						{
-							"type": "object",
-							"properties": {
-								"type": { "const": "info" },
-								"content": { "type": "string" },
-								"reporterSteamId64": { "type": "string" }
-							},
-							"required": ["type", "content"],
-							"additionalProperties": false
-						}
-					]
+					"$ref": "#/definitions/ReportChatResponsePayload"
 				},
 				"name": {
 					"const": "ReportChatPayload",
@@ -69,6 +15,98 @@
 			},
 			"required": ["data", "name"],
 			"type": "object"
+		},
+		"ReportChatResponsePayload": {
+			"anyOf": [
+				{
+					"additionalProperties": false,
+					"properties": {
+						"content": {
+							"type": "string"
+						},
+						"reporterSteamId64": {
+							"type": "string"
+						},
+						"type": {
+							"const": "message",
+							"type": "string"
+						},
+						"username": {
+							"type": "string"
+						}
+					},
+					"required": ["type", "username", "content", "reporterSteamId64"],
+					"type": "object"
+				},
+				{
+					"additionalProperties": false,
+					"properties": {
+						"messages": {
+							"items": {
+								"additionalProperties": false,
+								"properties": {
+									"content": {
+										"type": "string"
+									},
+									"username": {
+										"type": "string"
+									}
+								},
+								"required": ["username", "content"],
+								"type": "object"
+							},
+							"type": "array"
+						},
+						"reporterSteamId64": {
+							"type": "string"
+						},
+						"type": {
+							"const": "queued",
+							"type": "string"
+						}
+					},
+					"required": ["type", "messages", "reporterSteamId64"],
+					"type": "object"
+				},
+				{
+					"additionalProperties": false,
+					"properties": {
+						"isResolved": {
+							"const": true,
+							"type": "boolean"
+						},
+						"reporterSteamId64": {
+							"type": "string"
+						},
+						"resolvedBy": {
+							"type": "string"
+						},
+						"type": {
+							"const": "resolve",
+							"type": "string"
+						}
+					},
+					"required": ["type", "isResolved", "reporterSteamId64"],
+					"type": "object"
+				},
+				{
+					"additionalProperties": false,
+					"properties": {
+						"content": {
+							"type": "string"
+						},
+						"reporterSteamId64": {
+							"type": "string"
+						},
+						"type": {
+							"const": "info",
+							"type": "string"
+						}
+					},
+					"required": ["type", "content", "reporterSteamId64"],
+					"type": "object"
+				}
+			]
 		}
 	}
 }
