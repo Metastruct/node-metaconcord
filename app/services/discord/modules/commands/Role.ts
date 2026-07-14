@@ -57,13 +57,18 @@ const setRoleColorSpecial = async (
 				? ctx.options.getString("secondary_color", true)
 				: null;
 
-			const primaryColor = primary
+			let primaryColor = primary
 				? parseInt(primary.replace(/^#+/, ""), 16)
 				: role.colors.primaryColor;
-			const secondaryColor = secondary
-				? parseInt(secondary.replace(/^#+/, ""), 16)
-				: undefined;
-			const tertiaryColor: number | undefined = options?.holographic ? 0 : undefined;
+			let secondaryColor = secondary ? parseInt(secondary.replace(/^#+/, ""), 16) : undefined;
+			let tertiaryColor: number | undefined = undefined;
+
+			if (options?.holographic) {
+				// for some reason only this one has a third colour option and it's static
+				primaryColor = 11127295;
+				secondaryColor = 16759788;
+				tertiaryColor = 16761760;
+			}
 			colors = {
 				primaryColor,
 				secondaryColor,
