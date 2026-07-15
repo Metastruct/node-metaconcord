@@ -11,7 +11,8 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 			{
 				type: Discord.ApplicationCommandOptionType.String,
 				name: "filepath",
-				description: "The path to the lua file to refresh",
+				description:
+					"The path to the lua file(s) to refresh separate with commas for multiple",
 				required: true,
 			},
 			{
@@ -35,8 +36,14 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 			return;
 		}
 
-		const filePath = ctx.options.getString("filepath", true);
-		const code = `if not RefreshLua then return false, "Couldn't refresh file" end return RefreshLua([[${filePath}]])`;
+		const input = ctx.options.getString("filepath", true);
+		const filePaths = input
+			.split(",")
+			.map(f => f.trim())
+			.filter(f => f.length > 0);
+		const code =
+			'if not RefreshLua then return false, "Couldn\'t refresh file" end\n' +
+			filePaths.map(f => `RefreshLua([[${f}]])`).join("\n");
 
 		const server = bridge.servers[ctx.options.getInteger("server", true)];
 
@@ -55,7 +62,13 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 				return;
 			}
 
-			await ctx.editReply(`Refreshed \`${filePath}\``);
+			if (filePaths.length === 1) {
+				await ctx.editReply(`Refreshed \`${filePaths[0]}\``);
+			} else {
+				await ctx.editReply(
+					`Refreshed ${filePaths.length} file(s):\n${filePaths.map(f => `\`${f}\``).join("\n")}`
+				);
+			}
 		} catch (err) {
 			const errMsg = (err as Error)?.message ?? err;
 			await ctx.editReply(errMsg);
