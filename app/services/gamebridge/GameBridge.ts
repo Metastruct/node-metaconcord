@@ -59,6 +59,11 @@ export default class GameBridge extends Service {
 	}
 
 	async handleConnection(req: WebSocketRequest): Promise<void> {
+		if (req.httpRequest.url !== "/ws") {
+			log.info(`Rejected WebSocket connection on ${req.httpRequest.url}`);
+			return req.reject(404);
+		}
+
 		const ip = req.httpRequest.socket.remoteAddress;
 		const forwarded =
 			req.httpRequest.headers["cf-connecting-ip"]?.toString() ??
