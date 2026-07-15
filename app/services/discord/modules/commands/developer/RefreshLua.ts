@@ -24,7 +24,7 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 					.map(s => {
 						return { name: s.name, value: s.id };
 					}),
-				required: true,
+				required: false,
 			},
 		],
 	},
@@ -45,29 +45,53 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 			'if not RefreshLua then return false, "Couldn\'t refresh file" end\n' +
 			filePaths.map(f => `RefreshLua([[${f}]])`).join("\n");
 
-		const server = bridge.servers[ctx.options.getInteger("server", true)];
+		const serverId = ctx.options.getInteger("server");
+		const where = serverId
+			? [bridge.servers[serverId]]
+			: bridge.servers.filter(s => !!s.config.ssh);
 
 		await ctx.deferReply();
 
 		try {
-			const res = await server.sendLua(code, "sv", ctx.user.displayName);
+			const results = await Promise.all(
+				where.map(async server => {
+					const res = await server.sendLua(code, "sv", ctx.user.displayName);
+					return { server, res };
+				})
+			);
 
-			if (!res) {
-				await ctx.editReply("GameServer not connected :(");
+			const failed = results.filter(r => !r.res);
+			if (failed.length > 0) {
+				const names = failed
+					.map(r => r.server.config.name ?? `#${r.server.config.id}`)
+					.join(", ");
+				await ctx.editReply(`GameServer not connected: ${names}`);
 				return;
 			}
 
-			if (res.data.returns.length > 0 && res.data.returns[0] === "false") {
-				await ctx.editReply(res.data.returns[1] ?? "Unknown error");
+			const errored = results.filter(
+				r => r.res && r.res.data.returns.length > 0 && r.res.data.returns[0] === "false"
+			);
+			if (errored.length > 0) {
+				const msgs = errored
+					.map(
+						r =>
+							`${r.server.config.name ?? `#${r.server.config.id}`}: ${r.res!.data.returns[1] ?? "Unknown error"}`
+					)
+					.join("\n");
+				await ctx.editReply(msgs);
 				return;
 			}
 
-			if (filePaths.length === 1) {
-				await ctx.editReply(`Refreshed \`${filePaths[0]}\``);
+			const fileList =
+				filePaths.length === 1
+					? `\`${filePaths[0]}\``
+					: `${filePaths.length} file(s):\n${filePaths.map(f => `\`${f}\``).join("\n")}`;
+			if (where.length === 1) {
+				await ctx.editReply(`Refreshed ${fileList}`);
 			} else {
-				await ctx.editReply(
-					`Refreshed ${filePaths.length} file(s):\n${filePaths.map(f => `\`${f}\``).join("\n")}`
-				);
+				const serverNames = where.map(s => s.config.name ?? `#${s.config.id}`).join(", ");
+				await ctx.editReply(`Refreshed ${fileList} on ${serverNames}`);
 			}
 		} catch (err) {
 			const errMsg = (err as Error)?.message ?? err;
