@@ -9,7 +9,7 @@ const HOSTING_IDS = servers.filter(s => s.ssh !== undefined).map(s => s.id);
 export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/gamemode/:id", async (req, res) => {
 		const bot = webApp.container.getService("DiscordBot");
-		const ip = req.header("x-forwarded-for")?.split(",")[0];
+		const ip = req.header("cf-connecting-ip") ?? req.header("x-forwarded-for")?.split(",")[0];
 		if (!ip) {
 			res.sendStatus(403);
 			return;

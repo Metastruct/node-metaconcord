@@ -96,7 +96,7 @@ export default async (webApp: WebApp): Promise<void> => {
 	});
 
 	webApp.app.post("/gmod/errors", express.urlencoded({ extended: false }), async (req, res) => {
-		const ip = req.header("x-forwarded-for")?.split(",")[0];
+		const ip = req.header("cf-connecting-ip") ?? req.header("x-forwarded-for")?.split(",")[0];
 		if (!ip) {
 			res.sendStatus(403);
 			return;
