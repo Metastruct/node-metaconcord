@@ -313,7 +313,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						const res = await server.sendLua(
 							'if not RefreshLua then return false, "RefreshLua missing?" end\n' +
 								files
-									.filter(f => f && f.split(".")[1] === "lua")
+									.filter(f => f && f.endsWith(".lua"))
 									.map(f => `RefreshLua([[${f}]])`)
 									.join("\n"),
 							"sv",
