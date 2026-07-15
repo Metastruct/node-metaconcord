@@ -61,6 +61,7 @@ export default class GameBridge extends Service {
 	async handleConnection(req: WebSocketRequest): Promise<void> {
 		const ip = req.httpRequest.socket.remoteAddress;
 		const forwarded = req.httpRequest.headers["x-forwarded-for"]?.toString()?.split(",")[0];
+		const cfConnectingIp = req.httpRequest.headers["cf-connecting-ip"]?.toString();
 
 		for (const connection of this.ws.connections) {
 			if (ip == connection.remoteAddress) {
@@ -73,7 +74,7 @@ export default class GameBridge extends Service {
 
 		let serverConfig: GameServerConfig | undefined;
 		for (const config of servers) {
-			if (ip === config.ip || forwarded === config.ip) {
+			if (ip === config.ip || forwarded === config.ip || cfConnectingIp === config.ip) {
 				serverConfig = config;
 				break;
 			}
