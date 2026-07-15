@@ -111,12 +111,22 @@ export default async (webApp: WebApp): Promise<void> => {
 		res.end();
 
 		const gameBridge = webApp.container.getService("GameBridge");
-		const server = servers.find(srv => srv.ip === ip);
+		const server = servers.find(srv => {
+			const ips = srv.ip ? (Array.isArray(srv.ip) ? srv.ip : [srv.ip]) : [];
+			return ips.includes(ip);
+		});
 		let gameserver: GameServer;
 		let player: Player | undefined;
 		if (server) {
 			// ip matched so it HAS to exist
-			gameserver = gameBridge.servers.filter(server => server.config.ip === ip)[0];
+			gameserver = gameBridge.servers.filter(server => {
+				const ips = server.config.ip
+					? Array.isArray(server.config.ip)
+						? server.config.ip
+						: [server.config.ip]
+					: [];
+				return ips.includes(ip);
+			})[0];
 		} else {
 			const allplayers = gameBridge.servers.reduce(
 				(ps, cs) => ps.concat(cs.status.players),
