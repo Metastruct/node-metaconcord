@@ -75,13 +75,14 @@ export default class GameBridge extends Service {
 
 		let serverConfig: GameServerConfig | undefined;
 		for (const config of servers) {
-			if (ip === config.ip || forwarded === config.ip) {
+			const ips = config.ip ? (Array.isArray(config.ip) ? config.ip : [config.ip]) : [];
+			if ((ip && ips.includes(ip)) || (forwarded && ips.includes(forwarded))) {
 				serverConfig = config;
 				break;
 			}
 		}
 		if (!serverConfig) {
-			log.info(`Bad IP - ${ip}`);
+			log.info(`Bad IP - socket: ${ip}, forwarded: ${forwarded}`);
 			return req.reject(403);
 		}
 
