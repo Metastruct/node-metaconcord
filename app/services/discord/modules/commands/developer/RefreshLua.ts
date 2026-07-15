@@ -63,7 +63,11 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 			const failed = results.filter(r => !r.res);
 			if (failed.length > 0) {
 				const names = failed
-					.map(r => r.server.config.name ?? `#${r.server.config.id}`)
+					.map(r =>
+						r.server.discord.ready
+							? `<@${r.server.discord.user?.id}>`
+							: `#${r.server.config.id}`
+					)
 					.join(", ");
 				await ctx.editReply(`GameServer not connected: ${names}`);
 				return;
@@ -76,7 +80,7 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 				const msgs = errored
 					.map(
 						r =>
-							`${r.server.config.name ?? `#${r.server.config.id}`}: ${r.res!.data.returns[1] ?? "Unknown error"}`
+							`${r.server.discord.ready ? `<@${r.server.discord.user?.id}>` : `#${r.server.config.id}`}: ${r.res!.data.returns[1] ?? "Unknown error"}`
 					)
 					.join("\n");
 				await ctx.editReply(msgs);
@@ -90,7 +94,9 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 			if (where.length === 1) {
 				await ctx.editReply(`Refreshed ${fileList}`);
 			} else {
-				const serverNames = where.map(s => s.config.name ?? `#${s.config.id}`).join(", ");
+				const serverNames = where
+					.map(s => (s.discord.ready ? `<@${s.discord.user?.id}>` : `#${s.config.id}`))
+					.join(", ");
 				await ctx.editReply(`Refreshed ${fileList} on ${serverNames}`);
 			}
 		} catch (err) {
