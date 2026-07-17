@@ -1,6 +1,7 @@
 // not really oauth, but yeah, currently tied to discord role linking
 
-import { WebApp, rateLimitKeyGenerator } from "@/app/services/webapp/index.js";
+import { WebApp } from "@/app/services/webapp/index.js";
+import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
 //import { createHash } from "crypto";
 import { rateLimit } from "express-rate-limit";
 import SteamID from "steamid";

@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 import { SQL } from "@/app/services/SQL.js";
-import { WebApp, rateLimitKeyGenerator } from "@/app/services/webapp/index.js";
+import { WebApp } from "@/app/services/webapp/index.js";
+import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import SteamID from "steamid";
