@@ -66,6 +66,7 @@ export default class DiscordClient extends Discord.Client {
 			if (!member) return false;
 
 			return member.roles.cache.hasAny(
+				discord.config.roles.newDeveloper,
 				discord.config.roles.developer,
 				discord.config.roles.administrator
 			);
