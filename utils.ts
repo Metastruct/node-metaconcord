@@ -249,9 +249,15 @@ export const makeSpeechBubble = async (
 	return canvas.encode("png");
 };
 
+const ADMIN_GROUP_MEMBERS_TTL = 5 * 60 * 1000;
+let adminGroupMembersCache: { data: string; expires: number } | undefined;
+
 export const isAdmin = async (steamid: string) => {
-	const res = await axios.get(
-		"https://steamcommunity.com/gid/103582791433481287/memberslistxml?xml=1"
-	);
-	return !!res.data.match(steamid);
+	if (!adminGroupMembersCache || adminGroupMembersCache.expires < Date.now()) {
+		const res = await axios.get(
+			"https://steamcommunity.com/gid/103582791433481287/memberslistxml?xml=1"
+		);
+		adminGroupMembersCache = { data: res.data, expires: Date.now() + ADMIN_GROUP_MEMBERS_TTL };
+	}
+	return !!adminGroupMembersCache.data.match(steamid);
 };
