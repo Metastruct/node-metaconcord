@@ -2,7 +2,7 @@ import { Container, Service } from "@/app/Container.js";
 import { Server as HTTPServer } from "http";
 import APIs from "./api/index.js";
 import config from "@/config/webapp.json" with { type: "json" };
-import express from "express";
+import express, { Request } from "express";
 import type pino from "pino";
 import { pinoHttp } from "pino-http";
 import { logger } from "@/utils.js";
@@ -10,6 +10,9 @@ import { logger } from "@/utils.js";
 const log = logger("WebApp");
 
 const PATH_IGNORE = ["/server-status", "/discord/guild/emojis"];
+
+export const rateLimitKeyGenerator = (req: Request): string =>
+	req.headers["cf-connecting-ip"]?.toString() ?? req.ip ?? req.socket.remoteAddress ?? "unknown";
 
 export class WebApp extends Service {
 	name = "WebApp";
