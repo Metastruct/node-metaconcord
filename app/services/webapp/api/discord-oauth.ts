@@ -134,7 +134,12 @@ export default async (webApp: WebApp): Promise<void> => {
 		"/discord/link/:id/refresh",
 		rateLimit({ keyGenerator: rateLimitKeyGenerator }),
 		async (req, res) => {
-			res.send((await metadata().update(req.params.id)) ? "👌" : "👎");
+			try {
+				res.send((await metadata().update(req.params.id)) ? "👌" : "👎");
+			} catch (err) {
+				log.error(err, "failed refreshing linked role metadata");
+				res.status(502).send("👎");
+			}
 		}
 	);
 	webApp.app.get(
