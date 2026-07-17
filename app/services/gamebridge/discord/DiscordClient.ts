@@ -9,8 +9,6 @@ export default class DiscordClient extends Discord.Client {
 	config = config;
 	gameServer: GameServer;
 	ready: boolean;
-	private tokenOverride?: string;
-	private reconnectTimeout?: ReturnType<typeof setTimeout>;
 
 	constructor(gameServer: GameServer, options: Discord.ClientOptions) {
 		super(options);
@@ -19,12 +17,14 @@ export default class DiscordClient extends Discord.Client {
 
 		this.on("clientReady", () => {
 			this.ready = true;
-			this.reconnectTimeout = undefined;
 		});
 
 		this.on("shardDisconnect", () => {
 			this.ready = false;
-			this.scheduleReconnect();
+		});
+
+		this.on("shardResume", () => {
+			this.ready = true;
 		});
 
 		this.on("error", err => {
@@ -35,7 +35,6 @@ export default class DiscordClient extends Discord.Client {
 	}
 
 	public run(token: string): void {
-		this.tokenOverride = token;
 		this.connect(token);
 	}
 
@@ -55,14 +54,6 @@ export default class DiscordClient extends Discord.Client {
 				await sleep(delay);
 			}
 		}
-	}
-
-	private scheduleReconnect(): void {
-		if (this.reconnectTimeout) return;
-		this.reconnectTimeout = setTimeout(() => {
-			this.reconnectTimeout = undefined;
-			if (this.tokenOverride) this.connect(this.tokenOverride);
-		}, 5000);
 	}
 
 	public async isAllowed(user: Discord.User): Promise<boolean> {

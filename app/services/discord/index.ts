@@ -48,7 +48,6 @@ export class DiscordBot extends Service {
 	ready: boolean;
 	currentEvent = "none";
 	private data: Data;
-	private reconnectTimeout?: ReturnType<typeof setTimeout>;
 
 	constructor(container: Container) {
 		super(container);
@@ -60,13 +59,15 @@ export class DiscordBot extends Service {
 
 		this.discord.on("clientReady", async client => {
 			this.ready = true;
-			this.reconnectTimeout = undefined;
 			log.info(`'${client.user.username}' Discord Bot has logged in`);
 		});
 
 		this.discord.on("shardDisconnect", () => {
 			this.ready = false;
-			this.scheduleReconnect();
+		});
+
+		this.discord.on("shardResume", () => {
+			this.ready = true;
 		});
 
 		this.discord.on("error", err => {
@@ -101,13 +102,6 @@ export class DiscordBot extends Service {
 		}
 	}
 
-	private scheduleReconnect(): void {
-		if (this.reconnectTimeout) return;
-		this.reconnectTimeout = setTimeout(() => {
-			this.reconnectTimeout = undefined;
-			this.connect();
-		}, 5000);
-	}
 	getTextChannel(channelId: string): Discord.TextChannel | undefined {
 		if (!this.ready) return;
 		return this.discord.channels.cache.get(channelId) as Discord.TextChannel;
