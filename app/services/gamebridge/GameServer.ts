@@ -142,7 +142,9 @@ export default class GameServer {
 			}
 			this.discord.destroy();
 			log.info(`'${this.config.name}' Game Server disconnected - [${code}] ${desc}`);
-			delete this.bridge.servers[this.config.id];
+			if (this.bridge.servers[this.config.id] === this) {
+				delete this.bridge.servers[this.config.id];
+			}
 		});
 
 		log.info(`'${this.config.name}' Game Server connected`);
