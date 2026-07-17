@@ -251,13 +251,23 @@ export const makeSpeechBubble = async (
 
 const ADMIN_GROUP_MEMBERS_TTL = 5 * 60 * 1000;
 let adminGroupMembersCache: { data: string; expires: number } | undefined;
+let adminGroupMembersRefresh: Promise<void> | undefined;
+
+const refreshAdminGroupMembers = async (): Promise<void> => {
+	const res = await axios.get(
+		"https://steamcommunity.com/gid/103582791433481287/memberslistxml?xml=1"
+	);
+	adminGroupMembersCache = { data: res.data, expires: Date.now() + ADMIN_GROUP_MEMBERS_TTL };
+};
 
 export const isAdmin = async (steamid: string) => {
 	if (!adminGroupMembersCache || adminGroupMembersCache.expires < Date.now()) {
-		const res = await axios.get(
-			"https://steamcommunity.com/gid/103582791433481287/memberslistxml?xml=1"
-		);
-		adminGroupMembersCache = { data: res.data, expires: Date.now() + ADMIN_GROUP_MEMBERS_TTL };
+		adminGroupMembersRefresh ??= refreshAdminGroupMembers().finally(() => {
+			adminGroupMembersRefresh = undefined;
+		});
+		await adminGroupMembersRefresh.catch(err => {
+			baseLogger.error(err, "failed refreshing admin group members");
+		});
 	}
-	return !!adminGroupMembersCache.data.match(steamid);
+	return !!adminGroupMembersCache?.data.match(steamid);
 };
