@@ -81,9 +81,13 @@ export default class GameServer {
 
 		this.discord.run(this.config.discordToken);
 
+		let payloadsInitialized = false;
 		this.discord.on("clientReady", async client => {
-			for (const [, payload] of Object.entries(config.bridge.payloads)) {
-				payload.initialize(this);
+			if (!payloadsInitialized) {
+				payloadsInitialized = true;
+				for (const [, payload] of Object.entries(config.bridge.payloads)) {
+					payload.initialize(this);
+				}
 			}
 			this.discordIcon = client.user.avatarURL() ?? undefined;
 			this.discordBanner = client.user.bannerURL() ?? undefined;
