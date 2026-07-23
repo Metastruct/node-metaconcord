@@ -788,7 +788,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 					? pr.merged
 						? 0x8957e5
 						: 0xe74c3c
-					: GetColorFromChanges(pr.additions ?? 0, pr.deletions ?? 0, pr.changed_files ?? 0),
+					: GetColorFromChanges(
+							pr.additions ?? 0,
+							pr.deletions ?? 0,
+							pr.changed_files ?? 0
+						),
 			url: pr.html_url,
 			fields: [
 				{
