@@ -27,12 +27,29 @@ let apiVersion: string | undefined;
 let token: string | undefined;
 let tokenExpiresAt = 0;
 
+// TGS requires the Api header on every request, including this discovery
+// call - there's no way to know the real version before asking. Send a
+// guess; if TGS rejects it, it reports its actual version in the error
+// body (serverApiVersion), which we use instead.
+const FALLBACK_API_VERSION = "10.14.1";
+
 async function getApiVersion(): Promise<string> {
 	if (apiVersion) return apiVersion;
-	const res = await axios.get(`${config.baseUrl}/api`, {
-		headers: { "User-Agent": USER_AGENT },
-	});
-	apiVersion = res.data.apiVersion as string | undefined;
+	try {
+		const res = await axios.get(`${config.baseUrl}/api`, {
+			headers: {
+				"User-Agent": USER_AGENT,
+				Api: `Tgstation.Server.Api/${FALLBACK_API_VERSION}`,
+			},
+		});
+		apiVersion = res.data.apiVersion as string | undefined;
+	} catch (err) {
+		const reportedVersion = axios.isAxiosError(err)
+			? (err.response?.data as { serverApiVersion?: string } | undefined)?.serverApiVersion
+			: undefined;
+		if (!reportedVersion) throw err;
+		apiVersion = reportedVersion;
+	}
 	if (!apiVersion) throw new Error("TGS did not report an apiVersion");
 	return apiVersion;
 }
