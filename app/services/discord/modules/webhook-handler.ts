@@ -748,6 +748,72 @@ export default async (bot: DiscordBot): Promise<void> => {
 			.catch(log.error.bind(log));
 	}
 
+	async function DefaultPullRequestHandler(event: EmitterWebhookEvent<"pull_request">) {
+		const payload = event.payload;
+		const pr = payload.pull_request;
+		const repo = payload.repository;
+
+		let action: string;
+		switch (payload.action) {
+			case "opened":
+				action = "opened";
+				break;
+			case "reopened":
+				action = "reopened";
+				break;
+			case "ready_for_review":
+				action = "marked ready for review";
+				break;
+			case "closed":
+				action = pr.merged ? "merged" : "closed";
+				break;
+			default:
+				return;
+		}
+
+		const embed: Discord.APIEmbed = {
+			title: pr.title.length > 256 ? `${pr.title.substring(0, 250)}. . .` : pr.title,
+			description: pr.body
+				? pr.body.length > DIFF_SIZE
+					? `${pr.body.substring(0, DIFF_SIZE)}. . .`
+					: pr.body
+				: undefined,
+			author: {
+				name: repo.full_name.substring(0, 256),
+				url: repo.html_url,
+				icon_url: repo.owner?.avatar_url,
+			},
+			color:
+				payload.action === "closed"
+					? pr.merged
+						? 0x8957e5
+						: 0xe74c3c
+					: GetColorFromChanges(pr.additions ?? 0, pr.deletions ?? 0, pr.changed_files ?? 0),
+			url: pr.html_url,
+			fields: [
+				{
+					name: "Changes",
+					value: `+${pr.additions ?? 0} -${pr.deletions ?? 0} in ${pr.changed_files ?? 0} file${
+						pr.changed_files === 1 ? "" : "s"
+					}`,
+				},
+			],
+			timestamp: new Date().toISOString(),
+			footer: {
+				text: `PR #${pr.number} ${action} by ${pr.user?.login ?? "unknown"}`,
+			},
+		};
+
+		webhook
+			.send({
+				...BaseEmbed,
+				username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
+				avatarURL: payload.sender?.avatar_url,
+				embeds: [embed],
+			})
+			.catch(log.error.bind(log));
+	}
+
 	GitHub.on("pull_request", async event => {
 		if (!webhook) return;
 		switch (event.payload.repository.name) {
@@ -759,7 +825,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				break;
 
 			default:
-				// todo lol
+				DefaultPullRequestHandler(event);
 				break;
 		}
 	});
