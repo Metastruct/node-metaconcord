@@ -46,6 +46,12 @@ function buildStatusContainer(
 		desc += `\n:repeat: Launched: <t:${(new Date(status.launchTime).getTime() / 1000) | 0}:R>`;
 	}
 
+	// Discord's button URL validation only allows http:/https:/discord: - byond:// links
+	// have to be shown as plain (copyable) text instead of a Link button.
+	if (status.watchdogStatus === WatchdogStatus.Online && status.port) {
+		desc += `\n:desktop: Connect: \`byond://${host}:${status.port}\``;
+	}
+
 	if (disconnected) {
 		desc = `⚠️ **Server disconnected** info may be outdated\n${desc}`;
 	}
@@ -53,18 +59,6 @@ function buildStatusContainer(
 	container.addTextDisplayComponents(text => text.setContent(desc));
 
 	container.addSeparatorComponents(sep => sep);
-
-	if (status.watchdogStatus === WatchdogStatus.Online && status.port) {
-		container.addActionRowComponents(row =>
-			row.setComponents(
-				new Discord.ButtonBuilder()
-					.setStyle(Discord.ButtonStyle.Link)
-					.setLabel("Connect")
-					.setURL(`byond://${host}:${status.port}`)
-			)
-		);
-		container.addSeparatorComponents(sep => sep);
-	}
 
 	const footer = status.revision
 		? `-# metastruct @ SS13 (${status.revision.substring(0, 8)})`
