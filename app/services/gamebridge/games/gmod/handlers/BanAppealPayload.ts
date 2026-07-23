@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { BanAppealRequest } from "./structures/index.js";
 import { PlayerSummary } from "@/app/services/Steam.js";
 import { f } from "@/utils.js";
-import GameServer from "@/app/services/gamebridge/GameServer.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import SteamID from "steamid";
 import requestSchema from "./structures/BanAppealRequest.json" with { type: "json" };
@@ -10,7 +10,7 @@ import requestSchema from "./structures/BanAppealRequest.json" with { type: "jso
 export default class BanAppealPayload extends Payload {
 	protected static requestSchema = requestSchema;
 
-	static async handle(payload: BanAppealRequest, server: GameServer): Promise<void> {
+	static async handle(payload: BanAppealRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { player, banned, banReason, appeal, unbanTime } = payload.data;

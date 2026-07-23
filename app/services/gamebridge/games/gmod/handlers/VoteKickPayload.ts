@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import { VoteKickRequest } from "./structures/index.js";
 import { f, logger } from "@/utils.js";
-import GameServer from "@/app/services/gamebridge/GameServer.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import SteamID from "steamid";
 import requestSchema from "./structures/VoteKickRequest.json" with { type: "json" };
@@ -14,7 +14,7 @@ export default class VoteKickPayload extends Payload {
 		[steamId64: string]: number;
 	} = {};
 
-	static async handle(payload: VoteKickRequest, server: GameServer): Promise<void> {
+	static async handle(payload: VoteKickRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { offender, reporter, reason, result } = payload.data;

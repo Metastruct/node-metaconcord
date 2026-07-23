@@ -1,6 +1,6 @@
-import type GameServer from "@/app/services/gamebridge/GameServer.js";
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 // order matters for the menu
 const VALID_GSERV_COMMANDS: [string, string][] = [
 	["qu rehash", "runs both qu and rehash"],
@@ -52,7 +52,10 @@ export const SlashGservCommand: SlashCommand = {
 						custom_id: "server",
 						placeholder: "Select a server (runs on all if not selected)",
 						options: bridge.servers
-							.filter((s): s is GameServer => !!s?.config.ssh)
+							.filter(
+								(s): s is GmodConnection =>
+									s instanceof GmodConnection && !!s.config.ssh
+							)
 							.map(s => ({
 								label: s.config.name,
 								value: String(s.config.id),
@@ -96,7 +99,7 @@ export const SlashGservCommand: SlashCommand = {
 
 		await Promise.all(
 			targetServers
-				.filter(s => !!s.config.ssh)
+				.filter((s): s is GmodConnection => s instanceof GmodConnection && !!s.config.ssh)
 				.map(async gameServer => {
 					const gSDiscord = gameServer.discord;
 					const channel = gSDiscord.channels.cache.get(

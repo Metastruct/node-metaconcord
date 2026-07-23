@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 export const SlashRefreshLuaCommand: SlashCommand = {
@@ -47,10 +48,19 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 
 		const serverId = ctx.options.getInteger("server");
 		const where = serverId
-			? [bridge.servers[serverId]]
-			: bridge.servers.filter(s => !!s.config.ssh);
+			? bridge.servers[serverId] instanceof GmodConnection
+				? [bridge.servers[serverId] as GmodConnection]
+				: []
+			: bridge.servers.filter(
+					(s): s is GmodConnection => s instanceof GmodConnection && !!s.config.ssh
+				);
 
 		await ctx.deferReply();
+
+		if (where.length === 0) {
+			await ctx.editReply("That server isn't a GMod server.");
+			return;
+		}
 
 		try {
 			const results = await Promise.all(

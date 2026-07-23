@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { StatusRequest } from "./structures/index.js";
-import GameServer from "@/app/services/gamebridge/GameServer.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import ReportChatPayload from "./ReportChatPayload.js";
 import AdminNotifyPayload from "./AdminNotifyPayload.js";
@@ -75,7 +75,7 @@ const DEFAULT_THUMBNAIL = path.join(process.cwd(), "resources/map-thumbnails/gm_
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
 
-	static async handle(payload: StatusRequest, server: GameServer): Promise<void> {
+	static async handle(payload: StatusRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const {
@@ -326,11 +326,6 @@ export default class StatusPayload extends Payload {
 				log.error(err);
 			}
 
-			const channel = guild.channels.cache.get(
-				bridge.config.serverInfoChannelId
-			) as Discord.TextChannel;
-			if (!channel) return;
-
 			const attachments = [
 				new Discord.AttachmentBuilder(statusApiUri, { name: "players.png" }),
 				new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, {
@@ -338,32 +333,7 @@ export default class StatusPayload extends Payload {
 				}),
 			];
 
-			try {
-				const messages = await channel.messages.fetch();
-				const message = messages
-					.filter((msg: Discord.Message) => msg.author.id == discord.user?.id)
-					.first();
-
-				if (message) {
-					await message
-						.edit({
-							components: [container],
-							files: attachments,
-							flags: Discord.MessageFlags.IsComponentsV2,
-						})
-						.catch(e => log.error(e, "message edit failed"));
-				} else {
-					channel
-						.send({
-							components: [container],
-							files: attachments,
-							flags: Discord.MessageFlags.IsComponentsV2,
-						})
-						.catch(() => {});
-				}
-			} catch (err) {
-				log.error(err);
-			}
+			await server.postOrEditStatusMessage(container, attachments);
 		};
 
 		if (discord.ready) {

@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { SlashCommand } from "@/extensions/discord.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import SteamID from "steamid";
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
@@ -38,6 +39,10 @@ export const SlashUnBanCommand: SlashCommand = {
 		const bridge = bot.bridge;
 		await ctx.deferReply();
 		const server = bridge.servers[ctx.options.getInteger("server") ?? 2];
+		if (!(server instanceof GmodConnection)) {
+			await ctx.editReply("That server isn't a GMod server.");
+			return;
+		}
 		const steamid = ctx.options.getString("steamid", true);
 		const code =
 			`if not banni then return false end ` +

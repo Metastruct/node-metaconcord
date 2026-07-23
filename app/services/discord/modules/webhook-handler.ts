@@ -2,6 +2,7 @@ import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
 import { clamp, logger } from "@/utils.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import axios from "axios";
 import webhookConfig from "@/config/webhooks.json" with { type: "json" };
 import { EmitterWebhookEvent } from "@octokit/webhooks/types";
@@ -165,8 +166,14 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const [action, override] = ctx.customId.split("_");
 		const where =
 			override !== undefined
-				? bridge.servers.filter(s => override.split(",").includes(s.config.id.toString()))
-				: bridge.servers.filter(s => !!s.config.ssh);
+				? bridge.servers.filter(
+						(s): s is GmodConnection =>
+							s instanceof GmodConnection &&
+							override.split(",").includes(s.config.id.toString())
+					)
+				: bridge.servers.filter(
+						(s): s is GmodConnection => s instanceof GmodConnection && !!s.config.ssh
+					);
 
 		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(x =>
 			allowedRoles.has(x.id)

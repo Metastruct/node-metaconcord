@@ -1,13 +1,13 @@
 import * as Discord from "discord.js";
 import { JoinLeaveRequest } from "./structures/index.js";
-import GameServer from "@/app/services/gamebridge/GameServer.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import requestSchema from "./structures/JoinLeaveRequest.json" with { type: "json" };
 
 export default class JoinLeavePayload extends Payload {
 	protected static requestSchema = requestSchema;
 
-	static async handle(payload: JoinLeaveRequest, server: GameServer): Promise<void> {
+	static async handle(payload: JoinLeaveRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { player, reason, spawned } = payload.data;

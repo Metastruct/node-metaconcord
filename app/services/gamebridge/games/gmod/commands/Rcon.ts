@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 
 export const SlashRconCommand: SlashCommand = {
 	options: {
@@ -44,14 +45,13 @@ export const SlashRconCommand: SlashCommand = {
 		}
 		await ctx.deferReply();
 		const command = ctx.options.getString("command", true);
-		const server = ctx.options.getInteger("server", true);
-		const response = {
-			isLua: false,
-			command: command,
-			runner: ctx.user.displayName ?? "???",
-		};
+		const server = bridge.servers[ctx.options.getInteger("server", true)];
+		if (!(server instanceof GmodConnection)) {
+			await ctx.followUp(EphemeralResponse("That server isn't a GMod server."));
+			return;
+		}
 
-		await bridge.payloads.RconPayload.send(response, bridge.servers[server]);
+		await server.sendRcon(command, ctx.user.displayName ?? "???");
 		await ctx.followUp("Sent command sucessfully.");
 	},
 };

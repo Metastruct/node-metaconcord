@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
 import { logger } from "@/utils.js";
-import GameServer from "@/app/services/gamebridge/GameServer.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import requestSchema from "./structures/ReportChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ReportChatResponse.json" with { type: "json" };
-import { Data } from "../../Data.js";
+import { Data } from "@/app/services/Data.js";
 import { QueuedReportChatResponse } from "./structures/ReportChatResponse.js";
 
 type ReportChatRequest = import("./structures/ReportChatRequest.js").default;
@@ -30,11 +30,11 @@ export default class ReportChatPayload extends Payload {
 		return threadArray[threadArray.length - 1];
 	}
 
-	private static isPlayerOnline(steamId64: string, server: GameServer): boolean {
+	private static isPlayerOnline(steamId64: string, server: GmodConnection): boolean {
 		return server.status.players.some(p => p.steamId64 === steamId64);
 	}
 
-	static async initialize(server: GameServer): Promise<void> {
+	static async initialize(server: GmodConnection): Promise<void> {
 		const discord = server.discord;
 
 		discord.on("messageCreate", async (msg: Discord.Message | Discord.PartialMessage) => {
@@ -104,7 +104,7 @@ export default class ReportChatPayload extends Payload {
 		});
 	}
 
-	static async handle(payload: ReportChatRequest, server: GameServer): Promise<void> {
+	static async handle(payload: ReportChatRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { steamId64, content } = payload.data;
@@ -139,7 +139,7 @@ export default class ReportChatPayload extends Payload {
 		reporterSteamId64: string,
 		channelId: string,
 		reportedSteamId64: string,
-		server: GameServer
+		server: GmodConnection
 	): Promise<void> {
 		const data = server.bridge.container.getService("Data");
 		if (!data?.reportThreads) return;
@@ -155,7 +155,7 @@ export default class ReportChatPayload extends Payload {
 		await data.save?.();
 	}
 
-	static async drainQueuedMessages(server: GameServer): Promise<void> {
+	static async drainQueuedMessages(server: GmodConnection): Promise<void> {
 		const data = server.bridge.container.getService("Data");
 		if (!data?.reportThreads) return;
 

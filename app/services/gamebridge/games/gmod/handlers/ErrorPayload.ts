@@ -1,7 +1,7 @@
 import { APIEmbed } from "discord.js";
 import { ErrorRequest, ErrorResponse } from "./structures/index.js";
 import { getOrFetchGmodFile, matchGmodPath } from "@/utils.js";
-import GameServer from "@/app/services/gamebridge/GameServer.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import dayjs from "dayjs";
 import requestSchema from "./structures/ErrorRequest.json" with { type: "json" };
@@ -12,10 +12,10 @@ export default class ErrorPayload extends Payload {
 	protected static responseSchema = responseSchema;
 	private static lastError: ErrorRequest["data"]["hook_error"];
 
-	// static async initialize(server: GameServer): Promise<void> {
+	// static async initialize(server: GmodConnection): Promise<void> {
 	// }
 
-	static async handle(payload: ErrorRequest, server: GameServer): Promise<void> {
+	static async handle(payload: ErrorRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 		const { bridge } = server;
 
@@ -84,7 +84,7 @@ export default class ErrorPayload extends Payload {
 		}
 	}
 
-	static async send(payload: ErrorResponse, server: GameServer): Promise<void> {
+	static async send(payload: ErrorResponse, server: GmodConnection): Promise<void> {
 		super.send(payload, server);
 	}
 }
