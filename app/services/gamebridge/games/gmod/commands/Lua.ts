@@ -1,7 +1,8 @@
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
 import { f } from "@/utils.js";
-import RconResponse from "@/app/services/gamebridge/payloads/structures/RconResponse.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
+import RconResponse from "@/app/services/gamebridge/games/gmod/handlers/structures/RconResponse.js";
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 export const SlashLuaCommand: SlashCommand = {
@@ -58,6 +59,10 @@ export const SlashLuaCommand: SlashCommand = {
 		await ctx.deferReply();
 		const code = ctx.options.getString("code", true).replace(/```(?:lua\n?)?/g, "");
 		const server = bridge.servers[ctx.options.getInteger("server", true)];
+		if (!(server instanceof GmodConnection)) {
+			await ctx.followUp(EphemeralResponse("That server isn't a GMod server."));
+			return;
+		}
 		const realm = ctx.options.getString("realm") ?? "sv";
 
 		try {

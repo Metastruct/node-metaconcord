@@ -1,7 +1,8 @@
 import * as Discord from "discord.js";
 import { AddonURIS, getOrFetchGmodFile, logger } from "@/utils.js";
 import { WebApp } from "@/app/services/webapp/index.js";
-import GameServer, { Player } from "@/app/services/gamebridge/GameServer.js";
+import { Player } from "@/app/services/gamebridge/GameConnection.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import SteamID from "steamid";
 import config from "@/config/webapp.json" with { type: "json" };
 import dayjs from "dayjs";
@@ -115,15 +116,16 @@ export default async (webApp: WebApp): Promise<void> => {
 			const ips = srv.ip ? (Array.isArray(srv.ip) ? srv.ip : [srv.ip]) : [];
 			return ips.includes(ip);
 		});
-		let gameserver: GameServer;
+		let gameserver: GmodConnection | undefined;
 		let player: Player | undefined;
 		if (server) {
 			// ip matched so it HAS to exist
-			gameserver = gameBridge.servers.filter(server => {
-				const ips = server.config.ip
-					? Array.isArray(server.config.ip)
-						? server.config.ip
-						: [server.config.ip]
+			gameserver = gameBridge.servers.filter((s): s is GmodConnection => {
+				if (!(s instanceof GmodConnection)) return false;
+				const ips = s.config.ip
+					? Array.isArray(s.config.ip)
+						? s.config.ip
+						: [s.config.ip]
 					: [];
 				return ips.includes(ip);
 			})[0];
@@ -133,8 +135,9 @@ export default async (webApp: WebApp): Promise<void> => {
 				new Array<Player>()
 			);
 			player = allplayers.find(pl => pl.ip.split(":")[0] === ip); // idk if you can combine that into one call
-			gameserver = gameBridge.servers.filter(srv =>
-				srv.status.players.includes(player as Player)
+			gameserver = gameBridge.servers.filter(
+				(srv): srv is GmodConnection =>
+					srv instanceof GmodConnection && srv.status.players.includes(player as Player)
 			)[0];
 		}
 

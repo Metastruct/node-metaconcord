@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import GameServer from "@/app/services/gamebridge/GameServer.js";
+import GameConnection from "@/app/services/gamebridge/GameConnection.js";
 import config from "@/config/discord.json" with { type: "json" };
 import { logger, sleep } from "@/utils.js";
 
@@ -7,10 +7,10 @@ const log = logger(import.meta);
 
 export default class DiscordClient extends Discord.Client {
 	config = config;
-	gameServer: GameServer;
+	gameServer: GameConnection;
 	ready: boolean;
 
-	constructor(gameServer: GameServer, options: Discord.ClientOptions) {
+	constructor(gameServer: GameConnection, options: Discord.ClientOptions) {
 		super(options);
 
 		this.gameServer = gameServer;

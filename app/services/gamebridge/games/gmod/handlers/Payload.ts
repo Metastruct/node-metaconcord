@@ -1,6 +1,6 @@
 import { Ajv, type ErrorObject } from "ajv";
 import { PayloadRequest } from "./structures/index.js";
-import GameServer from "../GameServer.js";
+import GmodConnection from "../GmodConnection.js";
 import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
@@ -27,17 +27,17 @@ export default abstract class Payload {
 		}
 	}
 
-	static async handle(payload: PayloadRequest, _server?: GameServer): Promise<void> {
+	static async handle(payload: PayloadRequest, _server?: GmodConnection): Promise<void> {
 		this.validate(this.requestSchema, payload);
 	}
 
-	static async initialize(_server?: GameServer): Promise<void> {}
+	static async initialize(_server?: GmodConnection): Promise<void> {}
 
-	static async send(payload: unknown, server: GameServer): Promise<void> {
+	static async send(payload: unknown, server: GmodConnection): Promise<void> {
 		this.validate(this.responseSchema, payload);
 
-		if (server && server.connection?.state === "open") {
-			server.connection.send(
+		if (server && server.wsConnection?.state === "open") {
+			server.wsConnection.send(
 				JSON.stringify({
 					payload: {
 						name: this.name,

@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { SlashCommand } from "@/extensions/discord.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 export const SlashKickCommand: SlashCommand = {
@@ -40,6 +41,10 @@ export const SlashKickCommand: SlashCommand = {
 		const bridge = bot.bridge;
 		if (!bridge) return;
 		const server = bridge.servers[ctx.options.getInteger("server", true)];
+		if (!(server instanceof GmodConnection)) {
+			await ctx.followUp("That server isn't a GMod server.");
+			return;
+		}
 		const reason = ctx.options.getString("reason") ?? "byebye!!!";
 		const code =
 			`if not easylua then return false end ` +

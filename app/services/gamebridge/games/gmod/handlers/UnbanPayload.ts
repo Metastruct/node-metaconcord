@@ -1,19 +1,19 @@
 import * as Discord from "discord.js";
-import { BanRequest } from "./structures/index.js";
 import { PlayerSummary } from "@/app/services/Steam.js";
+import { UnbanRequest } from "./structures/index.js";
 import { f } from "@/utils.js";
-import GameServer from "@/app/services/gamebridge/GameServer.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import SteamID from "steamid";
-import requestSchema from "./structures/BanRequest.json" with { type: "json" };
+import requestSchema from "./structures/UnbanRequest.json" with { type: "json" };
 
-export default class BanPayload extends Payload {
+export default class UnbanPayload extends Payload {
 	protected static requestSchema = requestSchema;
 
-	static async handle(payload: BanRequest, server: GameServer): Promise<void> {
+	static async handle(payload: UnbanRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
-		const { player, banned, reason, unbanTime, gamemode } = payload.data;
+		const { player, banned, banReason, unbanReason, banTime } = payload.data;
 		const { bridge, discord: discordClient } = server;
 
 		if (!discordClient.ready) return;
@@ -23,8 +23,6 @@ export default class BanPayload extends Payload {
 
 		const notificationsChannel = guild.channels.cache.get(bridge.config.banUnbanChannelId);
 		if (!notificationsChannel) return;
-
-		const pastBans = await bridge.container.getService("Bans").getBan(banned.steamId, true);
 
 		const steam = bridge.container.getService("Steam");
 		let steamId64 = "";
@@ -43,14 +41,14 @@ export default class BanPayload extends Payload {
 
 		const bannedSteamId64 = new SteamID(banned.steamId).getSteamID64();
 		const bannedAvatar = await steam.getUserAvatar(bannedSteamId64);
-		const unixTime = parseInt(unbanTime);
+		const unixTime = parseInt(banTime);
 		if (!unixTime || isNaN(unixTime))
-			throw new Error(`Unban time is not a number? Supplied time: ${unbanTime}`);
+			throw new Error(`ban time is not a number? Supplied time: ${banTime}`);
 
 		const embed = new Discord.EmbedBuilder();
 		if (avatar) {
 			embed.setAuthor({
-				name: `${player.nick} banned a player`,
+				name: `${player.nick} unbanned a player`,
 				iconURL: avatar,
 				url: `https://steamcommunity.com/profiles/${steamId64}`,
 			});
@@ -64,38 +62,28 @@ export default class BanPayload extends Payload {
 
 				const name = chunks[0].trim();
 				const mention = chunks[1].trim();
-				embed.setTitle(`${name} banned a player`);
+				embed.setTitle(`${name} unbanned a player`);
 				embed.addFields(f("Mention", mention));
 			} else {
-				embed.setTitle(`${bannerName} banned a player`);
+				embed.setTitle(`${bannerName} unbanned a player`);
 			}
 		}
 
 		if (banned.nick) embed.addFields(f("Nick", banned.nick, true));
 		embed.addFields(f("Expiration", `<t:${unixTime}:R>`, true));
-		embed.addFields(f("Reason", reason.substring(0, 1900)));
-		embed.addFields(f("Gamemode", gamemode ?? "GLOBAL"));
-		if (pastBans?.numbans) {
-			embed.addFields(f("Past Bans", pastBans.numbans.toString()));
-		}
+		embed.addFields(f("Ban Reason", banReason.substring(0, 1900)));
+		embed.addFields(f("Unban Reason", unbanReason.substring(0, 1900)));
 		embed.addFields(
 			f(
 				"SteamID",
 				`[${bannedSteamId64}](https://steamcommunity.com/profiles/${bannedSteamId64}) (${banned.steamId})`
 			)
 		);
-
 		embed.setThumbnail(bannedAvatar ?? null);
-		embed.setColor(0xc42144);
+		embed.setColor("Green");
 		await (notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
 		await (guild.channels.cache.get(bridge.config.relayChannelId) as Discord.TextChannel).send({
 			embeds: [embed],
 		});
-
-		const metadata = bridge.container.getService("DiscordMetadata");
-		const discordId = await metadata.discordIDfromSteam64(bannedSteamId64);
-		if (discordId) {
-			await metadata.update(discordId);
-		}
 	}
 }

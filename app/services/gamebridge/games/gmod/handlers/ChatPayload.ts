@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { ChatRequest, ChatResponse } from "./structures/index.js";
-import GameServer from "@/app/services/gamebridge/GameServer.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import requestSchema from "./structures/ChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ChatResponse.json" with { type: "json" };
@@ -101,7 +101,7 @@ export default class ChatPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	protected static responseSchema = responseSchema;
 
-	static async initialize(server: GameServer): Promise<void> {
+	static async initialize(server: GmodConnection): Promise<void> {
 		const discord = server.discord;
 		discord.on("messageCreate", async msg => {
 			if (msg.channel.id != server.bridge.config.relayChannelId) return;
@@ -154,7 +154,7 @@ export default class ChatPayload extends Payload {
 		});
 	}
 
-	static async handle(payload: ChatRequest, server: GameServer): Promise<void> {
+	static async handle(payload: ChatRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 		const { player } = payload.data;
 		let { content } = payload.data;
@@ -205,7 +205,7 @@ export default class ChatPayload extends Payload {
 			.catch(log.error.bind(log));
 	}
 
-	static async send(payload: ChatResponse, server: GameServer): Promise<void> {
+	static async send(payload: ChatResponse, server: GmodConnection): Promise<void> {
 		super.send(payload, server);
 	}
 }

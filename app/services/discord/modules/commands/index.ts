@@ -10,43 +10,31 @@ import {
 } from "./developer/BotRelated.js";
 import { MenuRemoveHighlightMessageCommand } from "./RemoveHighlightMessage.js";
 import { MenuWhyRoleCommand } from "./WhyRole.js";
-import { SlashBanCommand } from "./developer/Ban.js";
 import { SlashEndEvent } from "./developer/Events.js";
 import { SlashFileCommand } from "./developer/File.js";
-import { SlashGservCommand } from "./developer/Gserv.js";
-import { SlashKickCommand } from "./developer/Kick.js";
-import { SlashLuaCommand } from "./developer/Lua.js";
 import { SlashMarkovCommand } from "./Markov.js";
 import { SlashRandomImageCommand } from "./Shitposting.js";
-import { SlashRconCommand } from "./developer/Rcon.js";
-import { SlashRefreshLuaCommand } from "./developer/RefreshLua.js";
 import { SlashRoleCommand } from "./Role.js";
 import { SlashRuleCommand } from "./developer/Rules.js";
 import { SlashSpeechbubbleCommand } from "./Speechbubble.js";
 import { SlashSQLCommand } from "./developer/SQL.js";
-import { SlashUnBanCommand } from "./developer/UnBan.js";
 import { SlashVideoCommand } from "./Video.js";
 import { SlashVoiceCommand } from "./TempVoiceChannel.js";
 import { SlashWhyBanCommand } from "./WhyBan.js";
+import { gmodSlashCommands } from "@/app/services/gamebridge/games/gmod/commands/index.js";
 import { logger } from "@/utils.js";
 
 const log = logger("Commands");
 
 export const slashCommands = [
 	// restricted commands
-	SlashBanCommand,
+	...gmodSlashCommands,
 	SlashEndEvent,
 	SlashFileCommand,
 	SlashForceMotd,
-	SlashGservCommand,
-	SlashKickCommand,
-	SlashLuaCommand,
 	SlashManageMediaLinks,
-	SlashRconCommand,
-	SlashRefreshLuaCommand,
 	SlashRuleCommand,
 	SlashSQLCommand,
-	SlashUnBanCommand,
 	// normal commands
 	SlashDeeplCommand,
 	SlashMarkovCommand,

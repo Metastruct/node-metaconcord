@@ -1,6 +1,6 @@
 import { Resvg } from "@resvg/resvg-js";
 import { readFile } from "node:fs/promises";
-import { Player } from "./GameServer.js";
+import { Player } from "./GameConnection.js";
 
 const escapeXml = (s: string) =>
 	s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

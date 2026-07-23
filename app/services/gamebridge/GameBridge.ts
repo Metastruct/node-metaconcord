@@ -1,13 +1,10 @@
 import * as Discord from "discord.js";
-import * as payloads from "./payloads/index.js";
 import * as signalR from "@microsoft/signalr";
 import { Container, Service } from "@/app/Container.js";
-import { GameServerConfig } from "./GameServer.js";
 import { ResoniteSession } from "../Resonite.js";
 import { WebApp } from "@/app/services/webapp/index.js";
-import { request as WebSocketRequest } from "websocket";
-import { server as WebSocketServer } from "websocket";
-import GameServer from "./GameServer.js";
+import GameConnection from "./GameConnection.js";
+import { attachGmod } from "./games/gmod/index.js";
 import config from "@/config/gamebridge.json" with { type: "json" };
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 import resoniteConfig from "@/config/resonite.json" with { type: "json" };
@@ -22,10 +19,8 @@ export default class GameBridge extends Service {
 		servers,
 		...config,
 	};
-	payloads = payloads;
 	webApp: WebApp;
-	ws: WebSocketServer;
-	servers: GameServer[] = [];
+	servers: GameConnection[] = [];
 	discordChatWH = new Discord.WebhookClient({
 		url: config.chatWebhookUrl,
 	});
@@ -44,64 +39,10 @@ export default class GameBridge extends Service {
 	async init() {
 		this.webApp = this.container.getService("WebApp");
 
-		this.ws = new WebSocketServer({
-			httpServer: this.webApp.http,
-			autoAcceptConnections: false,
-		});
+		attachGmod(this);
 
-		this.ws.on("request", req => {
-			this.handleConnection(req);
-		});
-
-		log.info(`Web socket server listening on ${this.webApp.config.port}`);
 		this.ready = true;
 		this.handleResoniteConnection();
-	}
-
-	async handleConnection(req: WebSocketRequest): Promise<void> {
-		if (req.httpRequest.url !== "/ws") {
-			log.info(`Rejected WebSocket connection on ${req.httpRequest.url}`);
-			return req.reject(404);
-		}
-
-		const ip = req.httpRequest.socket.remoteAddress;
-		const forwarded =
-			req.httpRequest.headers["cf-connecting-ip"]?.toString() ??
-			req.httpRequest.headers["x-forwarded-for"]?.toString()?.split(",")[0];
-
-		for (const connection of this.ws.connections) {
-			if (ip == connection.remoteAddress) {
-				log.info(
-					`${ip} is trying to connect multiple times, dropping previous connection.`
-				);
-				connection.close();
-			}
-		}
-
-		let serverConfig: GameServerConfig | undefined;
-		for (const config of servers) {
-			const ips = config.ip ? (Array.isArray(config.ip) ? config.ip : [config.ip]) : [];
-			if ((ip && ips.includes(ip)) || (forwarded && ips.includes(forwarded))) {
-				serverConfig = config;
-				break;
-			}
-		}
-		if (!serverConfig) {
-			log.info(`Bad IP - socket: ${ip}, forwarded: ${forwarded}`);
-			return req.reject(403);
-		}
-
-		const requestToken = req.httpRequest.headers["x-auth-token"];
-		if (requestToken !== config.token) {
-			log.info(`Bad X-Auth-Token - ${requestToken}`);
-			return req.reject(401);
-		}
-
-		this.servers[serverConfig.id] = new GameServer({
-			req: req,
-			bridge: this,
-			serverConfig: serverConfig,
-		});
 	}
 
 	async handleResoniteConnection(): Promise<void> {
@@ -118,7 +59,7 @@ export default class GameBridge extends Service {
 
 		con.start()
 			.then(() => {
-				const server = (this.servers[id] = new GameServer({
+				const server = (this.servers[id] = new GameConnection({
 					bridge: this,
 					serverConfig: {
 						name: "#resonite 🇪🇺",

@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 import { DiscordBot } from "@/app/services/discord/index.js";
 import { SlashCommand } from "@/extensions/discord.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 
 const DEFAULT_BAN_LENGTHS = ["1d", "1w", "4w", "6mo", "1y"];
@@ -68,6 +69,10 @@ const Ban = async (
 	if (!bridge) return;
 	const selectedServer = ctx.options.getInteger("server") ?? 2;
 	const server = bridge.servers[selectedServer];
+	if (!(server instanceof GmodConnection)) {
+		await ctx.followUp("That server isn't a GMod server.");
+		return;
+	}
 	const plyName = nickname ?? `???`;
 	const steamid = ctx.options.getString("steamid", true);
 	const length = Math.round(
@@ -177,11 +182,12 @@ export const SlashBanCommand: SlashCommand = {
 		const focused = ctx.options.getFocused(true);
 		switch (focused.name) {
 			case "gamemode": {
-				const gamemodes = bot.bridge?.servers[
-					ctx.options.getInteger("server") ?? 2
-				]?.gamemodes.map(name => {
-					return { name: name, value: name };
-				});
+				const server = bot.bridge?.servers[ctx.options.getInteger("server") ?? 2];
+				const gamemodes = (server instanceof GmodConnection ? server.gamemodes : [])?.map(
+					name => {
+						return { name: name, value: name };
+					}
+				);
 				await ctx.respond(gamemodes ?? []);
 				break;
 			}

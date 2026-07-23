@@ -1,4 +1,5 @@
 import { WebApp } from "@/app/services/webapp/index.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import servers from "@/config/gamebridge.servers.json" with { type: "json" };
 import { logger } from "@/utils.js";
 
@@ -30,7 +31,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		}
 
 		const server = bot.bridge.servers[id];
-		if (!server) {
+		if (!(server instanceof GmodConnection)) {
 			res.sendStatus(404);
 			return;
 		}

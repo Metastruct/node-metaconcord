@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import { AdminNotifyRequest } from "./structures/index.js";
 import { f, logger } from "@/utils.js";
-import GameServer from "@/app/services/gamebridge/GameServer.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import ReportChatPayload from "./ReportChatPayload.js";
 import SteamID from "steamid";
@@ -24,7 +24,7 @@ export default class AdminNotifyPayload extends Payload {
 		return `${serverId}:${steamId64}`;
 	}
 
-	static async updateReporterStatus(server: GameServer): Promise<void> {
+	static async updateReporterStatus(server: GmodConnection): Promise<void> {
 		const prefix = server.config.id + ":";
 		for (const [key, ref] of this.activeReportEmbeds) {
 			if (!key.startsWith(prefix)) continue;
@@ -60,7 +60,7 @@ export default class AdminNotifyPayload extends Payload {
 		}
 	}
 
-	static async initialize(server: GameServer): Promise<void> {
+	static async initialize(server: GmodConnection): Promise<void> {
 		const discord = server.discord;
 		const reportsChannel = discord.channels.cache.get(
 			server.discord.config.channels.reports
@@ -187,7 +187,7 @@ export default class AdminNotifyPayload extends Payload {
 		});
 	}
 
-	static async handle(payload: AdminNotifyRequest, server: GameServer): Promise<void> {
+	static async handle(payload: AdminNotifyRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { player, reported } = payload.data;

@@ -1,13 +1,13 @@
 import * as Discord from "discord.js";
 import { NotificationResponse } from "./structures/index.js";
-import GameServer from "@/app/services/gamebridge/GameServer.js";
+import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import requestSchema from "./structures/NotificationResponse.json" with { type: "json" };
 
 export default class NotificationPayload extends Payload {
 	protected static requestSchema = requestSchema;
 
-	static async handle(payload: NotificationResponse, server: GameServer): Promise<void> {
+	static async handle(payload: NotificationResponse, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { title, message, color } = payload.data;
