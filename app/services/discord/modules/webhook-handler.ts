@@ -771,12 +771,14 @@ export default async (bot: DiscordBot): Promise<void> => {
 				return;
 		}
 
+		const diff = await getGitHubDiff(pr.html_url);
+
 		const embed: Discord.APIEmbed = {
 			title: pr.title.length > 256 ? `${pr.title.substring(0, 250)}. . .` : pr.title,
-			description: pr.body
-				? pr.body.length > DIFF_SIZE
-					? `${pr.body.substring(0, DIFF_SIZE)}. . .`
-					: pr.body
+			description: diff
+				? `\`\`\`diff\n${
+						diff.length > DIFF_SIZE - 12 ? diff.substring(0, 4079) + ". . ." : diff
+					}\`\`\``
 				: undefined,
 			author: {
 				name: repo.full_name.substring(0, 256),
