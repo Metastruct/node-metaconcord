@@ -77,7 +77,7 @@ export function attachSS13(bridge: GameBridge): void {
 			connection = bridge.servers[SS13_SERVER_ID] = new SS13Connection({
 				bridge,
 				serverConfig: {
-					name: "#ss13",
+					name: "#ss13 🇪🇺",
 					id: SS13_SERVER_ID,
 					discordToken: config.discordToken,
 				},
@@ -99,9 +99,9 @@ export function attachSS13(bridge: GameBridge): void {
 			conn.disconnected = false;
 
 			const presence: Discord.PresenceData =
-				status.watchdogStatus === WatchdogStatus.Offline
+				status.watchdogStatus !== WatchdogStatus.Online
 					? { status: "dnd", activities: [] }
-					: status.watchdogStatus === WatchdogStatus.Online && status.clientCount > 0
+					: status.clientCount > 0
 						? {
 								status: "online",
 								activities: [
