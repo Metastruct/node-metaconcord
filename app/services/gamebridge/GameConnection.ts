@@ -124,7 +124,7 @@ export default class GameConnection extends EventEmitter {
 		if (!guild) return;
 
 		const channel = guild.channels.cache.get(
-			this.bridge.config.serverInfoChannelId
+			this.discord.config.channels.serverStatus
 		) as Discord.TextChannel;
 		if (!channel) return;
 

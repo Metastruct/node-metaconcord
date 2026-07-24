@@ -2,6 +2,7 @@ import * as Discord from "discord.js";
 import { ChatRequest, ChatResponse } from "./structures/index.js";
 import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
+import { chatWebhook } from "../webhooks.js";
 import requestSchema from "./structures/ChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ChatResponse.json" with { type: "json" };
 import { logger } from "@/utils.js";
@@ -104,7 +105,7 @@ export default class ChatPayload extends Payload {
 	static async initialize(server: GmodConnection): Promise<void> {
 		const discord = server.discord;
 		discord.on("messageCreate", async msg => {
-			if (msg.channel.id != server.bridge.config.relayChannelId) return;
+			if (msg.channel.id != server.discord.config.channels.relay) return;
 			if (msg.author.bot || !msg.author.client) return;
 
 			if (msg.partial) {
@@ -165,8 +166,6 @@ export default class ChatPayload extends Payload {
 		const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 		if (!guild) return;
 
-		const webhook = bridge.discordChatWH;
-
 		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
 
 		const matches = content.matchAll(/@(\S*)/g);
@@ -190,8 +189,8 @@ export default class ChatPayload extends Payload {
 
 		// 9312 = ①, 9313 = ②, and so on until 20
 		const serverId = `#${server.config.id}`; // String.fromCodePoint(9311 + +(server.config.id ?? 0));
-		await webhook
-			?.send({
+		await chatWebhook
+			.send({
 				content: content,
 				username: `${serverId} ${player.nick
 					// .replace(/@/g, "(at)")

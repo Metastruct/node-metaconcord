@@ -7,7 +7,7 @@ import SteamID from "steamid";
 import config from "@/config/webapp.json" with { type: "json" };
 import dayjs from "dayjs";
 import express from "express";
-import servers from "@/config/gamebridge.servers.json" with { type: "json" };
+import servers from "@/config/gmod.servers.json" with { type: "json" };
 
 const log = logger(import.meta);
 

@@ -1,8 +1,8 @@
 import { request as WebSocketRequest, server as WebSocketServer } from "websocket";
 import GameBridge from "../../GameBridge.js";
 import GmodConnection, { GmodConnectionConfig } from "./GmodConnection.js";
-import config from "@/config/gamebridge.json" with { type: "json" };
-import servers from "@/config/gamebridge.servers.json" with { type: "json" };
+import config from "@/config/gmod.json" with { type: "json" };
+import servers from "@/config/gmod.servers.json" with { type: "json" };
 import { logger } from "@/utils.js";
 
 const log = logger(import.meta);

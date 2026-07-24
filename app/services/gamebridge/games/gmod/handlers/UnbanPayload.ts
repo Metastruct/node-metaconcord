@@ -14,14 +14,16 @@ export default class UnbanPayload extends Payload {
 		super.handle(payload, server);
 
 		const { player, banned, banReason, unbanReason, banTime } = payload.data;
-		const { bridge, discord: discordClient } = server;
+		const { bridge, discord } = server;
 
-		if (!discordClient.ready) return;
+		if (!discord.ready) return;
 
-		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
+		const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 		if (!guild) return;
 
-		const notificationsChannel = guild.channels.cache.get(bridge.config.banUnbanChannelId);
+		const notificationsChannel = guild.channels.cache.get(
+			discord.config.threads["bans/unbans"]
+		);
 		if (!notificationsChannel) return;
 
 		const steam = bridge.container.getService("Steam");
@@ -82,8 +84,10 @@ export default class UnbanPayload extends Payload {
 		embed.setThumbnail(bannedAvatar ?? null);
 		embed.setColor("Green");
 		await (notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
-		await (guild.channels.cache.get(bridge.config.relayChannelId) as Discord.TextChannel).send({
-			embeds: [embed],
-		});
+		await (guild.channels.cache.get(discord.config.channels.relay) as Discord.TextChannel).send(
+			{
+				embeds: [embed],
+			}
+		);
 	}
 }

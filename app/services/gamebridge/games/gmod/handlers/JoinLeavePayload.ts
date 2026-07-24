@@ -18,7 +18,7 @@ export default class JoinLeavePayload extends Payload {
 		const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 		if (!guild) return;
 
-		const relayChannel = guild.channels.cache.get(bridge.config.relayChannelId);
+		const relayChannel = guild.channels.cache.get(discord.config.channels.relay);
 		if (!relayChannel) return;
 
 		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);

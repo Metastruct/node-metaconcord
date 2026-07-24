@@ -18,18 +18,18 @@ export default class VoteKickPayload extends Payload {
 		super.handle(payload, server);
 
 		const { offender, reporter, reason, result } = payload.data;
-		const { bridge, discord: discordClient } = server;
+		const { bridge, discord } = server;
 		const steam = bridge.container.getService("Steam");
 
-		if (!discordClient.ready) return;
+		if (!discord.ready) return;
 
-		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
+		const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 		if (!guild) return;
 
-		const notificationsChannel = guild.channels.cache.get(bridge.config.votekicksChannelId);
+		const notificationsChannel = guild.channels.cache.get(discord.config.threads.votekicks);
 		if (!notificationsChannel) return;
 
-		const relayChannel = guild.channels.cache.get(bridge.config.relayChannelId);
+		const relayChannel = guild.channels.cache.get(discord.config.channels.relay);
 
 		if (result) {
 			const success = result.success;

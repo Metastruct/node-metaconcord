@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { SlashCommand } from "@/extensions/discord.js";
 import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import SteamID from "steamid";
-import servers from "@/config/gamebridge.servers.json" with { type: "json" };
+import servers from "@/config/gmod.servers.json" with { type: "json" };
 
 export const SlashUnBanCommand: SlashCommand = {
 	options: {
