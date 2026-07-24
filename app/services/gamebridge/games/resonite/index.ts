@@ -88,6 +88,17 @@ export function attachResonite(bridge: GameBridge): void {
 				},
 			}));
 			connection.discord.on("clientReady", () => {
+				connection.discord.user?.setPresence({
+					status: "idle",
+					afk: true,
+					activities: [
+						{
+							name: "connecting",
+							state: "waiting for server connection",
+							type: 4,
+						},
+					],
+				});
 				if (connection.status.mapThumbnail)
 					connection.changeBanner(connection.status.mapThumbnail);
 			});
@@ -168,7 +179,10 @@ export function attachResonite(bridge: GameBridge): void {
 		const connection = bridge.servers[RESONITE_SERVER_ID];
 		if (!(connection instanceof ResoniteConnection)) return;
 		connection.disconnected = true;
-		connection.discord.user?.setPresence({ status: "idle", afk: true, activities: [] });
+		connection.discord.user?.setPresence({
+			status: "dnd",
+			activities: [{ name: "connecting", state: "lost connection", type: 4 }],
+		});
 
 		if (!connection.lastSession || !connection.status.mapThumbnail) return;
 		try {
@@ -188,6 +202,6 @@ export function attachResonite(bridge: GameBridge): void {
 		const connection = bridge.servers[RESONITE_SERVER_ID];
 		if (!connection) return;
 		connection.disconnected = false;
-		connection.discord.user?.setPresence({ status: "online" });
+		connection.discord.user?.setPresence({ status: "idle", afk: true });
 	});
 }
