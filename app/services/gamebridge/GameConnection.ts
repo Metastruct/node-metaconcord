@@ -67,7 +67,7 @@ export default class GameConnection extends EventEmitter {
 			}
 		});
 
-		log.info(`'${this.config.name}' Game connection created`);
+		log.info(`'${this.config.name}' Discord Bot Launched`);
 	}
 
 	/**
