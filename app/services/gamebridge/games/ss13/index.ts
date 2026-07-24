@@ -98,29 +98,25 @@ export function attachSS13(bridge: GameBridge): void {
 			conn.lastStatus = status;
 			conn.disconnected = false;
 
-			const presence: Discord.PresenceData =
-				status.watchdogStatus !== WatchdogStatus.Online
-					? { status: "dnd", activities: [] }
-					: status.clientCount > 0
-						? {
-								status: "online",
-								activities: [
-									{
-										name: `${status.clientCount} player${status.clientCount === 1 ? "" : "s"}`,
-										type: 3,
-									},
-								],
-							}
-						: { status: "idle", afk: true, activities: [] };
-
-			conn.discord.user?.setPresence(presence);
+			if (status.watchdogStatus !== WatchdogStatus.Online) {
+				conn.setPresence("dnd");
+			} else if (status.clientCount > 0) {
+				conn.setPresence("online", {
+					activity: {
+						name: `${status.clientCount} player${status.clientCount === 1 ? "" : "s"}`,
+						type: Discord.ActivityType.Watching,
+					},
+				});
+			} else {
+				conn.setPresence("idle", { afk: true });
+			}
 
 			const container = buildStatusContainer(conn.config.name, host, status, false);
 			await conn.postOrEditStatusMessage(container, []);
 		} catch (err) {
 			log.error(err, "SS13 poll failed");
 			conn.disconnected = true;
-			conn.discord.user?.setPresence({ status: "idle", afk: true, activities: [] });
+			conn.setPresence("idle", { afk: true });
 
 			if (conn.lastStatus) {
 				try {

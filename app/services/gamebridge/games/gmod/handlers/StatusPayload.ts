@@ -117,56 +117,31 @@ export default class StatusPayload extends Payload {
 
 			const count = current_players.length;
 
-			if (!discord) return;
+			// Presence
+			const status: Discord.PresenceStatusData =
+				current_defcon === 1 || current_countdown ? "dnd" : count > 0 ? "online" : "idle";
 
-			const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
-			if (!guild) return;
-
-			// Nick
-			if (discord.user) {
-				const me = guild.members.cache.get(discord.user.id);
-				if (me?.nickname !== server.config.name) me?.setNickname(server.config.name);
-
-				// Presence
-				const presence: Discord.PresenceData =
-					count > 0
-						? {
-								activities: [
-									{
-										name: `${count === 1 ? "a" : count} player${count !== 1 ? "s" : ""} ${
-											getRandomActivity(gamemodeName) ?? ""
-										}`,
-										state: `on ${current_map}`,
-										type: 3,
-									},
-								],
-								status:
-									current_defcon === 1 || current_countdown ? "dnd" : "online",
-							}
-						: {
-								afk: true,
-								status: current_defcon === 1 || current_countdown ? "dnd" : "idle",
-								activities: [],
-							};
-
-				if (current_countdown) {
-					presence.activities = [
-						{
-							name: "countdown",
-							state: `${current_countdown.text} in ${current_countdown.time} second${
-								current_countdown.time > 1 ? "s" : ""
-							}`,
-							type: 4,
-						},
-					];
-				}
-
-				if (current_defcon !== 5) {
-					presence.activities = [
-						{ name: "oh no", state: "DEFCON " + current_defcon, type: 4 },
-					];
-				}
-				discord.user.setPresence(presence);
+			if (current_defcon !== 5) {
+				server.setPresence(status, { afk: count === 0, state: "DEFCON " + current_defcon });
+			} else if (current_countdown) {
+				server.setPresence(status, {
+					afk: count === 0,
+					state: `${current_countdown.text} in ${current_countdown.time} second${
+						current_countdown.time > 1 ? "s" : ""
+					}`,
+				});
+			} else if (count > 0) {
+				server.setPresence(status, {
+					activity: {
+						name: `${count === 1 ? "a" : count} player${count !== 1 ? "s" : ""} ${
+							getRandomActivity(gamemodeName) ?? ""
+						}`,
+						state: `on ${current_map}`,
+						type: Discord.ActivityType.Watching,
+					},
+				});
+			} else {
+				server.setPresence("idle", { afk: true });
 			}
 			// Permanent status message
 			// Map name w/ workshop link

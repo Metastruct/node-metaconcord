@@ -59,9 +59,38 @@ export default class GameConnection extends EventEmitter {
 		this.discord.on("clientReady", async client => {
 			this.discordIcon = client.user.avatarURL() ?? undefined;
 			this.discordBanner = client.user.bannerURL() ?? undefined;
+
+			const guild = client.guilds.cache.get(this.discord.config.bot.primaryGuildId);
+			const me = guild?.members.cache.get(client.user.id);
+			if (me && me.nickname !== this.config.name) {
+				me.setNickname(this.config.name).catch(() => {});
+			}
 		});
 
 		log.info(`'${this.config.name}' Game connection created`);
+	}
+
+	/**
+	 * Sets the bot's presence to a status with an optional custom status message
+	 * (e.g. while connecting or once a connection to the game server is lost) or
+	 * a specific activity (e.g. showing the current player count).
+	 */
+	setPresence(
+		status: Discord.PresenceStatusData,
+		opts: {
+			state?: string;
+			afk?: boolean;
+			activity?: Discord.ActivitiesOptions;
+		} = {}
+	): void {
+		if (!this.discord.ready) return;
+		const { state, afk, activity } = opts;
+		const activities: Discord.ActivitiesOptions[] = activity
+			? [activity]
+			: state
+				? [{ name: "presence", state, type: Discord.ActivityType.Custom }]
+				: [];
+		this.discord.user?.setPresence({ status, afk, activities });
 	}
 
 	async changeIcon(path: string) {
