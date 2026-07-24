@@ -53,6 +53,7 @@ export default class GmodConnection extends GameConnection {
 		this.wsConnection = config.req?.accept();
 
 		this.discord.on("clientReady", async () => {
+			this.setPresence("idle", { afk: true, state: "waiting for data" });
 			if (this.handlersAttached) return;
 			this.handlersAttached = true;
 			attachHandlers(this);

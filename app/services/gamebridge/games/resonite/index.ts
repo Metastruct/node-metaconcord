@@ -88,16 +88,9 @@ export function attachResonite(bridge: GameBridge): void {
 				},
 			}));
 			connection.discord.on("clientReady", () => {
-				connection.discord.user?.setPresence({
-					status: "idle",
+				connection.setPresence("idle", {
 					afk: true,
-					activities: [
-						{
-							name: "connecting",
-							state: "waiting for server connection",
-							type: 4,
-						},
-					],
+					state: "waiting for server connection",
 				});
 				if (connection.status.mapThumbnail)
 					connection.changeBanner(connection.status.mapThumbnail);
@@ -119,24 +112,16 @@ export function attachResonite(bridge: GameBridge): void {
 			if (!discord.ready || (lastCount === count && count === 0)) return;
 			lastCount = count;
 
-			const presence: Discord.PresenceData =
-				count > 0
-					? {
-							status: "online",
-							activities: [
-								{
-									name: `${count === 1 ? "a" : count} player${count !== 1 ? "s" : ""}`,
-									type: 3,
-								},
-							],
-						}
-					: {
-							status: "idle",
-							afk: true,
-							activities: [],
-						};
-
-			discord.user?.setPresence(presence);
+			if (count > 0) {
+				connection.setPresence("online", {
+					activity: {
+						name: `${count === 1 ? "a" : count} player${count !== 1 ? "s" : ""}`,
+						type: Discord.ActivityType.Watching,
+					},
+				});
+			} else {
+				connection.setPresence("idle", { afk: true });
+			}
 
 			const mapThumbnail = session.thumbnailUrl ?? "https://metastruct.net/img/logo.png";
 			connection.changeBanner(mapThumbnail);
@@ -179,29 +164,33 @@ export function attachResonite(bridge: GameBridge): void {
 		const connection = bridge.servers[RESONITE_SERVER_ID];
 		if (!(connection instanceof ResoniteConnection)) return;
 		connection.disconnected = true;
-		connection.discord.user?.setPresence({
-			status: "dnd",
-			activities: [{ name: "connecting", state: "lost connection", type: 4 }],
-		});
 
-		if (!connection.lastSession || !connection.status.mapThumbnail) return;
-		try {
-			const container = buildStatusContainer(
-				connection.lastSession,
-				connection.status.mapThumbnail,
-				true
-			);
-			await connection.postOrEditStatusMessage(container, [
-				new Discord.AttachmentBuilder(connection.playerListImage).setName("players.png"),
-			]);
-		} catch (err) {
-			log.error(err, "failed to post disconnect status");
+		if (connection.lastSession && connection.status.mapThumbnail) {
+			try {
+				const container = buildStatusContainer(
+					connection.lastSession,
+					connection.status.mapThumbnail,
+					true
+				);
+				await connection.postOrEditStatusMessage(container, [
+					new Discord.AttachmentBuilder(connection.playerListImage).setName(
+						"players.png"
+					),
+				]);
+			} catch (err) {
+				log.error(err, "failed to post disconnect status");
+			}
+		}
+
+		connection.discord.destroy();
+		if (bridge.servers[RESONITE_SERVER_ID] === connection) {
+			delete bridge.servers[RESONITE_SERVER_ID];
 		}
 	});
 	con.onreconnected(() => {
 		const connection = bridge.servers[RESONITE_SERVER_ID];
 		if (!connection) return;
 		connection.disconnected = false;
-		connection.discord.user?.setPresence({ status: "idle", afk: true });
+		connection.setPresence("idle", { afk: true });
 	});
 }
