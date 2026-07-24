@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import { SlashCommand } from "@/extensions/discord.js";
 import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
-import servers from "@/config/gamebridge.servers.json" with { type: "json" };
+import servers from "@/config/gmod.servers.json" with { type: "json" };
 
 export const SlashKickCommand: SlashCommand = {
 	options: {

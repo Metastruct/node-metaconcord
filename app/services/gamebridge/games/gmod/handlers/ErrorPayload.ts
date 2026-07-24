@@ -4,6 +4,7 @@ import { getOrFetchGmodFile, matchGmodPath } from "@/utils.js";
 import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import dayjs from "dayjs";
+import { errorWebhook, pacErrorWebhook } from "../webhooks.js";
 import requestSchema from "./structures/ErrorRequest.json" with { type: "json" };
 import responseSchema from "./structures/ErrorResponse.json" with { type: "json" };
 
@@ -17,14 +18,10 @@ export default class ErrorPayload extends Payload {
 
 	static async handle(payload: ErrorRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
-		const { bridge } = server;
 
 		const { hook_error } = payload.data;
 
 		if (hook_error.name.includes("@repl_") || this.lastError === hook_error) return;
-
-		const webhook = bridge.discordErrorWH;
-		const pacWebhook = bridge.discordPacErrorWH;
 
 		const lines = hook_error.errormsg.split(/\r?\n/);
 		const err = lines[0];
@@ -66,16 +63,16 @@ export default class ErrorPayload extends Payload {
 		}
 		this.lastError = hook_error;
 		if (gpath.addon === "pac3") {
-			await pacWebhook
-				?.send({
+			await pacErrorWebhook
+				.send({
 					allowedMentions: { parse: [] },
 					content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
 					embeds: embeds,
 				})
 				.catch(() => {});
 		} else {
-			await webhook
-				?.send({
+			await errorWebhook
+				.send({
 					allowedMentions: { parse: [] },
 					content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
 					embeds: embeds,

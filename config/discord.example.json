@@ -30,7 +30,8 @@
 		"publicCommits": "",
 		"privateCommits": "",
 		"mapCommits": "",
-		"reports": ""
+		"reports": "",
+		"serverStatus": ""
 	},
 	"threads": {
 		"VR": "",

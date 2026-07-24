@@ -3,7 +3,7 @@ import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
 import { f } from "@/utils.js";
 import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import RconResponse from "@/app/services/gamebridge/games/gmod/handlers/structures/RconResponse.js";
-import servers from "@/config/gamebridge.servers.json" with { type: "json" };
+import servers from "@/config/gmod.servers.json" with { type: "json" };
 
 export const SlashLuaCommand: SlashCommand = {
 	options: {

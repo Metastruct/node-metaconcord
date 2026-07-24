@@ -118,7 +118,7 @@ export default class ReportChatPayload extends Payload {
 		const threadData = this.getThread(steamId64, data);
 		if (!threadData || !threadData.channelId) return;
 
-		const guild = discord.guilds.cache.get(server.bridge.config.guildId);
+		const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 		if (!guild) return;
 
 		try {

@@ -11,14 +11,16 @@ export default class NotificationPayload extends Payload {
 		super.handle(payload, server);
 
 		const { title, message, color } = payload.data;
-		const { bridge, discord: discordClient } = server;
+		const { discord } = server;
 
-		if (!discordClient.ready) return;
+		if (!discord.ready) return;
 
-		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
+		const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 		if (!guild) return;
 
-		const notificationsChannel = guild.channels.cache.get(bridge.config.notificationsChannelId);
+		const notificationsChannel = guild.channels.cache.get(
+			discord.config.channels.notifications
+		);
 		if (!notificationsChannel) return;
 
 		const embed = new Discord.EmbedBuilder()

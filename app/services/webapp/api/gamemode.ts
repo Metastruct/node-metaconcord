@@ -1,6 +1,6 @@
 import { WebApp } from "@/app/services/webapp/index.js";
 import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
-import servers from "@/config/gamebridge.servers.json" with { type: "json" };
+import servers from "@/config/gmod.servers.json" with { type: "json" };
 import { logger } from "@/utils.js";
 
 const log = logger(import.meta);

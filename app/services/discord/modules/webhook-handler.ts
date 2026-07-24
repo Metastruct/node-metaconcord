@@ -3,6 +3,7 @@ import { DiscordBot } from "../index.js";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
 import { clamp, logger } from "@/utils.js";
 import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
+import { chatWebhook } from "@/app/services/gamebridge/games/gmod/webhooks.js";
 import axios from "axios";
 import webhookConfig from "@/config/webhooks.json" with { type: "json" };
 import { EmitterWebhookEvent } from "@octokit/webhooks/types";
@@ -603,7 +604,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 	};
 
 	async function ChatsoundsPushHandler(event: EmitterWebhookEvent<"push">) {
-		const chatWebhook = bridge.discordChatWH;
 		const payload = event.payload;
 		const commits = payload.commits;
 

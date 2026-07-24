@@ -192,15 +192,15 @@ export default class AdminNotifyPayload extends Payload {
 
 		const { player, reported } = payload.data;
 		let { message } = payload.data;
-		const { bridge, discord: discordClient } = server;
+		const { bridge, discord } = server;
 
-		if (!discordClient.ready) return;
+		if (!discord.ready) return;
 
-		const guild = discordClient.guilds.cache.get(bridge.config.guildId);
+		const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 		if (!guild) return;
 
 		const reportsChannel = (await guild.channels.fetch(
-			server.discord.config.channels.reports
+			discord.config.channels.reports
 		)) as Discord.TextChannel | null;
 		if (!reportsChannel || !reportsChannel.isTextBased()) return;
 
@@ -290,7 +290,7 @@ export default class AdminNotifyPayload extends Payload {
 				.setLabel("Resolve Report")
 		);
 
-		const callAdminRole = server.discord.config.roles.callAdmin;
+		const callAdminRole = discord.config.roles.callAdmin;
 		const sendReportMessage = async () => {
 			try {
 				return await reportsChannel.send({
