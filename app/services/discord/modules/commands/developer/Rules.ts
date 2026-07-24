@@ -3,6 +3,14 @@ import { DiscordBot, Rule } from "@/app/services/discord/index.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
 
 let ruleCache: Rule[] = [];
+let ruleCacheLoaded = false;
+
+const ensureRuleCacheLoaded = (bot: DiscordBot) => {
+	if (ruleCacheLoaded) return;
+	const data = bot.container.getService("Data");
+	ruleCache = data.rules ?? [];
+	ruleCacheLoaded = true;
+};
 
 const refreshRules = async (ctx: Discord.ChatInputCommandInteraction, bot: DiscordBot) => {
 	const data = bot.container.getService("Data");
@@ -203,6 +211,7 @@ export const SlashRuleCommand: SlashCommand = {
 
 	async execute(ctx, bot) {
 		try {
+			ensureRuleCacheLoaded(bot);
 			switch (ctx.options.getSubcommand(true)) {
 				case "add":
 					await addRule(ctx, bot);
@@ -218,27 +227,14 @@ export const SlashRuleCommand: SlashCommand = {
 		}
 	},
 	async autocomplete(ctx, bot) {
-		const focused = ctx.options.getFocused();
-		if (focused === "rule") {
-			await ctx.respond(
-				ruleCache.map((rule, idx) => {
-					return {
-						name: rule.title,
-						value: idx + 1,
-					};
-				})
-			);
-		} else {
-			const data = bot.container.getService("Data");
-			ruleCache = data.rules;
-			await ctx.respond(
-				ruleCache.map((rule, idx) => {
-					return {
-						name: rule.title,
-						value: idx + 1,
-					};
-				})
-			);
-		}
+		ensureRuleCacheLoaded(bot);
+		await ctx.respond(
+			ruleCache.map((rule, idx) => {
+				return {
+					name: rule.title,
+					value: idx + 1,
+				};
+			})
+		);
 	},
 };
