@@ -7,6 +7,10 @@ import { WatchdogStatus, getDreamDaemonStatus } from "./tgsClient.js";
 import { getServerStatus, getPlayerList } from "./topics.js";
 import config from "@/config/ss13.json" with { type: "json" };
 import { logger } from "@/utils.js";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration.js";
+
+dayjs.extend(duration);
 
 const log = logger(import.meta);
 
@@ -50,6 +54,9 @@ function buildStatusContainer(
 		desc += `\n:busts_in_silhouette: Player${
 			status.clientCount === 1 ? "" : "s"
 		}: **${status.clientCount}**`;
+		if (status.roundDuration) {
+			desc += `\n:hourglass_flowing_sand: Round Time: ${dayjs.duration({ seconds: status.roundDuration }).format("HH:mm:ss")}`;
+		}
 
 		if (status.securityLevel) {
 			desc += `\n:rotating_light: Security Level: **${status.securityLevel}**`;
@@ -88,9 +95,10 @@ function buildStatusContainer(
 
 	container.addSeparatorComponents(sep => sep);
 
-	const footer = status.revision
-		? `-# metastruct @ SS13 (${status.revision.substring(0, 8)})`
-		: "-# metastruct @ SS13";
+	const footer =
+		status.roundId && status.identifier
+			? `-# metastruct @ ${status.identifier} (round: ${status.roundId})`
+			: "-# metastruct @ SS13";
 	container.addTextDisplayComponents(text => text.setContent(footer));
 
 	return container;
