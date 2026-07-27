@@ -1,5 +1,7 @@
 import { Resvg } from "@resvg/resvg-js";
+import { GlobalFonts, createCanvas } from "@napi-rs/canvas";
 import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { Player } from "./GameConnection.js";
 import { logger } from "@/utils.js";
 
@@ -7,6 +9,10 @@ const log = logger(import.meta);
 
 const escapeXml = (s: string) =>
 	s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+const FONT_PATH = path.join(process.cwd(), "resources/fonts/NotoSans-Regular.ttf");
+const FONT_FAMILY = "PlayerListFont";
+GlobalFonts.registerFromPath(FONT_PATH, FONT_FAMILY);
 
 const RENDER_SCALE = 2;
 const PADDING = 8;
@@ -38,18 +44,16 @@ const MIME_MAP: Record<string, string> = {
 // is naturally a cache miss, so this never needs an expiry.
 const dataUriCache = new Map<string, string>();
 
-// A fixed per-character width is a poor estimate for a proportional font -
-// it consistently overshoots, leaving a visible gap before the next column.
-// Render the string in isolation and read back its true bounding box instead.
 const textWidthCache = new Map<string, number>();
+const measureCtx = createCanvas(1, 1).getContext("2d");
 
 function measureTextWidth(text: string, fontSize: number): number {
 	const key = `${fontSize}:${text}`;
 	const cached = textWidthCache.get(key);
 	if (cached !== undefined) return cached;
 
-	const probe = `<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="100"><text x="0" y="50" font-size="${fontSize}" font-family="sans-serif">${escapeXml(text)}</text></svg>`;
-	const width = new Resvg(probe).getBBox()?.width ?? text.length * fontSize * 0.6;
+	measureCtx.font = `${fontSize}px "${FONT_FAMILY}"`;
+	const width = measureCtx.measureText(text).width;
 	textWidthCache.set(key, width);
 	return width;
 }
@@ -166,10 +170,10 @@ export async function renderPlayerListImage(
 			: `<circle cx="${x + avatarSize / 2}" cy="${rowCenterY}" r="${avatarSize / 2}" fill="#444" stroke="#555" stroke-width="1"/>`;
 
 		const nameY = p.description ? rowCenterY - 4 : rowCenterY + nameFontSize * 0.35;
-		const nameText = `<text x="${textCenterX}" y="${nameY}" text-anchor="middle" fill="${color}" font-size="${nameFontSize}" font-family="sans-serif">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80" dx="6">●</tspan>` : ""}</text>`;
+		const nameText = `<text x="${textCenterX}" y="${nameY}" text-anchor="middle" fill="${color}" font-size="${nameFontSize}" font-family="${FONT_FAMILY}">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80" dx="6">●</tspan>` : ""}</text>`;
 
 		const descText = p.description
-			? `<text x="${textCenterX}" y="${rowCenterY + DESC_FONT_SIZE + 2}" text-anchor="middle" fill="white" font-size="${DESC_FONT_SIZE}" font-family="sans-serif">${escapeXml(p.description)}</text>`
+			? `<text x="${textCenterX}" y="${rowCenterY + DESC_FONT_SIZE + 2}" text-anchor="middle" fill="white" font-size="${DESC_FONT_SIZE}" font-family="${FONT_FAMILY}">${escapeXml(p.description)}</text>`
 			: "";
 
 		return `<g opacity="${opacity}">
@@ -191,5 +195,15 @@ export async function renderPlayerListImage(
 	${items.join("\n")}
 </svg>`;
 
-	return new Resvg(svg, { fitTo: { mode: "zoom", value: RENDER_SCALE } }).render().asPng();
+	return new Resvg(svg, {
+		fitTo: { mode: "zoom", value: RENDER_SCALE },
+		font: {
+			loadSystemFonts: false,
+			fontFiles: [FONT_PATH],
+			defaultFontFamily: FONT_FAMILY,
+			sansSerifFamily: FONT_FAMILY,
+		},
+	})
+		.render()
+		.asPng();
 }
