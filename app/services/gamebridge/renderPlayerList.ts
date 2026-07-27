@@ -19,7 +19,8 @@ const PADDING = 8;
 const TEXT_RIGHT_PAD = 4;
 const COL_GAP = 16;
 const JOINING = " (joining)";
-const JOINING_DOT_RESERVE = 18;
+const JOINING_LABEL = "(joining)";
+const JOINING_LABEL_GAP = 4;
 
 const ROW_HEIGHT = 32;
 const AVATAR_SIZE = 24;
@@ -112,7 +113,6 @@ export async function renderPlayerListImage(
 	const avatarSize = hasDescriptions ? AVATAR_SIZE_WITH_DESC : AVATAR_SIZE;
 	const nameFontSize = hasDescriptions ? NAME_FONT_SIZE_WITH_DESC : NAME_FONT_SIZE;
 	const gap = hasDescriptions ? GAP_WITH_DESC : GAP;
-	const joiningDotReserve = JOINING_DOT_RESERVE * (nameFontSize / NAME_FONT_SIZE);
 
 	const cols = Math.max(1, Math.min(2, players.length));
 
@@ -123,7 +123,8 @@ export async function renderPlayerListImage(
 		const isJoining = p.nick.endsWith(JOINING);
 		const nick = isJoining ? p.nick.slice(0, -JOINING.length) : p.nick;
 		let nameWidth = measureTextWidth(nick, nameFontSize);
-		if (isJoining) nameWidth += joiningDotReserve;
+		if (isJoining)
+			nameWidth += JOINING_LABEL_GAP + measureTextWidth(JOINING_LABEL, nameFontSize);
 		const descWidth = p.description ? measureTextWidth(p.description, DESC_FONT_SIZE) : 0;
 		return Math.max(nameWidth, descWidth);
 	});
@@ -168,7 +169,7 @@ export async function renderPlayerListImage(
 			: `<circle cx="${x + avatarSize / 2}" cy="${rowCenterY}" r="${avatarSize / 2}" fill="#444" stroke="#555" stroke-width="1"/>`;
 
 		const nameY = p.description ? rowCenterY - 4 : rowCenterY + nameFontSize * 0.35;
-		const nameText = `<text x="${nickX}" y="${nameY}" fill="${color}" font-size="${nameFontSize}" font-family="${FONT_FAMILY}">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80" dx="6">●</tspan>` : ""}</text>`;
+		const nameText = `<text x="${nickX}" y="${nameY}" fill="${color}" font-size="${nameFontSize}" font-family="${FONT_FAMILY}">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80" font-style="italic" dx="${JOINING_LABEL_GAP}">${escapeXml(JOINING_LABEL)}</tspan>` : ""}</text>`;
 
 		const descText = p.description
 			? `<text x="${nickX}" y="${rowCenterY + DESC_FONT_SIZE + 2}" fill="white" font-size="${DESC_FONT_SIZE}" font-family="${FONT_FAMILY}">${escapeXml(p.description)}</text>`
