@@ -48,21 +48,21 @@ const GetGithubChanges = (
 	return [
 		...added.map(
 			s =>
-				`Add [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(
+				`+ [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(
 					" ",
 					"%%20"
 				)})`
 		),
 		...removed.map(
 			s =>
-				`Del [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(
+				`- [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(
 					" ",
 					"%%20"
 				)})`
 		),
 		...modified.map(
 			s =>
-				`Mod [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(
+				`[${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(
 					" ",
 					"%%20"
 				)})`
