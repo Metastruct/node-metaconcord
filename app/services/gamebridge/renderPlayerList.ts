@@ -16,7 +16,6 @@ GlobalFonts.registerFromPath(FONT_PATH, FONT_FAMILY);
 
 const RENDER_SCALE = 2;
 const PADDING = 8;
-const GAP = 6;
 const TEXT_RIGHT_PAD = 4;
 const COL_GAP = 16;
 const JOINING = " (joining)";
@@ -25,11 +24,13 @@ const JOINING_DOT_RESERVE = 18;
 const ROW_HEIGHT = 32;
 const AVATAR_SIZE = 24;
 const NAME_FONT_SIZE = 14;
+const GAP = 6;
 
 const ROW_HEIGHT_WITH_DESC = 56;
 const AVATAR_SIZE_WITH_DESC = 44;
 const NAME_FONT_SIZE_WITH_DESC = 16;
 const DESC_FONT_SIZE = 12;
+const GAP_WITH_DESC = 10;
 const MIME_MAP: Record<string, string> = {
 	png: "image/png",
 	jpg: "image/jpeg",
@@ -110,6 +111,7 @@ export async function renderPlayerListImage(
 	const rowHeight = hasDescriptions ? ROW_HEIGHT_WITH_DESC : ROW_HEIGHT;
 	const avatarSize = hasDescriptions ? AVATAR_SIZE_WITH_DESC : AVATAR_SIZE;
 	const nameFontSize = hasDescriptions ? NAME_FONT_SIZE_WITH_DESC : NAME_FONT_SIZE;
+	const gap = hasDescriptions ? GAP_WITH_DESC : GAP;
 	const joiningDotReserve = JOINING_DOT_RESERVE * (nameFontSize / NAME_FONT_SIZE);
 
 	const cols = Math.max(1, Math.min(2, players.length));
@@ -125,7 +127,7 @@ export async function renderPlayerListImage(
 		const descWidth = p.description ? measureTextWidth(p.description, DESC_FONT_SIZE) : 0;
 		return Math.max(nameWidth, descWidth);
 	});
-	const requiredWidths = textWidths.map(w => avatarSize + GAP + w + TEXT_RIGHT_PAD);
+	const requiredWidths = textWidths.map(w => avatarSize + gap + w + TEXT_RIGHT_PAD);
 
 	// Each column is only as wide as its own longest entry, not the longest
 	// entry across the whole list - otherwise one long name in one column
@@ -159,21 +161,17 @@ export async function renderPlayerListImage(
 		const color = p.isBanned ? "#FF0000" : p.isAdmin ? "#933f93" : "#2a77be";
 		const opacity = p.isAfk ? 0.5 : 1;
 		const avatarDataUri = avatarDataUris[i];
-		const nickX = x + avatarSize + GAP;
-		// Center the nick and description on each other rather than
-		// left-aligning them, so a short description under a long name (or
-		// vice versa) sits centered under/over it instead of flush-left.
-		const textCenterX = nickX + textWidths[i] / 2;
+		const nickX = x + avatarSize + gap;
 
 		const avatar = avatarDataUri
 			? `<image href="${avatarDataUri}" x="${x}" y="${rowCenterY - avatarSize / 2}" width="${avatarSize}" height="${avatarSize}" clip-path="url(#clip)"/>`
 			: `<circle cx="${x + avatarSize / 2}" cy="${rowCenterY}" r="${avatarSize / 2}" fill="#444" stroke="#555" stroke-width="1"/>`;
 
 		const nameY = p.description ? rowCenterY - 4 : rowCenterY + nameFontSize * 0.35;
-		const nameText = `<text x="${textCenterX}" y="${nameY}" text-anchor="middle" fill="${color}" font-size="${nameFontSize}" font-family="${FONT_FAMILY}">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80" dx="6">●</tspan>` : ""}</text>`;
+		const nameText = `<text x="${nickX}" y="${nameY}" fill="${color}" font-size="${nameFontSize}" font-family="${FONT_FAMILY}">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80" dx="6">●</tspan>` : ""}</text>`;
 
 		const descText = p.description
-			? `<text x="${textCenterX}" y="${rowCenterY + DESC_FONT_SIZE + 2}" text-anchor="middle" fill="white" font-size="${DESC_FONT_SIZE}" font-family="${FONT_FAMILY}">${escapeXml(p.description)}</text>`
+			? `<text x="${nickX}" y="${rowCenterY + DESC_FONT_SIZE + 2}" fill="white" font-size="${DESC_FONT_SIZE}" font-family="${FONT_FAMILY}">${escapeXml(p.description)}</text>`
 			: "";
 
 		return `<g opacity="${opacity}">
