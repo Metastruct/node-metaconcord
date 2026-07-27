@@ -1,7 +1,10 @@
 import net from "node:net";
 
-const PACKET_TYPE_STRING = 0x2a;
-const PACKET_TYPE_FLOAT = 0x06;
+// Per https://github.com/Cyberboss/BYOND.TopicSender (the library TGS itself
+// uses to speak this protocol) - string and float are swapped from what
+// their names suggest.
+const PACKET_TYPE_STRING = 0x06;
+const PACKET_TYPE_FLOAT = 0x2a;
 
 /**
  * Sends a raw world.Topic() query straight to a BYOND game server (the same
@@ -53,6 +56,12 @@ export function queryTopic(
 			const response = Buffer.concat(chunks);
 			if (response.length < 4) return;
 
+			if (response[0] !== 0x00 || response[1] !== 0x83) {
+				return settle(() =>
+					reject(new Error("BYOND topic response had an unexpected header"))
+				);
+			}
+
 			const totalExpected = 4 + response.readUInt16BE(2);
 			if (response.length < totalExpected) return;
 
@@ -62,7 +71,8 @@ export function queryTopic(
 					const end = response.indexOf(0, 5);
 					resolve(response.toString("utf8", 5, end === -1 ? totalExpected : end));
 				} else if (type === PACKET_TYPE_FLOAT) {
-					resolve(String(response.readFloatBE(5)));
+					// Floats are little-endian, unlike everything else in this protocol.
+					resolve(String(response.readFloatLE(5)));
 				} else {
 					reject(
 						new Error(`Unexpected BYOND topic response type 0x${type.toString(16)}`)
