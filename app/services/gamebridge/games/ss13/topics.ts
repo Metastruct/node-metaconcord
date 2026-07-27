@@ -15,9 +15,13 @@ export enum GameState {
 }
 
 export type TopicStatus = {
+	/** game version */
 	version?: string;
+	/** respawning allowed? */
 	respawn?: DmBool;
+	/** non observer jobs enabled? */
 	enter?: DmBool;
+	/** ai allowed? */
 	ai?: DmBool;
 	host?: string | null;
 	roundId?: number;
@@ -25,9 +29,12 @@ export type TopicStatus = {
 	/** Git commit sha embedded in the running build (GLOB.revdata.commit) - distinct from the TGS compile-job sha already on SS13Status.revision, though they should normally agree. */
 	gameCommit?: string;
 	gameCommitDate?: string;
+	/** visible on the hub? */
 	hub?: DmBool;
+	/** serversqlname */
 	identifier?: string;
 	publicAddress?: string;
+	/** admin count */
 	admins?: number;
 	gamestate?: GameState;
 	mapName?: string;
