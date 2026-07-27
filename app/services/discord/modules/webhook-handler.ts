@@ -639,7 +639,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			if (commit.added && addedSounds.size > 0) {
 				container.addTextDisplayComponents(text =>
 					text.setContent(
-						`### Added ${commit.added?.length} new sound${(commit.added?.length ?? 0 > 1) ? "s" : ""}:\n${Array.from(
+						`### Added ${commit.added?.length} new sound${(commit.added?.length ?? 0) > 1 ? "s" : ""}:\n${Array.from(
 							addedSounds
 						)
 							.map(formatSounds)
@@ -652,7 +652,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			if (commit.removed && removedSounds.size > 0) {
 				container.addTextDisplayComponents(text =>
 					text.setContent(
-						`### Removed ${commit.removed?.length} sound${(commit.removed?.length ?? 0 > 1) ? "s" : ""}:\n${Array.from(
+						`### Removed ${commit.removed?.length} sound${(commit.removed?.length ?? 0) > 1 ? "s" : ""}:\n${Array.from(
 							removedSounds
 						)
 							.map(formatSounds)
@@ -665,7 +665,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			if (commit.modified && modifiedSounds.size > 0) {
 				container.addTextDisplayComponents(text =>
 					text.setContent(
-						`### Changed ${commit.modified?.length} sound${(commit.modified?.length ?? 0 > 1) ? "s" : ""}:\n${Array.from(
+						`### Changed ${commit.modified?.length} sound${(commit.modified?.length ?? 0) > 1 ? "s" : ""}:\n${Array.from(
 							modifiedSounds
 						)
 							.map(formatSounds)
@@ -730,7 +730,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		container.addTextDisplayComponents(text =>
 			text.setContent(
-				`### [${payload.sender.login}](${payload.sender.html_url}) wants to add/change ${payload.pull_request.changed_files} sound${changedFiles.size > 1 ? "s" : ""}:\n${Array.from(
+				`### [${payload.sender.login}](${payload.sender.html_url}) wants to add/change ${payload.pull_request.changed_files} sound${payload.pull_request.changed_files > 1 ? "s" : ""}:\n${Array.from(
 					changedFiles
 				)
 					.map(formatSounds)
