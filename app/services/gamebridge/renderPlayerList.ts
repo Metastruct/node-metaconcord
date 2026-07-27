@@ -5,14 +5,24 @@ import { Player } from "./GameConnection.js";
 const escapeXml = (s: string) =>
 	s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-const ROW_HEIGHT = 32;
+const RENDER_SCALE = 2;
 const PADDING = 8;
-const AVATAR_SIZE = 24;
 const GAP = 6;
 const CHAR_WIDTH = 8;
 const TEXT_RIGHT_PAD = 4;
 const COL_GAP = 16;
 const JOINING = " (joining)";
+const JOINING_DOT_RESERVE = 18;
+
+const ROW_HEIGHT = 32;
+const AVATAR_SIZE = 24;
+const NAME_FONT_SIZE = 14;
+
+const ROW_HEIGHT_WITH_DESC = 56;
+const AVATAR_SIZE_WITH_DESC = 44;
+const NAME_FONT_SIZE_WITH_DESC = 16;
+const DESC_FONT_SIZE = 12;
+const DESC_CHAR_WIDTH = 7;
 const MIME_MAP: Record<string, string> = {
 	png: "image/png",
 	jpg: "image/jpeg",
@@ -60,23 +70,54 @@ export async function renderPlayerListImage(
 		}),
 	]);
 
+	const hasDescriptions = players.some(p => p.description);
+	const rowHeight = hasDescriptions ? ROW_HEIGHT_WITH_DESC : ROW_HEIGHT;
+	const avatarSize = hasDescriptions ? AVATAR_SIZE_WITH_DESC : AVATAR_SIZE;
+	const nameFontSize = hasDescriptions ? NAME_FONT_SIZE_WITH_DESC : NAME_FONT_SIZE;
+	const fontScale = nameFontSize / NAME_FONT_SIZE;
+	const nameCharWidth = CHAR_WIDTH * fontScale;
+	const joiningDotReserve = JOINING_DOT_RESERVE * fontScale;
+
 	const cols = Math.max(1, Math.min(2, players.length));
-	const requiredColWidths = players.map(p => {
-		const nick = p.nick.endsWith(JOINING) ? p.nick.slice(0, -JOINING.length) : p.nick;
-		let w = AVATAR_SIZE + GAP + nick.length * CHAR_WIDTH + TEXT_RIGHT_PAD;
-		if (p.nick.endsWith(JOINING)) w += 18;
-		return w;
+
+	// The width of just the text block (nick + description, whichever is
+	// wider) - used both for column sizing and to center the two lines on
+	// each other below.
+	const textWidths = players.map(p => {
+		const isJoining = p.nick.endsWith(JOINING);
+		const nick = isJoining ? p.nick.slice(0, -JOINING.length) : p.nick;
+		let nameWidth = nick.length * nameCharWidth;
+		if (isJoining) nameWidth += joiningDotReserve;
+		const descWidth = p.description ? p.description.length * DESC_CHAR_WIDTH : 0;
+		return Math.max(nameWidth, descWidth);
 	});
-	const colWidth = Math.max(...requiredColWidths);
-	const width = PADDING * 2 + (ROW_HEIGHT - AVATAR_SIZE) + cols * colWidth + (cols - 1) * COL_GAP;
-	const rows = Math.max(1, Math.ceil(players.length / 2));
-	const height = PADDING * 2 + rows * ROW_HEIGHT;
+	const requiredWidths = textWidths.map(w => avatarSize + GAP + w + TEXT_RIGHT_PAD);
+
+	// Each column is only as wide as its own longest entry, not the longest
+	// entry across the whole list - otherwise one long name in one column
+	// stretches out the other column's gap too.
+	const colWidths = new Array(cols).fill(0);
+	players.forEach((p, i) => {
+		const col = i % cols;
+		colWidths[col] = Math.max(colWidths[col], requiredWidths[i]);
+	});
+	const colOffsets = colWidths.map((_, col) =>
+		colWidths.slice(0, col).reduce((sum, w) => sum + w + COL_GAP, 0)
+	);
+
+	const width =
+		PADDING * 2 +
+		(rowHeight - avatarSize) +
+		colWidths.reduce((sum, w) => sum + w, 0) +
+		(cols - 1) * COL_GAP;
+	const rows = Math.max(1, Math.ceil(players.length / cols));
+	const height = PADDING * 2 + rows * rowHeight;
 
 	const items = players.map((p, i) => {
-		const col = i % 2;
-		const row = Math.floor(i / 2);
-		const x = PADDING + (ROW_HEIGHT - AVATAR_SIZE) / 2 + col * (colWidth + COL_GAP);
-		const y = PADDING + row * ROW_HEIGHT + (ROW_HEIGHT + AVATAR_SIZE) / 2;
+		const col = i % cols;
+		const row = Math.floor(i / cols);
+		const x = PADDING + (rowHeight - avatarSize) / 2 + colOffsets[col];
+		const rowCenterY = PADDING + row * rowHeight + rowHeight / 2;
 
 		const isJoining = p.nick.endsWith(JOINING);
 		const nick = isJoining ? p.nick.slice(0, -JOINING.length) : p.nick;
@@ -84,15 +125,27 @@ export async function renderPlayerListImage(
 		const color = p.isBanned ? "#FF0000" : p.isAdmin ? "#933f93" : "#2a77be";
 		const opacity = p.isAfk ? 0.5 : 1;
 		const avatarDataUri = avatarDataUris[i];
-		const nickX = x + AVATAR_SIZE + GAP;
+		const nickX = x + avatarSize + GAP;
+		// Center the nick and description on each other rather than
+		// left-aligning them, so a short description under a long name (or
+		// vice versa) sits centered under/over it instead of flush-left.
+		const textCenterX = nickX + textWidths[i] / 2;
 
 		const avatar = avatarDataUri
-			? `<image href="${avatarDataUri}" x="${x}" y="${y - AVATAR_SIZE}" width="${AVATAR_SIZE}" height="${AVATAR_SIZE}" clip-path="url(#clip)"/>`
-			: `<circle cx="${x + AVATAR_SIZE / 2}" cy="${y - AVATAR_SIZE / 2}" r="${AVATAR_SIZE / 2}" fill="#444" stroke="#555" stroke-width="1"/>`;
+			? `<image href="${avatarDataUri}" x="${x}" y="${rowCenterY - avatarSize / 2}" width="${avatarSize}" height="${avatarSize}" clip-path="url(#clip)"/>`
+			: `<circle cx="${x + avatarSize / 2}" cy="${rowCenterY}" r="${avatarSize / 2}" fill="#444" stroke="#555" stroke-width="1"/>`;
+
+		const nameY = p.description ? rowCenterY - 4 : rowCenterY + nameFontSize * 0.35;
+		const nameText = `<text x="${textCenterX}" y="${nameY}" text-anchor="middle" fill="${color}" font-size="${nameFontSize}" font-family="sans-serif">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80" dx="6">●</tspan>` : ""}</text>`;
+
+		const descText = p.description
+			? `<text x="${textCenterX}" y="${rowCenterY + DESC_FONT_SIZE + 2}" text-anchor="middle" fill="white" font-size="${DESC_FONT_SIZE}" font-family="sans-serif">${escapeXml(p.description)}</text>`
+			: "";
 
 		return `<g opacity="${opacity}">
 			${avatar}
-			<text x="${nickX}" y="${y - 7}" fill="${color}" font-size="14" font-family="sans-serif">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80" dx="6">●</tspan>` : ""}</text>
+			${nameText}
+			${descText}
 		</g>`;
 	});
 
@@ -108,5 +161,5 @@ export async function renderPlayerListImage(
 	${items.join("\n")}
 </svg>`;
 
-	return new Resvg(svg, { fitTo: { mode: "original" } }).render().asPng();
+	return new Resvg(svg, { fitTo: { mode: "zoom", value: RENDER_SCALE } }).render().asPng();
 }

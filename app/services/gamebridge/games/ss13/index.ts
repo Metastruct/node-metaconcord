@@ -27,6 +27,8 @@ const STATUS_COLOR: Record<WatchdogStatus, number> = {
 	[WatchdogStatus.DelayedRestart]: 0xdcb400,
 };
 
+const SHUTTLE_AT_REST = ["idle", "docked"];
+
 function buildStatusContainer(
 	name: string,
 	host: string,
@@ -38,7 +40,11 @@ function buildStatusContainer(
 
 	container.setAccentColor(STATUS_COLOR[status.watchdogStatus]);
 
-	let desc = `### ${status.mapName ?? name}\n${STATUS_TEXT[status.watchdogStatus]}`;
+	let desc = `### ${status.mapName ?? name}`;
+
+	if (status.watchdogStatus !== WatchdogStatus.Online) {
+		desc += `\n${STATUS_TEXT[status.watchdogStatus]}`;
+	}
 
 	if (status.watchdogStatus === WatchdogStatus.Online) {
 		desc += `\n:busts_in_silhouette: Player${
@@ -49,8 +55,7 @@ function buildStatusContainer(
 			desc += `\n:rotating_light: Security Level: **${status.securityLevel}**`;
 		}
 
-		// "docked" is the shuttle's resting state - only call it out while it's doing something.
-		if (status.shuttleMode && status.shuttleMode !== "docked") {
+		if (status.shuttleMode && !SHUTTLE_AT_REST.includes(status.shuttleMode)) {
 			desc += `\n:rocket: Shuttle: **${status.shuttleMode}**`;
 			if (status.shuttleTimer) {
 				desc += ` (<t:${(Date.now() / 1000 + status.shuttleTimer) | 0}:R>)`;
@@ -59,7 +64,7 @@ function buildStatusContainer(
 	}
 
 	if (status.launchTime) {
-		desc += `\n:repeat: Launched: <t:${(new Date(status.launchTime).getTime() / 1000) | 0}:R>`;
+		desc += `\n:file_cabinet: Server up since: <t:${(new Date(status.launchTime).getTime() / 1000) | 0}:R>`;
 	}
 
 	// Discord's button URL validation only allows http:/https:/discord: - byond:// links
@@ -138,6 +143,8 @@ export function attachSS13(bridge: GameBridge): void {
 						conn.status.players = roster.map((p): Player => ({
 							nick: p.name,
 							avatar: p.headshot,
+							isAfk: p.afk === 1,
+							description: p.job ? `(as ${p.job})` : undefined,
 							steamId64: "",
 							isAdmin: false,
 							isBanned: false,

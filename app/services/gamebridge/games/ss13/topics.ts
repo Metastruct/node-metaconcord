@@ -53,6 +53,7 @@ export type TopicPlayer = {
 	name: string;
 	job?: string;
 	headshot?: string;
+	afk?: DmBool;
 };
 
 function asString(v: unknown): string | undefined {
@@ -136,5 +137,6 @@ export async function getPlayerList(
 		name: typeof entry.name === "string" ? entry.name : "Unknown",
 		job: typeof entry.job === "string" ? entry.job : undefined,
 		headshot: typeof entry.headshot === "string" ? entry.headshot : undefined,
+		afk: asDmBool(entry.afk),
 	}));
 }

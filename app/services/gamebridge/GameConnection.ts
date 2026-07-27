@@ -23,6 +23,7 @@ export type Player = {
 	isLinux?: boolean;
 	nick: string;
 	isPirate?: boolean;
+	description?: string;
 };
 
 /**
