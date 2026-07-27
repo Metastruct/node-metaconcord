@@ -1,6 +1,9 @@
 import { Resvg } from "@resvg/resvg-js";
 import { readFile } from "node:fs/promises";
 import { Player } from "./GameConnection.js";
+import { logger } from "@/utils.js";
+
+const log = logger(import.meta);
 
 const escapeXml = (s: string) =>
 	s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -8,7 +11,6 @@ const escapeXml = (s: string) =>
 const RENDER_SCALE = 2;
 const PADDING = 8;
 const GAP = 6;
-const CHAR_WIDTH = 8;
 const TEXT_RIGHT_PAD = 4;
 const COL_GAP = 16;
 const JOINING = " (joining)";
@@ -22,7 +24,6 @@ const ROW_HEIGHT_WITH_DESC = 56;
 const AVATAR_SIZE_WITH_DESC = 44;
 const NAME_FONT_SIZE_WITH_DESC = 16;
 const DESC_FONT_SIZE = 12;
-const DESC_CHAR_WIDTH = 7;
 const MIME_MAP: Record<string, string> = {
 	png: "image/png",
 	jpg: "image/jpeg",
@@ -37,6 +38,22 @@ const MIME_MAP: Record<string, string> = {
 // is naturally a cache miss, so this never needs an expiry.
 const dataUriCache = new Map<string, string>();
 
+// A fixed per-character width is a poor estimate for a proportional font -
+// it consistently overshoots, leaving a visible gap before the next column.
+// Render the string in isolation and read back its true bounding box instead.
+const textWidthCache = new Map<string, number>();
+
+function measureTextWidth(text: string, fontSize: number): number {
+	const key = `${fontSize}:${text}`;
+	const cached = textWidthCache.get(key);
+	if (cached !== undefined) return cached;
+
+	const probe = `<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="100"><text x="0" y="50" font-size="${fontSize}" font-family="sans-serif">${escapeXml(text)}</text></svg>`;
+	const width = new Resvg(probe).getBBox()?.width ?? text.length * fontSize * 0.6;
+	textWidthCache.set(key, width);
+	return width;
+}
+
 async function toDataUri(src?: string): Promise<string | undefined> {
 	if (!src) return;
 	if (src.startsWith("data:")) return src;
@@ -46,8 +63,23 @@ async function toDataUri(src?: string): Promise<string | undefined> {
 
 	let buf: Uint8Array;
 	if (src.startsWith("http")) {
-		const res = await fetch(src);
-		if (!res.ok) return;
+		let res: Response;
+		try {
+			res = await fetch(src, {
+				headers: {
+					"User-Agent":
+						"Mozilla/5.0 (compatible; node-metaconcord/1.0; +https://metastruct.net)",
+					Accept: "image/*",
+				},
+			});
+		} catch (err) {
+			log.warn(err, `failed to fetch avatar/image from ${src}`);
+			return;
+		}
+		if (!res.ok) {
+			log.warn(`failed to fetch avatar/image from ${src}: HTTP ${res.status}`);
+			return;
+		}
 		buf = new Uint8Array(await res.arrayBuffer());
 	} else {
 		buf = await readFile(src);
@@ -74,9 +106,7 @@ export async function renderPlayerListImage(
 	const rowHeight = hasDescriptions ? ROW_HEIGHT_WITH_DESC : ROW_HEIGHT;
 	const avatarSize = hasDescriptions ? AVATAR_SIZE_WITH_DESC : AVATAR_SIZE;
 	const nameFontSize = hasDescriptions ? NAME_FONT_SIZE_WITH_DESC : NAME_FONT_SIZE;
-	const fontScale = nameFontSize / NAME_FONT_SIZE;
-	const nameCharWidth = CHAR_WIDTH * fontScale;
-	const joiningDotReserve = JOINING_DOT_RESERVE * fontScale;
+	const joiningDotReserve = JOINING_DOT_RESERVE * (nameFontSize / NAME_FONT_SIZE);
 
 	const cols = Math.max(1, Math.min(2, players.length));
 
@@ -86,9 +116,9 @@ export async function renderPlayerListImage(
 	const textWidths = players.map(p => {
 		const isJoining = p.nick.endsWith(JOINING);
 		const nick = isJoining ? p.nick.slice(0, -JOINING.length) : p.nick;
-		let nameWidth = nick.length * nameCharWidth;
+		let nameWidth = measureTextWidth(nick, nameFontSize);
 		if (isJoining) nameWidth += joiningDotReserve;
-		const descWidth = p.description ? p.description.length * DESC_CHAR_WIDTH : 0;
+		const descWidth = p.description ? measureTextWidth(p.description, DESC_FONT_SIZE) : 0;
 		return Math.max(nameWidth, descWidth);
 	});
 	const requiredWidths = textWidths.map(w => avatarSize + GAP + w + TEXT_RIGHT_PAD);
