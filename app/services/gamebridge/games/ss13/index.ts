@@ -1,7 +1,10 @@
 import * as Discord from "discord.js";
 import GameBridge from "../../GameBridge.js";
+import { Player } from "../../GameConnection.js";
+import { renderPlayerListImage } from "../../renderPlayerList.js";
 import SS13Connection, { SS13Status } from "./SS13Connection.js";
 import { WatchdogStatus, getDreamDaemonStatus } from "./tgsClient.js";
+import { getServerStatus, getPlayerList } from "./topics.js";
 import config from "@/config/ss13.json" with { type: "json" };
 import { logger } from "@/utils.js";
 
@@ -28,18 +31,31 @@ function buildStatusContainer(
 	name: string,
 	host: string,
 	status: SS13Status,
+	hasPlayerListImage: boolean,
 	disconnected: boolean
 ): Discord.ContainerBuilder {
 	const container = new Discord.ContainerBuilder();
 
 	container.setAccentColor(STATUS_COLOR[status.watchdogStatus]);
 
-	let desc = `### ${name}\n${STATUS_TEXT[status.watchdogStatus]}`;
+	let desc = `### ${status.mapName ?? name}\n${STATUS_TEXT[status.watchdogStatus]}`;
 
 	if (status.watchdogStatus === WatchdogStatus.Online) {
 		desc += `\n:busts_in_silhouette: Player${
 			status.clientCount === 1 ? "" : "s"
 		}: **${status.clientCount}**`;
+
+		if (status.securityLevel) {
+			desc += `\n:rotating_light: Security Level: **${status.securityLevel}**`;
+		}
+
+		// "docked" is the shuttle's resting state - only call it out while it's doing something.
+		if (status.shuttleMode && status.shuttleMode !== "docked") {
+			desc += `\n:rocket: Shuttle: **${status.shuttleMode}**`;
+			if (status.shuttleTimer) {
+				desc += ` (<t:${(Date.now() / 1000 + status.shuttleTimer) | 0}:R>)`;
+			}
+		}
 	}
 
 	if (status.launchTime) {
@@ -57,6 +73,13 @@ function buildStatusContainer(
 	}
 
 	container.addTextDisplayComponents(text => text.setContent(desc));
+
+	if (hasPlayerListImage) {
+		container.addSeparatorComponents(sep => sep);
+		container.addMediaGalleryComponents(gallery =>
+			gallery.addItems(item => item.setURL("attachment://players.png"))
+		);
+	}
 
 	container.addSeparatorComponents(sep => sep);
 
@@ -95,6 +118,48 @@ export function attachSS13(bridge: GameBridge): void {
 				revision: dd.activeCompileJob?.revisionInformation?.commitSha,
 			};
 
+			// The map/round/roster topics talk directly to DreamDaemon's game port, so
+			// they're only reachable once the watchdog reports the world as up. Their
+			// failure (bad comms key, firewalled port, ...) shouldn't take down the
+			// rest of the status embed - fall back to the aggregate TGS data.
+			if (status.watchdogStatus === WatchdogStatus.Online && status.port) {
+				try {
+					Object.assign(
+						status,
+						await getServerStatus(host, status.port, config.commsKey)
+					);
+				} catch (err) {
+					log.warn(err, "SS13 status topic query failed");
+				}
+
+				if (config.commsKey) {
+					try {
+						const roster = await getPlayerList(host, status.port, config.commsKey);
+						conn.status.players = roster.map((p): Player => ({
+							nick: p.name,
+							avatar: p.headshot,
+							steamId64: "",
+							isAdmin: false,
+							isBanned: false,
+							ip: "",
+						}));
+					} catch (err) {
+						log.warn(err, "SS13 playerlist topic query failed");
+						conn.status.players = [];
+					}
+				}
+			} else {
+				conn.status.players = [];
+			}
+
+			const files: Discord.AttachmentBuilder[] = [];
+			if (conn.status.players.length > 0) {
+				conn.playerListImage = await renderPlayerListImage(conn.status.players);
+				files.push(
+					new Discord.AttachmentBuilder(conn.playerListImage).setName("players.png")
+				);
+			}
+
 			conn.lastStatus = status;
 			conn.disconnected = false;
 
@@ -111,8 +176,14 @@ export function attachSS13(bridge: GameBridge): void {
 				conn.setPresence("idle", { afk: true });
 			}
 
-			const container = buildStatusContainer(conn.config.name, host, status, false);
-			await conn.postOrEditStatusMessage(container, []);
+			const container = buildStatusContainer(
+				conn.config.name,
+				host,
+				status,
+				files.length > 0,
+				false
+			);
+			await conn.postOrEditStatusMessage(container, files);
 		} catch (err) {
 			log.error(err, "SS13 poll failed");
 			conn.disconnected = true;
@@ -120,13 +191,22 @@ export function attachSS13(bridge: GameBridge): void {
 
 			if (conn.lastStatus) {
 				try {
+					const files =
+						conn.status.players.length > 0
+							? [
+									new Discord.AttachmentBuilder(conn.playerListImage).setName(
+										"players.png"
+									),
+								]
+							: [];
 					const container = buildStatusContainer(
 						conn.config.name,
 						host,
 						conn.lastStatus,
+						files.length > 0,
 						true
 					);
-					await conn.postOrEditStatusMessage(container, []);
+					await conn.postOrEditStatusMessage(container, files);
 				} catch (postErr) {
 					log.error(postErr, "failed to post SS13 disconnect status");
 				}

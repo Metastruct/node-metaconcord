@@ -21,9 +21,19 @@ const MIME_MAP: Record<string, string> = {
 	gif: "image/gif",
 };
 
+// Keyed by URL, not player - a player's headshot/avatar is refetched here on
+// every poll otherwise, which is enough sustained hotlinking traffic to trip
+// rate limits on the image hosts (catbox, imgbox, gyazo, ...). A changed URL
+// is naturally a cache miss, so this never needs an expiry.
+const dataUriCache = new Map<string, string>();
+
 async function toDataUri(src?: string): Promise<string | undefined> {
 	if (!src) return;
 	if (src.startsWith("data:")) return src;
+
+	const cached = dataUriCache.get(src);
+	if (cached) return cached;
+
 	let buf: Uint8Array;
 	if (src.startsWith("http")) {
 		const res = await fetch(src);
@@ -33,7 +43,9 @@ async function toDataUri(src?: string): Promise<string | undefined> {
 		buf = await readFile(src);
 	}
 	const ext = src.includes(".") ? (src.split(".").pop() ?? "png") : "png";
-	return `data:${MIME_MAP[ext] ?? "image/png"};base64,${Buffer.from(buf).toString("base64")}`;
+	const dataUri = `data:${MIME_MAP[ext] ?? "image/png"};base64,${Buffer.from(buf).toString("base64")}`;
+	dataUriCache.set(src, dataUri);
+	return dataUri;
 }
 
 export async function renderPlayerListImage(
