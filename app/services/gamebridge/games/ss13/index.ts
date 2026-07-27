@@ -171,7 +171,7 @@ export function attachSS13(bridge: GameBridge): void {
 			conn.disconnected = false;
 
 			if (status.watchdogStatus !== WatchdogStatus.Online) {
-				conn.setPresence("dnd");
+				conn.setPresence("dnd", { state: STATUS_TEXT[status.watchdogStatus] });
 			} else if (status.clientCount > 0) {
 				conn.setPresence("online", {
 					activity: {
