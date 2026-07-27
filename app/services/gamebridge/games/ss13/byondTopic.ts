@@ -56,7 +56,7 @@ export function queryTopic(
 			const totalExpected = 4 + response.readUInt16BE(2);
 			if (response.length < totalExpected) return;
 
-			const type = response.readUInt8(1);
+			const type = response.readUInt8(4);
 			settle(() => {
 				if (type === PACKET_TYPE_STRING) {
 					const end = response.indexOf(0, 5);
