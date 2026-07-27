@@ -3,5 +3,6 @@
 	"username": "",
 	"password": "",
 	"instanceId": 1,
-	"discordToken": ""
+	"discordToken": "",
+	"commsKey": ""
 }
