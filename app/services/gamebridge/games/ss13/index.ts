@@ -55,7 +55,7 @@ function buildStatusContainer(
 			status.clientCount === 1 ? "" : "s"
 		}: **${status.clientCount}**`;
 		if (status.roundDuration) {
-			desc += `\n:hourglass_flowing_sand: Round Time: ${dayjs.duration({ seconds: status.roundDuration }).format("HH:mm:ss")}`;
+			desc += `\n:hourglass_flowing_sand: Round Time: ${dayjs.duration(status.roundDuration, "seconds").format("HH:mm:ss")}`;
 		}
 
 		if (status.securityLevel) {
