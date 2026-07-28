@@ -53,7 +53,7 @@ function buildStatusContainer(
 	if (status.watchdogStatus === WatchdogStatus.Online) {
 		desc += `\n:busts_in_silhouette: Player${
 			status.clientCount === 1 ? "" : "s"
-		}: **${status.clientCount}**`;
+		}: **${status.activePlayers}/${status.clientCount}**`;
 		if (status.roundDuration) {
 			desc += `\n:hourglass_flowing_sand: Round Time: \`${dayjs.duration(status.roundDuration, "seconds").format("HH:mm:ss")}\``;
 		}
