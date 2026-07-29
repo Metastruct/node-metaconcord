@@ -115,7 +115,29 @@ export default class StatusPayload extends Payload {
 			const gamemodeExtras = GamemodeExtras[gamemodeName as keyof typeof GamemodeExtras];
 			const gamemodeIcon = gamemodeExtras?.seagull ?? gamemodeExtras?.icon;
 
+			// Player count
 			const count = current_players.length;
+			let countPresent = 0;
+
+			for (const player of server.status.players) {
+				if (!player.isAfk) {
+					countPresent++;
+				}
+				if (!player.avatar) {
+					const avatar = await Steam.getUserAvatar(player.steamId64);
+					player.avatar = avatar ?? `https://robohash.org/${player.steamId64}`;
+				}
+
+				player.nick = player.nick.trim();
+			}
+			server.status.players.sort(function (a, b) {
+				let i = 0;
+				if (!a.isAdmin && b.isAdmin) i = i + 2;
+				if (a.isAdmin && !b.isAdmin) i = i - 2;
+				if (a.nick.toLowerCase() > b.nick.toLowerCase()) i++;
+				if (a.nick.toLowerCase() < b.nick.toLowerCase()) i--;
+				return i;
+			});
 
 			// Presence
 			const status: Discord.PresenceStatusData =
@@ -151,10 +173,10 @@ export default class StatusPayload extends Payload {
 					: current_map
 			}`;
 
-			// Player count
+			// Player count text
 			desc += `\n:busts_in_silhouette: Player${
 				count > 1 || count === 0 ? "s" : ""
-			}: **${count}**`;
+			}: **${countPresent}/${count}**`;
 
 			// Server Uptime
 			const servertime = dayjs().subtract(current_serverUptime, "s").unix();
@@ -271,23 +293,6 @@ export default class StatusPayload extends Payload {
 			server.status.mapThumbnail = mapThumbnail;
 			server.status.players = current_players;
 			server.workshopMap = current_workshopMap;
-
-			for (const player of server.status.players) {
-				if (!player.avatar) {
-					const avatar = await Steam.getUserAvatar(player.steamId64);
-					player.avatar = avatar ?? `https://robohash.org/${player.steamId64}`;
-				}
-
-				player.nick = player.nick.trim();
-			}
-			server.status.players.sort(function (a, b) {
-				let i = 0;
-				if (!a.isAdmin && b.isAdmin) i = i + 2;
-				if (a.isAdmin && !b.isAdmin) i = i - 2;
-				if (a.nick.toLowerCase() > b.nick.toLowerCase()) i++;
-				if (a.nick.toLowerCase() < b.nick.toLowerCase()) i--;
-				return i;
-			});
 
 			try {
 				await ReportChatPayload.drainQueuedMessages(server);
