@@ -24,11 +24,16 @@ function GetColorFromChanges(added: number, removed: number, modified: number) {
 	);
 }
 
-const DIFF_SIZE = 2048;
+// Components V2 caps the combined length of all Text Display content at 4000
+// characters per message (not per-component like embed fields were), so these
+// are sized to leave headroom for the header/footer text sharing the container.
+const DIFF_SIZE = 1500;
+const BODY_SIZE = 300;
+const CHANGE_LIST_SIZE = 1000;
 const MAX_FIELDS = 10;
 const MAX_COMMITS = 5;
 
-const MinimalPushUsers = ["MetaAutomator"];
+const MinimalPushUsers = ["MetaAutomator", "github-actions[bot]"];
 
 const GitHub = new Webhooks({
 	secret: webhookConfig.github.secret,
@@ -53,7 +58,7 @@ const GetGithubChanges = (
 			s => `- [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(" ", "%%20")})`
 		),
 		...modified.map(
-			s => `[${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(" ", "%%20")})`
+			s => `~ [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(" ", "%%20")})`
 		),
 	];
 };
@@ -112,6 +117,76 @@ const isRemoteMergeCommit = (message: string) =>
 	message.startsWith("Merge remote-tracking") || message.startsWith("Merge pull request");
 const isMergeCommit = (message: string) =>
 	message.startsWith("Merge branch") || isRemoteMergeCommit(message);
+
+const COMMIT_URL_REGEX =
+	/https?:\/\/(?:github\.com\/[^\s)]+\/commit\/[^\s)]+|gitlab\.com\/[^\s)]+\/-\/commit\/[^\s)]+)/;
+
+function collectComponentText(
+	component: Discord.TopLevelComponent | Discord.ComponentInContainer
+): string[] {
+	if (component instanceof Discord.TextDisplayComponent) return [component.content];
+	if (component instanceof Discord.ContainerComponent)
+		return component.components.flatMap(collectComponentText);
+	if (component instanceof Discord.SectionComponent)
+		return component.components.map(c => c.content);
+	return [];
+}
+
+// buttons on Components V2 push messages no longer have an embed to pull the commit url from
+function findCommitUrl(message: Discord.Message): string | undefined {
+	const text = message.components.flatMap(collectComponentText).join("\n");
+	return COMMIT_URL_REGEX.exec(text)?.[0];
+}
+
+function buildChangeLines(changes: string[]): string[] {
+	const lines: string[] = [];
+	let length = 0;
+
+	for (let i = 0; i < changes.length; i++) {
+		if (i >= MAX_FIELDS || length + changes[i].length > CHANGE_LIST_SIZE) {
+			lines.push(`... and ${changes.length - i} more changes`);
+			break;
+		}
+		const change = changes[i].length > 1024 ? "<LINK TOO LONG>" : changes[i];
+		lines.push(change);
+		length += change.length;
+	}
+	return lines;
+}
+
+function GetPullRequestChanges(files: components["schemas"]["diff-entry"][]): string[] {
+	return files.map(f => {
+		const prefix = f.status === "added" ? "+" : f.status === "removed" ? "-" : "~";
+		return `${prefix} [${f.filename}](${f.blob_url})`;
+	});
+}
+
+function formatCommitBody(message: string): string {
+	const body = message.split("\n").slice(1).join("\n").trim();
+	if (!body) return "";
+
+	const truncated = body.length > BODY_SIZE ? `${body.substring(0, BODY_SIZE - 3)}...` : body;
+	return "\n" + truncated.replaceAll(/^/gm, "> ");
+}
+
+function addContainerHeader(
+	container: Discord.ContainerBuilder,
+	repoLine: string,
+	heading: string,
+	iconUrl?: string
+): Discord.ContainerBuilder {
+	const content = `${repoLine}\n${heading}`;
+	if (iconUrl) {
+		container.addSectionComponents(section =>
+			section
+				.addTextDisplayComponents(text => text.setContent(content))
+				.setThumbnailAccessory(thumb => thumb.setURL(iconUrl))
+		);
+	} else {
+		container.addTextDisplayComponents(text => text.setContent(content));
+	}
+	return container;
+}
 
 export default async (bot: DiscordBot): Promise<void> => {
 	const webapp = bot.container.getService("WebApp");
@@ -222,7 +297,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 				break;
 			case "everything": {
 				const msg = ctx.message;
-				const url = msg.embeds[msg.embeds.length - 1].url;
+				const url =
+					msg.embeds.length > 0
+						? msg.embeds[msg.embeds.length - 1].url
+						: findCommitUrl(msg);
 				if (!url) {
 					await ctx.reply("url not found for refreshing :( ... aborting");
 					return;
@@ -361,34 +439,34 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		let includesLua = false;
 
-		const embeds: Discord.APIEmbed[] = [];
+		const containers: Discord.ContainerBuilder[] = [];
+
+		const repoLabel =
+			branch !== repo.default_branch
+				? (repo.name + "/" + branch).substring(0, 256)
+				: repo.name.substring(0, 256);
 
 		if (payload.head_commit && isRemoteMergeCommit(payload.head_commit.message))
 			commits.splice(0, commits.length, payload.head_commit);
 
 		if (commits.length > MAX_COMMITS) {
-			const embed: Discord.APIEmbed = {
-				title: `${commits.length} commits in this push`,
-				description: `[View all changes](${payload.compare})`,
-				author: {
-					name:
-						branch !== repo.default_branch
-							? (repo.name + "/" + branch).substring(0, 256)
-							: repo.name.substring(0, 256),
-					url: repo.html_url,
-					icon_url: repo.owner?.avatar_url,
-				},
-				color: 0xffd700,
-				timestamp: new Date().toISOString(),
-				footer: {
-					text: `by ${payload.sender?.name ?? payload.sender?.login ?? "unknown"}`,
-				},
-			};
+			const container = new Discord.ContainerBuilder().setAccentColor(0xffd700);
 
-			embeds.push(embed);
+			addContainerHeader(
+				container,
+				`-# [${repoLabel}](${repo.html_url})`,
+				`### ${commits.length} commits in this push\n[View all changes](${payload.compare})`,
+				repo.owner?.avatar_url
+			);
+			container.addTextDisplayComponents(text =>
+				text.setContent(
+					`-# by ${payload.sender?.name ?? payload.sender?.login ?? "unknown"}`
+				)
+			);
+
+			containers.push(container);
 		} else {
 			for (const commit of commits) {
-				const fields: Discord.APIEmbedField[] = [];
 				const changes = GetGithubChanges(
 					repo.full_name,
 					payload.ref,
@@ -397,39 +475,36 @@ export default async (bot: DiscordBot): Promise<void> => {
 					commit.modified
 				);
 
-				if (MinimalPushUsers.includes(commit.author.username ?? commit.author.name)) {
-					embeds.push({
-						title:
-							commit.message.length > 256
-								? `${commit.message.substring(0, 250)}. . .`
-								: commit.message,
-						description: `[${changes.length} file${changes.length > 1 ? "s" : ""} changed.](${payload.compare})`,
-						author: {
-							name:
-								branch !== repo.default_branch
-									? (repo.name + "/" + branch).substring(0, 256)
-									: repo.name.substring(0, 256),
-							url: repo.html_url,
-							icon_url: repo.owner?.avatar_url,
-						},
-						color: GetColorFromChanges(
-							commit.added?.length ?? 0,
-							commit.removed?.length ?? 0,
-							commit.modified?.length ?? 0
-						),
-						url: commit.url,
-						fields,
-						timestamp: commit.timestamp,
-						footer: {
-							text: `${commit.id.substring(0, 6)} by ${
-								commit.author.username ?? commit.author.name
-							}${
-								commit.author.name !== commit.committer.name
-									? ` via ${commit.committer.username ?? commit.committer.name}`
-									: ""
-							}`,
-						},
-					});
+				const subject = commit.message.split("\n")[0];
+				const title = subject.length > 256 ? `${subject.substring(0, 250)}. . .` : subject;
+				const body = formatCommitBody(commit.message);
+
+				const footer = `-# ${commit.id.substring(0, 6)} by ${
+					commit.author.username ?? commit.author.name
+				}${
+					commit.author.name !== commit.committer.name
+						? ` via ${commit.committer.username ?? commit.committer.name}`
+						: ""
+				}`;
+
+				const container = new Discord.ContainerBuilder().setAccentColor(
+					GetColorFromChanges(
+						commit.added?.length ?? 0,
+						commit.removed?.length ?? 0,
+						commit.modified?.length ?? 0
+					)
+				);
+
+				if (MinimalPushUsers.includes(payload.sender?.login || payload.pusher.name)) {
+					addContainerHeader(
+						container,
+						`-# [${repoLabel}](${repo.html_url})`,
+						`### [${title}](${commit.url})${body}\n[${changes.length} file${changes.length > 1 ? "s" : ""} changed.](${payload.compare})`,
+						repo.owner?.avatar_url
+					);
+					container.addTextDisplayComponents(text => text.setContent(footer));
+
+					containers.push(container);
 					continue;
 				}
 
@@ -444,80 +519,61 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const isOnlyOgg =
 					allFiles.length > 0 && allFiles.every(str => str.endsWith(".ogg"));
 
-				const oversize = changes.length > MAX_FIELDS;
-				const changeLen = oversize ? MAX_FIELDS : changes.length;
-
-				for (let i = 0; i < changeLen; i++) {
-					const change = changes[i];
-					if (i === 24 || oversize ? i === changeLen - 1 : false) {
-						fields.push({
-							name: "︎",
-							value: `... and ${changes.length - changeLen} more changes`,
-						});
-						break;
-					} else {
-						fields.push({
-							name: i > 0 ? "︎" : "---",
-							value: change.length > 1024 ? "<LINK TOO LONG>" : change,
-						});
-					}
-				}
+				const changeLines = buildChangeLines(changes);
 
 				const diff =
 					isMergeCommit(commit.message) || isOnlyOgg
 						? undefined
 						: await getGitHubDiff(commit.url);
 
-				embeds.push({
-					title:
-						commit.message.length > 256
-							? `${commit.message.substring(0, 250)}. . .`
-							: commit.message,
-					description: diff
-						? `\`\`\`diff\n${
-								diff.length > DIFF_SIZE - 12
-									? diff.substring(0, 4079) + ". . ."
+				addContainerHeader(
+					container,
+					`-# [${repoLabel}](${repo.html_url})`,
+					`### [${title}](${commit.url})${body}`,
+					repo.owner?.avatar_url
+				);
+
+				if (diff) {
+					container.addSeparatorComponents(sep => sep);
+					container.addTextDisplayComponents(text =>
+						text.setContent(
+							`\`\`\`diff\n${
+								diff.length > DIFF_SIZE
+									? diff.substring(0, DIFF_SIZE - 5) + ". . ."
 									: diff
 							}\`\`\``
-						: undefined,
-					author: {
-						name:
-							branch !== repo.default_branch
-								? (repo.name + "/" + branch).substring(0, 256)
-								: repo.name.substring(0, 256),
-						url: repo.html_url,
-						icon_url: repo.owner?.avatar_url,
-					},
-					color: GetColorFromChanges(
-						commit.added?.length ?? 0,
-						commit.removed?.length ?? 0,
-						commit.modified?.length ?? 0
-					),
-					url: commit.url,
-					fields,
-					timestamp: commit.timestamp,
-					footer: {
-						text: `${commit.id.substring(0, 6)} by ${
-							commit.author.username ?? commit.author.name
-						}${
-							commit.author.name !== commit.committer.name
-								? ` via ${commit.committer.username ?? commit.committer.name}`
-								: ""
-						}`,
-					},
-				});
+						)
+					);
+				}
+
+				if (changeLines.length > 0) {
+					container.addSeparatorComponents(sep => sep);
+					container.addTextDisplayComponents(text =>
+						text.setContent(changeLines.join("\n"))
+					);
+				}
+
+				container.addSeparatorComponents(sep => sep.setDivider(false));
+				container.addTextDisplayComponents(text => text.setContent(footer));
+
+				containers.push(container);
 			}
 		}
-		const messagePayload = <Discord.WebhookMessageCreateOptions>{
+
+		const baseMessagePayload = <Discord.WebhookMessageCreateOptions>{
 			...BaseEmbed,
 			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
 			avatarURL: payload.sender?.avatar_url,
-			content: payload.forced
-				? "<a:ALERTA:843518761160015933> Force Pushed <a:ALERTA:843518761160015933>"
-				: "",
-			embeds,
+			flags: Discord.MessageFlags.IsComponentsV2,
 		};
-		const components = <Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow>>{
+
+		const forcePushText = payload.forced
+			? new Discord.TextDisplayBuilder().setContent(
+					"<a:ALERTA:843518761160015933> Force Pushed <a:ALERTA:843518761160015933>"
+				)
+			: undefined;
+
+		const actionRow = <Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow>>{
 			components: [
 				{
 					type: Discord.ComponentType.Button,
@@ -541,24 +597,35 @@ export default async (bot: DiscordBot): Promise<void> => {
 			type: Discord.ComponentType.ActionRow,
 		};
 
-		// todo: figure out a good way to keep the embed size below the maximum size of 6000
-		if (embeds.length > 1) {
-			for (let i = 0; i < embeds.length; i++) {
-				const chunk = embeds.slice(i, i + 1);
+		type MessageComponent =
+			| Discord.ContainerBuilder
+			| Discord.TextDisplayBuilder
+			| Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow>;
+
+		if (containers.length > 1) {
+			for (let i = 0; i < containers.length; i++) {
+				const messageComponents: MessageComponent[] = [];
+				if (i === 0 && forcePushText) messageComponents.push(forcePushText);
+				messageComponents.push(containers[i]);
+				if (i === containers.length - 1 && includesLua) messageComponents.push(actionRow);
+
 				webhook
 					.send({
-						...messagePayload,
-						embeds: chunk,
-						components:
-							i === embeds.length - 1 && includesLua ? [components] : undefined,
+						...baseMessagePayload,
+						components: messageComponents,
 					})
 					.catch(log.error.bind(log));
 			}
 		} else {
+			const messageComponents: MessageComponent[] = [];
+			if (forcePushText) messageComponents.push(forcePushText);
+			messageComponents.push(...containers);
+			if (includesLua) messageComponents.push(actionRow);
+
 			webhook
 				.send({
-					...messagePayload,
-					components: includesLua ? [components] : undefined,
+					...baseMessagePayload,
+					components: messageComponents,
 				})
 				.catch(log.error.bind(log));
 		}
@@ -759,51 +826,56 @@ export default async (bot: DiscordBot): Promise<void> => {
 				return;
 		}
 
+		const title = pr.title.length > 256 ? `${pr.title.substring(0, 250)}. . .` : pr.title;
+
 		const diff = await getGitHubDiff(pr.html_url);
 
-		const embed: Discord.APIEmbed = {
-			title: pr.title.length > 256 ? `${pr.title.substring(0, 250)}. . .` : pr.title,
-			description: diff
-				? `\`\`\`diff\n${
-						diff.length > DIFF_SIZE - 12 ? diff.substring(0, 4079) + ". . ." : diff
+		const files = await axios.get<components["schemas"]["diff-entry"][]>(pr.url + "/files"); // why this isn't in the payload I have no idea
+		const changeLines = buildChangeLines(GetPullRequestChanges(files.data));
+
+		const container = new Discord.ContainerBuilder().setAccentColor(
+			payload.action === "closed"
+				? pr.merged
+					? 0x8957e5
+					: 0xe74c3c
+				: GetColorFromChanges(pr.additions ?? 0, pr.deletions ?? 0, pr.changed_files ?? 0)
+		);
+
+		addContainerHeader(
+			container,
+			`-# [${repo.full_name.substring(0, 256)}](${repo.html_url})`,
+			`### [${title}](${pr.html_url})`,
+			repo.owner?.avatar_url
+		);
+
+		if (diff) {
+			container.addSeparatorComponents(sep => sep);
+			container.addTextDisplayComponents(text =>
+				text.setContent(
+					`\`\`\`diff\n${
+						diff.length > DIFF_SIZE ? diff.substring(0, DIFF_SIZE - 5) + ". . ." : diff
 					}\`\`\``
-				: undefined,
-			author: {
-				name: repo.full_name.substring(0, 256),
-				url: repo.html_url,
-				icon_url: repo.owner?.avatar_url,
-			},
-			color:
-				payload.action === "closed"
-					? pr.merged
-						? 0x8957e5
-						: 0xe74c3c
-					: GetColorFromChanges(
-							pr.additions ?? 0,
-							pr.deletions ?? 0,
-							pr.changed_files ?? 0
-						),
-			url: pr.html_url,
-			fields: [
-				{
-					name: "Changes",
-					value: `+${pr.additions ?? 0} -${pr.deletions ?? 0} in ${pr.changed_files ?? 0} file${
-						pr.changed_files === 1 ? "" : "s"
-					}`,
-				},
-			],
-			timestamp: new Date().toISOString(),
-			footer: {
-				text: `PR #${pr.number} ${action} by ${pr.user?.login ?? "unknown"}`,
-			},
-		};
+				)
+			);
+		}
+
+		if (changeLines.length > 0) {
+			container.addSeparatorComponents(sep => sep);
+			container.addTextDisplayComponents(text => text.setContent(changeLines.join("\n")));
+		}
+
+		container.addSeparatorComponents(sep => sep.setDivider(false));
+		container.addTextDisplayComponents(text =>
+			text.setContent(`-# PR #${pr.number} ${action} by ${pr.user?.login ?? "unknown"}`)
+		);
 
 		webhook
 			.send({
 				...BaseEmbed,
 				username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
 				avatarURL: payload.sender?.avatar_url,
-				embeds: [embed],
+				components: [container],
+				flags: Discord.MessageFlags.IsComponentsV2,
 			})
 			.catch(log.error.bind(log));
 	}
