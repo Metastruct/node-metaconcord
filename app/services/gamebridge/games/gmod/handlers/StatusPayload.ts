@@ -176,7 +176,7 @@ export default class StatusPayload extends Payload {
 			// Player count text
 			desc += `\n:busts_in_silhouette: Player${
 				count > 1 || count === 0 ? "s" : ""
-			}: **${countPresent}/${count}**`;
+			}: **Active: ${countPresent} • Connected: ${count}**`;
 
 			// Server Uptime
 			const servertime = dayjs().subtract(current_serverUptime, "s").unix();

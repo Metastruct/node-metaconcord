@@ -25,7 +25,7 @@ function buildStatusContainer(
 		`### ${session.tags[0] ?? session.name}\n` +
 		`:busts_in_silhouette: Player${
 			count > 1 || count == 0 ? "s" : ""
-		}: **${session.activeUsers}/${count}**\n` +
+		}: **Active: ${session.activeUsers} • Connected: ${count}**\n` +
 		`:repeat: Last Update: <t:${(new Date(session.lastUpdate).getTime() / 1000) | 0}:R>\n` +
 		`:file_cabinet: Server up since: <t:${(new Date(session.sessionBeginTime).getTime() / 1000) | 0}:R>`;
 
