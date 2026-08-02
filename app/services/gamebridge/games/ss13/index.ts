@@ -53,7 +53,7 @@ function buildStatusContainer(
 	if (status.watchdogStatus === WatchdogStatus.Online) {
 		desc += `\n:busts_in_silhouette: Player${
 			status.clientCount === 1 ? "" : "s"
-		}: **Active: ${status.activePlayers} • Connected: ${status.clientCount}**`;
+		}: **${status.activePlayers ? `Active: ${status.activePlayers} • ` : ""}Connected: ${status.clientCount}**`;
 		if (status.roundDuration) {
 			desc += `\n:hourglass_flowing_sand: Round Time: \`${dayjs.duration(status.roundDuration, "seconds").format("HH:mm:ss")}\``;
 		}
