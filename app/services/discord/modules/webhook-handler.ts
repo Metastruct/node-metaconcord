@@ -655,7 +655,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const fileName = Array.from(soundCount, ([sound, count]) => {
 			return `- \`${sound}\`${count > 1 ? ` x${count}` : ""}`;
 		}).join("\n");
-		return `[**${folderName}**](https://github.com/Metastruct/garrysmod-chatsounds/tree/master/sound/chatsounds/autoadd/${folderName})\n${fileName}`;
+		return `[**${folderName}**](https://github.com/Metastruct/garrysmod-chatsounds/tree/master/sound/chatsounds/autoadd/${encodeURI(folderName)})\n${fileName}`;
 	};
 
 	async function ChatsoundsPushHandler(event: EmitterWebhookEvent<"push">) {
