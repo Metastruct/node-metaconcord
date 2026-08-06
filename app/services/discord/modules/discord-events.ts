@@ -73,7 +73,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		},
 		{
 			icon: "ss13",
-			triggers: ["ss13", "(ss13)"],
+			triggers: ["ss13", "(ss13)", "Space Station 13"],
 			nicks: [
 				"AI",
 				"Blob",
@@ -121,9 +121,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					const regex = new RegExp("\\b" + triggers.join("\\b|\\b") + "\\b");
 					const match =
 						regex.test(event.name.toLowerCase()) ||
-						(event.description
-							? regex.test(event.description?.toLocaleLowerCase())
-							: false);
+						(event.description ? regex.test(event.description?.toLowerCase()) : false);
 					if (match) {
 						const path = join(iconsPath, `${icon}.png`);
 						await bot.setIcon(path);
