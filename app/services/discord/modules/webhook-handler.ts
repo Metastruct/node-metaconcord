@@ -47,10 +47,7 @@ const CHECK_CONCLUSION_COLOR: Record<string, number> = {
 	stale: 0x6a737d,
 };
 
-function getCheckTarget(
-	pullRequests: { number: number }[],
-	headBranch?: string | null
-): string {
+function getCheckTarget(pullRequests: { number: number }[], headBranch?: string | null): string {
 	return pullRequests.length > 0
 		? `pull request #${pullRequests[0].number}`
 		: (headBranch ?? "unknown branch");
