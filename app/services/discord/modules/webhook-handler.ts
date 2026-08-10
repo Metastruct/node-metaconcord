@@ -35,6 +35,27 @@ const MAX_COMMITS = 5;
 
 const MinimalPushUsers = ["MetaAutomator", "github-actions[bot]"];
 
+const CHECK_CONCLUSION_COLOR: Record<string, number> = {
+	success: 0x28a745,
+	failure: 0xcb2431,
+	timed_out: 0xcb2431,
+	startup_failure: 0xcb2431,
+	action_required: 0xdbab09,
+	cancelled: 0x6a737d,
+	skipped: 0x6a737d,
+	neutral: 0x6a737d,
+	stale: 0x6a737d,
+};
+
+function getCheckTarget(
+	pullRequests: { number: number }[],
+	headBranch?: string | null
+): string {
+	return pullRequests.length > 0
+		? `pull request #${pullRequests[0].number}`
+		: (headBranch ?? "unknown branch");
+}
+
 const GitHub = new Webhooks({
 	secret: webhookConfig.github.secret,
 });
@@ -894,6 +915,62 @@ export default async (bot: DiscordBot): Promise<void> => {
 				DefaultPullRequestHandler(event);
 				break;
 		}
+	});
+
+	GitHub.on("check_run.completed", async event => {
+		if (!webhook) return;
+		const payload = event.payload;
+		const checkRun = payload.check_run;
+		const conclusion = checkRun.conclusion;
+		if (!conclusion || conclusion === "success") return;
+
+		const repo = payload.repository;
+		const target = getCheckTarget(checkRun.pull_requests, checkRun.check_suite.head_branch);
+
+		await webhook
+			.send({
+				...BaseEmbed,
+				username: repo.full_name,
+				avatarURL: repo.owner?.avatar_url,
+				embeds: [
+					{
+						color: CHECK_CONCLUSION_COLOR[conclusion] ?? 0x6a737d,
+						title: `${checkRun.name} ${conclusion} on ${target}`,
+						url: checkRun.html_url,
+					},
+				],
+			})
+			.catch(log.error.bind(log));
+	});
+
+	GitHub.on("check_suite.completed", async event => {
+		if (!webhook) return;
+		const payload = event.payload;
+		const suite = payload.check_suite;
+		const conclusion = suite.conclusion;
+		if (!conclusion || conclusion === "success") return;
+
+		const repo = payload.repository;
+		const target = getCheckTarget(suite.pull_requests, suite.head_branch);
+		const url =
+			suite.pull_requests.length > 0
+				? `${repo.html_url}/pull/${suite.pull_requests[0].number}/checks`
+				: `${repo.html_url}/commit/${suite.head_sha}/checks`;
+
+		await webhook
+			.send({
+				...BaseEmbed,
+				username: repo.full_name,
+				avatarURL: repo.owner?.avatar_url,
+				embeds: [
+					{
+						color: CHECK_CONCLUSION_COLOR[conclusion] ?? 0x6a737d,
+						title: `GitHub Actions checks ${conclusion} on ${target}`,
+						url,
+					},
+				],
+			})
+			.catch(log.error.bind(log));
 	});
 
 	GitHub.on("organization", async event => {
