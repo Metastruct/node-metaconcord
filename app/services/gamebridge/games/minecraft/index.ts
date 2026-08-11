@@ -1,9 +1,9 @@
 import { request as WebSocketRequest } from "websocket";
 import GameBridge from "../../GameBridge.js";
-import GmodConnection, { GmodConnectionConfig } from "./GmodConnection.js";
+import MinecraftConnection, { MinecraftConnectionConfig } from "./MinecraftConnection.js";
 import { WsRouter } from "../../WsRouter.js";
-import config from "@/config/gmod.json" with { type: "json" };
-import servers from "@/config/gmod.servers.json" with { type: "json" };
+import config from "@/config/minecraft.json" with { type: "json" };
+import servers from "@/config/minecraft.servers.json" with { type: "json" };
 import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
@@ -14,16 +14,7 @@ function handleConnection(bridge: GameBridge, req: WebSocketRequest): void {
 		req.httpRequest.headers["cf-connecting-ip"]?.toString() ??
 		req.httpRequest.headers["x-forwarded-for"]?.toString()?.split(",")[0];
 
-	for (const server of bridge.servers) {
-		if (!(server instanceof GmodConnection)) continue;
-		const wsConnection = server.wsConnection;
-		if (wsConnection && wsConnection.remoteAddress === ip) {
-			log.info(`${ip} is trying to connect multiple times, dropping previous connection.`);
-			wsConnection.close();
-		}
-	}
-
-	let serverConfig: GmodConnectionConfig | undefined;
+	let serverConfig: MinecraftConnectionConfig | undefined;
 	for (const serverEntry of servers) {
 		const ips = serverEntry.ip
 			? Array.isArray(serverEntry.ip)
@@ -48,15 +39,19 @@ function handleConnection(bridge: GameBridge, req: WebSocketRequest): void {
 		return;
 	}
 
-	bridge.servers[serverConfig.id] = new GmodConnection({
+	const existing = bridge.servers[serverConfig.id];
+	if (existing instanceof MinecraftConnection) {
+		log.info(`'${serverConfig.name}' is reconnecting, dropping previous connection.`);
+		existing.wsConnection?.close();
+	}
+
+	bridge.servers[serverConfig.id] = new MinecraftConnection({
 		req,
 		bridge,
 		serverConfig,
 	});
 }
 
-export function attachGmod(bridge: GameBridge, router: WsRouter): void {
-	router.route("/ws", req => handleConnection(bridge, req));
-
-	log.info(`Web socket server listening on ${bridge.webApp.config.port}`);
+export function attachMinecraft(bridge: GameBridge, router: WsRouter): void {
+	router.route("/minecraft/ws", req => handleConnection(bridge, req));
 }
