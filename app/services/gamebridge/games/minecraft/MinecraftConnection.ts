@@ -13,11 +13,22 @@ const log = logger(import.meta);
 
 export type MinecraftConnectionConfig = GameConnectionConfig & {
 	ip?: string | string[];
+	/** shown as the connect address on the status embed */
+	address?: string;
+};
+
+export type MinecraftStatus = {
+	hostname: string;
+	version: string;
+	maxPlayers: number;
+	/** unix timestamp of server start */
+	upSince: number;
 };
 
 export default class MinecraftConnection extends GameConnection {
 	wsConnection?: WebSocketConnection;
 	config: MinecraftConnectionConfig;
+	lastStatus?: MinecraftStatus;
 
 	private handlersAttached = false;
 
@@ -63,6 +74,12 @@ export default class MinecraftConnection extends GameConnection {
 
 		this.wsConnection?.on("close", async (code, desc) => {
 			this.disconnected = true;
+			try {
+				const { default: StatusPayload } = await import("./handlers/StatusPayload.js");
+				await StatusPayload.postDisconnected(this);
+			} catch (err) {
+				log.error(err, "failed to post disconnect status");
+			}
 			this.discord.destroy();
 			log.info(`'${this.config.name}' Game Server disconnected - [${code}] ${desc}`);
 			if (this.bridge.servers[this.config.id] === this) {

@@ -1,0 +1,53 @@
+{
+	"$ref": "#/definitions/StatusRequest",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"definitions": {
+		"StatusRequest": {
+			"additionalProperties": false,
+			"properties": {
+				"data": {
+					"additionalProperties": false,
+					"properties": {
+						"hostname": {
+							"type": "string"
+						},
+						"maxPlayers": {
+							"type": "number"
+						},
+						"players": {
+							"items": {
+								"additionalProperties": false,
+								"properties": {
+									"nick": {
+										"type": "string"
+									},
+									"uuid": {
+										"type": "string"
+									}
+								},
+								"required": ["nick", "uuid"],
+								"type": "object"
+							},
+							"type": "array"
+						},
+						"uptime": {
+							"description": "seconds since server start",
+							"type": "number"
+						},
+						"version": {
+							"type": "string"
+						}
+					},
+					"required": ["hostname", "version", "maxPlayers", "uptime", "players"],
+					"type": "object"
+				},
+				"name": {
+					"const": "StatusPayload",
+					"type": "string"
+				}
+			},
+			"required": ["data", "name"],
+			"type": "object"
+		}
+	}
+}

@@ -2,12 +2,13 @@ import ChatPayload from "./ChatPayload.js";
 import JoinLeavePayload from "./JoinLeavePayload.js";
 import MinecraftConnection from "../MinecraftConnection.js";
 import Payload from "./Payload.js";
+import StatusPayload from "./StatusPayload.js";
 
-export { Payload, ChatPayload, JoinLeavePayload };
+export { Payload, ChatPayload, JoinLeavePayload, StatusPayload };
 
 // The wire-protocol name (e.g. "ChatPayload") the mod sends is the handler
 // class's own declared name, so no separate name mapping is needed.
-const handlers: (typeof Payload)[] = [ChatPayload, JoinLeavePayload];
+const handlers: (typeof Payload)[] = [ChatPayload, JoinLeavePayload, StatusPayload];
 
 export function attachHandlers(connection: MinecraftConnection): void {
 	for (const handler of handlers) {

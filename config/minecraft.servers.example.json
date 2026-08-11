@@ -4,6 +4,7 @@
 		"ip": "",
 		"name": "",
 		"label": "",
+		"address": "",
 		"discordToken": ""
 	}
 ]

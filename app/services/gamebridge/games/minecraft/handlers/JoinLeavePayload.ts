@@ -21,29 +21,8 @@ export default class JoinLeavePayload extends Payload {
 		const relayChannel = guild.channels.cache.get(discord.config.channels.minecraftRelay);
 		if (!relayChannel) return;
 
+		// player tracking, presence and the status embed are StatusPayload's job
 		const avatar = `https://mc-heads.net/avatar/${player.uuid}`;
-
-		if (spawned) {
-			server.status.players = server.status.players
-				.filter(p => p.steamId64 !== player.uuid)
-				.concat({
-					steamId64: player.uuid,
-					avatar,
-					ip: "",
-					isAdmin: false,
-					isBanned: false,
-					nick: player.nick,
-				});
-		} else {
-			server.status.players = server.status.players.filter(p => p.steamId64 !== player.uuid);
-		}
-		const playerCount = server.status.players.length;
-		server.setPresence("online", {
-			activity: {
-				name: `${playerCount} player${playerCount != 1 ? "s" : ""}`,
-				type: Discord.ActivityType.Watching,
-			},
-		});
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
