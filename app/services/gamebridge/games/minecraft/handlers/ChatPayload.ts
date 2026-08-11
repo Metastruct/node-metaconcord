@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { ChatRequest, ChatResponse } from "./structures/index.js";
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
+import MinecraftConnection from "../MinecraftConnection.js";
 import Payload from "./Payload.js";
 import { chatWebhook } from "../webhooks.js";
 import { formatDiscordMessage } from "../../../discord/formatDiscordMessage.js";
@@ -14,10 +14,10 @@ export default class ChatPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	protected static responseSchema = responseSchema;
 
-	static async initialize(server: GmodConnection): Promise<void> {
+	static async initialize(server: MinecraftConnection): Promise<void> {
 		const discord = server.discord;
 		discord.on("messageCreate", async msg => {
-			if (msg.channel.id != server.discord.config.channels.relay) return;
+			if (msg.channel.id != server.discord.config.channels.minecraftRelay) return;
 			if (msg.author.bot || !msg.author.client) return;
 
 			if (msg.partial) {
@@ -31,10 +31,9 @@ export default class ChatPayload extends Payload {
 					if (msg.reference.type == 0) {
 						reply = await msg.fetchReference();
 					} else if (msg.reference.type == 1) {
-						// who knows maybe discord will add more
 						reply = undefined;
 						const newContent = mainMsg.content;
-						const snapshot = msg.messageSnapshots.first(); // discord currently only supports one snapshot
+						const snapshot = msg.messageSnapshots.first();
 						if (!snapshot) return;
 						const referenceMessage = await formatDiscordMessage(snapshot);
 
@@ -46,7 +45,7 @@ export default class ChatPayload extends Payload {
 			const payload: ChatResponse = {
 				user: {
 					id: msg.author.id,
-					username: mainMsg.username ?? "wtf", // I wish I knew how to typeguard this
+					username: mainMsg.username ?? "wtf",
 					nick: mainMsg.nickname,
 					color: mainMsg.color,
 					avatar_url: mainMsg.avatar ?? "https://cdn.discordapp.com/embed/avatars/0.png",
@@ -67,18 +66,18 @@ export default class ChatPayload extends Payload {
 		});
 	}
 
-	static async handle(payload: ChatRequest, server: GmodConnection): Promise<void> {
+	static async handle(payload: ChatRequest, server: MinecraftConnection): Promise<void> {
 		super.handle(payload, server);
 		const { player } = payload.data;
 		let { content } = payload.data;
-		const { bridge, discord } = server;
+		const { discord } = server;
 
 		if (!discord.ready) return;
 
 		const guild = discord.guilds.cache.get(discord.config.bot.primaryGuildId);
 		if (!guild) return;
 
-		const avatar = await bridge.container.getService("Steam").getUserAvatar(player.steamId64);
+		const avatar = `https://mc-heads.net/avatar/${player.uuid}`;
 
 		const matches = content.matchAll(/@(\S*)/g);
 
@@ -95,18 +94,11 @@ export default class ChatPayload extends Payload {
 
 		content = content.substring(0, 2000);
 
-		const motd = bridge.container.getService("Motd");
-		motd.pushMessage(content);
-		await bridge.container.getService("Markov").learn(content);
-
-		// 9312 = ①, 9313 = ②, and so on until 20
-		const serverId = `#${server.config.id}`; // String.fromCodePoint(9311 + +(server.config.id ?? 0));
+		const serverId = `#${server.config.id}`;
 		await chatWebhook
 			.send({
 				content: content,
 				username: `${serverId} ${player.nick
-					// .replace(/@/g, "(at)")
-					// .replace(/#/g, "")
 					.substring(0, 77)
 					.replaceAll("discord", "discоrd")
 					.replaceAll("Discord", "Discоrd")}`,
@@ -116,7 +108,7 @@ export default class ChatPayload extends Payload {
 			.catch(log.error.bind(log));
 	}
 
-	static async send(payload: ChatResponse, server: GmodConnection): Promise<void> {
+	static async send(payload: ChatResponse, server: MinecraftConnection): Promise<void> {
 		super.send(payload, server);
 	}
 }

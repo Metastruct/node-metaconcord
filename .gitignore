@@ -22,6 +22,7 @@ cache
 *.json
 !*.example.json
 !app/services/gamebridge/games/gmod/handlers/structures/*.json
+!app/services/gamebridge/games/minecraft/handlers/structures/*.json
 deploy.sh
 markov_data.txt
 metaconcord.db
