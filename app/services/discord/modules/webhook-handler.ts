@@ -47,14 +47,80 @@ const CHECK_CONCLUSION_COLOR: Record<string, number> = {
 	stale: 0x6a737d,
 };
 
+const CHECK_CONCLUSION_EMOJI: Record<string, string> = {
+	success: "✅",
+	failure: "❌",
+	timed_out: "⏱️",
+	startup_failure: "❌",
+	action_required: "⚠️",
+	cancelled: "🚫",
+	skipped: "⏭️",
+	neutral: "⚪",
+	stale: "🟤",
+};
+
 function getCheckTarget(pullRequests: { number: number }[], headBranch?: string | null): string {
 	return pullRequests.length > 0
 		? `pull request #${pullRequests[0].number}`
 		: (headBranch ?? "unknown branch");
 }
 
+type MessageComponent =
+	| Discord.ContainerBuilder
+	| Discord.TextDisplayBuilder
+	| Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow>;
+
+// Tracks the commit-push message for a given commit sha for a short while so a
+// later check_run/check_suite completion can be appended to it in place via edit,
+// instead of flooding the channel with a separate message per check result.
+interface TrackedCommitMessage {
+	messageId: string;
+	components: MessageComponent[];
+	container: Discord.ContainerBuilder;
+	checksDisplay?: Discord.TextDisplayBuilder;
+	checks: Map<string, string>;
+}
+
+const MAX_TRACKED_COMMITS = 200;
+const commitMessages = new Map<string, TrackedCommitMessage>();
+
+function trackCommitMessage(
+	sha: string,
+	messageId: string,
+	components: MessageComponent[],
+	container: Discord.ContainerBuilder
+) {
+	if (commitMessages.size >= MAX_TRACKED_COMMITS) {
+		const oldest = commitMessages.keys().next().value;
+		if (oldest) commitMessages.delete(oldest);
+	}
+	commitMessages.set(sha, { messageId, components, container, checks: new Map() });
+}
+
+function upsertCheckLine(entry: TrackedCommitMessage, key: string, line: string) {
+	entry.checks.set(key, line);
+	const content = Array.from(entry.checks.values()).join("\n");
+	if (entry.checksDisplay) {
+		entry.checksDisplay.setContent(content);
+	} else {
+		entry.container.addSeparatorComponents(sep => sep);
+		entry.checksDisplay = new Discord.TextDisplayBuilder().setContent(content);
+		entry.container.addTextDisplayComponents(entry.checksDisplay);
+	}
+}
+
 const GitHub = new Webhooks({
 	secret: webhookConfig.github.secret,
+});
+
+// @octokit/webhooks logs unhandled listener errors via its own default
+// console-based logger, separate from our pino logger, which makes push/PR
+// events that throw silently invisible in our normal logs. Route them here too.
+GitHub.onError(error => {
+	log.error(
+		{ err: error, name: error.event?.name, errors: error.errors },
+		"Github webhook event handler failed"
+	);
 });
 
 const BaseEmbed = <Discord.WebhookMessageCreateOptions>{
@@ -82,7 +148,13 @@ const GetGithubChanges = (
 };
 
 const getGitHubDiff = async (url: string) => {
-	const res = await fetch(url + ".diff");
+	let res: Response;
+	try {
+		res = await fetch(url + ".diff", { signal: AbortSignal.timeout(10_000) });
+	} catch (err) {
+		log.error({ err, url }, "failed to fetch Github diff");
+		return;
+	}
 
 	const text = await res.text();
 	if (!res.ok) {
@@ -96,6 +168,20 @@ const getGitHubDiff = async (url: string) => {
 		.replaceAll("```", "​`​`​`");
 };
 
+const getPullRequestFiles = async (
+	prApiUrl: string
+): Promise<components["schemas"]["diff-entry"][] | undefined> => {
+	try {
+		const res = await axios.get<components["schemas"]["diff-entry"][]>(prApiUrl + "/files", {
+			timeout: 10_000,
+		}); // why this isn't in the payload I have no idea
+		return res.data;
+	} catch (err) {
+		log.error({ err, prApiUrl }, "failed to fetch PR files from Github");
+		return;
+	}
+};
+
 const getGitlabDiff = async (id: string, sha: string) => {
 	const res = await fetch(
 		`https://gitlab.com/api/v4/projects/${encodeURIComponent(id)}/repository/commits/${sha}/diff`,
@@ -103,6 +189,7 @@ const getGitlabDiff = async (id: string, sha: string) => {
 			headers: {
 				"PRIVATE-TOKEN": APIKEYS.gitlab,
 			},
+			signal: AbortSignal.timeout(10_000),
 		}
 	);
 
@@ -458,11 +545,17 @@ export default async (bot: DiscordBot): Promise<void> => {
 		let includesLua = false;
 
 		const containers: Discord.ContainerBuilder[] = [];
+		// parallel to `containers`; the commit sha each container's message should be
+		// tracked under so a later check_run/check_suite completion can edit it in place
+		const commitShas: (string | undefined)[] = [];
 
-		const repoLabel =
-			branch !== repo.default_branch
-				? (repo.name + "/" + branch).substring(0, 256)
-				: repo.name.substring(0, 256);
+		const onDefaultBranch = branch === repo.default_branch;
+		const repoLabel = onDefaultBranch
+			? repo.name.substring(0, 256)
+			: (repo.name + "/" + branch).substring(0, 256);
+		const repoUrl = onDefaultBranch
+			? repo.html_url
+			: `${repo.html_url}/tree/${branch.split("/").map(encodeURIComponent).join("/")}`;
 
 		if (payload.head_commit && isRemoteMergeCommit(payload.head_commit.message))
 			commits.splice(0, commits.length, payload.head_commit);
@@ -472,7 +565,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 			addContainerHeader(
 				container,
-				`-# [${repoLabel}](${repo.html_url})`,
+				`[${repoLabel}](${repoUrl})`,
 				`### ${commits.length} commits in this push\n[View all changes](${payload.compare})`,
 				repo.owner?.avatar_url
 			);
@@ -483,6 +576,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			);
 
 			containers.push(container);
+			commitShas.push(payload.head_commit?.id ?? commits[commits.length - 1]?.id);
 		} else {
 			for (const commit of commits) {
 				const changes = GetGithubChanges(
@@ -516,13 +610,14 @@ export default async (bot: DiscordBot): Promise<void> => {
 				if (MinimalPushUsers.includes(payload.sender?.login || payload.pusher.name)) {
 					addContainerHeader(
 						container,
-						`-# [${repoLabel}](${repo.html_url})`,
+						`[${repoLabel}](${repoUrl})`,
 						`### [${title}](${commit.url})${body}\n[${changes.length} file${changes.length > 1 ? "s" : ""} changed.](${payload.compare})`,
 						repo.owner?.avatar_url
 					);
 					container.addTextDisplayComponents(text => text.setContent(footer));
 
 					containers.push(container);
+					commitShas.push(commit.id);
 					continue;
 				}
 
@@ -546,7 +641,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 				addContainerHeader(
 					container,
-					`-# [${repoLabel}](${repo.html_url})`,
+					`[${repoLabel}](${repoUrl})`,
 					`### [${title}](${commit.url})${body}`,
 					repo.owner?.avatar_url
 				);
@@ -575,6 +670,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				container.addTextDisplayComponents(text => text.setContent(footer));
 
 				containers.push(container);
+				commitShas.push(commit.id);
 			}
 		}
 
@@ -615,11 +711,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 			type: Discord.ComponentType.ActionRow,
 		};
 
-		type MessageComponent =
-			| Discord.ContainerBuilder
-			| Discord.TextDisplayBuilder
-			| Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow>;
-
 		if (containers.length > 1) {
 			for (let i = 0; i < containers.length; i++) {
 				const messageComponents: MessageComponent[] = [];
@@ -627,10 +718,14 @@ export default async (bot: DiscordBot): Promise<void> => {
 				messageComponents.push(containers[i]);
 				if (i === containers.length - 1 && includesLua) messageComponents.push(actionRow);
 
+				const sha = commitShas[i];
 				webhook
 					.send({
 						...baseMessagePayload,
 						components: messageComponents,
+					})
+					.then(msg => {
+						if (sha) trackCommitMessage(sha, msg.id, messageComponents, containers[i]);
 					})
 					.catch(log.error.bind(log));
 			}
@@ -640,10 +735,15 @@ export default async (bot: DiscordBot): Promise<void> => {
 			messageComponents.push(...containers);
 			if (includesLua) messageComponents.push(actionRow);
 
+			const sha = commitShas[0];
 			webhook
 				.send({
 					...baseMessagePayload,
 					components: messageComponents,
+				})
+				.then(msg => {
+					if (sha && containers[0])
+						trackCommitMessage(sha, msg.id, messageComponents, containers[0]);
 				})
 				.catch(log.error.bind(log));
 		}
@@ -783,11 +883,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 	) {
 		const payload = event.payload;
 
-		const diff = await axios.get<components["schemas"]["diff-entry"][]>(
-			event.payload.pull_request.url + "/files"
-		); // why this isn't in the payload I have no idea
+		const files = await getPullRequestFiles(event.payload.pull_request.url);
+		if (!files) return;
 
-		const changedFiles = GroupSoundFilesByFolder(diff.data.map(d => d.filename));
+		const changedFiles = GroupSoundFilesByFolder(files.map(d => d.filename));
 
 		const container = new Discord.ContainerBuilder();
 
@@ -848,8 +947,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const diff = await getGitHubDiff(pr.html_url);
 
-		const files = await axios.get<components["schemas"]["diff-entry"][]>(pr.url + "/files"); // why this isn't in the payload I have no idea
-		const changeLines = buildChangeLines(GetPullRequestChanges(files.data));
+		const files = await getPullRequestFiles(pr.url);
+		const changeLines = files ? buildChangeLines(GetPullRequestChanges(files)) : [];
 
 		const container = new Discord.ContainerBuilder().setAccentColor(
 			payload.action === "closed"
@@ -914,45 +1013,36 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}
 	});
 
-	GitHub.on("check_run.completed", async event => {
-		if (!webhook) return;
-		const payload = event.payload;
-		const checkRun = payload.check_run;
-		const conclusion = checkRun.conclusion;
-		if (!conclusion || conclusion === "success") return;
-
-		const repo = payload.repository;
-		const target = getCheckTarget(checkRun.pull_requests, checkRun.check_suite.head_branch);
-
-		await webhook
-			.send({
-				...BaseEmbed,
-				username: repo.full_name,
-				avatarURL: repo.owner?.avatar_url,
-				embeds: [
-					{
-						color: CHECK_CONCLUSION_COLOR[conclusion] ?? 0x6a737d,
-						title: `${checkRun.name} ${conclusion} on ${target}`,
-						url: checkRun.html_url,
-					},
-				],
-			})
-			.catch(log.error.bind(log));
-	});
-
 	GitHub.on("check_suite.completed", async event => {
 		if (!webhook) return;
 		const payload = event.payload;
 		const suite = payload.check_suite;
 		const conclusion = suite.conclusion;
-		if (!conclusion || conclusion === "success") return;
+		if (!conclusion) return;
 
 		const repo = payload.repository;
-		const target = getCheckTarget(suite.pull_requests, suite.head_branch);
 		const url =
 			suite.pull_requests.length > 0
 				? `${repo.html_url}/pull/${suite.pull_requests[0].number}/checks`
 				: `${repo.html_url}/commit/${suite.head_sha}/checks`;
+
+		const tracked = commitMessages.get(suite.head_sha);
+		if (tracked) {
+			upsertCheckLine(
+				tracked,
+				`suite:${suite.app?.slug ?? suite.id}`,
+				`${CHECK_CONCLUSION_EMOJI[conclusion] ?? "⚪"} [${suite.app?.name ?? "Checks"}](${url}) ${conclusion}`
+			);
+			await webhook
+				.editMessage(tracked.messageId, {
+					components: tracked.components,
+					flags: Discord.MessageFlags.IsComponentsV2,
+				})
+				.catch(log.error.bind(log));
+			return;
+		}
+
+		const target = getCheckTarget(suite.pull_requests, suite.head_branch);
 
 		await webhook
 			.send({
