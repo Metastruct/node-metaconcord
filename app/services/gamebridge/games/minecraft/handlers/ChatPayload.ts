@@ -94,14 +94,13 @@ export default class ChatPayload extends Payload {
 
 		content = content.substring(0, 2000);
 
-		const serverId = `#${server.config.id}`;
 		await chatWebhook
 			.send({
 				content: content,
-				username: `${serverId} ${player.nick
+				username: player.nick
 					.substring(0, 77)
 					.replaceAll("discord", "discоrd")
-					.replaceAll("Discord", "Discоrd")}`,
+					.replaceAll("Discord", "Discоrd"),
 				avatarURL: avatar,
 				allowedMentions: { parse: ["users", "roles"] },
 			})
