@@ -11,8 +11,8 @@ import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
 
-const VRCHAT_SERVER_ID = 11;
-const POLL_INTERVAL_MS = 60_000;
+const VRCHAT_SERVER_ID = 12;
+const POLL_INTERVAL_MS = 300_000;
 
 function launchUrl(worldId: string, instanceId: string): string {
 	return `https://vrchat.com/home/launch?worldId=${worldId}&instanceId=${instanceId}`;
