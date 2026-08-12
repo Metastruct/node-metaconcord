@@ -130,7 +130,7 @@ export function attachVRChat(bridge: GameBridge): void {
 			if (totalPlayers > 0) {
 				connection.setPresence("online", {
 					activity: {
-						name: `${totalPlayers} player${totalPlayers === 1 ? "" : "s"} in VRChat`,
+						name: `${totalPlayers} player${totalPlayers === 1 ? "" : "s"} in ${instances.sort(i => i.memberCount)[0].world.name}`,
 						type: Discord.ActivityType.Watching,
 					},
 				});
