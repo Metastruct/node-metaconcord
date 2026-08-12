@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
+import express from "express";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
 import { clamp, logger } from "@/utils.js";
 import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
@@ -8,8 +9,15 @@ import axios from "axios";
 import webhookConfig from "@/config/webhooks.json" with { type: "json" };
 import { EmitterWebhookEvent } from "@octokit/webhooks/types";
 import { components } from "@octokit/openapi-types";
-import APIKEYS from "@/config/apikeys.json" with { type: "json" };
-import type { CommitDiffSchema } from "@gitbeaker/rest";
+import type {
+	CommitDiffSchema,
+	Gitlab as GitlabClient,
+	WebhookMergeRequestEventSchema,
+	WebhookPipelineEventSchema,
+	WebhookPushEventSchema,
+} from "@gitbeaker/rest";
+import type { Octokit } from "@octokit/rest";
+import gitlabConfig from "@/config/gitlab.json" with { type: "json" };
 
 const log = logger(import.meta);
 
@@ -38,10 +46,12 @@ const MinimalPushUsers = ["MetaAutomator", "github-actions[bot]"];
 const CHECK_CONCLUSION_COLOR: Record<string, number> = {
 	success: 0x28a745,
 	failure: 0xcb2431,
+	failed: 0xcb2431, // Gitlab pipeline status spelling, as opposed to Github's "failure"
 	timed_out: 0xcb2431,
 	startup_failure: 0xcb2431,
 	action_required: 0xdbab09,
 	cancelled: 0x6a737d,
+	canceled: 0x6a737d, // Gitlab spelling
 	skipped: 0x6a737d,
 	neutral: 0x6a737d,
 	stale: 0x6a737d,
@@ -50,10 +60,12 @@ const CHECK_CONCLUSION_COLOR: Record<string, number> = {
 const CHECK_CONCLUSION_EMOJI: Record<string, string> = {
 	success: "✅",
 	failure: "❌",
+	failed: "❌", // Gitlab pipeline status spelling, as opposed to Github's "failure"
 	timed_out: "⏱️",
 	startup_failure: "❌",
 	action_required: "⚠️",
 	cancelled: "🚫",
+	canceled: "🚫", // Gitlab spelling
 	skipped: "⏭️",
 	neutral: "⚪",
 	stale: "🟤",
@@ -147,25 +159,58 @@ const GetGithubChanges = (
 	];
 };
 
-const getGitHubDiff = async (url: string) => {
-	let res: Response;
-	try {
-		res = await fetch(url + ".diff", { signal: AbortSignal.timeout(10_000) });
-	} catch (err) {
-		log.error({ err, url }, "failed to fetch Github diff");
-		return;
-	}
-
-	const text = await res.text();
-	if (!res.ok) {
-		log.error({ text }, "failed to fetch Github diff");
-		return;
-	}
-
+function formatDiffText(text: string): string {
 	return text
 		.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n")
 		.replaceAll(/diff.+\nindex.+\n/g, "")
 		.replaceAll("```", "​`​`​`");
+}
+
+// Uses the authenticated Octokit client (GitHub App install token) instead of an
+// anonymous fetch to the ".diff" URL - anonymous github.com traffic is throttled much
+// more aggressively and was intermittently getting its connection reset mid-request.
+// The diff/patch media type still returns the same raw unified-diff text across all
+// changed files, so the output (and the regex post-processing below) is unchanged.
+const getGitHubCommitDiff = async (
+	octokit: Octokit,
+	owner: string,
+	repo: string,
+	ref: string
+): Promise<string | undefined> => {
+	try {
+		const res = await octokit.rest.repos.getCommit({
+			owner,
+			repo,
+			ref,
+			mediaType: { format: "diff" },
+			request: { signal: AbortSignal.timeout(10_000) },
+		});
+		return formatDiffText(res.data as unknown as string);
+	} catch (err) {
+		log.error({ err, owner, repo, ref }, "failed to fetch Github commit diff");
+		return;
+	}
+};
+
+const getGitHubPullRequestDiff = async (
+	octokit: Octokit,
+	owner: string,
+	repo: string,
+	pull_number: number
+): Promise<string | undefined> => {
+	try {
+		const res = await octokit.rest.pulls.get({
+			owner,
+			repo,
+			pull_number,
+			mediaType: { format: "diff" },
+			request: { signal: AbortSignal.timeout(10_000) },
+		});
+		return formatDiffText(res.data as unknown as string);
+	} catch (err) {
+		log.error({ err, owner, repo, pull_number }, "failed to fetch Github PR diff");
+		return;
+	}
 };
 
 const getPullRequestFiles = async (
@@ -182,25 +227,59 @@ const getPullRequestFiles = async (
 	}
 };
 
-const getGitlabDiff = async (id: string, sha: string) => {
-	const res = await fetch(
-		`https://gitlab.com/api/v4/projects/${encodeURIComponent(id)}/repository/commits/${sha}/diff`,
-		{
-			headers: {
-				"PRIVATE-TOKEN": APIKEYS.gitlab,
-			},
-			signal: AbortSignal.timeout(10_000),
-		}
-	);
-
-	if (!res.ok) {
-		const text = await res.text();
-		log.error({ text }, "failed to fetch Gitlab diff");
+const getGitlabDiff = async (
+	api: GitlabClient,
+	id: string | number,
+	sha: string
+): Promise<CommitDiffSchema[] | undefined> => {
+	try {
+		return await api.Commits.showDiff(id, sha);
+	} catch (err) {
+		log.error({ err, id, sha }, "failed to fetch Gitlab diff");
 		return;
 	}
-
-	return res.json() as Promise<CommitDiffSchema[]>;
 };
+
+const GetGitlabChanges = (
+	pathWithNamespace: string,
+	sha: string,
+	added: string[] = [],
+	removed: string[] = [],
+	modified: string[] = []
+): string[] => {
+	const blobUrl = (path: string) =>
+		`https://gitlab.com/${pathWithNamespace}/-/blob/${sha}/${path.replaceAll(" ", "%20")}`;
+	return [
+		...added.map(s => `+ [${s}](${blobUrl(s)})`),
+		...removed.map(s => `- [${s}](${blobUrl(s)})`),
+		...modified.map(s => `~ [${s}](${blobUrl(s)})`),
+	];
+};
+
+// Same idea as GetGitlabChanges, but for callers that only have the structured
+// Commits.showDiff() response (e.g. merge requests, which don't carry per-commit
+// added/removed/modified file lists in the webhook payload the way pushes do).
+function GetGitlabDiffChanges(pathWithNamespace: string, sha: string, files: CommitDiffSchema[]): string[] {
+	return files.map(f => {
+		const prefix = f.new_file ? "+" : f.deleted_file ? "-" : "~";
+		const path = f.deleted_file ? f.old_path : f.new_path;
+		return `${prefix} [${path}](https://gitlab.com/${pathWithNamespace}/-/blob/${sha}/${path.replaceAll(" ", "%20")})`;
+	});
+}
+
+// Gitlab's diff API returns one entry per changed file rather than a single unified-diff
+// blob like Github's ".diff" format, so the per-file hunks are joined with the same
+// "--- old\n+++ new" headers Github's raw diff includes, then run through the same
+// formatDiffText() used for Github so both providers render identically in the codeblock.
+function joinGitlabDiffFiles(files: CommitDiffSchema[]): string {
+	return files
+		.map(
+			f =>
+				(f.old_path === f.new_path ? `+++ ${f.new_path}\n` : `--- ${f.old_path}\n+++ ${f.new_path}\n`) +
+				f.diff
+		)
+		.join("\n");
+}
 
 const SERVER_EMOJI_MAP = {
 	"1": "1️⃣",
@@ -303,10 +382,70 @@ export default async (bot: DiscordBot): Promise<void> => {
 		res.status(404).end();
 	});
 
+	// Gitlab has no signed-payload library like @octokit/webhooks - it just sends a
+	// static secret in X-Gitlab-Token, compared directly against config. Acknowledge
+	// immediately (Gitlab disables webhooks after repeated slow/failing deliveries)
+	// and process in the background, matching how failures are surfaced elsewhere here.
+	webapp.app.use("/webhooks/gitlab", express.json(), (req, res) => {
+		if (req.headers["x-gitlab-token"] !== webhookConfig.gitlab.secret) {
+			res.status(401).end();
+			return;
+		}
+		res.status(200).end();
+
+		const eventKind = req.body?.object_kind as string | undefined;
+		const gitlabHandler = eventKind ? gitlabHandlers[eventKind] : undefined;
+		if (!gitlabHandler) return;
+
+		gitlabHandler(req.body).catch(err =>
+			log.error({ err, eventKind }, "Gitlab webhook event handler failed")
+		);
+	});
+
 	let webhook: Discord.Webhook;
 	const bridge = bot.container.getService("GameBridge");
 
 	const github = bot.container.getService("Github");
+	const gitlab = bot.container.getService("Gitlab");
+
+	// Channel ids Gitlab commits/merge requests/pipelines can be routed to
+	// (config/gitlab.json maps project ids onto these), fetched/created lazily
+	// and cached so each channel only gets one bot-owned webhook. The in-flight
+	// promise itself is cached (not just the resolved value) so two events for the
+	// same not-yet-cached channel arriving concurrently share one fetch/create call
+	// instead of racing to each create their own webhook on that channel.
+	const webhooksByChannel = new Map<string, Promise<Discord.Webhook | undefined>>();
+
+	function getOrCreateWebhook(channelId: string): Promise<Discord.Webhook | undefined> {
+		const cached = webhooksByChannel.get(channelId);
+		if (cached) return cached;
+
+		const promise = (async () => {
+			const channel = bot.getTextChannel(channelId);
+			if (!channel) return undefined;
+
+			const hooks = await channel.fetchWebhooks();
+			const botHook = hooks.filter(h => h.owner === bot.discord.user).first();
+			return (
+				botHook ??
+				(await channel.createWebhook({
+					name: "Commits",
+					reason: "Webhook missing?",
+				}))
+			);
+		})();
+
+		promise.catch(() => webhooksByChannel.delete(channelId));
+		webhooksByChannel.set(channelId, promise);
+		return promise;
+	}
+
+	function getGitlabWebhook(projectId: number): Promise<Discord.Webhook | undefined> {
+		const channelId =
+			gitlabConfig.projectChannels[String(projectId) as keyof typeof gitlabConfig.projectChannels] ||
+			bot.config.channels.privateCommits;
+		return getOrCreateWebhook(channelId);
+	}
 
 	bot.discord.on("clientReady", async () => {
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
@@ -321,6 +460,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			} else {
 				webhook = botHook;
 			}
+			webhooksByChannel.set(bot.config.channels.publicCommits, Promise.resolve(webhook));
 		}
 	});
 
@@ -439,7 +579,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 							url ?? ""
 						) || [];
 					try {
-						const diffs = await getGitlabDiff(id, sha);
+						const diffs = await getGitlabDiff(gitlab.api, id, sha);
 						files = diffs?.filter(f => !f.deleted_file).flatMap(f => f.new_path);
 					} catch (err) {
 						await ctx.reply(
@@ -635,9 +775,14 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const changeLines = buildChangeLines(changes);
 
 				const diff =
-					isMergeCommit(commit.message) || isOnlyOgg
+					isMergeCommit(commit.message) || isOnlyOgg || !repo.owner
 						? undefined
-						: await getGitHubDiff(commit.url);
+						: await getGitHubCommitDiff(
+								github.octokit,
+								repo.owner.login,
+								repo.name,
+								commit.id
+							);
 
 				addContainerHeader(
 					container,
@@ -952,7 +1097,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const title = pr.title.length > 256 ? `${pr.title.substring(0, 250)}. . .` : pr.title;
 
-		const diff = await getGitHubDiff(pr.html_url);
+		const diff = await getGitHubPullRequestDiff(github.octokit, repo.owner.login, repo.name, pr.number);
 
 		const files = await getPullRequestFiles(pr.url);
 		const changeLines = files ? buildChangeLines(GetPullRequestChanges(files)) : [];
@@ -1218,4 +1363,300 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		webhook.send(messagePayload).catch(log.error.bind(log));
 	});
+
+	async function GitlabPushHandler(body: WebhookPushEventSchema): Promise<void> {
+		const project = body.project;
+		const commits = body.commits ?? [];
+		if (commits.length === 0) return;
+
+		const destWebhook = await getGitlabWebhook(project.id);
+		if (!destWebhook) return;
+
+		const branch = body.ref.split("/").slice(2).join("/");
+		const onDefaultBranch = branch === project.default_branch;
+		const repoLabel = onDefaultBranch
+			? project.path_with_namespace.substring(0, 256)
+			: (project.path_with_namespace + "/" + branch).substring(0, 256);
+		const repoUrl = onDefaultBranch
+			? project.web_url
+			: `${project.web_url}/-/tree/${branch.split("/").map(encodeURIComponent).join("/")}`;
+
+		let includesLua = false;
+		const containers: Discord.ContainerBuilder[] = [];
+		const commitShas: (string | undefined)[] = [];
+
+		if (commits.length > MAX_COMMITS) {
+			const container = new Discord.ContainerBuilder().setAccentColor(0xffd700);
+
+			addContainerHeader(
+				container,
+				`[${repoLabel}](${repoUrl})`,
+				`### ${commits.length} commits in this push\n[View all changes](${project.web_url}/-/compare/${body.before}...${body.after})`,
+				project.avatar_url ?? undefined
+			);
+			container.addTextDisplayComponents(text => text.setContent(`-# by ${body.user_name}`));
+
+			containers.push(container);
+			commitShas.push(body.checkout_sha || commits[commits.length - 1]?.id);
+		} else {
+			for (const commit of commits) {
+				const added = commit.added ?? [];
+				const removed = commit.removed ?? [];
+				const modified = commit.modified ?? [];
+				const changes = GetGitlabChanges(project.path_with_namespace, commit.id, added, removed, modified);
+
+				const subject = commit.message.split("\n")[0];
+				const title = subject.length > 256 ? `${subject.substring(0, 250)}. . .` : subject;
+				const commitBody = formatCommitBody(commit.message);
+
+				const footer = `-# ${commit.id.substring(0, 6)} by ${commit.author.name}`;
+
+				const container = new Discord.ContainerBuilder().setAccentColor(
+					GetColorFromChanges(added.length, removed.length, modified.length)
+				);
+
+				const allFiles = [...added, ...modified, ...removed];
+				includesLua = includesLua || (allFiles.length > 0 && allFiles.some(f => f.endsWith(".lua")));
+				const isOnlyOgg = allFiles.length > 0 && allFiles.every(f => f.endsWith(".ogg"));
+
+				const changeLines = buildChangeLines(changes);
+
+				const diffFiles =
+					isMergeCommit(commit.message) || isOnlyOgg
+						? undefined
+						: await getGitlabDiff(gitlab.api, project.id, commit.id);
+				const diff = diffFiles?.length ? formatDiffText(joinGitlabDiffFiles(diffFiles)) : undefined;
+
+				addContainerHeader(
+					container,
+					`[${repoLabel}](${repoUrl})`,
+					`### [${title}](${commit.url})${commitBody}`,
+					project.avatar_url ?? undefined
+				);
+
+				if (diff) {
+					container.addSeparatorComponents(sep => sep);
+					container.addTextDisplayComponents(text =>
+						text.setContent(
+							`\`\`\`diff\n${
+								diff.length > DIFF_SIZE ? diff.substring(0, DIFF_SIZE - 5) + ". . ." : diff
+							}\`\`\``
+						)
+					);
+				}
+
+				if (changeLines.length > 0) {
+					container.addSeparatorComponents(sep => sep);
+					container.addTextDisplayComponents(text => text.setContent(changeLines.join("\n")));
+				}
+
+				container.addSeparatorComponents(sep => sep.setDivider(false));
+				container.addTextDisplayComponents(text => text.setContent(footer));
+
+				containers.push(container);
+				commitShas.push(commit.id);
+			}
+		}
+
+		const baseMessagePayload = <Discord.WebhookMessageCreateOptions>{
+			...BaseEmbed,
+			username: body.user_name,
+			avatarURL: body.user_avatar,
+			flags: Discord.MessageFlags.IsComponentsV2,
+		};
+
+		const actionRow: Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow> | undefined =
+			includesLua
+				? {
+						type: Discord.ComponentType.ActionRow,
+						components: [
+							{
+								type: Discord.ComponentType.Button,
+								custom_id: "update",
+								label: "Update Files on all Servers",
+								style: 1,
+							},
+							{
+								type: Discord.ComponentType.Button,
+								custom_id: "everything",
+								label: "Update and Refresh Files on all Servers",
+								style: 1,
+							},
+						],
+					}
+				: undefined;
+
+		if (containers.length > 1) {
+			for (let i = 0; i < containers.length; i++) {
+				const messageComponents: MessageComponent[] = [containers[i]];
+				if (i === containers.length - 1 && actionRow) messageComponents.push(actionRow);
+
+				const sha = commitShas[i];
+				destWebhook
+					.send({ ...baseMessagePayload, components: messageComponents })
+					.then(msg => {
+						if (sha) trackCommitMessage(sha, msg.id, messageComponents, containers[i]);
+					})
+					.catch(log.error.bind(log));
+			}
+		} else {
+			const messageComponents: MessageComponent[] = [...containers];
+			if (actionRow) messageComponents.push(actionRow);
+
+			const sha = commitShas[0];
+			destWebhook
+				.send({ ...baseMessagePayload, components: messageComponents })
+				.then(msg => {
+					if (sha && containers[0]) trackCommitMessage(sha, msg.id, messageComponents, containers[0]);
+				})
+				.catch(log.error.bind(log));
+		}
+	}
+
+	async function GitlabMergeRequestHandler(body: WebhookMergeRequestEventSchema): Promise<void> {
+		const mr = body.object_attributes;
+
+		let action: string;
+		switch (mr.action) {
+			case "open":
+				action = "opened";
+				break;
+			case "reopen":
+				action = "reopened";
+				break;
+			case "close":
+				action = "closed";
+				break;
+			case "merge":
+				action = "merged";
+				break;
+			case "update":
+				action = "updated";
+				break;
+			case "approved":
+				action = "approved";
+				break;
+			case "unapproved":
+				action = "unapproved";
+				break;
+			default:
+				return;
+		}
+
+		const destWebhook = await getGitlabWebhook(mr.target_project_id);
+		if (!destWebhook) return;
+
+		const title = mr.title.length > 256 ? `${mr.title.substring(0, 250)}. . .` : mr.title;
+
+		const diffFiles =
+			mr.last_commit && !isMergeCommit(mr.last_commit.message)
+				? await getGitlabDiff(gitlab.api, mr.target_project_id, mr.last_commit.id)
+				: undefined;
+		const changeLines = diffFiles
+			? buildChangeLines(GetGitlabDiffChanges(mr.target.path_with_namespace, mr.last_commit.id, diffFiles))
+			: [];
+		const diff = diffFiles?.length ? formatDiffText(joinGitlabDiffFiles(diffFiles)) : undefined;
+
+		const added = diffFiles?.filter(f => f.new_file).length ?? 0;
+		const removed = diffFiles?.filter(f => f.deleted_file).length ?? 0;
+		const modified = (diffFiles?.length ?? 0) - added - removed;
+
+		const container = new Discord.ContainerBuilder().setAccentColor(
+			mr.action === "close"
+				? 0xe74c3c
+				: mr.action === "merge"
+					? 0x8957e5
+					: GetColorFromChanges(added, removed, modified)
+		);
+
+		addContainerHeader(
+			container,
+			`[${mr.target.path_with_namespace.substring(0, 256)}](${mr.target.web_url})`,
+			`### [${title}](${mr.url})`,
+			mr.target.avatar_url ?? undefined
+		);
+
+		if (diff) {
+			container.addSeparatorComponents(sep => sep);
+			container.addTextDisplayComponents(text =>
+				text.setContent(
+					`\`\`\`diff\n${
+						diff.length > DIFF_SIZE ? diff.substring(0, DIFF_SIZE - 5) + ". . ." : diff
+					}\`\`\``
+				)
+			);
+		}
+
+		if (changeLines.length > 0) {
+			container.addSeparatorComponents(sep => sep);
+			container.addTextDisplayComponents(text => text.setContent(changeLines.join("\n")));
+		}
+
+		container.addSeparatorComponents(sep => sep.setDivider(false));
+		container.addTextDisplayComponents(text =>
+			text.setContent(`-# MR !${mr.iid} ${action} by ${body.user.username}`)
+		);
+
+		destWebhook
+			.send({
+				...BaseEmbed,
+				username: body.user.name,
+				avatarURL: body.user.avatar_url,
+				components: [container],
+				flags: Discord.MessageFlags.IsComponentsV2,
+			})
+			.catch(log.error.bind(log));
+	}
+
+	const GITLAB_TERMINAL_PIPELINE_STATUSES = new Set(["success", "failed", "canceled", "skipped"]);
+
+	// Gitlab fires the pipeline hook on every status transition (pending, running, ...),
+	// not just once at the end like Github's check_suite.completed, so only terminal
+	// statuses are acted on here - otherwise every push would flood in-progress updates.
+	async function GitlabPipelineHandler(body: WebhookPipelineEventSchema): Promise<void> {
+		const pipe = body.object_attributes;
+		const status = pipe.status;
+		if (!GITLAB_TERMINAL_PIPELINE_STATUSES.has(status)) return;
+
+		const project = body.project;
+		const destWebhook = await getGitlabWebhook(project.id);
+		if (!destWebhook) return;
+
+		const tracked = commitMessages.get(pipe.sha);
+		if (tracked) {
+			upsertCheckLine(
+				tracked,
+				"pipeline",
+				`${CHECK_CONCLUSION_EMOJI[status] ?? "⚪"} [Pipeline #${pipe.id}](${pipe.url}) ${status}`
+			);
+			await destWebhook
+				.editMessage(tracked.messageId, {
+					components: tracked.components,
+					flags: Discord.MessageFlags.IsComponentsV2,
+				})
+				.catch(log.error.bind(log));
+			return;
+		}
+
+		await destWebhook
+			.send({
+				...BaseEmbed,
+				username: project.name,
+				avatarURL: project.avatar_url ?? undefined,
+				embeds: [
+					{
+						color: CHECK_CONCLUSION_COLOR[status] ?? 0x6a737d,
+						title: `Pipeline ${status} on ${pipe.ref}`,
+						url: pipe.url,
+					},
+				],
+			})
+			.catch(log.error.bind(log));
+	}
+
+	const gitlabHandlers: Record<string, (body: unknown) => Promise<void>> = {
+		push: body => GitlabPushHandler(body as WebhookPushEventSchema),
+		merge_request: body => GitlabMergeRequestHandler(body as WebhookMergeRequestEventSchema),
+		pipeline: body => GitlabPipelineHandler(body as WebhookPipelineEventSchema),
+	};
 };
