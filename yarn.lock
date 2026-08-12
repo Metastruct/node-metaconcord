@@ -395,6 +395,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@keyv/serialize@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@keyv/serialize@npm:1.1.1"
+  checksum: 10c0/b0008cae4a54400c3abf587b8cc2474c6f528ee58969ce6cf9cb07a04006f80c73c85971d6be6544408318a2bc40108236a19a82aea0a6de95aae49533317374
+  languageName: node
+  linkType: hard
+
 "@microsoft/signalr@npm:^10.0.0":
   version: 10.0.0
   resolution: "@microsoft/signalr@npm:10.0.0"
@@ -2078,6 +2085,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cacheable@npm:^1.10.4":
+  version: 1.10.4
+  resolution: "cacheable@npm:1.10.4"
+  dependencies:
+    hookified: "npm:^1.11.0"
+    keyv: "npm:^5.5.0"
+  checksum: 10c0/80690b084cba1c52bf46ca4a8452bd192d0d37896a53899608908a553968711dbe78db144d99912b629952f6f03af5aaebe5958d503d3609c1bfe37cc5b899cc
+  languageName: node
+  linkType: hard
+
 "call-bind-apply-helpers@npm:^1.0.1, call-bind-apply-helpers@npm:^1.0.2":
   version: 1.0.2
   resolution: "call-bind-apply-helpers@npm:1.0.2"
@@ -3382,6 +3399,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hookified@npm:^1.11.0":
+  version: 1.15.1
+  resolution: "hookified@npm:1.15.1"
+  checksum: 10c0/6b691374fa97ae57169fb29f90e723499fda5e85494654fbe55c4768b3ccbf3e14c0adc8d0f365f32c503b60d7c06f907781f5966c03d41c423575eb5e16860c
+  languageName: node
+  linkType: hard
+
 "http-cache-semantics@npm:^4.1.1":
   version: 4.2.0
   resolution: "http-cache-semantics@npm:4.2.0"
@@ -3691,6 +3715,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"isomorphic-ws@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "isomorphic-ws@npm:5.0.0"
+  peerDependencies:
+    ws: "*"
+  checksum: 10c0/a058ac8b5e6efe9e46252cb0bc67fd325005d7216451d1a51238bc62d7da8486f828ef017df54ddf742e0fffcbe4b1bcc2a66cc115b027ed0180334cd18df252
+  languageName: node
+  linkType: hard
+
 "js-stringify@npm:^1.0.2":
   version: 1.0.2
   resolution: "js-stringify@npm:1.0.2"
@@ -3771,6 +3804,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jssha@npm:^3.3.1":
+  version: 3.3.2
+  resolution: "jssha@npm:3.3.2"
+  checksum: 10c0/e44a5e98eb83a5315b087789550451ecdba6c72093584256fbee5ac67010be3036cbbb14c5b1669c41cd9abd942dc22239c54ac14aff7ce17c0324b5f477b2bd
+  languageName: node
+  linkType: hard
+
 "jstransformer@npm:1.0.0":
   version: 1.0.0
   resolution: "jstransformer@npm:1.0.0"
@@ -3808,6 +3848,15 @@ __metadata:
   dependencies:
     json-buffer: "npm:3.0.1"
   checksum: 10c0/aa52f3c5e18e16bb6324876bb8b59dd02acf782a4b789c7b2ae21107fab95fab3890ed448d4f8dba80ce05391eeac4bfabb4f02a20221342982f806fa2cf271e
+  languageName: node
+  linkType: hard
+
+"keyv@npm:^5.5.0, keyv@npm:^5.5.5":
+  version: 5.6.0
+  resolution: "keyv@npm:5.6.0"
+  dependencies:
+    "@keyv/serialize": "npm:^1.1.1"
+  checksum: 10c0/c3ea795b6e03593ca57c8f70928a69bad14c13389a7fb75649a115ff55615244b04d8902798d841c17f0bb4a8a8866c97133b543b93f151b440170bba09176db
   languageName: node
   linkType: hard
 
@@ -4082,6 +4131,7 @@ __metadata:
     typescript-eslint: "npm:^8.62.1"
     typescript-json-schema: "npm:^0.65.1"
     unicode-emoji-json: "npm:^0.9.0"
+    vrchat: "npm:^2.22.8"
     websocket: "npm:^1.0.35"
   languageName: unknown
   linkType: soft
@@ -6009,6 +6059,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"totp-generator@npm:^2.0.0":
+  version: 2.0.1
+  resolution: "totp-generator@npm:2.0.1"
+  dependencies:
+    jssha: "npm:^3.3.1"
+  checksum: 10c0/4dd4ed1aac4224180e92d4cbc4fce15aacaea050856f8a6bc43763b8519a9d109d04c2fbc412b6131cd293774c4a0c52faa1c5ecf120fce6c42722f42585a6f9
+  languageName: node
+  linkType: hard
+
 "tough-cookie@npm:^4.0.0":
   version: 4.1.4
   resolution: "tough-cookie@npm:4.1.4"
@@ -6458,6 +6517,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vrchat@npm:^2.22.8":
+  version: 2.22.8
+  resolution: "vrchat@npm:2.22.8"
+  dependencies:
+    cacheable: "npm:^1.10.4"
+    debug: "npm:^4.4.3"
+    isomorphic-ws: "npm:^5.0.0"
+    keyv: "npm:^5.5.5"
+    totp-generator: "npm:^2.0.0"
+    ws: "npm:^8.18.3"
+  checksum: 10c0/b8c895b55e53553364cdceaa72afbbabf85057f62772e4ee8933382d0e3249055c0ddd2f14df7e32c8c7e7da5b04a5053593221160ce5d2750cf2abdf0a2766b
+  languageName: node
+  linkType: hard
+
 "vue-eslint-parser@npm:^10.4.1":
   version: 10.4.1
   resolution: "vue-eslint-parser@npm:10.4.1"
@@ -6591,6 +6664,21 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: 10c0/eac918213de265ef7cb3d4ca348b891a51a520d839aa51cdb8ca93d4fa7ff9f6ccb339ccee89e4075324097f0a55157c89fa3f7147bde9d8d7e90335dc087b53
+  languageName: node
+  linkType: hard
+
+"ws@npm:^8.18.3":
+  version: 8.21.3
+  resolution: "ws@npm:8.21.3"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 10c0/7b28dc2863ea0e2cece68d142a3eee90361021b73f750431e6d8076bb7dede5fdfdb75b3d29534b62f411261147b76b1bc80fb5cc63ab0aabd467280e85b22e0
   languageName: node
   linkType: hard
 

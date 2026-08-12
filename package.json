@@ -58,6 +58,7 @@
 		"sqlite3": "^6.0.1",
 		"steamid": "^2.1.0",
 		"unicode-emoji-json": "^0.9.0",
+		"vrchat": "^2.22.8",
 		"websocket": "^1.0.35"
 	},
 	"devDependencies": {
