@@ -39,7 +39,7 @@ function buildStatusContainer(
 			instances
 				.map(
 					i =>
-						`• [${i.world.name}](${launchUrl(i.world.id, i.instanceId)}) — **${i.memberCount}** player${i.memberCount === 1 ? "" : "s"}`
+						`• [${i.world.name}](${launchUrl(i.world.id, i.instanceId)}): **${i.memberCount}** player${i.memberCount === 1 ? "" : "s"}`
 				)
 				.join("\n");
 	}
