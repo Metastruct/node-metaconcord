@@ -151,7 +151,9 @@ const GetGithubChanges = (
 			s => `+ [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(" ", "%%20")})`
 		),
 		...removed.map(
-			s => `- [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(" ", "%%20")})`
+			// leading "-" is escaped: unescaped, Discord renders a line starting with
+			// "- " as a markdown list bullet instead of a literal minus sign
+			s => `\\- [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(" ", "%%20")})`
 		),
 		...modified.map(
 			s => `~ [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(" ", "%%20")})`
@@ -251,7 +253,9 @@ const GetGitlabChanges = (
 		`https://gitlab.com/${pathWithNamespace}/-/blob/${sha}/${path.replaceAll(" ", "%20")}`;
 	return [
 		...added.map(s => `+ [${s}](${blobUrl(s)})`),
-		...removed.map(s => `- [${s}](${blobUrl(s)})`),
+		// leading "-" is escaped: unescaped, Discord renders a line starting with
+		// "- " as a markdown list bullet instead of a literal minus sign
+		...removed.map(s => `\\- [${s}](${blobUrl(s)})`),
 		...modified.map(s => `~ [${s}](${blobUrl(s)})`),
 	];
 };
@@ -261,7 +265,9 @@ const GetGitlabChanges = (
 // added/removed/modified file lists in the webhook payload the way pushes do).
 function GetGitlabDiffChanges(pathWithNamespace: string, sha: string, files: CommitDiffSchema[]): string[] {
 	return files.map(f => {
-		const prefix = f.new_file ? "+" : f.deleted_file ? "-" : "~";
+		// leading "-" is escaped: unescaped, Discord renders a line starting with
+		// "- " as a markdown list bullet instead of a literal minus sign
+		const prefix = f.new_file ? "+" : f.deleted_file ? "\\-" : "~";
 		const path = f.deleted_file ? f.old_path : f.new_path;
 		return `${prefix} [${path}](https://gitlab.com/${pathWithNamespace}/-/blob/${sha}/${path.replaceAll(" ", "%20")})`;
 	});
@@ -340,7 +346,9 @@ function buildChangeLines(changes: string[]): string[] {
 
 function GetPullRequestChanges(files: components["schemas"]["diff-entry"][]): string[] {
 	return files.map(f => {
-		const prefix = f.status === "added" ? "+" : f.status === "removed" ? "-" : "~";
+		// leading "-" is escaped: unescaped, Discord renders a line starting with
+		// "- " as a markdown list bullet instead of a literal minus sign
+		const prefix = f.status === "added" ? "+" : f.status === "removed" ? "\\-" : "~";
 		return `${prefix} [${f.filename}](${f.blob_url})`;
 	});
 }
