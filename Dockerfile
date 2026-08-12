@@ -1,6 +1,6 @@
 FROM node:22-alpine
 
-RUN apk add --no-cache bash font-noto ffmpeg
+RUN apk add --no-cache bash font-noto ffmpeg python3 make g++
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
