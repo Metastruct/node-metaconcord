@@ -854,14 +854,21 @@ export default async (bot: DiscordBot): Promise<void> => {
 				)
 			);
 		}
+		const messageComponents: MessageComponent[] = [container];
 		const message = {
 			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
 			avatarURL: payload.sender?.avatar_url,
-			components: [container],
+			components: messageComponents,
 			flags: Discord.MessageFlags.IsComponentsV2,
 		} as Discord.MessageCreateOptions;
 
-		webhook.send(message).catch(log.error.bind(log));
+		const sha = payload.head_commit?.id ?? commits[commits.length - 1]?.id;
+		webhook
+			.send(message)
+			.then(msg => {
+				if (sha) trackCommitMessage(sha, msg.id, messageComponents, container);
+			})
+			.catch(log.error.bind(log));
 		chatWebhook.send({ ...message, withComponents: true }).catch(log.error.bind(log));
 	}
 
