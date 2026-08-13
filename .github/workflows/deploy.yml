@@ -25,6 +25,13 @@ jobs:
                   cache: yarn
             - run: yarn install --immutable
             - run: yarn check
+            - run: yarn schema:gen
+            - name: Check generated schemas are up to date
+              run: |
+                  git diff --exit-code -- '**/handlers/structures/*.json' || {
+                    echo "::error::Generated JSON schemas are out of date - run 'yarn schema:gen' and commit the result."
+                    exit 1
+                  }
 
     build_or_push_image:
         needs: lint

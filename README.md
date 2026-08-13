@@ -16,8 +16,8 @@ Of course, you'll need the [gmod-metaconcord](https://github.com/Metastruct/gmod
 # Install dependencies
 $ yarn
 
-# WSL or Linux
-$ ./schema_gen.sh
+# Generate the gamebridge payload schemas
+$ node schema_gen.mjs
 
 # Go wacky
 $ yarn build
@@ -30,8 +30,8 @@ $ yarn start
 # Install dependencies
 $ yarn
 
-# WSL or Linux
-$ ./schema_gen.sh
+# Generate the gamebridge payload schemas
+$ node schema_gen.mjs
 
 # Go wacky
 $ yarn dev

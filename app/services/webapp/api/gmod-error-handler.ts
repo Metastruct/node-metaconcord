@@ -120,8 +120,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		let player: Player | undefined;
 		if (server) {
 			// ip matched so it HAS to exist
-			gameserver = gameBridge.servers.filter((s): s is GmodConnection => {
-				if (!(s instanceof GmodConnection)) return false;
+			gameserver = gameBridge.servers.gmod.filter(s => {
 				const ips = s.config.ip
 					? Array.isArray(s.config.ip)
 						? s.config.ip
@@ -130,14 +129,13 @@ export default async (webApp: WebApp): Promise<void> => {
 				return ips.includes(ip);
 			})[0];
 		} else {
-			const allplayers = gameBridge.servers.reduce(
+			const allplayers = gameBridge.servers.gmod.reduce(
 				(ps, cs) => ps.concat(cs.status.players),
 				new Array<Player>()
 			);
 			player = allplayers.find(pl => pl.ip.split(":")[0] === ip); // idk if you can combine that into one call
-			gameserver = gameBridge.servers.filter(
-				(srv): srv is GmodConnection =>
-					srv instanceof GmodConnection && srv.status.players.includes(player as Player)
+			gameserver = gameBridge.servers.gmod.filter(srv =>
+				srv.status.players.includes(player as Player)
 			)[0];
 		}
 

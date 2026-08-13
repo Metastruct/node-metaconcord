@@ -2,7 +2,6 @@ import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
 import { join } from "path";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
@@ -63,8 +62,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 			triggers: ["ttt"],
 			nicks: ["terror", "detective", "innocent", "trouble", "clue", "banana"],
 			execute: async () => {
-				const server = bot.container.getService("GameBridge").servers[4];
-				if (server instanceof GmodConnection) {
+				const server = bot.container.getService("GameBridge").servers.gmod[4];
+				if (server) {
 					await server.sendLua(
 						`local request = require("gm_request") if request and not request:IsServerGamemode(3,"terrortown") then request:SwitchGamemodeAsync("terrortown",print) end`
 					);

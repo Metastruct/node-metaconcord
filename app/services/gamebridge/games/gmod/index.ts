@@ -1,62 +1,17 @@
-import { request as WebSocketRequest } from "websocket";
 import GameBridge from "../../GameBridge.js";
 import GmodConnection, { GmodConnectionConfig } from "./GmodConnection.js";
 import { WsRouter } from "../../WsRouter.js";
-import config from "@/config/gmod.json" with { type: "json" };
+import { attachWsGame } from "../../attachWsGame.js";
 import servers from "@/config/gmod.servers.json" with { type: "json" };
-import { logger } from "@/utils.js";
-
-const log = logger(import.meta);
-
-function handleConnection(bridge: GameBridge, req: WebSocketRequest): void {
-	const ip = req.httpRequest.socket.remoteAddress;
-	const forwarded =
-		req.httpRequest.headers["cf-connecting-ip"]?.toString() ??
-		req.httpRequest.headers["x-forwarded-for"]?.toString()?.split(",")[0];
-
-	for (const server of bridge.servers) {
-		if (!(server instanceof GmodConnection)) continue;
-		const wsConnection = server.wsConnection;
-		if (wsConnection && wsConnection.remoteAddress === ip) {
-			log.info(`${ip} is trying to connect multiple times, dropping previous connection.`);
-			wsConnection.close();
-		}
-	}
-
-	let serverConfig: GmodConnectionConfig | undefined;
-	for (const serverEntry of servers) {
-		const ips = serverEntry.ip
-			? Array.isArray(serverEntry.ip)
-				? serverEntry.ip
-				: [serverEntry.ip]
-			: [];
-		if ((ip && ips.includes(ip)) || (forwarded && ips.includes(forwarded))) {
-			serverConfig = serverEntry;
-			break;
-		}
-	}
-	if (!serverConfig) {
-		log.info(`Bad IP - socket: ${ip}, forwarded: ${forwarded}`);
-		req.reject(403);
-		return;
-	}
-
-	const requestToken = req.httpRequest.headers["x-auth-token"];
-	if (requestToken !== config.token) {
-		log.info(`Bad X-Auth-Token - ${requestToken}`);
-		req.reject(401);
-		return;
-	}
-
-	bridge.servers[serverConfig.id] = new GmodConnection({
-		req,
-		bridge,
-		serverConfig,
-	});
-}
 
 export function attachGmod(bridge: GameBridge, router: WsRouter): void {
-	router.route("/ws", req => handleConnection(bridge, req));
-
-	log.info(`Web socket server listening on ${bridge.webApp.config.port}`);
+	attachWsGame<GmodConnectionConfig, GmodConnection>({
+		bridge,
+		router,
+		path: "/gmod/ws",
+		servers,
+		ownServerList: bridge.servers.gmod,
+		create: ({ req, bridge, serverConfig }) =>
+			new GmodConnection({ req, bridge, serverConfig }),
+	});
 }

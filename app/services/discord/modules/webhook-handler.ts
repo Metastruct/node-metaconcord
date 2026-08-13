@@ -3,7 +3,6 @@ import { DiscordBot } from "../index.js";
 import express from "express";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
 import { clamp, logger } from "@/utils.js";
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import { chatWebhook } from "@/app/services/gamebridge/games/gmod/webhooks.js";
 import axios from "axios";
 import webhookConfig from "@/config/webhooks.json" with { type: "json" };
@@ -153,7 +152,8 @@ const GetGithubChanges = (
 		...removed.map(
 			// leading "-" is escaped: unescaped, Discord renders a line starting with
 			// "- " as a markdown list bullet instead of a literal minus sign
-			s => `\\- [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(" ", "%%20")})`
+			s =>
+				`\\- [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(" ", "%%20")})`
 		),
 		...modified.map(
 			s => `~ [${s}](https://github.com/${repoPath}/blob/${sha}/${s.replaceAll(" ", "%%20")})`
@@ -263,7 +263,11 @@ const GetGitlabChanges = (
 // Same idea as GetGitlabChanges, but for callers that only have the structured
 // Commits.showDiff() response (e.g. merge requests, which don't carry per-commit
 // added/removed/modified file lists in the webhook payload the way pushes do).
-function GetGitlabDiffChanges(pathWithNamespace: string, sha: string, files: CommitDiffSchema[]): string[] {
+function GetGitlabDiffChanges(
+	pathWithNamespace: string,
+	sha: string,
+	files: CommitDiffSchema[]
+): string[] {
 	return files.map(f => {
 		// leading "-" is escaped: unescaped, Discord renders a line starting with
 		// "- " as a markdown list bullet instead of a literal minus sign
@@ -281,8 +285,9 @@ function joinGitlabDiffFiles(files: CommitDiffSchema[]): string {
 	return files
 		.map(
 			f =>
-				(f.old_path === f.new_path ? `+++ ${f.new_path}\n` : `--- ${f.old_path}\n+++ ${f.new_path}\n`) +
-				f.diff
+				(f.old_path === f.new_path
+					? `+++ ${f.new_path}\n`
+					: `--- ${f.old_path}\n+++ ${f.new_path}\n`) + f.diff
 		)
 		.join("\n");
 }
@@ -450,8 +455,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 	function getGitlabWebhook(projectId: number): Promise<Discord.Webhook | undefined> {
 		const channelId =
-			gitlabConfig.projectChannels[String(projectId) as keyof typeof gitlabConfig.projectChannels] ||
-			bot.config.channels.privateCommits;
+			gitlabConfig.projectChannels[
+				String(projectId) as keyof typeof gitlabConfig.projectChannels
+			] || bot.config.channels.privateCommits;
 		return getOrCreateWebhook(channelId);
 	}
 
@@ -483,14 +489,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const [action, override] = ctx.customId.split("_");
 		const where =
 			override !== undefined
-				? bridge.servers.filter(
-						(s): s is GmodConnection =>
-							s instanceof GmodConnection &&
-							override.split(",").includes(s.config.id.toString())
+				? bridge.servers.gmod.filter(s =>
+						override.split(",").includes(s.config.id.toString())
 					)
-				: bridge.servers.filter(
-						(s): s is GmodConnection => s instanceof GmodConnection && !!s.config.ssh
-					);
+				: bridge.servers.gmod.filter(s => !!s.config.ssh);
 
 		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(x =>
 			allowedRoles.has(x.id)
@@ -529,7 +531,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						if (!bridge) return;
 						ctx.editReply(
 							`<@${ctx.user.id}> successfully updated ${
-								where.length === bridge.servers.length - 1 // 0 = empty
+								where.length === bridge.servers.gmod.length - 1 // 0 = empty
 									? "all servers"
 									: where
 											.map(s =>
@@ -660,7 +662,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						if (!bridge) return;
 						ctx.editReply(
 							`<@${ctx.user.id}> successfully updated ${
-								where.length === bridge.servers.length - 1 // 0 = empty
+								where.length === bridge.servers.gmod.length - 1 // 0 = empty
 									? "all servers"
 									: where
 											.map(s =>
@@ -1105,7 +1107,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const title = pr.title.length > 256 ? `${pr.title.substring(0, 250)}. . .` : pr.title;
 
-		const diff = await getGitHubPullRequestDiff(github.octokit, repo.owner.login, repo.name, pr.number);
+		const diff = await getGitHubPullRequestDiff(
+			github.octokit,
+			repo.owner.login,
+			repo.name,
+			pr.number
+		);
 
 		const files = await getPullRequestFiles(pr.url);
 		const changeLines = files ? buildChangeLines(GetPullRequestChanges(files)) : [];
@@ -1411,7 +1418,13 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const added = commit.added ?? [];
 				const removed = commit.removed ?? [];
 				const modified = commit.modified ?? [];
-				const changes = GetGitlabChanges(project.path_with_namespace, commit.id, added, removed, modified);
+				const changes = GetGitlabChanges(
+					project.path_with_namespace,
+					commit.id,
+					added,
+					removed,
+					modified
+				);
 
 				const subject = commit.message.split("\n")[0];
 				const title = subject.length > 256 ? `${subject.substring(0, 250)}. . .` : subject;
@@ -1424,7 +1437,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 				);
 
 				const allFiles = [...added, ...modified, ...removed];
-				includesLua = includesLua || (allFiles.length > 0 && allFiles.some(f => f.endsWith(".lua")));
+				includesLua =
+					includesLua || (allFiles.length > 0 && allFiles.some(f => f.endsWith(".lua")));
 				const isOnlyOgg = allFiles.length > 0 && allFiles.every(f => f.endsWith(".ogg"));
 
 				const changeLines = buildChangeLines(changes);
@@ -1433,7 +1447,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 					isMergeCommit(commit.message) || isOnlyOgg
 						? undefined
 						: await getGitlabDiff(gitlab.api, project.id, commit.id);
-				const diff = diffFiles?.length ? formatDiffText(joinGitlabDiffFiles(diffFiles)) : undefined;
+				const diff = diffFiles?.length
+					? formatDiffText(joinGitlabDiffFiles(diffFiles))
+					: undefined;
 
 				addContainerHeader(
 					container,
@@ -1447,7 +1463,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 					container.addTextDisplayComponents(text =>
 						text.setContent(
 							`\`\`\`diff\n${
-								diff.length > DIFF_SIZE ? diff.substring(0, DIFF_SIZE - 5) + ". . ." : diff
+								diff.length > DIFF_SIZE
+									? diff.substring(0, DIFF_SIZE - 5) + ". . ."
+									: diff
 							}\`\`\``
 						)
 					);
@@ -1455,7 +1473,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 				if (changeLines.length > 0) {
 					container.addSeparatorComponents(sep => sep);
-					container.addTextDisplayComponents(text => text.setContent(changeLines.join("\n")));
+					container.addTextDisplayComponents(text =>
+						text.setContent(changeLines.join("\n"))
+					);
 				}
 
 				container.addSeparatorComponents(sep => sep.setDivider(false));
@@ -1473,7 +1493,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 			flags: Discord.MessageFlags.IsComponentsV2,
 		};
 
-		const actionRow: Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow> | undefined =
+		const actionRow:
+			Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow> | undefined =
 			includesLua
 				? {
 						type: Discord.ComponentType.ActionRow,
@@ -1515,7 +1536,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 			destWebhook
 				.send({ ...baseMessagePayload, components: messageComponents })
 				.then(msg => {
-					if (sha && containers[0]) trackCommitMessage(sha, msg.id, messageComponents, containers[0]);
+					if (sha && containers[0])
+						trackCommitMessage(sha, msg.id, messageComponents, containers[0]);
 				})
 				.catch(log.error.bind(log));
 		}
@@ -1561,7 +1583,13 @@ export default async (bot: DiscordBot): Promise<void> => {
 				? await getGitlabDiff(gitlab.api, mr.target_project_id, mr.last_commit.id)
 				: undefined;
 		const changeLines = diffFiles
-			? buildChangeLines(GetGitlabDiffChanges(mr.target.path_with_namespace, mr.last_commit.id, diffFiles))
+			? buildChangeLines(
+					GetGitlabDiffChanges(
+						mr.target.path_with_namespace,
+						mr.last_commit.id,
+						diffFiles
+					)
+				)
 			: [];
 		const diff = diffFiles?.length ? formatDiffText(joinGitlabDiffFiles(diffFiles)) : undefined;
 

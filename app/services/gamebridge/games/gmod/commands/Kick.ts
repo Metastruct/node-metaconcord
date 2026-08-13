@@ -1,6 +1,5 @@
 import * as Discord from "discord.js";
 import { SlashCommand } from "@/extensions/discord.js";
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import servers from "@/config/gmod.servers.json" with { type: "json" };
 
 export const SlashKickCommand: SlashCommand = {
@@ -40,8 +39,8 @@ export const SlashKickCommand: SlashCommand = {
 		await ctx.deferReply();
 		const bridge = bot.bridge;
 		if (!bridge) return;
-		const server = bridge.servers[ctx.options.getInteger("server", true)];
-		if (!(server instanceof GmodConnection)) {
+		const server = bridge.servers.gmod[ctx.options.getInteger("server", true)];
+		if (!server) {
 			await ctx.followUp("That server isn't a GMod server.");
 			return;
 		}
@@ -66,7 +65,8 @@ export const SlashKickCommand: SlashCommand = {
 		}
 	},
 	async autocomplete(ctx, bot) {
-		const players = bot.bridge?.servers[ctx.options.getInteger("server") ?? 2]?.status.players;
+		const players =
+			bot.bridge?.servers.gmod[ctx.options.getInteger("server") ?? 2]?.status.players;
 		if (!players) {
 			await ctx.respond([]);
 			return;

@@ -9,7 +9,7 @@ import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
 
-const RESONITE_SERVER_ID = 9;
+const RESONITE_SERVER_ID = 1;
 
 function buildStatusContainer(
 	session: ResoniteSession,
@@ -79,14 +79,15 @@ export function attachResonite(bridge: GameBridge): void {
 
 	con.start()
 		.then(() => {
-			const connection = (bridge.servers[RESONITE_SERVER_ID] = new ResoniteConnection({
-				bridge,
-				serverConfig: {
-					name: "#resonite 🇪🇺",
-					id: RESONITE_SERVER_ID,
-					discordToken: resoniteConfig.discordToken,
-				},
-			}));
+			const connection = (bridge.servers.resonite[RESONITE_SERVER_ID] =
+				new ResoniteConnection({
+					bridge,
+					serverConfig: {
+						name: "#resonite 🇪🇺",
+						id: RESONITE_SERVER_ID,
+						discordToken: resoniteConfig.discordToken,
+					},
+				}));
 			connection.discord.on("clientReady", () => {
 				connection.setPresence("idle", {
 					afk: true,
@@ -101,8 +102,8 @@ export function attachResonite(bridge: GameBridge): void {
 	let lastCount = 1;
 	con.on("ReceiveSessionUpdate", async (session: ResoniteSession) => {
 		try {
-			const connection = bridge.servers[RESONITE_SERVER_ID];
-			if (!(connection instanceof ResoniteConnection)) throw new Error("Server not found");
+			const connection = bridge.servers.resonite[RESONITE_SERVER_ID];
+			if (!connection) throw new Error("Server not found");
 			if (session.hostUserId !== resonite.UserID) return;
 
 			const discord = connection.discord;
@@ -161,8 +162,8 @@ export function attachResonite(bridge: GameBridge): void {
 	});
 
 	con.onclose(async () => {
-		const connection = bridge.servers[RESONITE_SERVER_ID];
-		if (!(connection instanceof ResoniteConnection)) return;
+		const connection = bridge.servers.resonite[RESONITE_SERVER_ID];
+		if (!connection) return;
 		connection.disconnected = true;
 
 		if (connection.lastSession && connection.status.mapThumbnail) {
@@ -183,12 +184,12 @@ export function attachResonite(bridge: GameBridge): void {
 		}
 
 		connection.discord.destroy();
-		if (bridge.servers[RESONITE_SERVER_ID] === connection) {
-			delete bridge.servers[RESONITE_SERVER_ID];
+		if (bridge.servers.resonite[RESONITE_SERVER_ID] === connection) {
+			delete bridge.servers.resonite[RESONITE_SERVER_ID];
 		}
 	});
 	con.onreconnected(() => {
-		const connection = bridge.servers[RESONITE_SERVER_ID];
+		const connection = bridge.servers.resonite[RESONITE_SERVER_ID];
 		if (!connection) return;
 		connection.disconnected = false;
 		connection.setPresence("idle", { afk: true });
