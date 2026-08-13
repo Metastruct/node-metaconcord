@@ -48,12 +48,8 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 
 		const serverId = ctx.options.getInteger("server");
 		const where = serverId
-			? bridge.servers[serverId] instanceof GmodConnection
-				? [bridge.servers[serverId] as GmodConnection]
-				: []
-			: bridge.servers.filter(
-					(s): s is GmodConnection => s instanceof GmodConnection && !!s.config.ssh
-				);
+			? [bridge.servers.gmod[serverId]].filter((s): s is GmodConnection => !!s)
+			: bridge.servers.gmod.filter((s): s is GmodConnection => !!s && !!s.config.ssh);
 
 		await ctx.deferReply();
 

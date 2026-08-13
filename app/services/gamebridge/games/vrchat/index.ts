@@ -11,7 +11,7 @@ import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
 
-const VRCHAT_SERVER_ID = 12;
+const VRCHAT_SERVER_ID = 1;
 const POLL_INTERVAL_MS = 150_000;
 
 function launchUrl(worldId: string, instanceId: string): string {
@@ -79,7 +79,7 @@ export function attachVRChat(bridge: GameBridge): void {
 		},
 	});
 
-	const connection = (bridge.servers[VRCHAT_SERVER_ID] = new VRChatConnection({
+	const connection = (bridge.servers.vrchat[VRCHAT_SERVER_ID] = new VRChatConnection({
 		bridge,
 		serverConfig: {
 			name: "#vrchat 🇪🇺",

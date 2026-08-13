@@ -1,6 +1,4 @@
 import { WebApp } from "@/app/services/webapp/index.js";
-import GameConnection from "@/app/services/gamebridge/GameConnection.js";
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import { renderPlayerListImage } from "@/app/services/gamebridge/renderPlayerList.js";
 import path from "path";
 import pug from "pug";
@@ -24,7 +22,7 @@ const imageToDataURL = async (filePath: PathLike | FileHandle) => {
 export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/server-status/:id{/:bruh}", async (req, res) => {
 		const gameBridge = webApp.container.getService("GameBridge");
-		const server: GameConnection = gameBridge.servers[req.params.id];
+		const server = gameBridge.servers.gmod[Number(req.params.id)];
 
 		if (!server) {
 			res.status(404).send("ServerID does not exist");
@@ -44,7 +42,7 @@ export default async (webApp: WebApp): Promise<void> => {
 
 		// #region Map Thumbnail
 		const mapThumbnail = server.status.mapThumbnail;
-		const workshopMap = server instanceof GmodConnection ? server.workshopMap : undefined;
+		const workshopMap = server.workshopMap;
 		let thumbFilepath: string | undefined = undefined;
 		if (mapThumbnail?.match(/^https?:\/\//) && workshopMap) {
 			await access(cacheFolder, fs_constants.F_OK).catch(() =>

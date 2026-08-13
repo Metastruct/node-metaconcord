@@ -1,13 +1,10 @@
-import {
-	IUtf8Message,
-	connection as WebSocketConnection,
-	request as WebSocketRequest,
-} from "websocket";
+import { request as WebSocketRequest } from "websocket";
 import { NodeSSH, SSHExecOptions } from "node-ssh";
-import { PayloadRequest, RconResponse } from "./handlers/structures/index.js";
+import { RconResponse } from "./handlers/structures/index.js";
 import ErrorPayload from "./handlers/ErrorPayload.js";
 import GameBridge from "../../GameBridge.js";
 import GameConnection, { GameConnectionConfig } from "../../GameConnection.js";
+import GameSocketConnection from "../../GameSocketConnection.js";
 import RconPayload from "./handlers/RconPayload.js";
 import { attachHandlers } from "./handlers/index.js";
 import sshConfig from "@/config/ssh.json" with { type: "json" };
@@ -25,8 +22,7 @@ export type GmodConnectionConfig = GameConnectionConfig & {
 	};
 };
 
-export default class GmodConnection extends GameConnection {
-	wsConnection?: WebSocketConnection;
+export default class GmodConnection extends GameSocketConnection {
 	config: GmodConnectionConfig;
 	defcon: number;
 	gamemode: {
@@ -41,73 +37,39 @@ export default class GmodConnection extends GameConnection {
 		id: string;
 	};
 
-	private handlersAttached = false;
-
 	constructor(config: {
 		req?: WebSocketRequest;
 		bridge: GameBridge;
 		serverConfig: GmodConnectionConfig;
 	}) {
-		super({ bridge: config.bridge, serverConfig: config.serverConfig });
+		super(config);
 		this.config = config.serverConfig;
-		this.wsConnection = config.req?.accept();
+	}
 
-		this.discord.on("clientReady", async () => {
-			this.setPresence("idle", { afk: true, state: "waiting for data" });
-			if (this.handlersAttached) return;
-			this.handlersAttached = true;
-			attachHandlers(this);
-		});
+	protected attachHandlers(): void {
+		attachHandlers(this);
+	}
 
-		this.wsConnection?.on("message", async (msg: IUtf8Message) => {
-			// if (received.utf8Data == "") console.log("Heartbeat");
-			if (!msg || msg.utf8Data == "") return;
+	protected initialPresence(): void {
+		this.setPresence("idle", { afk: true, state: "waiting for data" });
+	}
 
-			let data: PayloadRequest;
-			try {
-				data = JSON.parse(msg.utf8Data) as PayloadRequest;
-				if (!data.name || !data.data) throw new Error("Malformed payload");
-			} catch ({ message }) {
-				return ErrorPayload.send(
-					{
-						error: { message },
-					},
-					this
-				);
-			}
+	protected async postDisconnected(): Promise<void> {
+		const { default: StatusPayload } = await import("./handlers/StatusPayload.js");
+		await StatusPayload.handle({ name: "StatusPayload", data: {} }, this);
+	}
 
-			if (this.listenerCount(data.name) === 0) {
-				log.info(data, "Invalid payload");
-				return ErrorPayload.send(
-					{
-						error: { message: "Payload doesn't exist, nothing was done" },
-					},
-					this
-				);
-			}
+	protected get ownServerList(): GameConnection[] {
+		return this.bridge.servers.gmod;
+	}
 
-			try {
-				this.emit(data.name, data);
-			} catch (err) {
-				log.error({ data, err });
-			}
-		});
+	protected onMalformedPayload(err: unknown): void {
+		const message = err instanceof Error ? err.message : String(err);
+		ErrorPayload.send({ error: { message } }, this);
+	}
 
-		this.wsConnection?.on("close", async (code, desc) => {
-			this.disconnected = true;
-			try {
-				this.emit("StatusPayload", { name: "StatusPayload", data: {} });
-			} catch (e) {
-				log.error(e, "failed to send disconnect status");
-			}
-			this.discord.destroy();
-			log.info(`'${this.config.name}' Game Server disconnected - [${code}] ${desc}`);
-			if (this.bridge.servers[this.config.id] === this) {
-				delete this.bridge.servers[this.config.id];
-			}
-		});
-
-		log.info(`'${this.config.name}' Game Server connected`);
+	protected onUnknownPayload(): void {
+		ErrorPayload.send({ error: { message: "Payload doesn't exist, nothing was done" } }, this);
 	}
 
 	async sendLua(code: string, realm: RconResponse["realm"] = "sv", runner = "Metaconcord") {

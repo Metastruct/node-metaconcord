@@ -51,11 +51,8 @@ export const SlashGservCommand: SlashCommand = {
 						type: Discord.ComponentType.StringSelect,
 						custom_id: "server",
 						placeholder: "Select a server (runs on all if not selected)",
-						options: bridge.servers
-							.filter(
-								(s): s is GmodConnection =>
-									s instanceof GmodConnection && !!s.config.ssh
-							)
+						options: bridge.servers.gmod
+							.filter((s): s is GmodConnection => !!s && !!s.config.ssh)
 							.map(s => ({
 								label: s.config.name,
 								value: String(s.config.id),
@@ -91,7 +88,9 @@ export const SlashGservCommand: SlashCommand = {
 			return;
 		}
 
-		const targetServers = serverId ? [bridge.servers[Number(serverId)]] : bridge.servers;
+		const targetServers = serverId
+			? [bridge.servers.gmod[Number(serverId)]]
+			: bridge.servers.gmod;
 
 		const reply = await modalSubmit.deferReply({ withResponse: true });
 		const messageID =
@@ -99,7 +98,7 @@ export const SlashGservCommand: SlashCommand = {
 
 		await Promise.all(
 			targetServers
-				.filter((s): s is GmodConnection => s instanceof GmodConnection && !!s.config.ssh)
+				.filter((s): s is GmodConnection => !!s && !!s.config.ssh)
 				.map(async gameServer => {
 					const gSDiscord = gameServer.discord;
 					const channel = gSDiscord.channels.cache.get(

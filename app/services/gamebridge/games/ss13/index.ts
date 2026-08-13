@@ -14,7 +14,7 @@ dayjs.extend(duration);
 
 const log = logger(import.meta);
 
-const SS13_SERVER_ID = 10;
+const SS13_SERVER_ID = 1;
 const POLL_INTERVAL_MS = 60_000;
 
 const STATUS_TEXT: Record<WatchdogStatus, string> = {
@@ -110,7 +110,7 @@ export function attachSS13(bridge: GameBridge): void {
 
 	const poll = async () => {
 		if (!connection) {
-			connection = bridge.servers[SS13_SERVER_ID] = new SS13Connection({
+			connection = bridge.servers.ss13[SS13_SERVER_ID] = new SS13Connection({
 				bridge,
 				serverConfig: {
 					name: "#ss13 🇪🇺",
