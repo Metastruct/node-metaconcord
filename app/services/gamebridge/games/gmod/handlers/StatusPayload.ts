@@ -119,7 +119,7 @@ export default class StatusPayload extends Payload {
 			const count = current_players.length;
 			let countPresent = 0;
 
-			for (const player of server.status.players) {
+			for (const player of current_players) {
 				if (!player.isAfk) {
 					countPresent++;
 				}
@@ -130,7 +130,7 @@ export default class StatusPayload extends Payload {
 
 				player.nick = player.nick.trim();
 			}
-			server.status.players.sort(function (a, b) {
+			current_players.sort(function (a, b) {
 				let i = 0;
 				if (!a.isAdmin && b.isAdmin) i = i + 2;
 				if (a.isAdmin && !b.isAdmin) i = i - 2;
