@@ -1180,25 +1180,22 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}
 	});
 
-	GitHub.on("check_suite.completed", async event => {
+	GitHub.on("workflow_run.completed", async event => {
 		if (!webhook) return;
 		const payload = event.payload;
-		const suite = payload.check_suite;
-		const conclusion = suite.conclusion;
+		const run = payload.workflow_run;
+		const conclusion = run.conclusion;
 		if (!conclusion) return;
 
 		const repo = payload.repository;
-		const url =
-			suite.pull_requests.length > 0
-				? `${repo.html_url}/pull/${suite.pull_requests[0].number}/checks`
-				: `${repo.html_url}/commit/${suite.head_sha}/checks`;
+		const name = run.name ?? "Workflow";
 
-		const tracked = commitMessages.get(suite.head_sha);
+		const tracked = commitMessages.get(run.head_sha);
 		if (tracked) {
 			upsertCheckLine(
 				tracked,
-				`suite:${suite.app?.slug ?? suite.id}`,
-				`${CHECK_CONCLUSION_EMOJI[conclusion] ?? "⚪"} [${suite.app?.name ?? "Checks"}](${url}) ${conclusion}`
+				`run:${run.id}`,
+				`${CHECK_CONCLUSION_EMOJI[conclusion] ?? "⚪"} [${name}](${run.html_url}) ${conclusion}`
 			);
 			await webhook
 				.editMessage(tracked.messageId, {
@@ -1209,7 +1206,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 			return;
 		}
 
-		const target = getCheckTarget(suite.pull_requests, suite.head_branch);
+		const target = getCheckTarget(
+			run.pull_requests.filter(pr => pr !== null),
+			run.head_branch
+		);
 
 		await webhook
 			.send({
@@ -1219,8 +1219,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 				embeds: [
 					{
 						color: CHECK_CONCLUSION_COLOR[conclusion] ?? 0x6a737d,
-						title: `GitHub Actions checks ${conclusion} on ${target}`,
-						url,
+						title: `${name} ${conclusion} on ${target}`,
+						url: run.html_url,
 					},
 				],
 			})
