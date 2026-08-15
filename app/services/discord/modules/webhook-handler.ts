@@ -1072,7 +1072,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			)
 		);
 
-		webhook
+		const msg = await webhook
 			.send({
 				username: payload.sender.name ?? payload.sender.login ?? "unknown",
 				avatarURL: payload.sender.avatar_url,
@@ -1080,6 +1080,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 				flags: Discord.MessageFlags.IsComponentsV2,
 			})
 			.catch(log.error.bind(log));
+
+		if (msg) trackCommitMessage(payload.pull_request.head.sha, msg.id, [container], container);
 	}
 
 	async function DefaultPullRequestHandler(event: EmitterWebhookEvent<"pull_request">) {
@@ -1153,7 +1155,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			text.setContent(`-# PR #${pr.number} ${action} by ${pr.user?.login ?? "unknown"}`)
 		);
 
-		webhook
+		const msg = await webhook
 			.send({
 				...BaseEmbed,
 				username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
@@ -1162,6 +1164,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 				flags: Discord.MessageFlags.IsComponentsV2,
 			})
 			.catch(log.error.bind(log));
+
+		if (msg) trackCommitMessage(pr.head.sha, msg.id, [container], container);
 	}
 
 	GitHub.on("pull_request", async event => {
@@ -1633,7 +1637,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			text.setContent(`-# MR !${mr.iid} ${action} by ${body.user.username}`)
 		);
 
-		destWebhook
+		const msg = await destWebhook
 			.send({
 				...BaseEmbed,
 				username: body.user.name,
@@ -1642,6 +1646,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 				flags: Discord.MessageFlags.IsComponentsV2,
 			})
 			.catch(log.error.bind(log));
+
+		if (msg && mr.last_commit)
+			trackCommitMessage(mr.last_commit.id, msg.id, [container], container);
 	}
 
 	const GITLAB_TERMINAL_PIPELINE_STATUSES = new Set(["success", "failed", "canceled", "skipped"]);
