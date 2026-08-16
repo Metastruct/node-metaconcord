@@ -36,9 +36,11 @@ function GetColorFromChanges(added: number, removed: number, modified: number) {
 // are sized to leave headroom for the header/footer text sharing the container.
 const DIFF_SIZE = 1500;
 const BODY_SIZE = 300;
+const PR_BODY_SIZE = 1500;
 const CHANGE_LIST_SIZE = 1000;
 const MAX_FIELDS = 10;
 const MAX_COMMITS = 5;
+const COMPONENT_TEXT_LIMIT = 4000;
 
 const MinimalPushUsers = ["MetaAutomator", "github-actions[bot]"];
 
@@ -364,6 +366,14 @@ function formatCommitBody(message: string): string {
 
 	const truncated = body.length > BODY_SIZE ? `${body.substring(0, BODY_SIZE - 3)}...` : body;
 	return "\n" + truncated.replaceAll(/^/gm, "> ");
+}
+
+// Unlike formatCommitBody (quoted inline after a commit title), a PR/MR body gets
+// its own text display section, so no leading blockquote formatting is applied here.
+function formatPrBody(body?: string | null): string {
+	const trimmed = body?.trim();
+	if (!trimmed) return "";
+	return trimmed.length > PR_BODY_SIZE ? `${trimmed.substring(0, PR_BODY_SIZE - 3)}...` : trimmed;
 }
 
 function addContainerHeader(
@@ -1118,6 +1128,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const files = await getPullRequestFiles(pr.url);
 		const changeLines = files ? buildChangeLines(GetPullRequestChanges(files)) : [];
+		const prBody = formatPrBody(pr.body);
 
 		const container = new Discord.ContainerBuilder().setAccentColor(
 			payload.action === "closed"
@@ -1127,33 +1138,47 @@ export default async (bot: DiscordBot): Promise<void> => {
 				: GetColorFromChanges(pr.additions ?? 0, pr.deletions ?? 0, pr.changed_files ?? 0)
 		);
 
-		addContainerHeader(
-			container,
-			`-# [${repo.full_name.substring(0, 256)}](${repo.html_url})`,
-			`### [${title}](${pr.html_url})`,
-			repo.owner?.avatar_url
-		);
+		const repoLine = `-# [${repo.full_name.substring(0, 256)}](${repo.html_url})`;
+		const heading = `### [${title}](${pr.html_url})`;
+		const diffContent = diff
+			? `\`\`\`diff\n${
+					diff.length > DIFF_SIZE ? diff.substring(0, DIFF_SIZE - 5) + ". . ." : diff
+				}\`\`\``
+			: "";
+		const changeLinesContent = changeLines.join("\n");
+		const footerContent = `-# PR #${pr.number} ${action} by ${pr.user?.login ?? "unknown"}`;
 
-		if (diff) {
+		// The PR body is prioritised over the diff codeblock: if showing both would blow
+		// past the Components V2 per-message text cap, drop the diff and keep the body.
+		const showDiff =
+			!!diffContent &&
+			repoLine.length +
+				heading.length +
+				prBody.length +
+				diffContent.length +
+				changeLinesContent.length +
+				footerContent.length <=
+				COMPONENT_TEXT_LIMIT;
+
+		addContainerHeader(container, repoLine, heading, repo.owner?.avatar_url);
+
+		if (prBody) {
 			container.addSeparatorComponents(sep => sep);
-			container.addTextDisplayComponents(text =>
-				text.setContent(
-					`\`\`\`diff\n${
-						diff.length > DIFF_SIZE ? diff.substring(0, DIFF_SIZE - 5) + ". . ." : diff
-					}\`\`\``
-				)
-			);
+			container.addTextDisplayComponents(text => text.setContent(prBody));
+		}
+
+		if (showDiff) {
+			container.addSeparatorComponents(sep => sep);
+			container.addTextDisplayComponents(text => text.setContent(diffContent));
 		}
 
 		if (changeLines.length > 0) {
 			container.addSeparatorComponents(sep => sep);
-			container.addTextDisplayComponents(text => text.setContent(changeLines.join("\n")));
+			container.addTextDisplayComponents(text => text.setContent(changeLinesContent));
 		}
 
 		container.addSeparatorComponents(sep => sep.setDivider(false));
-		container.addTextDisplayComponents(text =>
-			text.setContent(`-# PR #${pr.number} ${action} by ${pr.user?.login ?? "unknown"}`)
-		);
+		container.addTextDisplayComponents(text => text.setContent(footerContent));
 
 		const msg = await webhook
 			.send({
@@ -1596,6 +1621,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				)
 			: [];
 		const diff = diffFiles?.length ? formatDiffText(joinGitlabDiffFiles(diffFiles)) : undefined;
+		const mrBody = formatPrBody(mr.description);
 
 		const added = diffFiles?.filter(f => f.new_file).length ?? 0;
 		const removed = diffFiles?.filter(f => f.deleted_file).length ?? 0;
@@ -1609,33 +1635,47 @@ export default async (bot: DiscordBot): Promise<void> => {
 					: GetColorFromChanges(added, removed, modified)
 		);
 
-		addContainerHeader(
-			container,
-			`[${mr.target.path_with_namespace.substring(0, 256)}](${mr.target.web_url})`,
-			`### [${title}](${mr.url})`,
-			mr.target.avatar_url ?? undefined
-		);
+		const repoLine = `[${mr.target.path_with_namespace.substring(0, 256)}](${mr.target.web_url})`;
+		const heading = `### [${title}](${mr.url})`;
+		const diffContent = diff
+			? `\`\`\`diff\n${
+					diff.length > DIFF_SIZE ? diff.substring(0, DIFF_SIZE - 5) + ". . ." : diff
+				}\`\`\``
+			: "";
+		const changeLinesContent = changeLines.join("\n");
+		const footerContent = `-# MR !${mr.iid} ${action} by ${body.user.username}`;
 
-		if (diff) {
+		// The MR body is prioritised over the diff codeblock: if showing both would blow
+		// past the Components V2 per-message text cap, drop the diff and keep the body.
+		const showDiff =
+			!!diffContent &&
+			repoLine.length +
+				heading.length +
+				mrBody.length +
+				diffContent.length +
+				changeLinesContent.length +
+				footerContent.length <=
+				COMPONENT_TEXT_LIMIT;
+
+		addContainerHeader(container, repoLine, heading, mr.target.avatar_url ?? undefined);
+
+		if (mrBody) {
 			container.addSeparatorComponents(sep => sep);
-			container.addTextDisplayComponents(text =>
-				text.setContent(
-					`\`\`\`diff\n${
-						diff.length > DIFF_SIZE ? diff.substring(0, DIFF_SIZE - 5) + ". . ." : diff
-					}\`\`\``
-				)
-			);
+			container.addTextDisplayComponents(text => text.setContent(mrBody));
+		}
+
+		if (showDiff) {
+			container.addSeparatorComponents(sep => sep);
+			container.addTextDisplayComponents(text => text.setContent(diffContent));
 		}
 
 		if (changeLines.length > 0) {
 			container.addSeparatorComponents(sep => sep);
-			container.addTextDisplayComponents(text => text.setContent(changeLines.join("\n")));
+			container.addTextDisplayComponents(text => text.setContent(changeLinesContent));
 		}
 
 		container.addSeparatorComponents(sep => sep.setDivider(false));
-		container.addTextDisplayComponents(text =>
-			text.setContent(`-# MR !${mr.iid} ${action} by ${body.user.username}`)
-		);
+		container.addTextDisplayComponents(text => text.setContent(footerContent));
 
 		const msg = await destWebhook
 			.send({
