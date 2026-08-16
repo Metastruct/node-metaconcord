@@ -368,12 +368,12 @@ function formatCommitBody(message: string): string {
 	return "\n" + truncated.replaceAll(/^/gm, "> ");
 }
 
-// Unlike formatCommitBody (quoted inline after a commit title), a PR/MR body gets
-// its own text display section, so no leading blockquote formatting is applied here.
 function formatPrBody(body?: string | null): string {
 	const trimmed = body?.trim();
 	if (!trimmed) return "";
-	return trimmed.length > PR_BODY_SIZE ? `${trimmed.substring(0, PR_BODY_SIZE - 3)}...` : trimmed;
+	const truncated =
+		trimmed.length > PR_BODY_SIZE ? `${trimmed.substring(0, PR_BODY_SIZE - 3)}...` : trimmed;
+	return truncated.replaceAll(/^/gm, "> ");
 }
 
 function addContainerHeader(
