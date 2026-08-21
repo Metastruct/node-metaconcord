@@ -1,0 +1,51 @@
+export type GitHost = "github" | "gitlab" | "other";
+
+export type AddonSource =
+	| { kind: "workshop"; id: string; url: string; repoUrl?: string }
+	| { kind: "git"; url?: string; host: GitHost; subpath?: string }
+	| { kind: "modrinth"; projectId: string; url: string }
+	| { kind: "curseforge"; projectId: number; url: string }
+	/** A plain homepage that is not a known git host or registry. */
+	| { kind: "website"; url: string }
+	| { kind: "unknown" };
+
+export interface Addon {
+	/** Platform title when resolved, otherwise the folder/repo name or mod display name. */
+	name: string;
+	description?: string;
+	thumbnail?: string;
+	/** Minecraft only. */
+	version?: string;
+	source: AddonSource;
+	/** Private git remotes and unresolvable internal content. Private entries never carry a URL. */
+	private: boolean;
+	/** Stable identity within a server (gmod: "repo/subpath"), used to carry entries over transient failures. */
+	key?: string;
+}
+
+export type AddonGame = "gmod" | "minecraft";
+
+export interface ServerAddons {
+	game: AddonGame;
+	serverId: number;
+	serverName: string;
+	/** Epoch ms of the last successful refresh. */
+	updatedAt: number;
+	addons: Addon[];
+}
+
+export type AddonsStore = {
+	[game in AddonGame]?: { [serverId: number]: ServerAddons };
+};
+
+/** One mod as reported by the minecraft bridge. */
+export interface ReportedMod {
+	modId: string;
+	displayName: string;
+	version: string;
+	description?: string;
+	sha512?: string;
+	fingerprint?: number;
+	sources?: string;
+	issues?: string;
+}

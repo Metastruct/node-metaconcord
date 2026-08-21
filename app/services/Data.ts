@@ -1,6 +1,7 @@
 import { logger } from "@/utils.js";
 import { Container, Service } from "../Container.js";
 import { Rule } from "./discord/index.js";
+import { AddonsStore } from "./addons/types.js";
 import { promises as fs } from "fs";
 import path from "path";
 
@@ -10,6 +11,7 @@ export class Data extends Service {
 	name = "Data";
 	private dataPath = path.join(process.cwd(), "data");
 
+	addons: AddonsStore = {};
 	lastDiscordBanner: string;
 	lastDiscordGuildEvent: string;
 	lastDiscordGuildIcon: string;
@@ -46,6 +48,7 @@ export class Data extends Service {
 		}>;
 	} = {};
 	toSave = [
+		"addons",
 		"lastDiscordBanner",
 		"lastDiscordGuildEvent",
 		"lastDiscordGuildIcon",

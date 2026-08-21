@@ -1,0 +1,60 @@
+{
+	"$ref": "#/definitions/AddonsRequest",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"definitions": {
+		"AddonsRequest": {
+			"additionalProperties": false,
+			"properties": {
+				"data": {
+					"additionalProperties": false,
+					"properties": {
+						"mods": {
+							"items": {
+								"additionalProperties": false,
+								"properties": {
+									"description": {
+										"type": "string"
+									},
+									"displayName": {
+										"type": "string"
+									},
+									"fingerprint": {
+										"description": "murmur2 of the jar with whitespace stripped, for CurseForge",
+										"type": "number"
+									},
+									"issues": {
+										"type": "string"
+									},
+									"modId": {
+										"type": "string"
+									},
+									"sha512": {
+										"description": "hex sha512 of the jar, for Modrinth",
+										"type": "string"
+									},
+									"sources": {
+										"type": "string"
+									},
+									"version": {
+										"type": "string"
+									}
+								},
+								"required": ["modId", "displayName", "version"],
+								"type": "object"
+							},
+							"type": "array"
+						}
+					},
+					"required": ["mods"],
+					"type": "object"
+				},
+				"name": {
+					"const": "AddonsPayload",
+					"type": "string"
+				}
+			},
+			"required": ["data", "name"],
+			"type": "object"
+		}
+	}
+}

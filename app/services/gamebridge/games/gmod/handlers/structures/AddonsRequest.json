@@ -1,0 +1,28 @@
+{
+	"$ref": "#/definitions/AddonsRequest",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"definitions": {
+		"AddonsRequest": {
+			"additionalProperties": false,
+			"description": "gmod cannot enumerate its own addons, so it only signals that it is ready to be pulled over SSH.",
+			"properties": {
+				"data": {
+					"additionalProperties": false,
+					"properties": {
+						"pull": {
+							"type": "boolean"
+						}
+					},
+					"required": ["pull"],
+					"type": "object"
+				},
+				"name": {
+					"const": "AddonsPayload",
+					"type": "string"
+				}
+			},
+			"required": ["data", "name"],
+			"type": "object"
+		}
+	}
+}

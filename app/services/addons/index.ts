@@ -1,0 +1,361 @@
+import { Container, Service } from "@/app/Container.js";
+import { Addon, AddonGame, ReportedMod, ServerAddons } from "./types.js";
+import {
+	GithubClient,
+	GitResolution,
+	ResolvedMeta,
+	parseGitRemote,
+	resolveCurseforge,
+	resolveGit,
+	resolveModrinth,
+	workshopUrl,
+} from "./resolvers.js";
+import { TTLCache } from "./cache.js";
+import GmodConnection from "../gamebridge/games/gmod/GmodConnection.js";
+import MinecraftConnection from "../gamebridge/games/minecraft/MinecraftConnection.js";
+import { logger } from "@/utils.js";
+
+export * from "./types.js";
+
+const log = logger(import.meta);
+const DAY = 24 * 60 * 60 * 1000;
+const GMOD_REFRESH_DEBOUNCE = 5 * 60 * 1000;
+const TRANSIENT_RETRY_DELAY = 15 * 60 * 1000;
+const TRANSIENT_MAX_RETRIES = 4;
+const RESOLVE_CONCURRENCY = 6;
+const BUILTIN_MODS = new Set(["minecraft", "neoforge", "forge", "fabricloader", "metaconcord"]);
+
+/**
+ * Walks ~/gserv/repos and prints one TSV line per addon root:
+ * repo \t subpath ("." for the repo root) \t remote url \t workshop id
+ *
+ * A repo is a single addon when its root holds lua/, gamemodes/ or addon.json,
+ * otherwise each first-level directory holding one of those is an addon.
+ */
+const GSERV_ENUMERATE_SCRIPT = [
+	"cd ~/gserv/repos || exit 1",
+	"for r in */; do",
+	'  r=${r%/}; [ -d "$r" ] || continue',
+	'  url=$(git -C "$r" remote get-url origin 2>/dev/null)',
+	'  ws=$(head -n1 "$r/.workshopid" 2>/dev/null)',
+	'  if [ -d "$r/lua" ] || [ -d "$r/gamemodes" ] || [ -f "$r/addon.json" ]; then subs="."; else',
+	'    subs=$(cd "$r" && for d in */; do d=${d%/}; if [ -d "$d/lua" ] || [ -d "$d/gamemodes" ] || [ -f "$d/addon.json" ]; then printf \'%s\\n\' "$d"; fi; done)',
+	"  fi",
+	'  [ -z "$subs" ] && subs="."',
+	"  for s in $subs; do",
+	'    sws=$(head -n1 "$r/$s/.workshopid" 2>/dev/null)',
+	'    printf \'%s\\t%s\\t%s\\t%s\\n\' "$r" "$s" "$url" "${sws:-$ws}"',
+	"  done",
+	"done",
+].join("\n");
+
+async function mapLimit<T, R>(
+	items: T[],
+	limit: number,
+	fn: (item: T) => Promise<R>
+): Promise<R[]> {
+	const results: R[] = new Array(items.length);
+	let next = 0;
+	const worker = async () => {
+		while (next < items.length) {
+			const i = next++;
+			results[i] = await fn(items[i]);
+		}
+	};
+	await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+	return results;
+}
+
+export class Addons extends Service {
+	name = "Addons";
+	private lastGmodRefresh = new Map<number, number>();
+	private retryTimers = new Map<number, NodeJS.Timeout>();
+	private workshopCache = new TTLCache<ResolvedMeta | null>(DAY);
+
+	async init(): Promise<void> {
+		const data = this.container.getService("Data");
+		if (!data.addons) data.addons = {};
+	}
+
+	private githubClient(): GithubClient | undefined {
+		const github = this.container.getService("Github");
+		return github?.octokit as unknown as GithubClient | undefined;
+	}
+
+	getAll(): ServerAddons[] {
+		const store = this.container.getService("Data").addons ?? {};
+		const out: ServerAddons[] = [];
+		for (const game of Object.keys(store) as AddonGame[]) {
+			for (const entry of Object.values(store[game] ?? {})) out.push(entry);
+		}
+		return out.sort((a, b) => a.game.localeCompare(b.game) || a.serverId - b.serverId);
+	}
+
+	get(game: AddonGame, serverId: number): ServerAddons | undefined {
+		return this.container.getService("Data").addons?.[game]?.[serverId];
+	}
+
+	private async store(entry: ServerAddons): Promise<void> {
+		const data = this.container.getService("Data");
+		data.addons ??= {};
+		data.addons[entry.game] ??= {};
+		data.addons[entry.game]![entry.serverId] = entry;
+		await data.save();
+	}
+
+	/**
+	 * Pull the addon list of a gmod server over SSH. Triggered once per server boot;
+	 * entries whose git host was unreachable get retried a few times since the next
+	 * natural refresh is the next restart.
+	 */
+	async refreshGmodRepos(server: GmodConnection, attempt = 0): Promise<void> {
+		const { id, name } = server.config;
+		if (!server.config.ssh) return;
+
+		const last = this.lastGmodRefresh.get(id) ?? 0;
+		if (attempt === 0 && Date.now() - last < GMOD_REFRESH_DEBOUNCE) return;
+		this.lastGmodRefresh.set(id, Date.now());
+		clearTimeout(this.retryTimers.get(id));
+		this.retryTimers.delete(id);
+
+		const result = await server.sshExecCommand(GSERV_ENUMERATE_SCRIPT, {});
+		if (!result) return;
+		if (result.code !== 0 && !result.stdout.trim()) {
+			log.warn({ server: name, stderr: result.stderr }, "gserv enumeration failed");
+			return;
+		}
+
+		const rows = result.stdout
+			.split("\n")
+			.map(line => line.split("\t"))
+			.filter(cols => cols.length >= 2 && cols[0]);
+
+		// A repo whose only addon root is one subfolder (content/, dist/...) is that addon.
+		const rowsPerRepo = new Map<string, number>();
+		for (const [repo] of rows) rowsPerRepo.set(repo, (rowsPerRepo.get(repo) ?? 0) + 1);
+
+		// Keep the last known entry when a git host is down instead of flipping it to private.
+		const previous = new Map<string, Addon>();
+		for (const addon of this.get("gmod", id)?.addons ?? []) {
+			if (addon.key) previous.set(addon.key, addon);
+		}
+
+		const built = await mapLimit(rows, RESOLVE_CONCURRENCY, ([repo, sub, remote, wsid]) =>
+			this.buildGmodAddon(
+				repo,
+				rowsPerRepo.get(repo) === 1 ? "." : sub,
+				remote,
+				wsid,
+				previous
+			)
+		);
+		const addons = built.map(b => b.addon);
+		const transient = built.filter(b => b.transient).length;
+
+		await this.store({
+			game: "gmod",
+			serverId: id,
+			serverName: name,
+			updatedAt: Date.now(),
+			addons: addons.sort((a, b) => a.name.localeCompare(b.name)),
+		});
+		log.info({ server: name, count: addons.length, transient }, "refreshed gmod addons");
+
+		if (transient > 0 && attempt < TRANSIENT_MAX_RETRIES) {
+			log.warn({ server: name, transient, attempt }, "retrying unresolved git entries later");
+			this.retryTimers.set(
+				id,
+				setTimeout(() => {
+					this.refreshGmodRepos(server, attempt + 1).catch(err =>
+						log.error({ err, server: name }, "addon refresh retry failed")
+					);
+				}, TRANSIENT_RETRY_DELAY)
+			);
+		}
+	}
+
+	private async buildGmodAddon(
+		repo: string,
+		sub: string,
+		remote?: string,
+		wsid?: string,
+		previous?: Map<string, Addon>
+	): Promise<{ addon: Addon; transient: boolean }> {
+		const fallbackName = sub && sub !== "." ? sub : repo;
+		const subpath = sub && sub !== "." ? sub : undefined;
+		const key = `${repo}/${sub || "."}`;
+		const parsed = remote ? parseGitRemote(remote) : undefined;
+
+		let git: GitResolution = { public: false };
+		if (parsed) {
+			git = await resolveGit(parsed, this.githubClient());
+			const last = previous?.get(key);
+			if (git.transient && last) return { addon: last, transient: true };
+		}
+		const addon = await this.describeGmodAddon(fallbackName, subpath, parsed, git, wsid);
+		return { addon: { ...addon, key }, transient: !!git.transient };
+	}
+
+	private async describeGmodAddon(
+		fallbackName: string,
+		subpath: string | undefined,
+		parsed: ReturnType<typeof parseGitRemote>,
+		git: GitResolution,
+		wsid?: string
+	): Promise<Addon> {
+		const baseUrl = git.meta?.url ?? parsed?.webUrl;
+		const treeSegment = parsed?.host === "gitlab" ? "/-/tree/HEAD/" : "/tree/HEAD/";
+		const repoUrl =
+			git.public && baseUrl
+				? subpath
+					? `${baseUrl}${treeSegment}${subpath}`
+					: baseUrl
+				: undefined;
+
+		if (wsid && /^\d+$/.test(wsid.trim())) {
+			wsid = wsid.trim();
+			const ws = await this.resolveWorkshop(wsid);
+			return {
+				name: ws?.name ?? git.meta?.name ?? fallbackName,
+				description: ws?.description ?? git.meta?.description,
+				thumbnail: ws?.thumbnail ?? git.meta?.thumbnail,
+				source: { kind: "workshop", id: wsid, url: workshopUrl(wsid), repoUrl },
+				private: false,
+			};
+		}
+
+		if (!parsed) {
+			return { name: fallbackName, source: { kind: "unknown" }, private: true };
+		}
+
+		if (!git.public) {
+			return {
+				name: fallbackName,
+				source: { kind: "git", host: parsed.host, subpath },
+				private: true,
+			};
+		}
+
+		return {
+			// A sub-addon keeps its folder name; title and description describe the whole collection.
+			name: subpath ? fallbackName : (git.meta?.name ?? fallbackName),
+			description: subpath ? undefined : git.meta?.description,
+			thumbnail: git.meta?.thumbnail,
+			source: { kind: "git", host: parsed.host, url: repoUrl, subpath },
+			private: false,
+		};
+	}
+
+	private async resolveWorkshop(id: string): Promise<ResolvedMeta | undefined> {
+		const cached = this.workshopCache.get(id);
+		if (cached !== undefined) return cached ?? undefined;
+
+		const steam = this.container.getService("Steam");
+		const details = (await steam.getPublishedFileDetails([id]))?.publishedfiledetails?.[0];
+		if (!details || details.result !== 1) {
+			this.workshopCache.set(id, null);
+			return;
+		}
+		const meta: ResolvedMeta = {
+			name: details.title,
+			description: details.description?.trim() || undefined,
+			thumbnail: details.preview_url || undefined,
+			url: workshopUrl(id),
+		};
+		this.workshopCache.set(id, meta);
+		return meta;
+	}
+
+	/** Store the mod list a minecraft server published. */
+	async setModList(server: MinecraftConnection, mods: ReportedMod[]): Promise<void> {
+		const { id, name } = server.config;
+		const relevant = mods.filter(m => !BUILTIN_MODS.has(m.modId));
+
+		const byHash = await resolveModrinth(
+			relevant.map(m => m.sha512).filter((h): h is string => !!h)
+		);
+		const unresolved = relevant.filter(m => !(m.sha512 && byHash.has(m.sha512)));
+		const byFingerprint = await resolveCurseforge(
+			unresolved.map(m => m.fingerprint).filter((f): f is number => typeof f === "number")
+		);
+
+		const addons: Addon[] = [];
+		for (const mod of relevant) {
+			const modrinth = mod.sha512 ? byHash.get(mod.sha512) : undefined;
+			if (modrinth) {
+				addons.push({
+					name: modrinth.name,
+					description: modrinth.description,
+					thumbnail: modrinth.thumbnail,
+					version: mod.version,
+					source: { kind: "modrinth", projectId: modrinth.projectId, url: modrinth.url },
+					private: false,
+				});
+				continue;
+			}
+
+			const curse =
+				typeof mod.fingerprint === "number"
+					? byFingerprint.get(mod.fingerprint)
+					: undefined;
+			if (curse) {
+				addons.push({
+					name: curse.name,
+					description: curse.description,
+					thumbnail: curse.thumbnail,
+					version: mod.version,
+					source: { kind: "curseforge", projectId: curse.projectId, url: curse.url },
+					private: false,
+				});
+				continue;
+			}
+
+			const remote = mod.sources ? parseGitRemote(mod.sources) : undefined;
+			if (remote && remote.host === "other" && /^https?:/.test(mod.sources ?? "")) {
+				addons.push({
+					name: mod.displayName,
+					description: mod.description,
+					version: mod.version,
+					source: { kind: "website", url: mod.sources! },
+					private: false,
+				});
+				continue;
+			}
+			if (remote) {
+				const git = await resolveGit(remote, this.githubClient());
+				addons.push({
+					name: git.meta?.name ?? mod.displayName,
+					description: git.meta?.description ?? mod.description,
+					thumbnail: git.meta?.thumbnail,
+					version: mod.version,
+					source: git.public
+						? { kind: "git", host: remote.host, url: git.meta?.url ?? remote.webUrl }
+						: { kind: "git", host: remote.host },
+					private: !git.public,
+				});
+				continue;
+			}
+
+			addons.push({
+				name: mod.displayName,
+				description: mod.description,
+				version: mod.version,
+				source: { kind: "unknown" },
+				private: true,
+			});
+		}
+
+		await this.store({
+			game: "minecraft",
+			serverId: id,
+			serverName: name,
+			updatedAt: Date.now(),
+			addons: addons.sort((a, b) => a.name.localeCompare(b.name)),
+		});
+		log.info({ server: name, count: addons.length }, "stored minecraft mods");
+	}
+}
+
+export default (container: Container): Service => {
+	return new Addons(container);
+};
