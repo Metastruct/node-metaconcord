@@ -21,6 +21,13 @@ export default abstract class GameSocketConnection extends GameConnection {
 	wsConnection?: WebSocketConnection;
 
 	private handlersAttached = false;
+	/**
+	 * Payloads received before Discord is ready and handlers are attached. The
+	 * bridges send their status right after connecting and only resend it on
+	 * events, so dropping these leaves the status empty until the next event.
+	 */
+	private pendingPayloads: WsPayload[] = [];
+	private static readonly MAX_PENDING = 100;
 
 	constructor(config: {
 		req?: WebSocketRequest;
@@ -35,6 +42,10 @@ export default abstract class GameSocketConnection extends GameConnection {
 			if (this.handlersAttached) return;
 			this.handlersAttached = true;
 			this.attachHandlers();
+
+			const pending = this.pendingPayloads;
+			this.pendingPayloads = [];
+			for (const data of pending) this.dispatch(data);
 		});
 
 		this.wsConnection?.on("message", async (msg: IUtf8Message) => {
@@ -50,17 +61,15 @@ export default abstract class GameSocketConnection extends GameConnection {
 				return;
 			}
 
-			if (this.listenerCount(data.name) === 0) {
-				log.info(data, "Invalid payload");
-				this.onUnknownPayload?.(data);
+			if (!this.handlersAttached) {
+				if (this.pendingPayloads.length >= GameSocketConnection.MAX_PENDING) {
+					this.pendingPayloads.shift();
+				}
+				this.pendingPayloads.push(data);
 				return;
 			}
 
-			try {
-				this.emit(data.name, data);
-			} catch (err) {
-				log.error({ data, err });
-			}
+			this.dispatch(data);
 		});
 
 		this.wsConnection?.on("close", async (code, desc) => {
@@ -82,6 +91,20 @@ export default abstract class GameSocketConnection extends GameConnection {
 	}
 
 	/** Attaches this game's payload handlers. Called once, the first time Discord becomes ready. */
+	private dispatch(data: WsPayload): void {
+		if (this.listenerCount(data.name) === 0) {
+			log.info(data, "Invalid payload");
+			this.onUnknownPayload?.(data);
+			return;
+		}
+
+		try {
+			this.emit(data.name, data);
+		} catch (err) {
+			log.error({ data, err });
+		}
+	}
+
 	protected abstract attachHandlers(): void;
 
 	/** Sets the bot's presence. Called every time Discord becomes ready. */
