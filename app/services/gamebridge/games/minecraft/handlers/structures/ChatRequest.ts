@@ -8,5 +8,7 @@ export default interface ChatRequest extends PayloadRequest {
 		};
 		/** @maxLength 2000 */
 		content: string;
+		/** set for /me, rendered as an emote instead of a normal message */
+		emote?: boolean;
 	};
 }
