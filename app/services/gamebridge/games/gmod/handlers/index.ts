@@ -1,3 +1,4 @@
+import AddonsPayload from "./AddonsPayload.js";
 import AdminNotifyPayload from "./AdminNotifyPayload.js";
 import BanAppealPayload from "./BanAppealPayload.js";
 import BanPayload from "./BanPayload.js";
@@ -15,6 +16,7 @@ import VoteKickPayload from "./VoteKickPayload.js";
 
 export {
 	Payload,
+	AddonsPayload,
 	AdminNotifyPayload,
 	BanAppealPayload,
 	BanPayload,
@@ -32,6 +34,7 @@ export {
 // The wire-protocol name (e.g. "StatusPayload") the gmod addon sends is the
 // handler class's own declared name, so no separate name mapping is needed.
 const handlers: (typeof Payload)[] = [
+	AddonsPayload,
 	AdminNotifyPayload,
 	BanAppealPayload,
 	BanPayload,

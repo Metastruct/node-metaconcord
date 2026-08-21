@@ -1,3 +1,4 @@
+import AddonsRequest from "./AddonsRequest.js";
 import AdminNotifyRequest from "./AdminNotifyRequest.js";
 import BanAppealRequest from "./BanAppealRequest.js";
 import BanRequest from "./BanRequest.js";
@@ -15,6 +16,7 @@ import StatusRequest from "./StatusRequest.js";
 import UnbanRequest from "./UnbanRequest.js";
 import VoteKickRequest from "./VoteKickRequest.js";
 export {
+	AddonsRequest,
 	AdminNotifyRequest,
 	BanAppealRequest,
 	BanRequest,

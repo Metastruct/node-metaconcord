@@ -1,4 +1,5 @@
 import { Service } from "../Container.js";
+import AddonsProvider, { Addons } from "./addons/index.js";
 import BanProvider, { Bans } from "./Bans.js";
 import DataProvider, { Data } from "./Data.js";
 import DiscordBotProvider, { DiscordBot } from "./discord/index.js";
@@ -28,6 +29,8 @@ export default [
 	MarkovProvider,
 	ResoniteProvider,
 	GameBridgeProvider,
+	// Depends on Data, Steam, Github & GameBridge
+	AddonsProvider,
 	// Depends on Data & GameBridge
 	DiscordBotProvider,
 	// Depend on DiscordBot
@@ -38,6 +41,7 @@ export default [
 ];
 
 export {
+	Addons,
 	Bans,
 	Data,
 	DiscordBot,
@@ -56,6 +60,7 @@ export {
 
 export type ServiceMap = {
 	[key: string]: Service;
+	Addons: Addons;
 	Bans: Bans;
 	Data: Data;
 	DiscordBot: DiscordBot;

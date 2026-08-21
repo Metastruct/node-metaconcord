@@ -1,3 +1,4 @@
+import addAddonsAPI from "./addons.js";
 import addEmojiAPI from "./emojis.js";
 import addGameServerStatusAPI from "./game-server-status.js";
 import addMapThumbnails from "./resources.js";
@@ -8,6 +9,7 @@ import gmodErrorHandler from "./gmod-error-handler.js";
 import steamOAuth from "./steam-oauth.js";
 
 export default [
+	addAddonsAPI,
 	addEmojiAPI,
 	addGameServerStatusAPI,
 	addMapThumbnails,
