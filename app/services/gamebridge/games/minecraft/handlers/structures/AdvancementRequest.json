@@ -1,20 +1,16 @@
 {
-	"$ref": "#/definitions/ChatRequest",
+	"$ref": "#/definitions/AdvancementRequest",
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"definitions": {
-		"ChatRequest": {
+		"AdvancementRequest": {
 			"additionalProperties": false,
 			"properties": {
 				"data": {
 					"additionalProperties": false,
 					"properties": {
-						"content": {
-							"maxLength": 2000,
+						"description": {
+							"maxLength": 1000,
 							"type": "string"
-						},
-						"emote": {
-							"description": "set for /me, rendered as an emote instead of a normal message",
-							"type": "boolean"
 						},
 						"player": {
 							"additionalProperties": false,
@@ -28,13 +24,22 @@
 							},
 							"required": ["nick", "uuid"],
 							"type": "object"
+						},
+						"title": {
+							"maxLength": 256,
+							"type": "string"
+						},
+						"type": {
+							"description": "the advancement's frame type",
+							"enum": ["task", "goal", "challenge"],
+							"type": "string"
 						}
 					},
-					"required": ["player", "content"],
+					"required": ["player", "title", "description", "type"],
 					"type": "object"
 				},
 				"name": {
-					"const": "ChatPayload",
+					"const": "AdvancementPayload",
 					"type": "string"
 				}
 			},
