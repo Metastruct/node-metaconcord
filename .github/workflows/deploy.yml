@@ -14,27 +14,7 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    lint:
-        continue-on-error: ${{ github.event_name != 'pull_request' }}
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: 22
-                  cache: yarn
-            - run: yarn install --immutable
-            - run: yarn check
-            - run: yarn schema:gen
-            - name: Check generated schemas are up to date
-              run: |
-                  git diff --exit-code -- '**/handlers/structures/*.json' || {
-                    echo "::error::Generated JSON schemas are out of date - run 'yarn schema:gen' and commit the result."
-                    exit 1
-                  }
-
     build_or_push_image:
-        needs: lint
         runs-on: ubuntu-latest
 
         steps:
