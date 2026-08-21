@@ -1146,7 +1146,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				}\`\`\``
 			: "";
 		const changeLinesContent = changeLines.join("\n");
-		const footerContent = `-# PR #${pr.number} ${action} by ${pr.user?.login ?? "unknown"}`;
+		const footerContent = `-# PR #${pr.number} ${action} by ${payload.sender.login ?? "unknown"}`;
 
 		// The PR body is prioritised over the diff codeblock: if showing both would blow
 		// past the Components V2 per-message text cap, drop the diff and keep the body.
