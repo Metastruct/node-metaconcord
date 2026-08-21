@@ -81,6 +81,7 @@ export default class StatusPayload extends Payload {
 		const {
 			countdown,
 			defcon,
+			hostname,
 			players,
 			mapName,
 			workshopMap,
@@ -288,7 +289,11 @@ export default class StatusPayload extends Payload {
 			server.gamemodes = current_gamemodes;
 			server.mapName = current_map;
 			server.mapUptime = current_mapUptime;
+			if (serverUptime !== undefined) {
+				server.serverUpSince = Date.now() - serverUptime * 1000;
+			}
 			server.serverUptime = current_serverUptime;
+			if (hostname) server.hostname = hostname;
 			server.status.image = statusApiUri;
 			server.status.mapThumbnail = mapThumbnail;
 			server.status.players = current_players;

@@ -2,6 +2,8 @@
 	{
 		"id": 1,
 		"ip": "",
+		"address": "",
+		"port": 27015,
 		"name": "",
 		"defaultGamemode": "",
 		"label": "",

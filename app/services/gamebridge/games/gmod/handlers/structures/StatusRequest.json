@@ -66,6 +66,9 @@
 									"avatar": {
 										"type": "string"
 									},
+									"entIndex": {
+										"type": "number"
+									},
 									"ip": {
 										"type": "string"
 									},

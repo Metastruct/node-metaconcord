@@ -6,6 +6,7 @@ import changeGamemode from "./gamemode.js";
 import ci from "./ci.js";
 import discordOAuth from "./discord-oauth.js";
 import gmodErrorHandler from "./gmod-error-handler.js";
+import servers from "./servers.js";
 import steamOAuth from "./steam-oauth.js";
 
 export default [
@@ -17,5 +18,6 @@ export default [
 	ci,
 	discordOAuth,
 	gmodErrorHandler,
+	servers,
 	steamOAuth,
 ];
