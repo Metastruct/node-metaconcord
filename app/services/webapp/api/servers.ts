@@ -5,6 +5,7 @@ import type { WebApp } from "@/app/services/webapp/index.js";
 import { promises as dns } from "dns";
 import path from "path";
 import ss13Config from "@/config/ss13.json" with { type: "json" };
+import vrchatConfig from "@/config/vrchat.json" with { type: "json" };
 
 /**
  * Live server/instance list for the website, one group per game. Only games with
@@ -222,11 +223,12 @@ export default async (webApp: WebApp): Promise<void> => {
 			});
 		}
 
-		// vrchat: one instance per group instance; VRChat exposes no player roster
+		// vrchat: one entry per open group instance (VRChat exposes no player roster),
+		// or the group itself when nothing is open, as long as the poll succeeded.
 		const vrchat: ServerEntry[] = [];
 		for (const server of Object.values(bridge.servers.vrchat)) {
-			if (!server || server.disconnected) continue;
-			for (const instance of server.lastInstances ?? []) {
+			if (!server || server.disconnected || !server.lastInstances) continue;
+			for (const instance of server.lastInstances) {
 				vrchat.push({
 					id: instance.instanceId,
 					key: `vrchat-${instance.world.id}-${instance.instanceId}`,
@@ -239,6 +241,19 @@ export default async (webApp: WebApp): Promise<void> => {
 					connect: {
 						url: `https://vrchat.com/home/launch?worldId=${instance.world.id}&instanceId=${instance.instanceId}`,
 					},
+				});
+			}
+			if (!server.lastInstances.length) {
+				const group = server.group;
+				vrchat.push({
+					id: vrchatConfig.groupId,
+					key: `vrchat-group-${vrchatConfig.groupId}`,
+					name: group?.name ?? server.config.name,
+					thumbnail: group?.bannerUrl || group?.iconUrl || undefined,
+					players: [],
+					playerCount: 0,
+					extra: { status: "No instance open right now" },
+					connect: { url: `https://vrchat.com/home/group/${vrchatConfig.groupId}` },
 				});
 			}
 		}
