@@ -68,7 +68,7 @@ export default class ChatPayload extends Payload {
 
 	static async handle(payload: ChatRequest, server: MinecraftConnection): Promise<void> {
 		super.handle(payload, server);
-		const { player } = payload.data;
+		const { player, emote } = payload.data;
 		let { content } = payload.data;
 		const { discord } = server;
 
@@ -92,7 +92,8 @@ export default class ChatPayload extends Payload {
 			}
 		}
 
-		content = content.substring(0, 2000);
+		// the webhook already shows the name, so an italic body reads as "Nick waves"
+		content = emote ? `*${content.substring(0, 1998)}*` : content.substring(0, 2000);
 
 		await chatWebhook
 			.send({
