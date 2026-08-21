@@ -24,6 +24,8 @@ export type Player = {
 	nick: string;
 	isPirate?: boolean;
 	description?: string;
+	/** gmod entity index, for steam://connect/.../GO:_<entIndex> */
+	entIndex?: number;
 };
 
 /**

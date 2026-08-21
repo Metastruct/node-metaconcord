@@ -15,6 +15,9 @@ const log = logger(import.meta);
 export type GmodConnectionConfig = GameConnectionConfig & {
 	defaultGamemode?: string;
 	ip?: string | string[];
+	/** public connect address and port, exposed to the website */
+	address?: string;
+	port?: number;
 	ssh?: {
 		host: string;
 		port: number;
@@ -30,7 +33,10 @@ export default class GmodConnection extends GameSocketConnection {
 		name: string;
 	};
 	gamemodes: string[];
+	hostname?: string;
 	serverUptime: number;
+	/** epoch ms the server booted, derived from serverUptime when it was received */
+	serverUpSince?: number;
 	mapUptime: number;
 	workshopMap?: {
 		name: string;
