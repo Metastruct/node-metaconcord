@@ -1,20 +1,17 @@
 {
-	"$ref": "#/definitions/ChatRequest",
+	"$ref": "#/definitions/DeathRequest",
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"definitions": {
-		"ChatRequest": {
+		"DeathRequest": {
 			"additionalProperties": false,
 			"properties": {
 				"data": {
 					"additionalProperties": false,
 					"properties": {
-						"content": {
-							"maxLength": 2000,
+						"message": {
+							"description": "the vanilla death message, e.g. \"Nick was slain by Zombie\"",
+							"maxLength": 256,
 							"type": "string"
-						},
-						"emote": {
-							"description": "set for /me, rendered as an emote instead of a normal message",
-							"type": "boolean"
 						},
 						"player": {
 							"additionalProperties": false,
@@ -30,11 +27,11 @@
 							"type": "object"
 						}
 					},
-					"required": ["player", "content"],
+					"required": ["player", "message"],
 					"type": "object"
 				},
 				"name": {
-					"const": "ChatPayload",
+					"const": "DeathPayload",
 					"type": "string"
 				}
 			},
