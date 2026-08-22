@@ -1039,6 +1039,21 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 	GitHub.on("push", async event => {
 		if (!webhook) return;
+
+		if (bridge) {
+			const payload = event.payload;
+			const branchName = payload.ref.split("/").slice(2).join("/");
+			bridge.events.emit("githubPush", {
+				repo: payload.repository.full_name,
+				branch: branchName,
+				commits: payload.commits.map(c => ({
+					author: c.author.username ?? c.author.name,
+					message: c.message.split("\n")[0],
+					hash: c.id.substring(0, 12),
+				})),
+			});
+		}
+
 		switch (event.payload.repository.name) {
 			case "garrysmod-chatsounds":
 				ChatsoundsPushHandler(event);
@@ -1195,6 +1210,32 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 	GitHub.on("pull_request", async event => {
 		if (!webhook) return;
+
+		if (bridge) {
+			const payload = event.payload;
+			const pr = payload.pull_request;
+			type PrAction = "opened" | "reopened" | "closed" | "merged" | "ready_for_review";
+			const actionMap: Partial<Record<string, PrAction>> = {
+				opened: "opened",
+				reopened: "reopened",
+				ready_for_review: "ready_for_review",
+				closed: pr.merged ? "merged" : "closed",
+			};
+			const action = actionMap[payload.action];
+			if (action) {
+				bridge.events.emit("githubPullRequest", {
+					repo: payload.repository.full_name,
+					action,
+					number: pr.number,
+					title: pr.title,
+					author: payload.sender?.login ?? "unknown",
+					branch: pr.head.ref,
+					baseBranch: pr.base.ref,
+					url: pr.html_url,
+				});
+			}
+		}
+
 		switch (event.payload.repository.name) {
 			case "garrysmod-chatsounds":
 				if (event.payload.action === "opened")
