@@ -31,6 +31,15 @@ export class WebApp extends Service {
 			})
 		);
 
+		if (
+			!this.config.allowedOrigins?.length ||
+			!this.config.siteUrl ||
+			!this.config.cookieDomain
+		) {
+			throw new Error(
+				"webapp.json needs allowedOrigins, siteUrl and cookieDomain (see webapp.example.json)"
+			);
+		}
 		this.app.use(cors({ origin: this.config.allowedOrigins, credentials: true }));
 		this.app.use(cookieParser(this.config.cookieSecret));
 
