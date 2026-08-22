@@ -4,5 +4,6 @@
 	"password": "",
 	"instanceId": 1,
 	"discordToken": "",
-	"commsKey": ""
+	"commsKey": "",
+    "watchedRepo": ""
 }
