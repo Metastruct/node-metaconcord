@@ -5,6 +5,7 @@ import { renderPlayerListImage } from "../../renderPlayerList.js";
 import SS13Connection, { SS13Status } from "./SS13Connection.js";
 import { WatchdogStatus, getDreamDaemonStatus } from "./tgsClient.js";
 import { getServerStatus, getPlayerList } from "./topics.js";
+import { queryTopic } from "./byondTopic.js";
 import config from "@/config/ss13.json" with { type: "json" };
 import { logger } from "@/utils.js";
 import dayjs from "dayjs";
@@ -231,4 +232,29 @@ export function attachSS13(bridge: GameBridge): void {
 
 	poll();
 	setInterval(poll, POLL_INTERVAL_MS);
+
+	if (config.watchedRepo && config.commsKey) {
+		bridge.events.on("githubPush", async payload => {
+			if (payload.repo !== config.watchedRepo) return;
+
+			const conn = bridge.servers.ss13[SS13_SERVER_ID];
+			if (!conn?.lastStatus?.port) return;
+
+			const data = JSON.stringify(
+				payload.commits.map(c => ({
+					author: c.author,
+					message: c.message,
+					hash: c.hash,
+				}))
+			);
+
+			const query = `commits&key=${encodeURIComponent(config.commsKey)}&branch=${encodeURIComponent(payload.branch)}&data=${encodeURIComponent(data)}`;
+
+			try {
+				await queryTopic(host, conn.lastStatus.port, query);
+			} catch (err) {
+				log.warn({ err, repo: payload.repo }, "failed to send commits to SS13");
+			}
+		});
+	}
 }

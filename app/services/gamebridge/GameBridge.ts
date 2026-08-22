@@ -11,6 +11,29 @@ import { attachSS13 } from "./games/ss13/index.js";
 import SS13Connection from "./games/ss13/SS13Connection.js";
 import { attachVRChat } from "./games/vrchat/index.js";
 import VRChatConnection from "./games/vrchat/VRChatConnection.js";
+import { EventEmitter } from "events";
+
+export type GitHubPushPayload = {
+	repo: string;
+	branch: string;
+	commits: { author: string; message: string; hash: string }[];
+};
+
+export type GitHubPullRequestPayload = {
+	repo: string;
+	action: "opened" | "reopened" | "closed" | "merged" | "ready_for_review";
+	number: number;
+	title: string;
+	author: string;
+	branch: string;
+	baseBranch: string;
+	url: string;
+};
+
+export interface GameBridgeEvents {
+	githubPush: [payload: GitHubPushPayload];
+	githubPullRequest: [payload: GitHubPullRequestPayload];
+}
 
 export default class GameBridge extends Service {
 	name = "GameBridge";
@@ -24,6 +47,7 @@ export default class GameBridge extends Service {
 		vrchat: VRChatConnection[];
 	} = { gmod: [], minecraft: [], resonite: [], ss13: [], vrchat: [] };
 	ready: boolean = false;
+	events = new EventEmitter<GameBridgeEvents>();
 
 	constructor(container: Container) {
 		super(container);
