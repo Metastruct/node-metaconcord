@@ -4,6 +4,9 @@ dotenv.config();
 
 // console.log(process.version);
 
+// Capture process output for the dashboard before anything logs
+import "./app/services/webapp/dashboard/LogBuffer.js";
+
 // Load module extensions
 import "./extensions/index.js";
 

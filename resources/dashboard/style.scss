@@ -1,0 +1,570 @@
+// tokens mirror metastruct.net / chatsounds.metastruct.net
+$bg: #212121;
+$chrome: #171717;
+$panel: #4a4a4a;
+$panel-inset: rgba(18, 18, 18, 0.33);
+$panel-sunken: rgba(13, 13, 13, 0.36);
+$border: #171717;
+$border-soft: #353535;
+$btn: #111;
+$btn-border: #0d0d0d;
+$text: #fefefe;
+$text-2: #eee;
+$text-muted: rgba(254, 254, 254, 0.5);
+$text-ghost: rgba(255, 255, 255, 0.25);
+$accent: #09b387;
+$accent-hi: #0ce3ac;
+$accent-dim: rgba(9, 179, 135, 0.25);
+$accent-2: #9f4ba3;
+$accent-2-dk: #7d3b80;
+$info: #3e8ed0;
+$success: #48c78e;
+$warning: #ffe08a;
+$danger: #f14668;
+$code: #e9d682;
+$ring: 0 0 0 0.125em rgba(125, 59, 128, 0.5);
+$shadow: 0 0 12px #0d0d0d;
+$radius: 4px;
+$radius-lg: 6px;
+$t-fast: 0.1s ease-out;
+$font:
+	"Open Sans",
+	system-ui,
+	-apple-system,
+	"Segoe UI",
+	sans-serif;
+$mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	color-scheme: dark;
+	scrollbar-color: $border-soft $chrome;
+	margin: 0;
+	height: 100%;
+	background: $bg;
+	color: $text;
+	font-family: $font;
+	font-size: 14px;
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+}
+
+a {
+	color: $accent;
+	text-decoration: none;
+	transition: color $t-fast;
+
+	&:hover {
+		color: $accent-hi;
+	}
+}
+
+button,
+input,
+select,
+textarea {
+	font: inherit;
+	color: inherit;
+}
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4em;
+	background: $btn;
+	border: 1px solid $btn-border;
+	color: $text;
+	border-radius: $radius;
+	height: 2.5rem;
+	padding: 0 1em;
+	white-space: nowrap;
+	cursor: pointer;
+	transition:
+		background $t-fast,
+		border-color $t-fast,
+		color $t-fast;
+
+	&:hover:not(:disabled) {
+		border-color: $border-soft;
+		color: $accent-hi;
+	}
+
+	&:focus-visible {
+		outline: none;
+		box-shadow: $ring;
+	}
+
+	&.small {
+		height: 2rem;
+		font-size: 0.85rem;
+		padding: 0 0.7em;
+	}
+
+	&.primary {
+		background: $accent;
+		border-color: transparent;
+		color: #fff;
+		font-weight: 600;
+
+		&:hover:not(:disabled) {
+			background: #09a67e;
+			color: #fff;
+		}
+	}
+
+	&.active {
+		background: $accent-2-dk;
+		border-color: transparent;
+		color: #fff;
+	}
+
+	&.danger:hover:not(:disabled) {
+		color: $danger;
+		border-color: $danger;
+	}
+
+	&:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+}
+
+.input,
+.select {
+	background: $panel-inset;
+	border: 1px solid $border;
+	border-radius: $radius;
+	color: $text-2;
+	padding: 0 0.6em;
+	height: 2rem;
+	font-size: 0.85rem;
+	transition:
+		border-color $t-fast,
+		box-shadow $t-fast;
+
+	&::placeholder {
+		color: $text-muted;
+	}
+
+	&:focus {
+		outline: none;
+		border-color: $accent-2-dk;
+		box-shadow: $ring;
+	}
+
+	&.invalid {
+		border-color: $danger;
+	}
+}
+
+textarea.input {
+	height: auto;
+	padding: 0.5em 0.6em;
+	resize: vertical;
+	min-height: 2.5rem;
+}
+
+// login page
+body.login {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.login-box {
+	background: $panel;
+	border-radius: $radius;
+	box-shadow: $shadow;
+	padding: 2rem 2.5rem;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1rem;
+
+	.logo {
+		height: 44px;
+	}
+
+	h1 {
+		margin: 0;
+		font-size: 1.5rem;
+		font-weight: 600;
+		line-height: 1.125;
+	}
+
+	p {
+		color: $text-muted;
+		margin: 0;
+	}
+
+	.btn.primary {
+		text-decoration: none;
+	}
+}
+
+// dashboard
+body:not(.login) {
+	display: flex;
+	flex-direction: column;
+}
+
+.navbar {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	min-height: 3.25rem;
+	padding: 0 0.75rem;
+	background: $chrome;
+
+	.brand {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+
+		.logo {
+			height: 36px;
+			display: block;
+		}
+
+		.name {
+			font-weight: 600;
+		}
+
+		.cwd {
+			color: $text-muted;
+			font-family: $mono;
+			font-size: 0.8rem;
+		}
+	}
+
+	.status {
+		display: inline-flex;
+		align-items: center;
+		height: 1.5rem;
+		padding: 0 0.6em;
+		border-radius: $radius;
+		background: $bg;
+		font-size: 0.75rem;
+		color: $text-muted;
+
+		&::before {
+			content: "";
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			background: currentcolor;
+			margin-right: 0.4em;
+		}
+
+		&[data-state="open"] {
+			color: $accent-hi;
+		}
+
+		&[data-state="closed"] {
+			color: $danger;
+		}
+	}
+
+	.user {
+		margin-left: auto;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+
+		.avatar {
+			width: 28px;
+			height: 28px;
+			border-radius: 50%;
+		}
+
+		.login {
+			margin-right: 0.25rem;
+		}
+	}
+}
+
+.panes {
+	flex: 1;
+	display: grid;
+	grid-template-columns: 3fr 2fr;
+	gap: 0.75rem;
+	padding: 0.75rem;
+	min-height: 0;
+}
+
+.pane {
+	background: $panel;
+	border-radius: $radius;
+	box-shadow: $shadow;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	min-width: 0;
+}
+
+.pane-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	padding: 0.5rem 1rem;
+	background: $panel-inset;
+	border-radius: $radius $radius 0 0;
+
+	.title {
+		font-weight: 700;
+		color: #f1f1f1;
+	}
+
+	.tools {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.hint {
+		color: $text-muted;
+		font-size: 0.8rem;
+	}
+}
+
+// terminal
+.log {
+	flex: 1;
+	overflow: auto;
+	padding: 0.5rem 1rem;
+	background: $panel-sunken;
+	font-family: $mono;
+	font-size: 0.8rem;
+	line-height: 1.45;
+	white-space: pre-wrap;
+	word-break: break-word;
+	outline: none;
+
+	.line {
+		display: flex;
+		gap: 0.6em;
+
+		.time {
+			color: $text-ghost;
+			flex: none;
+		}
+
+		.lvl {
+			flex: none;
+			width: 5ch;
+			font-weight: 600;
+		}
+
+		.file {
+			color: $accent;
+			flex: none;
+		}
+
+		.msg {
+			flex: 1;
+			min-width: 0;
+		}
+
+		.extra {
+			color: $text-muted;
+		}
+
+		&.lvl-10,
+		&.lvl-20 {
+			color: $text-muted;
+		}
+
+		&.lvl-40 .lvl {
+			color: $warning;
+		}
+
+		&.lvl-50 .lvl,
+		&.lvl-60 .lvl {
+			color: $danger;
+		}
+
+		&.lvl-60 {
+			background: rgba(241, 70, 104, 0.12);
+		}
+
+		&.stderr {
+			color: $warning;
+		}
+
+		&.cmd {
+			color: $accent-hi;
+		}
+
+		&.result {
+			color: $code;
+		}
+
+		&.error {
+			color: $danger;
+		}
+
+		&.stdout {
+			color: $text;
+		}
+
+		&.meta {
+			color: $text-muted;
+			font-style: italic;
+		}
+	}
+}
+
+.input-bar {
+	display: flex;
+	gap: 0.4rem;
+	padding: 0.5rem 1rem;
+	background: $panel-inset;
+	border-radius: 0 0 $radius $radius;
+
+	.mode {
+		display: flex;
+		gap: 2px;
+	}
+
+	input {
+		flex: 1;
+		font-family: $mono;
+	}
+}
+
+// config
+.configs {
+	flex: 1;
+	overflow: auto;
+	padding: 0.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+
+	details {
+		background: $bg;
+		border-radius: $radius;
+
+		summary {
+			cursor: pointer;
+			padding: 0.5rem 0.75rem;
+			font-family: $mono;
+			font-size: 0.9rem;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			list-style: none;
+
+			&::before {
+				content: "";
+				width: 0;
+				height: 0;
+				border: 4px solid transparent;
+				border-left: 5px solid $text-muted;
+				transition: transform $t-fast;
+			}
+
+			&::-webkit-details-marker {
+				display: none;
+			}
+
+			&:hover {
+				color: $accent-hi;
+			}
+
+			.dirty,
+			.err {
+				display: inline-flex;
+				align-items: center;
+				height: 1.5rem;
+				padding: 0 0.6em;
+				border-radius: $radius;
+				background: $chrome;
+				font-family: $font;
+				font-size: 0.75rem;
+
+				&:empty {
+					display: none;
+				}
+			}
+
+			.dirty {
+				color: $warning;
+			}
+
+			.err {
+				color: $danger;
+			}
+		}
+
+		&[open] > summary::before {
+			transform: rotate(90deg);
+		}
+
+		.body {
+			padding: 0.25rem 0.75rem 0.75rem;
+			border-top: 1px solid $border-soft;
+		}
+	}
+
+	.row {
+		display: grid;
+		grid-template-columns: minmax(120px, 1fr) 2fr auto;
+		gap: 0.4rem;
+		align-items: start;
+		padding: 0.2rem 0;
+
+		.key {
+			font-family: $mono;
+			font-size: 0.85rem;
+			padding-top: 0.4rem;
+			word-break: break-all;
+		}
+
+		input,
+		textarea {
+			width: 100%;
+			font-family: $mono;
+		}
+
+		.side {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 0.2rem;
+		}
+
+		.type {
+			color: $text-ghost;
+			font-size: 0.7rem;
+			font-family: $mono;
+		}
+
+		&.add {
+			margin-top: 0.4rem;
+			padding-top: 0.5rem;
+			border-top: 1px dashed $border-soft;
+		}
+	}
+
+	.actions {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+		gap: 0.4rem;
+		margin-top: 0.5rem;
+
+		.msg {
+			font-size: 0.8rem;
+			color: $text-muted;
+			margin-right: auto;
+		}
+	}
+}

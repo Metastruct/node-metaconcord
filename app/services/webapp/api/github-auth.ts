@@ -52,12 +52,25 @@ const cookieOptions = {
 	domain: IS_PROD ? WebAppConfig.cookieDomain : undefined,
 };
 
-export const getSession = (req: Request): EditorSession | undefined => {
-	const raw = req.cookies?.[SESSION_COOKIE];
+const sessionFromRaw = (raw: unknown): EditorSession | undefined => {
 	if (typeof raw !== "string") return;
 	const session = decrypt<EditorSession>(raw);
 	if (!session || session.expiresAt < Date.now()) return;
 	return session;
+};
+
+export const getSession = (req: Request): EditorSession | undefined =>
+	sessionFromRaw(req.cookies?.[SESSION_COOKIE]);
+
+/** For requests that didn't go through cookie-parser (websocket upgrades). */
+export const getSessionFromCookieHeader = (
+	header: string | undefined
+): EditorSession | undefined => {
+	const raw = header
+		?.split(";")
+		.map(part => part.trim().split("="))
+		.find(([name]) => name === SESSION_COOKIE)?.[1];
+	return sessionFromRaw(raw);
 };
 
 /** Sends 401 and returns undefined when the request carries no valid editor session. */
@@ -95,7 +108,9 @@ export default (webApp: WebApp): void => {
 	webApp.app.get("/auth/github", limiter, (req, res) => {
 		const state = crypto.randomUUID();
 		res.cookie(STATE_COOKIE, state, { ...cookieOptions, maxAge: 5 * 60 * 1000, signed: true });
-		res.cookie("ghRedirect", safeRedirect(req.query.redirect), {
+		// target=self lands on this host (the dashboard) instead of the website
+		const base = req.query.target === "self" ? webApp.config.url : webApp.config.siteUrl;
+		res.cookie("ghRedirect", base + safeRedirect(req.query.redirect), {
 			...cookieOptions,
 			maxAge: 5 * 60 * 1000,
 			signed: true,
@@ -113,7 +128,12 @@ export default (webApp: WebApp): void => {
 	webApp.app.get("/auth/github/callback", limiter, async (req, res) => {
 		const { code, state } = req.query;
 		const expected = req.signedCookies?.[STATE_COOKIE];
-		const redirect = safeRedirect(req.signedCookies?.ghRedirect);
+		const stored = req.signedCookies?.ghRedirect;
+		const redirect = [webApp.config.url, webApp.config.siteUrl].some(
+			base => typeof stored === "string" && stored.startsWith(base + "/")
+		)
+			? (stored as string)
+			: webApp.config.siteUrl + "/";
 		res.clearCookie(STATE_COOKIE, cookieOptions);
 		res.clearCookie("ghRedirect", cookieOptions);
 
@@ -171,7 +191,7 @@ export default (webApp: WebApp): void => {
 		};
 		res.cookie(SESSION_COOKIE, encrypt(session), { ...cookieOptions, maxAge: SESSION_TTL });
 		log.info(`github login for ${user.login}`);
-		res.redirect(`${webApp.config.siteUrl}${redirect}`);
+		res.redirect(redirect);
 	});
 
 	webApp.app.get("/auth/me", (req, res) => {

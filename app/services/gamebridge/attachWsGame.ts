@@ -2,7 +2,7 @@ import { request as WebSocketRequest } from "websocket";
 import GameBridge from "./GameBridge.js";
 import { GameConnectionConfig } from "./GameConnection.js";
 import GameSocketConnection from "./GameSocketConnection.js";
-import { WsRouter } from "./WsRouter.js";
+import { WsRouter } from "@/app/services/webapp/WsRouter.js";
 import config from "@/config/gamebridge.json" with { type: "json" };
 import { logger } from "@/utils.js";
 
