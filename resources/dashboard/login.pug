@@ -1,3 +1,4 @@
+doctype html
 html(lang="en")
 	head
 		meta(charset="UTF-8")
@@ -11,6 +12,11 @@ html(lang="en")
 		main.login-box
 			img.logo(src="/dashboard/static/logo.svg", alt="Meta Construct")
 			h1 metaconcord
-			p Admin dashboard, GitHub team members only.
-			a.btn.primary(href="/auth/github?target=self&redirect=/") Log in with GitHub
+			if session
+				p #{session.login} is not in the #{adminTeam} team.
+				form(method="post", action="/auth/logout")
+					button.btn(type="submit") Log out
+			else
+				p Admin dashboard, #{adminTeam} only.
+				a.btn.primary(href="/auth/github?target=self&redirect=/") Log in with GitHub
 			a(href=siteUrl) metastruct.net

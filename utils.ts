@@ -251,8 +251,13 @@ export const makeSpeechBubble = async (
 
 let adminGroupMembersCache: string | undefined;
 let adminGroupMembersRefresh: Promise<void> | undefined;
+let adminGroupMembersFetchedAt = 0;
+const ADMIN_GROUP_TTL = 60 * 60 * 1000;
+// Steam answers 429 quickly, so a failed refresh is not retried before this
+const ADMIN_GROUP_RETRY = 5 * 60 * 1000;
 
 const refreshAdminGroupMembers = async (): Promise<void> => {
+	adminGroupMembersFetchedAt = Date.now();
 	const res = await axios.get(
 		"https://steamcommunity.com/gid/103582791433481287/memberslistxml?xml=1"
 	);
@@ -260,7 +265,9 @@ const refreshAdminGroupMembers = async (): Promise<void> => {
 };
 
 export const isAdmin = async (steamid: string) => {
-	if (!adminGroupMembersCache) {
+	const age = Date.now() - adminGroupMembersFetchedAt;
+	const stale = adminGroupMembersCache ? age > ADMIN_GROUP_TTL : age > ADMIN_GROUP_RETRY;
+	if (stale) {
 		adminGroupMembersRefresh ??= refreshAdminGroupMembers().finally(() => {
 			adminGroupMembersRefresh = undefined;
 		});

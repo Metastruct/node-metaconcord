@@ -24,6 +24,7 @@ $danger: #f14668;
 $code: #e9d682;
 $ring: 0 0 0 0.125em rgba(125, 59, 128, 0.5);
 $shadow: 0 0 12px #0d0d0d;
+$terminal: #0d0d0d;
 $radius: 4px;
 $radius-lg: 6px;
 $t-fast: 0.1s ease-out;
@@ -231,44 +232,10 @@ body:not(.login) {
 			height: 36px;
 			display: block;
 		}
-
-		.name {
-			font-weight: 600;
-		}
-
-		.cwd {
-			color: $text-muted;
-			font-family: $mono;
-			font-size: 0.8rem;
-		}
 	}
 
-	.status {
-		display: inline-flex;
-		align-items: center;
-		height: 1.5rem;
-		padding: 0 0.6em;
-		border-radius: $radius;
-		background: $bg;
-		font-size: 0.75rem;
-		color: $text-muted;
-
-		&::before {
-			content: "";
-			width: 6px;
-			height: 6px;
-			border-radius: 50%;
-			background: currentcolor;
-			margin-right: 0.4em;
-		}
-
-		&[data-state="open"] {
-			color: $accent-hi;
-		}
-
-		&[data-state="closed"] {
-			color: $danger;
-		}
+	.name {
+		font-weight: 600;
 	}
 
 	.user {
@@ -335,14 +302,22 @@ body:not(.login) {
 }
 
 // terminal
+.console {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	background: $terminal;
+	border-radius: 0 0 $radius $radius;
+	font-family: $mono;
+	font-size: 0.8rem;
+	line-height: 1.45;
+}
+
 .log {
 	flex: 1;
 	overflow: auto;
 	padding: 0.5rem 1rem;
-	background: $panel-sunken;
-	font-family: $mono;
-	font-size: 0.8rem;
-	line-height: 1.45;
 	white-space: pre-wrap;
 	word-break: break-word;
 	outline: none;
@@ -421,21 +396,84 @@ body:not(.login) {
 	}
 }
 
+// the prompt line: pinned under the output, separated by a rule
 .input-bar {
 	display: flex;
-	gap: 0.4rem;
-	padding: 0.5rem 1rem;
-	background: $panel-inset;
-	border-radius: 0 0 $radius $radius;
+	align-items: center;
+	padding: 0.3rem 0;
+	border-top: 1px solid $border-soft;
 
+	// powerline segment: the label's right edge is a chevron pointing into the input
 	.mode {
-		display: flex;
-		gap: 2px;
+		flex: none;
+		position: relative;
+		margin: 0 0.8rem 0 0;
+		border: none;
+		border-radius: 0;
+		background: $accent-2-dk;
+		color: #fff;
+		font-family: $font;
+		font-size: 0.65rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		height: 1.15rem;
+		line-height: 1;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		// Open Sans sits high in its box, nudge the cap height down
+		padding: 0.1em 0.5rem 0 0.8rem;
+		cursor: pointer;
+
+		&::after {
+			content: "";
+			position: absolute;
+			left: 100%;
+			top: 0;
+			border-top: 0.575rem solid transparent;
+			border-bottom: 0.575rem solid transparent;
+			border-left: 0.45rem solid $accent-2-dk;
+		}
+
+		&[data-mode="bash"] {
+			background: $accent;
+
+			&::after {
+				border-left-color: $accent;
+			}
+		}
+
+		&:focus-visible {
+			outline: none;
+			color: $accent-hi;
+		}
 	}
 
 	input {
 		flex: 1;
-		font-family: $mono;
+		background: none;
+		border: none;
+		padding: 0;
+		color: $text;
+		font-family: inherit;
+		font-size: inherit;
+		caret-color: $accent-hi;
+
+		&::placeholder {
+			color: $text-ghost;
+		}
+
+		&:focus {
+			outline: none;
+		}
+	}
+
+	&[data-state="closed"] .mode {
+		background: $danger;
+
+		&::after {
+			border-left-color: $danger;
+		}
 	}
 }
 
@@ -526,6 +564,10 @@ body:not(.login) {
 			font-size: 0.85rem;
 			padding-top: 0.4rem;
 			word-break: break-all;
+			display: flex;
+			flex-wrap: wrap;
+			align-items: baseline;
+			gap: 0.5em;
 		}
 
 		input,
@@ -534,17 +576,9 @@ body:not(.login) {
 			font-family: $mono;
 		}
 
-		.side {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			gap: 0.2rem;
-		}
-
 		.type {
 			color: $text-ghost;
 			font-size: 0.7rem;
-			font-family: $mono;
 		}
 
 		&.add {

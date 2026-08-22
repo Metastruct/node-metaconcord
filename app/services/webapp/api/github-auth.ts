@@ -21,6 +21,8 @@ export type EditorSession = {
 	avatarUrl: string;
 	token: string;
 	expiresAt: number;
+	/** Teams from history.json the user is an active member of. */
+	teams?: string[];
 };
 
 // signed cookies are readable by the browser, the token must not be
@@ -85,7 +87,8 @@ const safeRedirect = (value: unknown): string => {
 	return "/";
 };
 
-const isTeamMember = async (octokit: Octokit, login: string): Promise<boolean> => {
+const getTeams = async (octokit: Octokit, login: string): Promise<string[]> => {
+	const teams: string[] = [];
 	for (const team of HistoryConfig.teams) {
 		try {
 			const { data } = await octokit.teams.getMembershipForUserInOrg({
@@ -93,13 +96,13 @@ const isTeamMember = async (octokit: Octokit, login: string): Promise<boolean> =
 				team_slug: team,
 				username: login,
 			});
-			if (data.state === "active") return true;
+			if (data.state === "active") teams.push(team);
 		} catch (err) {
 			const status = (err as { status?: number }).status;
 			if (status !== 404) log.warn(err, `team membership check failed for ${team}`);
 		}
 	}
-	return false;
+	return teams;
 };
 
 export default (webApp: WebApp): void => {
@@ -173,7 +176,8 @@ export default (webApp: WebApp): void => {
 			return;
 		}
 
-		if (!(await isTeamMember(octokit, user.login))) {
+		const teams = await getTeams(octokit, user.login);
+		if (!teams.length) {
 			log.info(`github login refused for ${user.login}`);
 			res.status(403).send(
 				`<!doctype html><meta charset="utf-8"><body style="font-family:sans-serif;background:#222;color:#eee;padding:2em">` +
@@ -188,6 +192,7 @@ export default (webApp: WebApp): void => {
 			avatarUrl: user.avatar_url,
 			token: tokens.access_token,
 			expiresAt: Date.now() + SESSION_TTL,
+			teams,
 		};
 		res.cookie(SESSION_COOKIE, encrypt(session), { ...cookieOptions, maxAge: SESSION_TTL });
 		log.info(`github login for ${user.login}`);
@@ -204,8 +209,10 @@ export default (webApp: WebApp): void => {
 		res.json({ login: session.login, avatarUrl: session.avatarUrl, isAdmin: true });
 	});
 
-	webApp.app.post("/auth/logout", (_, res) => {
+	webApp.app.post("/auth/logout", (req, res) => {
 		res.clearCookie(SESSION_COOKIE, cookieOptions);
-		res.status(204).end();
+		// plain form submit from the dashboard login page, fetch() callers get a 204
+		if (req.accepts(["json", "html"]) === "html") res.redirect("/");
+		else res.status(204).end();
 	});
 };

@@ -1,3 +1,4 @@
+doctype html
 html(lang="en")
 	head
 		meta(charset="UTF-8")
@@ -11,10 +12,7 @@ html(lang="en")
 		header.navbar
 			a.brand(href=siteUrl, title="metastruct.net")
 				img.logo(src="/dashboard/static/logo.svg", alt="Meta Construct")
-			.brand
-				span.name metaconcord
-				span.cwd= cwd
-			.status#ws-status(data-state="connecting") connecting
+			span.name metaconcord
 			.user
 				img.avatar(src=session.avatarUrl, alt="")
 				span.login= session.login
@@ -34,18 +32,15 @@ html(lang="en")
 						input.input#text-filter(type="search", placeholder="filter text", spellcheck="false")
 						button.btn.small#pause(title="Pause autoscroll") Pause
 						button.btn.small#clear Clear
-				.log#log(tabindex="0")
-				form.input-bar#input-bar(autocomplete="off")
-					.mode#mode(role="group")
-						button.btn.small.active(type="button", data-mode="js") js
-						button.btn.small(type="button", data-mode="bash") bash
-					input.input#input(type="text", placeholder="MetaConcord.container.getServices()", spellcheck="false", autofocus)
-					button.btn.small.primary(type="submit") Run
+				.console
+					.log#log(tabindex="0")
+					form.input-bar#input-bar(autocomplete="off", data-state="connecting")
+						button.mode#mode(type="button", data-mode="js", title="Click, or Tab on an empty line, to switch") REPL
+						input#input(type="text", placeholder="MetaConcord.container.getServices()", spellcheck="false", autofocus)
 			section.pane.config
 				.pane-head
 					span.title Config
 					.tools
 						span.hint changes apply after a restart
-						button.btn.small#reload-config Reload
 				.configs#configs
 		script(src="/dashboard/static/app.js")
