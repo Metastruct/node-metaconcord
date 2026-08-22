@@ -32,7 +32,7 @@ const FILE = {
 };
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const URL_RE = /^https?:\/\/\S+$/;
+const URL_RE = /^(https?:\/\/|\/(?!\/))\S*$/;
 
 const slugify = (s: string): string =>
 	s
@@ -54,9 +54,10 @@ const validate = (input: unknown): HistoryEvent | string => {
 	if (!name || name.length > 255) return "name is required (max 255 chars)";
 	if (description.length > 2000) return "description too long (max 2000 chars)";
 	if (!DATE_RE.test(date) || Number.isNaN(Date.parse(date))) return "date must be YYYY-MM-DD";
-	if (url && (url.length > 2100 || !URL_RE.test(url))) return "url must be http(s)";
+	if (url && (url.length > 2100 || !URL_RE.test(url)))
+		return "url must be http(s) or a site path";
 	if (imageUrl && (imageUrl.length > 2100 || !URL_RE.test(imageUrl)))
-		return "imageUrl must be http(s)";
+		return "imageUrl must be http(s) or a site path";
 
 	const out: HistoryEvent = { id: "", date, name, description };
 	if (url) out.url = url;
