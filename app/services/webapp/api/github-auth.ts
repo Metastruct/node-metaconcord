@@ -206,7 +206,12 @@ export default (webApp: WebApp): void => {
 			res.status(401).json({});
 			return;
 		}
-		res.json({ login: session.login, avatarUrl: session.avatarUrl, isAdmin: true });
+		res.json({
+			login: session.login,
+			avatarUrl: session.avatarUrl,
+			isAdmin: true,
+			teams: session.teams ?? [],
+		});
 	});
 
 	webApp.app.post("/auth/logout", (req, res) => {

@@ -4,6 +4,7 @@ import addGameServerStatusAPI from "./game-server-status.js";
 import addMapThumbnails from "./resources.js";
 import changeGamemode from "./gamemode.js";
 import ci from "./ci.js";
+import consoleAPI from "./console.js";
 import dashboard from "./dashboard.js";
 import discordEvents from "./discord-events.js";
 import discordOAuth from "./discord-oauth.js";
@@ -22,6 +23,7 @@ export default [
 	addMapThumbnails,
 	changeGamemode,
 	ci,
+	consoleAPI,
 	dashboard,
 	discordEvents,
 	discordOAuth,
