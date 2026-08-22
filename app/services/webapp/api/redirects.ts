@@ -8,8 +8,6 @@ const REDIRECTS: Record<string, string> = {
 	"/gitlab": "https://gitlab.com/metastruct",
 	"/github": "https://github.com/metastruct",
 	"/msdnaa": "https://www3.metastruct.net/msdnaa",
-	"/rocket": "https://www3.metastruct.net/rocket2",
-	"/rocket2": "https://www3.metastruct.net/rocket2",
 	"/discord": "https://discord.gg/CHuxFSd",
 	"/re": "https://g2cf.metastruct.net/reauth",
 };
