@@ -2,7 +2,7 @@
 	"owner": "Metastruct",
 	"repo": "history",
 	"path": "history.json",
-	"branch": "main",
+	"branch": "master",
 	"org": "Metastruct",
 	"teams": ["administrators", "developers"]
 }
