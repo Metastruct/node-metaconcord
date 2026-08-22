@@ -7,5 +7,8 @@
 	"lookupPath": "",
 	"cookieSecret": "",
 	"samlSSOEntrypoint": "",
-	"samlCert": ""
+	"samlCert": "",
+	"siteUrl": "https://metastruct.net",
+	"allowedOrigins": ["https://metastruct.net", "http://localhost:20000"],
+	"cookieDomain": ".metastruct.net"
 }

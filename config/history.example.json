@@ -1,0 +1,8 @@
+{
+	"owner": "Metastruct",
+	"repo": "history",
+	"path": "history.json",
+	"branch": "main",
+	"org": "Metastruct",
+	"teams": ["administrators", "developers"]
+}
