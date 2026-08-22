@@ -13,7 +13,7 @@ const log = logger(import.meta);
 /**
  * Timeline events for the website, stored as a JSON array in a GitHub repo and
  * edited with the logged-in user's own token so every change is a commit in their name.
- * Reads go straight to raw.githubusercontent.com, there is no GET here.
+ * GET /history serves a cached copy read with the GitHub App.
  */
 export type HistoryEvent = {
 	id: string;
@@ -75,6 +75,42 @@ const uniqueId = (events: HistoryEvent[], ev: HistoryEvent): string => {
 	return id;
 };
 
+/**
+ * Public copy of the file, read with the GitHub App and revalidated by ETag so the
+ * website doesn't depend on raw.githubusercontent's 5 minute cache.
+ */
+const REVALIDATE_AFTER = 15 * 1000;
+let publicCache: { events: HistoryEvent[]; etag?: string; checkedAt: number } | undefined;
+
+const readPublic = async (appOctokit: Octokit): Promise<HistoryEvent[]> => {
+	if (publicCache && Date.now() - publicCache.checkedAt < REVALIDATE_AFTER)
+		return publicCache.events;
+	try {
+		const { data, headers } = await appOctokit.repos.getContent({
+			...FILE,
+			ref: HistoryConfig.branch,
+			headers: publicCache?.etag ? { "if-none-match": publicCache.etag } : {},
+		});
+		if (Array.isArray(data) || data.type !== "file")
+			throw new Error("history path is not a file");
+		const events = JSON.parse(
+			Buffer.from(data.content, "base64").toString("utf8")
+		) as HistoryEvent[];
+		publicCache = { events, etag: headers.etag, checkedAt: Date.now() };
+	} catch (err) {
+		const status = (err as { status?: number }).status;
+		if (status === 304 && publicCache) {
+			publicCache.checkedAt = Date.now();
+		} else if (publicCache) {
+			log.warn(err, "history revalidation failed, serving the cached copy");
+			publicCache.checkedAt = Date.now();
+		} else {
+			throw err;
+		}
+	}
+	return publicCache.events;
+};
+
 const readFile = async (octokit: Octokit) => {
 	const { data } = await octokit.repos.getContent({ ...FILE, ref: HistoryConfig.branch });
 	if (Array.isArray(data) || data.type !== "file") throw new Error("history path is not a file");
@@ -119,7 +155,7 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 		}
 		const commitUrl = await writeFile(octokit, result.events, sha, result.message);
 		log.info(`${session.login}: ${result.message}`);
-		// raw.githubusercontent caches for 5 minutes, so the client uses this list instead of refetching
+		publicCache = { events: result.events, etag: undefined, checkedAt: Date.now() };
 		res.json({ event: result.event, events: result.events, commitUrl });
 	} catch (err) {
 		const status = (err as { status?: number }).status;
@@ -139,6 +175,17 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 export default (webApp: WebApp): void => {
 	const limiter = rateLimit({ keyGenerator: rateLimitKeyGenerator, windowMs: 60_000, limit: 30 });
 	const json = express.json({ limit: "64kb" });
+
+	webApp.app.get("/history", async (_, res) => {
+		try {
+			const events = await readPublic(webApp.container.getService("Github").octokit);
+			res.set("Cache-Control", "public, max-age=15");
+			res.json({ events });
+		} catch (err) {
+			log.error(err, "failed reading history");
+			res.status(502).json({ error: "history unavailable" });
+		}
+	});
 
 	webApp.app.post("/history/events", limiter, json, (req, res) =>
 		mutate(req, res, events => {
