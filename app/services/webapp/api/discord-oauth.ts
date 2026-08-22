@@ -5,7 +5,6 @@ import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
 import DiscordConfig from "@/config/discord.json" with { type: "json" };
 import SteamID from "steamid";
-import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import { verifyWebhookEventMiddleware } from "discord-interactions";
 import { logger } from "@/utils.js";
@@ -113,8 +112,6 @@ export default async (webApp: WebApp): Promise<void> => {
 		});
 		if (res?.ok) return res.json() as Promise<ConnectionObject[]>;
 	};
-
-	webApp.app.use(cookieParser(webApp.config.cookieSecret));
 
 	webApp.app.get("/discord/link", async (_, res) => {
 		const { state, url } = getOAuthURL();

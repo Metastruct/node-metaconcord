@@ -36,3 +36,18 @@ $ node schema_gen.mjs
 # Go wacky
 $ yarn dev
 ```
+
+## Website auth and history (metastruct.net)
+
+The website logs editors in through GitHub (`/auth/github`) and edits the timeline by committing to `history.json` in the repo named in `config/history.json`, using the editor's own token.
+
+Requirements on the GitHub App in `config/github.json`:
+
+- Callback URL: `<webapp.url>/auth/github/callback`
+- Installed on the `Metastruct` org with access to the history repo
+- Permissions: `Contents: read & write`, `Members: read`
+- Editors must be active members of one of the teams listed in `config/history.json` (`administrators`, `developers`)
+
+`config/webapp.json` needs `siteUrl`, `allowedOrigins` (CORS with credentials) and `cookieDomain` (`.metastruct.net` so the session cookie is shared with the site).
+
+Routes: `GET /auth/github?redirect=/path`, `GET /auth/github/callback`, `GET /auth/me`, `POST /auth/logout`, `POST /history/events`, `PUT /history/events/:id`, `DELETE /history/events/:id`, `GET /join/:label`, plus the `/discord`, `/github`, `/gitlab`... short links.

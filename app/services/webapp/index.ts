@@ -2,6 +2,8 @@ import { Container, Service } from "@/app/Container.js";
 import { Server as HTTPServer } from "http";
 import APIs from "./api/index.js";
 import config from "@/config/webapp.json" with { type: "json" };
+import cookieParser from "cookie-parser";
+import cors from "cors";
 import express from "express";
 import type pino from "pino";
 import { pinoHttp } from "pino-http";
@@ -9,7 +11,7 @@ import { logger } from "@/utils.js";
 
 const log = logger("WebApp");
 
-const PATH_IGNORE = ["/server-status", "/servers", "/discord/guild/emojis", "/addons"];
+const PATH_IGNORE = ["/server-status", "/servers", "/discord/guild/emojis", "/addons", "/auth/me"];
 
 export class WebApp extends Service {
 	name = "WebApp";
@@ -28,6 +30,9 @@ export class WebApp extends Service {
 				autoLogging: { ignore: req => PATH_IGNORE.some(p => req.path.startsWith(p)) },
 			})
 		);
+
+		this.app.use(cors({ origin: this.config.allowedOrigins, credentials: true }));
+		this.app.use(cookieParser(this.config.cookieSecret));
 
 		for (const addAPI of APIs) {
 			addAPI(this);

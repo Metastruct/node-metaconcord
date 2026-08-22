@@ -57,7 +57,7 @@ const GAME_LABELS: Record<ServerGame, string> = {
 const DNS_TTL = 10 * 60 * 1000;
 const dnsCache = new Map<string, { ip: string; expires: number }>();
 
-async function resolveIp(hostname: string): Promise<string | undefined> {
+export async function resolveIp(hostname: string): Promise<string | undefined> {
 	if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) return hostname;
 	const cached = dnsCache.get(hostname);
 	if (cached && cached.expires > Date.now()) return cached.ip;
