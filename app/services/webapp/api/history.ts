@@ -119,7 +119,8 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 		}
 		const commitUrl = await writeFile(octokit, result.events, sha, result.message);
 		log.info(`${session.login}: ${result.message}`);
-		res.json({ event: result.event, commitUrl });
+		// raw.githubusercontent caches for 5 minutes, so the client uses this list instead of refetching
+		res.json({ event: result.event, events: result.events, commitUrl });
 	} catch (err) {
 		const status = (err as { status?: number }).status;
 		if (status === 409) {
