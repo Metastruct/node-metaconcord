@@ -26,7 +26,7 @@ const GSERV_ACTIONS = ["rehash", "merge_repos", "rehashskeleton", "update_repos"
 
 // one lua round-trip for the status bar: fps, current and max players
 const STATUS_LUA =
-	"return util.TableToJSON({fps=math.floor(1/engine.ServerFrameTime()),players=player.GetCount(),max=game.MaxPlayers()})";
+	"return util.TableToJSON({fps=math.floor(1/FrameTime()),players=player.GetCount(),max=game.MaxPlayers()})";
 
 const canUseConsole = (session?: EditorSession): session is EditorSession =>
 	!!session?.teams?.some(team => HistoryConfig.teams.includes(team));
