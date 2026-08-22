@@ -16,6 +16,7 @@ const PATH_IGNORE = [
 	"/servers",
 	"/discord/guild/emojis",
 	"/discord/guild/widget",
+	"/discord/guild/events",
 	"/addons",
 	"/auth/me",
 ];
