@@ -1,6 +1,5 @@
 import { Container, Service } from "@/app/Container.js";
 import { WebApp } from "@/app/services/webapp/index.js";
-import { WsRouter } from "./WsRouter.js";
 import { attachGmod } from "./games/gmod/index.js";
 import GmodConnection from "./games/gmod/GmodConnection.js";
 import { attachMinecraft } from "./games/minecraft/index.js";
@@ -56,7 +55,7 @@ export default class GameBridge extends Service {
 	async init() {
 		this.webApp = this.container.getService("WebApp");
 
-		const router = new WsRouter(this.webApp.http);
+		const router = this.webApp.ws;
 		attachGmod(this, router);
 		attachResonite(this);
 		attachSS13(this);

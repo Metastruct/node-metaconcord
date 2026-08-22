@@ -8,6 +8,7 @@ import express from "express";
 import type pino from "pino";
 import { pinoHttp } from "pino-http";
 import { logger } from "@/utils.js";
+import { WsRouter } from "./WsRouter.js";
 
 const log = logger("WebApp");
 
@@ -19,6 +20,8 @@ const PATH_IGNORE = [
 	"/discord/guild/events",
 	"/addons",
 	"/auth/me",
+	"/dashboard/logs",
+	"/dashboard/static",
 ];
 
 export class WebApp extends Service {
@@ -26,6 +29,8 @@ export class WebApp extends Service {
 	config = config;
 	app = express();
 	http: HTTPServer;
+	/** Single WebSocket server for the http server, routes are added by path. */
+	ws: WsRouter;
 
 	constructor(container: Container) {
 		super(container);
@@ -51,15 +56,16 @@ export class WebApp extends Service {
 		this.app.use(cors({ origin: this.config.allowedOrigins, credentials: true }));
 		this.app.use(cookieParser(this.config.cookieSecret));
 
-		for (const addAPI of APIs) {
-			addAPI(this);
-		}
+		this.app.set("trust proxy", 2);
 
 		this.http = this.app.listen(this.config.port, "0.0.0.0", () => {
 			log.info(`HTTP server listening on ${this.config.port}`);
 		});
+		this.ws = new WsRouter(this.http);
 
-		this.app.set("trust proxy", 2);
+		for (const addAPI of APIs) {
+			addAPI(this);
+		}
 	}
 }
 

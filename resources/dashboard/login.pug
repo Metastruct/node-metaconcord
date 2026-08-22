@@ -1,0 +1,16 @@
+html(lang="en")
+	head
+		meta(charset="UTF-8")
+		meta(name="viewport", content="width=device-width, initial-scale=1.0")
+		title metaconcord
+		link(rel="icon", href="/favicon.ico")
+		link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,600,700&display=swap")
+		style
+			include style.css
+	body.login
+		main.login-box
+			img.logo(src="/dashboard/static/logo.svg", alt="Meta Construct")
+			h1 metaconcord
+			p Admin dashboard, GitHub team members only.
+			a.btn.primary(href="/auth/github?target=self&redirect=/") Log in with GitHub
+			a(href=siteUrl) metastruct.net

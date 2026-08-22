@@ -14,6 +14,7 @@ dist
 data
 build
 resources/game-server-status/style.css
+resources/dashboard/style.css
 cache
 
 # Our files
