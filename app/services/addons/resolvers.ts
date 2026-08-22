@@ -8,6 +8,12 @@ const log = logger(import.meta);
 const DAY = 24 * 60 * 60 * 1000;
 const USER_AGENT = "metastruct/node-metaconcord (https://github.com/Metastruct/node-metaconcord)";
 
+// Axios errors serialize their whole request config, auth headers included.
+const errInfo = (err: unknown) =>
+	axios.isAxiosError(err)
+		? { message: err.message, status: err.response?.status, data: err.response?.data }
+		: err;
+
 export interface ResolvedMeta {
 	name: string;
 	description?: string;
@@ -133,7 +139,7 @@ async function resolveGitUncached(
 			};
 		}
 	} catch (err) {
-		log.warn({ err, remote: remote.webUrl }, "git resolution failed");
+		log.warn({ err: errInfo(err), remote: remote.webUrl }, "git resolution failed");
 		result = { public: false, transient: true };
 	}
 	if (result.transient) {
@@ -157,7 +163,7 @@ async function fetchGithubRepo(
 			// 404 is a definitive answer; auth problems fall through to the anonymous path
 			if (status === 404 || status >= 500) return { status };
 			log.warn(
-				{ err, owner, repo },
+				{ err: errInfo(err), owner, repo },
 				"authenticated github lookup failed, retrying anonymously"
 			);
 		}
@@ -321,7 +327,7 @@ export async function resolveModrinth(hashes: string[]): Promise<Map<string, Mod
 			out.set(hash, match);
 		}
 	} catch (err) {
-		log.warn({ err }, "modrinth resolution failed");
+		log.warn({ err: errInfo(err) }, "modrinth resolution failed");
 	}
 	return out;
 }
@@ -400,7 +406,7 @@ export async function resolveCurseforge(
 			out.set(fp, match);
 		}
 	} catch (err) {
-		log.warn({ err }, "curseforge resolution failed");
+		log.warn({ err: errInfo(err) }, "curseforge resolution failed");
 	}
 	return out;
 }
