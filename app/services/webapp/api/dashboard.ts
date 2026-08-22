@@ -21,6 +21,11 @@ const log = logger(import.meta);
  * team login from github-auth.ts.
  */
 
+// only this history.json team gets the dashboard, the others can still edit the website
+const ADMIN_TEAM = "administrators";
+const isDashboardAdmin = (session?: EditorSession): session is EditorSession =>
+	!!session?.teams?.includes(ADMIN_TEAM);
+
 const VIEW_DIR = path.join(process.cwd(), "resources", "dashboard");
 // the directory the running code imports its JSON from (dist/config in prod, config/ in dev)
 const CONFIG_DIR = new URL("../../../../config/", import.meta.url);
@@ -193,9 +198,13 @@ class DashboardSession {
 
 const requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
 	const session = getSession(req);
-	if (session) {
+	if (isDashboardAdmin(session)) {
 		res.locals.session = session;
 		next();
+		return;
+	}
+	if (session) {
+		res.status(403).json({ error: `${ADMIN_TEAM} only` });
 		return;
 	}
 	if (req.accepts(["json", "html"]) === "html") {
@@ -213,11 +222,13 @@ export default (webApp: WebApp): void => {
 	webApp.app.get("/", (req, res) => {
 		res.set("Cache-Control", "no-store");
 		const session = getSession(req);
+		const admin = isDashboardAdmin(session);
+		if (session && !admin) res.status(403);
 		res.send(
-			pug.renderFile(session ? view : login, {
+			pug.renderFile(admin ? view : login, {
 				session,
 				siteUrl: webApp.config.siteUrl,
-				cwd: process.cwd(),
+				adminTeam: ADMIN_TEAM,
 			})
 		);
 	});
@@ -276,8 +287,8 @@ export default (webApp: WebApp): void => {
 
 	webApp.ws.route("/dashboard/ws", req => {
 		const session = getSessionFromCookieHeader(req.httpRequest.headers.cookie);
-		if (!session) {
-			req.reject(401);
+		if (!isDashboardAdmin(session)) {
+			req.reject(session ? 403 : 401);
 			return;
 		}
 		if (req.origin !== webApp.config.url && process.env.NODE_ENV === "production") {

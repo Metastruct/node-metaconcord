@@ -3,7 +3,8 @@
 
 	const $ = sel => document.querySelector(sel);
 	const logEl = $("#log");
-	const statusEl = $("#ws-status");
+	const modeBtn = $("#mode");
+	const inputBar = $("#input-bar");
 	const inputEl = $("#input");
 	const levelFilter = $("#level-filter");
 	const textFilter = $("#text-filter");
@@ -15,8 +16,14 @@
 
 	let mode = "js";
 	let paused = false;
+	const HISTORY_KEY = "metaconcord.history";
 	let history = [];
-	let historyIndex = -1;
+	try {
+		history = JSON.parse(sessionStorage.getItem(HISTORY_KEY) || "[]");
+	} catch {
+		history = [];
+	}
+	let historyIndex = history.length;
 	let draft = "";
 
 	// #region log pane
@@ -118,6 +125,9 @@
 		if (!paused) logEl.scrollTop = logEl.scrollHeight;
 	});
 	$("#clear").addEventListener("click", () => (logEl.textContent = ""));
+	logEl.addEventListener("click", () => {
+		if (!getSelection().toString()) inputEl.focus();
+	});
 
 	// #endregion
 
@@ -127,8 +137,7 @@
 	let retry = 0;
 
 	const setStatus = state => {
-		statusEl.dataset.state = state;
-		statusEl.textContent = state;
+		inputBar.dataset.state = state;
 	};
 
 	const connect = async () => {
@@ -166,6 +175,7 @@
 		ws.addEventListener("close", () => {
 			setStatus("closed");
 			const delay = Math.min(30000, 1000 * 2 ** retry++);
+			renderOut("meta", `disconnected, retrying in ${Math.round(delay / 1000)}s`);
 			setTimeout(connect, delay);
 		});
 	};
@@ -185,17 +195,14 @@
 
 	const setMode = next => {
 		mode = next;
-		for (const btn of document.querySelectorAll("#mode button")) {
-			btn.classList.toggle("active", btn.dataset.mode === mode);
-		}
+		modeBtn.dataset.mode = mode;
+		modeBtn.textContent = mode === "js" ? "REPL" : "BASH";
 		inputEl.placeholder = mode === "js" ? "MetaConcord.container.getServices()" : "ls config";
 		inputEl.focus();
 	};
-	for (const btn of document.querySelectorAll("#mode button")) {
-		btn.addEventListener("click", () => setMode(btn.dataset.mode));
-	}
+	modeBtn.addEventListener("click", () => setMode(mode === "js" ? "bash" : "js"));
 
-	$("#input-bar").addEventListener("submit", ev => {
+	inputBar.addEventListener("submit", ev => {
 		ev.preventDefault();
 		const value = inputEl.value;
 		if (!value.trim()) return;
@@ -204,9 +211,14 @@
 			mode === "js" ? { type: "js", code: value } : { type: "bash", input: value }
 		);
 		if (!ok) return;
-		history.push(value);
+		if (history[history.length - 1] !== value) history.push(value);
 		if (history.length > 200) history.shift();
 		historyIndex = history.length;
+		try {
+			sessionStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+		} catch {
+			// storage unavailable, history stays in memory
+		}
 		inputEl.value = "";
 	});
 
@@ -224,7 +236,7 @@
 			send({ type: "bash:kill" });
 			renderOut("meta", "^C");
 			ev.preventDefault();
-		} else if (ev.key === "Tab") {
+		} else if (ev.key === "Tab" && !inputEl.value) {
 			setMode(mode === "js" ? "bash" : "js");
 			ev.preventDefault();
 		}
@@ -288,12 +300,12 @@
 
 		const addRow = (key, value) => {
 			const row = el("div", "row");
-			row.appendChild(el("span", "key", key));
+			const keyEl = el("span", "key", key);
+			keyEl.appendChild(el("span", "type", typeOf(value)));
+			row.appendChild(keyEl);
 			const field = valueEditor(value, markDirty);
 			fields.set(key, field);
 			row.appendChild(field);
-			const side = el("div", "side");
-			side.appendChild(el("div", "type", typeOf(value)));
 			const del = el("button", "btn small", "×");
 			del.type = "button";
 			del.title = "Remove key";
@@ -302,8 +314,7 @@
 				row.remove();
 				markDirty();
 			});
-			side.appendChild(del);
-			row.appendChild(side);
+			row.appendChild(del);
 			body.insertBefore(row, addRowEl);
 		};
 
@@ -390,7 +401,6 @@
 			configsEl.appendChild(renderConfig(cfg, openNames.has(cfg.name)));
 		}
 	};
-	$("#reload-config").addEventListener("click", loadConfigs);
 
 	// #endregion
 
