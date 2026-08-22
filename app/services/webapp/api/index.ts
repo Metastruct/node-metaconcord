@@ -5,6 +5,7 @@ import addMapThumbnails from "./resources.js";
 import changeGamemode from "./gamemode.js";
 import ci from "./ci.js";
 import discordOAuth from "./discord-oauth.js";
+import discordWidget from "./discord-widget.js";
 import githubAuth from "./github-auth.js";
 import gmodErrorHandler from "./gmod-error-handler.js";
 import history from "./history.js";
@@ -20,6 +21,7 @@ export default [
 	changeGamemode,
 	ci,
 	discordOAuth,
+	discordWidget,
 	githubAuth,
 	gmodErrorHandler,
 	history,
