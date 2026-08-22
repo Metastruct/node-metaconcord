@@ -49,3 +49,5 @@ Requirements on the GitHub App in `config/github.json`:
 - Editors must be active members of one of the teams listed in `config/history.json` (`administrators`, `developers`)
 
 `config/webapp.json` needs `siteUrl`, `allowedOrigins` (CORS with credentials) and `cookieDomain` (`.metastruct.net` so the session cookie is shared with the site).
+
+Routes: `GET /auth/github?redirect=/path`, `GET /auth/github/callback`, `GET /auth/me`, `POST /auth/logout`, `GET /history`, `POST /history/events`, `PUT /history/events/:id`, `DELETE /history/events/:id`, `GET /discord/guild/widget`, `GET /join/:label`, plus the `/discord`, `/github`, `/gitlab`... short links.
