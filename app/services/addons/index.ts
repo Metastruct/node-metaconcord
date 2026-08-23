@@ -5,6 +5,7 @@ import {
 	GitResolution,
 	ResolvedMeta,
 	parseGitRemote,
+	resolveByName,
 	resolveCurseforge,
 	resolveGit,
 	resolveModrinth,
@@ -321,17 +322,48 @@ export class Addons extends Service {
 				});
 				continue;
 			}
-			if (remote) {
-				const git = await resolveGit(remote, this.githubClient());
+			const git = remote ? await resolveGit(remote, this.githubClient()) : undefined;
+			if (remote && git?.public) {
 				addons.push({
 					name: git.meta?.name ?? mod.displayName,
 					description: git.meta?.description ?? mod.description,
 					thumbnail: git.meta?.thumbnail,
 					version: mod.version,
-					source: git.public
-						? { kind: "git", host: remote.host, url: git.meta?.url ?? remote.webUrl }
-						: { kind: "git", host: remote.host },
-					private: !git.public,
+					source: { kind: "git", host: remote.host, url: git.meta?.url ?? remote.webUrl },
+					private: false,
+				});
+				continue;
+			}
+
+			// The jar is published somewhere, it just is not the file that platform
+			// serves, so neither hash nor fingerprint matched. Try the mod id.
+			const named = await resolveByName(mod.modId, mod.displayName);
+			if (named) {
+				addons.push({
+					name: named.meta.name,
+					description: named.meta.description,
+					thumbnail: named.meta.thumbnail,
+					version: mod.version,
+					source:
+						named.platform === "modrinth"
+							? { kind: "modrinth", projectId: named.projectId, url: named.meta.url }
+							: {
+									kind: "curseforge",
+									projectId: named.projectId,
+									url: named.meta.url,
+								},
+					private: false,
+				});
+				continue;
+			}
+
+			if (remote) {
+				addons.push({
+					name: mod.displayName,
+					description: mod.description,
+					version: mod.version,
+					source: { kind: "git", host: remote.host },
+					private: true,
 				});
 				continue;
 			}
