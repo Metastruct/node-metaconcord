@@ -77,11 +77,16 @@ abstract class ConsoleSession {
 				// ignore malformed frames
 			}
 		});
+	}
+
+	/** Attaches the transport. Separate from the constructor so subclass fields exist by then. */
+	start(): this {
 		this.open().catch(err => {
-			log.error({ err, server: server.name }, "console open failed");
+			log.error({ err, server: this.server.name }, "console open failed");
 			this.send({ type: "exit", reason: "could not attach to the console" });
 			this.close();
 		});
+		return this;
 	}
 
 	protected send(data: unknown): void {
@@ -377,9 +382,9 @@ export default (webApp: WebApp): void => {
 				conn.close();
 				return;
 			}
-			new SshConsoleSession(conn, session, server, ssh);
+			new SshConsoleSession(conn, session, server, ssh).start();
 		} else {
-			new MinecraftConsoleSession(conn, session, server, bridge());
+			new MinecraftConsoleSession(conn, session, server, bridge()).start();
 		}
 	});
 };
