@@ -33,6 +33,9 @@ export const sshConnectOptions = (ssh: NonNullable<GmodConnectionConfig["ssh"]>)
 	host: ssh.host,
 	port: ssh.port,
 	username: ssh.username,
+	// detect silently dead TCP, so stale console sessions release the daemon socket
+	keepaliveInterval: 15000,
+	keepaliveCountMax: 3,
 	// ssh.json keyPath, or the ssh agent when it is empty (local dev)
 	...(sshConfig.keyPath
 		? { privateKeyPath: sshConfig.keyPath }
