@@ -21,6 +21,8 @@ export type MinecraftStatus = {
 export default class MinecraftConnection extends GameSocketConnection {
 	config: MinecraftConnectionConfig;
 	lastStatus?: MinecraftStatus;
+	/** average ms per tick from the latest StatsPayload */
+	lastMspt?: number;
 
 	constructor(config: {
 		req?: WebSocketRequest;

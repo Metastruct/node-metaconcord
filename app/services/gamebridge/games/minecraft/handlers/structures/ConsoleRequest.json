@@ -1,0 +1,44 @@
+{
+	"$ref": "#/definitions/ConsoleRequest",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"definitions": {
+		"ConsoleRequest": {
+			"additionalProperties": false,
+			"properties": {
+				"data": {
+					"additionalProperties": false,
+					"properties": {
+						"lines": {
+							"items": {
+								"additionalProperties": false,
+								"properties": {
+									"level": {
+										"type": "string"
+									},
+									"text": {
+										"type": "string"
+									}
+								},
+								"required": ["level", "text"],
+								"type": "object"
+							},
+							"type": "array"
+						},
+						"replay": {
+							"description": "the backlog sent right after a subscribe, not live output",
+							"type": "boolean"
+						}
+					},
+					"required": ["lines"],
+					"type": "object"
+				},
+				"name": {
+					"const": "ConsolePayload",
+					"type": "string"
+				}
+			},
+			"required": ["data", "name"],
+			"type": "object"
+		}
+	}
+}

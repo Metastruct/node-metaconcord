@@ -1,20 +1,37 @@
 import { WebApp } from "@/app/services/webapp/index.js";
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
+import GameBridge from "@/app/services/gamebridge/GameBridge.js";
+import { GmodConnectionConfig } from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
+import { sshConnectOptions } from "@/app/services/gamebridge/games/gmod/GmodStatsProbe.js";
+import { statsProbes } from "@/app/services/gamebridge/games/gmod/index.js";
+import { MinecraftConnectionConfig } from "@/app/services/gamebridge/games/minecraft/MinecraftConnection.js";
+import {
+	ConsoleListener,
+	consoleHub,
+} from "@/app/services/gamebridge/games/minecraft/consoleHub.js";
 import { EditorSession, getSession, getSessionFromCookieHeader } from "./github-auth.js";
 import { NodeSSH } from "node-ssh";
 import type { ClientChannel } from "ssh2";
 import { connection as WebSocketConnection } from "websocket";
 import HistoryConfig from "@/config/history.json" with { type: "json" };
-import sshConfig from "@/config/ssh.json" with { type: "json" };
+import gmodServers from "@/config/gmod.servers.json" with { type: "json" };
+import minecraftServers from "@/config/minecraft.servers.json" with { type: "json" };
 import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
 
 /**
- * "Rocket": the gmod server console for the website. The game hosts expose the
- * srcds console on a unix socket (`~/gserv/daemon_socket`, what `gserv show`
- * attaches to), so a websocket from the site is bridged to `socat` on that
- * socket over SSH. Output keeps its ANSI colors, input is one command per line.
+ * "Rocket": the game server console for the website.
+ *
+ * gmod hosts expose the srcds console on a unix socket (`~/gserv/daemon_socket`,
+ * what `gserv show` attaches to), so a websocket from the site is bridged to
+ * `socat` on that socket over SSH. Output keeps its ANSI colors, input is one
+ * command per line.
+ *
+ * The Minecraft server has no SSH access; its console is the server log
+ * streamed by the metaconcord mod over the game websocket, and commands are
+ * run through the mod as the server console (see consoleHub).
+ *
+ * Servers are addressed by "<game>:<id>" since ids are only unique per game.
  */
 
 const CONSOLE_COMMAND = "cd ~/gserv && exec socat UNIX-CONNECT:daemon_socket stdio";
@@ -24,28 +41,33 @@ const MAX_LINES_PER_SECOND = 20;
 // gserv verbs the console exposes as buttons, kept to the safe live-update set
 const GSERV_ACTIONS = ["rehash", "merge_repos", "rehashskeleton", "update_repos"] as const;
 
-// one lua round-trip for the status bar: fps, current and max players
-const STATUS_LUA =
-	"return util.TableToJSON({fps=math.floor(1/FrameTime()),players=player.GetCount(),max=game.MaxPlayers()})";
+type Game = "gmod" | "minecraft";
+
+type HostedServer = {
+	key: string;
+	game: Game;
+	id: number;
+	name: string;
+	label?: string;
+	gserv: boolean;
+};
 
 const canUseConsole = (session?: EditorSession): session is EditorSession =>
 	!!session?.teams?.some(team => HistoryConfig.teams.includes(team));
 
-const sessionsPerServer = new Map<number, number>();
+const sessionsPerServer = new Map<string, number>();
 
-class ConsoleSession {
-	private ssh = new NodeSSH();
-	private channel?: ClientChannel;
-	private closed = false;
+/** Auth, session cap, rate limit and framing shared by both console transports. */
+abstract class ConsoleSession {
+	protected closed = false;
 	private lineTimes: number[] = [];
-	private gservRunning = false;
 
 	constructor(
-		private conn: WebSocketConnection,
-		private user: EditorSession,
-		private server: GmodConnection
+		protected conn: WebSocketConnection,
+		protected user: EditorSession,
+		protected server: HostedServer
 	) {
-		sessionsPerServer.set(server.config.id, (sessionsPerServer.get(server.config.id) ?? 0) + 1);
+		sessionsPerServer.set(server.key, (sessionsPerServer.get(server.key) ?? 0) + 1);
 		conn.on("close", () => this.close());
 		conn.on("message", msg => {
 			if (msg.type !== "utf8") return;
@@ -56,28 +78,67 @@ class ConsoleSession {
 			}
 		});
 		this.open().catch(err => {
-			log.error({ err, server: server.config.name }, "console ssh failed");
-			this.send({ type: "exit", reason: "ssh connection failed" });
+			log.error({ err, server: server.name }, "console open failed");
+			this.send({ type: "exit", reason: "could not attach to the console" });
 			this.close();
 		});
 	}
 
-	private send(data: unknown): void {
+	protected send(data: unknown): void {
 		if (this.conn.connected) this.conn.sendUTF(JSON.stringify(data));
 	}
 
-	private async open(): Promise<void> {
-		const { ssh } = this.server.config;
-		if (!ssh) throw new Error("server has no ssh config");
-		await this.ssh.connect({
-			host: ssh.host,
-			port: ssh.port,
-			username: ssh.username,
-			// ssh.json keyPath, or the ssh agent when it is empty (local dev)
-			...(sshConfig.keyPath
-				? { privateKeyPath: sshConfig.keyPath }
-				: { agent: process.env.SSH_AUTH_SOCK }),
-		});
+	protected abstract open(): Promise<void>;
+	protected abstract input(line: string): void;
+	protected abstract dispose(): void;
+	protected runGserv(_command: unknown): void {}
+
+	private handle(msg: { type?: string; line?: unknown; command?: unknown }): void {
+		if (msg.type === "gserv") {
+			this.runGserv(msg.command);
+			return;
+		}
+		if (msg.type !== "input" || typeof msg.line !== "string") return;
+		const now = Date.now();
+		this.lineTimes = this.lineTimes.filter(t => now - t < 1000);
+		if (this.lineTimes.length >= MAX_LINES_PER_SECOND) {
+			this.send({ type: "meta", text: "too many commands, slow down" });
+			return;
+		}
+		this.lineTimes.push(now);
+		const line = msg.line.replace(/[\r\n]/g, " ").slice(0, 2000);
+		log.warn({ login: this.user.login, server: this.server.name }, line);
+		this.input(line);
+	}
+
+	protected close(): void {
+		if (this.closed) return;
+		this.closed = true;
+		sessionsPerServer.set(
+			this.server.key,
+			Math.max(0, (sessionsPerServer.get(this.server.key) ?? 1) - 1)
+		);
+		this.dispose();
+		if (this.conn.connected) this.conn.close();
+	}
+}
+
+class SshConsoleSession extends ConsoleSession {
+	private ssh = new NodeSSH();
+	private channel?: ClientChannel;
+	private gservRunning = false;
+
+	constructor(
+		conn: WebSocketConnection,
+		user: EditorSession,
+		server: HostedServer,
+		private sshTarget: NonNullable<GmodConnectionConfig["ssh"]>
+	) {
+		super(conn, user, server);
+	}
+
+	protected async open(): Promise<void> {
+		await this.ssh.connect(sshConnectOptions(this.sshTarget));
 		if (this.closed) {
 			this.ssh.dispose();
 			return;
@@ -99,34 +160,20 @@ class ConsoleSession {
 			this.close();
 		});
 		this.send({ type: "ready" });
-		log.info(`console opened on '${this.server.config.name}' by ${this.user.login}`);
+		log.info(`console opened on '${this.server.name}' by ${this.user.login}`);
 	}
 
-	private handle(msg: { type?: string; line?: unknown; command?: unknown }): void {
-		if (msg.type === "gserv") {
-			this.runGserv(msg.command);
-			return;
-		}
-		if (msg.type !== "input" || typeof msg.line !== "string" || !this.channel) return;
-		const now = Date.now();
-		this.lineTimes = this.lineTimes.filter(t => now - t < 1000);
-		if (this.lineTimes.length >= MAX_LINES_PER_SECOND) {
-			this.send({ type: "meta", text: "too many commands, slow down" });
-			return;
-		}
-		this.lineTimes.push(now);
-		const line = msg.line.replace(/[\r\n]/g, " ").slice(0, 2000);
-		log.warn({ login: this.user.login, server: this.server.config.name }, line);
-		this.channel.write(line + "\n");
+	protected input(line: string): void {
+		this.channel?.write(line + "\n");
 	}
 
 	/** Runs a gserv verb on the same SSH connection, streaming its output into the terminal. */
-	private runGserv(command: unknown): void {
+	protected runGserv(command: unknown): void {
 		if (typeof command !== "string" || !GSERV_ACTIONS.includes(command as never)) return;
-		if (this.gservRunning) return;
+		if (this.gservRunning || !this.channel) return;
 		this.gservRunning = true;
 		log.warn(
-			{ login: this.user.login, server: this.server.config.name, gserv: command },
+			{ login: this.user.login, server: this.server.name, gserv: command },
 			"gserv action"
 		);
 		this.send({ type: "data", data: `\r\n\x1b[1;35m> gserv ${command}\x1b[0m\r\n` });
@@ -152,22 +199,96 @@ class ConsoleSession {
 			.finally(() => (this.gservRunning = false));
 	}
 
-	private close(): void {
-		if (this.closed) return;
-		this.closed = true;
-		sessionsPerServer.set(
-			this.server.config.id,
-			Math.max(0, (sessionsPerServer.get(this.server.config.id) ?? 1) - 1)
-		);
+	protected dispose(): void {
 		this.channel?.close();
 		this.ssh.dispose();
-		if (this.conn.connected) this.conn.close();
+	}
+}
+
+const LEVEL_COLORS: Record<string, string> = {
+	WARN: "\x1b[33m",
+	ERROR: "\x1b[31m",
+	FATAL: "\x1b[1;31m",
+};
+
+class MinecraftConsoleSession extends ConsoleSession {
+	private listener?: ConsoleListener;
+
+	constructor(
+		conn: WebSocketConnection,
+		user: EditorSession,
+		server: HostedServer,
+		private bridge: GameBridge
+	) {
+		super(conn, user, server);
+	}
+
+	protected async open(): Promise<void> {
+		this.listener = event => {
+			if (event.type === "meta") {
+				this.send({ type: "meta", text: event.text });
+				return;
+			}
+			const data = event.lines
+				.map(line => {
+					const color = LEVEL_COLORS[line.level];
+					return color ? `${color}${line.text}\x1b[0m` : line.text;
+				})
+				.join("\r\n");
+			if (data) this.send({ type: "data", data: data + "\r\n" });
+		};
+		consoleHub.subscribe(this.bridge, this.server.id, this.listener);
+		this.send({ type: "ready" });
+		if (!this.bridge.servers.minecraft[this.server.id]?.wsConnection?.connected) {
+			this.send({ type: "meta", text: "server not connected, waiting" });
+		}
+		log.info(`console opened on '${this.server.name}' by ${this.user.login}`);
+	}
+
+	protected input(line: string): void {
+		consoleHub
+			.command(this.bridge, this.server.id, line)
+			.then(sent => {
+				if (!sent) this.send({ type: "meta", text: "server not connected" });
+			})
+			.catch(err => log.warn(err, "console command failed"));
+	}
+
+	protected dispose(): void {
+		if (this.listener) consoleHub.unsubscribe(this.bridge, this.server.id, this.listener);
 	}
 }
 
 export default (webApp: WebApp): void => {
-	const hostedServers = () =>
-		webApp.container.getService("GameBridge").servers.gmod.filter(s => s?.config.ssh);
+	const bridge = () => webApp.container.getService("GameBridge");
+
+	const hostedServers = (): HostedServer[] => [
+		...(gmodServers as GmodConnectionConfig[])
+			.filter(s => s.ssh)
+			.map(s => ({
+				key: `gmod:${s.id}`,
+				game: "gmod" as const,
+				id: s.id,
+				name: s.name,
+				label: s.label,
+				gserv: true,
+			})),
+		...(minecraftServers as MinecraftConnectionConfig[]).map(s => ({
+			key: `minecraft:${s.id}`,
+			game: "minecraft" as const,
+			id: s.id,
+			name: s.name,
+			label: s.label,
+			gserv: false,
+		})),
+	];
+
+	const liveConnection = (server: HostedServer) =>
+		server.game === "gmod"
+			? bridge().servers.gmod[server.id]
+			: bridge().servers.minecraft[server.id];
+
+	const isConnected = (server: HostedServer) => !!liveConnection(server)?.wsConnection?.connected;
 
 	webApp.app.get("/console/servers", (req, res) => {
 		res.set("Cache-Control", "no-store");
@@ -177,45 +298,54 @@ export default (webApp: WebApp): void => {
 		}
 		res.json(
 			hostedServers().map(s => ({
-				id: s.config.id,
-				name: s.config.name,
-				label: s.config.label,
-				connected: !!s.wsConnection?.connected,
-				map: s.mapName,
-				players: s.status?.players?.length ?? 0,
+				...s,
+				connected: isConnected(s),
+				map: liveConnection(s)?.mapName,
+				players: liveConnection(s)?.status?.players?.length ?? 0,
 			}))
 		);
 	});
 
-	webApp.app.get("/console/status/:id", async (req, res) => {
+	webApp.app.get("/console/status/:key", (req, res) => {
 		res.set("Cache-Control", "no-store");
 		if (!canUseConsole(getSession(req))) {
 			res.status(401).json({ error: "not allowed" });
 			return;
 		}
-		const server = hostedServers().find(s => s.config.id === Number(req.params.id));
+		const server = hostedServers().find(s => s.key === req.params.key);
 		if (!server) {
 			res.status(404).json({ error: "unknown server" });
 			return;
 		}
-		const base = { map: server.mapName, players: server.status?.players?.length ?? 0 };
-		if (!server.wsConnection?.connected) {
-			res.json({ connected: false, ...base });
+		const connected = isConnected(server);
+		const history = bridge().statsFor(server.game, server.id);
+		const current = history.latest();
+		const stats = { current, history: history.toArray() };
+
+		if (server.game === "gmod") {
+			const conn = bridge().servers.gmod[server.id];
+			res.json({
+				connected,
+				game: server.game,
+				map: conn?.mapName,
+				players: current?.players ?? conn?.status?.players?.length ?? 0,
+				max: statsProbes.get(server.id)?.maxPlayers,
+				tick: connected ? { label: "fps", value: current?.tick } : undefined,
+				stats,
+			});
 			return;
 		}
-		try {
-			const result = await server.sendLua(STATUS_LUA);
-			const parsed = JSON.parse(result?.data.returns?.[0] ?? "{}");
-			res.json({
-				connected: true,
-				map: base.map,
-				players: parsed.players ?? base.players,
-				max: parsed.max,
-				fps: parsed.fps,
-			});
-		} catch {
-			res.json({ connected: true, ...base });
-		}
+
+		const conn = bridge().servers.minecraft[server.id];
+		res.json({
+			connected,
+			game: server.game,
+			players: current?.players ?? conn?.status?.players?.length ?? 0,
+			max: conn?.lastStatus?.maxPlayers,
+			tick: connected ? { label: "tps", value: current?.tick } : undefined,
+			mspt: connected ? conn?.lastMspt : undefined,
+			stats,
+		});
 	});
 
 	webApp.ws.route("/console/ws", req => {
@@ -230,18 +360,26 @@ export default (webApp: WebApp): void => {
 			req.reject(403);
 			return;
 		}
-		const id = Number(
-			new URL(req.httpRequest.url ?? "/", "http://x").searchParams.get("server")
-		);
-		const server = hostedServers().find(s => s.config.id === id);
+		const key = new URL(req.httpRequest.url ?? "/", "http://x").searchParams.get("server");
+		const server = hostedServers().find(s => s.key === key);
 		if (!server) {
 			req.reject(404);
 			return;
 		}
-		if ((sessionsPerServer.get(id) ?? 0) >= MAX_SESSIONS_PER_SERVER) {
+		if ((sessionsPerServer.get(server.key) ?? 0) >= MAX_SESSIONS_PER_SERVER) {
 			req.reject(429);
 			return;
 		}
-		new ConsoleSession(req.accept(undefined, req.origin), session, server);
+		const conn = req.accept(undefined, req.origin);
+		if (server.game === "gmod") {
+			const ssh = (gmodServers as GmodConnectionConfig[]).find(s => s.id === server.id)?.ssh;
+			if (!ssh) {
+				conn.close();
+				return;
+			}
+			new SshConsoleSession(conn, session, server, ssh);
+		} else {
+			new MinecraftConsoleSession(conn, session, server, bridge());
+		}
 	});
 };
