@@ -357,7 +357,13 @@ export async function resolveCurseforge(
 	try {
 		const matches = (
 			await axios.post<{
-				data: { exactMatches: { id: number; file: { modId: string | number } }[] };
+				data: {
+					exactMatches: {
+						/** the mod id, not the fingerprint */
+						id: number;
+						file: { modId: string | number; fileFingerprint: number };
+					}[];
+				};
 			}>(
 				"https://api.curseforge.com/v1/fingerprints",
 				{ fingerprints: missing },
@@ -366,7 +372,7 @@ export async function resolveCurseforge(
 		).data.data.exactMatches;
 
 		const fpToMod = new Map<number, number>();
-		for (const m of matches) fpToMod.set(m.id, Number(m.file.modId));
+		for (const m of matches) fpToMod.set(Number(m.file.fileFingerprint), Number(m.file.modId));
 
 		const modIds = [...new Set(fpToMod.values())];
 		const mods = modIds.length
