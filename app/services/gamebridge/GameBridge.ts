@@ -11,6 +11,7 @@ import SS13Connection from "./games/ss13/SS13Connection.js";
 import { attachVRChat } from "./games/vrchat/index.js";
 import VRChatConnection from "./games/vrchat/VRChatConnection.js";
 import { EventEmitter } from "events";
+import StatsHistory from "./StatsHistory.js";
 
 export type GitHubPushPayload = {
 	repo: string;
@@ -47,6 +48,21 @@ export default class GameBridge extends Service {
 	} = { gmod: [], minecraft: [], resonite: [], ss13: [], vrchat: [] };
 	ready: boolean = false;
 	events = new EventEmitter<GameBridgeEvents>();
+	/**
+	 * Stats ring buffers keyed by "<game>:<id>". Kept here rather than on the
+	 * connection objects, which are recreated on every websocket reconnect.
+	 */
+	private stats = new Map<string, StatsHistory>();
+
+	statsFor(game: keyof GameBridge["servers"], id: number): StatsHistory {
+		const key = `${game}:${id}`;
+		let history = this.stats.get(key);
+		if (!history) {
+			history = new StatsHistory();
+			this.stats.set(key, history);
+		}
+		return history;
+	}
 
 	constructor(container: Container) {
 		super(container);

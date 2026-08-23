@@ -1,10 +1,12 @@
 import AddonsPayload from "./AddonsPayload.js";
 import AdvancementPayload from "./AdvancementPayload.js";
 import ChatPayload from "./ChatPayload.js";
+import ConsolePayload from "./ConsolePayload.js";
 import DeathPayload from "./DeathPayload.js";
 import JoinLeavePayload from "./JoinLeavePayload.js";
 import MinecraftConnection from "../MinecraftConnection.js";
 import Payload from "./Payload.js";
+import StatsPayload from "./StatsPayload.js";
 import StatusPayload from "./StatusPayload.js";
 
 export {
@@ -12,8 +14,10 @@ export {
 	AddonsPayload,
 	AdvancementPayload,
 	ChatPayload,
+	ConsolePayload,
 	DeathPayload,
 	JoinLeavePayload,
+	StatsPayload,
 	StatusPayload,
 };
 
@@ -23,8 +27,10 @@ const handlers: (typeof Payload)[] = [
 	AddonsPayload,
 	AdvancementPayload,
 	ChatPayload,
+	ConsolePayload,
 	DeathPayload,
 	JoinLeavePayload,
+	StatsPayload,
 	StatusPayload,
 ];
 

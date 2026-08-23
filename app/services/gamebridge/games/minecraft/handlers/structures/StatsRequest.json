@@ -1,0 +1,63 @@
+{
+	"$ref": "#/definitions/StatsRequest",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"definitions": {
+		"StatsRequest": {
+			"additionalProperties": false,
+			"properties": {
+				"data": {
+					"additionalProperties": false,
+					"properties": {
+						"cpu": {
+							"description": "% of one core used by the server process",
+							"type": "number"
+						},
+						"memMax": {
+							"description": "jvm max heap bytes",
+							"type": "number"
+						},
+						"memUsed": {
+							"description": "jvm heap bytes in use",
+							"type": "number"
+						},
+						"mspt": {
+							"description": "average ms per tick",
+							"type": "number"
+						},
+						"netRx": {
+							"description": "host bytes/s received",
+							"type": "number"
+						},
+						"netTx": {
+							"description": "host bytes/s sent",
+							"type": "number"
+						},
+						"players": {
+							"type": "number"
+						},
+						"tps": {
+							"type": "number"
+						}
+					},
+					"required": [
+						"cpu",
+						"memUsed",
+						"memMax",
+						"netRx",
+						"netTx",
+						"tps",
+						"mspt",
+						"players"
+					],
+					"type": "object"
+				},
+				"name": {
+					"const": "StatsPayload",
+					"type": "string"
+				}
+			},
+			"required": ["data", "name"],
+			"type": "object"
+		}
+	}
+}
