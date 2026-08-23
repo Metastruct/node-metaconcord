@@ -416,3 +416,118 @@ export async function resolveCurseforge(
 	}
 	return out;
 }
+
+type CurseforgeMod = {
+	id: number;
+	name: string;
+	slug: string;
+	summary: string;
+	logo: { thumbnailUrl: string } | null;
+	links: { websiteUrl: string };
+};
+
+export type PlatformMatch =
+	| { platform: "modrinth"; projectId: string; meta: ResolvedMeta }
+	| { platform: "curseforge"; projectId: number; meta: ResolvedMeta };
+
+const nameCache = new TTLCache<PlatformMatch | null>(DAY);
+const compact = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const slugCandidates = (modId: string, displayName: string): string[] => {
+	const out = new Set<string>();
+	for (const raw of [modId, displayName]) {
+		const base = (raw ?? "")
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, "-")
+			.replace(/^-|-$/g, "");
+		if (!base) continue;
+		out.add(base);
+		out.add(base.replace(/-/g, ""));
+	}
+	return [...out];
+};
+
+/**
+ * Last resort for a jar that neither a hash nor a fingerprint matched, which
+ * happens when the installed file is not the one the platform publishes.
+ * Exact slug lookups only, and the project has to carry the name the jar
+ * reported: slugs get reused by unrelated mods ("ponder" on modrinth is Ponder
+ * for KubeJS, not Create's Ponder), so an unverified hit is worse than none.
+ * Nothing matches for a mod that only exists nested inside another jar.
+ */
+export async function resolveByName(
+	modId: string,
+	displayName: string
+): Promise<PlatformMatch | undefined> {
+	const cacheKey = `${modId} ${displayName}`;
+	const cached = nameCache.get(cacheKey);
+	if (cached !== undefined) return cached ?? undefined;
+
+	const wanted = new Set([compact(modId ?? ""), compact(displayName ?? "")]);
+	wanted.delete("");
+	const candidates = slugCandidates(modId, displayName);
+	if (!wanted.size || !candidates.length) return;
+
+	for (const slug of candidates) {
+		try {
+			const res = await axios.get<ModrinthProject>(
+				`https://api.modrinth.com/v2/project/${encodeURIComponent(slug)}`,
+				{
+					validateStatus: () => true,
+					timeout: 10000,
+					headers: { "User-Agent": USER_AGENT },
+				}
+			);
+			if (res.status !== 200) continue;
+			// only the title proves anything, the slug is what we searched by
+			if (!wanted.has(compact(res.data.title))) continue;
+			return nameCache.set(cacheKey, {
+				platform: "modrinth",
+				projectId: res.data.id,
+				meta: {
+					name: res.data.title,
+					description: res.data.description,
+					thumbnail: res.data.icon_url ?? undefined,
+					url: `https://modrinth.com/mod/${res.data.slug}`,
+				},
+			}) as PlatformMatch;
+		} catch (err) {
+			log.warn({ err: errInfo(err), slug }, "modrinth slug lookup failed");
+		}
+	}
+
+	if (curseforgeKey) {
+		for (const slug of candidates) {
+			try {
+				const res = await axios.get<{ data: CurseforgeMod[] }>(
+					"https://api.curseforge.com/v1/mods/search",
+					{
+						// slugs are only unique within a class, so pin it to mods
+						params: { gameId: 432, classId: 6, slug, pageSize: 5 },
+						headers: { "x-api-key": curseforgeKey, "User-Agent": USER_AGENT },
+						validateStatus: () => true,
+						timeout: 10000,
+					}
+				);
+				if (res.status !== 200) continue;
+				const mod = (res.data.data ?? []).find(m => wanted.has(compact(m.name)));
+				if (!mod) continue;
+				return nameCache.set(cacheKey, {
+					platform: "curseforge",
+					projectId: mod.id,
+					meta: {
+						name: mod.name,
+						description: mod.summary,
+						thumbnail: mod.logo?.thumbnailUrl,
+						url: mod.links.websiteUrl,
+					},
+				}) as PlatformMatch;
+			} catch (err) {
+				log.warn({ err: errInfo(err), slug }, "curseforge slug lookup failed");
+			}
+		}
+	}
+
+	nameCache.set(cacheKey, null);
+	return;
+}
