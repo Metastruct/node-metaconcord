@@ -105,7 +105,13 @@ class DashboardSession {
 	) {
 		const onLine = (line: LogLine) => this.send({ type: "log", ...line });
 		logBuffer.on("line", onLine);
+		// the session was only checked at upgrade time, close the socket once it expires
+		const expiry = setTimeout(() => {
+			this.send({ type: "out", mode: "meta", text: "session expired, log in again" });
+			conn.close(4001, "session expired");
+		}, Math.max(0, user.expiresAt - Date.now()));
 		conn.on("close", () => {
+			clearTimeout(expiry);
 			logBuffer.off("line", onLine);
 			if (this.bash?.pid && this.bashAlive) {
 				try {
@@ -136,6 +142,10 @@ class DashboardSession {
 	}
 
 	private async handle(msg: ClientMessage): Promise<void> {
+		if (this.user.expiresAt < Date.now()) {
+			this.conn.close(4001, "session expired");
+			return;
+		}
 		switch (msg.type) {
 			case "js": {
 				if (typeof msg.code !== "string") return;

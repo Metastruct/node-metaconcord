@@ -61,6 +61,7 @@ const sessionsPerServer = new Map<string, number>();
 abstract class ConsoleSession {
 	protected closed = false;
 	private lineTimes: number[] = [];
+	private expiryTimer: NodeJS.Timeout;
 
 	constructor(
 		protected conn: WebSocketConnection,
@@ -68,6 +69,11 @@ abstract class ConsoleSession {
 		protected server: HostedServer
 	) {
 		sessionsPerServer.set(server.key, (sessionsPerServer.get(server.key) ?? 0) + 1);
+		// the session was only checked at upgrade time, close the socket once it expires
+		this.expiryTimer = setTimeout(() => {
+			this.send({ type: "exit", reason: "session expired, log in again" });
+			this.close(4001, "session expired");
+		}, Math.max(0, user.expiresAt - Date.now()));
 		conn.on("close", () => this.close());
 		conn.on("message", msg => {
 			if (msg.type !== "utf8") return;
@@ -99,6 +105,10 @@ abstract class ConsoleSession {
 	protected runGserv(_command: unknown): void {}
 
 	private handle(msg: { type?: string; line?: unknown; command?: unknown }): void {
+		if (this.user.expiresAt < Date.now()) {
+			this.close(4001, "session expired");
+			return;
+		}
 		if (msg.type === "gserv") {
 			this.runGserv(msg.command);
 			return;
@@ -116,15 +126,16 @@ abstract class ConsoleSession {
 		this.input(line);
 	}
 
-	protected close(): void {
+	protected close(code?: number, description?: string): void {
 		if (this.closed) return;
 		this.closed = true;
+		clearTimeout(this.expiryTimer);
 		sessionsPerServer.set(
 			this.server.key,
 			Math.max(0, (sessionsPerServer.get(this.server.key) ?? 1) - 1)
 		);
 		this.dispose();
-		if (this.conn.connected) this.conn.close();
+		if (this.conn.connected) this.conn.close(code, description);
 	}
 }
 
