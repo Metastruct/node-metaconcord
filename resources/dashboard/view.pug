@@ -13,9 +13,12 @@ html(lang="en")
 			a.brand(href=siteUrl, title="metastruct.net")
 				img.logo(src="/dashboard/static/logo.svg", alt="Meta Construct")
 			span.name metaconcord
-			.user
-				img.avatar(src=session.avatarUrl, alt="")
-				span.login= session.login
+			button.btn.small.config-toggle#config-toggle(type="button") Config
+			button.burger#burger(type="button", aria-label="Menu", aria-expanded="false") ☰
+			.user#user-menu
+				.who
+					img.avatar(src=session.avatarUrl, alt="")
+					span.login= session.login
 				button.btn.small.danger#restart(title="Exits the process, relies on the container restart policy") Restart
 				button.btn.small#logout Log out
 		main.panes
@@ -42,5 +45,6 @@ html(lang="en")
 					span.title Config
 					.tools
 						span.hint changes apply after a restart
+						button.btn.small.config-close#config-close(type="button", aria-label="Close config") ×
 				.configs#configs
 		script(src="/dashboard/static/app.js")

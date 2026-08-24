@@ -244,6 +244,12 @@ body:not(.login) {
 		align-items: center;
 		gap: 0.5rem;
 
+		.who {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
 		.avatar {
 			width: 28px;
 			height: 28px;
@@ -254,6 +260,32 @@ body:not(.login) {
 			margin-right: 0.25rem;
 		}
 	}
+
+	// mobile only
+	.config-toggle,
+	.burger {
+		display: none;
+	}
+
+	.burger {
+		background: none;
+		border: none;
+		color: $text;
+		font-size: 1.4rem;
+		line-height: 1;
+		padding: 0.25rem 0.4rem;
+		cursor: pointer;
+
+		&:focus-visible {
+			outline: none;
+			box-shadow: $ring;
+			border-radius: $radius;
+		}
+	}
+}
+
+.config-close {
+	display: none;
 }
 
 .panes {
@@ -602,6 +634,146 @@ body:not(.login) {
 			font-size: 0.8rem;
 			color: $text-muted;
 			margin-right: auto;
+		}
+	}
+}
+
+// phones: terminal edge to edge, config as a full-page slide-in, navbar collapsed
+// into a burger menu (768px stays on the desktop layout for tablets)
+$navbar-h: 3.25rem;
+
+@media (max-width: 767px) {
+	body:not(.login) {
+		height: 100dvh;
+	}
+
+	.navbar {
+		position: relative;
+		flex: none;
+		height: $navbar-h;
+
+		.name {
+			display: none;
+		}
+
+		.config-toggle {
+			display: inline-flex;
+			margin-left: auto;
+		}
+
+		.burger {
+			display: inline-flex;
+		}
+
+		// the user block becomes a dropdown under the burger
+		.user {
+			position: absolute;
+			top: 100%;
+			right: 0;
+			z-index: 40;
+			margin: 0;
+			display: none;
+			flex-direction: column;
+			align-items: stretch;
+			gap: 0.5rem;
+			min-width: 12rem;
+			padding: 0.75rem;
+			background: $chrome;
+			border-radius: 0 0 0 $radius;
+			box-shadow: $shadow;
+
+			.who {
+				padding-bottom: 0.25rem;
+				border-bottom: 1px solid $border-soft;
+			}
+
+			.login {
+				margin: 0;
+			}
+		}
+	}
+
+	body.nav-open .navbar .user {
+		display: flex;
+	}
+
+	.panes {
+		display: flex;
+		padding: 0;
+		gap: 0;
+	}
+
+	.pane {
+		border-radius: 0;
+		box-shadow: none;
+	}
+
+	.pane-head {
+		border-radius: 0;
+		flex-wrap: wrap;
+
+		.tools {
+			flex-wrap: wrap;
+			row-gap: 0.4rem;
+		}
+	}
+
+	.pane.terminal {
+		flex: 1;
+
+		#text-filter {
+			flex: 1;
+			min-width: 0;
+			width: 6rem;
+		}
+	}
+
+	.console {
+		border-radius: 0;
+	}
+
+	.input-bar {
+		padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+	}
+
+	.pane.config {
+		position: fixed;
+		top: $navbar-h;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 30;
+		transform: translateX(100%);
+		visibility: hidden;
+		transition:
+			transform 0.2s ease-out,
+			visibility 0s linear 0.2s;
+	}
+
+	body.config-open .pane.config {
+		transform: none;
+		visibility: visible;
+		transition: transform 0.2s ease-out;
+	}
+
+	.config-close {
+		display: inline-flex;
+		width: 2rem;
+		padding: 0;
+		font-size: 1.1rem;
+		line-height: 1;
+	}
+
+	.configs .row {
+		grid-template-columns: minmax(0, 1fr) auto;
+
+		.key {
+			grid-column: 1 / -1;
+			padding-top: 0;
+		}
+
+		&.add {
+			grid-template-columns: 1fr;
 		}
 	}
 }
