@@ -11,6 +11,10 @@
 				},
 				"command": {
 					"type": "string"
+				},
+				"runner": {
+					"description": "who ran the command, printed in the server log for traceability",
+					"type": "string"
 				}
 			},
 			"required": ["action"],

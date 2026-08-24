@@ -25,10 +25,14 @@ const live = (bridge: GameBridge, id: number): MinecraftConnection | undefined =
 async function sendAction(
 	server: MinecraftConnection,
 	action: "subscribe" | "unsubscribe" | "command",
-	command?: string
+	command?: string,
+	runner?: string
 ): Promise<void> {
 	const { default: ConsolePayload } = await import("./handlers/ConsolePayload.js");
-	await ConsolePayload.send(command === undefined ? { action } : { action, command }, server);
+	await ConsolePayload.send(
+		command === undefined ? { action } : { action, command, runner },
+		server
+	);
 }
 
 export const consoleHub = {
@@ -59,10 +63,15 @@ export const consoleHub = {
 	},
 
 	/** Runs a command as the server console; output comes back through the log stream. */
-	async command(bridge: GameBridge, id: number, command: string): Promise<boolean> {
+	async command(
+		bridge: GameBridge,
+		id: number,
+		command: string,
+		runner: string
+	): Promise<boolean> {
 		const server = live(bridge, id);
 		if (!server) return false;
-		await sendAction(server, "command", command);
+		await sendAction(server, "command", command, runner);
 		return true;
 	},
 

@@ -151,7 +151,8 @@ class SshConsoleSession extends ConsoleSession {
 		conn: WebSocketConnection,
 		user: EditorSession,
 		server: HostedServer,
-		private sshTarget: NonNullable<GmodConnectionConfig["ssh"]>
+		private sshTarget: NonNullable<GmodConnectionConfig["ssh"]>,
+		private bridge: GameBridge
 	) {
 		super(conn, user, server);
 	}
@@ -183,7 +184,20 @@ class SshConsoleSession extends ConsoleSession {
 	}
 
 	protected input(line: string): void {
+		this.traceRcon(line);
 		this.channel?.write(line + "\n");
+	}
+
+	/** Prints a red "[RCON] user ran ..." line in the server console, best effort. */
+	private traceRcon(line: string): void {
+		const server = this.bridge.servers.gmod[this.server.id];
+		if (!server?.wsConnection?.connected) return;
+		const esc = (text: string) => text.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+		server
+			.sendLua(
+				`MsgC(Color(220, 60, 60), '[RCON] ${esc(this.user.login)} ran "${esc(line)}"\\n')`
+			)
+			.catch(() => {});
 	}
 
 	/** Runs a gserv verb on the same SSH connection, streaming its output into the terminal. */
@@ -257,7 +271,7 @@ class MinecraftConsoleSession extends ConsoleSession {
 
 	protected input(line: string): void {
 		consoleHub
-			.command(this.bridge, this.server.id, line)
+			.command(this.bridge, this.server.id, line, this.user.login)
 			.then(sent => {
 				if (!sent) this.send({ type: "meta", text: "server not connected" });
 			})
@@ -387,7 +401,7 @@ export default (webApp: WebApp): void => {
 				conn.close();
 				return;
 			}
-			new SshConsoleSession(conn, session, server, ssh).start();
+			new SshConsoleSession(conn, session, server, ssh, bridge()).start();
 		} else {
 			new MinecraftConsoleSession(conn, session, server, bridge()).start();
 		}
