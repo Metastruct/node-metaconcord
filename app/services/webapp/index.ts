@@ -1,5 +1,6 @@
 import { Container, Service } from "@/app/Container.js";
 import { Server as HTTPServer } from "http";
+import type { Request, Response } from "express";
 import APIs from "./api/index.js";
 import config from "@/config/webapp.json" with { type: "json" };
 import cookieParser from "cookie-parser";
@@ -36,10 +37,15 @@ export class WebApp extends Service {
 		super(container);
 
 		this.app.use(
-			pinoHttp({
-				logger: log as pino.Logger<string, boolean>,
+			pinoHttp<Request, Response>({
+				logger: log,
 				base: undefined,
-				level: process.env.LOG_LEVEL || "info",
+				customLogLevel: (_, res, err): pino.LevelWithSilent =>
+					err || res.statusCode >= 500
+						? "error"
+						: res.statusCode >= 400
+							? "warn"
+							: "debug",
 				autoLogging: { ignore: req => PATH_IGNORE.some(p => req.path.startsWith(p)) },
 			})
 		);
