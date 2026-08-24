@@ -86,7 +86,7 @@ export class Data extends Service {
 				} catch {
 					data = {};
 				}
-				log.info({ file, data });
+				log.info(`loaded ${file}`);
 				this[path.basename(filePath, ".json")] = data;
 			}
 		}

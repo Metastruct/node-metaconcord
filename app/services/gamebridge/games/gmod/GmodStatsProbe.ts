@@ -45,8 +45,9 @@ export const sshConnectOptions = (ssh: NonNullable<GmodConnectionConfig["ssh"]>)
 /**
  * Samples the srcds process of a hosted gmod server over one long-lived ssh
  * connection every 5s and feeds the bridge's stats history, so the rocket
- * page has a graph to show the moment it opens. Runs for the lifetime of the
- * process, independently of the gmod websocket.
+ * page has a graph to show the moment it opens. Only samples while the server
+ * is connected to the bridge: an offline server (dead host included) would
+ * just fill the log with ssh timeouts.
  */
 export default class GmodStatsProbe {
 	private ssh?: NodeSSH;
@@ -79,6 +80,15 @@ export default class GmodStatsProbe {
 	}
 
 	private async tick(): Promise<void> {
+		if (!this.bridge.servers.gmod[this.config.id]?.wsConnection?.connected) {
+			// offline, keep checking the flag (free) until it comes back
+			this.ssh?.dispose();
+			this.ssh = undefined;
+			this.previous = undefined;
+			this.failures = 0;
+			this.schedule(INTERVAL_MS);
+			return;
+		}
 		try {
 			await this.sample();
 			this.failures = 0;
