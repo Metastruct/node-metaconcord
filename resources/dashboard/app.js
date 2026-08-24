@@ -172,8 +172,13 @@
 			else if (msg.type === "out") renderOut(msg.mode, msg.text.replace(/\n$/, ""));
 			else if (msg.type === "exit") renderOut("meta", `bash exited with code ${msg.code}`);
 		});
-		ws.addEventListener("close", () => {
+		ws.addEventListener("close", ev => {
 			setStatus("closed");
+			if (ev.code === 4001) {
+				// session expired, "/" serves the login page again
+				location.href = "/";
+				return;
+			}
 			const delay = Math.min(30000, 1000 * 2 ** retry++);
 			renderOut("meta", `disconnected, retrying in ${Math.round(delay / 1000)}s`);
 			setTimeout(connect, delay);
