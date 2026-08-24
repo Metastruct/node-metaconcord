@@ -13,6 +13,7 @@ import githubAuth from "./github-auth.js";
 import gmodErrorHandler from "./gmod-error-handler.js";
 import history from "./history.js";
 import redirects from "./redirects.js";
+import robots from "./robots.js";
 import servers from "./servers.js";
 import steamOAuth from "./steam-oauth.js";
 
@@ -32,6 +33,7 @@ export default [
 	gmodErrorHandler,
 	history,
 	redirects,
+	robots,
 	servers,
 	steamOAuth,
 ];
