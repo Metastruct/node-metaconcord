@@ -224,12 +224,6 @@ class SshConsoleSession extends ConsoleSession {
 	}
 }
 
-const LEVEL_COLORS: Record<string, string> = {
-	WARN: "\x1b[33m",
-	ERROR: "\x1b[31m",
-	FATAL: "\x1b[1;31m",
-};
-
 class MinecraftConsoleSession extends ConsoleSession {
 	private listener?: ConsoleListener;
 
@@ -248,13 +242,10 @@ class MinecraftConsoleSession extends ConsoleSession {
 				this.send({ type: "meta", text: event.text });
 				return;
 			}
-			const data = event.lines
-				.map(line => {
-					const color = LEVEL_COLORS[line.level];
-					return color ? `${color}${line.text}\x1b[0m` : line.text;
-				})
-				.join("\r\n");
-			if (data) this.send({ type: "data", data: data + "\r\n" });
+			// levels ride along so the site can color and filter per line
+			if (event.lines.length) {
+				this.send({ type: "log", lines: event.lines, replay: event.replay });
+			}
 		};
 		consoleHub.subscribe(this.bridge, this.server.id, this.listener);
 		this.send({ type: "ready" });
