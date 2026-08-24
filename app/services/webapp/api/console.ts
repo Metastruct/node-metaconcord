@@ -70,10 +70,13 @@ abstract class ConsoleSession {
 	) {
 		sessionsPerServer.set(server.key, (sessionsPerServer.get(server.key) ?? 0) + 1);
 		// the session was only checked at upgrade time, close the socket once it expires
-		this.expiryTimer = setTimeout(() => {
-			this.send({ type: "exit", reason: "session expired, log in again" });
-			this.close(4001, "session expired");
-		}, Math.max(0, user.expiresAt - Date.now()));
+		this.expiryTimer = setTimeout(
+			() => {
+				this.send({ type: "exit", reason: "session expired, log in again" });
+				this.close(4001, "session expired");
+			},
+			Math.max(0, user.expiresAt - Date.now())
+		);
 		conn.on("close", () => this.close());
 		conn.on("message", msg => {
 			if (msg.type !== "utf8") return;
