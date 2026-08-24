@@ -57,6 +57,10 @@ const canUseConsole = (session?: EditorSession): session is EditorSession =>
 
 const sessionsPerServer = new Map<string, number>();
 
+/** Hosts that just failed an ssh connect fail fast for a while instead of hanging and spamming errors. */
+const SSH_FAILURE_TTL = 2 * 60 * 1000;
+const sshFailedUntil = new Map<string, number>();
+
 /** Auth, session cap, rate limit and framing shared by both console transports. */
 abstract class ConsoleSession {
 	protected closed = false;
@@ -158,7 +162,22 @@ class SshConsoleSession extends ConsoleSession {
 	}
 
 	protected async open(): Promise<void> {
-		await this.ssh.connect(sshConnectOptions(this.sshTarget));
+		const failedUntil = sshFailedUntil.get(this.server.key) ?? 0;
+		if (Date.now() < failedUntil) {
+			this.send({ type: "exit", reason: "host unreachable, retrying later" });
+			log.info(
+				`console refused, '${this.server.name}' recently unreachable (${this.user.login})`
+			);
+			this.close();
+			return;
+		}
+		try {
+			await this.ssh.connect({ ...sshConnectOptions(this.sshTarget), readyTimeout: 10000 });
+		} catch (err) {
+			sshFailedUntil.set(this.server.key, Date.now() + SSH_FAILURE_TTL);
+			throw err;
+		}
+		sshFailedUntil.delete(this.server.key);
 		if (this.closed) {
 			this.ssh.dispose();
 			return;
