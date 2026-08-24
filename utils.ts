@@ -8,7 +8,8 @@ import path from "path";
 import pino from "pino";
 import type { GraphQlQueryResponseData } from "@octokit/graphql";
 
-const baseLogger = pino();
+// debug so access logs reach the dashboard buffer, its UI defaults to info+
+const baseLogger = pino({ level: process.env.LOG_LEVEL || "debug" });
 
 export const logger = (meta: ImportMeta | string) =>
 	baseLogger.child({ file: typeof meta === "string" ? meta : path.basename(meta.filename) });
