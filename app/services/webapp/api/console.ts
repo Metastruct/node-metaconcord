@@ -95,6 +95,9 @@ abstract class ConsoleSession {
 	/** Attaches the transport. Separate from the constructor so subclass fields exist by then. */
 	start(): this {
 		this.open().catch(err => {
+			// the viewer switched away mid-attach: teardown kills the pending
+			// connect, which then rejects; a cancellation, not a failure
+			if (this.closed) return;
 			log.error({ err, server: this.server.name }, "console open failed");
 			this.send({ type: "exit", reason: "could not attach to the console" });
 			this.close();
@@ -174,7 +177,8 @@ class SshConsoleSession extends ConsoleSession {
 		try {
 			await this.ssh.connect({ ...sshConnectOptions(this.sshTarget), readyTimeout: 10000 });
 		} catch (err) {
-			sshFailedUntil.set(this.server.key, Date.now() + SSH_FAILURE_TTL);
+			// only a real failure marks the host, never a canceled attach
+			if (!this.closed) sshFailedUntil.set(this.server.key, Date.now() + SSH_FAILURE_TTL);
 			throw err;
 		}
 		sshFailedUntil.delete(this.server.key);
