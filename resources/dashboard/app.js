@@ -125,8 +125,10 @@
 		if (!paused) logEl.scrollTop = logEl.scrollHeight;
 	});
 	$("#clear").addEventListener("click", () => (logEl.textContent = ""));
+	// on touch screens tapping the log to scroll should not pop the keyboard
+	const coarse = matchMedia("(pointer: coarse)").matches;
 	logEl.addEventListener("click", () => {
-		if (!getSelection().toString()) inputEl.focus();
+		if (!coarse && !getSelection().toString()) inputEl.focus();
 	});
 
 	// #endregion
@@ -410,6 +412,30 @@
 	// #endregion
 
 	// #region header
+
+	// mobile: the user block collapses into a burger dropdown, config slides in full page
+	const burger = $("#burger");
+	const userMenu = $("#user-menu");
+	const setNavOpen = open => {
+		document.body.classList.toggle("nav-open", open);
+		burger.setAttribute("aria-expanded", String(open));
+	};
+	burger.addEventListener("click", ev => {
+		ev.stopPropagation();
+		setNavOpen(!document.body.classList.contains("nav-open"));
+	});
+	document.addEventListener("click", ev => {
+		if (document.body.classList.contains("nav-open") && !userMenu.contains(ev.target)) {
+			setNavOpen(false);
+		}
+	});
+	$("#config-toggle").addEventListener("click", () => {
+		setNavOpen(false);
+		document.body.classList.add("config-open");
+	});
+	$("#config-close").addEventListener("click", () => {
+		document.body.classList.remove("config-open");
+	});
 
 	$("#logout").addEventListener("click", async () => {
 		await fetch("/auth/logout", { method: "POST", credentials: "same-origin" });
