@@ -3,25 +3,90 @@ import { ChatRequest, ChatResponse } from "./structures/index.js";
 import MinecraftConnection from "../MinecraftConnection.js";
 import Payload from "./Payload.js";
 import { chatWebhook } from "../webhooks.js";
-import { formatDiscordMessage } from "../../../discord/formatDiscordMessage.js";
 import requestSchema from "./structures/ChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ChatResponse.json" with { type: "json" };
 import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
 
-// images don't render ingame, so replace the raw URLs with a placeholder instead of dumping a link
-function collapseImages(content: string, msg: Discord.Message | Discord.MessageSnapshot): string {
+const IMAGE_EXTENSION = /\.(png|jpe?g|gif|webp)$/i;
+const IMAGE_URL = /https?:\/\/\S+/g;
+
+// strip a URL's query string/fragment before checking its extension, since attachment
+// and CDN links carry a signed query string (?ex=...&is=...&hm=...) that would otherwise
+// always land after the extension and break a simple $-anchored match
+function collapseImageUrl(url: string): string {
+	const path = url.split(/[?#]/)[0];
+	return IMAGE_EXTENSION.test(path) ? `[${path.split("/").pop()}]` : url;
+}
+
+// minecraft has no image rendering at all, so this mirrors formatDiscordMessage but
+// collapses attachments/stickers/embeds/pasted links into a [filename] placeholder
+// instead of leaking raw (and often broken-looking) URLs into ingame chat
+async function formatForMinecraft(msg: Discord.Message | Discord.MessageSnapshot): Promise<{
+	content: string;
+	username?: string;
+	nickname: string;
+	avatar?: string;
+	color: number;
+}> {
+	let content = msg.content;
+
+	content = content.replace(/<a?:([^\s:<>]*):(\d+)>/g, (_, name) => `:${name}:`);
+	content = content.replace(
+		/<#(\d+)>/g,
+		(_, id) => `#${msg.guild?.channels.cache.get(id)?.name ?? "(uncached channel)"}`
+	);
+	content = content.replace(
+		/<@!?(\d+)>/g,
+		(_, id) => `@${msg.guild?.members.cache.get(id)?.displayName ?? "(uncached user)"}`
+	);
+	content = content.replace(
+		/https?:\/\/tenor\.com\/view\/\S+/g,
+		url => `[${url.split("/").pop()}.gif]`
+	);
+
 	for (const [, attachment] of msg.attachments) {
 		const isImage =
-			attachment.contentType?.startsWith("image/") ??
-			/\.(png|jpe?g|gif|webp)$/i.test(attachment.name);
-		if (isImage) content = content.replaceAll(attachment.url, `[${attachment.name}]`);
+			attachment.contentType?.startsWith("image/") ?? IMAGE_EXTENSION.test(attachment.name);
+		content +=
+			(content.length > 0 ? "\n" : "") + (isImage ? `[${attachment.name}]` : attachment.url);
 	}
 	for (const [, sticker] of msg.stickers) {
-		content = content.replaceAll(sticker.url, `[${sticker.name}]`);
+		content += (content.length > 0 ? "\n" : "") + `[${sticker.name}]`;
 	}
-	return content;
+
+	content = content.replace(IMAGE_URL, collapseImageUrl);
+
+	if (content.length === 0) {
+		content =
+			msg.embeds.length > 0
+				? msg.embeds.some(e => e.image ?? e.thumbnail)
+					? "[image.png]"
+					: "[Embed]"
+				: "[Something]";
+	}
+
+	const username = msg.author?.username;
+	let nickname = "";
+	let avatar: string | undefined = undefined;
+	const color = msg.member?.displayColor ?? 0;
+
+	if (msg.author) {
+		try {
+			const author = await msg.guild?.members.fetch(msg.author.id);
+			if (author?.nickname) nickname = author.nickname;
+		} catch {}
+
+		const avatarhash = msg.author.avatar;
+		avatar = avatarhash
+			? `https://cdn.discordapp.com/avatars/${msg.author.id}/${avatarhash}${
+					avatarhash.startsWith("a_") ? ".gif" : ".png"
+				}`
+			: msg.author.defaultAvatarURL;
+	}
+
+	return { content, username, nickname, avatar, color };
 }
 
 export default class ChatPayload extends Payload {
@@ -38,8 +103,7 @@ export default class ChatPayload extends Payload {
 				msg = await msg.fetch();
 			}
 
-			const mainMsg = await formatDiscordMessage(msg);
-			mainMsg.content = collapseImages(mainMsg.content, msg);
+			const mainMsg = await formatForMinecraft(msg);
 			let reply: Discord.Message | undefined;
 			if (msg.reference) {
 				try {
@@ -50,11 +114,7 @@ export default class ChatPayload extends Payload {
 						const newContent = mainMsg.content;
 						const snapshot = msg.messageSnapshots.first();
 						if (!snapshot) return;
-						const referenceMessage = await formatDiscordMessage(snapshot);
-						referenceMessage.content = collapseImages(
-							referenceMessage.content,
-							snapshot
-						);
+						const referenceMessage = await formatForMinecraft(snapshot);
 
 						mainMsg.content = `-> Forwarded\n${referenceMessage.content}\n${newContent}`;
 					}
