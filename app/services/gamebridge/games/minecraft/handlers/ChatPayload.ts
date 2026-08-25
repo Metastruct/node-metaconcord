@@ -14,7 +14,8 @@ const log = logger(import.meta);
 function collapseImages(content: string, msg: Discord.Message | Discord.MessageSnapshot): string {
 	for (const [, attachment] of msg.attachments) {
 		const isImage =
-			attachment.contentType?.startsWith("image/") ?? /\.(png|jpe?g|gif|webp)$/i.test(attachment.name);
+			attachment.contentType?.startsWith("image/") ??
+			/\.(png|jpe?g|gif|webp)$/i.test(attachment.name);
 		if (isImage) content = content.replaceAll(attachment.url, `[${attachment.name}]`);
 	}
 	for (const [, sticker] of msg.stickers) {
@@ -50,7 +51,10 @@ export default class ChatPayload extends Payload {
 						const snapshot = msg.messageSnapshots.first();
 						if (!snapshot) return;
 						const referenceMessage = await formatDiscordMessage(snapshot);
-						referenceMessage.content = collapseImages(referenceMessage.content, snapshot);
+						referenceMessage.content = collapseImages(
+							referenceMessage.content,
+							snapshot
+						);
 
 						mainMsg.content = `-> Forwarded\n${referenceMessage.content}\n${newContent}`;
 					}
