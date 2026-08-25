@@ -10,6 +10,19 @@ import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
 
+// images don't render ingame, so replace the raw URLs with a placeholder instead of dumping a link
+function collapseImages(content: string, msg: Discord.Message | Discord.MessageSnapshot): string {
+	for (const [, attachment] of msg.attachments) {
+		const isImage =
+			attachment.contentType?.startsWith("image/") ?? /\.(png|jpe?g|gif|webp)$/i.test(attachment.name);
+		if (isImage) content = content.replaceAll(attachment.url, `[${attachment.name}]`);
+	}
+	for (const [, sticker] of msg.stickers) {
+		content = content.replaceAll(sticker.url, `[${sticker.name}]`);
+	}
+	return content;
+}
+
 export default class ChatPayload extends Payload {
 	protected static requestSchema = requestSchema;
 	protected static responseSchema = responseSchema;
@@ -25,6 +38,7 @@ export default class ChatPayload extends Payload {
 			}
 
 			const mainMsg = await formatDiscordMessage(msg);
+			mainMsg.content = collapseImages(mainMsg.content, msg);
 			let reply: Discord.Message | undefined;
 			if (msg.reference) {
 				try {
@@ -36,6 +50,7 @@ export default class ChatPayload extends Payload {
 						const snapshot = msg.messageSnapshots.first();
 						if (!snapshot) return;
 						const referenceMessage = await formatDiscordMessage(snapshot);
+						referenceMessage.content = collapseImages(referenceMessage.content, snapshot);
 
 						mainMsg.content = `-> Forwarded\n${referenceMessage.content}\n${newContent}`;
 					}
