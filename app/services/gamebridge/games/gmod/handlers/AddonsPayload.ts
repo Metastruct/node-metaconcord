@@ -7,14 +7,15 @@ export default class AddonsPayload extends Payload {
 	protected static requestSchema = requestSchema;
 
 	/**
-	 * The game only signals on boot, so a metaconcord restart with nothing stored
-	 * for this server (fresh data dir, new server) would otherwise wait for the
-	 * next server reboot. Pull on connect when the list is missing.
+	 * The game only signals on boot, so a missing list (fresh data dir, new server)
+	 * or one built by an older shape would otherwise wait for the next server
+	 * reboot. Pull on connect in both cases; every server reconnects on a
+	 * metaconcord restart, which is what makes a deploy pick up new fields.
 	 */
 	static async initialize(server: GmodConnection): Promise<void> {
 		if (!server.config.ssh) return;
 		const addons = server.bridge.container.getService("Addons");
-		if (addons.get("gmod", server.config.id)) return;
+		if (!addons.needsRefresh("gmod", server.config.id)) return;
 		addons.refreshGmodRepos(server).catch(() => {});
 	}
 

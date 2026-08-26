@@ -39,6 +39,8 @@ export interface ServerAddons {
 	serverName: string;
 	/** Epoch ms of the last successful refresh. */
 	updatedAt: number;
+	/** Shape of the stored entry, see ADDONS_SHAPE. Absent on entries written before it existed. */
+	shape?: number;
 	addons: Addon[];
 }
 
