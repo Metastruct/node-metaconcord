@@ -409,17 +409,26 @@ export function readmeSummary(markdown: string): string | undefined {
 		.replace(/\r\n/g, "\n")
 		.replace(/<!--[\s\S]*?-->/g, "")
 		.replace(/^---\n[\s\S]*?\n---\n/, "") // front matter
-		.replace(/```[\s\S]*?```/g, "");
+		.replace(/```[\s\S]*?```/g, "")
+		// an html title becomes a markdown one so a single rule handles both
+		.replace(
+			/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/gi,
+			(_, text: string) => `\n\n# ${text.replace(/<[^>]+>/g, " ").trim()}\n\n`
+		);
 
 	const out: string[] = [];
 	for (const block of body.split(/\n\s*\n/)) {
-		// Stop at the first section once something was collected, keep skipping before that.
-		if (isHeading(block) || isTable(block)) {
+		// A title often sits on the line above its own paragraph, so drop the title
+		// rather than the block, and stop once a later section starts.
+		const { heading, rest } = stripHeadings(block);
+		if (heading && out.length) break;
+		if (!rest || isDecoration(rest)) continue;
+		if (isTable(rest)) {
 			if (out.length) break;
 			continue;
 		}
-		const text = flattenMarkdown(block);
-		if (!text) continue;
+		const text = flattenMarkdown(rest);
+		if (!isProse(text)) continue;
 		out.push(text);
 		if (out.join(" ").length >= SUMMARY_LIMIT) break;
 	}
@@ -431,12 +440,42 @@ export function readmeSummary(markdown: string): string | undefined {
 		: summary;
 }
 
-/** A markdown or html heading, including the underlined setext form. */
-function isHeading(block: string): boolean {
-	const trimmed = block.trim();
-	return (
-		/^#{1,6}\s/.test(trimmed) || /^.+\n[=-]+$/.test(trimmed) || /<h[1-6][\s>]/i.test(trimmed)
-	);
+/** Peels the titles off the front of a block, underlined setext ones included. */
+function stripHeadings(block: string): { heading: boolean; rest: string } {
+	const lines = block.split("\n");
+	let i = 0;
+	let heading = false;
+	while (i < lines.length) {
+		const line = lines[i].trim();
+		const underline = lines[i + 1]?.trim() ?? "";
+		if (/^#{1,6}\s/.test(line)) {
+			heading = true;
+			i += 1;
+		} else if (line && /^[=-]{2,}$/.test(underline)) {
+			heading = true;
+			i += 2;
+		} else break;
+	}
+	return { heading, rest: lines.slice(i).join("\n").trim() };
+}
+
+/** A word or two is a label or a leftover link, never a description of anything. */
+const isProse = (text: string) => text.split(/\s+/).filter(Boolean).length >= 3;
+
+/**
+ * A block carrying no words of its own: badge rows, and the bare workshop or
+ * documentation links a readme tends to open with. Their link text alone
+ * ("Workshop") describes nothing.
+ */
+function isDecoration(block: string): boolean {
+	const withoutLinks = block
+		.replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+		.replace(/\[[^\]]*\]\([^)]*\)/g, "")
+		.replace(/\[[^\]]*\]\[[^\]]*\]/g, "")
+		.replace(/https?:\/\/\S+/g, "") // a bare link on its own line
+		.replace(/<[^>]+>/g, "")
+		.replace(/^\s*(?:[-*+]|\d+[.)])\s+/gm, "");
+	return !/[a-z0-9]/i.test(withoutLinks);
 }
 
 /** A block whose lines are table rows, which flattens into unreadable pipes. */
