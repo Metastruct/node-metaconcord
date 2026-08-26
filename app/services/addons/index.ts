@@ -24,6 +24,12 @@ const GMOD_REFRESH_DEBOUNCE = 5 * 60 * 1000;
 const TRANSIENT_RETRY_DELAY = 15 * 60 * 1000;
 const TRANSIENT_MAX_RETRIES = 4;
 const RESOLVE_CONCURRENCY = 6;
+/**
+ * Bumped whenever a refresh would produce fields the stored entries cannot have.
+ * A server reconnecting with an older shape is pulled again instead of serving
+ * data the current code would have built differently.
+ */
+export const ADDONS_SHAPE = 1;
 const BUILTIN_MODS = new Set(["minecraft", "neoforge", "forge", "fabricloader", "metaconcord"]);
 
 /**
@@ -97,14 +103,20 @@ export class Addons extends Service {
 		return this.container.getService("Data").addons?.[game]?.[serverId];
 	}
 
+	/** Nothing stored for this server, or an entry built by an older shape. */
+	needsRefresh(game: AddonGame, serverId: number): boolean {
+		return this.get(game, serverId)?.shape !== ADDONS_SHAPE;
+	}
+
 	/**
 	 * Serve-time view of a stored entry: `restricted` is merged into the source for
 	 * Metastruct team members and dropped for everyone else. Anything served publicly
 	 * has to go through this.
 	 */
 	static forViewer(entry: ServerAddons, canSeeRestricted: boolean): ServerAddons {
+		const { shape: _shape, ...rest } = entry;
 		return {
-			...entry,
+			...rest,
 			addons: entry.addons.map(({ restricted, ...addon }) => {
 				if (!canSeeRestricted || !restricted) return addon;
 				// A partial spread cannot be narrowed back onto the source union.
@@ -117,7 +129,7 @@ export class Addons extends Service {
 		const data = this.container.getService("Data");
 		data.addons ??= {};
 		data.addons[entry.game] ??= {};
-		data.addons[entry.game]![entry.serverId] = entry;
+		data.addons[entry.game]![entry.serverId] = { ...entry, shape: ADDONS_SHAPE };
 		await data.save();
 	}
 
