@@ -9,6 +9,7 @@ import {
 	resolveCurseforge,
 	resolveGit,
 	resolveModrinth,
+	resolveReadme,
 	workshopUrl,
 } from "./resolvers.js";
 import { TTLCache } from "./cache.js";
@@ -29,7 +30,7 @@ const RESOLVE_CONCURRENCY = 6;
  * A server reconnecting with an older shape is pulled again instead of serving
  * data the current code would have built differently.
  */
-export const ADDONS_SHAPE = 1;
+export const ADDONS_SHAPE = 2;
 const BUILTIN_MODS = new Set(["minecraft", "neoforge", "forge", "fabricloader", "metaconcord"]);
 
 /**
@@ -119,8 +120,14 @@ export class Addons extends Service {
 			...rest,
 			addons: entry.addons.map(({ restricted, ...addon }) => {
 				if (!canSeeRestricted || !restricted) return addon;
-				// A partial spread cannot be narrowed back onto the source union.
-				return { ...addon, source: { ...addon.source, ...restricted } as AddonSource };
+				return {
+					...addon,
+					...(restricted.description ? { description: restricted.description } : {}),
+					// A partial spread cannot be narrowed back onto the source union.
+					source: restricted.source
+						? ({ ...addon.source, ...restricted.source } as AddonSource)
+						: addon.source,
+				};
 			}),
 		};
 	}
@@ -272,16 +279,26 @@ export class Addons extends Service {
 				: branch
 					? `${baseUrl}${treeSegment}${branch}`
 					: baseUrl;
-		// Everything a private repo would reveal is held back for team members.
+		// Everything a private repo would reveal is held back for team members, so the
+		// public fields below read from these two and never from `git.meta` directly.
 		const publicRepoUrl = git.public ? repoUrl : undefined;
+		const publicMeta = git.public ? git.meta : undefined;
+		const description = await this.describeRepo(parsed, subpath, branch, git);
 
 		if (wsid && /^\d+$/.test(wsid.trim())) {
 			wsid = wsid.trim();
 			const ws = await this.resolveWorkshop(wsid);
+			const restricted = git.public
+				? undefined
+				: {
+						...(repoUrl ? { source: { repoUrl } } : {}),
+						...(description ? { description } : {}),
+					};
 			return {
-				name: ws?.name ?? git.meta?.name ?? fallbackName,
-				description: ws?.description ?? git.meta?.description,
-				thumbnail: ws?.thumbnail ?? git.meta?.thumbnail,
+				name: ws?.name ?? publicMeta?.name ?? fallbackName,
+				// workshop entries often carry an empty description, which is not an answer
+				description: ws?.description || (git.public ? description : undefined),
+				thumbnail: ws?.thumbnail ?? publicMeta?.thumbnail,
 				source: {
 					kind: "workshop",
 					id: wsid,
@@ -289,7 +306,7 @@ export class Addons extends Service {
 					repoUrl: publicRepoUrl,
 				},
 				private: false,
-				...(!git.public && repoUrl ? { restricted: { repoUrl } } : {}),
+				...(restricted && Object.keys(restricted).length ? { restricted } : {}),
 			};
 		}
 
@@ -302,18 +319,40 @@ export class Addons extends Service {
 				name: fallbackName,
 				source: { kind: "git", host: parsed.host, subpath },
 				private: true,
-				restricted: { url: repoUrl, ...(branch ? { branch } : {}) },
+				restricted: {
+					source: { url: repoUrl, ...(branch ? { branch } : {}) },
+					...(description ? { description } : {}),
+				},
 			};
 		}
 
 		return {
-			// A sub-addon keeps its folder name; title and description describe the whole collection.
-			name: subpath ? fallbackName : (git.meta?.name ?? fallbackName),
-			description: subpath ? undefined : git.meta?.description,
-			thumbnail: git.meta?.thumbnail,
+			// A sub-addon keeps its folder name; the repo title describes the whole collection.
+			name: subpath ? fallbackName : (publicMeta?.name ?? fallbackName),
+			description,
+			thumbnail: publicMeta?.thumbnail,
 			source: { kind: "git", host: parsed.host, url: publicRepoUrl, subpath, branch },
 			private: false,
 		};
+	}
+
+	/**
+	 * What the addon does, in one paragraph. The repo description covers the whole
+	 * collection, so a sub-addon only ever has its own README, and a private repo has
+	 * whatever the token can read. Callers decide whether the result may be public.
+	 */
+	private async describeRepo(
+		parsed: ReturnType<typeof parseGitRemote>,
+		subpath: string | undefined,
+		branch: string | undefined,
+		git: GitResolution
+	): Promise<string | undefined> {
+		if (!subpath) {
+			const own = git.meta?.description?.trim();
+			if (own) return own;
+		}
+		if (!parsed) return;
+		return resolveReadme(parsed, subpath, branch, git.meta?.readmePath, this.githubClient());
 	}
 
 	private async resolveWorkshop(id: string): Promise<ResolvedMeta | undefined> {
@@ -433,7 +472,7 @@ export class Addons extends Service {
 					version: mod.version,
 					source: { kind: "git", host: remote.host },
 					private: true,
-					restricted: { url: remote.webUrl },
+					restricted: { source: { url: remote.webUrl } },
 				});
 				continue;
 			}

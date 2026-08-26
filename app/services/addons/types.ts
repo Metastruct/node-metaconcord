@@ -23,10 +23,15 @@ export interface Addon {
 	 */
 	private: boolean;
 	/**
-	 * Values withheld from the public endpoint: private repo web URLs and their branch.
-	 * Merged into `source` for logged-in Metastruct team members, dropped for everyone else.
+	 * What is known about a private repo: served to logged-in Metastruct team members,
+	 * dropped for everyone else. Never fold any of it into the fields above.
 	 */
-	restricted?: { url?: string; repoUrl?: string; branch?: string };
+	restricted?: {
+		/** Merged into `source`. */
+		source?: { url?: string; repoUrl?: string; branch?: string };
+		/** Merged into the addon, from the repo description or its README. */
+		description?: string;
+	};
 	/** Stable identity within a server (gmod: "repo/subpath"), used to carry entries over transient failures. */
 	key?: string;
 }

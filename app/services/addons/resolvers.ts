@@ -21,6 +21,8 @@ export interface ResolvedMeta {
 	url: string;
 	/** Only known for hosts with an API; used to tell an interesting branch from the usual one. */
 	defaultBranch?: string;
+	/** Repo-root README as the host names it, so a repo not using README.md still resolves. */
+	readmePath?: string;
 }
 
 export interface GitRemote {
@@ -90,6 +92,17 @@ export interface GithubClient {
 				owner: string;
 				repo: string;
 			}): Promise<{ status: number; data: GithubRepo }>;
+			getReadme(params: {
+				owner: string;
+				repo: string;
+				ref?: string;
+			}): Promise<{ data: { content?: string } }>;
+			getReadmeInDirectory(params: {
+				owner: string;
+				repo: string;
+				dir: string;
+				ref?: string;
+			}): Promise<{ data: { content?: string } }>;
 		};
 	};
 	graphql(query: string, vars: Record<string, string>): Promise<unknown>;
@@ -184,13 +197,28 @@ async function fetchGithubRepo(
 	return { status: res.status, data: res.status === 200 ? res.data : undefined };
 }
 
+const gitlabToken = (apikeys as { gitlab?: string }).gitlab;
+const gitlabHeaders = () => ({
+	"User-Agent": USER_AGENT,
+	...(gitlabToken ? { "PRIVATE-TOKEN": gitlabToken } : {}),
+});
+
+/** "https://host/group/repo/-/blob/master/docs/README.rst" -> "docs/README.rst" */
+const readmeUrlPath = (url: string | null, branch: string | null): string | undefined => {
+	const after = url?.split("/-/blob/")[1];
+	if (!after) return;
+	const path = decodeURIComponent(after);
+	// the branch can hold slashes of its own, so trim the known one rather than a segment
+	if (branch && path.startsWith(`${branch}/`)) return path.slice(branch.length + 1);
+	return path.split("/").slice(1).join("/") || undefined;
+};
+
 async function resolveGithub(remote: GitRemote, github?: GithubClient): Promise<GitResolution> {
 	const [owner, repo] = remote.path.split("/");
 	if (!owner || !repo) return { public: false };
 
 	const res = await fetchGithubRepo(owner, repo, github);
 	if (res.status !== 200 || !res.data) return { public: false, transient: res.status >= 500 };
-	if (res.data.private) return { public: false };
 
 	const meta: ResolvedMeta = {
 		name: res.data.name,
@@ -199,6 +227,9 @@ async function resolveGithub(remote: GitRemote, github?: GithubClient): Promise<
 		url: res.data.html_url,
 		defaultBranch: res.data.default_branch,
 	};
+	// Nothing of a private repo is shown beyond what the caller moves into `restricted`,
+	// so stop before the extra enrichment call.
+	if (res.data.private) return { public: false, meta };
 
 	// Only repos with a custom social preview get the OpenGraph image; the
 	// auto-generated card is a worse thumbnail than the owner avatar.
@@ -226,6 +257,11 @@ async function resolveGithub(remote: GitRemote, github?: GithubClient): Promise<
 	return { public: true, meta };
 }
 
+/**
+ * The token reads private projects, which is the only way to describe the ones the
+ * servers actually run. It also means the status code no longer says whether a project
+ * is public, so `visibility` does, and the tree probe stays anonymous on purpose.
+ */
 async function resolveGitlab(remote: GitRemote): Promise<GitResolution> {
 	const res = await axios.get<{
 		id: number;
@@ -233,17 +269,31 @@ async function resolveGitlab(remote: GitRemote): Promise<GitResolution> {
 		description: string | null;
 		web_url: string;
 		default_branch: string | null;
+		visibility: "public" | "internal" | "private";
+		readme_url: string | null;
 		avatar_url: string | null;
 		namespace?: { avatar_url: string | null };
 	}>(`https://${remote.hostname}/api/v4/projects/${encodeURIComponent(remote.path)}`, {
 		validateStatus: () => true,
 		timeout: 10000,
-		headers: { "User-Agent": USER_AGENT },
+		headers: gitlabHeaders(),
 	});
 	if (res.status !== 200) return { public: false, transient: res.status >= 500 };
 
+	const avatar = res.data.avatar_url ?? res.data.namespace?.avatar_url ?? undefined;
+	const meta: ResolvedMeta = {
+		name: res.data.name,
+		description: res.data.description ?? undefined,
+		thumbnail:
+			avatar && avatar.startsWith("/") ? `https://${remote.hostname}${avatar}` : avatar,
+		url: res.data.web_url,
+		defaultBranch: res.data.default_branch ?? undefined,
+		readmePath: readmeUrlPath(res.data.readme_url, res.data.default_branch),
+	};
+	if (res.data.visibility !== "public") return { public: false, meta };
+
 	// A project can be public while its repository is members-only; what matters
-	// is whether the code is readable, so probe the tree as well.
+	// is whether the code is readable, so probe the tree as an anonymous user.
 	const tree = await axios.get(
 		`https://${remote.hostname}/api/v4/projects/${res.data.id}/repository/tree`,
 		{
@@ -253,20 +303,177 @@ async function resolveGitlab(remote: GitRemote): Promise<GitResolution> {
 			headers: { "User-Agent": USER_AGENT },
 		}
 	);
-	if (tree.status !== 200) return { public: false, transient: tree.status >= 500 };
+	if (tree.status !== 200) return { public: false, meta, transient: tree.status >= 500 };
 
-	const avatar = res.data.avatar_url ?? res.data.namespace?.avatar_url ?? undefined;
-	return {
-		public: true,
-		meta: {
-			name: res.data.name,
-			description: res.data.description ?? undefined,
-			thumbnail:
-				avatar && avatar.startsWith("/") ? `https://${remote.hostname}${avatar}` : avatar,
-			url: res.data.web_url,
-			defaultBranch: res.data.default_branch ?? undefined,
-		},
-	};
+	return { public: true, meta };
+}
+
+const readmeCache = new TTLCache<string | null>(DAY);
+const readmeInflight = new Map<string, Promise<string | undefined>>();
+/** Roughly what the card can show before it truncates anyway. */
+const SUMMARY_LIMIT = 300;
+
+/**
+ * First prose paragraphs of a README, for the addons that have no platform description:
+ * everything in a private repo, and every sub-addon, whose repo description covers the
+ * whole collection rather than the one folder.
+ */
+export async function resolveReadme(
+	remote: GitRemote,
+	subpath: string | undefined,
+	ref: string | undefined,
+	rootPath: string | undefined,
+	github?: GithubClient
+): Promise<string | undefined> {
+	const key = `${remote.webUrl}\u0000${subpath ?? ""}\u0000${ref ?? ""}`;
+	const cached = readmeCache.get(key);
+	if (cached !== undefined) return cached ?? undefined;
+
+	const pending = readmeInflight.get(key);
+	if (pending) return pending;
+
+	const promise = fetchReadme(remote, subpath, ref, rootPath, github)
+		.then(text => {
+			const summary = text ? readmeSummary(text) : undefined;
+			// A repo with no README is the common case, so remember the miss too.
+			readmeCache.set(key, summary ?? null);
+			return summary;
+		})
+		.catch(err => {
+			log.warn({ err: errInfo(err), remote: remote.webUrl, subpath }, "readme lookup failed");
+			return undefined;
+		})
+		.finally(() => readmeInflight.delete(key));
+	readmeInflight.set(key, promise);
+	return promise;
+}
+
+async function fetchReadme(
+	remote: GitRemote,
+	subpath: string | undefined,
+	ref: string | undefined,
+	rootPath: string | undefined,
+	github?: GithubClient
+): Promise<string | undefined> {
+	if (remote.host === "github") {
+		const [owner, repo] = remote.path.split("/");
+		if (!owner || !repo) return;
+		// The github endpoint finds whatever the readme is called, in a directory too.
+		if (github) {
+			const res = subpath
+				? await github.rest.repos
+						.getReadmeInDirectory({ owner, repo, dir: subpath, ref })
+						.catch(() => undefined)
+				: await github.rest.repos.getReadme({ owner, repo, ref }).catch(() => undefined);
+			return res?.data.content
+				? Buffer.from(res.data.content, "base64").toString("utf8")
+				: undefined;
+		}
+		// Anonymous github allows 60 requests an hour, so this is a fallback, not a path.
+		const url = `https://api.github.com/repos/${owner}/${repo}/readme${subpath ? `/${subpath}` : ""}`;
+		const res = await axios.get<string>(url, {
+			params: ref ? { ref } : undefined,
+			validateStatus: () => true,
+			timeout: 10000,
+			headers: { "User-Agent": USER_AGENT, Accept: "application/vnd.github.raw" },
+		});
+		return res.status === 200 && typeof res.data === "string" ? res.data : undefined;
+	}
+
+	if (remote.host === "gitlab") {
+		// Only the repo root reports its readme name, a sub-addon has to be guessed at.
+		const path = subpath ? `${subpath}/README.md` : (rootPath ?? "README.md");
+		const res = await axios.get<string>(
+			`https://${remote.hostname}/api/v4/projects/${encodeURIComponent(remote.path)}/repository/files/${encodeURIComponent(path)}/raw`,
+			{
+				params: { ref: ref ?? "HEAD" },
+				validateStatus: () => true,
+				timeout: 10000,
+				headers: gitlabHeaders(),
+				// a README is text, but axios guesses JSON from the content type
+				responseType: "text",
+				transformResponse: [(data: string) => data],
+			}
+		);
+		return res.status === 200 && typeof res.data === "string" ? res.data : undefined;
+	}
+}
+
+/**
+ * The opening prose of a markdown document: the title, badges and images that start
+ * most READMEs are dropped, and what is left is flattened to something that reads like
+ * the one-line descriptions the platforms return.
+ */
+export function readmeSummary(markdown: string): string | undefined {
+	const body = markdown
+		.replace(/\r\n/g, "\n")
+		.replace(/<!--[\s\S]*?-->/g, "")
+		.replace(/^---\n[\s\S]*?\n---\n/, "") // front matter
+		.replace(/```[\s\S]*?```/g, "");
+
+	const out: string[] = [];
+	for (const block of body.split(/\n\s*\n/)) {
+		// Stop at the first section once something was collected, keep skipping before that.
+		if (isHeading(block) || isTable(block)) {
+			if (out.length) break;
+			continue;
+		}
+		const text = flattenMarkdown(block);
+		if (!text) continue;
+		out.push(text);
+		if (out.join(" ").length >= SUMMARY_LIMIT) break;
+	}
+
+	const summary = out.join("\n\n").trim();
+	if (!summary) return;
+	return summary.length > SUMMARY_LIMIT
+		? `${summary.slice(0, SUMMARY_LIMIT - 3).trimEnd()}...`
+		: summary;
+}
+
+/** A markdown or html heading, including the underlined setext form. */
+function isHeading(block: string): boolean {
+	const trimmed = block.trim();
+	return (
+		/^#{1,6}\s/.test(trimmed) || /^.+\n[=-]+$/.test(trimmed) || /<h[1-6][\s>]/i.test(trimmed)
+	);
+}
+
+/** A block whose lines are table rows, which flattens into unreadable pipes. */
+function isTable(block: string): boolean {
+	const lines = block.trim().split("\n");
+	return (
+		lines.length > 1 && lines.filter(l => l.trim().startsWith("|")).length >= lines.length / 2
+	);
+}
+
+const BULLET = /^\s*(?:[-*+]|\d+[.)])\s+/m;
+
+/** One markdown block to plain text; empty when the block was only decoration. */
+function flattenMarkdown(block: string): string {
+	const cleaned = block
+		.replace(/!\[[^\]]*\]\([^)]*\)/g, "") // images
+		.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1") // links keep their text
+		.replace(/\[([^\]]*)\]\[[^\]]*\]/g, "$1") // reference links
+		.replace(/<[^>]+>/g, "") // inline html and badge markup
+		.replace(/^\s*>\s?/gm, ""); // quotes
+
+	// list items read as a sentence rather than running into each other
+	const parts = BULLET.test(cleaned) ? cleaned.split(/\n(?=\s*(?:[-*+]|\d+[.)])\s+)/) : [cleaned];
+	const text = parts
+		.map(part =>
+			part
+				.replace(BULLET, "")
+				.replace(/[*_~`]/g, "")
+				.replace(/\s+/g, " ")
+				.trim()
+		)
+		.filter(Boolean)
+		.join(", ");
+
+	// Rules and leftover link definitions carry nothing worth showing.
+	if (/^[|\-=+:,\s]*$/.test(text)) return "";
+	return text;
 }
 
 export const workshopUrl = (id: string) =>
