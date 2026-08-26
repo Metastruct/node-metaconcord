@@ -311,7 +311,7 @@ async function resolveGitlab(remote: GitRemote): Promise<GitResolution> {
 const readmeCache = new TTLCache<string | null>(DAY);
 const readmeInflight = new Map<string, Promise<string | undefined>>();
 /** Roughly what the card can show before it truncates anyway. */
-const SUMMARY_LIMIT = 300;
+export const SUMMARY_LIMIT = 300;
 
 /**
  * First prose paragraphs of a README, for the addons that have no platform description:

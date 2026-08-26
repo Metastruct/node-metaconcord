@@ -31,6 +31,8 @@ export interface Addon {
 		source?: { url?: string; repoUrl?: string; branch?: string };
 		/** Merged into the addon, from the repo description or its README. */
 		description?: string;
+		/** Merged into the addon: the repo or owner avatar. */
+		thumbnail?: string;
 	};
 	/** Stable identity within a server (gmod: "repo/subpath"), used to carry entries over transient failures. */
 	key?: string;
