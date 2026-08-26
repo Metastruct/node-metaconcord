@@ -1,5 +1,5 @@
 import { Container, Service } from "@/app/Container.js";
-import { Addon, AddonGame, ReportedMod, ServerAddons } from "./types.js";
+import { Addon, AddonGame, AddonSource, ReportedMod, ServerAddons } from "./types.js";
 import {
 	GithubClient,
 	GitResolution,
@@ -28,7 +28,7 @@ const BUILTIN_MODS = new Set(["minecraft", "neoforge", "forge", "fabricloader", 
 
 /**
  * Walks ~/gserv/repos and prints one TSV line per addon root:
- * repo \t subpath ("." for the repo root) \t remote url \t workshop id
+ * repo \t subpath ("." for the repo root) \t remote url \t workshop id \t branch
  *
  * A repo is a single addon when its root holds lua/, gamemodes/ or addon.json,
  * otherwise each first-level directory holding one of those is an addon.
@@ -38,6 +38,7 @@ const GSERV_ENUMERATE_SCRIPT = [
 	"for r in */; do",
 	'  r=${r%/}; [ -d "$r" ] || continue',
 	'  url=$(git -C "$r" remote get-url origin 2>/dev/null)',
+	'  br=$(git -C "$r" rev-parse --abbrev-ref HEAD 2>/dev/null)',
 	'  ws=$(head -n1 "$r/.workshopid" 2>/dev/null)',
 	'  if [ -d "$r/lua" ] || [ -d "$r/gamemodes" ] || [ -f "$r/addon.json" ]; then subs="."; else',
 	'    subs=$(cd "$r" && for d in */; do d=${d%/}; if [ -d "$d/lua" ] || [ -d "$d/gamemodes" ] || [ -f "$d/addon.json" ]; then printf \'%s\\n\' "$d"; fi; done)',
@@ -45,7 +46,7 @@ const GSERV_ENUMERATE_SCRIPT = [
 	'  [ -z "$subs" ] && subs="."',
 	"  for s in $subs; do",
 	'    sws=$(head -n1 "$r/$s/.workshopid" 2>/dev/null)',
-	'    printf \'%s\\t%s\\t%s\\t%s\\n\' "$r" "$s" "$url" "${sws:-$ws}"',
+	'    printf \'%s\\t%s\\t%s\\t%s\\t%s\\n\' "$r" "$s" "$url" "${sws:-$ws}" "$br"',
 	"  done",
 	"done",
 ].join("\n");
@@ -96,6 +97,22 @@ export class Addons extends Service {
 		return this.container.getService("Data").addons?.[game]?.[serverId];
 	}
 
+	/**
+	 * Serve-time view of a stored entry: `restricted` is merged into the source for
+	 * Metastruct team members and dropped for everyone else. Anything served publicly
+	 * has to go through this.
+	 */
+	static forViewer(entry: ServerAddons, canSeeRestricted: boolean): ServerAddons {
+		return {
+			...entry,
+			addons: entry.addons.map(({ restricted, ...addon }) => {
+				if (!canSeeRestricted || !restricted) return addon;
+				// A partial spread cannot be narrowed back onto the source union.
+				return { ...addon, source: { ...addon.source, ...restricted } as AddonSource };
+			}),
+		};
+	}
+
 	private async store(entry: ServerAddons): Promise<void> {
 		const data = this.container.getService("Data");
 		data.addons ??= {};
@@ -141,14 +158,18 @@ export class Addons extends Service {
 			if (addon.key) previous.set(addon.key, addon);
 		}
 
-		const built = await mapLimit(rows, RESOLVE_CONCURRENCY, ([repo, sub, remote, wsid]) =>
-			this.buildGmodAddon(
-				repo,
-				rowsPerRepo.get(repo) === 1 ? "." : sub,
-				remote,
-				wsid,
-				previous
-			)
+		const built = await mapLimit(
+			rows,
+			RESOLVE_CONCURRENCY,
+			([repo, sub, remote, wsid, branch]) =>
+				this.buildGmodAddon(
+					repo,
+					rowsPerRepo.get(repo) === 1 ? "." : sub,
+					remote,
+					wsid,
+					branch,
+					previous
+				)
 		);
 		const addons = built.map(b => b.addon);
 		const transient = built.filter(b => b.transient).length;
@@ -180,6 +201,7 @@ export class Addons extends Service {
 		sub: string,
 		remote?: string,
 		wsid?: string,
+		branch?: string,
 		previous?: Map<string, Addon>
 	): Promise<{ addon: Addon; transient: boolean }> {
 		const fallbackName = sub && sub !== "." ? sub : repo;
@@ -193,8 +215,30 @@ export class Addons extends Service {
 			const last = previous?.get(key);
 			if (git.transient && last) return { addon: last, transient: true };
 		}
-		const addon = await this.describeGmodAddon(fallbackName, subpath, parsed, git, wsid);
+		const addon = await this.describeGmodAddon(
+			fallbackName,
+			subpath,
+			parsed,
+			git,
+			wsid,
+			branch
+		);
 		return { addon: { ...addon, key }, transient: !!git.transient };
+	}
+
+	/**
+	 * The branch is only worth showing when it is not the one the host serves by
+	 * default. `defaultBranch` is unknown for hosts without an API and for private
+	 * repos, so fall back to the usual names there.
+	 */
+	private interestingBranch(branch: string | undefined, git: GitResolution): string | undefined {
+		branch = branch?.trim();
+		// git prints "HEAD" when the checkout is detached.
+		if (!branch || branch === "HEAD") return;
+		const fallback = branch === "master" || branch === "main";
+		return (git.meta?.defaultBranch ? branch === git.meta.defaultBranch : fallback)
+			? undefined
+			: branch;
 	}
 
 	private async describeGmodAddon(
@@ -202,16 +246,22 @@ export class Addons extends Service {
 		subpath: string | undefined,
 		parsed: ReturnType<typeof parseGitRemote>,
 		git: GitResolution,
-		wsid?: string
+		wsid?: string,
+		rawBranch?: string
 	): Promise<Addon> {
 		const baseUrl = git.meta?.url ?? parsed?.webUrl;
-		const treeSegment = parsed?.host === "gitlab" ? "/-/tree/HEAD/" : "/tree/HEAD/";
-		const repoUrl =
-			git.public && baseUrl
-				? subpath
-					? `${baseUrl}${treeSegment}${subpath}`
-					: baseUrl
-				: undefined;
+		const branch = this.interestingBranch(rawBranch, git);
+		const treeSegment = parsed?.host === "gitlab" ? "/-/tree/" : "/tree/";
+		const ref = branch ?? "HEAD";
+		const repoUrl = !baseUrl
+			? undefined
+			: subpath
+				? `${baseUrl}${treeSegment}${ref}/${subpath}`
+				: branch
+					? `${baseUrl}${treeSegment}${branch}`
+					: baseUrl;
+		// Everything a private repo would reveal is held back for team members.
+		const publicRepoUrl = git.public ? repoUrl : undefined;
 
 		if (wsid && /^\d+$/.test(wsid.trim())) {
 			wsid = wsid.trim();
@@ -220,8 +270,14 @@ export class Addons extends Service {
 				name: ws?.name ?? git.meta?.name ?? fallbackName,
 				description: ws?.description ?? git.meta?.description,
 				thumbnail: ws?.thumbnail ?? git.meta?.thumbnail,
-				source: { kind: "workshop", id: wsid, url: workshopUrl(wsid), repoUrl },
+				source: {
+					kind: "workshop",
+					id: wsid,
+					url: workshopUrl(wsid),
+					repoUrl: publicRepoUrl,
+				},
 				private: false,
+				...(!git.public && repoUrl ? { restricted: { repoUrl } } : {}),
 			};
 		}
 
@@ -234,6 +290,7 @@ export class Addons extends Service {
 				name: fallbackName,
 				source: { kind: "git", host: parsed.host, subpath },
 				private: true,
+				restricted: { url: repoUrl, ...(branch ? { branch } : {}) },
 			};
 		}
 
@@ -242,7 +299,7 @@ export class Addons extends Service {
 			name: subpath ? fallbackName : (git.meta?.name ?? fallbackName),
 			description: subpath ? undefined : git.meta?.description,
 			thumbnail: git.meta?.thumbnail,
-			source: { kind: "git", host: parsed.host, url: repoUrl, subpath },
+			source: { kind: "git", host: parsed.host, url: publicRepoUrl, subpath, branch },
 			private: false,
 		};
 	}
@@ -364,6 +421,7 @@ export class Addons extends Service {
 					version: mod.version,
 					source: { kind: "git", host: remote.host },
 					private: true,
+					restricted: { url: remote.webUrl },
 				});
 				continue;
 			}

@@ -8,11 +8,15 @@ import {
 	ConsoleListener,
 	consoleHub,
 } from "@/app/services/gamebridge/games/minecraft/consoleHub.js";
-import { EditorSession, getSession, getSessionFromCookieHeader } from "./github-auth.js";
+import {
+	EditorSession,
+	getSession,
+	getSessionFromCookieHeader,
+	isTeamMember,
+} from "./github-auth.js";
 import { NodeSSH } from "node-ssh";
 import type { ClientChannel } from "ssh2";
 import { connection as WebSocketConnection } from "websocket";
-import HistoryConfig from "@/config/history.json" with { type: "json" };
 import gmodServers from "@/config/gmod.servers.json" with { type: "json" };
 import minecraftServers from "@/config/minecraft.servers.json" with { type: "json" };
 import { logger } from "@/utils.js";
@@ -51,9 +55,6 @@ type HostedServer = {
 	label?: string;
 	gserv: boolean;
 };
-
-const canUseConsole = (session?: EditorSession): session is EditorSession =>
-	!!session?.teams?.some(team => HistoryConfig.teams.includes(team));
 
 const sessionsPerServer = new Map<string, number>();
 
@@ -339,7 +340,7 @@ export default (webApp: WebApp): void => {
 
 	webApp.app.get("/console/servers", (req, res) => {
 		res.set("Cache-Control", "no-store");
-		if (!canUseConsole(getSession(req))) {
+		if (!isTeamMember(getSession(req))) {
 			res.status(401).json({ error: "not allowed" });
 			return;
 		}
@@ -355,7 +356,7 @@ export default (webApp: WebApp): void => {
 
 	webApp.app.get("/console/status/:key", (req, res) => {
 		res.set("Cache-Control", "no-store");
-		if (!canUseConsole(getSession(req))) {
+		if (!isTeamMember(getSession(req))) {
 			res.status(401).json({ error: "not allowed" });
 			return;
 		}
@@ -397,7 +398,7 @@ export default (webApp: WebApp): void => {
 
 	webApp.ws.route("/console/ws", req => {
 		const session = getSessionFromCookieHeader(req.httpRequest.headers.cookie);
-		if (!canUseConsole(session)) {
+		if (!isTeamMember(session)) {
 			req.reject(session ? 403 : 401);
 			return;
 		}

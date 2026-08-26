@@ -2,7 +2,7 @@ export type GitHost = "github" | "gitlab" | "other";
 
 export type AddonSource =
 	| { kind: "workshop"; id: string; url: string; repoUrl?: string }
-	| { kind: "git"; url?: string; host: GitHost; subpath?: string }
+	| { kind: "git"; url?: string; host: GitHost; subpath?: string; branch?: string }
 	| { kind: "modrinth"; projectId: string; url: string }
 	| { kind: "curseforge"; projectId: number; url: string }
 	/** A plain homepage that is not a known git host or registry. */
@@ -17,8 +17,16 @@ export interface Addon {
 	/** Minecraft only. */
 	version?: string;
 	source: AddonSource;
-	/** Private git remotes and unresolvable internal content. Private entries never carry a URL. */
+	/**
+	 * Private git remotes and unresolvable internal content. Private entries never
+	 * carry a URL in public responses.
+	 */
 	private: boolean;
+	/**
+	 * Values withheld from the public endpoint: private repo web URLs and their branch.
+	 * Merged into `source` for logged-in Metastruct team members, dropped for everyone else.
+	 */
+	restricted?: { url?: string; repoUrl?: string; branch?: string };
 	/** Stable identity within a server (gmod: "repo/subpath"), used to carry entries over transient failures. */
 	key?: string;
 }
