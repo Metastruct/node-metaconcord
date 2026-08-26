@@ -10,6 +10,7 @@ import {
 	resolveGit,
 	resolveModrinth,
 	resolveReadme,
+	SUMMARY_LIMIT,
 	workshopUrl,
 } from "./resolvers.js";
 import { TTLCache } from "./cache.js";
@@ -123,6 +124,7 @@ export class Addons extends Service {
 				return {
 					...addon,
 					...(restricted.description ? { description: restricted.description } : {}),
+					...(restricted.thumbnail ? { thumbnail: restricted.thumbnail } : {}),
 					// A partial spread cannot be narrowed back onto the source union.
 					source: restricted.source
 						? ({ ...addon.source, ...restricted.source } as AddonSource)
@@ -235,6 +237,7 @@ export class Addons extends Service {
 			if (git.transient && last) return { addon: last, transient: true };
 		}
 		const addon = await this.describeGmodAddon(
+			repo,
 			fallbackName,
 			subpath,
 			parsed,
@@ -261,6 +264,7 @@ export class Addons extends Service {
 	}
 
 	private async describeGmodAddon(
+		repo: string,
 		fallbackName: string,
 		subpath: string | undefined,
 		parsed: ReturnType<typeof parseGitRemote>,
@@ -283,7 +287,7 @@ export class Addons extends Service {
 		// public fields below read from these two and never from `git.meta` directly.
 		const publicRepoUrl = git.public ? repoUrl : undefined;
 		const publicMeta = git.public ? git.meta : undefined;
-		const description = await this.describeRepo(parsed, subpath, branch, git);
+		const description = await this.describeRepo(repo, parsed, subpath, branch, git);
 
 		if (wsid && /^\d+$/.test(wsid.trim())) {
 			wsid = wsid.trim();
@@ -293,6 +297,9 @@ export class Addons extends Service {
 				: {
 						...(repoUrl ? { source: { repoUrl } } : {}),
 						...(description ? { description } : {}),
+						...(!ws?.thumbnail && git.meta?.thumbnail
+							? { thumbnail: git.meta.thumbnail }
+							: {}),
 					};
 			return {
 				name: ws?.name ?? publicMeta?.name ?? fallbackName,
@@ -322,6 +329,7 @@ export class Addons extends Service {
 				restricted: {
 					source: { url: repoUrl, ...(branch ? { branch } : {}) },
 					...(description ? { description } : {}),
+					...(git.meta?.thumbnail ? { thumbnail: git.meta.thumbnail } : {}),
 				},
 			};
 		}
@@ -337,22 +345,38 @@ export class Addons extends Service {
 	}
 
 	/**
-	 * What the addon does, in one paragraph. The repo description covers the whole
-	 * collection, so a sub-addon only ever has its own README, and a private repo has
-	 * whatever the token can read. Callers decide whether the result may be public.
+	 * What the addon does, in one paragraph. A whole repo is described by the platform
+	 * or its README; a folder inside a shared repo is described by its own README, and
+	 * failing that by the repo it came out of, since that is all anyone can say about
+	 * it. Callers decide whether the result may be public.
 	 */
 	private async describeRepo(
+		repo: string,
 		parsed: ReturnType<typeof parseGitRemote>,
 		subpath: string | undefined,
 		branch: string | undefined,
 		git: GitResolution
 	): Promise<string | undefined> {
-		if (!subpath) {
-			const own = git.meta?.description?.trim();
-			if (own) return own;
-		}
-		if (!parsed) return;
-		return resolveReadme(parsed, subpath, branch, git.meta?.readmePath, this.githubClient());
+		const readme = (path?: string) =>
+			parsed
+				? resolveReadme(parsed, path, branch, git.meta?.readmePath, this.githubClient())
+				: undefined;
+		const repoDescription = git.meta?.description?.trim() || undefined;
+
+		if (!subpath) return repoDescription ?? (await readme());
+
+		const own = await readme(subpath);
+		if (own) return own;
+
+		const parentName = git.meta?.name ?? repo;
+		const parent = repoDescription ?? (await readme());
+		const mention = ` (sub-addon of ${parentName})`;
+		if (!parent) return `Sub-addon of ${parentName}`;
+		// The mention is the point, so the inherited half is what gives way to the limit.
+		const room = SUMMARY_LIMIT - mention.length;
+		const inherited =
+			parent.length > room ? `${parent.slice(0, room - 3).trimEnd()}...` : parent;
+		return `${inherited}${mention}`;
 	}
 
 	private async resolveWorkshop(id: string): Promise<ResolvedMeta | undefined> {
