@@ -19,6 +19,8 @@ export interface ResolvedMeta {
 	description?: string;
 	thumbnail?: string;
 	url: string;
+	/** Only known for hosts with an API; used to tell an interesting branch from the usual one. */
+	defaultBranch?: string;
 }
 
 export interface GitRemote {
@@ -76,6 +78,7 @@ type GithubRepo = {
 	description: string | null;
 	html_url: string;
 	private: boolean;
+	default_branch: string;
 	owner: { avatar_url: string };
 };
 
@@ -194,6 +197,7 @@ async function resolveGithub(remote: GitRemote, github?: GithubClient): Promise<
 		description: res.data.description ?? undefined,
 		thumbnail: res.data.owner.avatar_url,
 		url: res.data.html_url,
+		defaultBranch: res.data.default_branch,
 	};
 
 	// Only repos with a custom social preview get the OpenGraph image; the
@@ -228,6 +232,7 @@ async function resolveGitlab(remote: GitRemote): Promise<GitResolution> {
 		name: string;
 		description: string | null;
 		web_url: string;
+		default_branch: string | null;
 		avatar_url: string | null;
 		namespace?: { avatar_url: string | null };
 	}>(`https://${remote.hostname}/api/v4/projects/${encodeURIComponent(remote.path)}`, {
@@ -259,6 +264,7 @@ async function resolveGitlab(remote: GitRemote): Promise<GitResolution> {
 			thumbnail:
 				avatar && avatar.startsWith("/") ? `https://${remote.hostname}${avatar}` : avatar,
 			url: res.data.web_url,
+			defaultBranch: res.data.default_branch ?? undefined,
 		},
 	};
 }

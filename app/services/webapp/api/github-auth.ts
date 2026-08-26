@@ -75,6 +75,10 @@ export const getSessionFromCookieHeader = (
 	return sessionFromRaw(raw);
 };
 
+/** Any member of a team listed in history.json, so administrators or developers. */
+export const isTeamMember = (session?: EditorSession): session is EditorSession =>
+	!!session?.teams?.some(team => HistoryConfig.teams.includes(team));
+
 /** Sends 401 and returns undefined when the request carries no valid editor session. */
 export const requireEditor = (req: Request, res: Response): EditorSession | undefined => {
 	const session = getSession(req);
