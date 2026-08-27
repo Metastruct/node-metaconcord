@@ -48,6 +48,14 @@ export interface MountedGame {
 	depot?: number;
 }
 
+/** The game and the mod loader a minecraft server runs, from its own mod list. */
+export interface RuntimeComponent {
+	/** modId: "minecraft", or the loader's own id. */
+	id: string;
+	name: string;
+	version: string;
+}
+
 export interface ServerAddons {
 	game: AddonGame;
 	serverId: number;
@@ -58,6 +66,8 @@ export interface ServerAddons {
 	shape?: number;
 	/** gmod only, reported by the game rather than found over SSH. Absent until it reports. */
 	games?: MountedGame[];
+	/** minecraft only, game version then loader. Absent until the server reports. */
+	runtime?: RuntimeComponent[];
 	addons: Addon[];
 }
 
