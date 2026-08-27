@@ -449,9 +449,12 @@ export class Addons extends Service {
 
 		const addons: Addon[] = [];
 		for (const mod of relevant) {
+			// two jars can resolve to the same platform project, and so to the same
+			// name; the mod id is the only thing unique to the mod itself
+			const push = (addon: Addon) => addons.push({ ...addon, key: mod.modId });
 			const modrinth = mod.sha512 ? byHash.get(mod.sha512) : undefined;
 			if (modrinth) {
-				addons.push({
+				push({
 					name: modrinth.name,
 					description: modrinth.description,
 					thumbnail: modrinth.thumbnail,
@@ -467,7 +470,7 @@ export class Addons extends Service {
 					? byFingerprint.get(mod.fingerprint)
 					: undefined;
 			if (curse) {
-				addons.push({
+				push({
 					name: curse.name,
 					description: curse.description,
 					thumbnail: curse.thumbnail,
@@ -480,7 +483,7 @@ export class Addons extends Service {
 
 			const remote = mod.sources ? parseGitRemote(mod.sources) : undefined;
 			if (remote && remote.host === "other" && /^https?:/.test(mod.sources ?? "")) {
-				addons.push({
+				push({
 					name: mod.displayName,
 					description: mod.description,
 					version: mod.version,
@@ -491,7 +494,7 @@ export class Addons extends Service {
 			}
 			const git = remote ? await resolveGit(remote, this.githubClient()) : undefined;
 			if (remote && git?.public) {
-				addons.push({
+				push({
 					name: git.meta?.name ?? mod.displayName,
 					description: git.meta?.description ?? mod.description,
 					thumbnail: git.meta?.thumbnail,
@@ -506,7 +509,7 @@ export class Addons extends Service {
 			// serves, so neither hash nor fingerprint matched. Try the mod id.
 			const named = await resolveByName(mod.modId, mod.displayName);
 			if (named) {
-				addons.push({
+				push({
 					name: named.meta.name,
 					description: named.meta.description,
 					thumbnail: named.meta.thumbnail,
@@ -525,7 +528,7 @@ export class Addons extends Service {
 			}
 
 			if (remote) {
-				addons.push({
+				push({
 					name: mod.displayName,
 					description: mod.description,
 					version: mod.version,
@@ -536,7 +539,7 @@ export class Addons extends Service {
 				continue;
 			}
 
-			addons.push({
+			push({
 				name: mod.displayName,
 				description: mod.description,
 				version: mod.version,
