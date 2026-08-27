@@ -9,6 +9,24 @@
 				"data": {
 					"additionalProperties": false,
 					"properties": {
+						"games": {
+							"description": "Game content the server has mounted, reported on every connect.",
+							"items": {
+								"additionalProperties": false,
+								"properties": {
+									"folder": {
+										"type": "string"
+									},
+									"title": {
+										"description": "Absent when the engine has no name for it; the folder is the fallback.",
+										"type": "string"
+									}
+								},
+								"required": ["folder"],
+								"type": "object"
+							},
+							"type": "array"
+						},
 						"pull": {
 							"type": "boolean"
 						}
