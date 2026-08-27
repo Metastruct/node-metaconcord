@@ -1,61 +1,12 @@
 import * as Discord from "discord.js";
 import { DiscordBot } from "@/app/services/discord/index.js";
+import { issueBan } from "../banActions.js";
+import { parseDuration } from "@/utils.js";
 import { SlashCommand } from "@/extensions/discord.js";
 import servers from "@/config/gmod.servers.json" with { type: "json" };
 
 const DEFAULT_BAN_LENGTHS = ["1d", "1w", "4w", "6mo", "1y"];
 const DEFAULT_BAN_REASONS = ["Mingebag", "Prop Spam", "Harassment"];
-
-const parseLength = (input: string): number => {
-	const res = {
-		y: 0, // year
-		mo: 0, // month
-		w: 0, // week
-		d: 0, // day
-		h: 0, // hour
-		m: 0, // minutes
-		s: 0, // seconds
-	};
-
-	input = input.trim().toLowerCase().replace(/\s+/g, "");
-	for (const match of input.matchAll(/(\d+)(y|mo|w|d|h|m|s)/g)) {
-		const amount = parseInt(match[1]);
-		if (!isNaN(amount) && amount > 0) {
-			res[match[2]] += amount;
-		}
-	}
-
-	let len = 0;
-	if (res.y > 0) {
-		len += res.y * 31556926;
-	}
-
-	if (res.mo > 0) {
-		len += res.mo * 2628000;
-	}
-
-	if (res.w > 0) {
-		len += res.w * 604800;
-	}
-
-	if (res.d > 0) {
-		len += res.d * 86400;
-	}
-
-	if (res.h > 0) {
-		len += res.h * 3600;
-	}
-
-	if (res.m > 0) {
-		len += res.m * 60;
-	}
-
-	if (res.s > 0) {
-		len += res.s;
-	}
-
-	return len;
-};
 
 const Ban = async (
 	nickname: string,
@@ -75,27 +26,33 @@ const Ban = async (
 	const plyName = nickname ?? `???`;
 	const steamid = ctx.options.getString("steamid", true);
 	const length = Math.round(
-		Date.now() / 1000 + parseLength(ctx.options.getString("length", true))
+		Date.now() / 1000 + parseDuration(ctx.options.getString("length", true))
 	);
-	const gamemode = ctx.options.getString("gamemode");
+	const gamemode = ctx.options.getString("gamemode") ?? undefined;
 	const reason = ctx.options.getString("reason") ?? "no reason";
-	const code =
-		`if not banni then return false end ` +
-		`local data = banni.Ban("${steamid}", "${plyName}", "Discord (${ctx.user.username}|${
-			ctx.user.mention
-		})", [[${reason}]], ${length}, false, ${gamemode ?? "nil"}) ` +
-		`if istable(data) then return data.b else return data end`;
 	try {
-		const res = await server.sendLua(code, "sv", ctx.user.displayName);
+		const ok = await issueBan(
+			server,
+			{
+				steamId: steamid,
+				nick: plyName,
+				actor: `Discord (${ctx.user.username}|${ctx.user.mention})`,
+				reason,
+				unbanTime: length,
+				gamemode,
+			},
+			ctx.user.displayName
+		);
 
-		const unbanDate = length;
-		if (res && res.data.returns.length > 0 && res.data.returns[0] === "true") {
-			await ctx.followUp(`Banned \`${plyName} (${steamid})\` expires in: <t:${unbanDate}:R>`);
+		if (ok) {
+			await ctx.followUp(`Banned \`${plyName} (${steamid})\` expires in: <t:${length}:R>`);
 			return;
 		}
 
 		await ctx.followUp(
-			`Could not ban \`${plyName}(${steamid})\` expires in: <t:${unbanDate}:R>`
+			ok === undefined
+				? "GameServer not connected :("
+				: `Could not ban \`${plyName}(${steamid})\` expires in: <t:${length}:R>`
 		);
 	} catch (err) {
 		const errMsg = (err as Error)?.message ?? err;

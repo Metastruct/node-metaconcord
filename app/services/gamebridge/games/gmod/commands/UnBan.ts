@@ -1,4 +1,5 @@
 import * as Discord from "discord.js";
+import { revokeBan } from "../banActions.js";
 import { SlashCommand } from "@/extensions/discord.js";
 import SteamID from "steamid";
 import servers from "@/config/gmod.servers.json" with { type: "json" };
@@ -43,21 +44,23 @@ export const SlashUnBanCommand: SlashCommand = {
 			return;
 		}
 		const steamid = ctx.options.getString("steamid", true);
-		const code =
-			`if not banni then return false end ` +
-			`local data = banni.UnBan("${steamid}", "Discord (${ctx.user.username}|${
-				ctx.user.mention
-			})", [[${ctx.options.getString("reason")}]]) ` +
-			`if istable(data) then return data.b == false else return data end`;
 		try {
-			const res = await server.sendLua(code, "sv", ctx.user.displayName ?? "???");
+			const ok = await revokeBan(
+				server,
+				{
+					steamId: steamid,
+					actor: `Discord (${ctx.user.username}|${ctx.user.mention})`,
+					reason: ctx.options.getString("reason") ?? "no reason",
+				},
+				ctx.user.displayName ?? "???"
+			);
 
-			if (!res) {
+			if (ok === undefined) {
 				await ctx.editReply("GameServer not connected :(");
 				return;
 			}
 
-			if (res.data.returns.length > 0 && res.data.returns[0] === "true") {
+			if (ok) {
 				await ctx.followUp(`Unbanned \`${steamid}\``);
 				return;
 			}
@@ -72,10 +75,6 @@ export const SlashUnBanCommand: SlashCommand = {
 	async autocomplete(ctx, bot) {
 		const banService = bot.container.getService("Bans");
 		const list = await banService.getBanList();
-		if (!list) {
-			ctx.respond([]);
-			return;
-		}
 		await ctx.respond(
 			list
 				.filter(ban => {
