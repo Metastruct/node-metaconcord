@@ -3,6 +3,7 @@ import addEmojiAPI from "./emojis.js";
 import addGameServerStatusAPI from "./game-server-status.js";
 import addMapThumbnails from "./resources.js";
 import changeGamemode from "./gamemode.js";
+import bansAPI from "./bans.js";
 import ci from "./ci.js";
 import consoleAPI from "./console.js";
 import dashboard from "./dashboard.js";
@@ -22,6 +23,7 @@ export default [
 	addEmojiAPI,
 	addGameServerStatusAPI,
 	addMapThumbnails,
+	bansAPI,
 	changeGamemode,
 	ci,
 	consoleAPI,

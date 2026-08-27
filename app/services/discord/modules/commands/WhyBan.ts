@@ -1,4 +1,5 @@
 import * as Discord from "discord.js";
+import { actorLabel, parseBanActor } from "@/app/services/gamebridge/games/gmod/banActor.js";
 import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
 import SteamID from "steamid";
 
@@ -39,42 +40,23 @@ export const SlashWhyBanCommand: SlashCommand = {
 
 		const embed = new Discord.EmbedBuilder();
 
-		const bannerAvatar = banner?.avatarfull;
-		let bannerName = banner?.personaname ?? ban.bannersid;
-		let bannerMention = "";
+		const bannerActor = parseBanActor(ban.bannersid);
+		const unbannerActor = parseBanActor(ban.unbannersid);
 
-		// const unbannerAvatar = unbanned?.avatarfull;
-		let unbannerName = unbanned?.personaname ?? ban.unbannersid;
-		let unbannerMention = "";
+		const bannerAvatar = banner?.avatarfull;
+		const bannerName = banner?.personaname ?? actorLabel(bannerActor);
+		const bannerMention = bannerActor?.kind === "discord" ? bannerActor.mention : undefined;
+
+		const unbannerName = ban.unbannersid
+			? (unbanned?.personaname ?? actorLabel(unbannerActor))
+			: undefined;
+		const unbannerMention =
+			unbannerActor?.kind === "discord" ? unbannerActor.mention : undefined;
 
 		const bannedAvatar = banned?.avatarfull;
 		const bannedName = `${ban.name}${
 			ban.name !== banned?.personaname ? ` (${banned?.personaname})` : ""
 		}`;
-
-		if (bannerName.startsWith("Discord")) {
-			const [name, mention] = bannerName
-				.replaceAll("Discord ", "")
-				.replaceAll(")", "")
-				.replaceAll("(", "")
-				.split("|")
-				.map(x => x.trim());
-
-			bannerName = name;
-			bannerMention = mention;
-		}
-
-		if (unbannerName && unbannerName.startsWith("Discord")) {
-			const [name, mention] = unbannerName
-				.replaceAll("Discord ", "")
-				.replaceAll(")", "")
-				.replaceAll("(", "")
-				.split("|")
-				.map(x => x.trim());
-
-			unbannerName = name;
-			unbannerMention = mention;
-		}
 
 		if (bannedAvatar) {
 			embed.setThumbnail(bannedAvatar);
@@ -153,10 +135,6 @@ export const SlashWhyBanCommand: SlashCommand = {
 	async autocomplete(ctx, bot) {
 		const banService = bot.container.getService("Bans");
 		const list = await banService.getBanList();
-		if (!list) {
-			ctx.respond([]);
-			return;
-		}
 		await ctx.respond(
 			list
 				.filter(ban => {

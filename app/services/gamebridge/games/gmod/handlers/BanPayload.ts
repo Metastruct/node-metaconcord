@@ -1,4 +1,5 @@
 import * as Discord from "discord.js";
+import { actorLabel, parseBanActor } from "../banActor.js";
 import { BanRequest } from "./structures/index.js";
 import { PlayerSummary } from "@/app/services/Steam.js";
 import { f } from "@/utils.js";
@@ -57,19 +58,10 @@ export default class BanPayload extends Payload {
 				url: `https://steamcommunity.com/profiles/${steamId64}`,
 			});
 		} else {
-			if (bannerName.startsWith("Discord")) {
-				const chunks = bannerName
-					.replaceAll("Discord ", "")
-					.replaceAll(")", "")
-					.replaceAll("(", "")
-					.split("|");
-
-				const name = chunks[0].trim();
-				const mention = chunks[1].trim();
-				embed.setTitle(`${name} banned a player`);
-				embed.addFields(f("Mention", mention));
-			} else {
-				embed.setTitle(`${bannerName} banned a player`);
+			const actor = parseBanActor(player.steamId);
+			embed.setTitle(`${actor ? actorLabel(actor) : bannerName} banned a player`);
+			if (actor?.kind === "discord" && actor.mention) {
+				embed.addFields(f("Mention", actor.mention));
 			}
 		}
 

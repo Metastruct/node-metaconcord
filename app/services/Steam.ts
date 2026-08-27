@@ -1,8 +1,11 @@
 import { Container, Service } from "../Container.js";
+import { logger } from "@/utils.js";
 import SteamID from "steamid";
 import apikeys from "@/config/apikeys.json" with { type: "json" };
 import axios from "axios";
 import qs from "qs";
+
+const log = logger(import.meta);
 
 export type PlayerSummary = {
 	avatar: string;
@@ -73,6 +76,8 @@ type SummariesResponse = {
 type UserCache = {
 	expireTime: number;
 	summary?: PlayerSummary;
+	/** set once a lookup has answered, so private/deleted profiles aren't refetched every call */
+	fetched?: boolean;
 };
 const validTime = 30 * 60 * 1000;
 const avatarRegExp = /<avatarFull>\s*<!\[CDATA\[\s*([^\s]*)\s*\]\]>\s*<\/avatarFull>/;
@@ -120,6 +125,67 @@ export class Steam extends Service {
 			}
 		}
 		return userCache.summary;
+	}
+
+	/**
+	 * GetPlayerSummaries in batches of 100, keyed by steamid64.
+	 * Unlike getUserSummaries this skips the per avatar HEAD check: the ban list resolves
+	 * hundreds of ids at once and the website falls back to a placeholder on image error.
+	 * Never throws, a Steam outage just yields fewer entries.
+	 */
+	async getUserSummariesBulk(steamIds: string[]): Promise<Record<string, PlayerSummary>> {
+		const wanted = new Set<string>();
+		for (const id of steamIds) {
+			if (!id) continue;
+			try {
+				wanted.add(this.steamIDToSteamID64(id));
+			} catch {
+				// bannersid is often "Discord (name|<@id>)" rather than a steamid
+			}
+		}
+
+		const out: Record<string, PlayerSummary> = {};
+		const misses: string[] = [];
+		const now = Date.now();
+		for (const id of wanted) {
+			// read the cache directly, getUserCache would refresh expireTime as a side effect
+			const cached = this.userCache[id];
+			if (cached && cached.expireTime > now && cached.fetched) {
+				if (cached.summary) out[id] = cached.summary;
+			} else {
+				misses.push(id);
+			}
+		}
+
+		const chunks: string[][] = [];
+		for (let i = 0; i < misses.length; i += 100) chunks.push(misses.slice(i, i + 100));
+
+		await Promise.all(
+			chunks.map(async chunk => {
+				try {
+					const { data } = await axios.get<SummariesResponse>(
+						"https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/",
+						{ params: { key: apikeys.steam, steamids: chunk.join(",") } }
+					);
+					for (const summary of data.response.players ?? []) {
+						out[summary.steamid] = summary;
+					}
+				} catch (err) {
+					log.warn(err, "bulk steam summaries request failed");
+				}
+			})
+		);
+
+		// cache hits and misses alike, an id with no summary is a private or deleted profile
+		for (const id of misses) {
+			this.userCache[id] = {
+				expireTime: now + validTime,
+				summary: out[id],
+				fetched: true,
+			};
+		}
+
+		return out;
 	}
 
 	async getPublishedFileDetails(ids: string[]) {

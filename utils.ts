@@ -20,6 +20,56 @@ export const sleep = (ms: number): Promise<unknown> =>
 export const clamp = (input: number, min: number, max: number): number =>
 	input <= min ? min : input >= max ? max : input;
 
+const LUA_ESCAPES: Record<string, string> = {
+	"\\": "\\\\",
+	'"': '\\"',
+	"\n": "\\n",
+	"\r": "\\r",
+	"\t": "\\t",
+};
+
+// built from a string literal so no raw control bytes end up in this file
+// eslint-disable-next-line no-control-regex -- escaping control bytes is the point
+const LUA_UNSAFE = new RegExp('[\\\\"\\u0000-\\u001f\\u007f]', "g");
+
+/**
+ * Quotes a string as a Lua short-string literal, safe to interpolate into generated source.
+ * Control bytes become 3 digit decimal escapes so a following digit cannot extend them.
+ * Bytes above 0x7f pass through, gmod's Lua strings are byte arrays not unicode.
+ */
+export const luaString = (value: string): string =>
+	`"${value.replace(
+		LUA_UNSAFE,
+		c => LUA_ESCAPES[c] ?? `\\${c.charCodeAt(0).toString().padStart(3, "0")}`
+	)}"`;
+
+export const luaStringOrNil = (value?: string | null): string =>
+	value === undefined || value === null ? "nil" : luaString(value);
+
+const DURATION_UNITS = {
+	y: 31556926,
+	mo: 2628000,
+	w: 604800,
+	d: 86400,
+	h: 3600,
+	m: 60,
+	s: 1,
+};
+
+/** Parses "1y2mo3w" style durations to seconds. Returns 0 when nothing matched. */
+export const parseDuration = (input: string): number => {
+	let len = 0;
+	for (const match of input
+		.trim()
+		.toLowerCase()
+		.replace(/\s+/g, "")
+		.matchAll(/(\d+)(y|mo|w|d|h|m|s)/g)) {
+		const amount = parseInt(match[1]);
+		if (!isNaN(amount) && amount > 0) len += amount * DURATION_UNITS[match[2]];
+	}
+	return len;
+};
+
 export const f = (
 	name: string,
 	value: string,
