@@ -40,6 +40,12 @@ export interface Addon {
 
 export type AddonGame = "gmod" | "minecraft";
 
+/** One game whose content a server has mounted, as the engine reports it. */
+export interface MountedGame {
+	folder: string;
+	title?: string;
+}
+
 export interface ServerAddons {
 	game: AddonGame;
 	serverId: number;
@@ -48,6 +54,8 @@ export interface ServerAddons {
 	updatedAt: number;
 	/** Shape of the stored entry, see ADDONS_SHAPE. Absent on entries written before it existed. */
 	shape?: number;
+	/** gmod only, reported by the game rather than found over SSH. Absent until it reports. */
+	games?: MountedGame[];
 	addons: Addon[];
 }
 

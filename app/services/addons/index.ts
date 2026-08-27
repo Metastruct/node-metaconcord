@@ -1,5 +1,5 @@
 import { Container, Service } from "@/app/Container.js";
-import { Addon, AddonGame, AddonSource, ReportedMod, ServerAddons } from "./types.js";
+import { Addon, AddonGame, AddonSource, MountedGame, ReportedMod, ServerAddons } from "./types.js";
 import {
 	GithubClient,
 	GitResolution,
@@ -79,6 +79,7 @@ async function mapLimit<T, R>(
 export class Addons extends Service {
 	name = "Addons";
 	private lastGmodRefresh = new Map<number, number>();
+	private gmodGames = new Map<number, MountedGame[]>();
 	private retryTimers = new Map<number, NodeJS.Timeout>();
 	private workshopCache = new TTLCache<ResolvedMeta | null>(DAY);
 
@@ -108,6 +109,19 @@ export class Addons extends Service {
 	/** Nothing stored for this server, or an entry built by an older shape. */
 	needsRefresh(game: AddonGame, serverId: number): boolean {
 		return this.get(game, serverId)?.shape !== ADDONS_SHAPE;
+	}
+
+	/**
+	 * The games a gmod server reports on connect. It can arrive either side of the
+	 * addon list being built, so it is kept here as well as on the entry: whichever
+	 * lands second picks the other up.
+	 */
+	async setGmodGames(serverId: number, games: MountedGame[]): Promise<void> {
+		this.gmodGames.set(serverId, games);
+		const entry = this.get("gmod", serverId);
+		if (!entry || JSON.stringify(entry.games) === JSON.stringify(games)) return;
+		entry.games = games;
+		await this.container.getService("Data").save();
 	}
 
 	/**
@@ -200,6 +214,8 @@ export class Addons extends Service {
 			serverId: id,
 			serverName: name,
 			updatedAt: Date.now(),
+			// the game reports these separately, either side of this rebuild
+			games: this.gmodGames.get(id) ?? this.get("gmod", id)?.games,
 			addons: addons.sort((a, b) => a.name.localeCompare(b.name)),
 		});
 		log.info({ server: name, count: addons.length, transient }, "refreshed gmod addons");
