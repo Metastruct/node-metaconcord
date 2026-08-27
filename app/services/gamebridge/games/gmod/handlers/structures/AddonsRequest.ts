@@ -9,6 +9,8 @@ export default interface AddonsRequest extends PayloadRequest {
 			folder: string;
 			/** Absent when the engine has no name for it; the folder is the fallback. */
 			title?: string;
+			/** The steam app id. */
+			depot?: number;
 		}[];
 	};
 }
