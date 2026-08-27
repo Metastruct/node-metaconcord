@@ -4,6 +4,7 @@ import { WebApp } from "@/app/services/webapp/index.js";
 import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
 import express from "express";
+import { MirrorError, mirrorImage } from "./history-images.js";
 import { requireEditor } from "./github-auth.js";
 import HistoryConfig from "@/config/history.json" with { type: "json" };
 import { logger } from "@/utils.js";
@@ -139,7 +140,7 @@ const writeFile = async (
 
 type Mutation = (
 	events: HistoryEvent[]
-) => { events: HistoryEvent[]; event: HistoryEvent; message: string } | string;
+) => { events: HistoryEvent[]; event: HistoryEvent; message: string; mirror?: boolean } | string;
 
 const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> => {
 	const session = requireEditor(req, res);
@@ -153,11 +154,25 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 			res.status(400).json({ error: result });
 			return;
 		}
+		// the image lands first, because its URL names the commit that holds it
+		if (result.mirror && result.event.imageUrl)
+			result.event.imageUrl = await mirrorImage(
+				octokit,
+				result.event.imageUrl,
+				result.event.name
+			);
+
 		const commitUrl = await writeFile(octokit, result.events, sha, result.message);
 		log.info(`${session.login}: ${result.message}`);
 		publicCache = { events: result.events, etag: undefined, checkedAt: Date.now() };
 		res.json({ event: result.event, events: result.events, commitUrl });
 	} catch (err) {
+		// a source we cannot copy is the editor's to fix, so refuse rather than
+		// store a link that will rot
+		if (err instanceof MirrorError) {
+			res.status(400).json({ error: `could not copy the image: ${err.message}` });
+			return;
+		}
 		const status = (err as { status?: number }).status;
 		if (status === 409) {
 			res.status(409).json({ error: "history changed concurrently, retry" });
@@ -192,7 +207,12 @@ export default (webApp: WebApp): void => {
 			const ev = validate(req.body?.event);
 			if (typeof ev === "string") return ev;
 			ev.id = uniqueId(events, ev);
-			return { events: [...events, ev], event: ev, message: `Add event: ${ev.name}` };
+			return {
+				events: [...events, ev],
+				event: ev,
+				message: `Add event: ${ev.name}`,
+				mirror: true,
+			};
 		})
 	);
 
@@ -205,7 +225,7 @@ export default (webApp: WebApp): void => {
 			ev.id = events[index].id;
 			const next = [...events];
 			next[index] = ev;
-			return { events: next, event: ev, message: `Update event: ${ev.name}` };
+			return { events: next, event: ev, message: `Update event: ${ev.name}`, mirror: true };
 		})
 	);
 
