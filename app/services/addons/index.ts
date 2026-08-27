@@ -1,5 +1,13 @@
 import { Container, Service } from "@/app/Container.js";
-import { Addon, AddonGame, AddonSource, MountedGame, ReportedMod, ServerAddons } from "./types.js";
+import {
+	Addon,
+	AddonGame,
+	AddonSource,
+	MountedGame,
+	ReportedMod,
+	RuntimeComponent,
+	ServerAddons,
+} from "./types.js";
 import {
 	GithubClient,
 	GitResolution,
@@ -32,7 +40,10 @@ const RESOLVE_CONCURRENCY = 6;
  * data the current code would have built differently.
  */
 export const ADDONS_SHAPE = 2;
-const BUILTIN_MODS = new Set(["minecraft", "neoforge", "forge", "fabricloader", "metaconcord"]);
+/** Mod ids the loaders give themselves; the version of whichever one is present is the loader version. */
+const LOADER_MODS = new Set(["neoforge", "forge", "fabricloader", "quilt_loader"]);
+/** Never add-ons: the loader, the game it loads, and this bridge. */
+const BUILTIN_MODS = new Set([...LOADER_MODS, "minecraft", "metaconcord"]);
 
 /**
  * Walks ~/gserv/repos and prints one TSV line per addon root:
@@ -418,6 +429,14 @@ export class Addons extends Service {
 	/** Store the mod list a minecraft server published. */
 	async setModList(server: MinecraftConnection, mods: ReportedMod[]): Promise<void> {
 		const { id, name } = server.config;
+		// the loader and the game itself are mods to the loader, so read them off the
+		// list before it is filtered down to the mods anyone installed on purpose
+		const runtime: RuntimeComponent[] = [
+			mods.find(m => m.modId === "minecraft"),
+			mods.find(m => LOADER_MODS.has(m.modId)),
+		]
+			.filter((m): m is ReportedMod => !!m)
+			.map(({ modId, displayName, version }) => ({ id: modId, name: displayName, version }));
 		const relevant = mods.filter(m => !BUILTIN_MODS.has(m.modId));
 
 		const byHash = await resolveModrinth(
@@ -531,6 +550,7 @@ export class Addons extends Service {
 			serverId: id,
 			serverName: name,
 			updatedAt: Date.now(),
+			...(runtime.length ? { runtime } : {}),
 			addons: addons.sort((a, b) => a.name.localeCompare(b.name)),
 		});
 		log.info({ server: name, count: addons.length }, "stored minecraft mods");
