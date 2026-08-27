@@ -44,6 +44,8 @@ export type AddonGame = "gmod" | "minecraft";
 export interface MountedGame {
 	folder: string;
 	title?: string;
+	/** The steam app id. */
+	depot?: number;
 }
 
 export interface ServerAddons {
