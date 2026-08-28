@@ -139,6 +139,11 @@ export default class GameConnection extends EventEmitter {
 				.filter((msg: Discord.Message) => msg.author.id == this.discord.user?.id)
 				.first();
 
+			if (containers.length === 0) {
+				await message?.delete().catch(e => log.error(e, "message delete failed"));
+				return;
+			}
+
 			if (message) {
 				await message
 					.edit({
