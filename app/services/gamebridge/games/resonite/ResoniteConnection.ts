@@ -1,8 +1,17 @@
 import { ResoniteSession } from "@/app/services/Resonite.js";
-import GameConnection from "../../GameConnection.js";
+import GameConnection, { Player } from "../../GameConnection.js";
+
+export type ResoniteSessionState = {
+	session: ResoniteSession;
+	mapThumbnail: string;
+	players: Player[];
+	playerListImage?: Buffer;
+	lastCount: number;
+	lastSessionBeginTime: number;
+};
 
 export default class ResoniteConnection extends GameConnection {
-	// kept so a disconnect can re-render the status embed without waiting for
-	// a fresh ReceiveSessionUpdate that will never come.
-	lastSession?: ResoniteSession;
+	// keyed by sessionId - the host account can run several sessions at once,
+	// each gets its own container + attachment in the single status message.
+	sessions = new Map<string, ResoniteSessionState>();
 }

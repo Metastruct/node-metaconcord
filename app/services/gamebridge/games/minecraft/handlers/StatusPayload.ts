@@ -109,7 +109,7 @@ export default class StatusPayload extends Payload {
 			files.length > 0,
 			false
 		);
-		await server.postOrEditStatusMessage(container, files);
+		await server.postOrEditStatusMessage([container], files);
 	}
 
 	/** Repaints the status embed with a disconnected warning, keeping the last known data. */
@@ -128,6 +128,6 @@ export default class StatusPayload extends Payload {
 			files.length > 0,
 			true
 		);
-		await server.postOrEditStatusMessage(container, files);
+		await server.postOrEditStatusMessage([container], files);
 	}
 }
