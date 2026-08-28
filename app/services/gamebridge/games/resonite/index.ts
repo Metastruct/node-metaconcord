@@ -276,9 +276,7 @@ export function attachResonite(bridge: GameBridge): void {
 					? { extra: { session: ended.session, mapThumbnail: ended.mapThumbnail } }
 					: {}
 			);
-			if (containers.length > 0) {
-				await connection.postOrEditStatusMessage(containers, files);
-			}
+			await connection.postOrEditStatusMessage(containers, files);
 
 			if (connection.sessions.size === 0) {
 				connection.discord.destroy();
