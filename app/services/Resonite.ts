@@ -123,6 +123,31 @@ export class Resonite extends Service {
 		}`;
 	}
 
+	// assets.resonite.com can gate content on the requesting identity (e.g. a
+	// user's icon when their profile visibility is restricted), so this needs
+	// the same "res {userId}:{token}" auth used for the API itself - a plain
+	// unauthenticated fetch silently gets back nothing usable for those.
+	async FetchAssetDataUri(url: string): Promise<string | undefined> {
+		const res = await axios
+			.get<ArrayBuffer>(url, {
+				responseType: "arraybuffer",
+				headers: { Authorization: `res ${this.UserID}:${this.ResoniteToken}` },
+			})
+			.catch(() => {});
+		if (!res) return;
+		const contentType = res.headers["content-type"];
+		const mime =
+			(typeof contentType === "string" ? contentType.split(";")[0] : undefined) ||
+			"image/png";
+		return `data:${mime};base64,${Buffer.from(res.data).toString("base64")}`;
+	}
+
+	async GetResoniteUserAvatarDataUri(id: string): Promise<string | undefined> {
+		const url = await this.GetResoniteUserAvatarURL(id);
+		if (!url) return;
+		return this.FetchAssetDataUri(url);
+	}
+
 	async init(): Promise<void> {
 		await this.GetOrFetchToken();
 	}
