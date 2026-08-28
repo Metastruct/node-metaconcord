@@ -8,6 +8,7 @@ export type ResoniteSessionState = {
 	playerListImage?: Buffer;
 	lastCount: number;
 	lastSessionBeginTime: number;
+	lastPresence: string;
 };
 
 export default class ResoniteConnection extends GameConnection {

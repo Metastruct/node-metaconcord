@@ -178,11 +178,20 @@ export function attachResonite(bridge: GameBridge): void {
 
 			const count = session.joinedUsers;
 			const sessionBeginTime = new Date(session.sessionBeginTime).getTime();
+			const presence = session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).join(",");
 			const prior = connection.sessions.get(session.sessionId);
 			const uptimeChanged = !prior || prior.lastSessionBeginTime !== sessionBeginTime;
+			const presenceChanged = !prior || prior.lastPresence !== presence;
 
 			// update until last person leaves
-			if (prior && prior.lastCount === count && count === 0 && !uptimeChanged) return;
+			if (
+				prior &&
+				prior.lastCount === count &&
+				count === 0 &&
+				!uptimeChanged &&
+				!presenceChanged
+			)
+				return;
 
 			const mapThumbnail = session.thumbnailUrl ?? DEFAULT_THUMBNAIL;
 
@@ -231,6 +240,7 @@ export function attachResonite(bridge: GameBridge): void {
 				playerListImage,
 				lastCount: count,
 				lastSessionBeginTime: sessionBeginTime,
+				lastPresence: presence,
 			};
 			connection.sessions.set(session.sessionId, state);
 
