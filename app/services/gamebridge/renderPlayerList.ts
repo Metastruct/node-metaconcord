@@ -1,5 +1,5 @@
 import { Resvg } from "@resvg/resvg-js";
-import { GlobalFonts, createCanvas } from "@napi-rs/canvas";
+import { GlobalFonts, createCanvas, loadImage } from "@napi-rs/canvas";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { Player } from "./GameConnection.js";
@@ -46,6 +46,26 @@ const MIME_MAP: Record<string, string> = {
 // is naturally a cache miss, so this never needs an expiry.
 const dataUriCache = new Map<string, string>();
 
+// resvg only decodes PNG/JPEG raster images embedded in <image> - other
+// formats (e.g. WebP) get re-encoded to PNG first.
+const RESVG_SUPPORTED_MIME = new Set(["image/png", "image/jpeg"]);
+
+export async function toRenderableImage(
+	buf: Buffer,
+	mime: string
+): Promise<{ buf: Buffer; mime: string }> {
+	if (RESVG_SUPPORTED_MIME.has(mime)) return { buf, mime };
+	try {
+		const img = await loadImage(buf);
+		const canvas = createCanvas(img.width, img.height);
+		canvas.getContext("2d").drawImage(img, 0, 0);
+		return { buf: await canvas.encode("png"), mime: "image/png" };
+	} catch (err) {
+		log.warn(err, `failed to convert ${mime} image for rendering`);
+		return { buf, mime };
+	}
+}
+
 const textWidthCache = new Map<string, number>();
 const measureCtx = createCanvas(1, 1).getContext("2d");
 
@@ -60,15 +80,25 @@ function measureTextWidth(text: string, fontSize: number): number {
 	return width;
 }
 
+const DATA_URI_RE = /^data:([^;]+);base64,(.+)$/s;
+
 async function toDataUri(src?: string): Promise<string | undefined> {
 	if (!src) return;
-	if (src.startsWith("data:")) return src;
 
 	const cached = dataUriCache.get(src);
 	if (cached) return cached;
 
-	let buf: Uint8Array;
-	if (src.startsWith("http")) {
+	let buf: Buffer;
+	let mime: string;
+	if (src.startsWith("data:")) {
+		const match = DATA_URI_RE.exec(src);
+		if (!match) return src; // not base64 - nothing to decode/convert
+		mime = match[1];
+		buf = Buffer.from(match[2], "base64");
+	} else if (src.startsWith("http")) {
+		const ext = src.includes(".") ? (src.split(".").pop() ?? "png") : "png";
+		const extMime = MIME_MAP[ext] ?? "image/png";
+
 		let res: Response;
 		try {
 			res = await fetch(src, {
@@ -86,12 +116,16 @@ async function toDataUri(src?: string): Promise<string | undefined> {
 			log.warn(`failed to fetch avatar/image from ${src}: HTTP ${res.status}`);
 			return;
 		}
-		buf = new Uint8Array(await res.arrayBuffer());
+		buf = Buffer.from(await res.arrayBuffer());
+		mime = res.headers.get("content-type")?.split(";")[0] || extMime;
 	} else {
-		buf = await readFile(src);
+		const ext = src.includes(".") ? (src.split(".").pop() ?? "png") : "png";
+		buf = Buffer.from(await readFile(src));
+		mime = MIME_MAP[ext] ?? "image/png";
 	}
-	const ext = src.includes(".") ? (src.split(".").pop() ?? "png") : "png";
-	const dataUri = `data:${MIME_MAP[ext] ?? "image/png"};base64,${Buffer.from(buf).toString("base64")}`;
+
+	const rendered = await toRenderableImage(buf, mime);
+	const dataUri = `data:${rendered.mime};base64,${rendered.buf.toString("base64")}`;
 	dataUriCache.set(src, dataUri);
 	return dataUri;
 }
