@@ -188,31 +188,32 @@ export default async (webApp: WebApp): Promise<void> => {
 		if (ss13.length)
 			games.push({ game: "ss13", label: GAME_LABELS.ss13, kind: "server", entries: ss13 });
 
-		// resonite: one instance per active session
+		// resonite: one instance per active session (a single connection can host several)
 		const resonite: ServerEntry[] = [];
 		for (const server of Object.values(bridge.servers.resonite)) {
-			const session = server?.lastSession;
-			if (!server || server.disconnected || !session || session.hasEnded) continue;
-			resonite.push({
-				id: session.sessionId,
-				key: `resonite-${session.sessionId}`,
-				name: session.tags?.[0] ?? session.name,
-				map: session.tags?.[0] ? session.name : undefined,
-				mode: session.accessLevel,
-				thumbnail:
-					session.thumbnailUrl || thumbnailUrl(baseUrl, server.status.mapThumbnail),
-				players: server.status.players.map(p => ({
-					...basePlayer(p),
-					id: p.ip,
-					profileUrl: p.ip ? `https://go.resonite.com/user/${p.ip}` : undefined,
-				})),
-				playerCount: server.status.players.length,
-				maxPlayers: session.maxUsers || undefined,
-				upSince: session.sessionBeginTime
-					? new Date(session.sessionBeginTime).getTime() || undefined
-					: undefined,
-				connect: { url: `https://go.resonite.com/session/${session.sessionId}` },
-			});
+			if (!server || server.disconnected) continue;
+			for (const { session, mapThumbnail, players } of server.sessions.values()) {
+				if (session.hasEnded) continue;
+				resonite.push({
+					id: session.sessionId,
+					key: `resonite-${session.sessionId}`,
+					name: session.tags?.[0] ?? session.name,
+					map: session.tags?.[0] ? session.name : undefined,
+					mode: session.accessLevel,
+					thumbnail: session.thumbnailUrl || thumbnailUrl(baseUrl, mapThumbnail),
+					players: players.map(p => ({
+						...basePlayer(p),
+						id: p.ip,
+						profileUrl: p.ip ? `https://go.resonite.com/user/${p.ip}` : undefined,
+					})),
+					playerCount: players.length,
+					maxPlayers: session.maxUsers || undefined,
+					upSince: session.sessionBeginTime
+						? new Date(session.sessionBeginTime).getTime() || undefined
+						: undefined,
+					connect: { url: `https://go.resonite.com/session/${session.sessionId}` },
+				});
+			}
 		}
 		if (resonite.length) {
 			games.push({

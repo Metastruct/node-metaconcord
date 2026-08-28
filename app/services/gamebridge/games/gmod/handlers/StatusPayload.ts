@@ -318,7 +318,7 @@ export default class StatusPayload extends Payload {
 				}),
 			];
 
-			await server.postOrEditStatusMessage(container, attachments);
+			await server.postOrEditStatusMessage([container], attachments);
 		};
 
 		if (discord.ready) {

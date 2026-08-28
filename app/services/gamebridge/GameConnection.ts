@@ -115,10 +115,12 @@ export default class GameConnection extends EventEmitter {
 	/**
 	 * Finds this connection's own status message in the server-info channel
 	 * and edits it, or sends a new one. Shared by every game's status embed so
-	 * none of them have to re-implement the fetch/edit-or-send dance.
+	 * none of them have to re-implement the fetch/edit-or-send dance. Takes one
+	 * container per "thing" being reported (e.g. one per hosted session/instance)
+	 * so a single bot identity can report on several at once.
 	 */
 	async postOrEditStatusMessage(
-		container: Discord.ContainerBuilder,
+		containers: Discord.ContainerBuilder[],
 		files: Discord.AttachmentBuilder[]
 	): Promise<void> {
 		if (!this.discord.ready) return;
@@ -140,7 +142,7 @@ export default class GameConnection extends EventEmitter {
 			if (message) {
 				await message
 					.edit({
-						components: [container],
+						components: containers,
 						files,
 						flags: Discord.MessageFlags.IsComponentsV2,
 					})
@@ -148,7 +150,7 @@ export default class GameConnection extends EventEmitter {
 			} else {
 				await channel
 					.send({
-						components: [container],
+						components: containers,
 						files,
 						flags: Discord.MessageFlags.IsComponentsV2,
 					})

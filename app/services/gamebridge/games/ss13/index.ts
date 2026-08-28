@@ -199,7 +199,7 @@ export function attachSS13(bridge: GameBridge): void {
 				files.length > 0,
 				false
 			);
-			await conn.postOrEditStatusMessage(container, files);
+			await conn.postOrEditStatusMessage([container], files);
 		} catch (err) {
 			log.error(err, "SS13 poll failed");
 			conn.disconnected = true;
@@ -222,7 +222,7 @@ export function attachSS13(bridge: GameBridge): void {
 						files.length > 0,
 						true
 					);
-					await conn.postOrEditStatusMessage(container, files);
+					await conn.postOrEditStatusMessage([container], files);
 				} catch (postErr) {
 					log.error(postErr, "failed to post SS13 disconnect status");
 				}
