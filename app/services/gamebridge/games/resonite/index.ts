@@ -42,7 +42,7 @@ function buildSessionContainer(
 	}
 
 	if (state === "ended") {
-		desc = `🛑 **Session ended**\n${desc}`;
+		desc = `🛑 **Headless instance offline**\n${desc}`;
 	} else if (state === "disconnected") {
 		desc = `⚠️ **Server disconnected** info may be outdated\n${desc}`;
 	}
@@ -169,9 +169,8 @@ export function attachResonite(bridge: GameBridge): void {
 	con.on("ReceiveSessionUpdate", async (session: ResoniteSession) => {
 		try {
 			if (session.hostUserId !== resonite.UserID) return;
-			// RemoveSession tears the connection down once no sessions remain - a
-			// session starting back up needs a fresh one, same as a gmod server
-			// reconnecting gets a fresh GmodConnection.
+			// RemoveSession tears the connection down once no sessions remain, so a
+			// session starting back up needs a fresh connection created here.
 			const connection =
 				bridge.servers.resonite[RESONITE_SERVER_ID] ?? createConnection(bridge);
 			if (!connection.discord.ready) return;
@@ -265,10 +264,21 @@ export function attachResonite(bridge: GameBridge): void {
 			connection.sessions.delete(sessionId);
 			updatePresence(connection);
 
-			const { containers, files } = renderMessage(connection, {
-				extra: { session: ended.session, mapThumbnail: ended.mapThumbnail },
-			});
-			await connection.postOrEditStatusMessage(containers, files);
+			// a custom session id (S-{hostUserId}:{label}) identifies a persistent
+			// headless instance that will restart under the same id, worth a
+			// lingering "offline" embed; an auto-generated S-{guid} won't recur.
+			const hasCustomSessionId = ended.session.sessionId.startsWith(
+				`S-${ended.session.hostUserId}:`
+			);
+			const { containers, files } = renderMessage(
+				connection,
+				hasCustomSessionId
+					? { extra: { session: ended.session, mapThumbnail: ended.mapThumbnail } }
+					: {}
+			);
+			if (containers.length > 0) {
+				await connection.postOrEditStatusMessage(containers, files);
+			}
 
 			if (connection.sessions.size === 0) {
 				connection.discord.destroy();
