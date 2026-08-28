@@ -26,8 +26,13 @@ function buildStatusContainer(
 		`:busts_in_silhouette: Player${
 			count > 1 || count == 0 ? "s" : ""
 		}: **Active: ${session.activeUsers} • Connected: ${count}**\n` +
+		`:door: Capacity: **${count}/${session.maxUsers}**\n` +
 		`:repeat: Last Update: <t:${(new Date(session.lastUpdate).getTime() / 1000) | 0}:R>\n` +
 		`:file_cabinet: Server up since: <t:${(new Date(session.sessionBeginTime).getTime() / 1000) | 0}:R>`;
+
+	if (session.accessLevel !== "Anyone") {
+		desc += `\n:closed_lock_with_key: Access: **${session.accessLevel}**`;
+	}
 
 	if (disconnected) {
 		desc = `⚠️ **Server disconnected** info may be outdated\n${desc}`;
@@ -142,13 +147,22 @@ export function attachResonite(bridge: GameBridge): void {
 					};
 				});
 
-			connection.status.players.forEach(
-				async u => (u.avatar = await resonite.GetResoniteUserAvatarURL(u.ip))
+			await Promise.all(
+				connection.status.players.map(
+					async u => (u.avatar = await resonite.GetResoniteUserAvatarDataUri(u.ip))
+				)
 			);
+
+			// assets.resonite.com can require the requester's own auth to serve the
+			// bytes (see GetResoniteUserAvatarDataUri) - fall back to the raw URL so
+			// the composite at least attempts an unauthenticated fetch rather than
+			// rendering with no map background at all.
+			const compositeMapThumbnail =
+				(await resonite.FetchAssetDataUri(mapThumbnail)) ?? mapThumbnail;
 
 			connection.playerListImage = await renderPlayerListImage(
 				connection.status.players,
-				mapThumbnail
+				compositeMapThumbnail
 			);
 			connection.lastSession = session;
 
