@@ -94,7 +94,9 @@ function renderMessage(
 	const files: Discord.AttachmentBuilder[] = [];
 
 	for (const s of connection.sessions.values()) {
-		const attachmentName = `players-${s.session.sessionId}.png`;
+		// sessionId contains characters (e.g. ":") that break attachment://
+		// URL parsing when used as-is.
+		const attachmentName = `players-${s.session.sessionId.replace(/[^a-zA-Z0-9_-]/g, "_")}.png`;
 		containers.push(
 			buildSessionContainer(s.session, s.mapThumbnail, attachmentName, opts.state)
 		);
