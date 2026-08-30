@@ -28,14 +28,14 @@ export type EditorSession = {
 // signed cookies are readable by the browser, the token must not be
 const key = crypto.createHash("sha256").update(WebAppConfig.cookieSecret).digest();
 
-const encrypt = (data: unknown): string => {
+export const encrypt = (data: unknown): string => {
 	const iv = crypto.randomBytes(12);
 	const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
 	const body = Buffer.concat([cipher.update(JSON.stringify(data), "utf8"), cipher.final()]);
 	return Buffer.concat([iv, cipher.getAuthTag(), body]).toString("base64url");
 };
 
-const decrypt = <T>(value: string): T | undefined => {
+export const decrypt = <T>(value: string): T | undefined => {
 	try {
 		const buf = Buffer.from(value, "base64url");
 		const decipher = crypto.createDecipheriv("aes-256-gcm", key, buf.subarray(0, 12));
@@ -47,7 +47,7 @@ const decrypt = <T>(value: string): T | undefined => {
 	}
 };
 
-const cookieOptions = {
+export const cookieOptions = {
 	httpOnly: true,
 	secure: IS_PROD,
 	sameSite: "lax" as const,
@@ -86,7 +86,7 @@ export const requireEditor = (req: Request, res: Response): EditorSession | unde
 	return session;
 };
 
-const safeRedirect = (value: unknown): string => {
+export const safeRedirect = (value: unknown): string => {
 	if (typeof value === "string" && /^\/(?!\/)[a-zA-Z0-9\-_/#?=&.]*$/.test(value)) return value;
 	return "/";
 };
