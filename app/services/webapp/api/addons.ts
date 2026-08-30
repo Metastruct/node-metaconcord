@@ -1,7 +1,7 @@
 import { AddonGame, Addons } from "@/app/services/addons/index.js";
 import { Request, Response } from "express";
 import { WebApp } from "@/app/services/webapp/index.js";
-import { getSession, isTeamMember } from "./github-auth.js";
+import { getSession, isTeamMember } from "./auth/github.js";
 
 const CACHE_CONTROL = "public, max-age=300, stale-while-revalidate=3600";
 const GAMES: AddonGame[] = ["gmod", "minecraft"];

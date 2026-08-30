@@ -5,7 +5,7 @@ import {
 	HARDBAN_ACTOR,
 	parseBanActor,
 } from "@/app/services/gamebridge/games/gmod/banActor.js";
-import { getSession, isTeamMember } from "./github-auth.js";
+import { getSession, isTeamMember } from "./auth/github.js";
 import {
 	issueBan,
 	pickGmodServer,

@@ -13,7 +13,7 @@ import {
 	getSession,
 	getSessionFromCookieHeader,
 	isTeamMember,
-} from "./github-auth.js";
+} from "./auth/github.js";
 import { NodeSSH } from "node-ssh";
 import type { ClientChannel } from "ssh2";
 import { connection as WebSocketConnection } from "websocket";
