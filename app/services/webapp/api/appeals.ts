@@ -3,7 +3,7 @@ import type { Response } from "express";
 import { resolveProfiles, toEntry } from "./bans.js";
 import { EMBED_FIELD_LIMIT } from "@/app/services/discord/index.js";
 import { MetaBan, PERMANENT_UNBAN_TIME } from "@/app/services/Bans.js";
-import { SteamSession, getSteamSession } from "./steam-auth.js";
+import { SteamSession, getSteamSession } from "./auth/steam.js";
 import { actorLabel } from "@/app/services/gamebridge/games/gmod/banActor.js";
 import { f, logger } from "@/utils.js";
 import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
@@ -14,7 +14,7 @@ import { WebApp } from "@/app/services/webapp/index.js";
 const log = logger(import.meta);
 
 /**
- * Web ban appeals. A banned player logs in with Steam (see steam-auth), submits an appeal
+ * Web ban appeals. A banned player logs in with Steam (see auth/steam), submits an appeal
  * which opens a thread in the appeals channel, and the thread then works as a two way chat:
  * staff talk in Discord, the appellant reads and replies from the website. The thread is the
  * conversation, sqlite only remembers which thread belongs to which ban.

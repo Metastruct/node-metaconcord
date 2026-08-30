@@ -1,7 +1,7 @@
 import { Bans, DiscordBot, SQL } from "./index.js";
 import { Container, Service } from "../Container.js";
 import { isAdmin, logger } from "@/utils.js";
-import { revokeOAuthToken } from "./webapp/api/discord-oauth.js";
+import { revokeOAuthToken } from "./webapp/api/auth/discord.js";
 import SteamID from "steamid";
 import config from "@/config/metadata.json" with { type: "json" };
 

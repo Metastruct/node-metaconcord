@@ -5,7 +5,7 @@ import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
 import express from "express";
 import { MirrorError, mirrorImage } from "./history-images.js";
-import { requireEditor } from "./github-auth.js";
+import { requireEditor } from "./auth/github.js";
 import HistoryConfig from "@/config/history.json" with { type: "json" };
 import { logger } from "@/utils.js";
 

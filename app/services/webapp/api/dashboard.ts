@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { WebApp } from "@/app/services/webapp/index.js";
 import { logBuffer, LogLine } from "@/app/services/webapp/dashboard/LogBuffer.js";
 import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
-import { EditorSession, getSession, getSessionFromCookieHeader } from "./github-auth.js";
+import { EditorSession, getSession, getSessionFromCookieHeader } from "./auth/github.js";
 import { rateLimit } from "express-rate-limit";
 import { ChildProcess, spawn } from "child_process";
 import { connection as WebSocketConnection } from "websocket";
@@ -18,7 +18,7 @@ const log = logger(import.meta);
 /**
  * Admin dashboard served at `/`: live process output, a JS / bash REPL over a
  * websocket and an editor for the config files. Everything is behind the GitHub
- * team login from github-auth.ts.
+ * team login from auth/github.ts.
  */
 
 // only this history.json team gets the dashboard, the others can still edit the website
