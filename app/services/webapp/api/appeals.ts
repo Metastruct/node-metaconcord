@@ -178,6 +178,23 @@ export default (webApp: WebApp): void => {
 		);
 	};
 
+	const closeAppealRow = async (
+		id: number,
+		resolution?: AppealRow["resolution"]
+	): Promise<void> => {
+		await (
+			await db()
+		).run(
+			"UPDATE appeals SET closed_at = ?, resolution = ? WHERE id = ? AND closed_at IS NULL;",
+			Math.round(Date.now() / 1000),
+			resolution ?? null,
+			id
+		);
+	};
+
+	const rowById = async (id: number): Promise<AppealRow | undefined> =>
+		(await db()).get<AppealRow>("SELECT * FROM appeals WHERE id = ?;", id);
+
 	/** The most recent appeal for one specific ban, open or resolved. */
 	const rowForBan = async (steamId64: string, bannedAt: number): Promise<AppealRow | undefined> =>
 		(await db()).get<AppealRow>(
@@ -185,16 +202,6 @@ export default (webApp: WebApp): void => {
 			steamId64,
 			bannedAt
 		);
-
-	/** The appeal whose thread the appellant may still read: open, or refused. */
-	const readableAppeal = async (steamId64: string): Promise<AppealRow | undefined> =>
-		(await openAppeal(steamId64)) ??
-		(await (
-			await db()
-		).get<AppealRow>(
-			"SELECT * FROM appeals WHERE steam_id64 = ? AND resolution = 'refused' ORDER BY id DESC LIMIT 1;",
-			steamId64
-		));
 
 	/** The appeal thread, or "gone" when it was deleted on the Discord side. */
 	const fetchThread = async (
@@ -245,7 +252,7 @@ export default (webApp: WebApp): void => {
 				status: "appealed",
 				ban: entry,
 				profiles,
-				appeal: { createdAt: row.created_at },
+				appeal: { id: row.id, createdAt: row.created_at },
 			});
 			return;
 		}
@@ -254,7 +261,7 @@ export default (webApp: WebApp): void => {
 				status: "refused",
 				ban: entry,
 				profiles,
-				appeal: { createdAt: row.created_at },
+				appeal: { id: row.id, createdAt: row.created_at },
 			});
 			return;
 		}
@@ -372,7 +379,7 @@ export default (webApp: WebApp): void => {
 		}
 
 		const createdAt = Math.round(Date.now() / 1000);
-		await (
+		const inserted = await (
 			await db()
 		).run(
 			"INSERT INTO appeals (steam_id64, banned_at, thread_id, message_id, created_at) VALUES (?, ?, ?, ?, ?);",
@@ -384,17 +391,38 @@ export default (webApp: WebApp): void => {
 		);
 
 		log.info(`${session.steamId64} (${name}) appealed their ban, thread ${thread.id}`);
-		res.status(201).json({ status: "appealed", appeal: { createdAt } });
+		res.status(201).json({ status: "appealed", appeal: { id: inserted.lastID, createdAt } });
 	});
 
-	webApp.app.get("/appeals/me/messages", messagesLimiter, async (req, res) => {
+	/**
+	 * The chat endpoints name the appeal by id, so a tab still showing an older appeal can
+	 * never silently read or write a newer appeal's thread; it gets told the one it is
+	 * looking at is over instead.
+	 */
+	const appealFromParam = async (
+		req: Request,
+		res: Response,
+		session: SteamSession
+	): Promise<AppealRow | undefined> => {
+		const id = Number(req.params.id);
+		const row = Number.isInteger(id) && id > 0 ? await rowById(id) : undefined;
+		if (!row || row.steam_id64 !== session.steamId64) {
+			res.status(404).json({ error: "no such appeal" });
+			return undefined;
+		}
+		return row;
+	};
+
+	webApp.app.get("/appeals/:id/messages", messagesLimiter, async (req, res) => {
 		const session = requireSteam(req, res);
 		if (!session) return;
 
 		res.set("Cache-Control", "no-store");
-		const row = await readableAppeal(session.steamId64);
-		if (!row) {
-			res.status(404).json({ error: "no open appeal" });
+		const row = await appealFromParam(req, res, session);
+		if (!row) return;
+		// a moot or accepted appeal has nothing left to show, only refused ones stay readable
+		if (row.closed_at && row.resolution !== "refused") {
+			res.json({ closed: true, messages: [] });
 			return;
 		}
 
@@ -437,7 +465,7 @@ export default (webApp: WebApp): void => {
 		res.json({ messages });
 	});
 
-	webApp.app.post("/appeals/me/messages", replyLimiter, json, async (req, res) => {
+	webApp.app.post("/appeals/:id/messages", replyLimiter, json, async (req, res) => {
 		const session = requireSteam(req, res);
 		if (!session) return;
 
@@ -447,9 +475,10 @@ export default (webApp: WebApp): void => {
 			return;
 		}
 
-		const row = await openAppeal(session.steamId64);
-		if (!row) {
-			res.status(404).json({ error: "no open appeal" });
+		const row = await appealFromParam(req, res, session);
+		if (!row) return;
+		if (row.closed_at) {
+			res.status(409).json({ error: "this appeal was closed" });
 			return;
 		}
 
@@ -542,6 +571,12 @@ export default (webApp: WebApp): void => {
 			threadId
 		);
 
+	const openAppealByMessage = async (messageId: string): Promise<AppealRow | undefined> =>
+		(await db()).get<AppealRow>(
+			"SELECT * FROM appeals WHERE message_id = ? AND closed_at IS NULL LIMIT 1;",
+			messageId
+		);
+
 	const settleStarter = async (
 		row: AppealRow,
 		label: string,
@@ -566,7 +601,7 @@ export default (webApp: WebApp): void => {
 			.getBan(row.steam_id64)
 			.catch(() => undefined);
 		const refused = !!ban && isActive(ban);
-		await closeAppeals(row.steam_id64, refused ? "refused" : undefined);
+		await closeAppealRow(row.id, refused ? "refused" : undefined);
 		messagesCache.delete(row.thread_id);
 		if (refused) await settleStarter(row, "Refused", Discord.ButtonStyle.Danger);
 		log.info(
@@ -640,11 +675,21 @@ export default (webApp: WebApp): void => {
 				return;
 			}
 
-			const steamId64 = interaction.customId.replace(/_APPEAL_(UNBAN|REFUSE)$/, "");
+			// the buttons act on the appeal this embed belongs to, never on whatever the
+			// player's latest appeal happens to be
+			const row = await openAppealByMessage(interaction.message.id);
+			if (!row) {
+				await interaction.followUp({
+					content: "this appeal is already settled.",
+					flags: Discord.MessageFlags.Ephemeral,
+				});
+				return;
+			}
+			const steamId64 = row.steam_id64;
 			const thread = interaction.message.thread;
 
 			if (isRefuse) {
-				await closeAppeals(steamId64, "refused");
+				await closeAppealRow(row.id, "refused");
 				await thread?.send({ content: `🚫 ${interaction.user} refused the appeal.` });
 				await settleButtons(interaction.message, "Refused", Discord.ButtonStyle.Danger);
 				await archiveThread(thread);
@@ -682,7 +727,7 @@ export default (webApp: WebApp): void => {
 				await bans.updateCache(true).catch(() => {});
 			}
 
-			await closeAppeals(steamId64, "unbanned");
+			await closeAppealRow(row.id, "unbanned");
 			await thread?.send({
 				content: `🔓 ${interaction.user} accepted the appeal and unbanned the player.`,
 			});
