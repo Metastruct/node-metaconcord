@@ -623,8 +623,17 @@ export default (webApp: WebApp): void => {
 			const isRefuse = interaction.customId.endsWith("_APPEAL_REFUSE");
 			if (!isUnban && !isRefuse) return;
 
+			// acknowledged first thing: the permission check can involve a member fetch,
+			// and Discord voids the interaction 3 seconds after the click
+			try {
+				await interaction.deferUpdate();
+			} catch (err) {
+				log.warn(err, "could not acknowledge an appeal button in time");
+				return;
+			}
+
 			if (!(await isDeveloper(interaction.user.id))) {
-				await interaction.reply({
+				await interaction.followUp({
 					content: "you're not allowed to use this button...",
 					flags: Discord.MessageFlags.Ephemeral,
 				});
@@ -633,7 +642,6 @@ export default (webApp: WebApp): void => {
 
 			const steamId64 = interaction.customId.replace(/_APPEAL_(UNBAN|REFUSE)$/, "");
 			const thread = interaction.message.thread;
-			await interaction.deferUpdate();
 
 			if (isRefuse) {
 				await closeAppeals(steamId64, "refused");
