@@ -496,12 +496,14 @@ export default (webApp: WebApp): void => {
 
 	// --- the Unban / Refuse buttons on the appeal embeds ---
 
-	const bot = webApp.container.getService("DiscordBot");
+	// WebApp is constructed before DiscordBot (see services/index.ts), so the service can
+	// only be looked up lazily, never while this module registers
+	const bot = () => webApp.container.getService("DiscordBot");
 
 	const isDeveloper = async (userId: string): Promise<boolean> => {
-		const member = await bot.getGuildMember(userId);
+		const member = await bot().getGuildMember(userId);
 		if (!member) return false;
-		const { administrator, developer, newDeveloper } = bot.config.roles;
+		const { administrator, developer, newDeveloper } = bot().config.roles;
 		return [administrator, developer, newDeveloper].some(id => member.roles.cache.has(id));
 	};
 
@@ -546,7 +548,7 @@ export default (webApp: WebApp): void => {
 		style: Discord.ButtonStyle
 	): Promise<void> => {
 		try {
-			const channel = bot.getTextChannel(bot.config.channels.appeals);
+			const channel = bot().getTextChannel(bot().config.channels.appeals);
 			if (!channel) return;
 			await settleButtons(await channel.messages.fetch(row.message_id), label, style);
 		} catch (err) {
@@ -595,87 +597,90 @@ export default (webApp: WebApp): void => {
 		}
 	};
 
-	bot.discord.on("threadDelete", async thread => {
-		if (thread.parentId !== bot.config.channels.appeals) return;
-		const row = await openAppealByThread(thread.id);
-		if (row) await refuseIfUnresolved(row);
-	});
-
-	bot.discord.on("threadUpdate", async (oldThread, newThread) => {
-		if (newThread.parentId !== bot.config.channels.appeals) return;
-		const lockedNow = !oldThread.locked && newThread.locked;
-		const archivedNow = !oldThread.archived && newThread.archived;
-		if (!lockedNow && !archivedNow) return;
-		// the button flow closes the row before archiving, so it never lands here
-		const row = await openAppealByThread(newThread.id);
-		if (!row) return;
-		if (!lockedNow && archivedNow && !(await wasManuallyArchived(newThread))) return;
-		await refuseIfUnresolved(row);
-	});
-
-	bot.discord.on("interactionCreate", async interaction => {
-		if (!interaction.isButton()) return;
-		const isUnban = interaction.customId.endsWith("_APPEAL_UNBAN");
-		const isRefuse = interaction.customId.endsWith("_APPEAL_REFUSE");
-		if (!isUnban && !isRefuse) return;
-
-		if (!(await isDeveloper(interaction.user.id))) {
-			await interaction.reply({
-				content: "you're not allowed to use this button...",
-				flags: Discord.MessageFlags.Ephemeral,
-			});
-			return;
-		}
-
-		const steamId64 = interaction.customId.replace(/_APPEAL_(UNBAN|REFUSE)$/, "");
-		const thread = interaction.message.thread;
-		await interaction.deferUpdate();
-
-		if (isRefuse) {
-			await closeAppeals(steamId64, "refused");
-			await thread?.send({ content: `🚫 ${interaction.user} refused the appeal.` });
-			await settleButtons(interaction.message, "Refused", Discord.ButtonStyle.Danger);
-			await archiveThread(thread);
-			log.info(`${interaction.user.username} refused the appeal of ${steamId64}`);
-			return;
-		}
-
-		const bans = webApp.container.getService("Bans");
-		const ban = await bans.getBan(steamId64);
-		if (ban && isActive(ban)) {
-			const server = pickGmodServer(webApp.container.getService("GameBridge"));
-			if (!server) {
-				await thread?.send({
-					content: `${interaction.user}, could not unban: no game server is connected right now.`,
-				});
-				return;
-			}
-			const ok = await revokeBan(
-				server,
-				{
-					steamId: ban.sid,
-					actor: `Discord (${interaction.user.username}|${interaction.user})`,
-					reason: "Appeal accepted",
-				},
-				interaction.user.username
-			);
-			if (!ok) {
-				await thread?.send({
-					content: `${interaction.user}, could not unban: the game server ${
-						ok === undefined ? "did not answer" : "refused the unban"
-					}.`,
-				});
-				return;
-			}
-			await bans.updateCache(true).catch(() => {});
-		}
-
-		await closeAppeals(steamId64, "unbanned");
-		await thread?.send({
-			content: `🔓 ${interaction.user} accepted the appeal and unbanned the player.`,
+	// deferred so the listeners attach once the container holds every service
+	setImmediate(() => {
+		bot().discord.on("threadDelete", async thread => {
+			if (thread.parentId !== bot().config.channels.appeals) return;
+			const row = await openAppealByThread(thread.id);
+			if (row) await refuseIfUnresolved(row);
 		});
-		await settleButtons(interaction.message, "Unbanned", Discord.ButtonStyle.Success);
-		await archiveThread(thread);
-		log.info(`${interaction.user.username} accepted the appeal of ${steamId64}, unbanned`);
+
+		bot().discord.on("threadUpdate", async (oldThread, newThread) => {
+			if (newThread.parentId !== bot().config.channels.appeals) return;
+			const lockedNow = !oldThread.locked && newThread.locked;
+			const archivedNow = !oldThread.archived && newThread.archived;
+			if (!lockedNow && !archivedNow) return;
+			// the button flow closes the row before archiving, so it never lands here
+			const row = await openAppealByThread(newThread.id);
+			if (!row) return;
+			if (!lockedNow && archivedNow && !(await wasManuallyArchived(newThread))) return;
+			await refuseIfUnresolved(row);
+		});
+
+		bot().discord.on("interactionCreate", async interaction => {
+			if (!interaction.isButton()) return;
+			const isUnban = interaction.customId.endsWith("_APPEAL_UNBAN");
+			const isRefuse = interaction.customId.endsWith("_APPEAL_REFUSE");
+			if (!isUnban && !isRefuse) return;
+
+			if (!(await isDeveloper(interaction.user.id))) {
+				await interaction.reply({
+					content: "you're not allowed to use this button...",
+					flags: Discord.MessageFlags.Ephemeral,
+				});
+				return;
+			}
+
+			const steamId64 = interaction.customId.replace(/_APPEAL_(UNBAN|REFUSE)$/, "");
+			const thread = interaction.message.thread;
+			await interaction.deferUpdate();
+
+			if (isRefuse) {
+				await closeAppeals(steamId64, "refused");
+				await thread?.send({ content: `🚫 ${interaction.user} refused the appeal.` });
+				await settleButtons(interaction.message, "Refused", Discord.ButtonStyle.Danger);
+				await archiveThread(thread);
+				log.info(`${interaction.user.username} refused the appeal of ${steamId64}`);
+				return;
+			}
+
+			const bans = webApp.container.getService("Bans");
+			const ban = await bans.getBan(steamId64);
+			if (ban && isActive(ban)) {
+				const server = pickGmodServer(webApp.container.getService("GameBridge"));
+				if (!server) {
+					await thread?.send({
+						content: `${interaction.user}, could not unban: no game server is connected right now.`,
+					});
+					return;
+				}
+				const ok = await revokeBan(
+					server,
+					{
+						steamId: ban.sid,
+						actor: `Discord (${interaction.user.username}|${interaction.user})`,
+						reason: "Appeal accepted",
+					},
+					interaction.user.username
+				);
+				if (!ok) {
+					await thread?.send({
+						content: `${interaction.user}, could not unban: the game server ${
+							ok === undefined ? "did not answer" : "refused the unban"
+						}.`,
+					});
+					return;
+				}
+				await bans.updateCache(true).catch(() => {});
+			}
+
+			await closeAppeals(steamId64, "unbanned");
+			await thread?.send({
+				content: `🔓 ${interaction.user} accepted the appeal and unbanned the player.`,
+			});
+			await settleButtons(interaction.message, "Unbanned", Discord.ButtonStyle.Success);
+			await archiveThread(thread);
+			log.info(`${interaction.user.username} accepted the appeal of ${steamId64}, unbanned`);
+		});
 	});
 };
