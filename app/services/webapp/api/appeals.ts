@@ -406,12 +406,19 @@ export default (webApp: WebApp): void => {
 
 		const thread = await fetchThread(row);
 		if (thread === "gone") {
-			await closeAppeals(session.steamId64);
+			// deletions the bot slept through end up here
+			if (!row.closed_at) await refuseIfUnresolved(row);
 			res.json({ closed: true, messages: [] });
 			return;
 		}
 		if (!thread) {
 			res.status(503).json({ error: "Discord is unavailable right now" });
+			return;
+		}
+		if (!row.closed_at && thread.locked) {
+			// same for locks
+			await refuseIfUnresolved(row);
+			res.json({ closed: true, messages: [] });
 			return;
 		}
 
@@ -448,12 +455,17 @@ export default (webApp: WebApp): void => {
 
 		const thread = await fetchThread(row);
 		if (thread === "gone") {
-			await closeAppeals(session.steamId64);
+			await refuseIfUnresolved(row);
 			res.status(409).json({ error: "this appeal was closed" });
 			return;
 		}
 		if (!thread) {
 			res.status(503).json({ error: "Discord is unavailable right now" });
+			return;
+		}
+		if (thread.locked) {
+			await refuseIfUnresolved(row);
+			res.status(409).json({ error: "this appeal was closed" });
 			return;
 		}
 
@@ -521,6 +533,85 @@ export default (webApp: WebApp): void => {
 			log.error(err, `failed archiving appeal thread ${thread.id}`);
 		}
 	};
+
+	const openAppealByThread = async (threadId: string): Promise<AppealRow | undefined> =>
+		(await db()).get<AppealRow>(
+			"SELECT * FROM appeals WHERE thread_id = ? AND closed_at IS NULL LIMIT 1;",
+			threadId
+		);
+
+	const settleStarter = async (
+		row: AppealRow,
+		label: string,
+		style: Discord.ButtonStyle
+	): Promise<void> => {
+		try {
+			const channel = bot.getTextChannel(bot.config.channels.appeals);
+			if (!channel) return;
+			await settleButtons(await channel.messages.fetch(row.message_id), label, style);
+		} catch (err) {
+			log.error(err, `failed settling appeal message ${row.message_id}`);
+		}
+	};
+
+	/**
+	 * Locking, closing or deleting an appeal thread by hand counts as refusing the appeal,
+	 * as long as the ban is still active; a lifted or expired ban just closes it as moot.
+	 */
+	const refuseIfUnresolved = async (row: AppealRow): Promise<void> => {
+		const ban = await webApp.container
+			.getService("Bans")
+			.getBan(row.steam_id64)
+			.catch(() => undefined);
+		const refused = !!ban && isActive(ban);
+		await closeAppeals(row.steam_id64, refused ? "refused" : undefined);
+		messagesCache.delete(row.thread_id);
+		if (refused) await settleStarter(row, "Refused", Discord.ButtonStyle.Danger);
+		log.info(
+			`appeal thread ${row.thread_id} of ${row.steam_id64} was closed on Discord, ` +
+				(refused ? "appeal refused" : "ban no longer active")
+		);
+	};
+
+	/**
+	 * "Close Thread" in Discord is just archiving, which the week of inactivity also does on
+	 * its own; only a person's archive should refuse. The audit log tells them apart, and
+	 * with no access to it a person is assumed.
+	 */
+	const wasManuallyArchived = async (thread: Discord.ThreadChannel): Promise<boolean> => {
+		try {
+			const logs = await thread.guild.fetchAuditLogs({
+				type: Discord.AuditLogEvent.ThreadUpdate,
+				limit: 10,
+			});
+			return logs.entries.some(
+				entry =>
+					entry.targetId === thread.id &&
+					Date.now() - entry.createdTimestamp < 60_000 &&
+					entry.changes.some(change => change.key === "archived" && change.new === true)
+			);
+		} catch {
+			return true;
+		}
+	};
+
+	bot.discord.on("threadDelete", async thread => {
+		if (thread.parentId !== bot.config.channels.appeals) return;
+		const row = await openAppealByThread(thread.id);
+		if (row) await refuseIfUnresolved(row);
+	});
+
+	bot.discord.on("threadUpdate", async (oldThread, newThread) => {
+		if (newThread.parentId !== bot.config.channels.appeals) return;
+		const lockedNow = !oldThread.locked && newThread.locked;
+		const archivedNow = !oldThread.archived && newThread.archived;
+		if (!lockedNow && !archivedNow) return;
+		// the button flow closes the row before archiving, so it never lands here
+		const row = await openAppealByThread(newThread.id);
+		if (!row) return;
+		if (!lockedNow && archivedNow && !(await wasManuallyArchived(newThread))) return;
+		await refuseIfUnresolved(row);
+	});
 
 	bot.discord.on("interactionCreate", async interaction => {
 		if (!interaction.isButton()) return;
