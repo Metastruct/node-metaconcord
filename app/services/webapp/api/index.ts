@@ -2,6 +2,7 @@ import addAddonsAPI from "./addons.js";
 import addEmojiAPI from "./emojis.js";
 import addGameServerStatusAPI from "./game-server-status.js";
 import addMapThumbnails from "./resources.js";
+import appealsAPI from "./appeals.js";
 import changeGamemode from "./gamemode.js";
 import bansAPI from "./bans.js";
 import ci from "./ci.js";
@@ -16,6 +17,7 @@ import history from "./history.js";
 import redirects from "./redirects.js";
 import robots from "./robots.js";
 import servers from "./servers.js";
+import steamAuth from "./steam-auth.js";
 import steamOAuth from "./steam-oauth.js";
 
 export default [
@@ -23,6 +25,7 @@ export default [
 	addEmojiAPI,
 	addGameServerStatusAPI,
 	addMapThumbnails,
+	appealsAPI,
 	bansAPI,
 	changeGamemode,
 	ci,
@@ -37,5 +40,6 @@ export default [
 	redirects,
 	robots,
 	servers,
+	steamAuth,
 	steamOAuth,
 ];

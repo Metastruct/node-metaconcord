@@ -39,7 +39,7 @@ const CONTROL_RE = new RegExp("[\\u0000-\\u001f\\u007f]", "g");
 
 type Profile = { name: string; avatar: string; profileUrl: string };
 
-type BanEntry = {
+export type BanEntry = {
 	id: string;
 	steamId: string;
 	steamId64?: string;
@@ -67,7 +67,7 @@ const steam64 = (steamId: string): string | undefined => {
 	}
 };
 
-const toEntry = (ban: MetaBan): BanEntry => ({
+export const toEntry = (ban: MetaBan): BanEntry => ({
 	id: ban.sid,
 	steamId: ban.sid,
 	steamId64: steam64(ban.sid),
@@ -99,7 +99,7 @@ const profileIds = (entries: BanEntry[]): string[] => {
 	return ids;
 };
 
-const resolveProfiles = async (
+export const resolveProfiles = async (
 	webApp: WebApp,
 	entries: BanEntry[]
 ): Promise<Record<string, Profile>> => {
