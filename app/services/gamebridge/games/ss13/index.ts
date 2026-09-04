@@ -39,7 +39,7 @@ const SHUTTLE_AT_REST = ["idle", "docked"];
  * excludes anything that ticks on its own (e.g. round duration) so a 60s poll
  * with nothing new to report doesn't repost the message.
  */
-function buildSignature(status: SS13Status, disconnected: boolean): unknown {
+function buildSignature(status: SS13Status, players: Player[], disconnected: boolean): unknown {
 	return {
 		disconnected,
 		watchdogStatus: status.watchdogStatus,
@@ -48,6 +48,9 @@ function buildSignature(status: SS13Status, disconnected: boolean): unknown {
 		securityLevel: status.securityLevel,
 		shuttleMode: status.shuttleMode,
 		port: status.port,
+		players: players
+			.map(p => ({ nick: p.nick, isAfk: p.isAfk, description: p.description }))
+			.sort((a, b) => a.nick.localeCompare(b.nick)),
 	};
 }
 
@@ -216,7 +219,11 @@ export function attachSS13(bridge: GameBridge): void {
 				files.length > 0,
 				false
 			);
-			await conn.postOrEditStatusMessage([container], files, buildSignature(status, false));
+			await conn.postOrEditStatusMessage(
+				[container],
+				files,
+				buildSignature(status, conn.status.players, false)
+			);
 		} catch (err) {
 			log.error(err, "SS13 poll failed");
 			conn.disconnected = true;
@@ -242,7 +249,7 @@ export function attachSS13(bridge: GameBridge): void {
 					await conn.postOrEditStatusMessage(
 						[container],
 						files,
-						buildSignature(conn.lastStatus, true)
+						buildSignature(conn.lastStatus, conn.status.players, true)
 					);
 				} catch (postErr) {
 					log.error(postErr, "failed to post SS13 disconnect status");

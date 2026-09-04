@@ -85,11 +85,13 @@ function buildSignature(input: {
 	gamemode: string;
 	defcon: number;
 	countdown?: { text: string; time: number };
-	players: { steamId64: string }[];
+	players: { steamId64: string; nick: string; isAfk?: boolean }[];
 }): unknown {
 	return {
 		...input,
-		players: input.players.map(p => p.steamId64).sort(),
+		players: input.players
+			.map(p => ({ steamId64: p.steamId64, nick: p.nick, isAfk: p.isAfk }))
+			.sort((a, b) => a.steamId64.localeCompare(b.steamId64)),
 	};
 }
 export default class StatusPayload extends Payload {
