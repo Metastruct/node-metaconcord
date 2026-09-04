@@ -141,6 +141,7 @@ function buildSignature(connection: ResoniteConnection): unknown {
 				active: s.session.activeUsers,
 				access: s.session.accessLevel,
 				hidden: s.session.hideFromListing,
+				users: s.session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).sort(),
 			}))
 			.sort((a, b) => a.id.localeCompare(b.id)),
 	};
