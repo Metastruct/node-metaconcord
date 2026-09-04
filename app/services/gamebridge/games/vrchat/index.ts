@@ -77,6 +77,19 @@ function buildInstanceContainer(instance: GroupInstance): Discord.ContainerBuild
 	return container;
 }
 
+/**
+ * Fingerprint of only the state that should trigger a Discord edit - so a poll
+ * with nothing new to report doesn't repost the message.
+ */
+function buildSignature(instances: GroupInstance[], disconnected: boolean): unknown {
+	return {
+		disconnected,
+		instances: instances
+			.map(i => ({ id: i.instanceId, world: i.world.id, count: i.memberCount }))
+			.sort((a, b) => a.id.localeCompare(b.id)),
+	};
+}
+
 function buildContainers(
 	group: Group | undefined,
 	instances: GroupInstance[],
@@ -142,7 +155,11 @@ export function attachVRChat(bridge: GameBridge): void {
 			}
 
 			const containers = buildContainers(connection.group, instances, false);
-			await connection.postOrEditStatusMessage(containers, []);
+			await connection.postOrEditStatusMessage(
+				containers,
+				[],
+				buildSignature(instances, false)
+			);
 		} catch (err) {
 			log.error(err, "VRChat poll failed");
 			connection.disconnected = true;
@@ -155,7 +172,11 @@ export function attachVRChat(bridge: GameBridge): void {
 						connection.lastInstances,
 						true
 					);
-					await connection.postOrEditStatusMessage(containers, []);
+					await connection.postOrEditStatusMessage(
+						containers,
+						[],
+						buildSignature(connection.lastInstances, true)
+					);
 				} catch (postErr) {
 					log.error(postErr, "failed to post VRChat disconnect status");
 				}

@@ -6,9 +6,8 @@ export type ResoniteSessionState = {
 	mapThumbnail: string;
 	players: Player[];
 	playerListImage?: Buffer;
-	lastCount: number;
-	lastSessionBeginTime: number;
-	lastPresence: string;
+	/** Fingerprint of the fields that affect players/playerListImage, so an unchanged heartbeat can skip re-rendering them. */
+	contentKey: string;
 };
 
 export default class ResoniteConnection extends GameConnection {
