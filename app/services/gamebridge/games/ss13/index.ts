@@ -34,6 +34,23 @@ const STATUS_COLOR: Record<WatchdogStatus, number> = {
 
 const SHUTTLE_AT_REST = ["idle", "docked"];
 
+/**
+ * Fingerprint of only the state that should trigger a Discord edit - deliberately
+ * excludes anything that ticks on its own (e.g. round duration) so a 60s poll
+ * with nothing new to report doesn't repost the message.
+ */
+function buildSignature(status: SS13Status, disconnected: boolean): unknown {
+	return {
+		disconnected,
+		watchdogStatus: status.watchdogStatus,
+		clientCount: status.clientCount,
+		roundId: status.roundId,
+		securityLevel: status.securityLevel,
+		shuttleMode: status.shuttleMode,
+		port: status.port,
+	};
+}
+
 function buildStatusContainer(
 	name: string,
 	host: string,
@@ -199,7 +216,7 @@ export function attachSS13(bridge: GameBridge): void {
 				files.length > 0,
 				false
 			);
-			await conn.postOrEditStatusMessage([container], files);
+			await conn.postOrEditStatusMessage([container], files, buildSignature(status, false));
 		} catch (err) {
 			log.error(err, "SS13 poll failed");
 			conn.disconnected = true;
@@ -222,7 +239,11 @@ export function attachSS13(bridge: GameBridge): void {
 						files.length > 0,
 						true
 					);
-					await conn.postOrEditStatusMessage([container], files);
+					await conn.postOrEditStatusMessage(
+						[container],
+						files,
+						buildSignature(conn.lastStatus, true)
+					);
 				} catch (postErr) {
 					log.error(postErr, "failed to post SS13 disconnect status");
 				}

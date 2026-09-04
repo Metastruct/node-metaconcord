@@ -114,6 +114,67 @@ function renderMessage(
 	return { containers, files };
 }
 
+/** Fingerprint of the fields that feed the player list/composite image - excludes lastUpdate. */
+function sessionContentKey(session: ResoniteSession): string {
+	return JSON.stringify({
+		count: session.joinedUsers,
+		active: session.activeUsers,
+		access: session.accessLevel,
+		hidden: session.hideFromListing,
+		thumbnail: session.thumbnailUrl,
+		users: session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).sort(),
+	});
+}
+
+/**
+ * Fingerprint of only the state that should trigger a Discord edit - deliberately
+ * excludes anything that ticks on its own (e.g. session.lastUpdate) so a heartbeat
+ * with nothing new to report doesn't repost the message.
+ */
+function buildSignature(connection: ResoniteConnection): unknown {
+	return {
+		disconnected: connection.disconnected,
+		sessions: [...connection.sessions.values()]
+			.map(s => ({
+				id: s.session.sessionId,
+				count: s.session.joinedUsers,
+				active: s.session.activeUsers,
+				access: s.session.accessLevel,
+				hidden: s.session.hideFromListing,
+			}))
+			.sort((a, b) => a.id.localeCompare(b.id)),
+	};
+}
+
+/** Drops a tracked session (explicit RemoveSession, or a hasEnded/invalid update) and re-renders. */
+async function removeSession(bridge: GameBridge, sessionId: string): Promise<void> {
+	const connection = bridge.servers.resonite[RESONITE_SERVER_ID];
+	const ended = connection?.sessions.get(sessionId);
+	if (!connection || !ended) return;
+
+	connection.sessions.delete(sessionId);
+	updatePresence(connection);
+
+	// a custom session id (S-{hostUserId}:{label}) identifies a persistent
+	// headless instance that will restart under the same id, worth a
+	// lingering "offline" embed; an auto-generated S-{guid} won't recur.
+	const hasCustomSessionId = ended.session.sessionId.startsWith(`S-${ended.session.hostUserId}:`);
+	const { containers, files } = renderMessage(
+		connection,
+		hasCustomSessionId
+			? { extra: { session: ended.session, mapThumbnail: ended.mapThumbnail } }
+			: {}
+	);
+	await connection.postOrEditStatusMessage(containers, files, buildSignature(connection));
+
+	if (connection.sessions.size === 0) {
+		connection.discord.destroy();
+		if (bridge.servers.resonite[RESONITE_SERVER_ID] === connection) {
+			delete bridge.servers.resonite[RESONITE_SERVER_ID];
+		}
+	}
+}
+
 function updatePresence(connection: ResoniteConnection): void {
 	const sessions = [...connection.sessions.values()];
 	const totalPlayers = sessions.reduce((sum, s) => sum + s.session.joinedUsers, 0);
@@ -169,87 +230,88 @@ export function attachResonite(bridge: GameBridge): void {
 	con.on("ReceiveSessionUpdate", async (session: ResoniteSession) => {
 		try {
 			if (session.hostUserId !== resonite.UserID) return;
+
+			// Resonite doesn't reliably fire RemoveSession when a headless instance
+			// dies abruptly - a final ReceiveSessionUpdate marking the session
+			// hasEnded/invalid is the only signal we get, so treat it the same way.
+			if (session.hasEnded || !session.isValid) {
+				await removeSession(bridge, session.sessionId);
+				return;
+			}
+
 			// RemoveSession tears the connection down once no sessions remain, so a
 			// session starting back up needs a fresh connection created here.
 			const connection =
 				bridge.servers.resonite[RESONITE_SERVER_ID] ?? createConnection(bridge);
 			if (!connection.discord.ready) return;
 
-			const count = session.joinedUsers;
-			const sessionBeginTime = new Date(session.sessionBeginTime).getTime();
-			const presence = session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).join(",");
-			const prior = connection.sessions.get(session.sessionId);
-			const uptimeChanged = !prior || prior.lastSessionBeginTime !== sessionBeginTime;
-			const presenceChanged = !prior || prior.lastPresence !== presence;
-
-			// update until last person leaves
-			if (
-				prior &&
-				prior.lastCount === count &&
-				count === 0 &&
-				!uptimeChanged &&
-				!presenceChanged
-			)
-				return;
-
 			const mapThumbnail = session.thumbnailUrl ?? DEFAULT_THUMBNAIL;
+			const contentKey = sessionContentKey(session);
+			const prior = connection.sessions.get(session.sessionId);
 
-			const players: Player[] = session.sessionUsers
-				.filter(u => u.userID !== resonite.UserID)
-				.map(sessionUser => ({
-					nick: sessionUser.username,
-					isAfk: !sessionUser.isPresent,
-					steamId64: "0",
-					isAdmin: false,
-					isBanned: false,
-					ip: sessionUser.userID,
-					avatar: undefined,
-				}));
+			let players = prior?.players ?? [];
+			let playerListImage = prior?.playerListImage;
 
-			// players keep the plain asset URL (this is also what the website's
-			// server-list API forwards) - only the render below needs the actual
-			// authenticated bytes.
-			await Promise.all(
-				players.map(async u => (u.avatar = await resonite.GetResoniteUserAvatarURL(u.ip)))
-			);
+			// only refetch avatars and re-render the composite when something that
+			// actually affects them changed - a heartbeat with the same players and
+			// counts has no reason to redo any of this.
+			if (!prior || prior.contentKey !== contentKey) {
+				players = session.sessionUsers
+					.filter(u => u.userID !== resonite.UserID)
+					.map(sessionUser => ({
+						nick: sessionUser.username,
+						isAfk: !sessionUser.isPresent,
+						steamId64: "0",
+						isAdmin: false,
+						isBanned: false,
+						ip: sessionUser.userID,
+						avatar: undefined,
+					}));
 
-			// assets.resonite.com can require the requester's own auth to serve the
-			// bytes - fall back to the raw URL so the composite at least attempts an
-			// unauthenticated fetch rather than rendering with no image at all.
-			const renderPlayers: Player[] = await Promise.all(
-				players.map(async p => ({
-					...p,
-					avatar: p.avatar
-						? ((await resonite.FetchAssetDataUri(p.avatar)) ?? p.avatar)
-						: undefined,
-				}))
-			);
-			const compositeMapThumbnail =
-				(await resonite.FetchAssetDataUri(mapThumbnail)) ?? mapThumbnail;
+				// players keep the plain asset URL (this is also what the website's
+				// server-list API forwards) - only the render below needs the actual
+				// authenticated bytes.
+				await Promise.all(
+					players.map(
+						async u => (u.avatar = await resonite.GetResoniteUserAvatarURL(u.ip))
+					)
+				);
 
-			const playerListImage = await renderPlayerListImage(
-				renderPlayers,
-				compositeMapThumbnail
-			);
+				// assets.resonite.com can require the requester's own auth to serve the
+				// bytes - fall back to the raw URL so the composite at least attempts an
+				// unauthenticated fetch rather than rendering with no image at all.
+				const renderPlayers: Player[] = await Promise.all(
+					players.map(async p => ({
+						...p,
+						avatar: p.avatar
+							? ((await resonite.FetchAssetDataUri(p.avatar)) ?? p.avatar)
+							: undefined,
+					}))
+				);
+				const compositeMapThumbnail =
+					(await resonite.FetchAssetDataUri(mapThumbnail)) ?? mapThumbnail;
+
+				playerListImage = await renderPlayerListImage(renderPlayers, compositeMapThumbnail);
+			}
 
 			const state: ResoniteSessionState = {
 				session,
 				mapThumbnail,
 				players,
 				playerListImage,
-				lastCount: count,
-				lastSessionBeginTime: sessionBeginTime,
-				lastPresence: presence,
+				contentKey,
 			};
 			connection.sessions.set(session.sessionId, state);
 
 			updatePresence(connection);
-			connection.changeBanner(mapThumbnail);
+			if (mapThumbnail !== connection.discordBanner) {
+				connection.changeBanner(mapThumbnail);
+			}
 
 			const { containers, files } = renderMessage(connection, {
 				state: connection.disconnected ? "disconnected" : undefined,
 			});
-			await connection.postOrEditStatusMessage(containers, files);
+			await connection.postOrEditStatusMessage(containers, files, buildSignature(connection));
 		} catch (err) {
 			log.error(err, "ReceiveSessionUpdate");
 		}
@@ -257,33 +319,7 @@ export function attachResonite(bridge: GameBridge): void {
 
 	con.on("RemoveSession", async (sessionId: string) => {
 		try {
-			const connection = bridge.servers.resonite[RESONITE_SERVER_ID];
-			const ended = connection?.sessions.get(sessionId);
-			if (!connection || !ended) return;
-
-			connection.sessions.delete(sessionId);
-			updatePresence(connection);
-
-			// a custom session id (S-{hostUserId}:{label}) identifies a persistent
-			// headless instance that will restart under the same id, worth a
-			// lingering "offline" embed; an auto-generated S-{guid} won't recur.
-			const hasCustomSessionId = ended.session.sessionId.startsWith(
-				`S-${ended.session.hostUserId}:`
-			);
-			const { containers, files } = renderMessage(
-				connection,
-				hasCustomSessionId
-					? { extra: { session: ended.session, mapThumbnail: ended.mapThumbnail } }
-					: {}
-			);
-			await connection.postOrEditStatusMessage(containers, files);
-
-			if (connection.sessions.size === 0) {
-				connection.discord.destroy();
-				if (bridge.servers.resonite[RESONITE_SERVER_ID] === connection) {
-					delete bridge.servers.resonite[RESONITE_SERVER_ID];
-				}
-			}
+			await removeSession(bridge, sessionId);
 		} catch (err) {
 			log.error(err, "RemoveSession");
 		}
@@ -297,7 +333,11 @@ export function attachResonite(bridge: GameBridge): void {
 		if (connection.sessions.size > 0) {
 			try {
 				const { containers, files } = renderMessage(connection, { state: "disconnected" });
-				await connection.postOrEditStatusMessage(containers, files);
+				await connection.postOrEditStatusMessage(
+					containers,
+					files,
+					buildSignature(connection)
+				);
 			} catch (err) {
 				log.error(err, "failed to post disconnect status");
 			}

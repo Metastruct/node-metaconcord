@@ -72,6 +72,26 @@ const getRandomActivity = (gamemode: string) => {
 };
 
 const DEFAULT_THUMBNAIL = path.join(process.cwd(), "resources/map-thumbnails/gm_construct_m.png");
+
+/**
+ * Fingerprint of only the state that should trigger a Discord edit - deliberately
+ * excludes anything that ticks on its own (e.g. server/map uptime) so a status
+ * push with nothing new to report doesn't repost the message.
+ */
+function buildSignature(input: {
+	disconnected: boolean;
+	map: string;
+	workshopMapId?: string | number;
+	gamemode: string;
+	defcon: number;
+	countdown?: { text: string; time: number };
+	players: { steamId64: string }[];
+}): unknown {
+	return {
+		...input,
+		players: input.players.map(p => p.steamId64).sort(),
+	};
+}
 export default class StatusPayload extends Payload {
 	protected static requestSchema = requestSchema;
 
@@ -318,7 +338,21 @@ export default class StatusPayload extends Payload {
 				}),
 			];
 
-			await server.postOrEditStatusMessage([container], attachments);
+			await server.postOrEditStatusMessage(
+				[container],
+				attachments,
+				buildSignature({
+					disconnected: server.disconnected,
+					map: current_map,
+					workshopMapId: current_workshopMap?.id,
+					gamemode: gamemodeName,
+					defcon: current_defcon,
+					countdown: current_countdown
+						? { text: current_countdown.text, time: current_countdown.time }
+						: undefined,
+					players: current_players,
+				})
+			);
 		};
 
 		if (discord.ready) {

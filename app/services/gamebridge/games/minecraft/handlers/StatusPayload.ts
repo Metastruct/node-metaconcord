@@ -8,6 +8,25 @@ import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
 
+/**
+ * Fingerprint of only the state that should trigger a Discord edit - deliberately
+ * excludes anything that ticks on its own (e.g. upSince) so a heartbeat with
+ * nothing new to report doesn't repost the message.
+ */
+function buildSignature(
+	status: MinecraftStatus,
+	players: MinecraftConnection["status"]["players"],
+	disconnected: boolean
+): unknown {
+	return {
+		disconnected,
+		hostname: status.hostname,
+		version: status.version,
+		maxPlayers: status.maxPlayers,
+		players: players.map(p => p.steamId64).sort(),
+	};
+}
+
 function buildStatusContainer(
 	server: MinecraftConnection,
 	status: MinecraftStatus,
@@ -109,7 +128,11 @@ export default class StatusPayload extends Payload {
 			files.length > 0,
 			false
 		);
-		await server.postOrEditStatusMessage([container], files);
+		await server.postOrEditStatusMessage(
+			[container],
+			files,
+			buildSignature(server.lastStatus, server.status.players, false)
+		);
 	}
 
 	/** Repaints the status embed with a disconnected warning, keeping the last known data. */
@@ -128,6 +151,10 @@ export default class StatusPayload extends Payload {
 			files.length > 0,
 			true
 		);
-		await server.postOrEditStatusMessage([container], files);
+		await server.postOrEditStatusMessage(
+			[container],
+			files,
+			buildSignature(server.lastStatus, server.status.players, true)
+		);
 	}
 }

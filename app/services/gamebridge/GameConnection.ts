@@ -48,6 +48,7 @@ export default class GameConnection extends EventEmitter {
 		image?: string;
 	} = { players: [] };
 	mapName: string;
+	private lastStatusSignature?: string;
 
 	constructor(config: { bridge: GameBridge; serverConfig: GameConnectionConfig }) {
 		super();
@@ -118,10 +119,17 @@ export default class GameConnection extends EventEmitter {
 	 * none of them have to re-implement the fetch/edit-or-send dance. Takes one
 	 * container per "thing" being reported (e.g. one per hosted session/instance)
 	 * so a single bot identity can report on several at once.
+	 *
+	 * `signature` is an optional fingerprint of only the meaningful state (player
+	 * counts, round/session state, ...) - deliberately excluding anything that
+	 * ticks on its own (e.g. a "last update" timestamp). When it matches the
+	 * signature from the last message actually sent, the edit is skipped so a
+	 * poll/heartbeat with nothing new to report doesn't spam Discord.
 	 */
 	async postOrEditStatusMessage(
 		containers: Discord.ContainerBuilder[],
-		files: Discord.AttachmentBuilder[]
+		files: Discord.AttachmentBuilder[],
+		signature?: unknown
 	): Promise<void> {
 		if (!this.discord.ready) return;
 
@@ -133,6 +141,12 @@ export default class GameConnection extends EventEmitter {
 		) as Discord.TextChannel;
 		if (!channel) return;
 
+		if (containers.length > 0 && signature !== undefined) {
+			const serialized = JSON.stringify(signature);
+			if (serialized === this.lastStatusSignature) return;
+			this.lastStatusSignature = serialized;
+		}
+
 		try {
 			const messages = await channel.messages.fetch();
 			const message = messages
@@ -140,6 +154,7 @@ export default class GameConnection extends EventEmitter {
 				.first();
 
 			if (containers.length === 0) {
+				this.lastStatusSignature = undefined;
 				await message?.delete().catch(e => log.error(e, "message delete failed"));
 				return;
 			}
