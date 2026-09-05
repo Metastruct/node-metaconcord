@@ -76,7 +76,9 @@ function buildStatusContainer(
 			status.clientCount === 1 ? "" : "s"
 		}: **${status.activePlayers ? `Active: ${status.activePlayers} • ` : ""}Connected: ${status.clientCount}**`;
 		if (status.roundDuration) {
-			desc += `\n:hourglass_flowing_sand: Round Time: \`${dayjs.duration(status.roundDuration, "seconds").format("HH:mm:ss")}\``;
+			const dur = dayjs.duration(status.roundDuration, "seconds");
+			const hours = Math.floor(dur.asHours());
+			desc += `\n:hourglass_flowing_sand: Round Time: \`${hours.toString().padStart(2, "0")}:${dur.format("mm:ss")}\``;
 		}
 
 		if (status.securityLevel) {
