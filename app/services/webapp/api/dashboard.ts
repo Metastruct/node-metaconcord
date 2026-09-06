@@ -272,8 +272,8 @@ export default (webApp: WebApp): void => {
 				return;
 			}
 			const content = req.body?.content;
-			if (!content || typeof content !== "object" || Array.isArray(content)) {
-				res.status(400).json({ error: "content must be an object" });
+			if (typeof content !== "object" || content === null) {
+				res.status(400).json({ error: "content must be an object or an array" });
 				return;
 			}
 			let before: unknown;
@@ -281,6 +281,16 @@ export default (webApp: WebApp): void => {
 				before = JSON.parse(await fs.readFile(new URL(name, CONFIG_DIR), "utf8"));
 			} catch {
 				before = undefined;
+			}
+			// a config whose root flips between array and object breaks every consumer of it
+			if (
+				typeof before === "object" &&
+				before !== null &&
+				Array.isArray(before) !== Array.isArray(content)
+			) {
+				const shape = Array.isArray(before) ? "an array" : "an object";
+				res.status(400).json({ error: `${name} must stay ${shape}` });
+				return;
 			}
 			await writeConfig(name, content);
 			log.warn(
