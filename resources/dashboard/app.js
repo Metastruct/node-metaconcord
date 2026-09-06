@@ -302,27 +302,42 @@
 		const body = el("div", "body");
 		details.appendChild(body);
 
+		const isArray = Array.isArray(content);
+		// items of an array root are keyed by an opaque token, so removing one does not
+		// clash with the indices of the rows after it; their labels are recomputed instead
 		const fields = new Map();
+		const labels = new Map();
+		let nextToken = 0;
 		const markDirty = () => (dirty.textContent = "modified");
+
+		const relabel = () => {
+			let i = 0;
+			for (const key of fields.keys()) labels.get(key).textContent = i++;
+		};
 
 		const addRow = (key, value) => {
 			const row = el("div", "row");
-			const keyEl = el("span", "key", key);
-			keyEl.appendChild(el("span", "type", typeOf(value)));
+			const keyEl = el("span", "key");
+			const label = el("span", "", isArray ? "" : key);
+			keyEl.append(label, el("span", "type", typeOf(value)));
 			row.appendChild(keyEl);
 			const field = valueEditor(value, markDirty);
 			fields.set(key, field);
+			labels.set(key, label);
 			row.appendChild(field);
 			const del = el("button", "btn small", "×");
 			del.type = "button";
-			del.title = "Remove key";
+			del.title = isArray ? "Remove item" : "Remove key";
 			del.addEventListener("click", () => {
 				fields.delete(key);
+				labels.delete(key);
 				row.remove();
+				if (isArray) relabel();
 				markDirty();
 			});
 			row.appendChild(del);
 			body.insertBefore(row, addRowEl);
+			if (isArray) relabel();
 		};
 
 		const addRowEl = el("div", "row add");
@@ -333,8 +348,8 @@
 		const addBtn = el("button", "btn small", "Add");
 		addBtn.type = "button";
 		addBtn.addEventListener("click", () => {
-			const key = newKey.value.trim();
-			if (!key || fields.has(key)) return;
+			const key = isArray ? `#${nextToken++}` : newKey.value.trim();
+			if (!isArray && (!key || fields.has(key))) return;
 			let value;
 			try {
 				value = JSON.parse(newVal.value);
@@ -346,23 +361,28 @@
 			newVal.value = "";
 			markDirty();
 		});
-		addRowEl.append(newKey, newVal, addBtn);
+		if (isArray) addRowEl.append(el("span", "key", "new item"), newVal, addBtn);
+		else addRowEl.append(newKey, newVal, addBtn);
 		body.appendChild(addRowEl);
 
-		for (const [key, value] of Object.entries(content || {})) addRow(key, value);
+		if (isArray) for (const value of content) addRow(`#${nextToken++}`, value);
+		else for (const [key, value] of Object.entries(content || {})) addRow(key, value);
 
 		const actions = el("div", "actions");
 		const msg = el("span", "msg", "");
 		const save = el("button", "btn small primary", "Save");
 		save.addEventListener("click", async () => {
-			const out = {};
+			const out = isArray ? [] : {};
 			for (const [key, field] of fields) {
 				const parsed = parseField(field);
 				if (parsed.error) {
-					msg.textContent = `invalid JSON in ${key}`;
+					msg.textContent = isArray
+						? `invalid JSON in item ${labels.get(key).textContent}`
+						: `invalid JSON in ${key}`;
 					return;
 				}
-				out[key] = parsed.value;
+				if (isArray) out.push(parsed.value);
+				else out[key] = parsed.value;
 			}
 			save.disabled = true;
 			msg.textContent = "saving…";
