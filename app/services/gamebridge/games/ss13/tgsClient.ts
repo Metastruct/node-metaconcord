@@ -23,6 +23,12 @@ export type DreamDaemonResponse = {
 	} | null;
 };
 
+export type InstanceResponse = {
+	id: number;
+	name: string;
+	online: boolean;
+};
+
 let apiVersion: string | undefined;
 let token: string | undefined;
 let tokenExpiresAt = 0;
@@ -78,14 +84,15 @@ async function ensureToken(): Promise<string> {
 	return login();
 }
 
-export async function getDreamDaemonStatus(): Promise<DreamDaemonResponse> {
+/** GETs a TGS API path, retrying once with a fresh login if the bearer was rejected. */
+async function authedGet<T>(path: string, instanceId?: number): Promise<T> {
 	const version = await getApiVersion();
 	const request = (bearer: string) =>
-		axios.get<DreamDaemonResponse>(`${config.baseUrl}/api/DreamDaemon`, {
+		axios.get<T>(`${config.baseUrl}${path}`, {
 			headers: {
 				Authorization: `Bearer ${bearer}`,
 				Api: `Tgstation.Server.Api/${version}`,
-				Instance: String(config.instanceId),
+				...(instanceId !== undefined ? { Instance: String(instanceId) } : {}),
 				"User-Agent": USER_AGENT,
 			},
 		});
@@ -101,4 +108,13 @@ export async function getDreamDaemonStatus(): Promise<DreamDaemonResponse> {
 		}
 		throw err;
 	}
+}
+
+export async function getDreamDaemonStatus(instanceId: number): Promise<DreamDaemonResponse> {
+	return authedGet<DreamDaemonResponse>("/api/DreamDaemon", instanceId);
+}
+
+/** Instance-level record from TGS - its `name` is used as the display label instead of anything we'd otherwise have to configure ourselves, and `online` distinguishes a detached/disabled instance from one that's merely between rounds. */
+export async function getInstance(instanceId: number): Promise<InstanceResponse> {
+	return authedGet<InstanceResponse>(`/api/Instance/${instanceId}`);
 }
