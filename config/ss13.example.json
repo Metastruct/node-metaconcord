@@ -2,8 +2,17 @@
 	"baseUrl": "https://ss13.metastruct.net",
 	"username": "",
 	"password": "",
-	"instanceId": 1,
 	"discordToken": "",
-	"commsKey": "",
-	"watchedRepo": ""
+	"instances": [
+		{
+			"instanceId": 3,
+			"commsKey": "",
+			"watchedRepo": "Metastruct/Bubberstation"
+		},
+		{
+			"instanceId": 5,
+			"commsKey": "",
+			"watchedRepo": ""
+		}
+	]
 }

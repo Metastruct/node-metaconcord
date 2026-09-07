@@ -1,6 +1,5 @@
 import { GameState } from "@/app/services/gamebridge/games/ss13/topics.js";
 import type { Player } from "@/app/services/gamebridge/GameConnection.js";
-import { WatchdogStatus } from "@/app/services/gamebridge/games/ss13/tgsClient.js";
 import type { WebApp } from "@/app/services/webapp/index.js";
 import { promises as dns } from "dns";
 import path from "path";
@@ -159,34 +158,36 @@ export default async (webApp: WebApp): Promise<void> => {
 			});
 		}
 
-		// ss13
+		// ss13: one instance per online TGS instance (a single connection can host several)
 		const ss13: ServerEntry[] = [];
 		for (const server of Object.values(bridge.servers.ss13)) {
-			const status = server?.lastStatus;
-			if (!server || server.disconnected || !status) continue;
-			if (status.watchdogStatus !== WatchdogStatus.Online) continue;
+			if (!server) continue;
 			const host = new URL(ss13Config.baseUrl).hostname;
-			const extra: Record<string, string> = {};
-			if (status.roundId) extra.round = String(status.roundId);
-			if (status.securityLevel) extra.securityLevel = status.securityLevel;
-			if (status.shuttleMode) extra.shuttle = status.shuttleMode;
-			ss13.push({
-				id: server.config.id,
-				key: `ss13-${server.config.id}`,
-				name: server.config.name,
-				map: status.mapName,
-				mode: status.gamestate !== undefined ? GameState[status.gamestate] : undefined,
-				thumbnail: thumbnailUrl(baseUrl, server.status.mapThumbnail),
-				players: server.status.players.map(basePlayer),
-				playerCount: server.status.players.length,
-				maxPlayers: status.popcap || undefined,
-				upSince: status.launchTime ? Date.parse(status.launchTime) || undefined : undefined,
-				connect: status.port ? { url: `byond://${host}:${status.port}` } : undefined,
-				extra: Object.keys(extra).length ? extra : undefined,
-			});
+			for (const [instanceId, { name, status, players }] of server.instances) {
+				const extra: Record<string, string> = {};
+				if (status.roundId) extra.round = String(status.roundId);
+				if (status.securityLevel) extra.securityLevel = status.securityLevel;
+				if (status.shuttleMode) extra.shuttle = status.shuttleMode;
+				ss13.push({
+					id: instanceId,
+					key: `ss13-${instanceId}`,
+					name,
+					map: status.mapName,
+					mode: status.gamestate !== undefined ? GameState[status.gamestate] : undefined,
+					thumbnail: thumbnailUrl(baseUrl, server.status.mapThumbnail),
+					players: players.map(basePlayer),
+					playerCount: players.length,
+					maxPlayers: status.popcap || undefined,
+					upSince: status.launchTime
+						? Date.parse(status.launchTime) || undefined
+						: undefined,
+					connect: status.port ? { url: `byond://${host}:${status.port}` } : undefined,
+					extra: Object.keys(extra).length ? extra : undefined,
+				});
+			}
 		}
 		if (ss13.length)
-			games.push({ game: "ss13", label: GAME_LABELS.ss13, kind: "server", entries: ss13 });
+			games.push({ game: "ss13", label: GAME_LABELS.ss13, kind: "instance", entries: ss13 });
 
 		// resonite: one instance per active session (a single connection can host several)
 		const resonite: ServerEntry[] = [];

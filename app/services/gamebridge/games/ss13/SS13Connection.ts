@@ -1,4 +1,4 @@
-import GameConnection from "../../GameConnection.js";
+import GameConnection, { Player } from "../../GameConnection.js";
 import { WatchdogStatus } from "./tgsClient.js";
 import { TopicStatus } from "./topics.js";
 
@@ -11,8 +11,16 @@ export type SS13Status = TopicStatus & {
 	revision?: string;
 };
 
+export type SS13InstanceState = {
+	/** TGS instance name, used as the display label instead of anything we'd have to configure ourselves. */
+	name: string;
+	status: SS13Status;
+	players: Player[];
+	playerListImage?: Buffer;
+};
+
 export default class SS13Connection extends GameConnection {
-	// kept so a failed poll can re-render the status embed without waiting for
-	// a successful one that may never come.
-	lastStatus?: SS13Status;
+	// keyed by TGS instanceId - a single bot identity reports on every
+	// configured instance that's currently online, one container each.
+	instances = new Map<number, SS13InstanceState>();
 }
