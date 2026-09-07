@@ -238,7 +238,10 @@ export function attachSS13(bridge: GameBridge): void {
 					conn.instances.delete(instanceConfig.instanceId);
 				}
 			} catch (err) {
-				log.warn({ err, instanceId: instanceConfig.instanceId }, "SS13 instance poll failed");
+				log.warn(
+					{ err, instanceId: instanceConfig.instanceId },
+					"SS13 instance poll failed"
+				);
 				conn.instances.delete(instanceConfig.instanceId);
 			}
 		}
@@ -248,7 +251,11 @@ export function attachSS13(bridge: GameBridge): void {
 
 		try {
 			const { containers, files } = renderMessage(conn, host);
-			await conn.postOrEditStatusMessage(containers, files, buildSignature(conn, conn.disconnected));
+			await conn.postOrEditStatusMessage(
+				containers,
+				files,
+				buildSignature(conn, conn.disconnected)
+			);
 		} catch (err) {
 			log.error(err, "failed to post SS13 status");
 		}
