@@ -120,6 +120,11 @@ export default class GameConnection extends EventEmitter {
 	 * container per "thing" being reported (e.g. one per hosted session/instance)
 	 * so a single bot identity can report on several at once.
 	 *
+	 * An empty `containers` array still edits the message in place (to a plain
+	 * "no data" placeholder) rather than deleting it - deleting and later
+	 * re-sending would move the message to the bottom of the channel instead of
+	 * keeping its original slot.
+	 *
 	 * `signature` is an optional fingerprint of only the meaningful state (player
 	 * counts, round/session state, ...) - deliberately excluding anything that
 	 * ticks on its own (e.g. a "last update" timestamp). When it matches the
@@ -141,11 +146,24 @@ export default class GameConnection extends EventEmitter {
 		) as Discord.TextChannel;
 		if (!channel) return;
 
-		if (containers.length > 0 && signature !== undefined) {
+		if (signature !== undefined) {
 			const serialized = JSON.stringify(signature);
 			if (serialized === this.lastStatusSignature) return;
 			this.lastStatusSignature = serialized;
 		}
+
+		const payload = {
+			components:
+				containers.length > 0
+					? containers
+					: [
+							new Discord.ContainerBuilder()
+								.setAccentColor(0x808080)
+								.addTextDisplayComponents(text => text.setContent("[NO DATA]")),
+						],
+			files: containers.length > 0 ? files : [],
+			flags: Discord.MessageFlags.IsComponentsV2 as const,
+		};
 
 		try {
 			const messages = await channel.messages.fetch();
@@ -153,28 +171,10 @@ export default class GameConnection extends EventEmitter {
 				.filter((msg: Discord.Message) => msg.author.id == this.discord.user?.id)
 				.first();
 
-			if (containers.length === 0) {
-				this.lastStatusSignature = undefined;
-				await message?.delete().catch(e => log.error(e, "message delete failed"));
-				return;
-			}
-
 			if (message) {
-				await message
-					.edit({
-						components: containers,
-						files,
-						flags: Discord.MessageFlags.IsComponentsV2,
-					})
-					.catch(e => log.error(e, "message edit failed"));
+				await message.edit(payload).catch(e => log.error(e, "message edit failed"));
 			} else {
-				await channel
-					.send({
-						components: containers,
-						files,
-						flags: Discord.MessageFlags.IsComponentsV2,
-					})
-					.catch(() => {});
+				await channel.send(payload).catch(() => {});
 			}
 		} catch (err) {
 			log.error(err);
