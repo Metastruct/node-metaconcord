@@ -48,7 +48,11 @@ function buildSignature(connection: SS13Connection, disconnected: boolean): unkn
 				shuttleMode: s.status.shuttleMode,
 				port: s.status.port,
 				players: s.players
-					.map(p => ({ nick: p.nick, isAfk: p.isAfk, description: p.description }))
+					.map(p => ({
+						nick: p.nick,
+						isAfk: p.isAfk,
+						description: p.description,
+					}))
 					.sort((a, b) => a.nick.localeCompare(b.nick)),
 			}))
 			.sort((a, b) => a.instanceId - b.instanceId),
@@ -118,7 +122,10 @@ function buildInstanceContainer(
 function renderMessage(
 	connection: SS13Connection,
 	host: string
-): { containers: Discord.ContainerBuilder[]; files: Discord.AttachmentBuilder[] } {
+): {
+	containers: Discord.ContainerBuilder[];
+	files: Discord.AttachmentBuilder[];
+} {
 	const containers: Discord.ContainerBuilder[] = [];
 	const files: Discord.AttachmentBuilder[] = [];
 
@@ -149,7 +156,7 @@ function updatePresence(connection: SS13Connection): void {
 			activity: {
 				name:
 					states.length > 1
-						? `${totalPlayers} players across ${states.length} servers`
+						? `${totalPlayers} player${totalPlayers === 1 ? "" : "s"} across ${states.length} servers`
 						: `${totalPlayers} player${totalPlayers === 1 ? "" : "s"}`,
 				type: Discord.ActivityType.Watching,
 			},
