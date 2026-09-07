@@ -22,6 +22,8 @@ type SS13InstanceConfig = {
 	instanceId: number;
 	commsKey?: string;
 	watchedRepo?: string;
+	/** Set to false for a codebase that doesn't implement the "playerlist" topic, to skip the doomed query instead of warning on every poll. */
+	hasPlayerList?: boolean;
 };
 
 // only instances whose watchdog reports Online ever reach buildInstanceContainer.
@@ -187,7 +189,7 @@ async function pollInstance(
 	}
 
 	let players: Player[] = [];
-	if (instanceConfig.commsKey) {
+	if (instanceConfig.commsKey && instanceConfig.hasPlayerList !== false) {
 		try {
 			const roster = await getPlayerList(host, status.port, instanceConfig.commsKey);
 			players = roster.map((p): Player => ({
