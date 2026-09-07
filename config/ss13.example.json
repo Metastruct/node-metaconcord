@@ -12,7 +12,8 @@
 		{
 			"instanceId": 5,
 			"commsKey": "",
-			"watchedRepo": ""
+			"watchedRepo": "",
+			"hasPlayerList": false
 		}
 	]
 }
