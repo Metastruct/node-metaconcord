@@ -1,0 +1,24 @@
+{
+	"$ref": "#/definitions/ConsoleResponse",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"definitions": {
+		"ConsoleResponse": {
+			"additionalProperties": false,
+			"properties": {
+				"action": {
+					"enum": ["subscribe", "unsubscribe", "command"],
+					"type": "string"
+				},
+				"command": {
+					"type": "string"
+				},
+				"runner": {
+					"description": "who ran the command, printed in the server console for traceability",
+					"type": "string"
+				}
+			},
+			"required": ["action"],
+			"type": "object"
+		}
+	}
+}

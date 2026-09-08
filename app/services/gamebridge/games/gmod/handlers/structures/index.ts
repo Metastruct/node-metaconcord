@@ -4,6 +4,8 @@ import BanAppealRequest from "./BanAppealRequest.js";
 import BanRequest from "./BanRequest.js";
 import ChatRequest from "./ChatRequest.js";
 import ChatResponse from "./ChatResponse.js";
+import ConsoleRequest from "./ConsoleRequest.js";
+import ConsoleResponse from "./ConsoleResponse.js";
 import ErrorRequest from "./ErrorRequest.js";
 import ErrorResponse from "./ErrorResponse.js";
 import JoinLeaveRequest from "./JoinLeaveRequest.js";
@@ -22,6 +24,8 @@ export {
 	BanRequest,
 	ChatRequest,
 	ChatResponse,
+	ConsoleRequest,
+	ConsoleResponse,
 	ErrorRequest,
 	ErrorResponse,
 	JoinLeaveRequest,
