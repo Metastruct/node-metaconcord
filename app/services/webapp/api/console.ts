@@ -1,21 +1,15 @@
 import { WebApp } from "@/app/services/webapp/index.js";
 import GameBridge from "@/app/services/gamebridge/GameBridge.js";
 import { GmodConnectionConfig } from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
-import { sshConnectOptions } from "@/app/services/gamebridge/games/gmod/GmodStatsProbe.js";
 import { statsProbes } from "@/app/services/gamebridge/games/gmod/index.js";
 import { MinecraftConnectionConfig } from "@/app/services/gamebridge/games/minecraft/MinecraftConnection.js";
-import {
-	ConsoleListener,
-	consoleHub,
-} from "@/app/services/gamebridge/games/minecraft/consoleHub.js";
+import { ConsoleGame, ConsoleListener, consoleHub } from "@/app/services/gamebridge/consoleHub.js";
 import {
 	EditorSession,
 	getSession,
 	getSessionFromCookieHeader,
 	isTeamMember,
 } from "./auth/github.js";
-import { NodeSSH } from "node-ssh";
-import type { ClientChannel } from "ssh2";
 import { connection as WebSocketConnection } from "websocket";
 import gmodServers from "@/config/gmod.servers.json" with { type: "json" };
 import minecraftServers from "@/config/minecraft.servers.json" with { type: "json" };
@@ -26,30 +20,22 @@ const log = logger(import.meta);
 /**
  * "Rocket": the game server console for the website.
  *
- * gmod hosts expose the srcds console on a unix socket (`~/gserv/daemon_socket`,
- * what `gserv show` attaches to), so a websocket from the site is bridged to
- * `socat` on that socket over SSH. Output keeps its ANSI colors, input is one
- * command per line.
- *
- * The Minecraft server has no SSH access; its console is the server log
- * streamed by the metaconcord mod over the game websocket, and commands are
- * run through the mod as the server console (see consoleHub).
+ * Both games stream their console over their own game websocket: gmod through
+ * the addon's gm_enginespew hook, Minecraft through the mod's log appender.
+ * Commands run as the server console, attributed to the viewer (see consoleHub).
  *
  * Servers are addressed by "<game>:<id>" since ids are only unique per game.
  */
 
-const CONSOLE_COMMAND = "cd ~/gserv && exec socat UNIX-CONNECT:daemon_socket stdio";
 const MAX_SESSIONS_PER_SERVER = 5;
 const MAX_LINES_PER_SECOND = 20;
 
 // gserv verbs the console exposes as buttons, kept to the safe live-update set
 const GSERV_ACTIONS = ["rehash", "merge_repos", "rehashskeleton", "update_repos"] as const;
 
-type Game = "gmod" | "minecraft";
-
 type HostedServer = {
 	key: string;
-	game: Game;
+	game: ConsoleGame;
 	id: number;
 	name: string;
 	label?: string;
@@ -57,10 +43,6 @@ type HostedServer = {
 };
 
 const sessionsPerServer = new Map<string, number>();
-
-/** Hosts that just failed an ssh connect fail fast for a while instead of hanging and spamming errors. */
-const SSH_FAILURE_TTL = 2 * 60 * 1000;
-const sshFailedUntil = new Map<string, number>();
 
 /** Auth, session cap, rate limit and framing shared by both console transports. */
 abstract class ConsoleSession {
@@ -150,119 +132,12 @@ abstract class ConsoleSession {
 	}
 }
 
-class SshConsoleSession extends ConsoleSession {
-	private ssh = new NodeSSH();
-	private channel?: ClientChannel;
-	private gservRunning = false;
-
-	constructor(
-		conn: WebSocketConnection,
-		user: EditorSession,
-		server: HostedServer,
-		private sshTarget: NonNullable<GmodConnectionConfig["ssh"]>,
-		private bridge: GameBridge
-	) {
-		super(conn, user, server);
-	}
-
-	protected async open(): Promise<void> {
-		const failedUntil = sshFailedUntil.get(this.server.key) ?? 0;
-		if (Date.now() < failedUntil) {
-			this.send({ type: "exit", reason: "host unreachable, retrying later" });
-			log.info(
-				`console refused, '${this.server.name}' recently unreachable (${this.user.login})`
-			);
-			this.close();
-			return;
-		}
-		try {
-			await this.ssh.connect({ ...sshConnectOptions(this.sshTarget), readyTimeout: 10000 });
-		} catch (err) {
-			// only a real failure marks the host, never a canceled attach
-			if (!this.closed) sshFailedUntil.set(this.server.key, Date.now() + SSH_FAILURE_TTL);
-			throw err;
-		}
-		sshFailedUntil.delete(this.server.key);
-		if (this.closed) {
-			this.ssh.dispose();
-			return;
-		}
-		const channel = await new Promise<ClientChannel>((resolve, reject) => {
-			this.ssh.connection?.exec(CONSOLE_COMMAND, (err, stream) =>
-				err ? reject(err) : resolve(stream)
-			);
-		});
-		this.channel = channel;
-		channel.on("data", (chunk: Buffer) =>
-			this.send({ type: "data", data: chunk.toString("utf8") })
-		);
-		channel.stderr.on("data", (chunk: Buffer) =>
-			this.send({ type: "data", data: chunk.toString("utf8") })
-		);
-		channel.on("close", () => {
-			this.send({ type: "exit", reason: "console closed" });
-			this.close();
-		});
-		this.send({ type: "ready" });
-		log.info(`console opened on '${this.server.name}' by ${this.user.login}`);
-	}
-
-	protected input(line: string): void {
-		this.traceRcon(line);
-		this.channel?.write(line + "\n");
-	}
-
-	/** Prints a red "[RCON] user ran ..." line in the server console, best effort. */
-	private traceRcon(line: string): void {
-		const server = this.bridge.servers.gmod[this.server.id];
-		if (!server?.wsConnection?.connected) return;
-		const esc = (text: string) => text.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-		server
-			.sendLua(
-				`MsgC(Color(220, 60, 60), '[RCON] ${esc(this.user.login)} ran "${esc(line)}"\\n')`
-			)
-			.catch(() => {});
-	}
-
-	/** Runs a gserv verb on the same SSH connection, streaming its output into the terminal. */
-	protected runGserv(command: unknown): void {
-		if (typeof command !== "string" || !GSERV_ACTIONS.includes(command as never)) return;
-		if (this.gservRunning || !this.channel) return;
-		this.gservRunning = true;
-		log.warn(
-			{ login: this.user.login, server: this.server.name, gserv: command },
-			"gserv action"
-		);
-		this.send({ type: "data", data: `\r\n\x1b[1;35m> gserv ${command}\x1b[0m\r\n` });
-		this.ssh
-			.execCommand(`gserv ${command}`, {
-				onStdout: (chunk: Buffer) =>
-					this.send({ type: "data", data: chunk.toString("utf8") }),
-				onStderr: (chunk: Buffer) =>
-					this.send({ type: "data", data: chunk.toString("utf8") }),
-			})
-			.then(result => {
-				const ok = !result.stderr.includes("GSERV FAILED") && result.code === 0;
-				this.send({ type: "data", data: `\x1b[1;35m> gserv ${command} done\x1b[0m\r\n` });
-				this.send({ type: "gserv-done", command, ok });
-			})
-			.catch(err => {
-				this.send({
-					type: "data",
-					data: `\x1b[31mgserv failed: ${err.message}\x1b[0m\r\n`,
-				});
-				this.send({ type: "gserv-done", command, ok: false });
-			})
-			.finally(() => (this.gservRunning = false));
-	}
-
-	protected dispose(): void {
-		this.channel?.close();
-		this.ssh.dispose();
-	}
-}
-
-class MinecraftConsoleSession extends ConsoleSession {
+/**
+ * One console session for either game: the game's own websocket carries the log
+ * stream and the commands, so the only per-game difference left is which server
+ * list the id belongs to.
+ */
+class BridgeConsoleSession extends ConsoleSession {
 	private listener?: ConsoleListener;
 
 	constructor(
@@ -285,25 +160,36 @@ class MinecraftConsoleSession extends ConsoleSession {
 				this.send({ type: "log", lines: event.lines, replay: event.replay });
 			}
 		};
-		consoleHub.subscribe(this.bridge, this.server.id, this.listener);
+		consoleHub.subscribe(this.bridge, this.server.game, this.server.id, this.listener);
 		this.send({ type: "ready" });
-		if (!this.bridge.servers.minecraft[this.server.id]?.wsConnection?.connected) {
+		if (!this.bridge.servers[this.server.game][this.server.id]?.wsConnection?.connected) {
 			this.send({ type: "meta", text: "server not connected, waiting" });
 		}
 		log.info(`console opened on '${this.server.name}' by ${this.user.login}`);
 	}
 
 	protected input(line: string): void {
+		// the runner rides with the command; both games print their own
+		// "[RCON] <user> ran ..." line, so it shows up in this same stream
 		consoleHub
-			.command(this.bridge, this.server.id, line, this.user.login)
+			.command(this.bridge, this.server.game, this.server.id, line, this.user.login)
 			.then(sent => {
 				if (!sent) this.send({ type: "meta", text: "server not connected" });
 			})
 			.catch(err => log.warn(err, "console command failed"));
 	}
 
+	/** Wired up in part 4, once GservPayload replaces the ssh invocation. */
+	protected runGserv(command: unknown): void {
+		if (typeof command !== "string" || !GSERV_ACTIONS.includes(command as never)) return;
+		this.send({ type: "meta", text: "gserv is unavailable while it is being moved off ssh" });
+		this.send({ type: "gserv-done", command, ok: false });
+	}
+
 	protected dispose(): void {
-		if (this.listener) consoleHub.unsubscribe(this.bridge, this.server.id, this.listener);
+		if (this.listener) {
+			consoleHub.unsubscribe(this.bridge, this.server.game, this.server.id, this.listener);
+		}
 	}
 }
 
@@ -419,15 +305,6 @@ export default (webApp: WebApp): void => {
 			return;
 		}
 		const conn = req.accept(undefined, req.origin);
-		if (server.game === "gmod") {
-			const ssh = (gmodServers as GmodConnectionConfig[]).find(s => s.id === server.id)?.ssh;
-			if (!ssh) {
-				conn.close();
-				return;
-			}
-			new SshConsoleSession(conn, session, server, ssh, bridge()).start();
-		} else {
-			new MinecraftConsoleSession(conn, session, server, bridge()).start();
-		}
+		new BridgeConsoleSession(conn, session, server, bridge()).start();
 	});
 };

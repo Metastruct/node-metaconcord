@@ -3,6 +3,7 @@ import AdminNotifyPayload from "./AdminNotifyPayload.js";
 import BanAppealPayload from "./BanAppealPayload.js";
 import BanPayload from "./BanPayload.js";
 import ChatPayload from "./ChatPayload.js";
+import ConsolePayload from "./ConsolePayload.js";
 import ErrorPayload from "./ErrorPayload.js";
 import GmodConnection from "../GmodConnection.js";
 import JoinLeavePayload from "./JoinLeavePayload.js";
@@ -21,6 +22,7 @@ export {
 	BanAppealPayload,
 	BanPayload,
 	ChatPayload,
+	ConsolePayload,
 	ErrorPayload,
 	JoinLeavePayload,
 	NotificationPayload,
@@ -39,6 +41,7 @@ const handlers: (typeof Payload)[] = [
 	BanAppealPayload,
 	BanPayload,
 	ChatPayload,
+	ConsolePayload,
 	ErrorPayload,
 	JoinLeavePayload,
 	NotificationPayload,
