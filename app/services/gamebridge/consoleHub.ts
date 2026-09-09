@@ -7,7 +7,14 @@ const log = logger(import.meta);
 /** Games whose console rides their own game websocket rather than the host. */
 export type ConsoleGame = "gmod" | "minecraft";
 
-export type ConsoleLine = { level: string; text: string; color?: string };
+export type ConsoleSegment = { text: string; color?: string };
+export type ConsoleLine = {
+	level: string;
+	text: string;
+	color?: string;
+	/** per-colour pieces, when one line was printed in several colours */
+	parts?: ConsoleSegment[];
+};
 export type ConsoleEvent =
 	{ type: "lines"; lines: ConsoleLine[]; replay: boolean } | { type: "meta"; text: string };
 export type ConsoleListener = (event: ConsoleEvent) => void;
