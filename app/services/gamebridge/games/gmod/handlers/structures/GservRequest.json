@@ -10,7 +10,7 @@
 					"additionalProperties": false,
 					"properties": {
 						"code": {
-							"description": "gserv's exit code, absent when it never ran.",
+							"description": "gserv's exit code, absent when srcds's auto-reap took the status first.",
 							"type": "number"
 						},
 						"data": {
