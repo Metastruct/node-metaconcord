@@ -13,13 +13,31 @@
 								"additionalProperties": false,
 								"properties": {
 									"color": {
-										"description": "\"rrggbb\" from the engine spew colour, absent when the line had none",
+										"description": "\"rrggbb\" when the whole line is one colour, absent when it is the default",
 										"type": "string"
 									},
 									"level": {
 										"type": "string"
 									},
+									"parts": {
+										"description": "MsgC emits one chunk per colour, so a tagged line arrives in pieces. Present only when those pieces differ, in which case `color` is unset.",
+										"items": {
+											"additionalProperties": false,
+											"properties": {
+												"color": {
+													"type": "string"
+												},
+												"text": {
+													"type": "string"
+												}
+											},
+											"required": ["text"],
+											"type": "object"
+										},
+										"type": "array"
+									},
 									"text": {
+										"description": "the whole line, plain, for filtering and search",
 										"type": "string"
 									}
 								},
