@@ -11,7 +11,7 @@ export default interface GservRequest extends PayloadRequest {
 		data?: string;
 		/** Present once, last. */
 		done?: boolean;
-		/** gserv's exit code, absent when it never ran. */
+		/** gserv's exit code, absent when srcds's auto-reap took the status first. */
 		code?: number;
 		/** Set instead of a code when the verb was refused or gserv could not start. */
 		error?: string;

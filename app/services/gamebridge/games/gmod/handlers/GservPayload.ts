@@ -53,9 +53,13 @@ export default class GservPayload extends Payload {
 		clearTimeout(run.timer);
 
 		const output = run.lines.join("\n");
+		// srcds ignores SIGCHLD, so its auto-reap can take gserv's status before
+		// the module reads it. The run still happened, so judge it by its output
+		// the way the ssh path did.
+		const exited = code === undefined || code === 0;
 		run.settle({
 			// gserv reports its own failures in the output, whatever it exits with
-			ok: !error && code === 0 && !output.includes("GSERV FAILED"),
+			ok: !error && exited && !output.includes("GSERV FAILED"),
 			code,
 			output,
 			error,
