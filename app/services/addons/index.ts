@@ -35,9 +35,9 @@ const TRANSIENT_RETRY_DELAY = 15 * 60 * 1000;
 const TRANSIENT_MAX_RETRIES = 4;
 const RESOLVE_CONCURRENCY = 6;
 /**
- * Bumped whenever a refresh would produce fields the stored entries cannot have.
- * A server reconnecting with an older shape is pulled again instead of serving
- * data the current code would have built differently.
+ * Stamped on every stored entry so a later migration can tell what built it.
+ * Both games rebuild their list on every connect, so nothing reads it to decide
+ * whether a refresh is due.
  */
 export const ADDONS_SHAPE = 2;
 /** Mod ids the loaders give themselves; the version of whichever one is present is the loader version. */
@@ -45,30 +45,14 @@ const LOADER_MODS = new Set(["neoforge", "forge", "fabricloader", "quilt_loader"
 /** Never add-ons: the loader, the game it loads, and this bridge. */
 const BUILTIN_MODS = new Set([...LOADER_MODS, "minecraft", "metaconcord"]);
 
-/**
- * Walks ~/gserv/repos and prints one TSV line per addon root:
- * repo \t subpath ("." for the repo root) \t remote url \t workshop id \t branch
- *
- * A repo is a single addon when its root holds lua/, gamemodes/ or addon.json,
- * otherwise each first-level directory holding one of those is an addon.
- */
-const GSERV_ENUMERATE_SCRIPT = [
-	"cd ~/gserv/repos || exit 1",
-	"for r in */; do",
-	'  r=${r%/}; [ -d "$r" ] || continue',
-	'  url=$(git -C "$r" remote get-url origin 2>/dev/null)',
-	'  br=$(git -C "$r" rev-parse --abbrev-ref HEAD 2>/dev/null)',
-	'  ws=$(head -n1 "$r/.workshopid" 2>/dev/null)',
-	'  if [ -d "$r/lua" ] || [ -d "$r/gamemodes" ] || [ -f "$r/addon.json" ]; then subs="."; else',
-	'    subs=$(cd "$r" && for d in */; do d=${d%/}; if [ -d "$d/lua" ] || [ -d "$d/gamemodes" ] || [ -f "$d/addon.json" ]; then printf \'%s\\n\' "$d"; fi; done)',
-	"  fi",
-	'  [ -z "$subs" ] && subs="."',
-	"  for s in $subs; do",
-	'    sws=$(head -n1 "$r/$s/.workshopid" 2>/dev/null)',
-	'    printf \'%s\\t%s\\t%s\\t%s\\t%s\\n\' "$r" "$s" "$url" "${sws:-$ws}" "$br"',
-	"  done",
-	"done",
-].join("\n");
+/** One addon root as the game's native module reports it. */
+export type GmodRepoRow = {
+	repo: string;
+	sub: string;
+	remote: string;
+	wsid: string;
+	branch: string;
+};
 
 async function mapLimit<T, R>(
 	items: T[],
@@ -117,11 +101,6 @@ export class Addons extends Service {
 		return this.container.getService("Data").addons?.[game]?.[serverId];
 	}
 
-	/** Nothing stored for this server, or an entry built by an older shape. */
-	needsRefresh(game: AddonGame, serverId: number): boolean {
-		return this.get(game, serverId)?.shape !== ADDONS_SHAPE;
-	}
-
 	/**
 	 * The games a gmod server reports on connect. It can arrive either side of the
 	 * addon list being built, so it is kept here as well as on the entry: whichever
@@ -168,13 +147,17 @@ export class Addons extends Service {
 	}
 
 	/**
-	 * Pull the addon list of a gmod server over SSH. Triggered once per server boot;
-	 * entries whose git host was unreachable get retried a few times since the next
-	 * natural refresh is the next restart.
+	 * Rebuild a gmod server's addon list from the rows its native module sent on
+	 * connect. Debounced, because resolving a few hundred repos against github is
+	 * expensive; entries whose git host was unreachable are retried a few times
+	 * against the same rows.
 	 */
-	async refreshGmodRepos(server: GmodConnection, attempt = 0): Promise<void> {
+	async refreshGmodRepos(
+		server: GmodConnection,
+		rows: GmodRepoRow[],
+		attempt = 0
+	): Promise<void> {
 		const { id, name } = server.config;
-		if (!server.config.ssh) return;
 
 		const last = this.lastGmodRefresh.get(id) ?? 0;
 		if (attempt === 0 && Date.now() - last < GMOD_REFRESH_DEBOUNCE) return;
@@ -182,21 +165,14 @@ export class Addons extends Service {
 		clearTimeout(this.retryTimers.get(id));
 		this.retryTimers.delete(id);
 
-		const result = await server.sshExecCommand(GSERV_ENUMERATE_SCRIPT, {});
-		if (!result) return;
-		if (result.code !== 0 && !result.stdout.trim()) {
-			log.warn({ server: name, stderr: result.stderr }, "gserv enumeration failed");
+		if (rows.length === 0) {
+			log.warn({ server: name }, "server reported no addon roots, keeping the stored list");
 			return;
 		}
 
-		const rows = result.stdout
-			.split("\n")
-			.map(line => line.split("\t"))
-			.filter(cols => cols.length >= 2 && cols[0]);
-
 		// A repo whose only addon root is one subfolder (content/, dist/...) is that addon.
 		const rowsPerRepo = new Map<string, number>();
-		for (const [repo] of rows) rowsPerRepo.set(repo, (rowsPerRepo.get(repo) ?? 0) + 1);
+		for (const { repo } of rows) rowsPerRepo.set(repo, (rowsPerRepo.get(repo) ?? 0) + 1);
 
 		// Keep the last known entry when a git host is down instead of flipping it to private.
 		const previous = new Map<string, Addon>();
@@ -207,7 +183,7 @@ export class Addons extends Service {
 		const built = await mapLimit(
 			rows,
 			RESOLVE_CONCURRENCY,
-			([repo, sub, remote, wsid, branch]) =>
+			({ repo, sub, remote, wsid, branch }) =>
 				this.buildGmodAddon(
 					repo,
 					rowsPerRepo.get(repo) === 1 ? "." : sub,
@@ -236,7 +212,7 @@ export class Addons extends Service {
 			this.retryTimers.set(
 				id,
 				setTimeout(() => {
-					this.refreshGmodRepos(server, attempt + 1).catch(err =>
+					this.refreshGmodRepos(server, rows, attempt + 1).catch(err =>
 						log.error({ err, server: name }, "addon refresh retry failed")
 					);
 				}, TRANSIENT_RETRY_DELAY)

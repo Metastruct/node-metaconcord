@@ -20,11 +20,9 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 				type: Discord.ApplicationCommandOptionType.Integer,
 				name: "server",
 				description: "The server to run the command on",
-				choices: servers
-					.filter(s => !!s.ssh)
-					.map(s => {
-						return { name: s.name, value: s.id };
-					}),
+				choices: servers.map(s => {
+					return { name: s.name, value: s.id };
+				}),
 				required: false,
 			},
 		],
@@ -49,7 +47,7 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 		const serverId = ctx.options.getInteger("server");
 		const where = serverId
 			? [bridge.servers.gmod[serverId]].filter((s): s is GmodConnection => !!s)
-			: bridge.servers.gmod.filter((s): s is GmodConnection => !!s && !!s.config.ssh);
+			: bridge.servers.gmod.filter((s): s is GmodConnection => !!s);
 
 		await ctx.deferReply();
 

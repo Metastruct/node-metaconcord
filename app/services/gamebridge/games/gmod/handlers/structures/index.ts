@@ -8,12 +8,15 @@ import ConsoleRequest from "./ConsoleRequest.js";
 import ConsoleResponse from "./ConsoleResponse.js";
 import ErrorRequest from "./ErrorRequest.js";
 import ErrorResponse from "./ErrorResponse.js";
+import GservRequest from "./GservRequest.js";
+import GservResponse from "./GservResponse.js";
 import JoinLeaveRequest from "./JoinLeaveRequest.js";
 import NotificationResponse from "./NotificationResponse.js";
 import PayloadRequest from "./PayloadRequest.js";
 import RconRequest from "./RconRequest.js";
 import RconResponse from "./RconResponse.js";
 import ReportChatRequest from "./ReportChatRequest.js";
+import StatsRequest from "./StatsRequest.js";
 import StatusRequest from "./StatusRequest.js";
 import UnbanRequest from "./UnbanRequest.js";
 import VoteKickRequest from "./VoteKickRequest.js";
@@ -28,12 +31,15 @@ export {
 	ConsoleResponse,
 	ErrorRequest,
 	ErrorResponse,
+	GservRequest,
+	GservResponse,
 	JoinLeaveRequest,
 	NotificationResponse,
 	PayloadRequest,
 	RconRequest,
 	RconResponse,
 	ReportChatRequest,
+	StatsRequest,
 	StatusRequest,
 	UnbanRequest,
 	VoteKickRequest,

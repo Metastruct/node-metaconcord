@@ -1,7 +1,6 @@
 import { WebApp } from "@/app/services/webapp/index.js";
 import GameBridge from "@/app/services/gamebridge/GameBridge.js";
 import { GmodConnectionConfig } from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
-import { statsProbes } from "@/app/services/gamebridge/games/gmod/index.js";
 import { MinecraftConnectionConfig } from "@/app/services/gamebridge/games/minecraft/MinecraftConnection.js";
 import { ConsoleGame, ConsoleListener, consoleHub } from "@/app/services/gamebridge/consoleHub.js";
 import {
@@ -139,6 +138,7 @@ abstract class ConsoleSession {
  */
 class BridgeConsoleSession extends ConsoleSession {
 	private listener?: ConsoleListener;
+	private gservRunning = false;
 
 	constructor(
 		conn: WebSocketConnection,
@@ -179,11 +179,30 @@ class BridgeConsoleSession extends ConsoleSession {
 			.catch(err => log.warn(err, "console command failed"));
 	}
 
-	/** Wired up in part 4, once GservPayload replaces the ssh invocation. */
+	/** Runs a gserv verb on the host, streaming its output into the terminal. */
 	protected runGserv(command: unknown): void {
 		if (typeof command !== "string" || !GSERV_ACTIONS.includes(command as never)) return;
-		this.send({ type: "meta", text: "gserv is unavailable while it is being moved off ssh" });
-		this.send({ type: "gserv-done", command, ok: false });
+		if (this.gservRunning || this.server.game !== "gmod") return;
+		const server = this.bridge.servers.gmod[this.server.id];
+		if (!server) return;
+
+		this.gservRunning = true;
+		log.warn(
+			{ login: this.user.login, server: this.server.name, gserv: command },
+			"gserv action"
+		);
+		this.send({ type: "meta", text: `> gserv ${command}` });
+
+		server
+			.runGserv(command, chunk =>
+				this.send({ type: "log", lines: [{ level: "INFO", text: chunk.trimEnd() }] })
+			)
+			.then(result => {
+				if (result.error) this.send({ type: "meta", text: `gserv: ${result.error}` });
+				this.send({ type: "meta", text: `> gserv ${command} done` });
+				this.send({ type: "gserv-done", command, ok: result.ok });
+			})
+			.finally(() => (this.gservRunning = false));
 	}
 
 	protected dispose(): void {
@@ -197,16 +216,14 @@ export default (webApp: WebApp): void => {
 	const bridge = () => webApp.container.getService("GameBridge");
 
 	const hostedServers = (): HostedServer[] => [
-		...(gmodServers as GmodConnectionConfig[])
-			.filter(s => s.ssh)
-			.map(s => ({
-				key: `gmod:${s.id}`,
-				game: "gmod" as const,
-				id: s.id,
-				name: s.name,
-				label: s.label,
-				gserv: true,
-			})),
+		...(gmodServers as GmodConnectionConfig[]).map(s => ({
+			key: `gmod:${s.id}`,
+			game: "gmod" as const,
+			id: s.id,
+			name: s.name,
+			label: s.label,
+			gserv: true,
+		})),
 		...(minecraftServers as MinecraftConnectionConfig[]).map(s => ({
 			key: `minecraft:${s.id}`,
 			game: "minecraft" as const,
@@ -263,7 +280,7 @@ export default (webApp: WebApp): void => {
 				game: server.game,
 				map: conn?.mapName,
 				players: current?.players ?? conn?.status?.players?.length ?? 0,
-				max: statsProbes.get(server.id)?.maxPlayers,
+				max: conn?.maxPlayers,
 				tick: connected ? { label: "fps", value: current?.tick } : undefined,
 				stats,
 			});

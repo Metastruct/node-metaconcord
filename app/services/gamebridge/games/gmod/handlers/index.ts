@@ -6,11 +6,13 @@ import ChatPayload from "./ChatPayload.js";
 import ConsolePayload from "./ConsolePayload.js";
 import ErrorPayload from "./ErrorPayload.js";
 import GmodConnection from "../GmodConnection.js";
+import GservPayload from "./GservPayload.js";
 import JoinLeavePayload from "./JoinLeavePayload.js";
 import NotificationPayload from "./NotificationPayload.js";
 import Payload from "./Payload.js";
 import RconPayload from "./RconPayload.js";
 import ReportChatPayload from "./ReportChatPayload.js";
+import StatsPayload from "./StatsPayload.js";
 import StatusPayload from "./StatusPayload.js";
 import UnbanPayload from "./UnbanPayload.js";
 import VoteKickPayload from "./VoteKickPayload.js";
@@ -24,10 +26,12 @@ export {
 	ChatPayload,
 	ConsolePayload,
 	ErrorPayload,
+	GservPayload,
 	JoinLeavePayload,
 	NotificationPayload,
 	RconPayload,
 	ReportChatPayload,
+	StatsPayload,
 	StatusPayload,
 	UnbanPayload,
 	VoteKickPayload,
@@ -43,10 +47,12 @@ const handlers: (typeof Payload)[] = [
 	ChatPayload,
 	ConsolePayload,
 	ErrorPayload,
+	GservPayload,
 	JoinLeavePayload,
 	NotificationPayload,
 	RconPayload,
 	ReportChatPayload,
+	StatsPayload,
 	StatusPayload,
 	UnbanPayload,
 	VoteKickPayload,

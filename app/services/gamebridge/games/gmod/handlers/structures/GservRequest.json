@@ -1,0 +1,50 @@
+{
+	"$ref": "#/definitions/GservRequest",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"definitions": {
+		"GservRequest": {
+			"additionalProperties": false,
+			"description": "One line of gserv output, or the run finishing.",
+			"properties": {
+				"data": {
+					"additionalProperties": false,
+					"properties": {
+						"code": {
+							"description": "gserv's exit code, absent when it never ran.",
+							"type": "number"
+						},
+						"data": {
+							"description": "The line, without its newline.",
+							"type": "string"
+						},
+						"done": {
+							"description": "Present once, last.",
+							"type": "boolean"
+						},
+						"error": {
+							"description": "Set instead of a code when the verb was refused or gserv could not start.",
+							"type": "string"
+						},
+						"identifier": {
+							"description": "Echoes the identifier the run was started with.",
+							"type": "string"
+						},
+						"kind": {
+							"description": "Which stream the line came from; absent on the final message.",
+							"enum": ["stdout", "stderr"],
+							"type": "string"
+						}
+					},
+					"required": ["identifier"],
+					"type": "object"
+				},
+				"name": {
+					"const": "GservPayload",
+					"type": "string"
+				}
+			},
+			"required": ["data", "name"],
+			"type": "object"
+		}
+	}
+}
