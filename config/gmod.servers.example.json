@@ -7,11 +7,6 @@
 		"name": "",
 		"defaultGamemode": "",
 		"label": "",
-		"discordToken": "",
-		"ssh": {
-			"host": "",
-			"port": 22,
-			"username": ""
-		}
+		"discordToken": ""
 	}
 ]

@@ -502,7 +502,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				? bridge.servers.gmod.filter(s =>
 						override.split(",").includes(s.config.id.toString())
 					)
-				: bridge.servers.gmod.filter(s => !!s.config.ssh);
+				: bridge.servers.gmod.filter(s => !!s);
 
 		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(x =>
 			allowedRoles.has(x.id)
@@ -527,9 +527,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				await Promise.all(
 					where.map(async server => {
 						await server
-							.sshExecCommand("gserv qu rehash", {
-								stream: "stderr",
-							})
+							.runGserv("qu rehash")
 							.then(async () =>
 								(await ctx.fetchReply()).react(
 									SERVER_EMOJI_MAP[server.config.id] ?? "❓"
@@ -638,16 +636,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 					where.map(async server => {
 						const reply = await ctx.fetchReply();
 
-						await server
-							.sshExecCommand("gserv qu rehash", {
-								stream: "stderr",
-							})
-							.then(async () => {
-								const channel = <Discord.TextBasedChannel>(
-									await server.discord.channels.fetch(reply.channelId)
-								);
-								(await channel.messages.fetch(reply)).react("📥");
-							});
+						await server.runGserv("qu rehash").then(async () => {
+							const channel = <Discord.TextBasedChannel>(
+								await server.discord.channels.fetch(reply.channelId)
+							);
+							(await channel.messages.fetch(reply)).react("📥");
+						});
 
 						const res = await server.sendLua(
 							'if not RefreshLua then return false, "RefreshLua missing?" end\n' +

@@ -52,7 +52,7 @@ export const SlashGservCommand: SlashCommand = {
 						custom_id: "server",
 						placeholder: "Select a server (runs on all if not selected)",
 						options: bridge.servers.gmod
-							.filter((s): s is GmodConnection => !!s && !!s.config.ssh)
+							.filter((s): s is GmodConnection => !!s)
 							.map(s => ({
 								label: s.config.name,
 								value: String(s.config.id),
@@ -98,7 +98,7 @@ export const SlashGservCommand: SlashCommand = {
 
 		await Promise.all(
 			targetServers
-				.filter((s): s is GmodConnection => !!s && !!s.config.ssh)
+				.filter((s): s is GmodConnection => !!s)
 				.map(async gameServer => {
 					const gSDiscord = gameServer.discord;
 					const channel = gSDiscord.channels.cache.get(
@@ -107,15 +107,11 @@ export const SlashGservCommand: SlashCommand = {
 					const message = channel.messages.cache.get(messageID);
 
 					try {
-						let buffer = "";
-
-						await gameServer.sshExecCommand("gserv " + command, {
-							stream: "stderr",
-							onStdout: buff => (buffer += buff),
-							onStderr: buff => (buffer += buff),
-						});
-
-						const success = !buffer.includes("GSERV FAILED");
+						const result = await gameServer.runGserv(command);
+						const buffer = result.error
+							? `${result.output}\n${result.error}`
+							: result.output;
+						const success = result.ok;
 
 						const fileName = `${command}_${gameServer.config.id}_${Date.now()}.ansi`;
 						const response = {

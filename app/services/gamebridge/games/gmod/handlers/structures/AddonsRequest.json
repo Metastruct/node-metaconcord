@@ -4,7 +4,7 @@
 	"definitions": {
 		"AddonsRequest": {
 			"additionalProperties": false,
-			"description": "gmod cannot enumerate its own addons, so it only signals that it is ready to be pulled over SSH.",
+			"description": "gmod cannot enumerate its own addons, so the native module reads ~/gserv/repos and reports it here on every connect.",
 			"properties": {
 				"data": {
 					"additionalProperties": false,
@@ -31,11 +31,38 @@
 							},
 							"type": "array"
 						},
-						"pull": {
-							"type": "boolean"
+						"repos": {
+							"description": "One row per addon root. Absent when the server has no native module.",
+							"items": {
+								"additionalProperties": false,
+								"properties": {
+									"branch": {
+										"description": "branch name, or a short sha when HEAD is detached",
+										"type": "string"
+									},
+									"remote": {
+										"description": "origin remote url, empty when there is none",
+										"type": "string"
+									},
+									"repo": {
+										"description": "directory name under ~/gserv/repos",
+										"type": "string"
+									},
+									"sub": {
+										"description": "addon root inside the repo, \".\" when the repo itself is the addon",
+										"type": "string"
+									},
+									"wsid": {
+										"description": "workshop id from .workshopid, empty when there is none",
+										"type": "string"
+									}
+								},
+								"required": ["repo", "sub", "remote", "wsid", "branch"],
+								"type": "object"
+							},
+							"type": "array"
 						}
 					},
-					"required": ["pull"],
 					"type": "object"
 				},
 				"name": {

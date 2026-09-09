@@ -1,0 +1,62 @@
+{
+	"$ref": "#/definitions/StatsRequest",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"definitions": {
+		"StatsRequest": {
+			"additionalProperties": false,
+			"properties": {
+				"data": {
+					"additionalProperties": false,
+					"properties": {
+						"cpu": {
+							"description": "% of one core used by the srcds process",
+							"type": "number"
+						},
+						"fps": {
+							"type": "number"
+						},
+						"maxPlayers": {
+							"type": "number"
+						},
+						"memMax": {
+							"description": "host memory, the ceiling for memUsed",
+							"type": "number"
+						},
+						"memUsed": {
+							"description": "resident bytes of the srcds process",
+							"type": "number"
+						},
+						"netRx": {
+							"description": "host bytes/s received",
+							"type": "number"
+						},
+						"netTx": {
+							"description": "host bytes/s sent",
+							"type": "number"
+						},
+						"players": {
+							"type": "number"
+						}
+					},
+					"required": [
+						"cpu",
+						"memUsed",
+						"memMax",
+						"netRx",
+						"netTx",
+						"fps",
+						"players",
+						"maxPlayers"
+					],
+					"type": "object"
+				},
+				"name": {
+					"const": "StatsPayload",
+					"type": "string"
+				}
+			},
+			"required": ["data", "name"],
+			"type": "object"
+		}
+	}
+}

@@ -12,11 +12,9 @@ export const SlashKickCommand: SlashCommand = {
 				type: Discord.ApplicationCommandOptionType.Integer,
 				name: "server",
 				description: "The server to run the command on",
-				choices: servers
-					.filter(s => !!s.ssh)
-					.map(s => {
-						return { name: s.name, value: s.id };
-					}),
+				choices: servers.map(s => {
+					return { name: s.name, value: s.id };
+				}),
 				required: true,
 			},
 			{

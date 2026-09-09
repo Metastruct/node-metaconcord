@@ -1,16 +1,12 @@
 import { request as WebSocketRequest } from "websocket";
-import { NodeSSH, SSHExecOptions } from "node-ssh";
 import { RconResponse } from "./handlers/structures/index.js";
 import ErrorPayload from "./handlers/ErrorPayload.js";
+import GservPayload, { GservResult } from "./handlers/GservPayload.js";
 import GameBridge from "../../GameBridge.js";
 import GameConnection, { GameConnectionConfig } from "../../GameConnection.js";
 import GameSocketConnection from "../../GameSocketConnection.js";
 import RconPayload from "./handlers/RconPayload.js";
 import { attachHandlers } from "./handlers/index.js";
-import sshConfig from "@/config/ssh.json" with { type: "json" };
-import { logger } from "@/utils.js";
-
-const log = logger(import.meta);
 
 export type GmodConnectionConfig = GameConnectionConfig & {
 	defaultGamemode?: string;
@@ -18,11 +14,6 @@ export type GmodConnectionConfig = GameConnectionConfig & {
 	/** public connect address and port, exposed to the website */
 	address?: string;
 	port?: number;
-	ssh?: {
-		host: string;
-		port: number;
-		username: string;
-	};
 };
 
 export default class GmodConnection extends GameSocketConnection {
@@ -34,6 +25,8 @@ export default class GmodConnection extends GameSocketConnection {
 	};
 	gamemodes: string[];
 	hostname?: string;
+	/** from the last StatsPayload, which is where game.MaxPlayers() arrives */
+	maxPlayers?: number;
 	serverUptime: number;
 	/** epoch ms the server booted, derived from serverUptime when it was received */
 	serverUpSince?: number;
@@ -88,20 +81,12 @@ export default class GmodConnection extends GameSocketConnection {
 		return RconPayload.send({ isLua: false, command, runner }, this);
 	}
 
-	async sshExecCommand(command: string, options: SSHExecOptions | undefined) {
-		if (!this.config.ssh) return;
-		const ssh = new NodeSSH();
-		try {
-			const connection = await ssh.connect({
-				username: this.config.ssh.username,
-				host: this.config.ssh.host,
-				port: this.config.ssh.port,
-				privateKeyPath: sshConfig.keyPath,
-			});
-			return connection.execCommand(command, options);
-		} catch (err) {
-			log.error({ err, command, options }, "sshExecCommand failed.");
-			throw err;
-		}
+	/**
+	 * Runs a gserv verb on the game host through the addon's native module.
+	 * Never rejects: a refused verb, a server with no native module, a
+	 * disconnected server or a timeout all come back in the result.
+	 */
+	async runGserv(command: string, onChunk?: (chunk: string) => void): Promise<GservResult> {
+		return GservPayload.run(command, this, onChunk);
 	}
 }

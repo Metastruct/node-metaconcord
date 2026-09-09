@@ -4,8 +4,6 @@ import { logger } from "@/utils.js";
 
 const log = logger(import.meta);
 
-const HOSTING_IDS = servers.filter(s => s.ssh !== undefined).map(s => s.id);
-
 export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/gamemode/:id", async (req, res) => {
 		const bot = webApp.container.getService("DiscordBot");
@@ -24,7 +22,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		}
 
 		const id = parseInt(req.params.id);
-		if (isNaN(id) || !HOSTING_IDS.includes(id)) {
+		if (isNaN(id) || !servers.some(srv => srv.id === id)) {
 			res.sendStatus(403);
 			return;
 		}
@@ -34,16 +32,11 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.sendStatus(404);
 			return;
 		}
-		let output = "";
-
 		try {
-			await server.sshExecCommand("gserv update_repos rehash", {
-				stream: "stderr",
-				onStdout: buff => (output += buff),
-				onStderr: buff => (output += buff),
-			});
+			const result = await server.runGserv("update_repos rehash");
+			const output = result.error ? `${result.output}\n${result.error}` : result.output;
 
-			const failed = output.includes("GSERV FAILED");
+			const failed = !result.ok;
 			if (failed && bot) {
 				const guild = bot.getGuild();
 				if (guild) {
@@ -56,8 +49,9 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.status(failed ? 500 : 200)
 				.contentType("text/plain")
 				.send(output);
-		} catch {
-			res.status(500);
+		} catch (err) {
+			log.error({ err, server: id }, "gserv failed");
+			res.status(500).contentType("text/plain").send(String(err));
 		}
 	});
 };

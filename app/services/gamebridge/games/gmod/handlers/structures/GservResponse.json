@@ -1,0 +1,20 @@
+{
+	"$ref": "#/definitions/GservResponse",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"definitions": {
+		"GservResponse": {
+			"additionalProperties": false,
+			"properties": {
+				"command": {
+					"description": "The verb, e.g. \"qu rehash\". The addon's module validates it against its own whitelist.",
+					"type": "string"
+				},
+				"identifier": {
+					"type": "string"
+				}
+			},
+			"required": ["command", "identifier"],
+			"type": "object"
+		}
+	}
+}
