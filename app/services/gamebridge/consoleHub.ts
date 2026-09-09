@@ -19,16 +19,34 @@ export type ConsoleEvent =
 	{ type: "lines"; lines: ConsoleLine[]; replay: boolean } | { type: "meta"; text: string };
 export type ConsoleListener = (event: ConsoleEvent) => void;
 
+/** Lines kept per server, under the site's own 3000-line terminal buffer. */
+const BACKLOG = 2000;
+
+type ServerConsole = {
+	/** FIFO of the most recent lines: oldest drop off as new ones arrive */
+	backlog: ConsoleLine[];
+	listeners: Set<ConsoleListener>;
+};
+
 /**
- * Fan-out of a game's console stream to the website sessions watching it, keyed
- * by "<game>:<id>" since ids are only unique per game. Lives outside the
- * connection objects, which are recreated on every reconnect; the game is told
- * to stream only while there is at least one listener, and is told again on
- * every fresh connection.
+ * One console per game server, keyed "<game>:<id>" since ids are only unique
+ * per game. A server streams from the moment it connects and never stops, so
+ * the backlog is there whether or not anyone is watching and reopening the
+ * site paints scrollback instead of an empty terminal. Lives outside the
+ * connection objects, which are recreated on every reconnect.
  */
-const listeners = new Map<string, Set<ConsoleListener>>();
+const consoles = new Map<string, ServerConsole>();
 
 const key = (game: ConsoleGame, id: number) => `${game}:${id}`;
+
+const consoleFor = (game: ConsoleGame, id: number): ServerConsole => {
+	let state = consoles.get(key(game, id));
+	if (!state) {
+		state = { backlog: [], listeners: new Set() };
+		consoles.set(key(game, id), state);
+	}
+	return state;
+};
 
 const live = (bridge: GameBridge, game: ConsoleGame, id: number): WsGameConnection | undefined => {
 	const server = bridge.servers[game][id];
@@ -54,35 +72,25 @@ async function sendAction(
 }
 
 export const consoleHub = {
-	hasListeners(game: ConsoleGame, id: number): boolean {
-		return (listeners.get(key(game, id))?.size ?? 0) > 0;
+	/**
+	 * Starts the stream for a freshly connected server. Called on every
+	 * connection, so it doubles as the re-arm after a reconnect.
+	 */
+	start(game: ConsoleGame, server: WsGameConnection): void {
+		consoleFor(game, server.config.id);
+		sendAction(game, server, "subscribe").catch(err => log.warn(err));
 	},
 
-	subscribe(bridge: GameBridge, game: ConsoleGame, id: number, listener: ConsoleListener): void {
-		let set = listeners.get(key(game, id));
-		if (!set) {
-			set = new Set();
-			listeners.set(key(game, id), set);
-		}
-		const first = set.size === 0;
-		set.add(listener);
-		const server = live(bridge, game, id);
-		if (first && server) sendAction(game, server, "subscribe").catch(err => log.warn(err));
+	/** Adds a viewer and hands back the backlog for it to paint first. */
+	attach(game: ConsoleGame, id: number, listener: ConsoleListener): ConsoleLine[] {
+		const state = consoleFor(game, id);
+		state.listeners.add(listener);
+		return state.backlog.slice();
 	},
 
-	unsubscribe(
-		bridge: GameBridge,
-		game: ConsoleGame,
-		id: number,
-		listener: ConsoleListener
-	): void {
-		const set = listeners.get(key(game, id));
-		if (!set) return;
-		set.delete(listener);
-		if (set.size > 0) return;
-		listeners.delete(key(game, id));
-		const server = live(bridge, game, id);
-		if (server) sendAction(game, server, "unsubscribe").catch(err => log.warn(err));
+	/** Drops a viewer. The stream is independent of who is watching. */
+	detach(game: ConsoleGame, id: number, listener: ConsoleListener): void {
+		consoles.get(key(game, id))?.listeners.delete(listener);
 	},
 
 	/** Runs a command as the server console; output comes back through the log stream. */
@@ -99,16 +107,18 @@ export const consoleHub = {
 		return true;
 	},
 
-	/** Re-arms streaming on a fresh connection when sessions are still watching. */
-	resubscribe(game: ConsoleGame, server: WsGameConnection): void {
-		if (!this.hasListeners(game, server.config.id)) return;
-		sendAction(game, server, "subscribe").catch(err => log.warn(err));
-	},
-
 	emit(game: ConsoleGame, id: number, event: ConsoleEvent): void {
-		const set = listeners.get(key(game, id));
-		if (!set) return;
-		for (const listener of set) {
+		const state = consoleFor(game, id);
+		if (event.type === "lines") {
+			// the game keeps a replay ring of its own, which is only useful to
+			// seed an empty backlog; past that it repeats what we already hold
+			if (event.replay && state.backlog.length) return;
+			state.backlog.push(...event.lines);
+			if (state.backlog.length > BACKLOG) {
+				state.backlog.splice(0, state.backlog.length - BACKLOG);
+			}
+		}
+		for (const listener of state.listeners) {
 			try {
 				listener(event);
 			} catch (err) {
