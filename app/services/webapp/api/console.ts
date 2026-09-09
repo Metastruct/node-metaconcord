@@ -26,7 +26,6 @@ const log = logger(import.meta);
  * Servers are addressed by "<game>:<id>" since ids are only unique per game.
  */
 
-const MAX_SESSIONS_PER_SERVER = 5;
 const MAX_LINES_PER_SECOND = 20;
 
 // gserv verbs the console exposes as buttons, kept to the safe live-update set
@@ -41,9 +40,7 @@ type HostedServer = {
 	gserv: boolean;
 };
 
-const sessionsPerServer = new Map<string, number>();
-
-/** Auth, session cap, rate limit and framing shared by both console transports. */
+/** Auth, rate limit and framing shared by both console transports. */
 abstract class ConsoleSession {
 	protected closed = false;
 	private lineTimes: number[] = [];
@@ -54,7 +51,6 @@ abstract class ConsoleSession {
 		protected user: EditorSession,
 		protected server: HostedServer
 	) {
-		sessionsPerServer.set(server.key, (sessionsPerServer.get(server.key) ?? 0) + 1);
 		// the session was only checked at upgrade time, close the socket once it expires
 		this.expiryTimer = setTimeout(
 			() => {
@@ -122,10 +118,6 @@ abstract class ConsoleSession {
 		if (this.closed) return;
 		this.closed = true;
 		clearTimeout(this.expiryTimer);
-		sessionsPerServer.set(
-			this.server.key,
-			Math.max(0, (sessionsPerServer.get(this.server.key) ?? 1) - 1)
-		);
 		this.dispose();
 		if (this.conn.connected) this.conn.close(code, description);
 	}
@@ -160,8 +152,11 @@ class BridgeConsoleSession extends ConsoleSession {
 				this.send({ type: "log", lines: event.lines, replay: event.replay });
 			}
 		};
-		consoleHub.subscribe(this.bridge, this.server.game, this.server.id, this.listener);
+		const backlog = consoleHub.attach(this.server.game, this.server.id, this.listener);
 		this.send({ type: "ready" });
+		// the hub streams from the moment a server connects, so a viewer joins
+		// mid-stream and gets the scrollback the site would otherwise not have
+		if (backlog.length) this.send({ type: "log", lines: backlog, replay: true });
 		if (!this.bridge.servers[this.server.game][this.server.id]?.wsConnection?.connected) {
 			this.send({ type: "meta", text: "server not connected, waiting" });
 		}
@@ -207,7 +202,7 @@ class BridgeConsoleSession extends ConsoleSession {
 
 	protected dispose(): void {
 		if (this.listener) {
-			consoleHub.unsubscribe(this.bridge, this.server.game, this.server.id, this.listener);
+			consoleHub.detach(this.server.game, this.server.id, this.listener);
 		}
 	}
 }
@@ -315,10 +310,6 @@ export default (webApp: WebApp): void => {
 		const server = hostedServers().find(s => s.key === key);
 		if (!server) {
 			req.reject(404);
-			return;
-		}
-		if ((sessionsPerServer.get(server.key) ?? 0) >= MAX_SESSIONS_PER_SERVER) {
-			req.reject(429);
 			return;
 		}
 		const conn = req.accept(undefined, req.origin);

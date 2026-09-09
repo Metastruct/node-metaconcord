@@ -14,7 +14,7 @@ export default class ConsolePayload extends Payload {
 	protected static responseSchema = responseSchema;
 
 	static async initialize(server: MinecraftConnection): Promise<void> {
-		consoleHub.resubscribe("minecraft", server);
+		consoleHub.start("minecraft", server);
 		server.wsConnection?.on("close", () =>
 			consoleHub.emit("minecraft", server.config.id, {
 				type: "meta",

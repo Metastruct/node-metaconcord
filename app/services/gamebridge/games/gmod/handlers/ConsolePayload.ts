@@ -15,7 +15,7 @@ export default class ConsolePayload extends Payload {
 	protected static responseSchema = responseSchema;
 
 	static async initialize(server: GmodConnection): Promise<void> {
-		consoleHub.resubscribe("gmod", server);
+		consoleHub.start("gmod", server);
 		server.wsConnection?.on("close", () =>
 			consoleHub.emit("gmod", server.config.id, { type: "meta", text: "server disconnected" })
 		);
