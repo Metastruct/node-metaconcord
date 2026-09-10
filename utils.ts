@@ -313,7 +313,8 @@ const refreshAdminGroupMembers = async (): Promise<void> => {
 		"https://steamcommunity.com/gid/103582791433481287/memberslistxml?xml=1",
 		{
 			headers: {
-				"User-Agent": "Mozilla/5.0 (compatible; node-metaconcord/1.0; +https://metastruct.net)",
+				"User-Agent":
+					"Mozilla/5.0 (compatible; node-metaconcord/1.0; +https://metastruct.net)",
 			},
 		}
 	);
