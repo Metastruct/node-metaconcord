@@ -14,7 +14,12 @@ export type ConsoleLine = {
 	color?: string;
 	/** per-colour pieces, when one line was printed in several colours */
 	parts?: ConsoleSegment[];
+	/** a bridge event rather than game output, the site shows it past the level filter */
+	marker?: ConsoleMarker;
+	/** epoch ms, set on markers so the site can print the viewer's local time */
+	time?: number;
 };
+export type ConsoleMarker = "connected" | "disconnected";
 export type ConsoleEvent =
 	{ type: "lines"; lines: ConsoleLine[]; replay: boolean } | { type: "meta"; text: string };
 export type ConsoleListener = (event: ConsoleEvent) => void;
@@ -77,7 +82,11 @@ export const consoleHub = {
 	 * connection, so it doubles as the re-arm after a reconnect.
 	 */
 	start(game: ConsoleGame, server: WsGameConnection): void {
-		consoleFor(game, server.config.id);
+		// an empty backlog means metaconcord has never seen this server stream,
+		// so there is nothing to mark a reconnect against
+		if (consoleFor(game, server.config.id).backlog.length) {
+			consoleHub.mark(game, server.config.id, "connected");
+		}
 		sendAction(game, server, "subscribe").catch(err => log.warn(err));
 	},
 
@@ -105,6 +114,19 @@ export const consoleHub = {
 		if (!server) return false;
 		await sendAction(game, server, "command", command, runner);
 		return true;
+	},
+
+	/**
+	 * Drops a connection marker into the stream. It lands in the backlog, so a
+	 * viewer opening the console after a crash or restart still sees the gap.
+	 */
+	mark(game: ConsoleGame, id: number, marker: ConsoleMarker): void {
+		const text = marker === "connected" ? "server connected" : "server connection lost";
+		consoleHub.emit(game, id, {
+			type: "lines",
+			lines: [{ level: "INFO", text, marker, time: Date.now() }],
+			replay: false,
+		});
 	},
 
 	emit(game: ConsoleGame, id: number, event: ConsoleEvent): void {

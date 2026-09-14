@@ -16,10 +16,7 @@ export default class ConsolePayload extends Payload {
 	static async initialize(server: MinecraftConnection): Promise<void> {
 		consoleHub.start("minecraft", server);
 		server.wsConnection?.on("close", () =>
-			consoleHub.emit("minecraft", server.config.id, {
-				type: "meta",
-				text: "server disconnected",
-			})
+			consoleHub.mark("minecraft", server.config.id, "disconnected")
 		);
 	}
 

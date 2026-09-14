@@ -17,7 +17,7 @@ export default class ConsolePayload extends Payload {
 	static async initialize(server: GmodConnection): Promise<void> {
 		consoleHub.start("gmod", server);
 		server.wsConnection?.on("close", () =>
-			consoleHub.emit("gmod", server.config.id, { type: "meta", text: "server disconnected" })
+			consoleHub.mark("gmod", server.config.id, "disconnected")
 		);
 	}
 
