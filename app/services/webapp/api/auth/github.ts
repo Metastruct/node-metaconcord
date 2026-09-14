@@ -97,7 +97,7 @@ export default (webApp: WebApp): void => {
 					source: "oauth",
 					token: Accounts.tokenFromResponse(tokens),
 				});
-			setSessionCookie(res, account.id);
+			setSessionCookie(res, account);
 			log.info(`github login for ${user.login} (account ${account.id})`);
 			res.redirect(redirect);
 		} catch (err) {
