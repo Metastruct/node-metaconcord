@@ -29,7 +29,7 @@ const SESSION_COOKIE = "mcSession";
 const SESSION_TTL = 30 * 24 * 60 * 60 * 1000;
 const IS_PROD = process.env.NODE_ENV === "production";
 
-type SessionCookie = { accountId: number; expiresAt: number };
+type SessionCookie = { accountId: number; version: number; expiresAt: number };
 
 export type Session = {
 	account: AccountWithLinks;
@@ -58,7 +58,8 @@ const sessionFromRaw = async (raw: unknown): Promise<Session | undefined> => {
 	const cookie = decrypt<SessionCookie>(raw);
 	if (!cookie || cookie.expiresAt < Date.now()) return;
 	let account = await accounts().get(cookie.accountId);
-	if (!account) return;
+	// a logout or unlink bumps the version, so older cookies stop working everywhere
+	if (!account || account.sessionVersion !== cookie.version) return;
 	account = await accounts().ensureRoles(account);
 	return {
 		account,
@@ -91,8 +92,12 @@ export const getSessionAccountId = (req: Request): number | undefined => {
 	return cookie.accountId;
 };
 
-export const setSessionCookie = (res: Response, accountId: number): void => {
-	const cookie: SessionCookie = { accountId, expiresAt: Date.now() + SESSION_TTL };
+export const setSessionCookie = (res: Response, account: AccountWithLinks): void => {
+	const cookie: SessionCookie = {
+		accountId: account.id,
+		version: account.sessionVersion,
+		expiresAt: Date.now() + SESSION_TTL,
+	};
 	res.cookie(SESSION_COOKIE, encrypt(cookie), { ...cookieOptions, maxAge: SESSION_TTL });
 };
 
@@ -187,7 +192,10 @@ export default (webApp: WebApp): void => {
 		res.json(publicAccount(session));
 	});
 
-	webApp.app.post("/auth/logout", (req, res) => {
+	// logs every browser out, the cookie alone would stay valid for its 30 days otherwise
+	webApp.app.post("/auth/logout", async (req, res) => {
+		const session = await getSession(req);
+		if (session) await accounts().bumpSessionVersion(session.account.id);
 		clearSessionCookie(res);
 		// plain form submit from the dashboard login page, fetch() callers get a 204
 		if (req.accepts(["json", "html"]) === "html") res.redirect("/");
@@ -206,7 +214,11 @@ export default (webApp: WebApp): void => {
 			return;
 		}
 		try {
-			const account = await accounts().removeLink(session.account.id, provider);
+			await accounts().removeLink(session.account.id, provider);
+			// other browsers lose the session, this one gets a cookie for the new version
+			await accounts().bumpSessionVersion(session.account.id);
+			const account = (await accounts().get(session.account.id)) as AccountWithLinks;
+			setSessionCookie(res, account);
 			log.info(`${session.login} unlinked ${provider}`);
 			res.json(publicAccount({ ...session, account, roles: account.roles }));
 		} catch (err) {

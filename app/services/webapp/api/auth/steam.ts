@@ -82,7 +82,7 @@ export default (webApp: WebApp): void => {
 					avatar: summary?.avatarfull,
 					source: "openid",
 				});
-			setSessionCookie(res, account.id);
+			setSessionCookie(res, account);
 			log.info(`steam login for ${steamId64} (account ${account.id})`);
 			res.redirect(redirect);
 		} catch (err) {

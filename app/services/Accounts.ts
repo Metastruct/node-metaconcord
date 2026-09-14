@@ -55,6 +55,8 @@ export type Account = {
 	roles: Role[];
 	rolesCheckedAt: number;
 	createdAt: number;
+	/** baked into session cookies, bumped to log every browser out */
+	sessionVersion: number;
 };
 
 export type AccountLink = {
@@ -98,6 +100,7 @@ type AccountRow = {
 	roles: Role[];
 	roles_checked_at: Date | null;
 	created_at: Date;
+	session_version: number;
 };
 
 type LinkRow = {
@@ -118,6 +121,7 @@ const toAccount = (row: AccountRow): Account => ({
 	roles: Array.isArray(row.roles) ? row.roles : [],
 	rolesCheckedAt: row.roles_checked_at?.getTime() ?? 0,
 	createdAt: row.created_at.getTime(),
+	sessionVersion: row.session_version,
 });
 
 const toLink = (row: LinkRow): AccountLink => ({
@@ -144,8 +148,10 @@ export class Accounts extends Service {
 				avatar TEXT NOT NULL DEFAULT '',
 				roles JSONB NOT NULL DEFAULT '[]',
 				roles_checked_at TIMESTAMPTZ,
-				created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+				created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+				session_version INTEGER NOT NULL DEFAULT 1
 			);
+			ALTER TABLE accounts ADD COLUMN IF NOT EXISTS session_version INTEGER NOT NULL DEFAULT 1;
 			CREATE TABLE IF NOT EXISTS account_links (
 				account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
 				provider TEXT NOT NULL,
@@ -297,16 +303,40 @@ export class Accounts extends Service {
 		}
 		const existing = await this.findByLink(link.provider, link.providerId);
 		if (existing) {
+			const matched = existing.links.find(l => l.provider === link.provider);
 			await this.upsertLink(existing.id, link);
 			// the platform someone logs in with is the face of the account
 			await this.sql.queryPool(
 				"UPDATE accounts SET display_name = $1, avatar = $2 WHERE id = $3",
 				[link.name, link.avatar ?? "", existing.id]
 			);
+			// the first proven login claims an imported account; the other imported links
+			// were never proven to belong to the same person, so they go back to being unlinked
+			if (matched?.source === "import") {
+				const dropped = await this.sql.queryPool(
+					"DELETE FROM account_links WHERE account_id = $1 AND source = 'import' RETURNING provider",
+					[existing.id]
+				);
+				if (dropped.length) {
+					log.info(
+						`account ${existing.id} claimed through ${link.provider}, dropped imported ${dropped.map(r => r.provider).join(", ")}`
+					);
+				}
+			}
 			return this.refreshRoles(existing.id);
 		}
 		const created = await this.create(link);
 		return this.refreshRoles(created.id);
+	}
+
+	/** Invalidates every session cookie of the account. */
+	async bumpSessionVersion(accountId: number): Promise<number> {
+		const rows = (await this.sql.queryPool(
+			"UPDATE accounts SET session_version = session_version + 1 WHERE id = $1 RETURNING session_version",
+			[accountId]
+		)) as { session_version: number }[];
+		this.invalidate(accountId);
+		return rows[0]?.session_version ?? 0;
 	}
 
 	async setGithubToken(accountId: number, token: GithubToken): Promise<void> {

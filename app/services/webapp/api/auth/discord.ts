@@ -271,7 +271,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				}
 				throw err;
 			}
-			setSessionCookie(res, account.id);
+			setSessionCookie(res, account);
 
 			const db = sql.getLocalDatabase();
 			await db.exec(

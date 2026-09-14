@@ -94,7 +94,7 @@ export default (webApp: WebApp): void => {
 					avatar: user.avatar_url,
 					source: "oauth",
 				});
-			setSessionCookie(res, account.id);
+			setSessionCookie(res, account);
 			log.info(`gitlab login for ${user.username} (account ${account.id})`);
 			res.redirect(redirect);
 		} catch (err) {
