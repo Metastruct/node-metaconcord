@@ -3,5 +3,12 @@
 	"clientId": "",
 	"clientSecret": "",
 	"installationId": 123,
-	"privateKey": ""
+	"privateKey": "",
+	"org": "",
+	"roles": {
+		"administrators": "administrator",
+		"developers": "developer",
+		"mappers": "developer",
+		"new-developers": "new-developer"
+	}
 }

@@ -37,25 +37,34 @@ $ node schema_gen.mjs
 $ yarn dev
 ```
 
-## Website auth and history (metastruct.net)
+## Accounts and website auth (metastruct.net)
 
-The website logs editors in through GitHub (`/auth/github`) and edits the timeline by committing to `history.json` in the repo named in `config/history.json`, using the editor's own token.
+One account per person (`services/Accounts`, Postgres tables `accounts`, `account_links`, `link_codes`, created on start), with any number of linked platforms. Discord, Steam (OpenID), GitHub and GitLab log in and link through `/auth/<provider>`; Steam and Minecraft can also be linked from game chat: the profile page hands out a code and the player types `METACONCORD_LINK <code>` on any relayed server. The chat relays catch it before Discord sees it. The session is the `mcSession` cookie (30 days), resolved to the account on every request (`webapp/api/auth/session.ts`).
+
+Roles are derived, never edited: GitHub teams of `org` map to roles through `config/github.json` (`roles`, team slug to `administrator`, `developer` or `new-developer`), and the historical Steam admin group grants `developer`. Only links proven by OAuth, OpenID or a code count; links imported from the old `discord_tokens` table are display only until re-verified.
+
+- `administrator`: everything, including the dashboard
+- `developer`: rocket, history editor, bans, private addon sources
+- `new-developer`, players: profile, linking, own ban appeal
 
 Requirements on the GitHub App in `config/github.json`:
 
 - Callback URL: `<webapp.url>/auth/github/callback`
 - Installed on the `Metastruct` org with access to the history repo
-- Permissions: `Contents: read & write`, `Members: read`
-- Editors must be active members of one of the teams listed in `config/history.json` (`administrators`, `developers`)
+- Permissions: `Contents: read & write`, `Members: read` (team lookups run as the app, the user token is the fallback)
+
+The history editor commits with the user's own token, kept encrypted on their GitHub link; a mutation answers `401 {"error":"github_reauth"}` when it is missing or expired and the site sends them through the GitHub login again.
+
+GitLab needs an application on gitlab.com with the `read_user` scope and callback `<webapp.url>/auth/gitlab/callback`, in `config/gitlab.json` under `oauth`. Discord uses the existing Linked Roles application (`/discord/link` is both the login start and what the Linked Roles button points to).
 
 `config/webapp.json` needs `siteUrl`, `allowedOrigins` (CORS with credentials) and `cookieDomain` (`.metastruct.net` so the session cookie is shared with the site).
 
 ## Admin dashboard (metaconcord.metastruct.net)
 
-`GET /` serves an admin dashboard for the same GitHub team members: live process output (stdout and stderr, captured in a 2000 line ring buffer), a REPL that runs JS inside the process (`MetaConcord` is a global) or bash inside the container, and an editor for `config/*.json`. Every REPL command and config edit is logged with the GitHub login.
+`GET /` serves an admin dashboard for administrators: live process output (stdout and stderr, captured in a 2000 line ring buffer), a REPL that runs JS inside the process (`MetaConcord` is a global) or bash inside the container, and an editor for `config/*.json`. Every REPL command and config edit is logged with the account name.
 
 Config edits are written to the directory the process loaded its JSON from (`dist/config` in the image). Configs are imported at startup, so edits only apply after a restart. The Restart button exits the process and relies on the container restart policy.
 
 Dashboard routes: `GET /dashboard/logs`, `GET /dashboard/config`, `PUT /dashboard/config/:name`, `POST /dashboard/restart`, websocket `/dashboard/ws`. The login flow is shared with the website, `/auth/github?target=self` lands back on this host instead of `siteUrl`.
 
-Routes: `GET /auth/github?redirect=/path`, `GET /auth/github/callback`, `GET /auth/me`, `POST /auth/logout`, `GET /history`, `POST /history/events`, `PUT /history/events/:id`, `DELETE /history/events/:id`, `GET /discord/guild/widget`, `GET /join/:label`, plus the `/discord`, `/github`, `/gitlab`... short links.
+Routes: `GET /auth/<provider>?redirect=/path` and `/auth/<provider>/callback` for `github`, `gitlab`, `steam`, `discord`, `GET /auth/me`, `POST /auth/logout`, `DELETE /auth/links/:provider`, `POST /auth/link-code`, `GET /history`, `POST /history/events`, `PUT /history/events/:id`, `DELETE /history/events/:id`, `GET /discord/guild/widget`, `GET /join/:label`, plus the `/discord`, `/github`, `/gitlab`... short links.

@@ -3,8 +3,6 @@
 	"repo": "history",
 	"path": "history.json",
 	"branch": "master",
-	"org": "Metastruct",
-	"teams": ["administrators", "developers"],
 	"imageDir": "images",
 	"cdnBase": "https://cdn.jsdelivr.net",
 	"maxImageBytes": 8388608

@@ -5,7 +5,7 @@ import {
 	HARDBAN_ACTOR,
 	parseBanActor,
 } from "@/app/services/gamebridge/games/gmod/banActor.js";
-import { getSession, isTeamMember } from "./auth/github.js";
+import { Session, getSession, isStaff } from "./auth/session.js";
 import {
 	issueBan,
 	pickGmodServer,
@@ -116,18 +116,31 @@ export const resolveProfiles = async (
 	return profiles;
 };
 
-/** Sends 401/403 and returns undefined unless the caller is a Metastruct team member. */
-const requireTeam = (req: Request, res: Response) => {
-	const session = getSession(req);
+/** Sends 401/403 and returns undefined unless the caller is Metastruct staff. */
+const requireTeam = async (req: Request, res: Response): Promise<Session | undefined> => {
+	const session = await getSession(req);
 	if (!session) {
 		res.status(401).json({ error: "not logged in" });
 		return undefined;
 	}
-	if (!isTeamMember(session)) {
+	if (!isStaff(session)) {
 		res.status(403).json({ error: "not a Metastruct team member" });
 		return undefined;
 	}
 	return session;
+};
+
+/**
+ * What banni records as the banner: the GitHub login when the account has one, the
+ * steamid otherwise (Steam admin group developers), the same shapes as bans issued in
+ * game or from the slash commands, see banActor.ts.
+ */
+const websiteActor = (session: Session): string => {
+	const github = session.account.links.find(l => l.provider === "github");
+	if (github) return githubActor(github.name);
+	const steam = session.account.links.find(l => l.provider === "steam");
+	if (steam) return new SteamID(steam.providerId).getSteam2RenderedID();
+	return githubActor(session.login.replace(/[^A-Za-z0-9-]/g, "").slice(0, 39) || "unknown");
 };
 
 const clean = (value: unknown, max: number): string =>
@@ -277,7 +290,7 @@ export default (webApp: WebApp): void => {
 	});
 
 	webApp.app.post("/bans", limiter, json, async (req, res) => {
-		const session = requireTeam(req, res);
+		const session = await requireTeam(req, res);
 		if (!session) return;
 
 		const server = pickGmodServer(webApp.container.getService("GameBridge"));
@@ -319,7 +332,7 @@ export default (webApp: WebApp): void => {
 			{
 				steamId: input.steamId,
 				nick,
-				actor: githubActor(session.login),
+				actor: websiteActor(session),
 				reason: input.reason,
 				unbanTime: input.unbanTime,
 				gamemode: input.gamemode,
@@ -352,12 +365,12 @@ export default (webApp: WebApp): void => {
 			gamemode: input.gamemode,
 			bannedAt: Math.round(Date.now() / 1000),
 			unbanAt: input.unbanTime,
-			bannedBy: parseBanActor(githubActor(session.login)),
+			bannedBy: parseBanActor(websiteActor(session)),
 		}));
 	});
 
 	webApp.app.post("/bans/:steamid/unban", limiter, json, async (req, res) => {
-		const session = requireTeam(req, res);
+		const session = await requireTeam(req, res);
 		if (!session) return;
 
 		let sid: SteamID;
@@ -397,7 +410,7 @@ export default (webApp: WebApp): void => {
 
 		const ok = await revokeBan(
 			server,
-			{ steamId: existing.sid, actor: githubActor(session.login), reason },
+			{ steamId: existing.sid, actor: websiteActor(session), reason },
 			session.login
 		);
 
@@ -417,7 +430,7 @@ export default (webApp: WebApp): void => {
 			active: false,
 			unbannedAt: Math.round(Date.now() / 1000),
 			unbanReason: reason,
-			unbannedBy: parseBanActor(githubActor(session.login)),
+			unbannedBy: parseBanActor(websiteActor(session)),
 		}));
 	});
 };

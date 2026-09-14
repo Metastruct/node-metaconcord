@@ -17,7 +17,7 @@ html(lang="en")
 			button.burger#burger(type="button", aria-label="Menu", aria-expanded="false") ☰
 			.user#user-menu
 				.who
-					img.avatar(src=session.avatarUrl, alt="")
+					img.avatar(src=session.account.avatar, alt="")
 					span.login= session.login
 				button.btn.small.danger#restart(title="Exits the process, relies on the container restart policy") Restart
 				button.btn.small#logout Log out

@@ -12,6 +12,8 @@ import discordEvents from "./discord-events.js";
 import discordOAuth from "./auth/discord.js";
 import discordWidget from "./discord-widget.js";
 import githubAuth from "./auth/github.js";
+import gitlabAuth from "./auth/gitlab.js";
+import session from "./auth/session.js";
 import gmodErrorHandler from "./gmod-error-handler.js";
 import history from "./history.js";
 import redirects from "./redirects.js";
@@ -34,6 +36,8 @@ export default [
 	discordOAuth,
 	discordWidget,
 	githubAuth,
+	gitlabAuth,
+	session,
 	gmodErrorHandler,
 	history,
 	redirects,
