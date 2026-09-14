@@ -220,6 +220,25 @@ export class Accounts extends Service {
 		return { ...toLink(rows[0]), accountId: Number(rows[0].account_id) };
 	}
 
+	/** Staff accounts with a proven Steam link, what the game servers rank from. */
+	async staff(): Promise<{ steamId64: string; name: string; roles: Role[] }[]> {
+		const rows = (await this.sql.queryPool(
+			`SELECT a.display_name, a.roles, l.provider_id
+			 FROM accounts a JOIN account_links l ON l.account_id = a.id
+			 WHERE l.provider = 'steam' AND l.source <> 'import' AND a.roles ?| $1::text[]
+			 ORDER BY a.id`,
+			[STAFF_ROLES]
+		)) as { display_name: string; roles: Role[]; provider_id: string }[];
+		return rows.map(r => ({ steamId64: r.provider_id, name: r.display_name, roles: r.roles }));
+	}
+
+	/** The account behind a proven Steam link, or undefined. */
+	async bySteam(steamId64: string): Promise<AccountWithLinks | undefined> {
+		const link = await this.linkFor("steam", steamId64);
+		if (!link || link.source === "import") return;
+		return this.get(link.accountId);
+	}
+
 	/** A link that proves ownership, imported ones are display only. */
 	static verifiedLink(account: AccountWithLinks, provider: Provider): AccountLink | undefined {
 		return account.links.find(l => l.provider === provider && l.source !== "import");

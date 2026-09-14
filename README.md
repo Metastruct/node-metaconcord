@@ -67,4 +67,6 @@ Config edits are written to the directory the process loaded its JSON from (`dis
 
 Dashboard routes: `GET /dashboard/logs`, `GET /dashboard/config`, `PUT /dashboard/config/:name`, `POST /dashboard/restart`, websocket `/dashboard/ws`. The login flow is shared with the website, `/auth/github?target=self` lands back on this host instead of `siteUrl`.
 
+Game servers read accounts with the gamebridge token in `X-Auth-Token`: `GET /accounts/staff` (steamid64, name, roles of every staff account with a proven Steam link) and `GET /accounts/steam/:steamId64` (name, roles, linked platforms, 404 without a proven Steam link). aowl ranks from the first on boot and from the second on join.
+
 Routes: `GET /auth/<provider>?redirect=/path` and `/auth/<provider>/callback` for `github`, `gitlab`, `steam`, `discord`, `GET /auth/me`, `POST /auth/logout`, `DELETE /auth/links/:provider`, `POST /auth/link-code`, `GET /history`, `POST /history/events`, `PUT /history/events/:id`, `DELETE /history/events/:id`, `GET /discord/guild/widget`, `GET /join/:label`, plus the `/discord`, `/github`, `/gitlab`... short links.
