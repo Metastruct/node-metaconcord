@@ -1,3 +1,4 @@
+import accountsAPI from "./accounts.js";
 import addAddonsAPI from "./addons.js";
 import addEmojiAPI from "./emojis.js";
 import addGameServerStatusAPI from "./game-server-status.js";
@@ -22,6 +23,7 @@ import servers from "./servers.js";
 import steamAuth from "./auth/steam.js";
 
 export default [
+	accountsAPI,
 	addAddonsAPI,
 	addEmojiAPI,
 	addGameServerStatusAPI,
