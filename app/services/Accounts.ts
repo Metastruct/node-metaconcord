@@ -220,14 +220,17 @@ export class Accounts extends Service {
 		return { ...toLink(rows[0]), accountId: Number(rows[0].account_id) };
 	}
 
-	/** Staff accounts with a proven Steam link, what the game servers rank from. */
+	/**
+	 * Accounts with any role and a proven Steam link, what the game servers rank from.
+	 * Unlike the website, in game a new developer is a developer.
+	 */
 	async staff(): Promise<{ steamId64: string; name: string; roles: Role[] }[]> {
 		const rows = (await this.sql.queryPool(
 			`SELECT a.display_name, a.roles, l.provider_id
 			 FROM accounts a JOIN account_links l ON l.account_id = a.id
 			 WHERE l.provider = 'steam' AND l.source <> 'import' AND a.roles ?| $1::text[]
 			 ORDER BY a.id`,
-			[STAFF_ROLES]
+			[ROLES]
 		)) as { display_name: string; roles: Role[]; provider_id: string }[];
 		return rows.map(r => ({ steamId64: r.provider_id, name: r.display_name, roles: r.roles }));
 	}
