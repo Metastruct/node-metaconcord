@@ -221,23 +221,26 @@ export class Accounts extends Service {
 	}
 
 	/**
-	 * Accounts with any role and a proven Steam link, what the game servers rank from.
-	 * Unlike the website, in game a new developer is a developer.
+	 * Accounts with any role and a proven link on the given game platform, what the game
+	 * servers rank from. Unlike the website, in game a new developer is a developer. The
+	 * name is the one the platform knows the player by.
 	 */
-	async staff(): Promise<{ steamId64: string; name: string; roles: Role[] }[]> {
+	async staff(
+		provider: Provider
+	): Promise<{ providerId: string; name: string; roles: Role[] }[]> {
 		const rows = (await this.sql.queryPool(
-			`SELECT a.display_name, a.roles, l.provider_id
+			`SELECT a.roles, l.provider_id, l.name
 			 FROM accounts a JOIN account_links l ON l.account_id = a.id
-			 WHERE l.provider = 'steam' AND l.source <> 'import' AND a.roles ?| $1::text[]
+			 WHERE l.provider = $2 AND l.source <> 'import' AND a.roles ?| $1::text[]
 			 ORDER BY a.id`,
-			[ROLES]
-		)) as { display_name: string; roles: Role[]; provider_id: string }[];
-		return rows.map(r => ({ steamId64: r.provider_id, name: r.display_name, roles: r.roles }));
+			[ROLES, provider]
+		)) as { roles: Role[]; provider_id: string; name: string }[];
+		return rows.map(r => ({ providerId: r.provider_id, name: r.name, roles: r.roles }));
 	}
 
-	/** The account behind a proven Steam link, or undefined. */
-	async bySteam(steamId64: string): Promise<AccountWithLinks | undefined> {
-		const link = await this.linkFor("steam", steamId64);
+	/** The account behind a proven link, or undefined. */
+	async byLink(provider: Provider, providerId: string): Promise<AccountWithLinks | undefined> {
+		const link = await this.linkFor(provider, providerId);
 		if (!link || link.source === "import") return;
 		return this.get(link.accountId);
 	}
