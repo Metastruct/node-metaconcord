@@ -3,7 +3,8 @@ import type { Response } from "express";
 import { resolveProfiles, toEntry } from "./bans.js";
 import { EMBED_FIELD_LIMIT } from "@/app/services/discord/index.js";
 import { MetaBan, PERMANENT_UNBAN_TIME } from "@/app/services/Bans.js";
-import { SteamSession, getSteamSession } from "./auth/steam.js";
+import { getSession } from "./auth/session.js";
+import { Accounts } from "@/app/services/Accounts.js";
 import { actorLabel } from "@/app/services/gamebridge/games/gmod/banActor.js";
 import { pickGmodServer, revokeBan } from "@/app/services/gamebridge/games/gmod/banActions.js";
 import { f, logger } from "@/utils.js";
@@ -15,7 +16,7 @@ import { WebApp } from "@/app/services/webapp/index.js";
 const log = logger(import.meta);
 
 /**
- * Web ban appeals. A banned player logs in with Steam (see auth/steam), submits an appeal
+ * Web ban appeals. A banned player logs in and links Steam (see auth/session), submits an appeal
  * which opens a thread in the appeals channel, and the thread then works as a two way chat:
  * staff talk in Discord, the appellant reads and replies from the website. The thread is the
  * conversation, sqlite only remembers which thread belongs to which ban.
@@ -57,6 +58,9 @@ type AppealMessage = {
 const isActive = (ban: MetaBan): boolean =>
 	ban.b &&
 	(ban.whenunban === PERMANENT_UNBAN_TIME || ban.whenunban > Math.round(Date.now() / 1000));
+
+/** The account's proven Steam identity, all an appeal needs. */
+type SteamSession = { steamId64: string; name: string; avatar: string };
 
 /** Markdown-significant characters stripped so a persona name cannot fake the relay prefix. */
 const safeName = (session: SteamSession): string =>
@@ -152,10 +156,19 @@ export default (webApp: WebApp): void => {
 		return database;
 	};
 
-	const requireSteam = (req: Request, res: Response): SteamSession | undefined => {
-		const session = getSteamSession(req);
-		if (!session) res.status(401).json({ error: "not logged in" });
-		return session;
+	// 401 without a session, 403 with one that has no Steam link: the page tells them apart
+	const requireSteam = async (req: Request, res: Response): Promise<SteamSession | undefined> => {
+		const session = await getSession(req);
+		if (!session) {
+			res.status(401).json({ error: "not logged in" });
+			return;
+		}
+		const steam = Accounts.verifiedLink(session.account, "steam");
+		if (!steam) {
+			res.status(403).json({ error: "no_steam_link" });
+			return;
+		}
+		return { steamId64: steam.providerId, name: steam.name, avatar: steam.avatar };
 	};
 
 	const openAppeal = async (steamId64: string): Promise<AppealRow | undefined> =>
@@ -222,7 +235,7 @@ export default (webApp: WebApp): void => {
 	};
 
 	webApp.app.get("/appeals/me", statusLimiter, async (req, res) => {
-		const session = requireSteam(req, res);
+		const session = await requireSteam(req, res);
 		if (!session) return;
 
 		const bans = webApp.container.getService("Bans");
@@ -269,7 +282,7 @@ export default (webApp: WebApp): void => {
 	});
 
 	webApp.app.post("/appeals", submitLimiter, json, async (req, res) => {
-		const session = requireSteam(req, res);
+		const session = await requireSteam(req, res);
 		if (!session) return;
 
 		const message = cleanText(req.body?.message, APPEAL_MAX);
@@ -414,7 +427,7 @@ export default (webApp: WebApp): void => {
 	};
 
 	webApp.app.get("/appeals/:id/messages", messagesLimiter, async (req, res) => {
-		const session = requireSteam(req, res);
+		const session = await requireSteam(req, res);
 		if (!session) return;
 
 		res.set("Cache-Control", "no-store");
@@ -466,7 +479,7 @@ export default (webApp: WebApp): void => {
 	});
 
 	webApp.app.post("/appeals/:id/messages", replyLimiter, json, async (req, res) => {
-		const session = requireSteam(req, res);
+		const session = await requireSteam(req, res);
 		if (!session) return;
 
 		const content = cleanText(req.body?.message, REPLY_MAX);

@@ -5,7 +5,7 @@ import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
 import express from "express";
 import { MirrorError, mirrorImage } from "./history-images.js";
-import { requireEditor } from "./auth/github.js";
+import { Session, requireStaff } from "./auth/session.js";
 import HistoryConfig from "@/config/history.json" with { type: "json" };
 import { logger } from "@/utils.js";
 
@@ -142,8 +142,27 @@ type Mutation = (
 	events: HistoryEvent[]
 ) => { events: HistoryEvent[]; event: HistoryEvent; message: string; mirror?: boolean } | string;
 
+/**
+ * Sends 401 and returns undefined unless the staff session carries a usable GitHub token.
+ * The site reads `github_reauth` and sends the user back through the GitHub login.
+ */
+const requireEditor = async (
+	req: Request,
+	res: Response
+): Promise<(Session & { token: string }) | undefined> => {
+	const session = await requireStaff(req, res);
+	if (!session) return;
+	const accounts = globalThis.MetaConcord.container.getService("Accounts");
+	const token = await accounts.freshGithubToken(session.account);
+	if (!token) {
+		res.status(401).json({ error: "github_reauth" });
+		return;
+	}
+	return { ...session, token: token.accessToken };
+};
+
 const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> => {
-	const session = requireEditor(req, res);
+	const session = await requireEditor(req, res);
 	if (!session) return;
 	const octokit = new Octokit({ auth: session.token });
 

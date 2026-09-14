@@ -1,6 +1,7 @@
-import { Bans, DiscordBot, SQL } from "./index.js";
+import { Accounts, Bans, DiscordBot, SQL } from "./index.js";
 import { Container, Service } from "../Container.js";
-import { isAdmin, logger } from "@/utils.js";
+import { STAFF_ROLES } from "./Accounts.js";
+import { logger } from "@/utils.js";
 import { revokeOAuthToken } from "./webapp/api/auth/discord.js";
 import SteamID from "steamid";
 import config from "@/config/metadata.json" with { type: "json" };
@@ -48,7 +49,6 @@ export type ApplicationRoleConnectionObject = {
 
 type LocalDatabaseEntry = {
 	user_id: string;
-	steam_id: string;
 	access_token: string;
 	refresh_token: string;
 	expires_at: number;
@@ -56,18 +56,13 @@ type LocalDatabaseEntry = {
 
 type RevokeDBEntry = Pick<LocalDatabaseEntry, "user_id" | "access_token" | "refresh_token">;
 
-type CachedUser = {
-	steamId: string;
-	discordId: string;
-};
-
 export class DiscordMetadata extends Service {
 	name = "DiscordMetadata";
 	private ARCOCache: Record<string, ApplicationRoleConnectionObject> = {};
-	private UserCache: CachedUser[] = [];
 	private sql: SQL;
 	private bot: DiscordBot;
 	private bans: Bans;
+	private accounts: Accounts;
 
 	constructor(container: Container) {
 		super(container);
@@ -77,11 +72,11 @@ export class DiscordMetadata extends Service {
 		this.sql = this.container.getService("SQL");
 		this.bot = this.container.getService("DiscordBot");
 		this.bans = this.container.getService("Bans");
+		this.accounts = this.container.getService("Accounts");
 	}
 
 	private clearUserCaches(userId: string): void {
 		delete this.ARCOCache[userId];
-		this.UserCache = this.UserCache.filter(e => e.discordId !== userId);
 	}
 
 	private async getAccessToken(userId: string, data: LocalDatabaseEntry) {
@@ -162,21 +157,22 @@ export class DiscordMetadata extends Service {
 		);
 		if (!data) return false;
 
-		await this.sql.queryPool(
-			"INSERT INTO discord_link (accountid, discorduserid, linked_at) VALUES($1, $2, $3) ON CONFLICT (accountid) DO UPDATE SET linked_at = $4",
-			[new SteamID(data.steam_id).accountid, data.user_id, new Date(), new Date()]
-		);
+		// the linked role is about the game account, so it needs a Steam link
+		const account = await this.accounts.findByLink("discord", userId);
+		const steamId = account?.links.find(l => l.provider === "steam")?.providerId;
+		if (!account || !steamId) return false;
+		const accountId = new SteamID(steamId).accountid;
 
 		const query1 = await this.sql.queryPool(`SELECT coins FROM coins WHERE accountid = $1;`, [
-			new SteamID(data.steam_id).accountid,
+			accountId,
 		]);
 		const query2 = await this.sql.queryPool(
 			"SELECT SUM(totaltime) from playingtime WHERE accountid = $1;",
-			[new SteamID(data.steam_id).accountid]
+			[accountId]
 		);
 		const query3 = await this.sql.queryPool(
 			"SELECT value from kv WHERE key = $1 AND scope = 'meta_name'",
-			[data.steam_id]
+			[steamId]
 		);
 		const coins: number = query1[0]?.coins;
 		const playtime: string = query2[0]?.sum;
@@ -187,19 +183,19 @@ export class DiscordMetadata extends Service {
 			nick = bytea.toString("utf-8").replace(/<[^>]*>/g, "");
 		} else {
 			const steam = this.bot.container.getService("Steam");
-			const summary = await steam.getUserSummaries(data.steam_id);
+			const summary = await steam.getUserSummaries(steamId);
 			nick = summary?.personaname;
 		}
 
 		const discordUser = await this.bot.getGuildMember(userId);
 
 		const banned =
-			(await this.bans.getBan(data.steam_id, true))?.b ||
+			(await this.bans.getBan(steamId, true))?.b ||
 			discordUser?.roles.cache.hasAny(...config.banned_roles);
 
 		const metadata: MetaMetadata = {
 			banned: banned ? 1 : 0,
-			dev: (await isAdmin(data.steam_id)) ? 1 : 0,
+			dev: account.roles.some(r => STAFF_ROLES.includes(r)) ? 1 : 0,
 			time: isNaN(parseInt(playtime)) ? undefined : Math.round(parseInt(playtime) / 60 / 60),
 			coins: coins,
 		};
@@ -319,36 +315,15 @@ export class DiscordMetadata extends Service {
 		return true;
 	}
 
-	async discordIDfromSteam64(steam64: string) {
-		const cached = this.UserCache.find(user => user.steamId == steam64)?.discordId;
-		if (!cached) {
-			const db = this.sql.getLocalDatabase();
-			const res = await db.get<LocalDatabaseEntry>(
-				"SELECT * FROM discord_tokens where steam_id = ?;",
-				steam64
-			);
-			if (res) {
-				this.UserCache.push({ steamId: res.steam_id, discordId: res.user_id });
-				return res.user_id;
-			}
-		}
-		return cached;
+	/** Imported links count here: this is about game data, not website roles. */
+	async discordIDfromSteam64(steam64: string): Promise<string | undefined> {
+		const account = await this.accounts.findByLink("steam", steam64);
+		return account?.links.find(l => l.provider === "discord")?.providerId;
 	}
 
-	async steam64fromDiscordID(discordId: string) {
-		const cached = this.UserCache.find(user => user.steamId == discordId)?.steamId;
-		if (cached) {
-			const db = this.sql.getLocalDatabase();
-			const res = await db.get<LocalDatabaseEntry>(
-				"SELECT * FROM discord_tokens where user_id = ?;",
-				discordId
-			);
-			if (res) {
-				this.UserCache.push({ steamId: res.steam_id, discordId: res.user_id });
-				return res.steam_id;
-			}
-		}
-		return cached;
+	async steam64fromDiscordID(discordId: string): Promise<string | undefined> {
+		const account = await this.accounts.findByLink("discord", discordId);
+		return account?.links.find(l => l.provider === "steam")?.providerId;
 	}
 }
 

@@ -3,12 +3,7 @@ import GameBridge from "@/app/services/gamebridge/GameBridge.js";
 import { GmodConnectionConfig } from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
 import { MinecraftConnectionConfig } from "@/app/services/gamebridge/games/minecraft/MinecraftConnection.js";
 import { ConsoleGame, ConsoleListener, consoleHub } from "@/app/services/gamebridge/consoleHub.js";
-import {
-	EditorSession,
-	getSession,
-	getSessionFromCookieHeader,
-	isTeamMember,
-} from "./auth/github.js";
+import { Session, getSession, getSessionFromCookieHeader, isStaff } from "./auth/session.js";
 import { connection as WebSocketConnection } from "websocket";
 import gmodServers from "@/config/gmod.servers.json" with { type: "json" };
 import minecraftServers from "@/config/minecraft.servers.json" with { type: "json" };
@@ -48,7 +43,7 @@ abstract class ConsoleSession {
 
 	constructor(
 		protected conn: WebSocketConnection,
-		protected user: EditorSession,
+		protected user: Session,
 		protected server: HostedServer
 	) {
 		// the session was only checked at upgrade time, close the socket once it expires
@@ -57,7 +52,8 @@ abstract class ConsoleSession {
 				this.send({ type: "exit", reason: "session expired, log in again" });
 				this.close(4001, "session expired");
 			},
-			Math.max(0, user.expiresAt - Date.now())
+			// setTimeout tops out at 2^31-1 ms and fires at once past it, sessions last longer
+			Math.min(Math.max(0, user.expiresAt - Date.now()), 2 ** 31 - 1)
 		);
 		conn.on("close", () => this.close());
 		conn.on("message", msg => {
@@ -134,7 +130,7 @@ class BridgeConsoleSession extends ConsoleSession {
 
 	constructor(
 		conn: WebSocketConnection,
-		user: EditorSession,
+		user: Session,
 		server: HostedServer,
 		private bridge: GameBridge
 	) {
@@ -236,9 +232,9 @@ export default (webApp: WebApp): void => {
 
 	const isConnected = (server: HostedServer) => !!liveConnection(server)?.wsConnection?.connected;
 
-	webApp.app.get("/console/servers", (req, res) => {
+	webApp.app.get("/console/servers", async (req, res) => {
 		res.set("Cache-Control", "no-store");
-		if (!isTeamMember(getSession(req))) {
+		if (!isStaff(await getSession(req))) {
 			res.status(401).json({ error: "not allowed" });
 			return;
 		}
@@ -252,9 +248,9 @@ export default (webApp: WebApp): void => {
 		);
 	});
 
-	webApp.app.get("/console/status/:key", (req, res) => {
+	webApp.app.get("/console/status/:key", async (req, res) => {
 		res.set("Cache-Control", "no-store");
-		if (!isTeamMember(getSession(req))) {
+		if (!isStaff(await getSession(req))) {
 			res.status(401).json({ error: "not allowed" });
 			return;
 		}
@@ -294,9 +290,9 @@ export default (webApp: WebApp): void => {
 		});
 	});
 
-	webApp.ws.route("/console/ws", req => {
-		const session = getSessionFromCookieHeader(req.httpRequest.headers.cookie);
-		if (!isTeamMember(session)) {
+	webApp.ws.route("/console/ws", async req => {
+		const session = await getSessionFromCookieHeader(req.httpRequest.headers.cookie);
+		if (!isStaff(session)) {
 			req.reject(session ? 403 : 401);
 			return;
 		}

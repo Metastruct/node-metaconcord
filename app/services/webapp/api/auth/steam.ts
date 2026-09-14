@@ -1,41 +1,17 @@
 import type { Request } from "express";
-import { cookieOptions, decrypt, encrypt, safeRedirect } from "./github.js";
+import { LinkConflictError } from "@/app/services/Accounts.js";
+import { getSessionAccountId, setSessionCookie, storeRedirect, takeRedirect } from "./session.js";
 import { WebApp } from "@/app/services/webapp/index.js";
 import { logger } from "@/utils.js";
 import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
-import SteamID from "steamid";
 import axios from "axios";
 
 const log = logger(import.meta);
 
-/**
- * Everything Steam OpenID: the website login used by banned players appealing their ban
- * (a steamSession cookie working exactly like ghSession, granting nothing but proof of
- * which steamid the visitor owns), and the older Discord role linking flow. Both share
- * the same redirect/verify mechanics.
- */
+/** Steam OpenID login and linking. Steam can also be linked from a gmod server with a code. */
 
 const OPENID_URL = "https://steamcommunity.com/openid/login";
-
-const SESSION_COOKIE = "steamSession";
-const REDIRECT_COOKIE = "steamRedirect";
-const SESSION_TTL = 7 * 24 * 60 * 60 * 1000;
-
-export type SteamSession = {
-	steamId64: string;
-	name: string;
-	avatar: string;
-	expiresAt: number;
-};
-
-export const getSteamSession = (req: Request): SteamSession | undefined => {
-	const raw = req.cookies?.[SESSION_COOKIE];
-	if (typeof raw !== "string") return;
-	const session = decrypt<SteamSession>(raw);
-	if (!session || session.expiresAt < Date.now()) return;
-	return session;
-};
 
 const steamLoginUrl = (returnTo: string, realm: string): string => {
 	const url = new URL(OPENID_URL);
@@ -75,26 +51,14 @@ const verifySteamOpenId = async (
 export default (webApp: WebApp): void => {
 	const limiter = rateLimit({ keyGenerator: rateLimitKeyGenerator, windowMs: 60_000, limit: 30 });
 	const callbackUrl = `${webApp.config.url}/auth/steam/callback`;
-	const linkCallbackUrl = `${webApp.config.url}/steam/auth/callback/`;
-
-	// --- website login ---
 
 	webApp.app.get("/auth/steam", limiter, (req, res) => {
-		res.cookie(REDIRECT_COOKIE, webApp.config.siteUrl + safeRedirect(req.query.redirect), {
-			...cookieOptions,
-			maxAge: 5 * 60 * 1000,
-			signed: true,
-		});
+		storeRedirect(webApp, req, res);
 		res.redirect(steamLoginUrl(callbackUrl, webApp.config.url));
 	});
 
 	webApp.app.get("/auth/steam/callback", limiter, async (req, res) => {
-		const stored = req.signedCookies?.[REDIRECT_COOKIE];
-		const redirect =
-			typeof stored === "string" && stored.startsWith(webApp.config.siteUrl + "/")
-				? stored
-				: webApp.config.siteUrl + "/";
-		res.clearCookie(REDIRECT_COOKIE, cookieOptions);
+		const redirect = takeRedirect(webApp, req, res);
 
 		const steamId64 = await verifySteamOpenId(req.query, callbackUrl);
 		if (!steamId64) {
@@ -108,63 +72,25 @@ export default (webApp: WebApp): void => {
 			.getUserSummaries(steamId64)
 			.catch(() => undefined);
 
-		const session: SteamSession = {
-			steamId64,
-			name: summary?.personaname || steamId64,
-			avatar: summary?.avatarfull ?? "",
-			expiresAt: Date.now() + SESSION_TTL,
-		};
-		res.cookie(SESSION_COOKIE, encrypt(session), { ...cookieOptions, maxAge: SESSION_TTL });
-		log.info(`steam login for ${steamId64}`);
-		res.redirect(redirect);
-	});
-
-	webApp.app.get("/auth/steam/me", (req, res) => {
-		res.set("Cache-Control", "no-store");
-		const session = getSteamSession(req);
-		if (!session) {
-			res.status(401).json({});
-			return;
+		try {
+			const account = await webApp.container
+				.getService("Accounts")
+				.loginOrLink(getSessionAccountId(req), {
+					provider: "steam",
+					providerId: steamId64,
+					name: summary?.personaname || steamId64,
+					avatar: summary?.avatarfull,
+					source: "openid",
+				});
+			setSessionCookie(res, account.id);
+			log.info(`steam login for ${steamId64} (account ${account.id})`);
+			res.redirect(redirect);
+		} catch (err) {
+			if (err instanceof LinkConflictError) {
+				res.redirect(`${webApp.config.siteUrl}/profile?error=conflict&provider=steam`);
+				return;
+			}
+			throw err;
 		}
-		res.json({ steamId64: session.steamId64, name: session.name, avatar: session.avatar });
-	});
-
-	webApp.app.post("/auth/steam/logout", (_, res) => {
-		res.clearCookie(SESSION_COOKIE, cookieOptions);
-		res.status(204).end();
-	});
-
-	// --- discord role linking ---
-
-	webApp.app.get("/steam/link/:id", limiter, (req, res) => {
-		const userId = req.params.id;
-		if (!userId) {
-			res.status(403).send("Missing userid for linking");
-			return;
-		}
-		res.redirect(steamLoginUrl(`${linkCallbackUrl}${userId}`, webApp.config.url));
-	});
-
-	webApp.app.get("/steam/auth/callback/:id", limiter, async (req, res) => {
-		const userId = req.params.id;
-		if (!userId) {
-			res.status(403).send("Missing userid for linking");
-			return;
-		}
-
-		const steamId64 = await verifySteamOpenId(req.query, linkCallbackUrl);
-		if (!steamId64) {
-			res.status(403).send("Invalid Steam Response?");
-			return;
-		}
-
-		await webApp.container
-			.getService("SQL")
-			.queryPool(
-				"INSERT INTO discord_link (accountid, discorduserid, linked_at) VALUES($1, $2, $3) ON CONFLICT (accountid) DO UPDATE SET linked_at = EXCLUDED.linked_at, discorduserid = EXCLUDED.discorduserid;",
-				[new SteamID(steamId64).accountid, userId, new Date()]
-			);
-
-		res.redirect("/discord/link");
 	});
 };

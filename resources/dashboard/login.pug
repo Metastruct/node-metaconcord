@@ -13,7 +13,7 @@ html(lang="en")
 			img.logo(src="/dashboard/static/logo.svg", alt="Meta Construct")
 			h1 metaconcord
 			if session
-				p #{session.login} is not in the #{adminTeam} team.
+				p #{session.login} is not an #{adminTeam}.
 				form(method="post", action="/auth/logout")
 					button.btn(type="submit") Log out
 			else

@@ -2,7 +2,9 @@ import * as Discord from "discord.js";
 import { ChatRequest, ChatResponse } from "./structures/index.js";
 import MinecraftConnection from "../MinecraftConnection.js";
 import Payload from "./Payload.js";
+import ConsolePayload from "./ConsolePayload.js";
 import { chatWebhook } from "../webhooks.js";
+import { matchLinkCode, redeemLinkFromChat } from "../../../linkChat.js";
 import requestSchema from "./structures/ChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ChatResponse.json" with { type: "json" };
 import { logger } from "@/utils.js";
@@ -150,6 +152,34 @@ export default class ChatPayload extends Payload {
 		const { player, emote } = payload.data;
 		let { content } = payload.data;
 		const { discord } = server;
+
+		const linkCode = matchLinkCode(content);
+		if (linkCode) {
+			const result = await redeemLinkFromChat(
+				server.bridge,
+				linkCode,
+				"minecraft",
+				player.uuid,
+				player.nick,
+				`https://mc-heads.net/avatar/${player.uuid}`
+			);
+			// tellraw takes a player selector, so only a plain username is safe to interpolate
+			if (/^[A-Za-z0-9_]{3,16}$/.test(player.nick)) {
+				const text = JSON.stringify({
+					text: result.message,
+					color: result.ok ? "green" : "red",
+				});
+				await ConsolePayload.send(
+					{
+						action: "command",
+						command: `tellraw ${player.nick} ${text}`,
+						runner: "Metaconcord",
+					},
+					server
+				).catch(err => log.warn(err, "could not answer a link code in game"));
+			}
+			return;
+		}
 
 		if (!discord.ready) return;
 

@@ -1,0 +1,586 @@
+import { Container, Service } from "../Container.js";
+import { SQL } from "./SQL.js";
+import { decrypt, encrypt } from "./webapp/secretBox.js";
+import { Octokit } from "@octokit/rest";
+import GithubConfig from "@/config/github.json" with { type: "json" };
+import crypto from "crypto";
+import { isAdmin, logger } from "@/utils.js";
+
+const log = logger(import.meta);
+
+/**
+ * One account per person, any number of linked platforms. Providers with a web login
+ * (discord, steam, github, gitlab) can create an account or log into it; steam and
+ * minecraft can also be linked from in game with a short code typed in chat.
+ *
+ * Roles are derived, never edited: GitHub team membership through github.json's role
+ * map, plus `developer` for the historical Steam admin group. Only links proven by
+ * OAuth, OpenID or an in-game code count, imported ones are display only.
+ */
+
+export type Provider = "discord" | "steam" | "github" | "gitlab" | "minecraft";
+export type LinkSource = "oauth" | "openid" | "ingame" | "import";
+export type Role = "administrator" | "developer" | "new-developer";
+
+/** Providers that can log someone in, so an account must keep at least one. */
+export const LOGIN_PROVIDERS: Provider[] = ["discord", "steam", "github", "gitlab"];
+/** Providers linked from game chat with a code. */
+export const CODE_PROVIDERS: Provider[] = ["steam", "minecraft"];
+export const ROLES: Role[] = ["administrator", "developer", "new-developer"];
+/** What the website calls staff: everything but the onboarding team. */
+export const STAFF_ROLES: Role[] = ["administrator", "developer"];
+
+const TEAM_ROLES = GithubConfig.roles as Record<string, Role>;
+const STEAM_GROUP_ROLE: Role = "developer";
+
+const ROLES_TTL = 60 * 60 * 1000;
+const ROLES_RETRY = 5 * 60 * 1000;
+const CODE_TTL = 10 * 60 * 1000;
+const CODE_LENGTH = 8;
+// no 0/O/1/I, the code is read off a screen and typed in a game chat
+const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const SESSION_CACHE_TTL = 10 * 1000;
+
+export type GithubToken = {
+	accessToken: string;
+	refreshToken?: string;
+	/** ms epoch, only set when the GitHub App expires user tokens */
+	expiresAt?: number;
+};
+
+export type Account = {
+	id: number;
+	displayName: string;
+	avatar: string;
+	roles: Role[];
+	rolesCheckedAt: number;
+	createdAt: number;
+};
+
+export type AccountLink = {
+	provider: Provider;
+	providerId: string;
+	name: string;
+	avatar: string;
+	source: LinkSource;
+	/** encrypted GithubToken, github only */
+	token?: string;
+	linkedAt: number;
+};
+
+export type LinkInput = {
+	provider: Provider;
+	providerId: string;
+	name: string;
+	avatar?: string;
+	source: LinkSource;
+	token?: GithubToken;
+};
+
+export type AccountWithLinks = Account & { links: AccountLink[] };
+
+export class LinkConflictError extends Error {
+	constructor(public provider: Provider) {
+		super(`this ${provider} account is already linked to another account`);
+	}
+}
+
+export class LastLoginError extends Error {
+	constructor() {
+		super("cannot unlink the last platform that can log you in");
+	}
+}
+
+type AccountRow = {
+	id: string;
+	display_name: string;
+	avatar: string;
+	roles: Role[];
+	roles_checked_at: Date | null;
+	created_at: Date;
+};
+
+type LinkRow = {
+	account_id: string;
+	provider: Provider;
+	provider_id: string;
+	name: string;
+	avatar: string;
+	source: LinkSource;
+	token: string | null;
+	linked_at: Date;
+};
+
+const toAccount = (row: AccountRow): Account => ({
+	id: Number(row.id),
+	displayName: row.display_name,
+	avatar: row.avatar,
+	roles: Array.isArray(row.roles) ? row.roles : [],
+	rolesCheckedAt: row.roles_checked_at?.getTime() ?? 0,
+	createdAt: row.created_at.getTime(),
+});
+
+const toLink = (row: LinkRow): AccountLink => ({
+	provider: row.provider,
+	providerId: row.provider_id,
+	name: row.name,
+	avatar: row.avatar,
+	source: row.source,
+	token: row.token ?? undefined,
+	linkedAt: row.linked_at.getTime(),
+});
+
+export class Accounts extends Service {
+	name = "Accounts";
+	private sql: SQL;
+	private cache = new Map<number, { account: AccountWithLinks; at: number }>();
+
+	async init(): Promise<void> {
+		this.sql = this.container.getService("SQL");
+		await this.sql.queryPool(`
+			CREATE TABLE IF NOT EXISTS accounts (
+				id BIGSERIAL PRIMARY KEY,
+				display_name TEXT NOT NULL,
+				avatar TEXT NOT NULL DEFAULT '',
+				roles JSONB NOT NULL DEFAULT '[]',
+				roles_checked_at TIMESTAMPTZ,
+				created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+			);
+			CREATE TABLE IF NOT EXISTS account_links (
+				account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+				provider TEXT NOT NULL,
+				provider_id TEXT NOT NULL,
+				name TEXT NOT NULL,
+				avatar TEXT NOT NULL DEFAULT '',
+				source TEXT NOT NULL,
+				token TEXT,
+				linked_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+				PRIMARY KEY (account_id, provider),
+				UNIQUE (provider, provider_id)
+			);
+			CREATE TABLE IF NOT EXISTS link_codes (
+				code TEXT PRIMARY KEY,
+				account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+				provider TEXT NOT NULL,
+				expires_at TIMESTAMPTZ NOT NULL,
+				used_at TIMESTAMPTZ
+			);
+		`);
+		await this.migrateDiscordTokens();
+	}
+
+	// #region lookups
+
+	async get(id: number): Promise<AccountWithLinks | undefined> {
+		const cached = this.cache.get(id);
+		if (cached && Date.now() - cached.at < SESSION_CACHE_TTL) return cached.account;
+
+		const rows = (await this.sql.queryPool("SELECT * FROM accounts WHERE id = $1", [
+			id,
+		])) as AccountRow[];
+		if (!rows[0]) return;
+		const links = (await this.sql.queryPool(
+			"SELECT * FROM account_links WHERE account_id = $1 ORDER BY linked_at",
+			[id]
+		)) as LinkRow[];
+		const account = { ...toAccount(rows[0]), links: links.map(toLink) };
+		this.cache.set(id, { account, at: Date.now() });
+		return account;
+	}
+
+	async findByLink(
+		provider: Provider,
+		providerId: string
+	): Promise<AccountWithLinks | undefined> {
+		const rows = (await this.sql.queryPool(
+			"SELECT account_id FROM account_links WHERE provider = $1 AND provider_id = $2",
+			[provider, providerId]
+		)) as Pick<LinkRow, "account_id">[];
+		if (!rows[0]) return;
+		return this.get(Number(rows[0].account_id));
+	}
+
+	async linkFor(
+		provider: Provider,
+		providerId: string
+	): Promise<(AccountLink & { accountId: number }) | undefined> {
+		const rows = (await this.sql.queryPool(
+			"SELECT * FROM account_links WHERE provider = $1 AND provider_id = $2",
+			[provider, providerId]
+		)) as LinkRow[];
+		if (!rows[0]) return;
+		return { ...toLink(rows[0]), accountId: Number(rows[0].account_id) };
+	}
+
+	/** A link that proves ownership, imported ones are display only. */
+	static verifiedLink(account: AccountWithLinks, provider: Provider): AccountLink | undefined {
+		return account.links.find(l => l.provider === provider && l.source !== "import");
+	}
+
+	// #endregion
+
+	// #region writes
+
+	private invalidate(id: number): void {
+		this.cache.delete(id);
+	}
+
+	async create(link: LinkInput): Promise<AccountWithLinks> {
+		const rows = (await this.sql.queryPool(
+			"INSERT INTO accounts (display_name, avatar) VALUES ($1, $2) RETURNING *",
+			[link.name, link.avatar ?? ""]
+		)) as AccountRow[];
+		const id = Number(rows[0].id);
+		await this.upsertLink(id, link);
+		log.info(`account ${id} created from ${link.provider} ${link.providerId} (${link.name})`);
+		return (await this.get(id)) as AccountWithLinks;
+	}
+
+	private async upsertLink(accountId: number, link: LinkInput): Promise<void> {
+		await this.sql.queryPool(
+			`INSERT INTO account_links (account_id, provider, provider_id, name, avatar, source, token)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7)
+			 ON CONFLICT (account_id, provider) DO UPDATE SET
+				provider_id = EXCLUDED.provider_id, name = EXCLUDED.name, avatar = EXCLUDED.avatar,
+				source = EXCLUDED.source, token = EXCLUDED.token, linked_at = now()`,
+			[
+				accountId,
+				link.provider,
+				link.providerId,
+				link.name,
+				link.avatar ?? "",
+				link.source,
+				link.token ? encrypt(link.token) : null,
+			]
+		);
+		this.invalidate(accountId);
+	}
+
+	/**
+	 * Attaches a platform to an account. Re-linking the same platform id refreshes the
+	 * name, avatar and token; a platform id owned by another account is refused.
+	 */
+	async addLink(accountId: number, link: LinkInput): Promise<AccountWithLinks> {
+		const owner = await this.linkFor(link.provider, link.providerId);
+		if (owner && owner.accountId !== accountId) throw new LinkConflictError(link.provider);
+		await this.upsertLink(accountId, link);
+		return this.refreshRoles(accountId);
+	}
+
+	async removeLink(accountId: number, provider: Provider): Promise<AccountWithLinks> {
+		const account = await this.get(accountId);
+		if (!account) throw new Error("no such account");
+		const remaining = account.links.filter(
+			l => l.provider !== provider && LOGIN_PROVIDERS.includes(l.provider)
+		);
+		if (!remaining.length) throw new LastLoginError();
+
+		await this.sql.queryPool(
+			"DELETE FROM account_links WHERE account_id = $1 AND provider = $2",
+			[accountId, provider]
+		);
+		this.invalidate(accountId);
+		return this.refreshRoles(accountId);
+	}
+
+	/**
+	 * Every OAuth/OpenID callback ends here: with a session the platform is linked to
+	 * that account, without one the platform logs into its account or creates one.
+	 */
+	async loginOrLink(
+		sessionAccountId: number | undefined,
+		link: LinkInput
+	): Promise<AccountWithLinks> {
+		if (sessionAccountId !== undefined) {
+			const account = await this.get(sessionAccountId);
+			if (account) return this.addLink(account.id, link);
+		}
+		const existing = await this.findByLink(link.provider, link.providerId);
+		if (existing) {
+			await this.upsertLink(existing.id, link);
+			// the platform someone logs in with is the face of the account
+			await this.sql.queryPool(
+				"UPDATE accounts SET display_name = $1, avatar = $2 WHERE id = $3",
+				[link.name, link.avatar ?? "", existing.id]
+			);
+			return this.refreshRoles(existing.id);
+		}
+		const created = await this.create(link);
+		return this.refreshRoles(created.id);
+	}
+
+	async setGithubToken(accountId: number, token: GithubToken): Promise<void> {
+		await this.sql.queryPool(
+			"UPDATE account_links SET token = $1 WHERE account_id = $2 AND provider = 'github'",
+			[encrypt(token), accountId]
+		);
+		this.invalidate(accountId);
+	}
+
+	static githubToken(account: AccountWithLinks): GithubToken | undefined {
+		const raw = account.links.find(l => l.provider === "github")?.token;
+		return raw ? decrypt<GithubToken>(raw) : undefined;
+	}
+
+	// #endregion
+
+	// #region roles
+
+	/** Recomputes when stale, otherwise returns the cached roles. */
+	async ensureRoles(account: AccountWithLinks): Promise<AccountWithLinks> {
+		if (Date.now() - account.rolesCheckedAt < ROLES_TTL) return account;
+		return this.refreshRoles(account.id);
+	}
+
+	async refreshRoles(accountId: number): Promise<AccountWithLinks> {
+		this.invalidate(accountId);
+		const account = await this.get(accountId);
+		if (!account) throw new Error("no such account");
+
+		const roles = await this.computeRoles(account).catch(err => {
+			log.error(err, `role computation failed for account ${accountId}`);
+			return undefined;
+		});
+		// a failed lookup keeps the previous roles rather than silently demoting anyone,
+		// and is retried after a short while instead of on every request
+		if (!roles) {
+			await this.sql.queryPool(
+				"UPDATE accounts SET roles_checked_at = now() - ($1 || ' milliseconds')::interval WHERE id = $2",
+				[String(ROLES_TTL - ROLES_RETRY), accountId]
+			);
+			this.invalidate(accountId);
+			return account;
+		}
+
+		await this.sql.queryPool(
+			"UPDATE accounts SET roles = $1::jsonb, roles_checked_at = now() WHERE id = $2",
+			[JSON.stringify(roles), accountId]
+		);
+		this.invalidate(accountId);
+		const fresh = (await this.get(accountId)) as AccountWithLinks;
+		if (roles.join() !== account.roles.join()) {
+			log.info(
+				`account ${accountId} (${account.displayName}) roles: ${roles.join(", ") || "none"}`
+			);
+			await this.pushLinkedRoles(fresh);
+		}
+		return fresh;
+	}
+
+	/** Discord Linked Roles carry a dev flag derived from the roles, so a change is pushed at once. */
+	private async pushLinkedRoles(account: AccountWithLinks): Promise<void> {
+		const discord = account.links.find(l => l.provider === "discord");
+		if (!discord) return;
+		await this.container
+			.getService("DiscordMetadata")
+			.update(discord.providerId)
+			.catch(err => log.warn(err, `linked roles push failed for account ${account.id}`));
+	}
+
+	private async computeRoles(account: AccountWithLinks): Promise<Role[]> {
+		const roles = new Set<Role>();
+
+		const github = Accounts.verifiedLink(account, "github");
+		if (github) {
+			for (const team of await this.githubTeams(github, account)) {
+				const role = TEAM_ROLES[team];
+				if (role) roles.add(role);
+			}
+		}
+
+		const steam = Accounts.verifiedLink(account, "steam");
+		if (steam && (await isAdmin(steam.providerId))) roles.add(STEAM_GROUP_ROLE);
+
+		return ROLES.filter(r => roles.has(r));
+	}
+
+	/**
+	 * Teams of github.json's org the GitHub login is an active member of. Read with the
+	 * GitHub App installation (needs the org "Members: read" permission), falling back to
+	 * the user's own token when the app is not allowed to.
+	 */
+	private async githubTeams(link: AccountLink, account: AccountWithLinks): Promise<string[]> {
+		const app = this.container.getService("Github").octokit;
+		const userToken = await this.freshGithubToken(account);
+		const user = userToken ? new Octokit({ auth: userToken.accessToken }) : undefined;
+
+		const teams: string[] = [];
+		for (const team of Object.keys(TEAM_ROLES)) {
+			let active = await this.teamMembership(app, team, link.name);
+			if (active === undefined && user)
+				active = await this.teamMembership(user, team, link.name);
+			// no client could answer: keep the previous roles rather than demote on an outage
+			if (active === undefined) throw new Error(`team lookup unavailable for ${team}`);
+			if (active) teams.push(team);
+		}
+		return teams;
+	}
+
+	/** true/false for a definite answer, undefined when this client is not allowed to ask. */
+	private async teamMembership(
+		client: Octokit,
+		team: string,
+		login: string
+	): Promise<boolean | undefined> {
+		try {
+			const { data } = await client.teams.getMembershipForUserInOrg({
+				org: GithubConfig.org,
+				team_slug: team,
+				username: login,
+			});
+			return data.state === "active";
+		} catch (err) {
+			const status = (err as { status?: number }).status;
+			if (status === 404) return false;
+			log.warn(err, `team membership check failed for ${login} in ${team}`);
+			return undefined;
+		}
+	}
+
+	/** The stored GitHub user token, refreshed first when the app expires them. */
+	async freshGithubToken(account: AccountWithLinks): Promise<GithubToken | undefined> {
+		const token = Accounts.githubToken(account);
+		if (!token) return;
+		if (!token.expiresAt || token.expiresAt > Date.now() + 60_000) return token;
+		if (!token.refreshToken) return;
+
+		const res = await fetch("https://github.com/login/oauth/access_token", {
+			method: "POST",
+			headers: { Accept: "application/json", "Content-Type": "application/json" },
+			body: JSON.stringify({
+				client_id: GithubConfig.clientId,
+				client_secret: GithubConfig.clientSecret,
+				grant_type: "refresh_token",
+				refresh_token: token.refreshToken,
+			}),
+		}).catch(err => {
+			log.error(err, "github token refresh failed");
+		});
+		const body = res?.ok
+			? ((await res.json()) as {
+					access_token?: string;
+					refresh_token?: string;
+					expires_in?: number;
+				})
+			: undefined;
+		if (!body?.access_token) return;
+
+		const fresh = Accounts.tokenFromResponse(body);
+		await this.setGithubToken(account.id, fresh);
+		return fresh;
+	}
+
+	static tokenFromResponse(body: {
+		access_token?: string;
+		refresh_token?: string;
+		expires_in?: number;
+	}): GithubToken {
+		return {
+			accessToken: body.access_token as string,
+			refreshToken: body.refresh_token,
+			expiresAt: body.expires_in ? Date.now() + body.expires_in * 1000 : undefined,
+		};
+	}
+
+	// #endregion
+
+	// #region in-game link codes
+
+	async createLinkCode(
+		accountId: number,
+		provider: Provider
+	): Promise<{ code: string; expiresAt: number }> {
+		if (!CODE_PROVIDERS.includes(provider))
+			throw new Error(`${provider} cannot be linked in game`);
+		const bytes = crypto.randomBytes(CODE_LENGTH);
+		let code = "";
+		for (const b of bytes) code += CODE_ALPHABET[b % CODE_ALPHABET.length];
+		const expiresAt = Date.now() + CODE_TTL;
+
+		// one open code per account and provider, and expired ones do not pile up
+		await this.sql.queryPool(
+			"DELETE FROM link_codes WHERE (account_id = $1 AND provider = $2) OR expires_at < now()",
+			[accountId, provider]
+		);
+		await this.sql.queryPool(
+			"INSERT INTO link_codes (code, account_id, provider, expires_at) VALUES ($1, $2, $3, $4)",
+			[code, accountId, provider, new Date(expiresAt)]
+		);
+		return { code, expiresAt };
+	}
+
+	/**
+	 * Called from the game chat relays with the identity the game server vouches for.
+	 * Returns the account on success, a reason otherwise.
+	 */
+	async redeemLinkCode(
+		code: string,
+		provider: Provider,
+		providerId: string,
+		name: string,
+		avatar?: string
+	): Promise<{ account: AccountWithLinks } | { error: string }> {
+		const rows = (await this.sql.queryPool(
+			`UPDATE link_codes SET used_at = now()
+			 WHERE code = $1 AND provider = $2 AND used_at IS NULL AND expires_at > now()
+			 RETURNING account_id`,
+			[code.toUpperCase(), provider]
+		)) as { account_id: string }[];
+		if (!rows[0]) return { error: "unknown or expired code" };
+
+		const accountId = Number(rows[0].account_id);
+		try {
+			const account = await this.addLink(accountId, {
+				provider,
+				providerId,
+				name,
+				avatar,
+				source: "ingame",
+			});
+			log.info(`account ${accountId} linked ${provider} ${providerId} (${name}) from game`);
+			return { account };
+		} catch (err) {
+			if (err instanceof LinkConflictError) return { error: err.message };
+			throw err;
+		}
+	}
+
+	// #endregion
+
+	/**
+	 * One-time import of the Discord Linked Roles users: each discord_tokens row becomes
+	 * an account with import-sourced links. Rows whose Discord id already has a link are
+	 * skipped, so this is safe to run on every start.
+	 */
+	private async migrateDiscordTokens(): Promise<void> {
+		const db = this.sql.getLocalDatabase();
+		if (!(await this.sql.tableExists("discord_tokens"))) return;
+		const rows = await db.all<{ user_id: string; steam_id: string | null }[]>(
+			"SELECT user_id, steam_id FROM discord_tokens"
+		);
+		let created = 0;
+		for (const row of rows) {
+			if (await this.linkFor("discord", row.user_id)) continue;
+			const account = await this.create({
+				provider: "discord",
+				providerId: row.user_id,
+				name: row.user_id,
+				source: "import",
+			});
+			if (row.steam_id && !(await this.linkFor("steam", row.steam_id))) {
+				await this.upsertLink(account.id, {
+					provider: "steam",
+					providerId: row.steam_id,
+					name: row.steam_id,
+					source: "import",
+				});
+			}
+			created++;
+		}
+		if (created) log.info(`imported ${created} accounts from discord_tokens`);
+	}
+}
+
+export default (container: Container): Service => {
+	return new Accounts(container);
+};

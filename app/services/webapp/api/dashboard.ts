@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { WebApp } from "@/app/services/webapp/index.js";
 import { logBuffer, LogLine } from "@/app/services/webapp/dashboard/LogBuffer.js";
 import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
-import { EditorSession, getSession, getSessionFromCookieHeader } from "./auth/github.js";
+import { Session, getSession, getSessionFromCookieHeader, hasRole } from "./auth/session.js";
 import { rateLimit } from "express-rate-limit";
 import { ChildProcess, spawn } from "child_process";
 import { connection as WebSocketConnection } from "websocket";
@@ -21,10 +21,9 @@ const log = logger(import.meta);
  * team login from auth/github.ts.
  */
 
-// only this history.json team gets the dashboard, the others can still edit the website
-const ADMIN_TEAM = "administrators";
-const isDashboardAdmin = (session?: EditorSession): session is EditorSession =>
-	!!session?.teams?.includes(ADMIN_TEAM);
+// only administrators get the dashboard, developers can still edit the website
+const ADMIN_ROLE = "administrator";
+const isDashboardAdmin = (session?: Session): session is Session => hasRole(session, ADMIN_ROLE);
 
 const VIEW_DIR = path.join(process.cwd(), "resources", "dashboard");
 // the directory the running code imports its JSON from (dist/config in prod, config/ in dev)
@@ -101,7 +100,7 @@ class DashboardSession {
 
 	constructor(
 		private conn: WebSocketConnection,
-		private user: EditorSession
+		private user: Session
 	) {
 		const onLine = (line: LogLine) => this.send({ type: "log", ...line });
 		logBuffer.on("line", onLine);
@@ -111,7 +110,8 @@ class DashboardSession {
 				this.send({ type: "out", mode: "meta", text: "session expired, log in again" });
 				conn.close(4001, "session expired");
 			},
-			Math.max(0, user.expiresAt - Date.now())
+			// setTimeout tops out at 2^31-1 ms and fires at once past it, sessions last longer
+			Math.min(Math.max(0, user.expiresAt - Date.now()), 2 ** 31 - 1)
 		);
 		conn.on("close", () => {
 			clearTimeout(expiry);
@@ -209,15 +209,15 @@ class DashboardSession {
 
 // #endregion
 
-const requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
-	const session = getSession(req);
+const requireAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	const session = await getSession(req);
 	if (isDashboardAdmin(session)) {
 		res.locals.session = session;
 		next();
 		return;
 	}
 	if (session) {
-		res.status(403).json({ error: `${ADMIN_TEAM} only` });
+		res.status(403).json({ error: `${ADMIN_ROLE} only` });
 		return;
 	}
 	if (req.accepts(["json", "html"]) === "html") {
@@ -232,16 +232,16 @@ export default (webApp: WebApp): void => {
 	const view = path.join(VIEW_DIR, "view.pug");
 	const login = path.join(VIEW_DIR, "login.pug");
 
-	webApp.app.get("/", (req, res) => {
+	webApp.app.get("/", async (req, res) => {
 		res.set("Cache-Control", "no-store");
-		const session = getSession(req);
+		const session = await getSession(req);
 		const admin = isDashboardAdmin(session);
 		if (session && !admin) res.status(403);
 		res.send(
 			pug.renderFile(admin ? view : login, {
 				session,
 				siteUrl: webApp.config.siteUrl,
-				adminTeam: ADMIN_TEAM,
+				adminTeam: ADMIN_ROLE,
 			})
 		);
 	});
@@ -266,7 +266,7 @@ export default (webApp: WebApp): void => {
 		express.json({ limit: "1mb" }),
 		async (req, res) => {
 			const { name } = req.params;
-			const session = res.locals.session as EditorSession;
+			const session = res.locals.session as Session;
 			if (!isConfigFile(name)) {
 				res.status(400).json({ error: "invalid config name" });
 				return;
@@ -302,14 +302,14 @@ export default (webApp: WebApp): void => {
 	);
 
 	webApp.app.post("/dashboard/restart", limiter, requireAdmin, (_, res) => {
-		const session = res.locals.session as EditorSession;
+		const session = res.locals.session as Session;
 		log.warn({ login: session.login }, "restart requested from the dashboard");
 		res.status(202).json({ ok: true });
 		setTimeout(() => process.exit(0), 300);
 	});
 
-	webApp.ws.route("/dashboard/ws", req => {
-		const session = getSessionFromCookieHeader(req.httpRequest.headers.cookie);
+	webApp.ws.route("/dashboard/ws", async req => {
+		const session = await getSessionFromCookieHeader(req.httpRequest.headers.cookie);
 		if (!isDashboardAdmin(session)) {
 			req.reject(session ? 403 : 401);
 			return;

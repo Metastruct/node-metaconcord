@@ -1,4 +1,5 @@
 import { Service } from "../Container.js";
+import AccountsProvider, { Accounts } from "./Accounts.js";
 import AddonsProvider, { Addons } from "./addons/index.js";
 import BanProvider, { Bans } from "./Bans.js";
 import DataProvider, { Data } from "./Data.js";
@@ -25,6 +26,8 @@ export default [
 	GithubProvider,
 	GitlabProvider,
 	SteamProvider,
+	// Depends on SQL & Github
+	AccountsProvider,
 	// Depend on only the above
 	MarkovProvider,
 	ResoniteProvider,
@@ -41,6 +44,7 @@ export default [
 ];
 
 export {
+	Accounts,
 	Addons,
 	Bans,
 	Data,
@@ -60,6 +64,7 @@ export {
 
 export type ServiceMap = {
 	[key: string]: Service;
+	Accounts: Accounts;
 	Addons: Addons;
 	Bans: Bans;
 	Data: Data;

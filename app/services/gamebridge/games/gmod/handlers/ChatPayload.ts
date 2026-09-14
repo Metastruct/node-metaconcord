@@ -4,6 +4,7 @@ import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.
 import Payload from "./Payload.js";
 import { chatWebhook } from "../webhooks.js";
 import { formatDiscordMessage } from "../../../discord/formatDiscordMessage.js";
+import { matchLinkCode, redeemLinkFromChat } from "../../../linkChat.js";
 import requestSchema from "./structures/ChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ChatResponse.json" with { type: "json" };
 import { logger } from "@/utils.js";
@@ -72,6 +73,28 @@ export default class ChatPayload extends Payload {
 		const { player } = payload.data;
 		let { content } = payload.data;
 		const { bridge, discord } = server;
+
+		const linkCode = matchLinkCode(content);
+		if (linkCode) {
+			const avatar = await bridge.container
+				.getService("Steam")
+				.getUserAvatar(player.steamId64);
+			const result = await redeemLinkFromChat(
+				bridge,
+				linkCode,
+				"steam",
+				player.steamId64,
+				player.nick,
+				avatar
+			);
+			await server
+				.sendLua(
+					`local p = player.GetBySteamID64(${JSON.stringify(player.steamId64)}) ` +
+						`if IsValid(p) then p:ChatPrint(${JSON.stringify(result.message)}) end`
+				)
+				.catch(err => log.warn(err, "could not answer a link code in game"));
+			return;
+		}
 
 		if (!discord.ready) return;
 
