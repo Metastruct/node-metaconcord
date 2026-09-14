@@ -299,17 +299,16 @@ export const makeSpeechBubble = async (
 	return canvas.encode("png");
 };
 
-let adminGroupMembersCache: string | undefined;
-let adminGroupMembersRefresh: Promise<void> | undefined;
-let adminGroupMembersFetchedAt = 0;
-const ADMIN_GROUP_TTL = 60 * 60 * 1000;
+type SteamGroupCache = { members?: Set<string>; fetchedAt: number; refresh?: Promise<void> };
+const steamGroups = new Map<string, SteamGroupCache>();
+const STEAM_GROUP_TTL = 60 * 60 * 1000;
 // Steam answers 429 quickly, so a failed refresh is not retried before this
-const ADMIN_GROUP_RETRY = 5 * 60 * 1000;
+const STEAM_GROUP_RETRY = 5 * 60 * 1000;
 
-const refreshAdminGroupMembers = async (): Promise<void> => {
-	adminGroupMembersFetchedAt = Date.now();
-	const res = await axios.get(
-		"https://steamcommunity.com/gid/103582791433481287/memberslistxml?xml=1",
+const refreshSteamGroup = async (groupId: string, cache: SteamGroupCache): Promise<void> => {
+	cache.fetchedAt = Date.now();
+	const res = await axios.get<string>(
+		`https://steamcommunity.com/gid/${groupId}/memberslistxml?xml=1`,
 		{
 			headers: {
 				"User-Agent":
@@ -317,19 +316,28 @@ const refreshAdminGroupMembers = async (): Promise<void> => {
 			},
 		}
 	);
-	adminGroupMembersCache = res.data;
+	cache.members = new Set(
+		[...String(res.data).matchAll(/<steamID64>(\d+)<\/steamID64>/g)].map(m => m[1])
+	);
 };
 
-export const isAdmin = async (steamid: string) => {
-	const age = Date.now() - adminGroupMembersFetchedAt;
-	const stale = adminGroupMembersCache ? age > ADMIN_GROUP_TTL : age > ADMIN_GROUP_RETRY;
+/** Membership of a public Steam group, by group id64, cached for an hour. */
+export const isSteamGroupMember = async (groupId: string, steamId64: string): Promise<boolean> => {
+	let cache = steamGroups.get(groupId);
+	if (!cache) {
+		cache = { fetchedAt: 0 };
+		steamGroups.set(groupId, cache);
+	}
+	const age = Date.now() - cache.fetchedAt;
+	const stale = cache.members ? age > STEAM_GROUP_TTL : age > STEAM_GROUP_RETRY;
 	if (stale) {
-		adminGroupMembersRefresh ??= refreshAdminGroupMembers().finally(() => {
-			adminGroupMembersRefresh = undefined;
+		const c = cache;
+		c.refresh ??= refreshSteamGroup(groupId, c).finally(() => {
+			c.refresh = undefined;
 		});
-		await adminGroupMembersRefresh.catch(err => {
-			baseLogger.error(err, "failed refreshing admin group members");
+		await c.refresh.catch(err => {
+			baseLogger.error(err, `failed refreshing steam group ${groupId}`);
 		});
 	}
-	return !!adminGroupMembersCache?.match(steamid);
+	return !!cache.members?.has(steamId64);
 };
