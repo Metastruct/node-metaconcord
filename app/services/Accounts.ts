@@ -2,9 +2,10 @@ import { Container, Service } from "../Container.js";
 import { SQL } from "./SQL.js";
 import { decrypt, encrypt } from "./webapp/secretBox.js";
 import { Octokit } from "@octokit/rest";
+import AccountsConfig from "@/config/accounts.json" with { type: "json" };
 import GithubConfig from "@/config/github.json" with { type: "json" };
 import crypto from "crypto";
-import { isAdmin, logger } from "@/utils.js";
+import { isSteamGroupMember, logger } from "@/utils.js";
 
 const log = logger(import.meta);
 
@@ -14,7 +15,7 @@ const log = logger(import.meta);
  * minecraft can also be linked from in game with a short code typed in chat.
  *
  * Roles are derived, never edited: GitHub team membership through github.json's role
- * map, plus `developer` for the historical Steam admin group. Only links proven by
+ * map, plus the Steam groups in accounts.json. Only links proven by
  * OAuth, OpenID or an in-game code count, imported ones are display only.
  */
 
@@ -31,7 +32,8 @@ export const ROLES: Role[] = ["administrator", "developer", "new-developer"];
 export const STAFF_ROLES: Role[] = ["administrator", "developer"];
 
 const TEAM_ROLES = GithubConfig.roles as Record<string, Role>;
-const STEAM_GROUP_ROLE: Role = "developer";
+/** Steam group id64 to role, only for proven Steam links. */
+const STEAM_GROUP_ROLES = AccountsConfig.steamGroups as Record<string, Role>;
 
 const ROLES_TTL = 60 * 60 * 1000;
 const ROLES_RETRY = 5 * 60 * 1000;
@@ -419,7 +421,11 @@ export class Accounts extends Service {
 		}
 
 		const steam = Accounts.verifiedLink(account, "steam");
-		if (steam && (await isAdmin(steam.providerId))) roles.add(STEAM_GROUP_ROLE);
+		if (steam) {
+			for (const [groupId, role] of Object.entries(STEAM_GROUP_ROLES)) {
+				if (await isSteamGroupMember(groupId, steam.providerId)) roles.add(role);
+			}
+		}
 
 		return ROLES.filter(r => roles.has(r));
 	}

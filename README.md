@@ -41,7 +41,7 @@ $ yarn dev
 
 One account per person (`services/Accounts`, Postgres tables `accounts`, `account_links`, `link_codes`, created on start), with any number of linked platforms. Discord, Steam (OpenID), GitHub and GitLab log in and link through `/auth/<provider>`; Steam and Minecraft can also be linked from game chat: the profile page hands out a code and the player types `METACONCORD_LINK <code>` on any relayed server. The chat relays catch it before Discord sees it. The session is the `mcSession` cookie (30 days), resolved to the account on every request (`webapp/api/auth/session.ts`).
 
-Roles are derived, never edited: GitHub teams of `org` map to roles through `config/github.json` (`roles`, team slug to `administrator`, `developer` or `new-developer`), and the historical Steam admin group grants `developer`. Only links proven by OAuth, OpenID or a code count; links imported from the old `discord_tokens` table are display only until re-verified.
+Roles are derived, never edited: GitHub teams of `org` map to roles through `config/github.json` (`roles`, team slug to `administrator`, `developer` or `new-developer`), and public Steam groups map to roles through `config/accounts.json` (`steamGroups`, group id64 to role: Metastruct Admins grants `developer`, Meta Construct Developers grants `administrator`). Only links proven by OAuth, OpenID or a code count; links imported from the old `discord_tokens` table are display only until re-verified.
 
 - `administrator`: everything, including the dashboard
 - `developer`: rocket, history editor, bans, private addon sources
