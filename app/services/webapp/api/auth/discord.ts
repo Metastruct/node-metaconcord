@@ -115,7 +115,13 @@ export default async (webApp: WebApp): Promise<void> => {
 
 	webApp.app.get("/discord/link", async (_, res) => {
 		const { state, url } = getOAuthURL();
-		res.cookie("clientState", state, { maxAge: 1000 * 60 * 5, signed: true });
+		res.cookie("clientState", state, {
+			maxAge: 1000 * 60 * 5,
+			signed: true,
+			httpOnly: true,
+			secure: true,
+			sameSite: "lax",
+		});
 
 		res.redirect(url);
 	});
@@ -233,7 +239,12 @@ export default async (webApp: WebApp): Promise<void> => {
 				const discordState = req.query["state"];
 				const { clientState } = req.signedCookies;
 				if (clientState !== discordState) {
-					log.error("[OAuth Callback] State mismatch?");
+					log.error(
+						{ cookiePresent: !!clientState },
+						clientState
+							? "[OAuth Callback] State mismatch (cookie present, value differs)"
+							: "[OAuth Callback] State mismatch (no clientState cookie - expired or dropped)"
+					);
 					res.sendStatus(403);
 					return;
 				}
