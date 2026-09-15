@@ -9,8 +9,27 @@ const YELLOW_COLOR = Discord.Colors.Yellow;
 const GREEN_COLOR = Discord.Colors.Green;
 
 const DEFAULT_INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 1 };
+
+// Discord's ansi codeblock renderer only understands reset(0)/bold(1)/underline(4)
+// plus the 30-37/40-47 color ranges. Node's inspect also emits codes like 22/39/49
+// (partial resets) and 90-97 (bright colors) that it silently ignores, which leaves
+// styling like bold "stuck on" for the rest of the block. Remap anything unsupported.
+const toDiscordSafeAnsi = (text: string) =>
+	// eslint-disable-next-line no-control-regex -- intentionally matching ESC (\u001b) ansi sequences
+	text.replace(/\u001b\[(\d+)m/g, (_, codeStr: string) => {
+		const code = Number(codeStr);
+		if (code === 0 || code === 1 || code === 4) return `\u001b[${code}m`;
+		if ((code >= 30 && code <= 37) || (code >= 40 && code <= 47)) return `\u001b[${code}m`;
+		if (code >= 90 && code <= 97) return `\u001b[${code - 60}m`; // bright fg -> normal fg
+		if (code >= 100 && code <= 107) return `\u001b[${code - 60}m`; // bright bg -> normal bg
+		return "\u001b[0m"; // unsupported reset variants (22/24/39/49/...) -> full reset
+	});
+
 const format = (input: unknown, options?: InspectOptions) =>
-	inspect(input, options ?? DEFAULT_INSPECT_OPTIONS).replaceAll("```", "​`​`​`");
+	toDiscordSafeAnsi(inspect(input, options ?? DEFAULT_INSPECT_OPTIONS)).replaceAll(
+		"```",
+		"​`​`​`"
+	);
 
 const trimfield = (input: string, limit: number, isCodeBlock: boolean) =>
 	input.length >= limit
@@ -21,6 +40,47 @@ const trimfield = (input: string, limit: number, isCodeBlock: boolean) =>
 
 const hastoString = (obj: object | string | number | boolean) =>
 	obj.toString === Object.prototype.toString;
+
+// Collapses noisy Discord.js structures (e.g. Role.guild) down to "Name (id)"
+const formatEntity = (value: unknown): string | undefined => {
+	if (value instanceof Discord.Guild) return `Guild "${value.name}" (${value.id})`;
+	if (value instanceof Discord.Role) return `Role "${value.name}" (${value.id})`;
+	if (value instanceof Discord.GuildMember) return `Member ${value.user.tag} (${value.id})`;
+	if (value instanceof Discord.User) return `User ${value.tag} (${value.id})`;
+	if (value instanceof Discord.GuildChannel || value instanceof Discord.ThreadChannel)
+		return `Channel #${value.name} (${value.id})`;
+	return undefined;
+};
+
+const sanitizeEntity = (value: unknown, seen = new WeakSet<object>()): unknown => {
+	const entity = formatEntity(value);
+	if (entity) return entity;
+	if (value && typeof value === "object") {
+		if (seen.has(value)) return "[Circular]";
+		seen.add(value);
+		if (Array.isArray(value)) return value.map(v => sanitizeEntity(v, seen));
+		const out: Record<string, unknown> = {};
+		for (const [key, val] of Object.entries(value)) out[key] = sanitizeEntity(val, seen);
+		return out;
+	}
+	return value;
+};
+
+// Permission overwrite changes carry raw bitfield strings/numbers and a
+// numeric type (0 = role, 1 = member); decode those into readable text.
+const formatOverwriteValue = (key: string, value: unknown): string | undefined => {
+	if (
+		(key === "allow" || key === "deny") &&
+		(typeof value === "string" || typeof value === "number" || typeof value === "bigint")
+	) {
+		const perms = new Discord.PermissionsBitField(BigInt(value)).toArray();
+		return perms.length > 0 ? perms.join(", ") : "None";
+	}
+	if (key === "type" && typeof value === "number") {
+		return value === 0 ? "Role" : value === 1 ? "Member" : String(value);
+	}
+	return undefined;
+};
 
 export default (bot: DiscordBot): void => {
 	let logChannel: Discord.TextChannel | undefined;
@@ -199,12 +259,15 @@ export default (bot: DiscordBot): void => {
 	bot.discord.on("guildAuditLogEntryCreate", async (entry, guild) => {
 		if (!logChannel) return;
 		if (!entry.executorId) return;
-		const user = guild.members.cache.get(entry.executorId);
+		const member = guild.members.cache.get(entry.executorId);
+		const executor = entry.executor ?? member?.user;
 		const actionName = Discord.AuditLogEvent[entry.action];
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
-				name: `${user?.user.username} (${user?.displayName})`,
-				iconURL: user?.avatarURL() ?? user?.user.avatarURL() ?? undefined,
+				name: member
+					? `${executor?.username} (${member.displayName})`
+					: (executor?.username ?? "unknown user"),
+				iconURL: member?.avatarURL() ?? executor?.avatarURL() ?? undefined,
 			})
 			.setFooter({
 				text: `${actionName ?? entry.action}${
@@ -227,7 +290,8 @@ export default (bot: DiscordBot): void => {
 				break;
 		}
 
-		if (user?.mention) embed.addFields(f("Mention", user.mention));
+		const mention = member?.mention ?? (executor ? `<@${executor.id}>` : undefined);
+		if (mention) embed.addFields(f("Mention", mention));
 
 		if (entry.target && entry.targetId) {
 			const targetString =
@@ -244,7 +308,13 @@ export default (bot: DiscordBot): void => {
 						f(
 							"Removed",
 							`\`\`\`ansi\n${entry.changes
-								.map(change => `${change.key}: ${format(change.old)}`)
+								.map(
+									change =>
+										`${change.key}: ${
+											formatOverwriteValue(change.key, change.old) ??
+											format(sanitizeEntity(change.old))
+										}`
+								)
 								.join("\n")}\`\`\``
 						)
 					);
@@ -254,7 +324,13 @@ export default (bot: DiscordBot): void => {
 						f(
 							"Added",
 							`\`\`\`ansi\n${entry.changes
-								.map(change => `${change.key}: ${format(change.new)}`)
+								.map(
+									change =>
+										`${change.key}: ${
+											formatOverwriteValue(change.key, change.new) ??
+											format(sanitizeEntity(change.new))
+										}`
+								)
 								.join("\n")}\`\`\``
 						)
 					);
@@ -262,24 +338,51 @@ export default (bot: DiscordBot): void => {
 				case "Update": {
 					const changes = entry.changes
 						.map(change => {
+							// $add/$remove (role changes) list roles rather than
+							// diffing an old/new value, so handle them separately.
+							if (change.key === "$add" || change.key === "$remove") {
+								const roles = (change.new ?? change.old ?? []) as {
+									id: string;
+									name: string;
+								}[];
+								const list =
+									roles.length > 0
+										? roles.map(r => `${r.name} (${r.id})`).join(", ")
+										: "none";
+								return change.key === "$add"
+									? `\u001b[1;42m+ Added roles\u001b[0m: ${list}`
+									: `\u001b[1;41m- Removed roles\u001b[0m: ${list}`;
+							}
+
+							const overwriteOld = formatOverwriteValue(change.key, change.old);
+							const overwriteNew = formatOverwriteValue(change.key, change.new);
+
 							let changef = `${change.key}: `;
-							const isObject = typeof change.new === "object";
+							const isObject =
+								overwriteOld === undefined &&
+								overwriteNew === undefined &&
+								typeof change.new === "object";
 							const diffList =
-								typeof change.old === "object" && typeof change.new === "object"
-									? diffJson(
-											JSON.stringify(change.old, null, 2),
-											JSON.stringify(change.new, null, 2)
-										)
-									: diffWords(
-											change.old && hastoString(change.old)
-												? change.old.toString()
-												: (format(change.old, { colors: false }) ??
-														"undefined"),
-											change.new && hastoString(change.new)
-												? change.new.toString()
-												: (format(change.new, { colors: false }) ??
-														"undefined")
-										);
+								overwriteOld !== undefined || overwriteNew !== undefined
+									? diffWords(overwriteOld ?? "none", overwriteNew ?? "none")
+									: typeof change.old === "object" &&
+										  typeof change.new === "object"
+										? diffJson(
+												JSON.stringify(sanitizeEntity(change.old), null, 2),
+												JSON.stringify(sanitizeEntity(change.new), null, 2)
+											)
+										: diffWords(
+												change.old && hastoString(change.old)
+													? change.old.toString()
+													: (format(sanitizeEntity(change.old), {
+															colors: false,
+														}) ?? "undefined"),
+												change.new && hastoString(change.new)
+													? change.new.toString()
+													: (format(sanitizeEntity(change.new), {
+															colors: false,
+														}) ?? "undefined")
+											);
 							for (const part of diffList) {
 								changef += part.added
 									? `\u001b[1;42m${part.value}\u001b[0m`
@@ -299,7 +402,7 @@ export default (bot: DiscordBot): void => {
 		}
 
 		if (entry.extra) {
-			const extra = "```ansi\n" + format(entry.extra);
+			const extra = "```ansi\n" + format(sanitizeEntity(entry.extra));
 			embed.addFields(f("Extra", trimfield(extra, 1024, true)));
 		}
 
