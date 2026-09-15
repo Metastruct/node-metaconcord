@@ -46,6 +46,18 @@ const MIME_MAP: Record<string, string> = {
 // is naturally a cache miss, so this never needs an expiry.
 const dataUriCache = new Map<string, string>();
 
+// A URL that's currently 404/503/etc would otherwise be refetched on every
+// single poll forever - pointless load on a dead link and more hotlinking
+// traffic to trip host rate limits. Back off for a while, but still retry
+// eventually in case it recovers.
+const FAILED_FETCH_RETRY_MS = 10 * 60 * 1000;
+const failedFetchCache = new Map<string, number>();
+
+// Keyed by player identity (not URL, which may not have succeeded yet under
+// this key) so a currently-failing avatar still shows whatever we last had
+// for that player instead of falling back to the empty circle.
+const lastGoodByPlayerCache = new Map<string, string>();
+
 // resvg only decodes PNG/JPEG raster images embedded in <image> - other
 // formats (e.g. WebP) get re-encoded to PNG first.
 const RESVG_SUPPORTED_MIME = new Set(["image/png", "image/jpeg"]);
@@ -82,7 +94,7 @@ function measureTextWidth(text: string, fontSize: number): number {
 
 const DATA_URI_RE = /^data:([^;]+);base64,(.+)$/s;
 
-async function toDataUri(src?: string): Promise<string | undefined> {
+async function toDataUri(src?: string, playerKey?: string): Promise<string | undefined> {
 	if (!src) return;
 
 	const cached = dataUriCache.get(src);
@@ -96,6 +108,11 @@ async function toDataUri(src?: string): Promise<string | undefined> {
 		mime = match[1];
 		buf = Buffer.from(match[2], "base64");
 	} else if (src.startsWith("http")) {
+		const failedAt = failedFetchCache.get(src);
+		if (failedAt !== undefined && Date.now() - failedAt < FAILED_FETCH_RETRY_MS) {
+			return playerKey ? lastGoodByPlayerCache.get(playerKey) : undefined;
+		}
+
 		const ext = src.includes(".") ? (src.split(".").pop() ?? "png") : "png";
 		const extMime = MIME_MAP[ext] ?? "image/png";
 
@@ -110,12 +127,15 @@ async function toDataUri(src?: string): Promise<string | undefined> {
 			});
 		} catch (err) {
 			log.warn(err, `failed to fetch avatar/image from ${src}`);
-			return;
+			failedFetchCache.set(src, Date.now());
+			return playerKey ? lastGoodByPlayerCache.get(playerKey) : undefined;
 		}
 		if (!res.ok) {
 			log.warn(`failed to fetch avatar/image from ${src}: HTTP ${res.status}`);
-			return;
+			failedFetchCache.set(src, Date.now());
+			return playerKey ? lastGoodByPlayerCache.get(playerKey) : undefined;
 		}
+		failedFetchCache.delete(src);
 		buf = Buffer.from(await res.arrayBuffer());
 		mime = res.headers.get("content-type")?.split(";")[0] || extMime;
 	} else {
@@ -127,6 +147,7 @@ async function toDataUri(src?: string): Promise<string | undefined> {
 	const rendered = await toRenderableImage(buf, mime);
 	const dataUri = `data:${rendered.mime};base64,${rendered.buf.toString("base64")}`;
 	dataUriCache.set(src, dataUri);
+	if (playerKey) lastGoodByPlayerCache.set(playerKey, dataUri);
 	return dataUri;
 }
 
@@ -138,7 +159,7 @@ export async function renderPlayerListImage(
 		toDataUri(mapThumbnailSrc),
 		...players.map(async p => {
 			if (!p.avatar) return;
-			return await toDataUri(p.avatar).catch(() => {});
+			return await toDataUri(p.avatar, p.steamId64 || p.nick).catch(() => {});
 		}),
 	]);
 
