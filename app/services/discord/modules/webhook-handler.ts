@@ -490,7 +490,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 	const allowedRoles = new Set([
 		bot.config.roles.developer,
-		bot.config.roles.newDeveloper,
+		bot.config.roles.trialDeveloper,
 		bot.config.roles.administrator,
 	]);
 
