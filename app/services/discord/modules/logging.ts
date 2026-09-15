@@ -293,9 +293,13 @@ export default (bot: DiscordBot): void => {
 		const mention = member?.mention ?? (executor ? `<@${executor.id}>` : undefined);
 		if (mention) embed.addFields(f("Mention", mention));
 
-		if (entry.target && entry.targetId) {
+		if (entry.targetId) {
 			const targetString =
-				entry.target.toString() !== "[object Object]" ? entry.target.toString() : "";
+				entry.target && entry.target.toString() !== "[object Object]"
+					? entry.target.toString()
+					: entry.targetType === "User"
+						? `<@${entry.targetId}>`
+						: "";
 			embed.addFields(f(`${entry.targetType} (${entry.targetId})`, targetString));
 		}
 
