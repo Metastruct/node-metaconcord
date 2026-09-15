@@ -21,13 +21,13 @@ const log = logger(import.meta);
 
 export type Provider = "discord" | "steam" | "github" | "gitlab" | "minecraft";
 export type LinkSource = "oauth" | "openid" | "ingame" | "import";
-export type Role = "administrator" | "developer" | "new-developer";
+export type Role = "administrator" | "developer" | "trial-developer";
 
 /** Providers that can log someone in, so an account must keep at least one. */
 export const LOGIN_PROVIDERS: Provider[] = ["discord", "steam", "github", "gitlab"];
 /** Providers linked from game chat with a code. */
 export const CODE_PROVIDERS: Provider[] = ["steam", "minecraft"];
-export const ROLES: Role[] = ["administrator", "developer", "new-developer"];
+export const ROLES: Role[] = ["administrator", "developer", "trial-developer"];
 /** What the website calls staff: everything but the onboarding team. */
 export const STAFF_ROLES: Role[] = ["administrator", "developer"];
 
@@ -228,7 +228,7 @@ export class Accounts extends Service {
 
 	/**
 	 * Accounts with any role and a proven link on the given game platform, what the game
-	 * servers rank from. Unlike the website, in game a new developer is a developer. The
+	 * servers rank from. Unlike the website, in game a trial developer is a developer. The
 	 * name is the one the platform knows the player by.
 	 */
 	async staff(

@@ -16,11 +16,11 @@ export type MetaMetadata = {
 	time?: number; // playtime
 };
 
-/** administrator 3, developer 2, new-developer 1, no role 0 */
+/** administrator 3, developer 2, trial-developer 1, no role 0 */
 export const ROLE_LEVELS: Record<Role, number> = {
 	administrator: 3,
 	developer: 2,
-	"new-developer": 1,
+	"trial-developer": 1,
 };
 
 export const roleLevel = (roles: Role[]): number =>
@@ -60,7 +60,7 @@ type MetadataRecord = {
 
 /**
  * The keys Discord has to know before values are accepted. A linked role picks a key
- * and a value: "dev >= 1" new developer, "dev >= 2" developer, "dev >= 3" administrator,
+ * and a value: "dev >= 1" trial developer, "dev >= 2" developer, "dev >= 3" administrator,
  * so an administrator holds all three.
  */
 const METADATA_SCHEMA: MetadataRecord[] = [
@@ -74,7 +74,7 @@ const METADATA_SCHEMA: MetadataRecord[] = [
 		type: MetadataType.INTEGER_GREATER_THAN_OR_EQUAL,
 		key: "dev",
 		name: "Role",
-		description: "1 new developer, 2 developer, 3 administrator",
+		description: "1 trial developer, 2 developer, 3 administrator",
 	},
 	{
 		type: MetadataType.INTEGER_GREATER_THAN_OR_EQUAL,
