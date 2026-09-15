@@ -1,6 +1,6 @@
 import { Accounts, Bans, DiscordBot, SQL } from "./index.js";
 import { Container, Service } from "../Container.js";
-import { STAFF_ROLES } from "./Accounts.js";
+import { Role } from "./Accounts.js";
 import { logger } from "@/utils.js";
 import { revokeOAuthToken } from "./webapp/api/auth/discord.js";
 import SteamID from "steamid";
@@ -10,10 +10,21 @@ const log = logger(import.meta);
 
 export type MetaMetadata = {
 	banned?: 1 | 0;
-	dev?: 1 | 0;
+	/** highest account role, see ROLE_LEVELS */
+	dev?: number;
 	coins?: number;
 	time?: number; // playtime
 };
+
+/** administrator 3, developer 2, new-developer 1, no role 0 */
+export const ROLE_LEVELS: Record<Role, number> = {
+	administrator: 3,
+	developer: 2,
+	"new-developer": 1,
+};
+
+export const roleLevel = (roles: Role[]): number =>
+	roles.reduce((level, role) => Math.max(level, ROLE_LEVELS[role] ?? 0), 0);
 
 type AccessTokenResponse = {
 	access_token: string;
@@ -29,23 +40,54 @@ export type ApplicationRoleConnectionObject = {
 	metadata: MetaMetadata;
 };
 
-// for refrence
-//enum ApplicationRoleConnectionMetadataType {
-//	INTEGER_LESS_THAN_OR_EQUAL = 1,
-//	INTEGER_GREATER_THAN_OR_EQUAL,
-//	INTEGER_EQUAL,
-//	INTEGER_NOT_EQUAL,
-//	DATETIME_LESS_THAN_OR_EQUAL,
-//	DATETIME_GREATER_THAN_OR_EQUAL,
-//	BOOLEAN_EQUAL,
-//	BOOLEAN_NOT_EQUAL,
-//}
-//type ApplicationRoleConnectionMetadata = {
-//	type: ApplicationRoleConnectionMetadataType;
-//	key: string;
-//	name: string;
-//	description: string;
-//};
+enum MetadataType {
+	INTEGER_LESS_THAN_OR_EQUAL = 1,
+	INTEGER_GREATER_THAN_OR_EQUAL = 2,
+	INTEGER_EQUAL = 3,
+	INTEGER_NOT_EQUAL = 4,
+	DATETIME_LESS_THAN_OR_EQUAL = 5,
+	DATETIME_GREATER_THAN_OR_EQUAL = 6,
+	BOOLEAN_EQUAL = 7,
+	BOOLEAN_NOT_EQUAL = 8,
+}
+
+type MetadataRecord = {
+	type: MetadataType;
+	key: keyof MetaMetadata;
+	name: string;
+	description: string;
+};
+
+/**
+ * The keys Discord has to know before values are accepted. A linked role picks a key
+ * and a value: "dev = 1" new developer, "dev = 2" developer, "dev = 3" administrator.
+ */
+const METADATA_SCHEMA: MetadataRecord[] = [
+	{
+		type: MetadataType.BOOLEAN_EQUAL,
+		key: "banned",
+		name: "Banned",
+		description: "Banned on the servers",
+	},
+	{
+		type: MetadataType.INTEGER_EQUAL,
+		key: "dev",
+		name: "Role",
+		description: "1 new developer, 2 developer, 3 administrator",
+	},
+	{
+		type: MetadataType.INTEGER_GREATER_THAN_OR_EQUAL,
+		key: "coins",
+		name: "Coins",
+		description: "Coins on the servers",
+	},
+	{
+		type: MetadataType.INTEGER_GREATER_THAN_OR_EQUAL,
+		key: "time",
+		name: "Playtime",
+		description: "Hours played on the servers",
+	},
+];
 
 type LocalDatabaseEntry = {
 	user_id: string;
@@ -73,6 +115,47 @@ export class DiscordMetadata extends Service {
 		this.bot = this.container.getService("DiscordBot");
 		this.bans = this.container.getService("Bans");
 		this.accounts = this.container.getService("Accounts");
+		this.registerSchema().catch(err =>
+			log.error(err, "linked roles metadata registration failed")
+		);
+	}
+
+	/**
+	 * Registers METADATA_SCHEMA with Discord when it differs from what is registered.
+	 * A PUT replaces the whole schema, so records already there keep their name and
+	 * description unless the key or type changed in code.
+	 */
+	private async registerSchema(): Promise<void> {
+		const url = `https://discord.com/api/v10/applications/${this.bot.config.bot.applicationId}/role-connections/metadata`;
+		const headers = { Authorization: `Bot ${this.bot.config.bot.token}` };
+		const res = await fetch(url, { headers });
+		if (!res.ok) {
+			log.error({ status: res.status }, "could not read the linked roles metadata schema");
+			return;
+		}
+		const current = (await res.json()) as MetadataRecord[];
+		const same =
+			current.length === METADATA_SCHEMA.length &&
+			METADATA_SCHEMA.every(want =>
+				current.some(c => c.key === want.key && c.type === want.type)
+			);
+		if (same) return;
+
+		const put = await fetch(url, {
+			method: "PUT",
+			headers: { ...headers, "Content-Type": "application/json" },
+			body: JSON.stringify(METADATA_SCHEMA),
+		});
+		if (!put.ok) {
+			log.error(
+				{ status: put.status, body: await put.text() },
+				"linked roles metadata PUT failed"
+			);
+			return;
+		}
+		log.info(
+			`linked roles metadata registered: ${METADATA_SCHEMA.map(m => m.key).join(", ")} (was ${current.map(c => c.key).join(", ") || "empty"})`
+		);
 	}
 
 	private clearUserCaches(userId: string): void {
@@ -195,7 +278,7 @@ export class DiscordMetadata extends Service {
 
 		const metadata: MetaMetadata = {
 			banned: banned ? 1 : 0,
-			dev: account.roles.some(r => STAFF_ROLES.includes(r)) ? 1 : 0,
+			dev: roleLevel(account.roles),
 			time: isNaN(parseInt(playtime)) ? undefined : Math.round(parseInt(playtime) / 60 / 60),
 			coins: coins,
 		};
