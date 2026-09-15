@@ -57,7 +57,7 @@ The history editor commits with the user's own token, kept encrypted on their Gi
 
 GitLab needs an application on gitlab.com with the `read_user` scope and callback `<webapp.url>/auth/gitlab/callback`, in `config/gitlab.json` under `oauth`. Discord uses the existing Linked Roles application (`/discord/link` is both the login start and what the Linked Roles button points to).
 
-Linked Roles metadata (`services/DiscordMetadata`, schema registered with Discord on start when it differs): `banned` (boolean), `dev` (integer, equal: 1 new developer, 2 developer, 3 administrator, the highest role wins), `coins` and `time` (integers, at least). One linked role per value: new developer `dev = 1`, developer `dev = 2`, administrator `dev = 3`. Metadata is pushed on Discord login, on role changes, on ban events and through `/discord/link/:id/refresh`.
+Linked Roles metadata (`services/DiscordMetadata`, schema registered with Discord on start when it differs): `banned` (boolean), `dev` (integer, at least: 1 new developer, 2 developer, 3 administrator, the highest role wins), `coins` and `time` (integers, at least). Cumulative linked roles: new developer `dev >= 1`, developer `dev >= 2`, administrator `dev >= 3`, so an administrator holds all three. Metadata is pushed on Discord login, on role changes, on ban events and through `/discord/link/:id/refresh`.
 
 `config/webapp.json` needs `siteUrl`, `allowedOrigins` (CORS with credentials) and `cookieDomain` (`.metastruct.net` so the session cookie is shared with the site).
 

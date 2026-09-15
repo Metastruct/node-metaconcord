@@ -60,7 +60,8 @@ type MetadataRecord = {
 
 /**
  * The keys Discord has to know before values are accepted. A linked role picks a key
- * and a value: "dev = 1" new developer, "dev = 2" developer, "dev = 3" administrator.
+ * and a value: "dev >= 1" new developer, "dev >= 2" developer, "dev >= 3" administrator,
+ * so an administrator holds all three.
  */
 const METADATA_SCHEMA: MetadataRecord[] = [
 	{
@@ -70,7 +71,7 @@ const METADATA_SCHEMA: MetadataRecord[] = [
 		description: "Banned on the servers",
 	},
 	{
-		type: MetadataType.INTEGER_EQUAL,
+		type: MetadataType.INTEGER_GREATER_THAN_OR_EQUAL,
 		key: "dev",
 		name: "Role",
 		description: "1 new developer, 2 developer, 3 administrator",
