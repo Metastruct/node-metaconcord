@@ -87,7 +87,9 @@ export type AccountWithLinks = Account & { links: AccountLink[] };
 
 export class LinkConflictError extends Error {
 	constructor(public provider: Provider) {
-		super(`this ${provider} account is already linked to another account`);
+		super(
+			`this ${provider} account belongs to another account that has other ways to log in; log into that one and unlink it there`
+		);
 	}
 }
 
@@ -299,11 +301,56 @@ export class Accounts extends Service {
 	 * Attaches a platform to an account. Re-linking the same platform id refreshes the
 	 * name, avatar and token; a platform id owned by another account is refused.
 	 */
+	/**
+	 * Attaches a platform to an account. Re-linking the same platform id refreshes the
+	 * name, avatar and token. A platform id owned by another account is absorbed when
+	 * that account has no other proven way to log in (someone who signed up twice, once
+	 * per platform): the caller has just proven the platform, so everything on the other
+	 * account is theirs. Otherwise the link is refused and they unlink from the other side.
+	 */
 	async addLink(accountId: number, link: LinkInput): Promise<AccountWithLinks> {
 		const owner = await this.linkFor(link.provider, link.providerId);
-		if (owner && owner.accountId !== accountId) throw new LinkConflictError(link.provider);
+		if (owner && owner.accountId !== accountId) {
+			const other = await this.get(owner.accountId);
+			if (!other || !Accounts.onlyLoginIs(other, link.provider)) {
+				throw new LinkConflictError(link.provider);
+			}
+			await this.absorb(accountId, other);
+		}
 		await this.upsertLink(accountId, link);
 		return this.refreshRoles(accountId);
+	}
+
+	/** True when the account's only proven login platform is `provider`. */
+	static onlyLoginIs(account: AccountWithLinks, provider: Provider): boolean {
+		return account.links
+			.filter(l => LOGIN_PROVIDERS.includes(l.provider) && l.source !== "import")
+			.every(l => l.provider === provider);
+	}
+
+	/**
+	 * Moves every link of `other` onto `intoId` (platforms the target already has are
+	 * dropped, the target's win) and deletes `other`. Its sessions die with it.
+	 */
+	private async absorb(intoId: number, other: AccountWithLinks): Promise<void> {
+		const into = await this.get(intoId);
+		if (!into) throw new Error("no such account");
+		const taken = new Set(into.links.map(l => l.provider));
+		const moved: string[] = [];
+		for (const link of other.links) {
+			if (taken.has(link.provider)) continue;
+			await this.sql.queryPool(
+				"UPDATE account_links SET account_id = $1 WHERE account_id = $2 AND provider = $3",
+				[intoId, other.id, link.provider]
+			);
+			moved.push(link.provider);
+		}
+		await this.sql.queryPool("DELETE FROM accounts WHERE id = $1", [other.id]);
+		this.invalidate(other.id);
+		this.invalidate(intoId);
+		log.info(
+			`account ${other.id} (${other.displayName}) merged into ${intoId}, moved ${moved.join(", ") || "nothing"}`
+		);
 	}
 
 	async removeLink(accountId: number, provider: Provider): Promise<AccountWithLinks> {
