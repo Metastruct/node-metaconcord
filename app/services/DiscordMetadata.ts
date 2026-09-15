@@ -294,7 +294,17 @@ export class DiscordMetadata extends Service {
 	) {
 		const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.bot.applicationId}/role-connection`;
 		const accessToken = await this.getAccessToken(userId, data);
-		const body = { platform_name: "Metastruct", platform_username: userName, metadata };
+		// Discord documents metadata values as strings, so every value goes over stringified
+		const stringified = Object.fromEntries(
+			Object.entries(metadata)
+				.filter(([, v]) => v !== undefined)
+				.map(([k, v]) => [k, String(v)])
+		);
+		const body = {
+			platform_name: "Metastruct",
+			platform_username: userName,
+			metadata: stringified,
+		};
 
 		if (!accessToken) {
 			log.error({ userId, userName }, "accesstoken missing?");
