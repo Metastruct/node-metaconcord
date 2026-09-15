@@ -545,8 +545,8 @@ export default (webApp: WebApp): void => {
 	const isDeveloper = async (userId: string): Promise<boolean> => {
 		const member = await bot().getGuildMember(userId);
 		if (!member) return false;
-		const { administrator, developer, newDeveloper } = bot().config.roles;
-		return [administrator, developer, newDeveloper].some(id => member.roles.cache.has(id));
+		const { administrator, developer, trailDeveloper } = bot().config.roles;
+		return [administrator, developer, trailDeveloper].some(id => member.roles.cache.has(id));
 	};
 
 	/** Swaps the two buttons for a single disabled one showing how it ended. */
