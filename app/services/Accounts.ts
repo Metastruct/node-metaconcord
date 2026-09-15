@@ -37,6 +37,8 @@ const STEAM_GROUP_ROLES = AccountsConfig.steamGroups as Record<string, Role>;
 
 const ROLES_TTL = 60 * 60 * 1000;
 const ROLES_RETRY = 5 * 60 * 1000;
+/** the background sweep: every account, from one team listing per team and fresh Steam groups */
+const SWEEP_INTERVAL = 60 * 60 * 1000;
 const CODE_TTL = 10 * 60 * 1000;
 const CODE_LENGTH = 8;
 // no 0/O/1/I, the code is read off a screen and typed in a game chat
@@ -175,6 +177,10 @@ export class Accounts extends Service {
 			);
 		`);
 		await this.migrateDiscordTokens();
+
+		const sweep = () => this.sweepRoles().catch(err => log.error(err, "role sweep failed"));
+		setTimeout(sweep, 30 * 1000);
+		setInterval(sweep, SWEEP_INTERVAL).unref();
 	}
 
 	// #region lookups
@@ -408,20 +414,71 @@ export class Accounts extends Service {
 			this.invalidate(accountId);
 			return account;
 		}
+		return this.storeRoles(account, roles);
+	}
 
+	/** Writes the roles, and pushes Linked Roles metadata when the set changed. */
+	private async storeRoles(account: AccountWithLinks, roles: Role[]): Promise<AccountWithLinks> {
 		await this.sql.queryPool(
 			"UPDATE accounts SET roles = $1::jsonb, roles_checked_at = now() WHERE id = $2",
-			[JSON.stringify(roles), accountId]
+			[JSON.stringify(roles), account.id]
 		);
-		this.invalidate(accountId);
-		const fresh = (await this.get(accountId)) as AccountWithLinks;
+		this.invalidate(account.id);
+		const fresh = (await this.get(account.id)) as AccountWithLinks;
 		if (roles.join() !== account.roles.join()) {
 			log.info(
-				`account ${accountId} (${account.displayName}) roles: ${roles.join(", ") || "none"}`
+				`account ${account.id} (${account.displayName}) roles: ${roles.join(", ") || "none"}`
 			);
 			await this.pushLinkedRoles(fresh);
 		}
 		return fresh;
+	}
+
+	private sweeping = false;
+
+	/**
+	 * Recomputes every account's roles without anyone visiting the site, so a GitHub team
+	 * or Steam group change reaches Discord and the game servers within SWEEP_INTERVAL. One member listing
+	 * per team (a few paginated calls) answers for all accounts, the Steam groups are cached,
+	 * and a push only follows a change, so the cost does not grow with the account count.
+	 */
+	async sweepRoles(): Promise<void> {
+		if (this.sweeping) return;
+		this.sweeping = true;
+		try {
+			const members = await this.teamMembers();
+			const rows = (await this.sql.queryPool(
+				"SELECT DISTINCT account_id FROM account_links WHERE provider IN ('github', 'steam') AND source <> 'import'"
+			)) as { account_id: string }[];
+
+			let changed = 0;
+			for (const row of rows) {
+				this.invalidate(Number(row.account_id));
+				const account = await this.get(Number(row.account_id));
+				if (!account) continue;
+				const roles = await this.computeRoles(account, members);
+				if (roles.join() !== account.roles.join()) changed++;
+				await this.storeRoles(account, roles);
+			}
+			log.info(`role sweep: ${rows.length} accounts checked, ${changed} changed`);
+		} finally {
+			this.sweeping = false;
+		}
+	}
+
+	/** Lowercased logins per team, from the app installation. Throws when any listing fails. */
+	private async teamMembers(): Promise<Map<string, Set<string>>> {
+		const app = this.container.getService("Github").octokit;
+		const members = new Map<string, Set<string>>();
+		for (const team of Object.keys(TEAM_ROLES)) {
+			const logins = await app.paginate(app.teams.listMembersInOrg, {
+				org: GithubConfig.org,
+				team_slug: team,
+				per_page: 100,
+			});
+			members.set(team, new Set(logins.map(m => m.login.toLowerCase())));
+		}
+		return members;
 	}
 
 	/** Discord Linked Roles carry a dev flag derived from the roles, so a change is pushed at once. */
@@ -434,12 +491,24 @@ export class Accounts extends Service {
 			.catch(err => log.warn(err, `linked roles push failed for account ${account.id}`));
 	}
 
-	private async computeRoles(account: AccountWithLinks): Promise<Role[]> {
+	/**
+	 * With `members` (a sweep) team membership comes from the listings, otherwise from
+	 * one membership call per team for this account.
+	 */
+	private async computeRoles(
+		account: AccountWithLinks,
+		members?: Map<string, Set<string>>
+	): Promise<Role[]> {
 		const roles = new Set<Role>();
 
 		const github = Accounts.verifiedLink(account, "github");
 		if (github) {
-			for (const team of await this.githubTeams(github, account)) {
+			const teams = members
+				? [...members.entries()]
+						.filter(([, logins]) => logins.has(github.name.toLowerCase()))
+						.map(([team]) => team)
+				: await this.githubTeams(github, account);
+			for (const team of teams) {
 				const role = TEAM_ROLES[team];
 				if (role) roles.add(role);
 			}

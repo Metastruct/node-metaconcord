@@ -301,7 +301,8 @@ export const makeSpeechBubble = async (
 
 type SteamGroupCache = { members?: Set<string>; fetchedAt: number; refresh?: Promise<void> };
 const steamGroups = new Map<string, SteamGroupCache>();
-const STEAM_GROUP_TTL = 60 * 60 * 1000;
+// a little under the hourly role sweep in services/Accounts, so every sweep sees fresh groups
+const STEAM_GROUP_TTL = 50 * 60 * 1000;
 // Steam answers 429 quickly, so a failed refresh is not retried before this
 const STEAM_GROUP_RETRY = 5 * 60 * 1000;
 
