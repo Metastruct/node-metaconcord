@@ -126,12 +126,12 @@ async function toDataUri(src?: string, playerKey?: string): Promise<string | und
 				},
 			});
 		} catch (err) {
-			log.warn(err, `failed to fetch avatar/image from ${src}`);
+			log.warn({ err, playerKey }, `failed to fetch avatar/image from ${src}`);
 			failedFetchCache.set(src, Date.now());
 			return playerKey ? lastGoodByPlayerCache.get(playerKey) : undefined;
 		}
 		if (!res.ok) {
-			log.warn(`failed to fetch avatar/image from ${src}: HTTP ${res.status}`);
+			log.warn({ playerKey }, `failed to fetch avatar/image from ${src}: HTTP ${res.status}`);
 			failedFetchCache.set(src, Date.now());
 			return playerKey ? lastGoodByPlayerCache.get(playerKey) : undefined;
 		}
