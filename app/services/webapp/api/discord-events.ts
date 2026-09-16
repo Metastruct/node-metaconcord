@@ -5,6 +5,7 @@ import { logger } from "@/utils.js";
 const log = logger(import.meta);
 
 const TTL = 60 * 1000;
+const RETRY = 5 * 60 * 1000;
 const CACHE_CONTROL = "public, max-age=60, stale-while-revalidate=300";
 const HORIZON = 90 * 24 * 60 * 60 * 1000;
 const DAY = 24 * 60 * 60 * 1000;
@@ -26,6 +27,8 @@ export interface UpcomingEvent {
 }
 
 let cached: { events: UpcomingEvent[]; expires: number } | undefined;
+let refreshing: Promise<void> | undefined;
+let lastAttempt = 0;
 
 /** Discord's weekday enum is Monday=0; JS is Sunday=0. */
 const jsWeekday = (d: Discord.GuildScheduledEventRecurrenceRuleWeekday): number => (d + 1) % 7;
@@ -110,16 +113,30 @@ export default (webApp: WebApp): void => {
 			return;
 		}
 
-		if (!cached || cached.expires < Date.now()) {
+		const now = Date.now();
+		const fresh = !!cached && cached.expires >= now;
+		const backedOff = !cached && now - lastAttempt < RETRY;
+		if (!fresh && !backedOff) {
+			lastAttempt = now;
+			refreshing ??= upcoming(guild)
+				.then(events => {
+					cached = { events, expires: Date.now() + TTL };
+				})
+				.finally(() => {
+					refreshing = undefined;
+				});
+		}
+		if (refreshing) {
 			try {
-				cached = { events: await upcoming(guild), expires: Date.now() + TTL };
+				await refreshing;
 			} catch (err) {
 				log.warn(err, "failed fetching scheduled events");
-				if (!cached) {
-					res.status(502).json({ error: "events unavailable" });
-					return;
-				}
 			}
+		}
+
+		if (!cached) {
+			res.status(502).json({ error: "events unavailable" });
+			return;
 		}
 
 		const limit = Math.min(Math.max(Number(req.query.limit) || 3, 1), 10);
