@@ -70,6 +70,7 @@ const CHECK_CONCLUSION_EMOJI: Record<string, string> = {
 	skipped: "⏭️",
 	neutral: "⚪",
 	stale: "🟤",
+	in_progress: "🔁",
 };
 
 function getCheckTarget(pullRequests: { number: number }[], headBranch?: string | null): string {
@@ -1242,6 +1243,30 @@ export default async (bot: DiscordBot): Promise<void> => {
 				DefaultPullRequestHandler(event);
 				break;
 		}
+	});
+
+	GitHub.on("workflow_run.in_progress", async event => {
+		if (!webhook) return;
+		const payload = event.payload;
+		const run = payload.workflow_run;
+		if (run.status !== "in_progress") return;
+
+		const name = run.name ?? "Workflow";
+
+		const tracked = commitMessages.get(run.head_sha);
+		if (!tracked) return;
+
+		upsertCheckLine(
+			tracked,
+			`run:${run.id}`,
+			`${CHECK_CONCLUSION_EMOJI.in_progress ?? "🔁"} [${name}](${run.html_url}) in progress`
+		);
+		await webhook
+			.editMessage(tracked.messageId, {
+				components: tracked.components,
+				flags: Discord.MessageFlags.IsComponentsV2,
+			})
+			.catch(log.error.bind(log));
 	});
 
 	GitHub.on("workflow_run.completed", async event => {
