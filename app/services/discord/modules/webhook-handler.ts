@@ -123,6 +123,30 @@ function upsertCheckLine(entry: TrackedCommitMessage, key: string, line: string)
 	}
 }
 
+// multiple webhooks could trigger at once messing up the order
+const editQueues = new Map<string, Promise<unknown>>();
+
+function queueEdit(
+	webhook: Discord.Webhook,
+	messageId: string,
+	components: MessageComponent[]
+): Promise<unknown> {
+	const prev = editQueues.get(messageId) ?? Promise.resolve();
+	const next = prev
+		.then(() =>
+			webhook.editMessage(messageId, {
+				components,
+				flags: Discord.MessageFlags.IsComponentsV2,
+			})
+		)
+		.catch(log.error.bind(log));
+	editQueues.set(messageId, next);
+	next.finally(() => {
+		if (editQueues.get(messageId) === next) editQueues.delete(messageId);
+	});
+	return next;
+}
+
 const GitHub = new Webhooks({
 	secret: webhookConfig.github.secret,
 });
@@ -1261,12 +1285,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			`run:${run.id}`,
 			`${CHECK_CONCLUSION_EMOJI.in_progress ?? "🔁"} [${name}](${run.html_url}) in progress`
 		);
-		await webhook
-			.editMessage(tracked.messageId, {
-				components: tracked.components,
-				flags: Discord.MessageFlags.IsComponentsV2,
-			})
-			.catch(log.error.bind(log));
+		queueEdit(webhook, tracked.messageId, tracked.components);
 	});
 
 	GitHub.on("workflow_run.completed", async event => {
@@ -1286,12 +1305,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				`run:${run.id}`,
 				`${CHECK_CONCLUSION_EMOJI[conclusion] ?? "⚪"} [${name}](${run.html_url}) ${conclusion}`
 			);
-			await webhook
-				.editMessage(tracked.messageId, {
-					components: tracked.components,
-					flags: Discord.MessageFlags.IsComponentsV2,
-				})
-				.catch(log.error.bind(log));
+			queueEdit(webhook, tracked.messageId, tracked.components);
 			return;
 		}
 
@@ -1772,12 +1786,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				"pipeline",
 				`${CHECK_CONCLUSION_EMOJI[status] ?? "⚪"} [Pipeline #${pipe.id}](${pipe.url}) ${status}`
 			);
-			await destWebhook
-				.editMessage(tracked.messageId, {
-					components: tracked.components,
-					flags: Discord.MessageFlags.IsComponentsV2,
-				})
-				.catch(log.error.bind(log));
+			queueEdit(destWebhook, tracked.messageId, tracked.components);
 			return;
 		}
 
