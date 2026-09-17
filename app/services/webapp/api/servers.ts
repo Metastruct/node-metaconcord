@@ -53,6 +53,9 @@ const GAME_LABELS: Record<ServerGame, string> = {
 	vrchat: "VRChat",
 };
 
+/** gmod's default, for servers whose config leaves the port out */
+const DEFAULT_PORT = 27015;
+
 const DNS_TTL = 10 * 60 * 1000;
 const dnsCache = new Map<string, { ip: string; expires: number }>();
 
@@ -100,6 +103,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			if (!server || server.disconnected || !server.wsConnection?.connected) continue;
 			const { config } = server;
 			const sandbox = server.gamemode?.folderName?.toLowerCase().includes("sandbox");
+			const configIp = Array.isArray(config.ip) ? config.ip[0] : config.ip;
 			gmod.push({
 				id: config.id,
 				key: `gmod-${config.id}`,
@@ -117,8 +121,8 @@ export default async (webApp: WebApp): Promise<void> => {
 				upSince: server.serverUpSince,
 				connect: {
 					address: config.address,
-					port: config.port,
-					ip: config.address ? await resolveIp(config.address) : undefined,
+					port: config.port ?? DEFAULT_PORT,
+					ip: (config.address ? await resolveIp(config.address) : undefined) ?? configIp,
 					label: config.label || undefined,
 				},
 				extra: server.hostname ? { hostname: server.hostname } : undefined,
