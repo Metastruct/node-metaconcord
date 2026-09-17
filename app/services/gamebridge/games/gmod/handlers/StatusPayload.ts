@@ -282,7 +282,7 @@ export default class StatusPayload extends Payload {
 						.setStyle(Discord.ButtonStyle.Link)
 						.setLabel("Connect")
 						.setURL(
-							`https://metaconcord.metastruct.net/${
+							`https://metastruct.net/${
 								server.config.label ? "join/" + server.config.label : ""
 							}`
 						)
