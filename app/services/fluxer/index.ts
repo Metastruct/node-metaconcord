@@ -490,13 +490,9 @@ export class Fluxer extends Service {
 		return current;
 	}
 
-	private async relayDiscordCreate(
-		message: Discord.Message | Discord.PartialMessage,
-		backfill = false
-	) {
+	private async relayDiscordCreate(message: Discord.Message | Discord.PartialMessage) {
 		if (!config.enabled || message.guildId !== this.discordBot.config.bot.primaryGuildId)
 			return;
-		if (!backfill && message.author?.id === this.discordBot.discord.user?.id) return;
 		if (message.webhookId && this.discordBridgeWebhookIds.has(message.webhookId)) return;
 		const route = this.routesByDiscord.get(message.channelId);
 		if (!route?.relayEnabled || (await this.mappingByDiscordMessage(message.id))) return;
@@ -595,7 +591,7 @@ export class Fluxer extends Service {
 				(a, b) => a.createdTimestamp - b.createdTimestamp
 			)) {
 				await this.enqueue(`discord:${channelId}`, () =>
-					this.relayDiscordCreate(message, true)
+					this.relayDiscordCreate(message)
 				);
 				examined++;
 			}
