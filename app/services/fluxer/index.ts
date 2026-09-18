@@ -205,13 +205,26 @@ export function componentFallbackText(components: readonly unknown[]) {
 	return lines.join("\n").trim();
 }
 
+export type UnmappedEmoji = {
+	id: string;
+	name: string;
+	animated: boolean;
+};
+
+export function discordEmojiCdnUrl(id: string, animated: boolean): string {
+	return `https://cdn.discordapp.com/emojis/${id}.${animated ? "gif" : "png"}`;
+}
+
 export function rewriteEmojiMarkup(
 	content: string,
-	lookup: (id: string) => string | undefined
+	lookup: (id: string) => string | undefined,
+	onUnmapped?: (emoji: UnmappedEmoji) => void
 ): string {
 	return content.replace(/<(a?):([^:>]+):(\d+)>/g, (_match, animated, name, id) => {
 		const target = lookup(id);
-		return target ? `<${animated}:${name}:${target}>` : `:${name}:`;
+		if (target) return `<${animated}:${name}:${target}>`;
+		onUnmapped?.({ id, name, animated: animated === "a" });
+		return `:${name}:`;
 	});
 }
 
@@ -693,7 +706,9 @@ export class Fluxer extends Service {
 		const payload = this.translateFluxerMessage(message);
 		payload.content = appendContent(
 			payload.content,
-			(message.stickers ?? []).map(sticker => `[Sticker: ${sticker.name}]`),
+			(message.stickers ?? []).map(
+				sticker => `${config.mediaBaseUrl}/stickers/${sticker.id}.png`
+			),
 			2000
 		);
 		const { files, fallbackUrls } = await this.prepareDiscordAttachments(
@@ -729,7 +744,9 @@ export class Fluxer extends Service {
 		const payload = this.translateFluxerMessage(message);
 		payload.content = appendContent(
 			payload.content,
-			(message.stickers ?? []).map(sticker => `[Sticker: ${sticker.name}]`),
+			(message.stickers ?? []).map(
+				sticker => `${config.mediaBaseUrl}/stickers/${sticker.id}.png`
+			),
 			2000
 		);
 		const { files, fallbackUrls } = await this.prepareDiscordAttachments(
@@ -788,6 +805,7 @@ export class Fluxer extends Service {
 	private translateDiscordMessage(message: Discord.Message): MentionPayload {
 		const users = new Set<string>();
 		const roles = new Set<string>();
+		const emojiFallbackById = new Map<string, UnmappedEmoji>();
 		let content = message.content
 			.replace(/<@&(\d+)>/g, (_match, id) => {
 				const mapped = this.fluxerRolesByDiscord.get(id);
@@ -811,7 +829,22 @@ export class Fluxer extends Service {
 					? `<#${route.fluxerChannelId}>`
 					: `#${message.guild?.channels.cache.get(id)?.name ?? "channel"}`;
 			});
-		content = rewriteEmojiMarkup(content, id => this.emojiFluxerByDiscord.get(id));
+		content = rewriteEmojiMarkup(
+			content,
+			id => this.emojiFluxerByDiscord.get(id),
+			emoji => {
+				if (!emojiFallbackById.has(emoji.id)) emojiFallbackById.set(emoji.id, emoji);
+			}
+		);
+		if (emojiFallbackById.size > 0) {
+			content = appendContent(
+				content,
+				[...emojiFallbackById.values()].map(emoji =>
+					discordEmojiCdnUrl(emoji.id, emoji.animated)
+				),
+				4000
+			);
+		}
 		content = content.replace(
 			/https?:\/\/(?:canary\.|ptb\.)?discord(?:app)?\.com\/channels\/(\d+)\/(\d+)(?:\/(\d+))?/g,
 			(match, _guildId, channelId, messageId) => {
