@@ -787,8 +787,18 @@ try {
 }
 await writeFile(
 	resolve(root, "app/services/fluxer/mappings.json"),
-	JSON.stringify({ channels: bridgeChannelMappings, roles: bridgeRoleMappings }, null, "\t") +
-		"\n"
+	JSON.stringify(
+		{
+			channels: bridgeChannelMappings,
+			roles: bridgeRoleMappings,
+			permanentMessageChannelIds: [
+				discordConfig.channels.rules,
+				discordConfig.channels.serverStatus,
+			],
+		},
+		null,
+		"\t"
+	) + "\n"
 );
 step(`persisted ${catOrder.length + orderedChannels.length} channel and role mappings`);
 

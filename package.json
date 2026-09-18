@@ -21,6 +21,7 @@
 		"check": "eslint . && prettier --check .",
 		"mirror": "node scripts/mirror.mjs",
 		"test:fluxer": "node --test test/fluxer-mappings.test.mjs",
+		"test:fluxer:dist": "node --test test/fluxer-formatting-dist.test.mjs",
 		"schema:gen": "node schema_gen.mjs"
 	},
 	"dependencies": {

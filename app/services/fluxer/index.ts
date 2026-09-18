@@ -47,7 +47,7 @@ type DiscordDestination = {
 	threadId?: string;
 };
 
-function normalizeEmbeds(embeds: readonly unknown[], content = ""): Discord.APIEmbed[] {
+export function normalizeEmbeds(embeds: readonly unknown[], content = ""): Discord.APIEmbed[] {
 	const normalized = embeds
 		.filter(value => {
 			const embed = value as Record<string, unknown>;
@@ -138,7 +138,7 @@ function normalizeEmbeds(embeds: readonly unknown[], content = ""): Discord.APIE
 	return result;
 }
 
-function componentEmbeds(components: readonly unknown[]): Discord.APIEmbed[] {
+export function componentEmbeds(components: readonly unknown[]): Discord.APIEmbed[] {
 	const embeds: Discord.APIEmbed[] = [];
 	for (const value of components) {
 		const container = value as Record<string, unknown>;
@@ -185,6 +185,24 @@ function componentEmbeds(components: readonly unknown[]): Discord.APIEmbed[] {
 		});
 	}
 	return embeds;
+}
+
+export function componentFallbackText(components: readonly unknown[]) {
+	const lines: string[] = [];
+	const visit = (value: unknown) => {
+		const component = value as Record<string, unknown>;
+		if (component.type === 10 && typeof component.content === "string") {
+			lines.push(component.content);
+		}
+		if (typeof component.url === "string") {
+			lines.push(
+				`[${typeof component.label === "string" ? component.label : "Open"}](${component.url})`
+			);
+		}
+		if (Array.isArray(component.components)) component.components.forEach(visit);
+	};
+	components.forEach(visit);
+	return lines.join("\n").trim();
 }
 
 function appendContent(content: string, additions: string[], limit: number) {
@@ -427,8 +445,7 @@ export class Fluxer extends Service {
 		if (!config.enabled || message.guildId !== this.discordBot.config.bot.primaryGuildId)
 			return;
 		if (!backfill && message.author?.id === this.discordBot.discord.user?.id) return;
-		if (!backfill && message.webhookId && this.discordBridgeWebhookIds.has(message.webhookId))
-			return;
+		if (message.webhookId && this.discordBridgeWebhookIds.has(message.webhookId)) return;
 		const route = this.routesByDiscord.get(message.channelId);
 		if (!route?.relayEnabled || (await this.mappingByDiscordMessage(message.id))) return;
 		if (message.partial) message = await message.fetch();
@@ -442,13 +459,16 @@ export class Fluxer extends Service {
 			[...message.stickers.values()].map(sticker => sticker.url).concat(fallbackUrls),
 			4000
 		);
+		const components = message.components.map(component => component.toJSON());
 		const embeds = normalizeEmbeds(
-			[
-				...message.embeds.map(embed => embed.toJSON()),
-				...componentEmbeds(message.components.map(component => component.toJSON())),
-			],
+			[...message.embeds.map(embed => embed.toJSON()), ...componentEmbeds(components)],
 			message.content
 		);
+		if (!payload.content && embeds.length === 0 && attachments.length === 0) {
+			payload.content =
+				componentFallbackText(components).slice(0, 4000) ||
+				`[View this Discord message](${message.url})`;
+		}
 		const reply = message.reference?.messageId
 			? await this.mappingByDiscordMessage(message.reference.messageId)
 			: undefined;
@@ -490,15 +510,26 @@ export class Fluxer extends Service {
 	}
 
 	private async backfillPermanentMessages() {
-		let relayed = 0;
-		for (const channelId of [
-			this.discordBot.config.channels.rules,
-			this.discordBot.config.channels.serverStatus,
-		]) {
+		if (!this.discordBot.discord.isReady()) {
+			await new Promise<void>(resolve =>
+				this.discordBot.discord.once("clientReady", () => resolve())
+			);
+		}
+		let examined = 0;
+		for (const channelId of mappingSeed.permanentMessageChannelIds) {
 			const route = this.routesByDiscord.get(channelId);
-			if (!route?.relayEnabled) continue;
+			if (!route?.relayEnabled) {
+				log.warn({ channelId, route }, "Skipping permanent-message backfill route");
+				continue;
+			}
 			const channel = await this.discordBot.discord.channels.fetch(channelId);
-			if (!channel?.isTextBased() || !("messages" in channel)) continue;
+			if (!channel?.isTextBased() || !("messages" in channel)) {
+				log.warn(
+					{ channelId, channelType: channel?.type },
+					"Backfill channel is not text-based"
+				);
+				continue;
+			}
 			const messages = await channel.messages.fetch({ limit: 100 });
 			for (const message of [...messages.values()].sort(
 				(a, b) => a.createdTimestamp - b.createdTimestamp
@@ -506,10 +537,10 @@ export class Fluxer extends Service {
 				await this.enqueue(`discord:${channelId}`, () =>
 					this.relayDiscordCreate(message, true)
 				);
-				relayed++;
+				examined++;
 			}
 		}
-		log.info({ examinedMessages: relayed }, "Fluxer permanent-message backfill complete");
+		log.info({ examinedMessages: examined }, "Fluxer permanent-message backfill complete");
 	}
 
 	private async relayDiscordUpdate(message: Discord.Message | Discord.PartialMessage) {
@@ -525,13 +556,21 @@ export class Fluxer extends Service {
 			[...message.stickers.values()].map(sticker => sticker.url),
 			4000
 		);
+		const components = message.components.map(component => component.toJSON());
 		const embeds = normalizeEmbeds(
-			[
-				...message.embeds.map(embed => embed.toJSON()),
-				...componentEmbeds(message.components.map(component => component.toJSON())),
-			],
+			[...message.embeds.map(embed => embed.toJSON()), ...componentEmbeds(components)],
 			message.content
 		);
+		if (
+			!payload.content &&
+			embeds.length === 0 &&
+			message.attachments.size === 0 &&
+			message.stickers.size === 0
+		) {
+			payload.content =
+				componentFallbackText(components).slice(0, 4000) ||
+				`[View this Discord message](${message.url})`;
+		}
 		await this.withFluxerWebhook(mapping.fluxer_channel_id, webhook =>
 			this.rest.request(
 				"PATCH",

@@ -20,7 +20,7 @@ RUN for f in *.example.json; do \
 # hack, remove build config so production config can be mounted at /app/dist/config
 # todo: handle empty config in the app
 WORKDIR /app
-RUN yarn test:fluxer && yarn build && rm -rf ./config
+RUN yarn test:fluxer && yarn build && yarn test:fluxer:dist && rm -rf ./config
 
 EXPOSE 20122
 
