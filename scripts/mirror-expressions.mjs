@@ -14,8 +14,20 @@ const dryRun = args.has("--dry-run");
 const assumeYes = args.has("--yes");
 const prune = args.has("--prune");
 
-const discordConfig = JSON.parse(await readFile(resolve(root, "config/discord.json"), "utf8"));
-const fluxerConfig = JSON.parse(await readFile(resolve(root, "config/fluxer.json"), "utf8"));
+async function readConfig(name) {
+	const candidates = [resolve(root, "config", name), resolve(root, "dist/config", name)];
+	for (const path of candidates) {
+		try {
+			return JSON.parse(await readFile(path, "utf8"));
+		} catch (error) {
+			if (error.code !== "ENOENT") throw error;
+		}
+	}
+	throw new Error(`config/${name} not found (looked in: ${candidates.join(", ")})`);
+}
+
+const discordConfig = await readConfig("discord.json");
+const fluxerConfig = await readConfig("fluxer.json");
 
 const DISCORD_API = "https://discord.com/api/v10";
 const FLUXER_API = fluxerConfig.apiBaseUrl;
