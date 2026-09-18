@@ -38,3 +38,11 @@ test("only writable text and active thread routes relay", () => {
 			.every(route => !route.relayEnabled)
 	);
 });
+
+test("permanent-message backfill routes are embedded and writable", () => {
+	assert.equal(mappings.permanentMessageChannelIds.length, 2);
+	for (const channelId of mappings.permanentMessageChannelIds) {
+		const route = mappings.channels.find(item => item.discordChannelId === channelId);
+		assert.ok(route?.relayEnabled, `missing writable route for ${channelId}`);
+	}
+});
