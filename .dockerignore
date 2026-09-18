@@ -1,0 +1,12 @@
+.git
+.env
+*.pem
+node_modules
+dist
+data
+build
+cache
+metaconcord.db*
+config/*.json
+!config/*.example.json
+markov_data.txt

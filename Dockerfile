@@ -17,10 +17,10 @@ RUN for f in *.example.json; do \
   cp "$f" "${f/.example.json/.json}"; \
   done
 
-# hack, remove config after building so we can mount it
+# hack, remove build config so production config can be mounted at /app/dist/config
 # todo: handle empty config in the app
 WORKDIR /app
-RUN yarn build && rm -rf ./config
+RUN yarn test:fluxer && yarn build && rm -rf ./config
 
 EXPOSE 20122
 

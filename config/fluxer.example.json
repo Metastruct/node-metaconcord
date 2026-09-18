@@ -1,0 +1,11 @@
+{
+	"enabled": false,
+	"guildId": "",
+	"apiBaseUrl": "https://api.fluxer.app/v1",
+	"webAppBaseUrl": "https://web.fluxer.app",
+	"mediaBaseUrl": "https://media.fluxer.app",
+	"webhookName": "Metaconcord Bridge",
+	"applicationId": "",
+	"clientSecret": "",
+	"botToken": ""
+}

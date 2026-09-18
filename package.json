@@ -19,6 +19,8 @@
 		"scss-watch": "sass --watch resources/ --no-source-map",
 		"fix": "prettier --write .",
 		"check": "eslint . && prettier --check .",
+		"mirror": "node scripts/mirror.mjs",
+		"test:fluxer": "node --test test/fluxer-mappings.test.mjs",
 		"schema:gen": "node schema_gen.mjs"
 	},
 	"dependencies": {
