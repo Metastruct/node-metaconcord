@@ -18,7 +18,7 @@ export class SQL extends Service {
 	async init(): Promise<void> {
 		this.database = await open({
 			driver: sqlite3.Database,
-			filename: "metaconcord.db",
+			filename: process.env.METACONCORD_DB_PATH ?? "metaconcord.db",
 		});
 
 		await this.database.exec("PRAGMA journal_mode=WAL;");

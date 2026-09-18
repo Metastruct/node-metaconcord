@@ -19,6 +19,7 @@ jobs:
                   cache: yarn
             - run: yarn install --immutable
             - run: yarn check
+            - run: yarn test:fluxer
             - run: yarn schema:gen
             - name: Check generated schemas are up to date
               run: |

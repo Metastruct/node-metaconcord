@@ -1,0 +1,483 @@
+{
+	"channels": [
+		{
+			"discordChannelId": "355972631922475008",
+			"fluxerChannelId": "1550431363377659910",
+			"discordParentId": null,
+			"channelKind": "category",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "1122915376049688586",
+			"fluxerChannelId": "1550431391987007488",
+			"discordParentId": null,
+			"channelKind": "category",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "355972744212381696",
+			"fluxerChannelId": "1550431419434532864",
+			"discordParentId": null,
+			"channelKind": "category",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "414857219650355200",
+			"fluxerChannelId": "1550431446831726592",
+			"discordParentId": null,
+			"channelKind": "category",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "1221874751052451891",
+			"fluxerChannelId": "1550431474002427904",
+			"discordParentId": null,
+			"channelKind": "category",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "355972922407518208",
+			"fluxerChannelId": "1550431501173129216",
+			"discordParentId": null,
+			"channelKind": "category",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "1548712867279147178",
+			"fluxerChannelId": "1550431528348024832",
+			"discordParentId": null,
+			"channelKind": "category",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "828263282447089684",
+			"fluxerChannelId": "1550431555506143232",
+			"discordParentId": null,
+			"channelKind": "category",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "415562885696323595",
+			"fluxerChannelId": "1550431582915919872",
+			"discordParentId": null,
+			"channelKind": "category",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "164734812668559360",
+			"fluxerChannelId": "1550433899413241856",
+			"discordParentId": "355972631922475008",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "695015287766122526",
+			"fluxerChannelId": "1550431774574641152",
+			"discordParentId": "355972631922475008",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "199833017613549568",
+			"fluxerChannelId": "1550431801799868416",
+			"discordParentId": "355972631922475008",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "722905630498881558",
+			"fluxerChannelId": "1550431829209645056",
+			"discordParentId": "355972631922475008",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "324685126699188224",
+			"fluxerChannelId": "1550433926651052032",
+			"discordParentId": "355972631922475008",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1032281886447382579",
+			"fluxerChannelId": "1550433954048245760",
+			"discordParentId": "355972631922475008",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "738920186186563655",
+			"fluxerChannelId": "1550433981399302144",
+			"discordParentId": "355972631922475008",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "479384541232889866",
+			"fluxerChannelId": "1550431610485080064",
+			"discordParentId": "1122915376049688586",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1062426223327858769",
+			"fluxerChannelId": "1550431637685141504",
+			"discordParentId": "1122915376049688586",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1122916273882402876",
+			"fluxerChannelId": "1550431664885202944",
+			"discordParentId": "1122915376049688586",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "289906269278568448",
+			"fluxerChannelId": "1550431856682336256",
+			"discordParentId": "355972744212381696",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "165513567800393728",
+			"fluxerChannelId": "1550434008662278144",
+			"discordParentId": "355972744212381696",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "471411029708898315",
+			"fluxerChannelId": "1550434036025917440",
+			"discordParentId": "355972744212381696",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "164779286971154433",
+			"fluxerChannelId": "1550434063360196608",
+			"discordParentId": "355972744212381696",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "164771969848311808",
+			"fluxerChannelId": "1550434090677698560",
+			"discordParentId": "355972744212381696",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "214036996086038538",
+			"fluxerChannelId": "1550434117928091648",
+			"discordParentId": "355972744212381696",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "876109665581297685",
+			"fluxerChannelId": "1550434145350451200",
+			"discordParentId": "355972744212381696",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "541968605269458967",
+			"fluxerChannelId": "1550434172781199360",
+			"discordParentId": "355972744212381696",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1379395761757880320",
+			"fluxerChannelId": "1550434200182587392",
+			"discordParentId": "355972744212381696",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "632691646483660820",
+			"fluxerChannelId": "1550431884016615424",
+			"discordParentId": "355972744212381696",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "596038290738774016",
+			"fluxerChannelId": "1550434364699967488",
+			"discordParentId": "414857219650355200",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "164734812668559361",
+			"fluxerChannelId": "1550434282126704640",
+			"discordParentId": "414857219650355200",
+			"channelKind": "voice",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "397515362435989505",
+			"fluxerChannelId": "1550431938945220608",
+			"discordParentId": "414857219650355200",
+			"channelKind": "voice",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "682361329042194444",
+			"fluxerChannelId": "1550434309951717376",
+			"discordParentId": "414857219650355200",
+			"channelKind": "voice",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "710922678672031845",
+			"fluxerChannelId": "1550431966350802944",
+			"discordParentId": "414857219650355200",
+			"channelKind": "voice",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "484830306172534786",
+			"fluxerChannelId": "1550434337277607936",
+			"discordParentId": "414857219650355200",
+			"channelKind": "voice",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "1221875200581177454",
+			"fluxerChannelId": "1550431692164956160",
+			"discordParentId": "1221874751052451891",
+			"channelKind": "forum_placeholder",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "278143312186310657",
+			"fluxerChannelId": "1550431719562149888",
+			"discordParentId": "1221874751052451891",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1007016808613687398",
+			"fluxerChannelId": "1550434227550420992",
+			"discordParentId": "355972922407518208",
+			"channelKind": "forum_placeholder",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "1009704968070107148",
+			"fluxerChannelId": "1550431911657078784",
+			"discordParentId": "1007016808613687398",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "608811374826618908",
+			"fluxerChannelId": "1550434254830174208",
+			"discordParentId": "355972922407518208",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "179265653864267777",
+			"fluxerChannelId": "1550431746900623360",
+			"discordParentId": "1548712867279147178",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "350010538555604995",
+			"fluxerChannelId": "1550433871756001280",
+			"discordParentId": "1548712867279147178",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "827278670443315282",
+			"fluxerChannelId": "1550432216117411840",
+			"discordParentId": "828263282447089684",
+			"channelKind": "voice",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "1253743866733920419",
+			"fluxerChannelId": "1550434392025858048",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1523370423004303523",
+			"fluxerChannelId": "1550432076505808896",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "695015287766122527",
+			"fluxerChannelId": "1550432105031270400",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1189924848793833532",
+			"fluxerChannelId": "1550431993727025152",
+			"discordParentId": "695015287766122527",
+			"channelKind": "archived_thread",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "1189924793756155974",
+			"fluxerChannelId": "1550432021380071424",
+			"discordParentId": "695015287766122527",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1189925977627836466",
+			"fluxerChannelId": "1550432048915677184",
+			"discordParentId": "695015287766122527",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1029765639746883624",
+			"fluxerChannelId": "1550434419246891008",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "314508565194735617",
+			"fluxerChannelId": "1550432132747231232",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "228885495285809152",
+			"fluxerChannelId": "1550432160433831936",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "744117965548552193",
+			"fluxerChannelId": "1550432188296593408",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "292038660247912458",
+			"fluxerChannelId": "1550434447243870208",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1007029304871366676",
+			"fluxerChannelId": "1550434475010162688",
+			"discordParentId": "415562885696323595",
+			"channelKind": "forum_placeholder",
+			"relayEnabled": false
+		},
+		{
+			"discordChannelId": "560151470058635275",
+			"fluxerChannelId": "1550434502805815296",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "164735698589450241",
+			"fluxerChannelId": "1550434530425307136",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "532700260401676289",
+			"fluxerChannelId": "1550434558179016704",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "489198693392842763",
+			"fluxerChannelId": "1550434586117275648",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "260862867018874890",
+			"fluxerChannelId": "1550434613896151040",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "519189235396247565",
+			"fluxerChannelId": "1550434641331093504",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "731829433425461249",
+			"fluxerChannelId": "1550434669047054336",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1399331562218061834",
+			"fluxerChannelId": "1550434696851095552",
+			"discordParentId": "415562885696323595",
+			"channelKind": "text",
+			"relayEnabled": true
+		}
+	],
+	"roles": [
+		{
+			"discordRoleId": "164743136428556288",
+			"fluxerRoleId": "1550209112967479296"
+		},
+		{
+			"discordRoleId": "587653001422831627",
+			"fluxerRoleId": "1550431120376463362"
+		},
+		{
+			"discordRoleId": "828266726440435712",
+			"fluxerRoleId": "1550431151871492096"
+		},
+		{
+			"discordRoleId": "873548050956701747",
+			"fluxerRoleId": "1550431181965623296"
+		},
+		{
+			"discordRoleId": "683288525990395962",
+			"fluxerRoleId": "1550431212177195008"
+		},
+		{
+			"discordRoleId": "321302801072390165",
+			"fluxerRoleId": "1550431239247233025"
+		},
+		{
+			"discordRoleId": "1027941644533764227",
+			"fluxerRoleId": "1550431272709390336"
+		},
+		{
+			"discordRoleId": "1516142523993559122",
+			"fluxerRoleId": "1550431302895796224"
+		},
+		{
+			"discordRoleId": "1074046469130174576",
+			"fluxerRoleId": "1550431333040259072"
+		}
+	]
+}

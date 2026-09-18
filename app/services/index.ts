@@ -5,6 +5,7 @@ import BanProvider, { Bans } from "./Bans.js";
 import DataProvider, { Data } from "./Data.js";
 import DiscordBotProvider, { DiscordBot } from "./discord/index.js";
 import DiscordMetadataProvider, { DiscordMetadata } from "./DiscordMetadata.js";
+import FluxerProvider, { Fluxer } from "./fluxer/index.js";
 import GameBridgeProvider, { GameBridge } from "./gamebridge/index.js";
 import GithubProvider, { Github } from "./Github.js";
 import GitlabProvider, { Gitlab } from "./Gitlab.js";
@@ -37,6 +38,7 @@ export default [
 	// Depends on Data & GameBridge
 	DiscordBotProvider,
 	// Depend on DiscordBot
+	FluxerProvider,
 	MotdProvider,
 	IRCProvider,
 	StarboardProvider,
@@ -50,6 +52,7 @@ export {
 	Data,
 	DiscordBot,
 	DiscordMetadata,
+	Fluxer,
 	GameBridge,
 	Github,
 	Gitlab,
@@ -70,6 +73,7 @@ export type ServiceMap = {
 	Data: Data;
 	DiscordBot: DiscordBot;
 	DiscordMetadata: DiscordMetadata;
+	Fluxer: Fluxer;
 	GameBridge: GameBridge;
 	Github: Github;
 	Gitlab: Gitlab;

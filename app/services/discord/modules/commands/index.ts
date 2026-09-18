@@ -12,6 +12,7 @@ import { MenuRemoveHighlightMessageCommand } from "./RemoveHighlightMessage.js";
 import { MenuWhyRoleCommand } from "./WhyRole.js";
 import { SlashEndEvent } from "./developer/Events.js";
 import { SlashFileCommand } from "./developer/File.js";
+import { SlashFluxerLinkCommand } from "./FluxerLink.js";
 import { SlashMarkovCommand } from "./Markov.js";
 import { SlashRandomImageCommand } from "./Shitposting.js";
 import { SlashRoleCommand } from "./Role.js";
@@ -37,6 +38,7 @@ export const slashCommands = [
 	SlashSQLCommand,
 	// normal commands
 	SlashDeeplCommand,
+	SlashFluxerLinkCommand,
 	SlashMarkovCommand,
 	SlashRoleCommand,
 	SlashRandomImageCommand,
