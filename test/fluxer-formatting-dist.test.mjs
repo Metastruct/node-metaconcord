@@ -4,6 +4,7 @@ import {
 	componentEmbeds,
 	componentFallbackText,
 	normalizeEmbeds,
+	rewriteEmojiMarkup,
 } from "../dist/app/services/fluxer/index.js";
 
 test("generated Klipy previews are left for the destination to unfurl", () => {
@@ -49,4 +50,12 @@ test("authored embeds and commit component containers remain relayable", () => {
 	assert.match(embeds[0].description, /Commit title/);
 	assert.equal(embeds[0].thumbnail.url, "https://example.com/avatar.png");
 	assert.match(componentFallbackText(components), /fixed/);
+});
+
+test("rewriteEmojiMarkup maps known emojis and falls back otherwise", () => {
+	const lookup = id => (id === "1001" ? "9001" : undefined);
+	assert.equal(rewriteEmojiMarkup("hi <:pet:1001> there", lookup), "hi <:pet:9001> there");
+	assert.equal(rewriteEmojiMarkup("<a:wave:1001>", lookup), "<a:wave:9001>");
+	assert.equal(rewriteEmojiMarkup("x <:unknown:5000> y", lookup), "x :unknown: y");
+	assert.equal(rewriteEmojiMarkup("no emoji here", lookup), "no emoji here");
 });

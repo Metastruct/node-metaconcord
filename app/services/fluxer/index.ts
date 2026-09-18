@@ -205,6 +205,16 @@ export function componentFallbackText(components: readonly unknown[]) {
 	return lines.join("\n").trim();
 }
 
+export function rewriteEmojiMarkup(
+	content: string,
+	lookup: (id: string) => string | undefined
+): string {
+	return content.replace(/<(a?):([^:>]+):(\d+)>/g, (_match, animated, name, id) => {
+		const target = lookup(id);
+		return target ? `<${animated}:${name}:${target}>` : `:${name}:`;
+	});
+}
+
 function appendContent(content: string, additions: string[], limit: number) {
 	const combined = [content, ...additions].filter(Boolean).join("\n");
 	if (combined.length <= limit) return combined;
@@ -230,6 +240,9 @@ export class Fluxer extends Service {
 	private readonly queues = new Map<string, Promise<void>>();
 	private readonly suppressedDiscordDeletes = new Set<string>();
 	private readonly suppressedFluxerDeletes = new Set<string>();
+	private readonly emojiFluxerByDiscord = new Map<string, string>();
+	private readonly emojiDiscordByFluxer = new Map<string, string>();
+	private readonly stickerFluxerByDiscord = new Map<string, string>();
 
 	constructor(container: Container) {
 		super(container);
@@ -320,6 +333,19 @@ export class Fluxer extends Service {
 				discord_user_id TEXT NOT NULL UNIQUE,
 				expires_at_ms INTEGER NOT NULL
 			);
+			CREATE TABLE IF NOT EXISTS fluxer_emoji_mappings (
+				discord_emoji_id TEXT PRIMARY KEY,
+				fluxer_emoji_id TEXT NOT NULL UNIQUE,
+				name TEXT NOT NULL,
+				animated INTEGER NOT NULL CHECK (animated IN (0, 1)),
+				updated_at_ms INTEGER NOT NULL
+			);
+			CREATE TABLE IF NOT EXISTS fluxer_sticker_mappings (
+				discord_sticker_id TEXT PRIMARY KEY,
+				fluxer_sticker_id TEXT NOT NULL UNIQUE,
+				name TEXT NOT NULL,
+				updated_at_ms INTEGER NOT NULL
+			);
 		`);
 	}
 
@@ -358,6 +384,19 @@ export class Fluxer extends Service {
 		for (const row of userRows) {
 			this.fluxerUsersByDiscord.set(row.discord_user_id, row.fluxer_user_id);
 			this.discordUsersByFluxer.set(row.fluxer_user_id, row.discord_user_id);
+		}
+		const emojiRows = await database.all<
+			{ discord_emoji_id: string; fluxer_emoji_id: string }[]
+		>("SELECT discord_emoji_id, fluxer_emoji_id FROM fluxer_emoji_mappings");
+		for (const row of emojiRows) {
+			this.emojiFluxerByDiscord.set(row.discord_emoji_id, row.fluxer_emoji_id);
+			this.emojiDiscordByFluxer.set(row.fluxer_emoji_id, row.discord_emoji_id);
+		}
+		const stickerRows = await database.all<
+			{ discord_sticker_id: string; fluxer_sticker_id: string }[]
+		>("SELECT discord_sticker_id, fluxer_sticker_id FROM fluxer_sticker_mappings");
+		for (const row of stickerRows) {
+			this.stickerFluxerByDiscord.set(row.discord_sticker_id, row.fluxer_sticker_id);
 		}
 	}
 
@@ -454,9 +493,16 @@ export class Fluxer extends Service {
 		const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(route, [
 			...message.attachments.values(),
 		]);
+		const stickerIds = [...message.stickers.values()]
+			.map(sticker => this.stickerFluxerByDiscord.get(sticker.id))
+			.filter((id): id is string => Boolean(id))
+			.slice(0, 3);
+		const fallbackStickerUrls = [...message.stickers.values()]
+			.filter(sticker => !this.stickerFluxerByDiscord.has(sticker.id))
+			.map(sticker => sticker.url);
 		payload.content = appendContent(
 			payload.content,
-			[...message.stickers.values()].map(sticker => sticker.url).concat(fallbackUrls),
+			fallbackStickerUrls.concat(fallbackUrls),
 			4000
 		);
 		const components = message.components.map(component => component.toJSON());
@@ -486,6 +532,7 @@ export class Fluxer extends Service {
 					avatar_url: message.author.displayAvatarURL({ size: 128 }),
 					...(embeds.length > 0 ? { embeds } : {}),
 					attachments,
+					...(stickerIds.length > 0 ? { sticker_ids: stickerIds } : {}),
 					allowed_mentions: {
 						parse: [],
 						users: payload.users,
@@ -763,8 +810,8 @@ export class Fluxer extends Service {
 				return route
 					? `<#${route.fluxerChannelId}>`
 					: `#${message.guild?.channels.cache.get(id)?.name ?? "channel"}`;
-			})
-			.replace(/<a?:([^:>]+):\d+>/g, ":$1:");
+			});
+		content = rewriteEmojiMarkup(content, id => this.emojiFluxerByDiscord.get(id));
 		content = content.replace(
 			/https?:\/\/(?:canary\.|ptb\.)?discord(?:app)?\.com\/channels\/(\d+)\/(\d+)(?:\/(\d+))?/g,
 			(match, _guildId, channelId, messageId) => {
@@ -780,7 +827,7 @@ export class Fluxer extends Service {
 	private translateFluxerMessage(message: FluxerMessage): MentionPayload {
 		const users = new Set<string>();
 		const roles = new Set<string>();
-		const content = message.content
+		let content = message.content
 			.replace(/<@&(\d+)>/g, (_match, id) => {
 				const mapped = this.discordRolesByFluxer.get(id);
 				if (mapped) {
@@ -801,8 +848,8 @@ export class Fluxer extends Service {
 			.replace(/<#(\d+)>/g, (_match, id) => {
 				const route = this.routesByFluxer.get(id);
 				return route ? `<#${route.discordChannelId}>` : "#channel";
-			})
-			.replace(/<a?:([^:>]+):\d+>/g, ":$1:");
+			});
+		content = rewriteEmojiMarkup(content, id => this.emojiDiscordByFluxer.get(id));
 		return { content, users: [...users].slice(0, 100), roles: [...roles].slice(0, 100) };
 	}
 
