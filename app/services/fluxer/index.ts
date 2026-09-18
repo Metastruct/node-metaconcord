@@ -590,9 +590,7 @@ export class Fluxer extends Service {
 			for (const message of [...messages.values()].sort(
 				(a, b) => a.createdTimestamp - b.createdTimestamp
 			)) {
-				await this.enqueue(`discord:${channelId}`, () =>
-					this.relayDiscordCreate(message)
-				);
+				await this.enqueue(`discord:${channelId}`, () => this.relayDiscordCreate(message));
 				examined++;
 			}
 		}
