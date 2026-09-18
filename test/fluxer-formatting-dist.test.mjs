@@ -3,6 +3,7 @@ import test from "node:test";
 import {
 	componentEmbeds,
 	componentFallbackText,
+	discordEmojiCdnUrl,
 	normalizeEmbeds,
 	rewriteEmojiMarkup,
 } from "../dist/app/services/fluxer/index.js";
@@ -58,4 +59,35 @@ test("rewriteEmojiMarkup maps known emojis and falls back otherwise", () => {
 	assert.equal(rewriteEmojiMarkup("<a:wave:1001>", lookup), "<a:wave:9001>");
 	assert.equal(rewriteEmojiMarkup("x <:unknown:5000> y", lookup), "x :unknown: y");
 	assert.equal(rewriteEmojiMarkup("no emoji here", lookup), "no emoji here");
+});
+
+test("rewriteEmojiMarkup reports unmapped emojis via onUnmapped", () => {
+	const lookup = id => (id === "1001" ? "9001" : undefined);
+	const unmapped = [];
+	const result = rewriteEmojiMarkup(
+		"<:pet:1001> <:external:5000> <a:animated:6000>",
+		lookup,
+		emoji => unmapped.push(emoji)
+	);
+	assert.equal(result, "<:pet:9001> :external: :animated:");
+	assert.deepEqual(unmapped, [
+		{ id: "5000", name: "external", animated: false },
+		{ id: "6000", name: "animated", animated: true },
+	]);
+	assert.deepEqual(
+		rewriteEmojiMarkup("only <:pet:1001>", lookup, emoji => unmapped.push(emoji)),
+		"only <:pet:9001>"
+	);
+	assert.equal(unmapped.length, 2);
+});
+
+test("discordEmojiCdnUrl picks gif for animated and png for static emojis", () => {
+	assert.equal(
+		discordEmojiCdnUrl("1549478493614506104", false),
+		"https://cdn.discordapp.com/emojis/1549478493614506104.png"
+	);
+	assert.equal(
+		discordEmojiCdnUrl("1549478493614506104", true),
+		"https://cdn.discordapp.com/emojis/1549478493614506104.gif"
+	);
 });
