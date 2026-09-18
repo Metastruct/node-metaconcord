@@ -47,62 +47,78 @@ type DiscordDestination = {
 	threadId?: string;
 };
 
-function normalizeEmbeds(embeds: readonly unknown[]): Discord.APIEmbed[] {
-	const normalized = embeds.slice(0, 10).map(value => {
-		const embed = value as Record<string, unknown>;
-		const image = embed.image as Record<string, unknown> | undefined;
-		const thumbnail = embed.thumbnail as Record<string, unknown> | undefined;
-		const author = embed.author as Record<string, unknown> | undefined;
-		const footer = embed.footer as Record<string, unknown> | undefined;
-		return {
-			...(typeof embed.title === "string" ? { title: embed.title } : {}),
-			...(typeof embed.description === "string" ? { description: embed.description } : {}),
-			...(typeof embed.url === "string" ? { url: embed.url } : {}),
-			...(typeof embed.color === "number" ? { color: embed.color } : {}),
-			...(typeof embed.timestamp === "string" ? { timestamp: embed.timestamp } : {}),
-			...(author && typeof author.name === "string"
-				? {
-						author: {
-							name: author.name,
-							...(typeof author.url === "string" ? { url: author.url } : {}),
-							...(typeof author.icon_url === "string"
-								? { icon_url: author.icon_url }
-								: {}),
-						},
-					}
-				: {}),
-			...(footer && typeof footer.text === "string"
-				? {
-						footer: {
-							text: footer.text,
-							...(typeof footer.icon_url === "string"
-								? { icon_url: footer.icon_url }
-								: {}),
-						},
-					}
-				: {}),
-			...(image && typeof image.url === "string" ? { image: { url: image.url } } : {}),
-			...(thumbnail && typeof thumbnail.url === "string"
-				? { thumbnail: { url: thumbnail.url } }
-				: {}),
-			...(Array.isArray(embed.fields)
-				? {
-						fields: embed.fields.slice(0, 25).flatMap(field => {
-							const item = field as Record<string, unknown>;
-							return typeof item.name === "string" && typeof item.value === "string"
-								? [
-										{
-											name: item.name,
-											value: item.value,
-											inline: item.inline === true,
-										},
-									]
-								: [];
-						}),
-					}
-				: {}),
-		};
-	});
+function normalizeEmbeds(embeds: readonly unknown[], content = ""): Discord.APIEmbed[] {
+	const normalized = embeds
+		.filter(value => {
+			const embed = value as Record<string, unknown>;
+			const url = typeof embed.url === "string" ? embed.url : null;
+			if (!url || !content.includes(url)) return true;
+			return !(
+				embed.type !== "rich" ||
+				embed.provider != null ||
+				embed.reference_id != null ||
+				embed.content_scan_version != null
+			);
+		})
+		.slice(0, 10)
+		.map(value => {
+			const embed = value as Record<string, unknown>;
+			const image = embed.image as Record<string, unknown> | undefined;
+			const thumbnail = embed.thumbnail as Record<string, unknown> | undefined;
+			const author = embed.author as Record<string, unknown> | undefined;
+			const footer = embed.footer as Record<string, unknown> | undefined;
+			return {
+				...(typeof embed.title === "string" ? { title: embed.title } : {}),
+				...(typeof embed.description === "string"
+					? { description: embed.description }
+					: {}),
+				...(typeof embed.url === "string" ? { url: embed.url } : {}),
+				...(typeof embed.color === "number" ? { color: embed.color } : {}),
+				...(typeof embed.timestamp === "string" ? { timestamp: embed.timestamp } : {}),
+				...(author && typeof author.name === "string"
+					? {
+							author: {
+								name: author.name,
+								...(typeof author.url === "string" ? { url: author.url } : {}),
+								...(typeof author.icon_url === "string"
+									? { icon_url: author.icon_url }
+									: {}),
+							},
+						}
+					: {}),
+				...(footer && typeof footer.text === "string"
+					? {
+							footer: {
+								text: footer.text,
+								...(typeof footer.icon_url === "string"
+									? { icon_url: footer.icon_url }
+									: {}),
+							},
+						}
+					: {}),
+				...(image && typeof image.url === "string" ? { image: { url: image.url } } : {}),
+				...(thumbnail && typeof thumbnail.url === "string"
+					? { thumbnail: { url: thumbnail.url } }
+					: {}),
+				...(Array.isArray(embed.fields)
+					? {
+							fields: embed.fields.slice(0, 25).flatMap(field => {
+								const item = field as Record<string, unknown>;
+								return typeof item.name === "string" &&
+									typeof item.value === "string"
+									? [
+											{
+												name: item.name,
+												value: item.value,
+												inline: item.inline === true,
+											},
+										]
+									: [];
+							}),
+						}
+					: {}),
+			};
+		});
 	const result: Discord.APIEmbed[] = [];
 	let characters = 0;
 	for (const embed of normalized) {
@@ -120,6 +136,55 @@ function normalizeEmbeds(embeds: readonly unknown[]): Discord.APIEmbed[] {
 		result.push(embed);
 	}
 	return result;
+}
+
+function componentEmbeds(components: readonly unknown[]): Discord.APIEmbed[] {
+	const embeds: Discord.APIEmbed[] = [];
+	for (const value of components) {
+		const container = value as Record<string, unknown>;
+		if (container.type !== 17 || !Array.isArray(container.components)) continue;
+		const lines: string[] = [];
+		let thumbnail: string | undefined;
+		let image: string | undefined;
+		const visit = (componentValue: unknown) => {
+			const component = componentValue as Record<string, unknown>;
+			if (component.type === 10 && typeof component.content === "string") {
+				lines.push(component.content);
+			} else if (component.type === 9) {
+				if (Array.isArray(component.components)) component.components.forEach(visit);
+				const accessory = component.accessory as Record<string, unknown> | undefined;
+				const media = accessory?.media as Record<string, unknown> | undefined;
+				if (!thumbnail && typeof media?.url === "string") thumbnail = media.url;
+			} else if (component.type === 12 && Array.isArray(component.items)) {
+				const item = component.items[0] as Record<string, unknown> | undefined;
+				const media = item?.media as Record<string, unknown> | undefined;
+				if (!image && typeof media?.url === "string") image = media.url;
+			} else if (component.type === 1 && Array.isArray(component.components)) {
+				for (const buttonValue of component.components) {
+					const button = buttonValue as Record<string, unknown>;
+					if (typeof button.url === "string") {
+						lines.push(
+							`[${typeof button.label === "string" ? button.label : "Open"}](${button.url})`
+						);
+					}
+				}
+			} else if (component.type === 14 && lines.at(-1) !== "") {
+				lines.push("");
+			}
+		};
+		container.components.forEach(visit);
+		const description = lines.join("\n").trim().slice(0, 4096);
+		if (!description && !thumbnail && !image) continue;
+		embeds.push({
+			...(description ? { description } : {}),
+			...(typeof container.accent_color === "number"
+				? { color: container.accent_color }
+				: {}),
+			...(thumbnail ? { thumbnail: { url: thumbnail } } : {}),
+			...(image ? { image: { url: image } } : {}),
+		});
+	}
+	return embeds;
 }
 
 function appendContent(content: string, additions: string[], limit: number) {
@@ -171,6 +236,9 @@ export class Fluxer extends Service {
 			(event, data) => this.handleFluxerDispatch(event, data)
 		);
 		this.gateway.start();
+		void this.backfillPermanentMessages().catch(error =>
+			log.error({ err: error }, "Fluxer permanent-message backfill failed")
+		);
 		log.info(
 			{
 				relayChannels: [...this.routesByDiscord.values()].filter(
@@ -349,13 +417,18 @@ export class Fluxer extends Service {
 				if (this.queues.get(key) === current) this.queues.delete(key);
 			});
 		this.queues.set(key, current);
+		return current;
 	}
 
-	private async relayDiscordCreate(message: Discord.Message | Discord.PartialMessage) {
+	private async relayDiscordCreate(
+		message: Discord.Message | Discord.PartialMessage,
+		backfill = false
+	) {
 		if (!config.enabled || message.guildId !== this.discordBot.config.bot.primaryGuildId)
 			return;
-		if (message.author?.id === this.discordBot.discord.user?.id) return;
-		if (message.webhookId && this.discordBridgeWebhookIds.has(message.webhookId)) return;
+		if (!backfill && message.author?.id === this.discordBot.discord.user?.id) return;
+		if (!backfill && message.webhookId && this.discordBridgeWebhookIds.has(message.webhookId))
+			return;
 		const route = this.routesByDiscord.get(message.channelId);
 		if (!route?.relayEnabled || (await this.mappingByDiscordMessage(message.id))) return;
 		if (message.partial) message = await message.fetch();
@@ -368,6 +441,13 @@ export class Fluxer extends Service {
 			payload.content,
 			[...message.stickers.values()].map(sticker => sticker.url).concat(fallbackUrls),
 			4000
+		);
+		const embeds = normalizeEmbeds(
+			[
+				...message.embeds.map(embed => embed.toJSON()),
+				...componentEmbeds(message.components.map(component => component.toJSON())),
+			],
+			message.content
 		);
 		const reply = message.reference?.messageId
 			? await this.mappingByDiscordMessage(message.reference.messageId)
@@ -384,7 +464,7 @@ export class Fluxer extends Service {
 						80
 					),
 					avatar_url: message.author.displayAvatarURL({ size: 128 }),
-					embeds: normalizeEmbeds(message.embeds.map(embed => embed.toJSON())),
+					...(embeds.length > 0 ? { embeds } : {}),
 					attachments,
 					allowed_mentions: {
 						parse: [],
@@ -409,6 +489,29 @@ export class Fluxer extends Service {
 		await this.saveMessageMapping(message.id, sent.id, route, "discord");
 	}
 
+	private async backfillPermanentMessages() {
+		let relayed = 0;
+		for (const channelId of [
+			this.discordBot.config.channels.rules,
+			this.discordBot.config.channels.serverStatus,
+		]) {
+			const route = this.routesByDiscord.get(channelId);
+			if (!route?.relayEnabled) continue;
+			const channel = await this.discordBot.discord.channels.fetch(channelId);
+			if (!channel?.isTextBased() || !("messages" in channel)) continue;
+			const messages = await channel.messages.fetch({ limit: 100 });
+			for (const message of [...messages.values()].sort(
+				(a, b) => a.createdTimestamp - b.createdTimestamp
+			)) {
+				await this.enqueue(`discord:${channelId}`, () =>
+					this.relayDiscordCreate(message, true)
+				);
+				relayed++;
+			}
+		}
+		log.info({ examinedMessages: relayed }, "Fluxer permanent-message backfill complete");
+	}
+
 	private async relayDiscordUpdate(message: Discord.Message | Discord.PartialMessage) {
 		if (!config.enabled) return;
 		if (message.webhookId && this.discordBridgeWebhookIds.has(message.webhookId)) return;
@@ -422,13 +525,20 @@ export class Fluxer extends Service {
 			[...message.stickers.values()].map(sticker => sticker.url),
 			4000
 		);
+		const embeds = normalizeEmbeds(
+			[
+				...message.embeds.map(embed => embed.toJSON()),
+				...componentEmbeds(message.components.map(component => component.toJSON())),
+			],
+			message.content
+		);
 		await this.withFluxerWebhook(mapping.fluxer_channel_id, webhook =>
 			this.rest.request(
 				"PATCH",
 				`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}/messages/${mapping.fluxer_message_id}`,
 				{
 					content: payload.content || null,
-					embeds: normalizeEmbeds(message.embeds.map(embed => embed.toJSON())),
+					...(embeds.length > 0 ? { embeds } : {}),
 					allowed_mentions: {
 						parse: [],
 						users: payload.users,
@@ -504,12 +614,13 @@ export class Fluxer extends Service {
 			message.attachments ?? []
 		);
 		payload.content = await this.fluxerReplyContent(message, payload.content, fallbackUrls);
+		const embeds = normalizeEmbeds(message.embeds ?? [], message.content);
 		const destination = await this.getDiscordWebhook(route);
 		const sent = await destination.webhook.send({
 			content: payload.content || undefined,
 			username: this.fluxerDisplayName(message).slice(0, 80),
 			avatarURL: this.fluxerAvatarUrl(message),
-			embeds: normalizeEmbeds(message.embeds ?? []),
+			...(embeds.length > 0 ? { embeds } : {}),
 			files,
 			allowedMentions: {
 				parse: [],
@@ -539,10 +650,11 @@ export class Fluxer extends Service {
 			message.attachments ?? []
 		);
 		payload.content = await this.fluxerReplyContent(message, payload.content, fallbackUrls);
+		const embeds = normalizeEmbeds(message.embeds ?? [], message.content);
 		const destination = await this.getDiscordWebhook(route);
 		await destination.webhook.editMessage(mapping.discord_message_id, {
 			content: payload.content || null,
-			embeds: normalizeEmbeds(message.embeds ?? []),
+			...(embeds.length > 0 ? { embeds } : {}),
 			attachments: [],
 			files,
 			allowedMentions: {
