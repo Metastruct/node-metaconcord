@@ -147,19 +147,22 @@ function queueEdit(
 	return next;
 }
 
-const GitHub = new Webhooks({
-	secret: webhookConfig.github.secret,
-});
-
+// built lazily: webhooks.json's secret may be placeholder-empty on fresh
+// clones / example configs and @octokit/webhooks throws on that at construct.
 // @octokit/webhooks logs unhandled listener errors via its own default
 // console-based logger, separate from our pino logger, which makes push/PR
 // events that throw silently invisible in our normal logs. Route them here too.
-GitHub.onError(error => {
-	log.error(
-		{ err: error, name: error.event?.name, errors: error.errors },
-		"Github webhook event handler failed"
-	);
-});
+let gitHubWebhooks: Webhooks | undefined;
+const GitHub = (): Webhooks => {
+	gitHubWebhooks ??= new Webhooks({ secret: webhookConfig.github.secret });
+	gitHubWebhooks.onError(error => {
+		log.error(
+			{ err: error, name: error.event?.name, errors: error.errors },
+			"Github webhook event handler failed"
+		);
+	});
+	return gitHubWebhooks;
+};
 
 const BaseEmbed = <Discord.WebhookMessageCreateOptions>{
 	allowedMentions: { parse: ["users"] },
@@ -423,7 +426,7 @@ function addContainerHeader(
 export default async (bot: DiscordBot): Promise<void> => {
 	const webapp = bot.container.getService("WebApp");
 
-	const middleware = createNodeMiddleware(GitHub, { path: "/" });
+	const middleware = createNodeMiddleware(GitHub(), { path: "/" });
 
 	webapp.app.use("/webhooks/github", async (req, res, next) => {
 		if (await middleware(req, res, next)) return;
@@ -451,10 +454,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 	});
 
 	let webhook: Discord.Webhook;
-	const bridge = bot.container.getService("GameBridge");
+	// all soft requirements, relay/button features just don't fire when these are disabled
+	const bridge = bot.container.tryService("GameBridge");
 
-	const github = bot.container.getService("Github");
-	const gitlab = bot.container.getService("Gitlab");
+	const github = bot.container.tryService("Github");
+	const gitlab = bot.container.tryService("Gitlab");
 
 	// Channel ids Gitlab commits/merge requests/pipelines can be routed to
 	// (config/gitlab.json maps project ids onto these), fetched/created lazily
@@ -603,6 +607,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 							url ?? ""
 						) || [];
 					try {
+						if (!github) {
+							await ctx.reply(
+								"github is not enabled on this instance :( ... aborting"
+							);
+							return;
+						}
 						const res = await github.octokit.rest.repos.getCommit({ owner, repo, ref });
 						files = res.data.files?.flatMap(f => f.filename);
 					} catch (err) {
@@ -622,6 +632,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 							url ?? ""
 						) || [];
 					try {
+						if (!gitlab) {
+							await ctx.reply(
+								"gitlab is not enabled on this instance :( ... aborting"
+							);
+							return;
+						}
 						const diffs = await getGitlabDiff(gitlab.api, id, sha);
 						files = diffs?.filter(f => !f.deleted_file).flatMap(f => f.new_path);
 					} catch (err) {
@@ -814,7 +830,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const changeLines = buildChangeLines(changes);
 
 				const diff =
-					isMergeCommit(commit.message) || isOnlyOgg || !repo.owner
+					isMergeCommit(commit.message) || isOnlyOgg || !repo.owner || !github
 						? undefined
 						: await getGitHubCommitDiff(
 								github.octokit,
@@ -1053,10 +1069,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 				if (sha) trackCommitMessage(sha, msg.id, messageComponents, container);
 			})
 			.catch(log.error.bind(log));
-		chatWebhook.send({ ...message, withComponents: true }).catch(log.error.bind(log));
+		chatWebhook()
+			.send({ ...message, withComponents: true })
+			.catch(log.error.bind(log));
 	}
 
-	GitHub.on("push", async event => {
+	GitHub().on("push", async event => {
 		if (!webhook) return;
 
 		if (bridge) {
@@ -1153,12 +1171,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const title = pr.title.length > 256 ? `${pr.title.substring(0, 250)}. . .` : pr.title;
 
-		const diff = await getGitHubPullRequestDiff(
-			github.octokit,
-			repo.owner.login,
-			repo.name,
-			pr.number
-		);
+		const diff = github
+			? await getGitHubPullRequestDiff(github.octokit, repo.owner.login, repo.name, pr.number)
+			: undefined;
 
 		const files = await getPullRequestFiles(pr.url);
 		const changeLines = files ? buildChangeLines(GetPullRequestChanges(files)) : [];
@@ -1227,7 +1242,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		if (msg) trackCommitMessage(pr.head.sha, msg.id, [container], container);
 	}
 
-	GitHub.on("pull_request", async event => {
+	GitHub().on("pull_request", async event => {
 		if (!webhook) return;
 
 		if (bridge) {
@@ -1269,7 +1284,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		}
 	});
 
-	GitHub.on("workflow_run.in_progress", async event => {
+	GitHub().on("workflow_run.in_progress", async event => {
 		if (!webhook) return;
 		const payload = event.payload;
 		const run = payload.workflow_run;
@@ -1288,7 +1303,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		queueEdit(webhook, tracked.messageId, tracked.components);
 	});
 
-	GitHub.on("workflow_run.completed", async event => {
+	GitHub().on("workflow_run.completed", async event => {
 		if (!webhook) return;
 		const payload = event.payload;
 		const run = payload.workflow_run;
@@ -1330,7 +1345,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			.catch(log.error.bind(log));
 	});
 
-	GitHub.on("organization", async event => {
+	GitHub().on("organization", async event => {
 		if (!webhook) return;
 		const payload = event.payload;
 
@@ -1402,7 +1417,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		webhook.send(messagePayload).catch(log.error.bind(log));
 	});
 
-	GitHub.on("membership", async event => {
+	GitHub().on("membership", async event => {
 		if (!webhook) return;
 		const payload = event.payload;
 
@@ -1430,7 +1445,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		webhook.send(messagePayload).catch(log.error.bind(log));
 	});
 
-	GitHub.on("team", async event => {
+	GitHub().on("team", async event => {
 		if (!webhook) return;
 		const payload = event.payload;
 
@@ -1547,7 +1562,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const changeLines = buildChangeLines(changes);
 
 				const diffFiles =
-					isMergeCommit(commit.message) || isOnlyOgg
+					isMergeCommit(commit.message) || isOnlyOgg || !gitlab
 						? undefined
 						: await getGitlabDiff(gitlab.api, project.id, commit.id);
 				const diff = diffFiles?.length
@@ -1682,7 +1697,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const title = mr.title.length > 256 ? `${mr.title.substring(0, 250)}. . .` : mr.title;
 
 		const diffFiles =
-			mr.last_commit && !isMergeCommit(mr.last_commit.message)
+			mr.last_commit && !isMergeCommit(mr.last_commit.message) && gitlab
 				? await getGitlabDiff(gitlab.api, mr.target_project_id, mr.last_commit.id)
 				: undefined;
 		const changeLines = diffFiles

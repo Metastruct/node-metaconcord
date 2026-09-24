@@ -228,8 +228,10 @@ export class DiscordBot extends Service {
 		if (!perms.has("SendMessages", false)) return; // don't get text from channels that are not "public"
 
 		const content = msg.content;
-		if (this.container.getService("Motd").isValidMsg(content))
-			this.container.getService("Markov").learn(msg.content);
+		// both optional: without them the bot just doesn't learn/generate
+		if (this.container.tryService("Motd")?.isValidMsg(content)) {
+			this.container.tryService("Markov")?.learn(msg.content);
+		}
 	}
 
 	async fixEmbeds(msg: Discord.Message): Promise<void> {
@@ -245,7 +247,7 @@ export class DiscordBot extends Service {
 		if (imgurUrls) {
 			for (const imageUrl of imgurUrls) {
 				const id = Array.from(imageUrl.matchAll(ImgurRegex), m => m[1])[0]; // wtf there has to be a better way
-				const info = await this.container.getService("Motd").getImageInfo(id);
+				const info = await this.container.tryService("Motd")?.getImageInfo(id);
 				if (info?.has_sound) {
 					urls.push(imageUrl.replace(/(?:i\.)?imgur\.com/g, "i.imgur.io"));
 				}

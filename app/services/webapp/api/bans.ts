@@ -103,7 +103,8 @@ export const resolveProfiles = async (
 	webApp: WebApp,
 	entries: BanEntry[]
 ): Promise<Record<string, Profile>> => {
-	const steam = webApp.container.getService("Steam");
+	const steam = webApp.container.tryService("Steam");
+	if (!steam) return {};
 	const summaries = await steam.getUserSummariesBulk(profileIds(entries)).catch(() => ({}));
 	const profiles: Record<string, Profile> = {};
 	for (const [id, summary] of Object.entries(summaries)) {
@@ -275,8 +276,8 @@ export default (webApp: WebApp): void => {
 		}
 
 		const id64 = sid.getSteamID64();
-		const steam = webApp.container.getService("Steam");
-		const summary = await steam.getUserSummaries(id64).catch(() => undefined);
+		const steam = webApp.container.tryService("Steam");
+		const summary = await steam?.getUserSummaries(id64).catch(() => undefined);
 		const existing = await webApp.container.getService("Bans").getBan(id64);
 
 		res.set("Cache-Control", "private, no-store");

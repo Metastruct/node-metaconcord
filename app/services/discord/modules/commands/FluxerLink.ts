@@ -6,7 +6,11 @@ export const SlashFluxerLinkCommand: SlashCommand = {
 		description: "Link your Discord and Fluxer accounts for bridge mentions",
 	},
 	async execute(interaction, bot) {
-		const fluxer = bot.container.getService("Fluxer");
+		const fluxer = bot.container.tryService("Fluxer");
+		if (!fluxer) {
+			await interaction.reply(EphemeralResponse("fluxer is not enabled on this instance"));
+			return;
+		}
 		const { code } = await fluxer.createLinkCode(interaction.user.id);
 		await interaction.reply(
 			EphemeralResponse(

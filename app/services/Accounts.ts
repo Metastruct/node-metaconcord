@@ -515,7 +515,12 @@ export class Accounts extends Service {
 
 	/** Lowercased logins per team, from the app installation. Throws when any listing fails. */
 	private async teamMembers(): Promise<Map<string, Set<string>>> {
-		const app = this.container.getService("Github").octokit;
+		const app = this.container.tryService("Github")?.octokit;
+		if (!app) {
+			// no Github service: nothing is role-proven, everyone keeps their roles
+			log.warn("role sweep skipped: Github is not enabled");
+			return new Map();
+		}
 		const members = new Map<string, Set<string>>();
 		for (const team of Object.keys(TEAM_ROLES)) {
 			const logins = await app.paginate(app.teams.listMembersInOrg, {
@@ -577,7 +582,8 @@ export class Accounts extends Service {
 	 * the user's own token when the app is not allowed to.
 	 */
 	private async githubTeams(link: AccountLink, account: AccountWithLinks): Promise<string[]> {
-		const app = this.container.getService("Github").octokit;
+		const app = this.container.tryService("Github")?.octokit;
+		if (!app) return []; // no Github service: no team-proven roles
 		const userToken = await this.freshGithubToken(account);
 		const user = userToken ? new Octokit({ auth: userToken.accessToken }) : undefined;
 

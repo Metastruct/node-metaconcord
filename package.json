@@ -14,6 +14,7 @@
 	"scripts": {
 		"start": "cross-env NODE_ENV=production node dist",
 		"dev": "cross-env NODE_ENV=development DEBUG=express:*,router,router:* node dist",
+		"dev:web": "cross-env METACONCORD_SERVICES=infra,web NODE_ENV=development DEBUG=express:*,router,router:* node dist",
 		"build": "yarn scss && rm -rf ./dist && tsc && tsconfig-replace-paths -p tsconfig.json -s ./ -o ./dist",
 		"scss": "sass resources/ --no-source-map",
 		"scss-watch": "sass --watch resources/ --no-source-map",

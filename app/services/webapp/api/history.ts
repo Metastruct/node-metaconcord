@@ -152,8 +152,8 @@ const requireEditor = async (
 ): Promise<(Session & { token: string }) | undefined> => {
 	const session = await requireStaff(req, res);
 	if (!session) return;
-	const accounts = globalThis.MetaConcord.container.getService("Accounts");
-	const token = await accounts.freshGithubToken(session.account);
+	const accounts = globalThis.MetaConcord.container.tryService("Accounts");
+	const token = await accounts?.freshGithubToken(session.account);
 	if (!token) {
 		res.status(401).json({ error: "github_reauth" });
 		return;
@@ -211,8 +211,13 @@ export default (webApp: WebApp): void => {
 	const json = express.json({ limit: "64kb" });
 
 	webApp.app.get("/history", async (_, res) => {
+		const github = webApp.container.tryService("Github");
+		if (!github) {
+			res.status(503).json({ error: "github not enabled on this instance" });
+			return;
+		}
 		try {
-			const events = await readPublic(webApp.container.getService("Github").octokit);
+			const events = await readPublic(github.octokit);
 			res.set("Cache-Control", "public, max-age=15");
 			res.json({ events });
 		} catch (err) {

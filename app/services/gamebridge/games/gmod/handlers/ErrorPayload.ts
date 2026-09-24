@@ -63,7 +63,7 @@ export default class ErrorPayload extends Payload {
 		}
 		this.lastError = hook_error;
 		if (gpath.addon === "pac3") {
-			await pacErrorWebhook
+			await pacErrorWebhook()
 				.send({
 					allowedMentions: { parse: [] },
 					content: `**${hook_error.identifier} Hook Failed!\n${err}**`,
@@ -71,7 +71,7 @@ export default class ErrorPayload extends Payload {
 				})
 				.catch(() => {});
 		} else {
-			await errorWebhook
+			await errorWebhook()
 				.send({
 					allowedMentions: { parse: [] },
 					content: `**${hook_error.identifier} Hook Failed!\n${err}**`,

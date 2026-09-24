@@ -204,7 +204,7 @@ export default class ChatPayload extends Payload {
 		// the webhook already shows the name, so an italic body reads as "Nick waves"
 		content = emote ? `*${content.substring(0, 1998)}*` : content.substring(0, 2000);
 
-		await chatWebhook
+		await chatWebhook()
 			.send({
 				content: content,
 				username: player.nick
