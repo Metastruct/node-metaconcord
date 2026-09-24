@@ -71,6 +71,8 @@ export type AccountLink = {
 	source: LinkSource;
 	/** encrypted GithubToken, github only */
 	token?: string;
+	email?: string;
+	emailVerified?: boolean;
 	linkedAt: number;
 };
 
@@ -81,6 +83,8 @@ export type LinkInput = {
 	avatar?: string;
 	source: LinkSource;
 	token?: GithubToken;
+	email?: string;
+	emailVerified?: boolean;
 };
 
 export type AccountWithLinks = Account & { links: AccountLink[] };
@@ -117,6 +121,8 @@ type LinkRow = {
 	avatar: string;
 	source: LinkSource;
 	token: string | null;
+	email: string | null;
+	email_verified: boolean;
 	linked_at: Date;
 };
 
@@ -137,6 +143,8 @@ const toLink = (row: LinkRow): AccountLink => ({
 	avatar: row.avatar,
 	source: row.source,
 	token: row.token ?? undefined,
+	email: row.email ?? undefined,
+	emailVerified: row.email_verified,
 	linkedAt: row.linked_at.getTime(),
 });
 
@@ -170,6 +178,9 @@ export class Accounts extends Service {
 				PRIMARY KEY (account_id, provider),
 				UNIQUE (provider, provider_id)
 			);
+			-- SSO email capture (Fluxer's OIDC login requires a verified email)
+			ALTER TABLE account_links ADD COLUMN IF NOT EXISTS email TEXT;
+			ALTER TABLE account_links ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT false;
 			CREATE TABLE IF NOT EXISTS link_codes (
 				code TEXT PRIMARY KEY,
 				account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -279,11 +290,13 @@ export class Accounts extends Service {
 
 	private async upsertLink(accountId: number, link: LinkInput): Promise<void> {
 		await this.sql.queryPool(
-			`INSERT INTO account_links (account_id, provider, provider_id, name, avatar, source, token)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7)
+			`INSERT INTO account_links (account_id, provider, provider_id, name, avatar, source, token, email, email_verified)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			 ON CONFLICT (account_id, provider) DO UPDATE SET
 				provider_id = EXCLUDED.provider_id, name = EXCLUDED.name, avatar = EXCLUDED.avatar,
-				source = EXCLUDED.source, token = EXCLUDED.token, linked_at = now()`,
+				source = EXCLUDED.source, token = EXCLUDED.token, linked_at = now(),
+				email = COALESCE(EXCLUDED.email, account_links.email),
+				email_verified = COALESCE(EXCLUDED.email_verified, account_links.email_verified)`,
 			[
 				accountId,
 				link.provider,
@@ -292,6 +305,8 @@ export class Accounts extends Service {
 				link.avatar ?? "",
 				link.source,
 				link.token ? encrypt(link.token) : null,
+				link.email ?? null,
+				link.emailVerified ?? null,
 			]
 		);
 		this.invalidate(accountId);

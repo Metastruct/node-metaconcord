@@ -12,6 +12,7 @@ import GitlabProvider, { Gitlab } from "./Gitlab.js";
 import IRCProvider, { IRC } from "./IRC.js";
 import MarkovProvider, { Markov } from "./Markov.js";
 import MotdProvider, { Motd } from "./Motd.js";
+import OIDCProvider, { OIDC } from "./OIDC.js";
 import ResoniteProvider, { Resonite } from "./Resonite.js";
 import SQLProvider, { SQL } from "./SQL.js";
 import StarboardProvider, { Starboard } from "./Starboard.js";
@@ -29,7 +30,11 @@ const svc = (name: string, provider: Provider): Entry => ({ name, provider });
  */
 export const SERVICE_GROUPS = {
 	infra: [svc("SQL", SQLProvider), svc("Data", DataProvider), svc("Bans", BanProvider)],
-	web: [svc("WebApp", WebAppProvider), svc("Accounts", AccountsProvider)],
+	web: [
+		svc("WebApp", WebAppProvider),
+		svc("Accounts", AccountsProvider),
+		svc("OIDC", OIDCProvider),
+	],
 	integrations: [
 		svc("GameBridge", GameBridgeProvider),
 		svc("Github", GithubProvider),
@@ -89,6 +94,7 @@ export {
 	IRC,
 	Markov,
 	Motd,
+	OIDC,
 	Resonite,
 	SQL,
 	Steam,
@@ -110,6 +116,7 @@ export type ServiceMap = {
 	IRC: IRC;
 	Markov: Markov;
 	Motd: Motd;
+	OIDC: OIDC;
 	Resonite: Resonite;
 	SQL: SQL;
 	Starboard: Starboard;
