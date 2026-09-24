@@ -126,10 +126,19 @@ export class OIDC extends Service {
 				// interactions are handled by the route below, no built-in views
 				devInteractions: { enabled: false },
 			},
-			renderError: async (ctx, _out, error) => {
-				log.error(error, `oidc error on ${ctx.path}`);
+			renderError: async (ctx, out, error) => {
+				log.error(
+					{ err: error, out, query: ctx.query, client_id: ctx.query.client_id },
+					`oidc error on ${ctx.path}`
+				);
 				ctx.type = "html";
-				ctx.body = "<h1>oops! something went wrong</h1>";
+				const esc = (value: unknown) =>
+					String(value).replace(/[&<>"]/g, ch => `&#${ch.charCodeAt(0)};`);
+				ctx.body =
+					`<h1>SSO error</h1>` +
+					`<p><code>${esc(out.error)}${out.error_description ? `: ${esc(out.error_description)}` : ""}</code></p>` +
+					`<p>If this happened while logging in, the parameters the login site sent were rejected. ` +
+					`Plain visits to this URL without parameters is expected to fail like this.</p>`;
 			},
 			cookies: {
 				keys: [OIDCConfig.cookieKeys],
