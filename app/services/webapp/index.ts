@@ -1,4 +1,4 @@
-import { Container, Service } from "@/app/Container.js";
+import { Container, Service, ServiceNotEnabledError } from "@/app/Container.js";
 import { Server as HTTPServer } from "http";
 import type { Request, Response } from "express";
 import APIs from "./api/index.js";
@@ -72,6 +72,15 @@ export class WebApp extends Service {
 		for (const addAPI of APIs) {
 			addAPI(this);
 		}
+
+			(err: unknown, _req: Request, res: Response, next: (err?: unknown) => void): void => {
+				if (err instanceof ServiceNotEnabledError) {
+					res.status(503).json({ error: err.message });
+					return;
+				}
+				next(err);
+			}
+		);
 	}
 }
 

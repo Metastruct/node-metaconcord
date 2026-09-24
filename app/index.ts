@@ -1,5 +1,5 @@
 import { Container } from "./Container.js";
-import providers from "./services/index.js";
+import { selectServices } from "./services/index.js";
 
 declare global {
 	var MetaConcord: {
@@ -11,7 +11,7 @@ export class App {
 	container: Container;
 
 	constructor() {
-		this.container = new Container(this, providers);
+		this.container = new Container(this, selectServices(process.env.METACONCORD_SERVICES));
 	}
 
 	async init(): Promise<void> {

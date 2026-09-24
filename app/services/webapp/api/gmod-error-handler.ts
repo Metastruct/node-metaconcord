@@ -88,13 +88,13 @@ const ignoreRegex = [
 //const fileIgnore = [];
 
 export default async (webApp: WebApp): Promise<void> => {
-	const webhook = new Discord.WebhookClient({
-		url: config.webhookUrl,
-	});
+	let webhook: Discord.WebhookClient | undefined;
+	const getWebhook = (): Discord.WebhookClient =>
+		(webhook ??= new Discord.WebhookClient({ url: config.webhookUrl }));
 
-	const pac_error_webhook = new Discord.WebhookClient({
-		url: config.pacWebhookUrl,
-	});
+	let pacErrorWebhook: Discord.WebhookClient | undefined;
+	const getPacErrorWebhook = (): Discord.WebhookClient =>
+		(pacErrorWebhook ??= new Discord.WebhookClient({ url: config.pacWebhookUrl }));
 
 	webApp.app.post("/gmod/errors", express.urlencoded({ extended: false }), async (req, res) => {
 		const ip = req.header("cf-connecting-ip") ?? req.header("x-forwarded-for")?.split(",")[0];
@@ -266,9 +266,9 @@ export default async (webApp: WebApp): Promise<void> => {
 
 			if (body.v === "test") return;
 			if (matches.some(m => (m.groups as StackMatchGroups).addon === "pac3")) {
-				pac_error_webhook.send(payload).catch(log.error.bind(log));
+				getPacErrorWebhook().send(payload).catch(log.error.bind(log));
 			} else {
-				webhook.send(payload).catch(log.error.bind(log));
+				getWebhook().send(payload).catch(log.error.bind(log));
 			}
 		}
 	});

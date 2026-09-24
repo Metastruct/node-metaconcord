@@ -1,4 +1,7 @@
 import * as Discord from "discord.js";
 import config from "@/config/minecraft.json" with { type: "json" };
 
-export const chatWebhook = new Discord.WebhookClient({ url: config.chatWebhookUrl });
+let chat: Discord.WebhookClient | undefined;
+
+export const chatWebhook = (): Discord.WebhookClient =>
+	(chat ??= new Discord.WebhookClient({ url: config.chatWebhookUrl }));

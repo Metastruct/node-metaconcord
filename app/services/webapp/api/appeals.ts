@@ -12,6 +12,7 @@ import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
 import express, { Request } from "express";
 import { WebApp } from "@/app/services/webapp/index.js";
+import { ServiceNotEnabledError } from "@/app/Container.js";
 
 const log = logger(import.meta);
 
@@ -104,7 +105,8 @@ const toAppealMessage = (msg: Discord.Message, botId?: string): AppealMessage | 
 };
 
 export default (webApp: WebApp): void => {
-	const sql = webApp.container.getService("SQL");
+	// both are soft: endpoints below 503 when either is missing (see requireServices)
+	const sql = webApp.container.tryService("SQL");
 	const json = express.json({ limit: "8kb" });
 	const statusLimiter = rateLimit({
 		keyGenerator: rateLimitKeyGenerator,
@@ -130,7 +132,8 @@ export default (webApp: WebApp): void => {
 
 	let tableReady: Promise<void> | undefined;
 	const db = async () => {
-		const database = sql.getLocalDatabase();
+		const database = sql?.getLocalDatabase();
+		if (!database) throw new ServiceNotEnabledError("SQL");
 		tableReady ??= database
 			.exec(
 				`CREATE TABLE IF NOT EXISTS appeals (
@@ -220,7 +223,8 @@ export default (webApp: WebApp): void => {
 	const fetchThread = async (
 		row: AppealRow
 	): Promise<Discord.ThreadChannel | "gone" | undefined> => {
-		const bot = webApp.container.getService("DiscordBot");
+		const bot = webApp.container.tryService("DiscordBot");
+		if (!bot) return undefined;
 		const guild = bot.getGuild();
 		if (!guild) return undefined;
 		try {
@@ -645,8 +649,10 @@ export default (webApp: WebApp): void => {
 		}
 	};
 
-	// deferred so the listeners attach once the container holds every service
+	// deferred so the listeners attach once the container holds every service;
+	// skipped entirely when Discord isn't enabled on this instance
 	setImmediate(() => {
+		if (!webApp.container.has("DiscordBot")) return;
 		bot().discord.on("threadDelete", async thread => {
 			if (thread.parentId !== bot().config.channels.appeals) return;
 			const row = await openAppealByThread(thread.id);

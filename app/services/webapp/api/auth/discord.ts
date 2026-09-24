@@ -161,7 +161,13 @@ export default async (webApp: WebApp): Promise<void> => {
 
 	webApp.app.post(
 		"/discord/webhooks/deauthorized",
-		verifyWebhookEventMiddleware(DiscordConfig.bot.publicKey),
+		(req, res, next) => {
+			if (!DiscordConfig.bot.publicKey) {
+				res.status(503).json({ error: "discord not configured on this instance" });
+				return;
+			}
+			verifyWebhookEventMiddleware(DiscordConfig.bot.publicKey)(req, res, next);
+		},
 		async (req, res) => {
 			const eventBody = req.body as {
 				event_type?: string;
