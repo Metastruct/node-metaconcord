@@ -20,10 +20,11 @@
 		"scss-watch": "sass --watch resources/ --no-source-map",
 		"fix": "prettier --write .",
 		"check": "eslint . && prettier --check .",
-		"mirror": "node scripts/mirror.mjs",
 		"test:fluxer": "node --test test/fluxer-mappings.test.mjs",
 		"test:fluxer:dist": "node --test test/fluxer-formatting-dist.test.mjs",
 		"schema:gen": "node schema_gen.mjs"
+		"fluxer:mirror": "node scripts/fluxer-mirror.mjs",
+		"fluxer:mirror-expressions": "node scripts/fluxer-mirror-expressions.mjs",
 	},
 	"dependencies": {
 		"@ffmpeg.wasm/core-mt": "^0.13.2",
