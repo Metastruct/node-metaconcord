@@ -1,5 +1,6 @@
 import { Container, Service } from "../Container.js";
 import { getSessionAccountId } from "./webapp/api/auth/session.js";
+import { LOGIN_PROVIDERS } from "./Accounts.js";
 import { SQL } from "./SQL.js";
 import { logger } from "@/utils.js";
 import OIDCConfig from "@/config/oidc.json" with { type: "json" };
@@ -162,7 +163,7 @@ export class OIDC extends Service {
 		webApp.app.get("/oauth/interaction/:uid", async (req, res) => {
 			const accountId = getSessionAccountId(req);
 			if (!accountId) {
-				res.redirect(`/auth/github?redirect=${encodeURIComponent(req.originalUrl)}`);
+				res.type("html").send(loginPickerPage(req.params.uid));
 				return;
 			}
 			try {
@@ -233,6 +234,62 @@ export class OIDC extends Service {
 			);
 		`);
 	}
+}
+
+const LOGIN_PICKER_LABELS: Record<string, string> = {
+	discord: "Discord",
+	steam: "Steam",
+	github: "GitHub",
+	gitlab: "GitLab",
+};
+
+const LOGIN_PICKER_COLORS: Record<string, string> = {
+	discord: "#5865f2",
+	steam: "#1b2838",
+	github: "#24292f",
+	gitlab: "#e24329",
+};
+
+function loginPickerPage(uid: string): string {
+	const uidSafe = /^[a-zA-Z0-9_-]+$/.test(uid) ? uid : "";
+	const redirect = encodeURIComponent(`/oauth/interaction/${uidSafe}`);
+	const buttons = LOGIN_PROVIDERS.map(
+		provider =>
+			`<a class="provider" style="background:${LOGIN_PICKER_COLORS[provider] ?? "#444"}" href="/auth/${provider}?redirect=${redirect}&target=self"><img src="/dashboard/static/icons/${provider}.svg" alt="" aria-hidden="true">Continue with ${LOGIN_PICKER_LABELS[provider] ?? provider}</a>`
+	).join("\n\t\t");
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Log in - Meta Construct</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap">
+	<style>
+		body { font-family: "Open Sans", system-ui, sans-serif; font-size: 14px;
+			background: #212121; color: #fefefe; margin: 0;
+			display: grid; place-items: center; min-height: 100vh; }
+		main { background: #4a4a4a; padding: 2rem 2.5rem; border-radius: 4px;
+			width: min(24rem, 90vw); box-sizing: border-box; }
+		h1 { font-size: 1.6rem; font-weight: 600; margin: 0 0 .25rem; color: #fefefe; }
+		h1::after { content: ""; display: block; width: 3rem; height: 3px;
+			background: #0ce3ac; margin-top: .5rem; border-radius: 2px; }
+		p { color: #eeeeee; font-size: .875rem; margin: .75rem 0 1.25rem; }
+		.provider { display: flex; align-items: center; gap: .75rem;
+			padding: .7rem 1rem; border-radius: 4px; border: none; margin-bottom: .7rem;
+			color: #fff; text-decoration: none; font-size: 1rem; font-weight: 400; }
+		.provider:hover { filter: brightness(1.15); }
+		.provider img { width: 1.25rem; height: 1.25rem; flex: none; }
+	</style>
+</head>
+<body>
+	<main>
+		<h1>Log in</h1>
+		<p>Pick any platform. Others can be linked afterwards from your profile.</p>
+		${buttons}
+	</main>
+</body>
+</html>`;
 }
 
 /**
