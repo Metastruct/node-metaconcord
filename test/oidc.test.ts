@@ -135,7 +135,8 @@ async function main(): Promise<void> {
 				discovery.userinfo_endpoint === `${OIDCConfig.issuer}/oauth/userinfo`
 		);
 
-		// 2. no session -> interaction redirects to the site's GitHub login
+		// 2. no session -> interaction shows the provider picker (the website's
+		// /login page rendered inline, pointing back at the interaction)
 		const authUrl = new URL(discovery.authorization_endpoint);
 		authUrl.searchParams.set("response_type", "code");
 		authUrl.searchParams.set("client_id", client.client_id);
@@ -147,9 +148,18 @@ async function main(): Promise<void> {
 		const anon = await fetch(authUrl, { redirect: "manual" });
 		const interactionUrl = new URL(anon.headers.get("location") ?? "", OIDCConfig.issuer);
 		const loggedOut = await fetch(interactionUrl, { redirect: "manual" });
+		const pickerHtml = await loggedOut.text();
+		const pickerLinks = [...pickerHtml.matchAll(/href="([^"]+)"/g)].map(m => m[1]);
 		check(
-			"no session sends to GitHub login",
-			(loggedOut.headers.get("location") ?? "").startsWith("/auth/github?redirect=")
+			"no session shows provider picker",
+			(loggedOut.headers.get("content-type") ?? "").includes("text/html") &&
+				["discord", "steam", "github", "gitlab"].every(provider =>
+					pickerLinks.some(
+						href =>
+							href.startsWith(`/auth/${provider}?redirect=`) &&
+							href.includes("target=self")
+					)
+				)
 		);
 
 		// 3. with a session cookie the whole flow resolves to a code
