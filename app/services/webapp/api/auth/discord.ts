@@ -267,9 +267,11 @@ export default async (webApp: WebApp): Promise<void> => {
 						name: user.global_name || user.username,
 						avatar: avatarUrl(user),
 						source: "oauth",
-						// present when the user consented to the email scope
+						// present when the user consented to the email scope; Discord only
+						// returns an email once it is verified, and `verified` is unreliable
+						// on /oauth2/@me, so the presence of an email implies it
 						email: user.email ?? undefined,
-						emailVerified: user.verified === true,
+						emailVerified: user.verified === true || user.email != null,
 					});
 			} catch (err) {
 				if (err instanceof LinkConflictError) {
