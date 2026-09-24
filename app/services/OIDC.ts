@@ -1,7 +1,7 @@
 import { Container, Service } from "../Container.js";
 import { getSessionAccountId } from "./webapp/api/auth/session.js";
-import { LOGIN_PROVIDERS } from "./Accounts.js";
 import { SQL } from "./SQL.js";
+import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.js";
 import { logger } from "@/utils.js";
 import OIDCConfig from "@/config/oidc.json" with { type: "json" };
 import {
@@ -250,10 +250,16 @@ const LOGIN_PICKER_COLORS: Record<string, string> = {
 	gitlab: "#e24329",
 };
 
+/**
+ * Providers offered on the SSO login picker: only those whose login captures
+ * a verified email, since SSO clients may require one.
+ */
+const SSO_LOGIN_PROVIDERS = EMAIL_LOGIN_PROVIDERS;
+
 function loginPickerPage(uid: string): string {
 	const uidSafe = /^[a-zA-Z0-9_-]+$/.test(uid) ? uid : "";
 	const redirect = encodeURIComponent(`/oauth/interaction/${uidSafe}`);
-	const buttons = LOGIN_PROVIDERS.map(
+	const buttons = SSO_LOGIN_PROVIDERS.map(
 		provider =>
 			`<a class="provider" style="background:${LOGIN_PICKER_COLORS[provider] ?? "#444"}" href="/auth/${provider}?redirect=${redirect}&target=self"><img src="/dashboard/static/icons/${provider}.svg" alt="" aria-hidden="true">Continue with ${LOGIN_PICKER_LABELS[provider] ?? provider}</a>`
 	).join("\n\t\t");

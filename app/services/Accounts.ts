@@ -25,6 +25,20 @@ export type Role = "administrator" | "developer" | "trial-developer";
 
 /** Providers that can log someone in, so an account must keep at least one. */
 export const LOGIN_PROVIDERS: Provider[] = ["discord", "steam", "github", "gitlab"];
+/**
+ * Capabilities of each login provider. `email` means the login flow captures a
+ * verified email address on the link, which SSO clients can require.
+ */
+export const LOGIN_PROVIDER_INFO: Record<Exclude<Provider, "minecraft">, { email: boolean }> = {
+	discord: { email: true },
+	steam: { email: false },
+	github: { email: true },
+	gitlab: { email: false },
+};
+/** Login providers whose login captures a verified email address. */
+export const EMAIL_LOGIN_PROVIDERS: Provider[] = LOGIN_PROVIDERS.filter(
+	provider => LOGIN_PROVIDER_INFO[provider].email
+);
 /** Providers linked from game chat with a code. */
 export const CODE_PROVIDERS: Provider[] = ["steam", "minecraft"];
 export const ROLES: Role[] = ["administrator", "developer", "trial-developer"];
@@ -306,7 +320,7 @@ export class Accounts extends Service {
 				link.source,
 				link.token ? encrypt(link.token) : null,
 				link.email ?? null,
-				link.emailVerified ?? null,
+				link.emailVerified ?? false,
 			]
 		);
 		this.invalidate(accountId);
