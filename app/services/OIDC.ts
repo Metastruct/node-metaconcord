@@ -143,7 +143,12 @@ export class OIDC extends Service {
 			},
 			cookies: {
 				keys: [OIDCConfig.cookieKeys],
-				long: { signed: true, sameSite: "lax" },
+				short: { sameSite: "none" },
+				long: {
+					signed: true,
+					sameSite: "lax",
+					domain: ".metastruct.net",
+				},
 			},
 			ttl: {
 				Interaction: 60 * 60,
@@ -208,7 +213,14 @@ export class OIDC extends Service {
 					mergeWithLastSubmission: true,
 				});
 			} catch (err) {
-				log.error(err, `interaction ${req.params.uid} failed`);
+				log.error(
+					{
+						err: err,
+						cookieNames: Object.keys(req.cookies ?? {}),
+						referer: req.headers.referer,
+					},
+					`interaction ${req.params.uid} failed`
+				);
 				throw err;
 			}
 		});
