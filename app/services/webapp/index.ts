@@ -73,6 +73,7 @@ export class WebApp extends Service {
 			addAPI(this);
 		}
 
+		this.app.use(
 			(err: unknown, _req: Request, res: Response, next: (err?: unknown) => void): void => {
 				if (err instanceof ServiceNotEnabledError) {
 					res.status(503).json({ error: err.message });
