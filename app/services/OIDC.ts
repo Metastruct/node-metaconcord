@@ -146,6 +146,8 @@ export class OIDC extends Service {
 			},
 		});
 
+		this.provider.proxy = true;
+
 		// Interaction endpoint, handled by express before the koa app below. The
 		// webapp cookie-parser is active here, so the session cookie just works.
 		webApp.app.get("/oauth/interaction/:uid", async (req, res) => {
