@@ -35,7 +35,6 @@ export default (webApp: WebApp): void => {
 		url.searchParams.set("client_id", GithubConfig.clientId);
 		url.searchParams.set("redirect_uri", callbackUrl);
 		url.searchParams.set("state", state);
-		url.searchParams.set("scope", "read:org repo user:email");
 		res.redirect(url.toString());
 	});
 
