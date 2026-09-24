@@ -15,12 +15,12 @@ import {
 const log = logger(import.meta);
 
 /**
- * An OpenID Connect provider mounted on the WebApp, so other sites (Fluxer's
- * SSO, ...) can log in with the same metastruct account. The issuer is the
- * site root, so the endpoints land at /oauth/authorize, /oauth/token and
- * /oauth/userinfo. Identities come from the website session cookie (see
- * webapp/api/auth/session), grants are stored in sqlite via SQL. Clients are
- * declared in config/oidc.json, no dynamic registration (yet?).
+ * An OpenID Connect provider mounted on the WebApp, so other sites can log in
+ * with the same metastruct account. The issuer is the site root, so the
+ * endpoints land at /oauth/authorize, /oauth/token and /oauth/userinfo.
+ * Identities come from the website session cookie (see webapp/api/auth/session),
+ * state is stored in sqlite via SQL. Clients are declared in config/oidc.json,
+ * no dynamic registration.
  */
 
 type ClientConfig = {
@@ -90,12 +90,10 @@ export class OIDC extends Service {
 				return {
 					accountId: id,
 					claims: async (_use, scope): Promise<AccountClaims> => {
-						// scope only gates which claim groups fire (see `claims` above).
-						// A verified real email captured during OAuth login (Discord's
-						// email scope, GitHub's user:email) wins; the noreply synthesis
-						// is only the fallback for links that predate email capture.
-						// Accounts with no email at all (e.g. Steam-only) get no email
-						// claim and cannot SSO into email-requiring clients like Fluxer.
+						// a verified email captured at OAuth login wins; the GitHub
+						// noreply fallback covers links created before email capture.
+						// Accounts with no email get none, and clients that require one
+						// will reject the login.
 						const verifiedEmail = account.links.find(
 							link => link.emailVerified && link.email
 						);
@@ -103,9 +101,7 @@ export class OIDC extends Service {
 						const claims: AccountClaims = {
 							sub: id,
 							name: account.displayName,
-							displayName: account.displayName,
 							preferred_username: account.displayName,
-							nickname: account.displayName,
 							roles: account.roles,
 						};
 						if (scope?.includes("email") && this.config.claims?.email !== false) {
@@ -114,7 +110,8 @@ export class OIDC extends Service {
 							} else if (github) {
 								claims.email = `${github.providerId}+${github.name.toLowerCase()}@users.noreply.github.com`;
 							}
-							// ensure emails are verified
+							// some clients refuse logins unless this is explicitly true,
+							// absent is not good enough
 							if (claims.email) claims.email_verified = true;
 						}
 						return claims;
@@ -122,13 +119,11 @@ export class OIDC extends Service {
 				};
 			},
 			interactions: {
-				// Handled by the express route below: a webapp session finishes the
-				// interaction immediately, otherwise the person is sent through the
-				// site's GitHub login and returned to the same interaction uid.
+				// handled by the express route registered below
 				url: (_ctx, interaction) => `/oauth/interaction/${interaction.uid}`,
 			},
 			features: {
-				// interactionFinished handles it above, no views needed.
+				// interactions are handled by the route below, no built-in views
 				devInteractions: { enabled: false },
 			},
 			renderError: async (ctx, _out, error) => {
@@ -156,14 +151,12 @@ export class OIDC extends Service {
 		webApp.app.get("/oauth/interaction/:uid", async (req, res) => {
 			const accountId = getSessionAccountId(req);
 			if (!accountId) {
-				// Same pattern as requireAdmin in api/dashboard.ts: after the GitHub
-				// OAuth roundtrip the user lands back here and finishes the flow.
 				res.redirect(`/auth/github?redirect=${encodeURIComponent(req.originalUrl)}`);
 				return;
 			}
 			try {
-				// First-party clients are trusted: consent is granted here, so nobody
-				// ever sees a consent screen.
+				// all clients are first-party: consent is granted here, nobody ever
+				// sees a consent screen.
 				const interaction = (await this.provider.interactionDetails(
 					req,
 					res
@@ -181,7 +174,8 @@ export class OIDC extends Service {
 				);
 				let result: { login: { accountId: string }; consent?: { grantId: string } };
 				if (prompt.details.missingOIDCScope) {
-					// Grant is per-provider, only reachable off the instance
+					// the Grant class is instantiated per provider, only reachable off
+					// the instance
 					const Grant = this.provider.Grant as unknown as typeof OIDCGrant;
 					const grant = new Grant({
 						accountId: String(accountId),
