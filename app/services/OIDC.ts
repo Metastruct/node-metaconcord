@@ -201,12 +201,12 @@ export class OIDC extends Service {
 			}
 		});
 
-		// oidc-provider is a koa app; its callback works as express middleware as
-		// long as it handles the whole request. The issuer path is "" (root),
-		// which puts the endpoints at /oauth/*.
-		webApp.app.use(this.provider.callback());
-
 		log.info(`OIDC provider mounted at ${this.config.issuer}`);
+	}
+
+	async start(): Promise<void> {
+		const webApp = this.container.getService("WebApp");
+		webApp.app.use(this.provider.callback());
 	}
 
 	async ensureTables(sql: SQL): Promise<void> {
