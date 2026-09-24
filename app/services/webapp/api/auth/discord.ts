@@ -55,7 +55,7 @@ export const getOAuthURL = () => {
 	url.searchParams.set("redirect_uri", DiscordConfig.bot.oAuthCallbackUri);
 	url.searchParams.set("response_type", "code");
 	url.searchParams.set("state", state);
-	url.searchParams.set("scope", "role_connections.write identify");
+	url.searchParams.set("scope", "role_connections.write identify email");
 	url.searchParams.set("prompt", "consent");
 	return { state, url: url.toString() };
 };
@@ -267,6 +267,9 @@ export default async (webApp: WebApp): Promise<void> => {
 						name: user.global_name || user.username,
 						avatar: avatarUrl(user),
 						source: "oauth",
+						// present when the user consented to the email scope
+						email: user.email ?? undefined,
+						emailVerified: user.verified === true,
 					});
 			} catch (err) {
 				if (err instanceof LinkConflictError) {

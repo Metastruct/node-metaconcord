@@ -1,0 +1,14 @@
+{
+	"issuer": "https://example.com",
+	"cookieKeys": "",
+	"clients": [
+		{
+			"client_id": "example",
+			"client_secret": "",
+			"redirect_uris": ["https://example.com/callback"],
+			"grant_types": ["authorization_code", "refresh_token"],
+			"response_types": ["code"],
+			"scope": "openid email profile offline_access"
+		}
+	]
+}

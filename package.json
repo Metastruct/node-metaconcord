@@ -20,11 +20,12 @@
 		"scss-watch": "sass --watch resources/ --no-source-map",
 		"fix": "prettier --write .",
 		"check": "eslint . && prettier --check .",
-		"test:fluxer": "node --test test/fluxer-mappings.test.mjs",
-		"test:fluxer:dist": "node --test test/fluxer-formatting-dist.test.mjs",
-		"schema:gen": "node schema_gen.mjs"
 		"fluxer:mirror": "node scripts/fluxer-mirror.mjs",
 		"fluxer:mirror-expressions": "node scripts/fluxer-mirror-expressions.mjs",
+		"test:fluxer": "node --test test/fluxer-mappings.test.mjs",
+		"test:oidc": "cross-env NODE_ENV=development node dist/test/oidc.test.js",
+		"test:fluxer:dist": "node --test test/fluxer-formatting-dist.test.mjs",
+		"schema:gen": "node schema_gen.mjs"
 	},
 	"dependencies": {
 		"@ffmpeg.wasm/core-mt": "^0.13.2",
@@ -55,6 +56,7 @@
 		"mime": "^4.1.0",
 		"node-schedule": "^2.1.1",
 		"node-wav": "^0.0.2",
+		"oidc-provider": "^9.12.2",
 		"pg": "^8.21.0",
 		"pino": "^10.3.1",
 		"pino-http": "^11.0.0",
@@ -78,6 +80,7 @@
 		"@types/jsonwebtoken": "^8.5.1",
 		"@types/node": "^22.0.0",
 		"@types/node-schedule": "^2.1.0",
+		"@types/oidc-provider": "^9",
 		"@types/pg": "^8.6.5",
 		"@types/pug": "^2.0.4",
 		"@types/steamapi": "^2.2.5",

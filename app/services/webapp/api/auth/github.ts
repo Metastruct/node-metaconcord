@@ -35,8 +35,7 @@ export default (webApp: WebApp): void => {
 		url.searchParams.set("client_id", GithubConfig.clientId);
 		url.searchParams.set("redirect_uri", callbackUrl);
 		url.searchParams.set("state", state);
-		// ignored by GitHub Apps (permissions come from the app), required for classic OAuth apps
-		url.searchParams.set("scope", "read:org repo");
+		url.searchParams.set("scope", "read:org repo user:email");
 		res.redirect(url.toString());
 	});
 
@@ -78,8 +77,19 @@ export default (webApp: WebApp): void => {
 		}
 
 		let user: { id: number; login: string; avatar_url: string };
+		let primaryEmail: string | undefined;
 		try {
-			user = (await new Octokit({ auth: tokens.access_token }).users.getAuthenticated()).data;
+			const octokit = new Octokit({ auth: tokens.access_token });
+			user = (await octokit.users.getAuthenticated()).data;
+			// primary verified email (works even when the profile email is private);
+			// needs the user:email scope / the app's "Email addresses" permission
+			const emails = await octokit.users
+				.listEmailsForAuthenticatedUser()
+				.then(({ data }) => data)
+				.catch(() => undefined);
+			const primary =
+				emails?.find(e => e.primary && e.verified) ?? emails?.find(e => e.verified);
+			primaryEmail = primary?.email ?? undefined;
 		} catch (err) {
 			log.error(err, "failed fetching github user");
 			res.status(502).send("github login failed");
@@ -96,6 +106,8 @@ export default (webApp: WebApp): void => {
 					avatar: user.avatar_url,
 					source: "oauth",
 					token: Accounts.tokenFromResponse(tokens),
+					email: primaryEmail,
+					emailVerified: primaryEmail != null,
 				});
 			setSessionCookie(res, account);
 			log.info(`github login for ${user.login} (account ${account.id})`);
