@@ -70,14 +70,16 @@ export default class GameBridge extends Service {
 
 	async init() {
 		this.webApp = this.container.getService("WebApp");
+		this.ready = true;
+	}
 
+	/** WebApp creates its ws router in start(), after all services init. */
+	async start() {
 		const router = this.webApp.ws;
 		attachGmod(this, router);
 		attachResonite(this);
 		attachSS13(this);
 		attachMinecraft(this, router);
 		attachVRChat(this);
-
-		this.ready = true;
 	}
 }

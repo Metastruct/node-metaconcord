@@ -50,6 +50,9 @@ export class Service {
 	}
 
 	async init(): Promise<void> {}
+
+	/** Runs after every service has initialized; open sockets/ports here. */
+	async start(): Promise<void> {}
 }
 
 export class Container {
@@ -100,6 +103,9 @@ export class Container {
 		this.validateRequirements();
 		for (const service of Object.values(this.services)) {
 			await service.init();
+		}
+		for (const service of Object.values(this.services)) {
+			await service.start();
 		}
 	}
 

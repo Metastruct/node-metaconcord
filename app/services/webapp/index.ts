@@ -1,5 +1,5 @@
 import { Container, Service, ServiceNotEnabledError } from "@/app/Container.js";
-import { Server as HTTPServer } from "http";
+import { Server as HTTPServer, createServer } from "http";
 import type { Request, Response } from "express";
 import APIs from "./api/index.js";
 import config from "@/config/webapp.json" with { type: "json" };
@@ -64,9 +64,9 @@ export class WebApp extends Service {
 
 		this.app.set("trust proxy", 2);
 
-		this.http = this.app.listen(this.config.port, "0.0.0.0", () => {
-			log.info(`HTTP server listening on ${this.config.port}`);
-		});
+		// create the server now (ws routes attach to it during init) but only
+		// start listening once every service has initialized, see start()
+		this.http = createServer(this.app);
 		this.ws = new WsRouter(this.http);
 
 		for (const addAPI of APIs) {
@@ -82,6 +82,13 @@ export class WebApp extends Service {
 				next(err);
 			}
 		);
+	}
+
+	/** Only open the port once every service has finished init(). */
+	async start(): Promise<void> {
+		this.http.listen(this.config.port, "0.0.0.0", () => {
+			log.info(`HTTP server listening on ${this.config.port}`);
+		});
 	}
 }
 
