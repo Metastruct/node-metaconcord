@@ -198,6 +198,32 @@ function formatDiffText(text: string): string {
 		.replaceAll("```", "​`​`​`");
 }
 
+const MAX_DIFF_CHANGES_PER_FILE = 4;
+function formatDiff(text: string): string {
+	const kept: string[] = [];
+	let header: string[] = [];
+	let body: string[] = [];
+	const isHeader = (l: string) => l.startsWith("--- ") || l.startsWith("+++ ");
+	const flush = () => {
+		if (header.length > 0 || body.length > 0) {
+			const changed = body.filter(l => l.startsWith("+") || l.startsWith("-")).length;
+			if (changed <= MAX_DIFF_CHANGES_PER_FILE) kept.push(...header, ...body);
+		}
+		header = [];
+		body = [];
+	};
+	for (const line of text.split("\n")) {
+		if (isHeader(line)) {
+			if (body.length > 0) flush(); // header after hunk content = next file
+			header.push(line);
+		} else {
+			body.push(line);
+		}
+	}
+	flush();
+	return kept.join("\n").trim();
+}
+
 // Uses the authenticated Octokit client (GitHub App install token) instead of an
 // anonymous fetch to the ".diff" URL - anonymous github.com traffic is throttled much
 // more aggressively and was intermittently getting its connection reset mid-request.
@@ -846,14 +872,15 @@ export default async (bot: DiscordBot): Promise<void> => {
 					repo.owner?.avatar_url
 				);
 
-				if (diff) {
+				const diffBody = diff ? formatDiff(diff) : undefined;
+				if (diffBody) {
 					container.addSeparatorComponents(sep => sep);
 					container.addTextDisplayComponents(text =>
 						text.setContent(
 							`\`\`\`diff\n${
-								diff.length > DIFF_SIZE
-									? diff.substring(0, DIFF_SIZE - 5) + ". . ."
-									: diff
+								diffBody.length > DIFF_SIZE
+									? diffBody.substring(0, DIFF_SIZE - 5) + ". . ."
+									: diffBody
 							}\`\`\``
 						)
 					);
@@ -1189,9 +1216,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const repoLine = `-# [${repo.full_name.substring(0, 256)}](${repo.html_url})`;
 		const heading = `### [${title}](${pr.html_url})`;
-		const diffContent = diff
+		const diffBody = diff ? formatDiff(diff) : "";
+		const diffContent = diffBody
 			? `\`\`\`diff\n${
-					diff.length > DIFF_SIZE ? diff.substring(0, DIFF_SIZE - 5) + ". . ." : diff
+					diffBody.length > DIFF_SIZE
+						? diffBody.substring(0, DIFF_SIZE - 5) + ". . ."
+						: diffBody
 				}\`\`\``
 			: "";
 		const changeLinesContent = changeLines.join("\n");
@@ -1576,14 +1606,15 @@ export default async (bot: DiscordBot): Promise<void> => {
 					project.avatar_url ?? undefined
 				);
 
-				if (diff) {
+				const diffBody = diff ? formatDiff(diff) : undefined;
+				if (diffBody) {
 					container.addSeparatorComponents(sep => sep);
 					container.addTextDisplayComponents(text =>
 						text.setContent(
 							`\`\`\`diff\n${
-								diff.length > DIFF_SIZE
-									? diff.substring(0, DIFF_SIZE - 5) + ". . ."
-									: diff
+								diffBody.length > DIFF_SIZE
+									? diffBody.substring(0, DIFF_SIZE - 5) + ". . ."
+									: diffBody
 							}\`\`\``
 						)
 					);
@@ -1726,9 +1757,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const repoLine = `[${mr.target.path_with_namespace.substring(0, 256)}](${mr.target.web_url})`;
 		const heading = `### [${title}](${mr.url})`;
-		const diffContent = diff
+		const diffBody = diff ? formatDiff(diff) : "";
+		const diffContent = diffBody
 			? `\`\`\`diff\n${
-					diff.length > DIFF_SIZE ? diff.substring(0, DIFF_SIZE - 5) + ". . ." : diff
+					diffBody.length > DIFF_SIZE
+						? diffBody.substring(0, DIFF_SIZE - 5) + ". . ."
+						: diffBody
 				}\`\`\``
 			: "";
 		const changeLinesContent = changeLines.join("\n");
