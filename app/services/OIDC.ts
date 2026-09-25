@@ -217,7 +217,10 @@ export class OIDC extends Service {
 					// duplicates: oidc-provider reads only the first cookie, so drop
 					// the shadowing host-only copy (the domain one holds the session)
 					if (values.length > 1)
-						res.append("Set-Cookie", [clearCookie("_session"), clearCookie("_session.sig")]);
+						res.append("Set-Cookie", [
+							clearCookie("_session"),
+							clearCookie("_session.sig"),
+						]);
 					return next();
 				}
 				if (attempt >= 2) return next(); // give up, the error page says to retry
