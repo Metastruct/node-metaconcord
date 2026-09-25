@@ -206,8 +206,10 @@ function formatDiff(text: string): string {
 	const isHeader = (l: string) => l.startsWith("--- ") || l.startsWith("+++ ");
 	const flush = () => {
 		if (header.length > 0 || body.length > 0) {
-			const changed = body.filter(l => l.startsWith("+") || l.startsWith("-")).length;
-			if (changed <= MAX_DIFF_CHANGES_PER_FILE) kept.push(...header, ...body);
+			const added = body.filter(l => l.startsWith("+")).length;
+			const removed = body.filter(l => l.startsWith("-")).length;
+			if (Math.max(added, removed) <= MAX_DIFF_CHANGES_PER_FILE)
+				kept.push(...header, ...body);
 		}
 		header = [];
 		body = [];
