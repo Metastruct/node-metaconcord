@@ -91,14 +91,11 @@ export class OIDC extends Service {
 				return {
 					accountId: id,
 					claims: async (_use, scope): Promise<AccountClaims> => {
-						// a verified email captured at OAuth login wins; the GitHub
-						// noreply fallback covers links created before email capture.
-						// Accounts with no email get none, and clients that require one
-						// will reject the login.
+						// a verified email captured at OAuth login; accounts with none get
+						// none, and clients that require one will reject the login.
 						const verifiedEmail = account.links.find(
 							link => link.emailVerified && link.email
 						);
-						const github = account.links.find(link => link.provider === "github");
 						const claims: AccountClaims = {
 							sub: id,
 							name: account.displayName,
@@ -108,12 +105,10 @@ export class OIDC extends Service {
 						if (scope?.includes("email") && this.config.claims?.email !== false) {
 							if (verifiedEmail?.email) {
 								claims.email = verifiedEmail.email;
-							} else if (github) {
-								claims.email = `${github.providerId}+${github.name.toLowerCase()}@users.noreply.github.com`;
+								// some clients refuse logins unless this is explicitly true,
+								// absent is not good enough
+								claims.email_verified = true;
 							}
-							// some clients refuse logins unless this is explicitly true,
-							// absent is not good enough
-							if (claims.email) claims.email_verified = true;
 						}
 						return claims;
 					},
@@ -184,9 +179,7 @@ export class OIDC extends Service {
 			const needsEmail = interaction.params.scope?.includes("email") ?? false;
 			const account = accountId ? await accounts.get(accountId) : undefined;
 			const hasEmail =
-				!!account &&
-				(account.links.some(link => link.emailVerified && link.email) ||
-					account.links.some(link => link.provider === "github"));
+				!!account && account.links.some(link => link.emailVerified && link.email);
 			if (!account || (needsEmail && !hasEmail)) {
 				res.type("html").send(loginPickerPage(req.params.uid, !account));
 				return;
