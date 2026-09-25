@@ -166,25 +166,32 @@ export class OIDC extends Service {
 		// Interaction endpoint, handled by express before the koa app below. The
 		// webapp cookie-parser is active here, so the session cookie just works.
 		webApp.app.get("/oauth/interaction/:uid", async (req, res) => {
+			try {
+				await this.provider.interactionDetails(req, res);
+			} catch {
+				res.status(410).type("html").send(expiredPage());
+				return;
+			}
 			const accountId = getSessionAccountId(req);
-			if (!accountId) {
-				res.type("html").send(loginPickerPage(req.params.uid));
+			const interaction = (await this.provider.interactionDetails(req, res)) as unknown as {
+				params: { client_id: string; scope?: string };
+				prompt: {
+					name: string;
+					reasons: string[];
+					details: { missingOIDCScope?: string[]; missingOIDCClaims?: string[] };
+				};
+			};
+			const needsEmail = interaction.params.scope?.includes("email") ?? false;
+			const account = accountId ? await accounts.get(accountId) : undefined;
+			const hasEmail =
+				!!account &&
+				(account.links.some(link => link.emailVerified && link.email) ||
+					account.links.some(link => link.provider === "github"));
+			if (!account || (needsEmail && !hasEmail)) {
+				res.type("html").send(loginPickerPage(req.params.uid, !account));
 				return;
 			}
 			try {
-				// all clients are first-party: consent is granted here, nobody ever
-				// sees a consent screen.
-				const interaction = (await this.provider.interactionDetails(
-					req,
-					res
-				)) as unknown as {
-					params: { client_id: string };
-					prompt: {
-						name: string;
-						reasons: string[];
-						details: { missingOIDCScope?: string[]; missingOIDCClaims?: string[] };
-					};
-				};
 				const { prompt, params } = interaction;
 				log.debug(
 					`interaction ${req.params.uid}: prompt=${prompt.name} reasons=${prompt.reasons.join(",")} missing=${prompt.details.missingOIDCScope?.join(" ") ?? "-"}`
@@ -213,14 +220,7 @@ export class OIDC extends Service {
 					mergeWithLastSubmission: true,
 				});
 			} catch (err) {
-				log.error(
-					{
-						err: err,
-						cookieNames: Object.keys(req.cookies ?? {}),
-						referer: req.headers.referer,
-					},
-					`interaction ${req.params.uid} failed`
-				);
+				log.error(err, `interaction ${req.params.uid} failed`);
 				throw err;
 			}
 		});
@@ -268,7 +268,35 @@ const LOGIN_PICKER_COLORS: Record<string, string> = {
  */
 const SSO_LOGIN_PROVIDERS = EMAIL_LOGIN_PROVIDERS;
 
-function loginPickerPage(uid: string): string {
+/** Shown when the interaction behind a login link has expired or was consumed. */
+function expiredPage(): string {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Login expired - Meta Construct</title>
+	<style>
+		body { font-family: "Open Sans", system-ui, sans-serif; font-size: 14px;
+			background: #212121; color: #fefefe; margin: 0;
+			display: grid; place-items: center; min-height: 100vh; }
+		main { background: #4a4a4a; padding: 2rem 2.5rem; border-radius: 4px;
+			width: min(24rem, 90vw); box-sizing: border-box; }
+		h1 { font-size: 1.4rem; font-weight: 600; margin: 0 0 .5rem; }
+		p { color: #eeeeee; font-size: .875rem; margin: 0; }
+	</style>
+</head>
+<body>
+	<main>
+		<h1>Login expired</h1>
+		<p>This login link is no longer valid. Go back to the site that sent you
+		here and start the login again.</p>
+	</main>
+</body>
+</html>`;
+}
+
+function loginPickerPage(uid: string, fresh = true): string {
 	const uidSafe = /^[a-zA-Z0-9_-]+$/.test(uid) ? uid : "";
 	const redirect = encodeURIComponent(`/oauth/interaction/${uidSafe}`);
 	const buttons = SSO_LOGIN_PROVIDERS.map(
@@ -303,7 +331,7 @@ function loginPickerPage(uid: string): string {
 <body>
 	<main>
 		<h1>Log in</h1>
-		<p>Pick any platform. Others can be linked afterwards from your profile.</p>
+		<p>${fresh ? "Pick any platform. Others can be linked afterwards from your profile." : "You are logged in, but this site needs a login with a verified email. Continue with one of these to link it to your account."}</p>
 		${buttons}
 	</main>
 </body>
