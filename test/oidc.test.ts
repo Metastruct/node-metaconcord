@@ -87,6 +87,9 @@ const providerSession = async (accountId: number, value: string): Promise<void> 
 		null,
 		JSON.stringify({
 			payload: {
+				// jti must match the row id, like a provider-saved session: without
+				// it the model fabricates a new id and the reset lands on another row
+				jti: value,
 				iat: Math.floor(Date.now() / 1000),
 				exp: Math.floor(Date.now() / 1000) + 3600,
 				authorizations: {},
@@ -282,16 +285,21 @@ async function main(): Promise<void> {
 		);
 
 		// 7. a provider session naming a deleted account must not crash
-		// /oauth/authorize with a 500: findAccount throws SessionNotFound and
-		// destroys the stale session, so the browser recovers on the next request
+		// /oauth/authorize with a 500, and the same browser (cookie jar) must be
+		// able to log in again right after: findAccount resets the stale session
+		// to logged-out instead of destroying it, so its uid survives and the
+		// resume-time "authentication session mismatch" never happens
 		const staleUid = `stale-${Date.now()}`;
 		await providerSession(999, staleUid);
 		const { default: KeyGrip } = await import("keygrip");
 		const keys = new KeyGrip([OIDCConfig.cookieKeys]);
-		const sig = keys.sign(`_session=${staleUid}`);
+		const staleCookies = new Map<string, string>([
+			["_session", `_session=${staleUid}`],
+			["_session.sig", `_session.sig=${keys.sign(`_session=${staleUid}`)}`],
+		]);
 		const staleRes = await fetch(authUrl, {
 			redirect: "manual",
-			headers: { cookie: `_session=${staleUid}; _session.sig=${sig}` },
+			headers: { cookie: [...staleCookies.values()].join("; ") },
 		});
 		const staleLocation = new URL(staleRes.headers.get("location") ?? "", authUrl);
 		check(
@@ -300,6 +308,18 @@ async function main(): Promise<void> {
 				staleLocation.searchParams.get("error") === "invalid_request" &&
 				staleLocation.searchParams.get("error_description") === "account no longer exists",
 			`status ${staleRes.status}`
+		);
+
+		// 7b. same browser, session now logged out: the flow resolves to a code
+		// like any fresh login (this is what regressed with a destroy()-based fix)
+		const recovered = await followToCode(
+			authUrl,
+			[...staleCookies.values(), sessionCookie(1)].join("; ")
+		);
+		check(
+			"login works after stale session recovery",
+			!!recovered.searchParams.get("code") && !recovered.searchParams.get("error"),
+			recovered.searchParams.get("error_description") ?? ""
 		);
 	} finally {
 		await sql.database.close();
