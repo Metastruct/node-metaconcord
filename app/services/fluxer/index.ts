@@ -477,6 +477,11 @@ export class Fluxer extends Service {
 		});
 	}
 
+	private relayFailure(op: string, context: Record<string, unknown>, error: unknown): never {
+		log.error({ err: error, relay: op, ...context }, "Fluxer relay operation failed");
+		throw error;
+	}
+
 	private enqueue(key: string, operation: () => Promise<void>) {
 		const previous = this.queues.get(key) ?? Promise.resolve();
 		const current = previous
@@ -561,6 +566,19 @@ export class Fluxer extends Service {
 				false,
 				true
 			)
+		).catch(error =>
+			this.relayFailure(
+				"discord->fluxer create",
+				{
+					discordMessageId: message.id,
+					discordChannelId: message.channelId,
+					fluxerChannelId: route.fluxerChannelId,
+					hasReply: Boolean(reply),
+					embedCount: embeds.length,
+					attachmentCount: attachments.length,
+				},
+				error
+			)
 		);
 		await this.saveMessageMapping(message.id, sent.id, route, "discord");
 	}
@@ -641,6 +659,17 @@ export class Fluxer extends Service {
 				},
 				false
 			)
+		).catch(error =>
+			this.relayFailure(
+				"discord->fluxer update",
+				{
+					discordMessageId: mapping.discord_message_id,
+					discordChannelId: mapping.discord_channel_id,
+					fluxerMessageId: mapping.fluxer_message_id,
+					fluxerChannelId: mapping.fluxer_channel_id,
+				},
+				error
+			)
 		);
 	}
 
@@ -668,7 +697,19 @@ export class Fluxer extends Service {
 				);
 			}
 		} catch (error) {
-			if (!(error instanceof FluxerApiError) || error.status !== 404) throw error;
+			if (!(error instanceof FluxerApiError) || error.status !== 404) {
+				this.relayFailure(
+					"discord->fluxer delete",
+					{
+						discordMessageId: mapping.discord_message_id,
+						discordChannelId: mapping.discord_channel_id,
+						fluxerMessageId: mapping.fluxer_message_id,
+						fluxerChannelId: mapping.fluxer_channel_id,
+						origin: mapping.origin,
+					},
+					error
+				);
+			}
 		}
 		await this.deleteMessageMapping(mapping);
 	}
@@ -711,20 +752,35 @@ export class Fluxer extends Service {
 		payload.content = await this.fluxerReplyContent(message, payload.content, fallbackUrls);
 		const embeds = normalizeEmbeds(message.embeds ?? [], message.content);
 		const destination = await this.getDiscordWebhook(route);
-		const sent = await destination.webhook.send({
-			content: payload.content || undefined,
-			username: this.fluxerDisplayName(message).slice(0, 80),
-			avatarURL: this.fluxerAvatarUrl(message),
-			...(embeds.length > 0 ? { embeds } : {}),
-			files,
-			allowedMentions: {
-				parse: [],
-				users: payload.users,
-				roles: payload.roles,
-				repliedUser: false,
-			},
-			...(destination.threadId ? { threadId: destination.threadId } : {}),
-		});
+		const sent = await destination.webhook
+			.send({
+				content: payload.content || undefined,
+				username: this.fluxerDisplayName(message).slice(0, 80),
+				avatarURL: this.fluxerAvatarUrl(message),
+				...(embeds.length > 0 ? { embeds } : {}),
+				files,
+				allowedMentions: {
+					parse: [],
+					users: payload.users,
+					roles: payload.roles,
+					repliedUser: false,
+				},
+				...(destination.threadId ? { threadId: destination.threadId } : {}),
+			})
+			.catch(error =>
+				this.relayFailure(
+					"fluxer->discord create",
+					{
+						fluxerMessageId: message.id,
+						fluxerChannelId: message.channel_id,
+						discordChannelId: route.discordChannelId,
+						isThread: route.channelKind === "thread",
+						attachmentCount: files.length,
+						embedCount: embeds.length,
+					},
+					error
+				)
+			);
 		await this.saveMessageMapping(sent.id, message.id, route, "fluxer");
 	}
 
@@ -749,19 +805,33 @@ export class Fluxer extends Service {
 		payload.content = await this.fluxerReplyContent(message, payload.content, fallbackUrls);
 		const embeds = normalizeEmbeds(message.embeds ?? [], message.content);
 		const destination = await this.getDiscordWebhook(route);
-		await destination.webhook.editMessage(mapping.discord_message_id, {
-			content: payload.content || null,
-			...(embeds.length > 0 ? { embeds } : {}),
-			attachments: [],
-			files,
-			allowedMentions: {
-				parse: [],
-				users: payload.users,
-				roles: payload.roles,
-				repliedUser: false,
-			},
-			...(destination.threadId ? { threadId: destination.threadId } : {}),
-		});
+		await destination.webhook
+			.editMessage(mapping.discord_message_id, {
+				content: payload.content || null,
+				...(embeds.length > 0 ? { embeds } : {}),
+				attachments: [],
+				files,
+				allowedMentions: {
+					parse: [],
+					users: payload.users,
+					roles: payload.roles,
+					repliedUser: false,
+				},
+				...(destination.threadId ? { threadId: destination.threadId } : {}),
+			})
+			.catch(error =>
+				this.relayFailure(
+					"fluxer->discord update",
+					{
+						fluxerMessageId: message.id,
+						fluxerChannelId: message.channel_id,
+						discordMessageId: mapping.discord_message_id,
+						discordChannelId: mapping.discord_channel_id,
+						isThread: route.channelKind === "thread",
+					},
+					error
+				)
+			);
 	}
 
 	private async relayFluxerDelete(messageId: string) {
@@ -791,7 +861,19 @@ export class Fluxer extends Service {
 				await channel.messages.delete(mapping.discord_message_id);
 			}
 		} catch (error) {
-			if ((error as { code?: number }).code !== 10008) throw error;
+			if ((error as { code?: number }).code !== 10008) {
+				this.relayFailure(
+					"fluxer->discord delete",
+					{
+						fluxerMessageId: mapping.fluxer_message_id,
+						fluxerChannelId: mapping.fluxer_channel_id,
+						discordMessageId: mapping.discord_message_id,
+						discordChannelId: mapping.discord_channel_id,
+						origin: mapping.origin,
+					},
+					error
+				);
+			}
 		}
 		await this.deleteMessageMapping(mapping);
 	}
