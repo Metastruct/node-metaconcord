@@ -4,6 +4,7 @@ import { SQL } from "./SQL.js";
 import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.js";
 import { logger } from "@/utils.js";
 import OIDCConfig from "@/config/oidc.json" with { type: "json" };
+import crypto from "node:crypto";
 import {
 	Provider as OIDCProvider,
 	type Account,
@@ -173,6 +174,77 @@ export class OIDC extends Service {
 		});
 
 		this.provider.proxy = true;
+
+		// A stale _session cookie (a leftover host-only copy from before the
+		// cookie gained its Domain attribute, or one the database no longer
+		// resolves) shadows every fresh one, so logins keep failing with
+		// "authentication session mismatch". The header can't say which variant
+		// holds it, so scrub in two passes: host-only first, then the domain one.
+		const secureCookies = this.config.issuer.startsWith("https:");
+		const cookieDomain = ".metastruct.net"; // mirrors cookies.long.domain above
+		const sessionSig = (value: string) =>
+			crypto
+				.createHmac("sha1", this.config.cookieKeys)
+				.update(`_session=${value}`)
+				.digest("base64")
+				.replace(/\+/g, "-")
+				.replace(/\//g, "_")
+				.replace(/=+$/, "");
+		const clearCookie = (name: string, domain?: string) =>
+			`${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; httpOnly` +
+			(domain ? `; domain=${domain}` : "") +
+			(secureCookies ? "; secure" : "");
+		webApp.app.use("/oauth", async (req, res, next) => {
+			try {
+				// only navigations: token endpoints authenticate by credentials
+				if (req.method !== "GET") return next();
+				const attempt = Number(req.cookies?.__mcscrub ?? 0);
+				const header = req.headers.cookie ?? "";
+				const values = [...header.matchAll(/(?:^|; *)_session=([^;]*)/g)]
+					.map(m => m[1])
+					.filter(value => value !== "");
+				if (values.length === 0) return next();
+				const sigs = [...header.matchAll(/(?:^|; *)_session\.sig=([^;]*)/g)].map(m => m[1]);
+				const sessionAdapter = this.provider.Session.adapter;
+				const resolvable = await Promise.all(
+					values.map(
+						async value =>
+							sigs.some(sig => sessionSig(value) === sig) &&
+							!!(await sessionAdapter.find(value))
+					)
+				);
+				if (resolvable.every(Boolean)) {
+					// duplicates: oidc-provider reads only the first cookie, so drop
+					// the shadowing host-only copy (the domain one holds the session)
+					if (values.length > 1)
+						res.append("Set-Cookie", [clearCookie("_session"), clearCookie("_session.sig")]);
+					return next();
+				}
+				if (attempt >= 2) return next(); // give up, the error page says to retry
+				log.info(
+					{ cookies: values.length, attempt: attempt + 1 },
+					`stale oidc session cookie on ${req.path}, scrubbing`
+				);
+				res.append(
+					"Set-Cookie",
+					attempt === 0
+						? [clearCookie("_session"), clearCookie("_session.sig")]
+						: [
+								clearCookie("_session", cookieDomain),
+								clearCookie("_session.sig", cookieDomain),
+							]
+				);
+				res.cookie("__mcscrub", String(attempt + 1), {
+					httpOnly: true,
+					maxAge: 60_000,
+					path: "/oauth",
+				});
+				res.redirect(req.originalUrl);
+			} catch (err) {
+				log.error(err, "oidc session cookie scrub failed");
+				next();
+			}
+		});
 
 		// Interaction endpoint, handled by express before the koa app below. The
 		// webapp cookie-parser is active here, so the session cookie just works.
@@ -353,8 +425,6 @@ function loginPickerPage(uid: string, fresh = true): string {
  * handles expiry and consumption itself inside those payloads.
  */
 function makeAdapter(sql: SQL): new (name: string) => Adapter {
-	const consumed = new Set<string>();
-
 	return class SQLiteAdapter implements Adapter {
 		constructor(public name: string) {}
 
@@ -395,9 +465,21 @@ function makeAdapter(sql: SQL): new (name: string) => Adapter {
 		}
 
 		async consume(id: string): Promise<void> {
-			//unref so it doesn't take a minute everytime when running the test
-			consumed.add(id);
-			setTimeout(() => consumed.delete(id), 60_000).unref();
+			const row = await sql.database.get<{ payload: string }>(
+				"SELECT payload FROM oidc_tokens WHERE id = ?;",
+				id
+			);
+			if (!row) return;
+			const stored = JSON.parse(row.payload) as {
+				payload: AdapterPayload;
+				expiresAt?: number;
+			};
+			stored.payload.consumed = Math.floor(Date.now() / 1000);
+			await sql.database.run(
+				"UPDATE oidc_tokens SET payload = ? WHERE id = ?;",
+				JSON.stringify(stored),
+				id
+			);
 		}
 
 		async findByUid(uid: string): Promise<AdapterPayload | undefined> {
