@@ -256,7 +256,14 @@ export default async (webApp: WebApp): Promise<void> => {
 				return;
 			}
 
-			const user = data.user;
+			const user = await (async () => {
+				const res = await fetch("https://discord.com/api/v10/users/@me", {
+					headers: { Authorization: `Bearer ${tokens.access_token}` },
+				}).catch(err => {
+					log.error(err, "failed fetching discord user");
+				});
+				return res?.ok ? ((await res.json()) as Discord.APIUser) : data.user;
+			})();
 			let account;
 			try {
 				account = await webApp.container
@@ -267,9 +274,6 @@ export default async (webApp: WebApp): Promise<void> => {
 						name: user.global_name || user.username,
 						avatar: avatarUrl(user),
 						source: "oauth",
-						// present when the user consented to the email scope; Discord only
-						// returns an email once it is verified, and `verified` is unreliable
-						// on /oauth2/@me, so the presence of an email implies it
 						email: user.email ?? undefined,
 						emailVerified: user.verified === true || user.email != null,
 					});
