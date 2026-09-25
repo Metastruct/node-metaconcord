@@ -114,7 +114,7 @@ async function getWithCookies(url: URL | string, cookie?: string): Promise<Respo
 	if (cookie)
 		for (const part of cookie.split("; ")) jar.set(part.slice(0, part.indexOf("=")), part);
 	let current = new URL(url);
-	for (let hops = 0; hops < 5; hops++) {
+	for (let hops = 0; hops < 10; hops++) {
 		const res = await fetch(current, {
 			redirect: "manual",
 			headers: { cookie: [...jar.values()].join("; ") },
@@ -122,7 +122,9 @@ async function getWithCookies(url: URL | string, cookie?: string): Promise<Respo
 		for (const set of res.headers.getSetCookie()) {
 			const [pair] = set.split(";");
 			const [name, value] = pair.split("=");
-			jar.set(name, `${name}=${value}`);
+			// like a browser: a Set-Cookie with an empty value expires the cookie
+			if (value === "") jar.delete(name);
+			else jar.set(name, `${name}=${value}`);
 		}
 		const location = res.headers.get("location");
 		if (!location || res.status >= 400) return res;
@@ -147,7 +149,9 @@ async function followToCode(authUrl: URL, cookie?: string): Promise<URL> {
 		for (const set of res.headers.getSetCookie()) {
 			const [pair] = set.split(";");
 			const [name, value] = pair.split("=");
-			jar.set(name, `${name}=${value}`);
+			// like a browser: a Set-Cookie with an empty value expires the cookie
+			if (value === "") jar.delete(name);
+			else jar.set(name, `${name}=${value}`);
 		}
 		const location = res.headers.get("location");
 		if (!location)
@@ -270,6 +274,23 @@ async function main(): Promise<void> {
 			JSON.stringify(userinfo)
 		);
 
+		// 4a. authorization codes are single-use: replaying one must fail and
+		// revoke the grant (this is what Adapter.consume persists for)
+		const replayRes = await fetch(discovery.token_endpoint, {
+			method: "POST",
+			headers: {
+				"content-type": "application/x-www-form-urlencoded",
+				authorization: `Basic ${Buffer.from(`${client.client_id}:${client.client_secret}`).toString("base64")}`,
+			},
+			body: new URLSearchParams({
+				grant_type: "authorization_code",
+				code: code!,
+				redirect_uri: redirectUri,
+			}),
+		});
+		const replay = (await replayRes.json()) as { error?: string; error_description?: string };
+		check("code replay rejected", replay.error === "invalid_grant", JSON.stringify(replay));
+
 		// 5. adapter round trip: the interaction and grant landed in sqlite
 		const rows = (await sql.database.all("SELECT id FROM oidc_tokens;")) as { id: string }[];
 		check("adapter persisted state", rows.length >= 2, `${rows.length} rows`);
@@ -320,6 +341,21 @@ async function main(): Promise<void> {
 			"login works after stale session recovery",
 			!!recovered.searchParams.get("code") && !recovered.searchParams.get("error"),
 			recovered.searchParams.get("error_description") ?? ""
+		);
+
+		// 8. a stale _session cookie shadowing the current one (host-only leftover,
+		// row long gone) used to fail every flow with "authentication session
+		// mismatch". The scrub middleware must clear it and restart instead.
+		const shadowed = await getWithCookies(
+			authUrl,
+			`${sessionCookie(1)}; _session=dead-session; _session.sig=not-a-valid-signature`
+		);
+		const shadowedLocation = shadowed.headers.get("location") ?? "";
+		check(
+			"shadowed stale session cookie gets scrubbed and the login completes",
+			shadowedLocation.startsWith(redirectUri) &&
+				!!new URL(shadowedLocation).searchParams.get("code"),
+			`status ${shadowed.status}: ${shadowedLocation}`
 		);
 	} finally {
 		await sql.database.close();
