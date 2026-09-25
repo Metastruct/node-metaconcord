@@ -41,6 +41,19 @@ export type FluxerMessage = {
 	} | null;
 	referenced_message?: FluxerMessage | null;
 	member?: { nick?: string | null; avatar?: string | null };
+	message_snapshots?: FluxerMessageSnapshot[] | null;
+};
+
+export type FluxerMessageSnapshot = {
+	content?: string;
+	timestamp?: string;
+	edited_timestamp?: string | null;
+	mentions?: (string | FluxerUser)[];
+	mention_roles?: string[];
+	attachments?: FluxerAttachment[];
+	embeds?: unknown[] | null;
+	stickers?: { id: string; name: string }[];
+	type?: number;
 };
 
 export type FluxerWebhook = {
