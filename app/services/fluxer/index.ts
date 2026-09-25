@@ -533,9 +533,17 @@ export class Fluxer extends Service {
 		}
 		if (message.system) return;
 		const payload = this.translateDiscordMessage(message);
+		const voiceAttachment =
+			message.flags.has(Discord.MessageFlags.IsVoiceMessage) &&
+			message.attachments.size === 1 &&
+			message.attachments.first()?.duration != null &&
+			message.attachments.first()?.waveform
+				? message.attachments.first()
+				: undefined;
 		const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(route, [
 			...message.attachments.values(),
 		]);
+		const voiceMessage = voiceAttachment != null && attachments.length === 1;
 		const stickerIds = [...message.stickers.values()]
 			.map(sticker => this.stickerFluxerByDiscord.get(sticker.id))
 			.filter((id): id is string => Boolean(id))
@@ -549,11 +557,16 @@ export class Fluxer extends Service {
 			4000
 		);
 		const components = message.components.map(component => component.toJSON());
-		const embeds = normalizeEmbeds(
-			[...message.embeds.map(embed => embed.toJSON()), ...componentEmbeds(components)],
-			message.content
-		);
-		if (!payload.content && embeds.length === 0 && attachments.length === 0) {
+		const embeds = voiceMessage
+			? []
+			: normalizeEmbeds(
+					[
+						...message.embeds.map(embed => embed.toJSON()),
+						...componentEmbeds(components),
+					],
+					message.content
+				);
+		if (!voiceMessage && !payload.content && embeds.length === 0 && attachments.length === 0) {
 			payload.content =
 				componentFallbackText(components).slice(0, 4000) ||
 				`[View this Discord message](${message.url})`;
@@ -566,7 +579,7 @@ export class Fluxer extends Service {
 				"POST",
 				`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}?wait=true`,
 				{
-					content: payload.content || null,
+					content: voiceMessage ? null : payload.content || null,
 					nonce: message.id,
 					username: (message.member?.displayName ?? message.author.displayName).slice(
 						0,
@@ -574,8 +587,13 @@ export class Fluxer extends Service {
 					),
 					avatar_url: message.author.displayAvatarURL({ size: 128 }),
 					...(embeds.length > 0 ? { embeds } : {}),
-					attachments,
-					...(stickerIds.length > 0 ? { sticker_ids: stickerIds } : {}),
+					...(voiceMessage
+						? {
+								flags: Discord.MessageFlags.IsVoiceMessage,
+								attachments: [attachments[0]],
+							}
+						: { attachments }),
+					...(voiceMessage || stickerIds.length === 0 ? {} : { sticker_ids: stickerIds }),
 					allowed_mentions: {
 						parse: [],
 						users: payload.users,
@@ -626,10 +644,9 @@ export class Fluxer extends Service {
 						`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}?wait=true`,
 						{
 							nonce: message.id,
-							username: (message.member?.displayName ?? message.author.displayName).slice(
-								0,
-								80
-							),
+							username: (
+								message.member?.displayName ?? message.author.displayName
+							).slice(0, 80),
 							avatar_url: message.author.displayAvatarURL({ size: 128 }),
 							message_reference: {
 								message_id: sourceMapping.fluxer_message_id,
@@ -707,7 +724,10 @@ export class Fluxer extends Service {
 				{
 					content: payload.content || null,
 					nonce: message.id,
-					username: (message.member?.displayName ?? message.author.displayName).slice(0, 80),
+					username: (message.member?.displayName ?? message.author.displayName).slice(
+						0,
+						80
+					),
 					avatar_url: message.author.displayAvatarURL({ size: 128 }),
 					...(embeds.length > 0 ? { embeds } : {}),
 					attachments,
@@ -1191,6 +1211,8 @@ export class Fluxer extends Service {
 				type: attachment.contentType ?? "application/octet-stream",
 				data,
 				description: attachment.description,
+				...(attachment.duration != null ? { duration: attachment.duration } : {}),
+				...(attachment.waveform ? { waveform: attachment.waveform } : {}),
 			});
 		}
 		try {
@@ -1221,6 +1243,10 @@ export class Fluxer extends Service {
 				attachment: data,
 				name: attachment.filename,
 				description: attachment.description ?? undefined,
+				...(typeof attachment.duration === "number"
+					? { duration: attachment.duration }
+					: {}),
+				...(attachment.waveform ? { waveform: attachment.waveform } : {}),
 			});
 		}
 		return { files, fallbackUrls };

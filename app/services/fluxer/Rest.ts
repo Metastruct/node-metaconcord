@@ -18,6 +18,8 @@ export type FluxerAttachment = {
 	content_type?: string | null;
 	size: number;
 	url?: string | null;
+	duration?: number | null;
+	waveform?: string | null;
 };
 
 export type FluxerMessage = {
@@ -42,6 +44,7 @@ export type FluxerMessage = {
 	referenced_message?: FluxerMessage | null;
 	member?: { nick?: string | null; avatar?: string | null };
 	message_snapshots?: FluxerMessageSnapshot[] | null;
+	flags?: number;
 };
 
 export type FluxerMessageSnapshot = {
@@ -69,6 +72,8 @@ export type BridgeFile = {
 	type: string;
 	data: Buffer;
 	description?: string | null;
+	duration?: number;
+	waveform?: string;
 };
 
 type UploadPlan = {
@@ -173,6 +178,9 @@ export class FluxerRest {
 					filename: file.name,
 					file_size: file.data.byteLength,
 					content_type: file.type,
+					...(file.description ? { description: file.description } : {}),
+					...(file.duration != null ? { duration: Math.round(file.duration) } : {}),
+					...(file.waveform ? { waveform: file.waveform } : {}),
 				})),
 			}
 		);
@@ -208,6 +216,8 @@ export class FluxerRest {
 			file_size: plan.file_size,
 			content_type: plan.content_type,
 			description: requested[plan.id].description ?? undefined,
+			duration: requested[plan.id].duration,
+			waveform: requested[plan.id].waveform,
 		}));
 	}
 
