@@ -89,7 +89,19 @@ export class OIDC extends Service {
 			findAccount: async (ctx, id): Promise<Account | undefined> => {
 				const account = await accounts.get(Number(id));
 				if (!account) {
-					void ctx.oidc?.session?.destroy?.();
+					// The session can outlive deleted accounts. Resetting it to
+					// logged-out (instead of destroying it) keeps its uid, so the
+					// browser recovers without an "authentication session mismatch".
+					const session = ctx.oidc?.session as Record<string, unknown> | undefined;
+					if (session) {
+						delete session.accountId;
+						delete session.loginTs;
+						delete session.amr;
+						delete session.acr;
+						delete session.authorizations;
+						delete session.state;
+						session.touched = true; // persisted by ensureSessionSave
+					}
 					throw new errors.SessionNotFound("account no longer exists");
 				}
 				return {
@@ -383,9 +395,9 @@ function makeAdapter(sql: SQL): new (name: string) => Adapter {
 		}
 
 		async consume(id: string): Promise<void> {
-			// grace period for refresh tokens referencing this one
+			//unref so it doesn't take a minute everytime when running the test
 			consumed.add(id);
-			setTimeout(() => consumed.delete(id), 60_000);
+			setTimeout(() => consumed.delete(id), 60_000).unref();
 		}
 
 		async findByUid(uid: string): Promise<AdapterPayload | undefined> {
