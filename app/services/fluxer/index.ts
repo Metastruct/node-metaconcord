@@ -236,7 +236,7 @@ function appendContent(content: string, additions: string[], limit: number) {
 	return `${combined.slice(0, Math.max(0, limit - 1))}…`;
 }
 
-const FLUXER_FORWARD_REFERENCE_TYPE = 2;
+const FLUXER_FORWARD_REFERENCE_TYPE = 1;
 
 export function isFluxerForward(message: FluxerMessage): boolean {
 	return (
@@ -651,7 +651,7 @@ export class Fluxer extends Service {
 							message_reference: {
 								message_id: sourceMapping.fluxer_message_id,
 								channel_id: sourceMapping.fluxer_channel_id,
-								type: 2,
+								type: FLUXER_FORWARD_REFERENCE_TYPE,
 							},
 						},
 						false,
@@ -711,9 +711,9 @@ export class Fluxer extends Service {
 			],
 			payload.content
 		);
-		const header = `[Forwarded message from Discord](${message.url})`;
+		const header = `[Forwarded message from Discord](<${message.url}>)`;
 		if (!payload.content && embeds.length === 0 && attachments.length === 0) {
-			payload.content = `[View this Discord message](${message.url})`;
+			payload.content = `[View this Discord message](<${message.url}>)`;
 		} else if (payload.content || fallbackStickerUrls.length > 0) {
 			payload.content = appendContent(header, [payload.content], 4000);
 		}
@@ -1211,7 +1211,9 @@ export class Fluxer extends Service {
 				type: attachment.contentType ?? "application/octet-stream",
 				data,
 				description: attachment.description,
-				...(attachment.duration != null ? { duration: attachment.duration } : {}),
+				...(attachment.duration != null
+					? { duration: Math.round(attachment.duration) }
+					: {}),
 				...(attachment.waveform ? { waveform: attachment.waveform } : {}),
 			});
 		}
