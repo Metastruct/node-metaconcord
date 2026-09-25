@@ -198,7 +198,7 @@ function formatDiffText(text: string): string {
 		.replaceAll("```", "​`​`​`");
 }
 
-const MAX_DIFF_CHANGES_PER_FILE = 4;
+const MAX_DIFF_CHANGES_PER_FILE = 6;
 function formatDiff(text: string): string {
 	const kept: string[] = [];
 	let header: string[] = [];
