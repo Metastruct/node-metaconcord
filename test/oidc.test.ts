@@ -36,8 +36,9 @@ const accountsStore = new Map(
 			displayName: `Test User ${id}`,
 			roles: ["developer"],
 			sessionVersion: 1,
-			// account 1: verified Discord email wins over the GitHub noreply.
-			// account 2: unverified Discord email must fall back to the noreply.
+			// account 1 has a verified email, account 2 has none (unverified
+			// Discord email, GitHub link predates email capture) and must get the
+			// "needs a verified email" picker instead of a code the client rejects.
 			links: [
 				{
 					provider: "discord",
@@ -68,13 +69,32 @@ const container = new Container({} as App, [
 
 const SESSION_COOKIE = "mcSession";
 const sessionCookie = (accountId: number): string => {
-	const account = accountsStore.get(accountId)!;
+	const account = accountsStore.get(accountId);
 	const value = encrypt({
 		accountId,
-		version: account.sessionVersion,
+		version: account?.sessionVersion ?? 1,
 		expiresAt: Date.now() + 60_000,
 	});
 	return `${SESSION_COOKIE}=${value}`;
+};
+
+/** Forges a provider session naming a (possibly deleted) account. */
+const providerSession = async (accountId: number, value: string): Promise<void> => {
+	const sql = container.getService("SQL") as SQL;
+	await sql.database.run(
+		"INSERT INTO oidc_tokens (id, grant_id, payload) VALUES (?, ?, ?)",
+		value,
+		null,
+		JSON.stringify({
+			payload: {
+				iat: Math.floor(Date.now() / 1000),
+				exp: Math.floor(Date.now() / 1000) + 3600,
+				authorizations: {},
+				accountId: String(accountId),
+				uid: `uid-${accountId}`,
+			},
+		})
+	);
 };
 
 const client = { ...OIDCConfig.clients[0] };
@@ -84,6 +104,31 @@ if (!client.client_secret) {
 	OIDCConfig.clients[0].client_secret = client.client_secret;
 }
 const redirectUri = client.redirect_uris[0];
+
+/** GET with a cookie jar that picks up Set-Cookie along the way. */
+async function getWithCookies(url: URL | string, cookie?: string): Promise<Response> {
+	const jar = new Map<string, string>();
+	if (cookie)
+		for (const part of cookie.split("; ")) jar.set(part.slice(0, part.indexOf("=")), part);
+	let current = new URL(url);
+	for (let hops = 0; hops < 5; hops++) {
+		const res = await fetch(current, {
+			redirect: "manual",
+			headers: { cookie: [...jar.values()].join("; ") },
+		});
+		for (const set of res.headers.getSetCookie()) {
+			const [pair] = set.split(";");
+			const [name, value] = pair.split("=");
+			jar.set(name, `${name}=${value}`);
+		}
+		const location = res.headers.get("location");
+		if (!location || res.status >= 400) return res;
+		const next = new URL(location, current);
+		if (next.origin === new URL(redirectUri).origin) return res;
+		current = next;
+	}
+	throw new Error("too many redirects");
+}
 
 async function followToCode(authUrl: URL, cookie?: string): Promise<URL> {
 	let url = new URL(authUrl);
@@ -145,20 +190,21 @@ async function main(): Promise<void> {
 		authUrl.searchParams.set("scope", "openid email profile");
 		authUrl.searchParams.set("state", "st123");
 		authUrl.searchParams.set("nonce", "no456");
-		const anon = await fetch(authUrl, { redirect: "manual" });
-		const interactionUrl = new URL(anon.headers.get("location") ?? "", OIDCConfig.issuer);
-		const loggedOut = await fetch(interactionUrl, { redirect: "manual" });
+		const loggedOut = await getWithCookies(authUrl);
 		const pickerHtml = await loggedOut.text();
 		const pickerLinks = [...pickerHtml.matchAll(/href="([^"]+)"/g)].map(m => m[1]);
 		check(
 			"no session shows provider picker",
 			(loggedOut.headers.get("content-type") ?? "").includes("text/html") &&
-				["discord", "steam", "github", "gitlab"].every(provider =>
+				["discord", "github"].every(provider =>
 					pickerLinks.some(
 						href =>
 							href.startsWith(`/auth/${provider}?redirect=`) &&
 							href.includes("target=self")
 					)
+				) &&
+				!["steam", "gitlab"].some(provider =>
+					pickerLinks.some(href => href.includes(`/auth/${provider}?`))
 				)
 		);
 
@@ -225,10 +271,36 @@ async function main(): Promise<void> {
 		const rows = (await sql.database.all("SELECT id FROM oidc_tokens;")) as { id: string }[];
 		check("adapter persisted state", rows.length >= 2, `${rows.length} rows`);
 
-		// 6. a second account gets its own sub
-		const back2 = await followToCode(authUrl, sessionCookie(2));
-		const code2 = back2.searchParams.get("code");
-		check("second account code", !!code2);
+		// 6. an account without a verified email gets the "needs email" picker
+		// instead of a code the client would reject
+		const needsEmailRes = await getWithCookies(authUrl, sessionCookie(2));
+		const needsEmailHtml = await needsEmailRes.text();
+		check(
+			"session without verified email shows picker",
+			needsEmailHtml.includes("needs a login with a verified email") &&
+				needsEmailHtml.includes("Continue with Discord")
+		);
+
+		// 7. a provider session naming a deleted account must not crash
+		// /oauth/authorize with a 500: findAccount throws SessionNotFound and
+		// destroys the stale session, so the browser recovers on the next request
+		const staleUid = `stale-${Date.now()}`;
+		await providerSession(999, staleUid);
+		const { default: KeyGrip } = await import("keygrip");
+		const keys = new KeyGrip([OIDCConfig.cookieKeys]);
+		const sig = keys.sign(`_session=${staleUid}`);
+		const staleRes = await fetch(authUrl, {
+			redirect: "manual",
+			headers: { cookie: `_session=${staleUid}; _session.sig=${sig}` },
+		});
+		const staleLocation = new URL(staleRes.headers.get("location") ?? "", authUrl);
+		check(
+			"deleted account session gets a clean error, not a 500",
+			staleRes.status < 500 &&
+				staleLocation.searchParams.get("error") === "invalid_request" &&
+				staleLocation.searchParams.get("error_description") === "account no longer exists",
+			`status ${staleRes.status}`
+		);
 	} finally {
 		await sql.database.close();
 		(container.getService("WebApp") as WebApp).http.close();

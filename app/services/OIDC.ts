@@ -11,6 +11,7 @@ import {
 	type Grant as OIDCGrant,
 	type Adapter,
 	type AdapterPayload,
+	errors,
 } from "oidc-provider";
 
 const log = logger(import.meta);
@@ -85,9 +86,12 @@ export class OIDC extends Service {
 				"accountId" in token && token.accountId
 					? { username: (await accounts.get(Number(token.accountId)))?.displayName }
 					: undefined,
-			findAccount: async (_ctx, id): Promise<Account | undefined> => {
+			findAccount: async (ctx, id): Promise<Account | undefined> => {
 				const account = await accounts.get(Number(id));
-				if (!account) return undefined;
+				if (!account) {
+					void ctx.oidc?.session?.destroy?.();
+					throw new errors.SessionNotFound("account no longer exists");
+				}
 				return {
 					accountId: id,
 					claims: async (_use, scope): Promise<AccountClaims> => {
