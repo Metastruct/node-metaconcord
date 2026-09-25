@@ -12,7 +12,9 @@ import {
 	FluxerApiError,
 	FluxerAttachment,
 	FluxerMessage,
+	FluxerMessageSnapshot,
 	FluxerRest,
+	FluxerUser,
 	FluxerWebhook,
 } from "./Rest.js";
 
@@ -232,6 +234,29 @@ function appendContent(content: string, additions: string[], limit: number) {
 	const combined = [content, ...additions].filter(Boolean).join("\n");
 	if (combined.length <= limit) return combined;
 	return `${combined.slice(0, Math.max(0, limit - 1))}…`;
+}
+
+const FLUXER_FORWARD_REFERENCE_TYPE = 2;
+
+export function isFluxerForward(message: FluxerMessage): boolean {
+	return (
+		message.message_reference?.type === FLUXER_FORWARD_REFERENCE_TYPE ||
+		(message.message_snapshots?.length ?? 0) > 0
+	);
+}
+
+export function fluxerSnapshotMentions(snapshot: FluxerMessageSnapshot): FluxerUser[] {
+	return (snapshot.mentions ?? []).map(mention =>
+		typeof mention === "string"
+			? {
+					id: mention,
+					username: mention,
+					discriminator: "0",
+					global_name: null,
+					avatar: null,
+				}
+			: mention
+	);
 }
 
 export class Fluxer extends Service {
@@ -502,6 +527,10 @@ export class Fluxer extends Service {
 		const route = this.routesByDiscord.get(message.channelId);
 		if (!route?.relayEnabled || (await this.mappingByDiscordMessage(message.id))) return;
 		if (message.partial) message = await message.fetch();
+		if (message.reference?.type === Discord.MessageReferenceType.Forward) {
+			await this.relayDiscordForward(message, route);
+			return;
+		}
 		if (message.system) return;
 		const payload = this.translateDiscordMessage(message);
 		const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(route, [
@@ -581,6 +610,133 @@ export class Fluxer extends Service {
 			)
 		);
 		await this.saveMessageMapping(message.id, sent.id, route, "discord");
+	}
+
+	private async relayDiscordForward(message: Discord.Message, route: ChannelRoute) {
+		const snapshot = message.messageSnapshots.first();
+		const sourceMapping = message.reference?.messageId
+			? await this.mappingByDiscordMessage(message.reference.messageId)
+			: undefined;
+		if (sourceMapping) {
+			// The source is bridged, so create a native Fluxer forward that references it.
+			try {
+				const sent = await this.withFluxerWebhook(route.fluxerChannelId, webhook =>
+					this.rest.request<FluxerMessage>(
+						"POST",
+						`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}?wait=true`,
+						{
+							nonce: message.id,
+							username: (message.member?.displayName ?? message.author.displayName).slice(
+								0,
+								80
+							),
+							avatar_url: message.author.displayAvatarURL({ size: 128 }),
+							message_reference: {
+								message_id: sourceMapping.fluxer_message_id,
+								channel_id: sourceMapping.fluxer_channel_id,
+								type: 2,
+							},
+						},
+						false,
+						true
+					)
+				);
+				await this.saveMessageMapping(message.id, sent.id, route, "discord");
+				return;
+			} catch (error) {
+				if (!(error instanceof FluxerApiError)) {
+					this.relayFailure(
+						"discord->fluxer forward create",
+						{
+							discordMessageId: message.id,
+							discordChannelId: message.channelId,
+							fluxerChannelId: route.fluxerChannelId,
+							sourceFluxerMessageId: sourceMapping.fluxer_message_id,
+						},
+						error
+					);
+				}
+				log.warn(
+					{ err: error, discordMessageId: message.id },
+					"Fluxer native forward failed; falling back to snapshot relay"
+				);
+			}
+		}
+		// The source is not on Fluxer; relay the snapshot contents as a regular message.
+		const payload = this.translateDiscordMessage({
+			...message,
+			content: snapshot?.content ?? "",
+			mentions: snapshot?.mentions ?? message.mentions,
+		} as unknown as Discord.Message);
+		const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(
+			route,
+			snapshot ? [...snapshot.attachments.values()] : []
+		);
+		const snapshotStickers = snapshot?.stickers.values() ?? [];
+		const stickerIds = [...snapshotStickers]
+			.map(sticker => this.stickerFluxerByDiscord.get(sticker.id))
+			.filter((id): id is string => Boolean(id))
+			.slice(0, 3);
+		const fallbackStickerUrls = [...snapshotStickers]
+			.filter(sticker => !this.stickerFluxerByDiscord.has(sticker.id))
+			.map(sticker => sticker.url);
+		payload.content = appendContent(
+			payload.content,
+			fallbackStickerUrls.concat(fallbackUrls),
+			4000
+		);
+		const snapshotComponents = (snapshot?.components.map(component => component.toJSON()) ??
+			[]) as unknown[];
+		const embeds = normalizeEmbeds(
+			[
+				...(snapshot?.embeds.map(embed => embed.toJSON()) ?? []),
+				...componentEmbeds(snapshotComponents),
+			],
+			payload.content
+		);
+		const header = `[Forwarded message from Discord](${message.url})`;
+		if (!payload.content && embeds.length === 0 && attachments.length === 0) {
+			payload.content = `[View this Discord message](${message.url})`;
+		} else if (payload.content || fallbackStickerUrls.length > 0) {
+			payload.content = appendContent(header, [payload.content], 4000);
+		}
+		await this.withFluxerWebhook(route.fluxerChannelId, webhook =>
+			this.rest.request<FluxerMessage>(
+				"POST",
+				`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}?wait=true`,
+				{
+					content: payload.content || null,
+					nonce: message.id,
+					username: (message.member?.displayName ?? message.author.displayName).slice(0, 80),
+					avatar_url: message.author.displayAvatarURL({ size: 128 }),
+					...(embeds.length > 0 ? { embeds } : {}),
+					attachments,
+					...(stickerIds.length > 0 ? { sticker_ids: stickerIds } : {}),
+					allowed_mentions: {
+						parse: [],
+						users: payload.users,
+						roles: payload.roles,
+						replied_user: false,
+					},
+				},
+				false,
+				true
+			)
+		)
+			.then(sent => this.saveMessageMapping(message.id, sent.id, route, "discord"))
+			.catch(error =>
+				this.relayFailure(
+					"discord->fluxer forward fallback",
+					{
+						discordMessageId: message.id,
+						discordChannelId: message.channelId,
+						fluxerChannelId: route.fluxerChannelId,
+						embedCount: embeds.length,
+						attachmentCount: attachments.length,
+					},
+					error
+				)
+			);
 	}
 
 	private async backfillPermanentMessages() {
@@ -738,6 +894,10 @@ export class Fluxer extends Service {
 		if (message.webhook_id && this.fluxerBridgeWebhookIds.has(message.webhook_id)) return;
 		const route = this.routesByFluxer.get(message.channel_id);
 		if (!route?.relayEnabled || (await this.mappingByFluxerMessage(message.id))) return;
+		if (isFluxerForward(message)) {
+			await this.relayFluxerForward(message, route);
+			return;
+		}
 		const payload = this.translateFluxerMessage(message);
 		payload.content = appendContent(
 			payload.content,
@@ -784,11 +944,66 @@ export class Fluxer extends Service {
 		await this.saveMessageMapping(sent.id, message.id, route, "fluxer");
 	}
 
+	private async relayFluxerForward(message: FluxerMessage, route: ChannelRoute) {
+		const snapshot = message.message_snapshots?.[0];
+		const reference = message.message_reference;
+		const header = reference?.message_id
+			? `> Forwarded message: ${config.webAppBaseUrl}/channels/${config.guildId}/${reference.channel_id}/${reference.message_id}`
+			: "> Forwarded message:";
+		const payload = this.translateFluxerMessage({
+			...message,
+			content: snapshot?.content ?? "",
+			mentions: snapshot ? fluxerSnapshotMentions(snapshot) : message.mentions,
+		});
+		const snapshotStickers = snapshot?.stickers ?? [];
+		payload.content = appendContent(
+			payload.content,
+			snapshotStickers.map(sticker => `${config.mediaBaseUrl}/stickers/${sticker.id}.png`),
+			2000
+		);
+		const { files, fallbackUrls } = await this.prepareDiscordAttachments(
+			snapshot?.attachments ?? []
+		);
+		const embeds = normalizeEmbeds(snapshot?.embeds ?? [], snapshot?.content ?? "");
+		const destination = await this.getDiscordWebhook(route);
+		const sent = await destination.webhook
+			.send({
+				content: appendContent(header, [payload.content, ...fallbackUrls], 2000),
+				username: this.fluxerDisplayName(message).slice(0, 80),
+				avatarURL: this.fluxerAvatarUrl(message),
+				...(embeds.length > 0 ? { embeds } : {}),
+				files,
+				allowedMentions: {
+					parse: [],
+					users: payload.users,
+					roles: payload.roles,
+					repliedUser: false,
+				},
+				...(destination.threadId ? { threadId: destination.threadId } : {}),
+			})
+			.catch(error =>
+				this.relayFailure(
+					"fluxer->discord forward create",
+					{
+						fluxerMessageId: message.id,
+						fluxerChannelId: message.channel_id,
+						discordChannelId: route.discordChannelId,
+						isThread: route.channelKind === "thread",
+						attachmentCount: files.length,
+						embedCount: embeds.length,
+					},
+					error
+				)
+			);
+		await this.saveMessageMapping(sent.id, message.id, route, "fluxer");
+	}
+
 	private async relayFluxerUpdate(message: FluxerMessage) {
 		if (!config.enabled) return;
 		if (message.webhook_id && this.fluxerBridgeWebhookIds.has(message.webhook_id)) return;
 		const mapping = await this.mappingByFluxerMessage(message.id);
 		if (!mapping || mapping.origin !== "fluxer") return;
+		if (isFluxerForward(message)) return;
 		const route = this.routesByFluxer.get(mapping.fluxer_channel_id);
 		if (!route?.relayEnabled) return;
 		const payload = this.translateFluxerMessage(message);
