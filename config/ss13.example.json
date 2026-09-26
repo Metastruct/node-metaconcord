@@ -15,5 +15,9 @@
 			"watchedRepo": "",
 			"hasPlayerList": false
 		}
+	],
+	"backgroundImage": [
+		"https://metastruct.net/img/background1.png",
+		"https://metastruct.net/img/background2.png"
 	]
 }

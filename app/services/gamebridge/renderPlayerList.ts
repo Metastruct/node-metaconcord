@@ -153,10 +153,10 @@ async function toDataUri(src?: string, playerKey?: string): Promise<string | und
 
 export async function renderPlayerListImage(
 	players: Player[],
-	mapThumbnailSrc?: string
+	backgroundImageSrc?: string
 ): Promise<Buffer> {
-	const [mapThumbnailDataUri, ...avatarDataUris] = await Promise.all([
-		toDataUri(mapThumbnailSrc),
+	const [backgroundImageDataUri, ...avatarDataUris] = await Promise.all([
+		toDataUri(backgroundImageSrc),
 		...players.map(async p => {
 			if (!p.avatar) return;
 			return await toDataUri(p.avatar, p.steamId64 || p.nick).catch(() => {});
@@ -244,7 +244,7 @@ export async function renderPlayerListImage(
 		</clipPath>
 	</defs>
 	<rect width="${width}" height="${height}" fill="#222"/>
-	${mapThumbnailDataUri ? `<image href="${mapThumbnailDataUri}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice"/>` : ""}
+	${backgroundImageDataUri ? `<image href="${backgroundImageDataUri}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice"/>` : ""}
 	<rect width="${width}" height="${height}" fill="rgba(0,0,0,0.85)"/>
 	${items.join("\n")}
 </svg>`;

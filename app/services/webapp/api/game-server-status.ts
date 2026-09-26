@@ -29,7 +29,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			return;
 		}
 
-		if (!Array.isArray(server.status?.players) && server.status?.mapThumbnail != null) {
+		if (!Array.isArray(server.status?.players) && server.status?.backgroundImage != null) {
 			res.sendStatus(204);
 			return;
 		}
@@ -41,10 +41,10 @@ export default async (webApp: WebApp): Promise<void> => {
 			req.headers["user-agent"]?.includes("+https://discordapp.com");
 
 		// #region Map Thumbnail
-		const mapThumbnail = server.status.mapThumbnail;
+		const backgroundImage = server.status.backgroundImage;
 		const workshopMap = server.workshopMap;
 		let thumbFilepath: string | undefined = undefined;
-		if (mapThumbnail?.match(/^https?:\/\//) && workshopMap) {
+		if (backgroundImage?.match(/^https?:\/\//) && workshopMap) {
 			await access(cacheFolder, fs_constants.F_OK).catch(() =>
 				mkdir(cacheFolder, { recursive: true })
 			);
@@ -63,7 +63,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			}
 			if (!thumbFilepath) {
 				try {
-					const response = await fetch(mapThumbnail);
+					const response = await fetch(backgroundImage);
 					if (response.ok) {
 						const contentType = response.headers.get("content-type");
 						if (!contentType) throw new Error("No content-type");
@@ -80,9 +80,9 @@ export default async (webApp: WebApp): Promise<void> => {
 				} catch {}
 			}
 		} else {
-			thumbFilepath = mapThumbnail as string;
+			thumbFilepath = backgroundImage as string;
 		}
-		const mapThumbnail64 = thumbFilepath ? await imageToDataURL(thumbFilepath) : "";
+		const backgroundImage64 = thumbFilepath ? await imageToDataURL(thumbFilepath) : "";
 		// #endregion
 
 		const html = pug.renderFile(
@@ -90,14 +90,14 @@ export default async (webApp: WebApp): Promise<void> => {
 			{
 				server,
 				image: !!discordBot,
-				mapThumbnail64,
+				backgroundImage64,
 			}
 		);
 		if (discordBot) {
 			try {
 				server.playerListImage = await renderPlayerListImage(
 					server.status.players,
-					mapThumbnail64
+					backgroundImage64
 				);
 
 				res.set({

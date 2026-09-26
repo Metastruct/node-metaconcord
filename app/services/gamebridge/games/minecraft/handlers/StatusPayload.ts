@@ -112,7 +112,10 @@ export default class StatusPayload extends Payload {
 		const files: Discord.AttachmentBuilder[] = [];
 		if (count > 0) {
 			try {
-				server.playerListImage = await renderPlayerListImage(server.status.players);
+				server.playerListImage = await renderPlayerListImage(
+					server.status.players,
+					server.backgroundImage
+				);
 				files.push(
 					new Discord.AttachmentBuilder(server.playerListImage).setName("players.png")
 				);
