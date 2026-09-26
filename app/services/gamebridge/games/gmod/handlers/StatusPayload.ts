@@ -71,7 +71,7 @@ const getRandomActivity = (gamemode: string) => {
 	return activities[(Math.random() * activities.length) | 0];
 };
 
-const DEFAULT_THUMBNAIL = path.join(process.cwd(), "resources/map-thumbnails/gm_construct_m.png");
+const DEFAULT_BACKGROUND = path.join(process.cwd(), "resources/map-thumbnails/gm_construct_m.png");
 
 /**
  * Fingerprint of only the state that should trigger a Discord edit - deliberately
@@ -213,29 +213,33 @@ export default class StatusPayload extends Payload {
 					current_defcon === 1 ? " (Restricted Access)" : ""
 				}\` <a:ALERTA:843518761160015933>`;
 
-			let mapThumbnail: string | undefined = mapChanged
+			let backgroundImage: string | undefined = mapChanged
 				? undefined
-				: server.status.mapThumbnail;
-			if (!mapThumbnail) {
+				: server.status.backgroundImage;
+			if (!backgroundImage) {
 				if (current_map && /^gm_construct_m/i.test(current_map)) {
-					mapThumbnail = DEFAULT_THUMBNAIL;
+					backgroundImage = DEFAULT_BACKGROUND;
 				} else if (current_map && current_map.toLowerCase().trim() == "rp_unioncity") {
-					mapThumbnail = path.join(
+					backgroundImage = path.join(
 						process.cwd(),
 						"resources/map-thumbnails/rp_unioncity.png"
 					);
 				}
 
-				if (!mapThumbnail && current_workshopMap) {
+				if (!backgroundImage && current_workshopMap) {
 					const res = await Steam.getPublishedFileDetails([current_workshopMap.id]).catch(
 						log.error
 					);
 					const thumbnailURI = res?.publishedfiledetails?.[0]?.preview_url;
 
 					if (thumbnailURI) {
-						mapThumbnail = thumbnailURI;
+						backgroundImage = thumbnailURI;
 					}
 				}
+
+				// no map-specific image found - fall back to the connection's
+				// configured background image (randomly picked once per connect)
+				backgroundImage ??= server.backgroundImage;
 			}
 
 			if (server.disconnected) {
@@ -256,7 +260,7 @@ export default class StatusPayload extends Payload {
 				section
 					.addTextDisplayComponents(text => text.setContent(desc))
 					.setThumbnailAccessory(accessory =>
-						accessory.setURL("attachment://map.png").setDescription(current_map)
+						accessory.setURL("attachment://background.png").setDescription(current_map)
 					)
 			);
 
@@ -294,8 +298,8 @@ export default class StatusPayload extends Payload {
 			container.addTextDisplayComponents(text => text.setContent(`-# ${gamemodeName}`));
 
 			// icons and banners
-			if (mapThumbnail && server.discordBanner !== mapThumbnail) {
-				server.changeBanner(mapThumbnail);
+			if (backgroundImage && server.discordBanner !== backgroundImage) {
+				server.changeBanner(backgroundImage);
 			}
 
 			if (
@@ -317,7 +321,7 @@ export default class StatusPayload extends Payload {
 			server.serverUptime = current_serverUptime;
 			if (hostname) server.hostname = hostname;
 			server.status.image = statusApiUri;
-			server.status.mapThumbnail = mapThumbnail;
+			server.status.backgroundImage = backgroundImage;
 			server.status.players = current_players;
 			server.workshopMap = current_workshopMap;
 
@@ -335,8 +339,8 @@ export default class StatusPayload extends Payload {
 
 			const attachments = [
 				new Discord.AttachmentBuilder(statusApiUri, { name: "players.png" }),
-				new Discord.AttachmentBuilder(mapThumbnail ?? DEFAULT_THUMBNAIL, {
-					name: "map.png",
+				new Discord.AttachmentBuilder(backgroundImage ?? DEFAULT_BACKGROUND, {
+					name: "background.png",
 				}),
 			];
 

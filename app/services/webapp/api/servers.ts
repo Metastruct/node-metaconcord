@@ -106,7 +106,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				name: config.name,
 				map: server.mapName,
 				mode: sandbox ? undefined : server.gamemode?.name,
-				thumbnail: thumbnailUrl(baseUrl, server.status.mapThumbnail),
+				thumbnail: thumbnailUrl(baseUrl, server.status.backgroundImage),
 				players: server.status.players.map(p => ({
 					...basePlayer(p),
 					profileUrl: /^\d+$/.test(p.steamId64)
@@ -137,7 +137,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				key: `minecraft-${config.id}`,
 				name: config.name,
 				map: lastStatus?.hostname,
-				thumbnail: thumbnailUrl(baseUrl, server.status.mapThumbnail),
+				thumbnail: thumbnailUrl(baseUrl, server.status.backgroundImage),
 				players: server.status.players.map(p => ({
 					...basePlayer(p),
 					profileUrl: `https://namemc.com/profile/${p.steamId64}`,
@@ -174,7 +174,7 @@ export default async (webApp: WebApp): Promise<void> => {
 					name,
 					map: status.mapName,
 					mode: status.gamestate !== undefined ? GameState[status.gamestate] : undefined,
-					thumbnail: thumbnailUrl(baseUrl, server.status.mapThumbnail),
+					thumbnail: thumbnailUrl(baseUrl, server.status.backgroundImage),
 					players: players.map(basePlayer),
 					playerCount: players.length,
 					maxPlayers: status.popcap || undefined,
@@ -193,7 +193,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		const resonite: ServerEntry[] = [];
 		for (const server of Object.values(bridge.servers.resonite)) {
 			if (!server || server.disconnected) continue;
-			for (const { session, mapThumbnail, players } of server.sessions.values()) {
+			for (const { session, backgroundImage, players } of server.sessions.values()) {
 				if (session.hasEnded) continue;
 				resonite.push({
 					id: session.sessionId,
@@ -201,7 +201,7 @@ export default async (webApp: WebApp): Promise<void> => {
 					name: session.tags?.[0] ?? session.name,
 					map: session.tags?.[0] ? session.name : undefined,
 					mode: session.accessLevel,
-					thumbnail: session.thumbnailUrl || thumbnailUrl(baseUrl, mapThumbnail),
+					thumbnail: session.thumbnailUrl || thumbnailUrl(baseUrl, backgroundImage),
 					players: players.map(p => ({
 						...basePlayer(p),
 						id: p.ip,

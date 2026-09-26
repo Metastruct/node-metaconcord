@@ -11,6 +11,7 @@ export type GameConnectionConfig = {
 	id: number;
 	label?: string;
 	name: string;
+	backgroundImage?: string | string[];
 };
 
 export type Player = {
@@ -43,10 +44,12 @@ export default class GameConnection extends EventEmitter {
 	discordBanner: string | undefined = undefined;
 	playerListImage: Buffer;
 	status: {
-		mapThumbnail?: string;
+		backgroundImage?: string;
 		players: Player[];
 		image?: string;
 	} = { players: [] };
+	/** The one background image picked for this connection's lifetime. */
+	backgroundImage: string | undefined;
 	mapName: string;
 	private lastStatusSignature?: string;
 
@@ -54,6 +57,11 @@ export default class GameConnection extends EventEmitter {
 		super();
 		this.config = config.serverConfig;
 		this.bridge = config.bridge;
+		this.backgroundImage = Array.isArray(this.config.backgroundImage)
+			? this.config.backgroundImage[
+					Math.floor(Math.random() * this.config.backgroundImage.length)
+				]
+			: this.config.backgroundImage;
 		this.discord = new DiscordClient(this, {
 			intents: ["Guilds", "GuildMessages", "MessageContent"],
 		});

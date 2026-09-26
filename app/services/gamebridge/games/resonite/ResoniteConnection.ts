@@ -3,7 +3,7 @@ import GameConnection, { Player } from "../../GameConnection.js";
 
 export type ResoniteSessionState = {
 	session: ResoniteSession;
-	mapThumbnail: string;
+	backgroundImage: string;
 	players: Player[];
 	playerListImage?: Buffer;
 	/** Fingerprint of the fields that affect players/playerListImage, so an unchanged heartbeat can skip re-rendering them. */

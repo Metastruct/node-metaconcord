@@ -169,7 +169,8 @@ function updatePresence(connection: SS13Connection): void {
 /** Polls one configured TGS instance, returning its state or undefined if it shouldn't be shown (detached, disabled, or watchdog not online). */
 async function pollInstance(
 	host: string,
-	instanceConfig: SS13InstanceConfig
+	instanceConfig: SS13InstanceConfig,
+	backgroundImage?: string
 ): Promise<SS13InstanceState | undefined> {
 	const instance = await getInstance(instanceConfig.instanceId);
 	if (!instance.online) return undefined;
@@ -214,7 +215,8 @@ async function pollInstance(
 		}
 	}
 
-	const playerListImage = players.length > 0 ? await renderPlayerListImage(players) : undefined;
+	const playerListImage =
+		players.length > 0 ? await renderPlayerListImage(players, backgroundImage) : undefined;
 
 	return { name: instance.name, status, players, playerListImage };
 }
@@ -231,6 +233,7 @@ export function attachSS13(bridge: GameBridge): void {
 					name: "#ss13 🇪🇺",
 					id: SS13_SERVER_ID,
 					discordToken: config.discordToken,
+					backgroundImage: config.backgroundImage,
 				},
 			});
 		}
@@ -239,7 +242,7 @@ export function attachSS13(bridge: GameBridge): void {
 		let anySucceeded = false;
 		for (const instanceConfig of config.instances as SS13InstanceConfig[]) {
 			try {
-				const state = await pollInstance(host, instanceConfig);
+				const state = await pollInstance(host, instanceConfig, conn.backgroundImage);
 				anySucceeded = true;
 				if (state) {
 					conn.instances.set(instanceConfig.instanceId, state);

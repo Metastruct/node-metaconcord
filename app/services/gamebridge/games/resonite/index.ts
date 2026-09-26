@@ -11,11 +11,11 @@ import { logger } from "@/utils.js";
 const log = logger(import.meta);
 
 const RESONITE_SERVER_ID = 1;
-const DEFAULT_THUMBNAIL = "https://metastruct.net/img/logo.png";
+const DEFAULT_BACKGROUND = "https://metastruct.net/img/logo.png";
 
 function buildSessionContainer(
 	session: ResoniteSession,
-	mapThumbnail: string,
+	backgroundImage: string,
 	attachmentName: string,
 	state?: "disconnected" | "ended"
 ): Discord.ContainerBuilder {
@@ -51,7 +51,7 @@ function buildSessionContainer(
 		section
 			.addTextDisplayComponents(text => text.setContent(desc))
 			.setThumbnailAccessory(accessory =>
-				accessory.setURL(mapThumbnail).setDescription(session.tags.join())
+				accessory.setURL(backgroundImage).setDescription(session.tags.join())
 			)
 	);
 
@@ -87,7 +87,7 @@ function renderMessage(
 	connection: ResoniteConnection,
 	opts: {
 		state?: "disconnected";
-		extra?: { session: ResoniteSession; mapThumbnail: string };
+		extra?: { session: ResoniteSession; backgroundImage: string };
 	} = {}
 ): { containers: Discord.ContainerBuilder[]; files: Discord.AttachmentBuilder[] } {
 	const containers: Discord.ContainerBuilder[] = [];
@@ -98,7 +98,7 @@ function renderMessage(
 		// URL parsing when used as-is.
 		const attachmentName = `players-${s.session.sessionId.replace(/[^a-zA-Z0-9_-]/g, "_")}.png`;
 		containers.push(
-			buildSessionContainer(s.session, s.mapThumbnail, attachmentName, opts.state)
+			buildSessionContainer(s.session, s.backgroundImage, attachmentName, opts.state)
 		);
 		if (s.playerListImage) {
 			files.push(new Discord.AttachmentBuilder(s.playerListImage).setName(attachmentName));
@@ -107,7 +107,7 @@ function renderMessage(
 
 	if (opts.extra) {
 		containers.push(
-			buildSessionContainer(opts.extra.session, opts.extra.mapThumbnail, "", "ended")
+			buildSessionContainer(opts.extra.session, opts.extra.backgroundImage, "", "ended")
 		);
 	}
 
@@ -163,7 +163,7 @@ async function removeSession(bridge: GameBridge, sessionId: string): Promise<voi
 	const { containers, files } = renderMessage(
 		connection,
 		hasCustomSessionId
-			? { extra: { session: ended.session, mapThumbnail: ended.mapThumbnail } }
+			? { extra: { session: ended.session, backgroundImage: ended.backgroundImage } }
 			: {}
 	);
 	await connection.postOrEditStatusMessage(containers, files, buildSignature(connection));
@@ -246,7 +246,8 @@ export function attachResonite(bridge: GameBridge): void {
 				bridge.servers.resonite[RESONITE_SERVER_ID] ?? createConnection(bridge);
 			if (!connection.discord.ready) return;
 
-			const mapThumbnail = session.thumbnailUrl ?? DEFAULT_THUMBNAIL;
+			const backgroundImage =
+				session.thumbnailUrl ?? connection.backgroundImage ?? DEFAULT_BACKGROUND;
 			const contentKey = sessionContentKey(session);
 			const prior = connection.sessions.get(session.sessionId);
 
@@ -289,15 +290,15 @@ export function attachResonite(bridge: GameBridge): void {
 							: undefined,
 					}))
 				);
-				const compositeMapThumbnail =
-					(await resonite.FetchAssetDataUri(mapThumbnail)) ?? mapThumbnail;
+				const compositeBackground =
+					(await resonite.FetchAssetDataUri(backgroundImage)) ?? backgroundImage;
 
-				playerListImage = await renderPlayerListImage(renderPlayers, compositeMapThumbnail);
+				playerListImage = await renderPlayerListImage(renderPlayers, compositeBackground);
 			}
 
 			const state: ResoniteSessionState = {
 				session,
-				mapThumbnail,
+				backgroundImage,
 				players,
 				playerListImage,
 				contentKey,
@@ -305,8 +306,8 @@ export function attachResonite(bridge: GameBridge): void {
 			connection.sessions.set(session.sessionId, state);
 
 			updatePresence(connection);
-			if (mapThumbnail !== connection.discordBanner) {
-				connection.changeBanner(mapThumbnail);
+			if (backgroundImage !== connection.discordBanner) {
+				connection.changeBanner(backgroundImage);
 			}
 
 			const { containers, files } = renderMessage(connection, {
