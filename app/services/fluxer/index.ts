@@ -822,6 +822,13 @@ export class Fluxer extends Service {
 				componentFallbackText(components).slice(0, 4000) ||
 				`[View this Discord message](${message.url})`;
 		}
+		if (
+			!payload.content &&
+			embeds.length === 0 &&
+			(message.attachments.size > 0 || message.stickers.size > 0)
+		) {
+			return;
+		}
 		await this.withFluxerWebhook(mapping.fluxer_channel_id, webhook =>
 			this.rest.request(
 				"PATCH",
