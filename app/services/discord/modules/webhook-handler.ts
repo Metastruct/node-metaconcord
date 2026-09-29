@@ -208,8 +208,33 @@ function formatDiff(text: string): string {
 		if (header.length > 0 || body.length > 0) {
 			const added = body.filter(l => l.startsWith("+")).length;
 			const removed = body.filter(l => l.startsWith("-")).length;
-			if (Math.max(added, removed) <= MAX_DIFF_CHANGES_PER_FILE)
+			const maxChanges = Math.max(added, removed);
+			if (maxChanges <= MAX_DIFF_CHANGES_PER_FILE) {
 				kept.push(...header, ...body);
+			} else if (header.length > 0) {
+				// show a marker for addec/deleted files
+				let filePath = header
+					.find(l => l.startsWith("--- ") && !l.includes("/dev/null"))
+					?.slice(4)
+					.trim();
+				if (!filePath) {
+					const plusHeader = header.find(l => l.startsWith("+++ "));
+					filePath =
+						(plusHeader && !plusHeader.includes("/dev/null")
+							? plusHeader.slice(4)
+							: null
+						)?.trim() ?? "?";
+				}
+				if (header.some(l => /^--- \/dev\/null$/.test(l))) {
+					kept.push(`@@ ${filePath} was added (${added} lines) @@`);
+				} else if (header.some(l => /^\+\+\+ \/dev\/null$/.test(l))) {
+					kept.push(`@@ ${filePath} was removed (${removed} lines) @@`);
+				} else {
+					kept.push(
+						`@@ ${filePath}: +${added} -${removed} (truncated, max ${MAX_DIFF_CHANGES_PER_FILE}) @@`
+					);
+				}
+			}
 		}
 		header = [];
 		body = [];
