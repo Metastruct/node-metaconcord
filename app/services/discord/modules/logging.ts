@@ -354,8 +354,8 @@ export default (bot: DiscordBot): void => {
 										? roles.map(r => `${r.name} (${r.id})`).join(", ")
 										: "none";
 								return change.key === "$add"
-									? `\u001b[1;42m+ Added roles\u001b[0m: ${list}`
-									: `\u001b[1;41m- Removed roles\u001b[0m: ${list}`;
+									? `\u001b[1;42m+ Added roles: ${list}\u001b[0m`
+									: `\u001b[1;41m- Removed roles: ${list}\u001b[0m`;
 							}
 
 							const overwriteOld = formatOverwriteValue(change.key, change.old);
