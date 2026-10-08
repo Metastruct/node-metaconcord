@@ -148,6 +148,7 @@ function renderMessage(
 function updatePresence(connection: SS13Connection): void {
 	const states = [...connection.instances.values()];
 	const totalPlayers = states.reduce((sum, s) => sum + s.status.clientCount, 0);
+	const populated = states.filter(s => s.status.clientCount > 0).length;
 
 	if (states.length === 0) {
 		connection.setPresence("dnd", { state: "🔴 No instances online" });
@@ -155,8 +156,8 @@ function updatePresence(connection: SS13Connection): void {
 		connection.setPresence("online", {
 			activity: {
 				name:
-					states.length > 1
-						? `${totalPlayers} player${totalPlayers === 1 ? "" : "s"} across ${states.length} servers`
+					populated > 1
+						? `${totalPlayers} player${totalPlayers === 1 ? "" : "s"} across ${populated} servers`
 						: `${totalPlayers} player${totalPlayers === 1 ? "" : "s"}`,
 				type: Discord.ActivityType.Watching,
 			},
