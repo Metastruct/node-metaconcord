@@ -272,9 +272,9 @@ function parseDiffFiles(text: string): DiffFile[] {
 function diffLabel(file: DiffFile, shownChanges: number, link?: string): string {
 	const name = link ?? `\`${file.path}\``;
 	const showing = shownChanges < file.maxChanges ? ` (showing ${shownChanges})` : "";
-	if (file.isNew) return `-# ${name} +${file.added}${showing}`;
-	if (file.isDeleted) return `-# ${name} -${file.removed}${showing}`;
-	return `-# ${name} +${file.added} -${file.removed}${showing}`;
+	if (file.isNew) return `${name} +${file.added}${showing}`;
+	if (file.isDeleted) return `${name} -${file.removed}${showing}`;
+	return `${name} +${file.added} -${file.removed}${showing}`;
 }
 
 const clipDiffLine = (line: string) =>
@@ -382,7 +382,7 @@ function formatDiff(text: string, budget: number, links?: Map<string, string>): 
 		})
 		.join("\n");
 
-	const note = dropped > 0 ? `-# ... and ${dropped} more file${dropped > 1 ? "s" : ""}` : "";
+	const note = dropped > 0 ? `... and ${dropped} more file${dropped > 1 ? "s" : ""}` : "";
 	return [rendered, note].filter(Boolean).join("\n");
 }
 
