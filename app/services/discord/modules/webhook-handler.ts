@@ -39,12 +39,11 @@ const CHANGE_LIST_SIZE = 1000;
 const MAX_FIELDS = 10;
 const MAX_COMMITS = 5;
 const COMPONENT_TEXT_LIMIT = 4000;
-const DIFF_FENCE_OVERHEAD = "```diff\n".length + "```".length;
 const DIFF_SAFETY_MARGIN = 100;
 
 function diffBudget(...parts: (string | undefined)[]): number {
 	const used = parts.reduce((total, part) => total + (part?.length ?? 0), 0);
-	return Math.max(0, COMPONENT_TEXT_LIMIT - used - DIFF_FENCE_OVERHEAD - DIFF_SAFETY_MARGIN);
+	return Math.max(0, COMPONENT_TEXT_LIMIT - used - DIFF_SAFETY_MARGIN);
 }
 
 const MinimalPushUsers = ["MetaAutomator", "github-actions[bot]"];
@@ -198,7 +197,7 @@ const GetGithubChanges = (
 
 function formatDiffText(text: string): string {
 	return text
-		.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)[^\n]/g, "$1\n")
+		.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)([^\n])/g, "$1\n$2")
 		.replaceAll(/diff.+\nindex.+\n/g, "")
 		.replaceAll("```", "​`​`​`");
 }
@@ -206,6 +205,8 @@ function formatDiffText(text: string): string {
 const MAX_DIFF_CHANGES_PER_FILE = 6; // full body at/below this many changes
 const MAX_DIFF_PEEK_CHANGES = 4; // changed lines shown for a larger file
 const MAX_DIFF_LINE_LENGTH = 160; // clip minified lines
+const DIFF_BLOCK_OVERHEAD = "```diff\n".length + "\n```".length; // per-file fence
+const DIFF_LABEL_SLACK = 16; // reserve room for a "(showing N)" suffix
 
 interface DiffFile {
 	header: string[];
@@ -237,6 +238,7 @@ function parseDiffFiles(text: string): DiffFile[] {
 					l => !l.includes("/dev/null") && (l.startsWith("--- ") || l.startsWith("+++ "))
 				)
 				?.slice(4)
+				.replace(/^[ab]\//, "")
 				.trim() ?? "unknown";
 		files.push({
 			header,
@@ -269,13 +271,14 @@ function parseDiffFiles(text: string): DiffFile[] {
 	return files;
 }
 
-// Summary line shown when a file's body is collapsed.
-function diffSummary(file: DiffFile, shownChanges: number): string {
-	const shown =
-		shownChanges < file.maxChanges ? `, showing ${shownChanges} of ${file.maxChanges}` : "";
-	if (file.isNew) return `@@ ${file.path} was added (${file.added} lines${shown}) @@`;
-	if (file.isDeleted) return `@@ ${file.path} was removed (${file.removed} lines${shown}) @@`;
-	return `@@ ${file.path}: +${file.added} -${file.removed}${shown} @@`;
+// Subtext label naming a file and its change counts.
+function diffLabel(file: DiffFile, shownChanges: number): string {
+	const showing = shownChanges < file.maxChanges ? `showing ${shownChanges}` : "";
+	if (file.isNew)
+		return `-# \`${file.path}\` +${file.added} (new${showing ? `, ${showing}` : ""})`;
+	if (file.isDeleted)
+		return `-# \`${file.path}\` -${file.removed} (deleted${showing ? `, ${showing}` : ""})`;
+	return `-# \`${file.path}\` +${file.added} -${file.removed}${showing ? ` (${showing})` : ""}`;
 }
 
 const clipDiffLine = (line: string) =>
@@ -283,7 +286,6 @@ const clipDiffLine = (line: string) =>
 
 interface DiffBlock {
 	file: DiffFile;
-	header: string[];
 	content: string[];
 	contentCost: number;
 	isLarge: boolean;
@@ -306,7 +308,6 @@ function buildDiffBlocks(files: DiffFile[]): DiffBlock[] {
 		content = content.map(clipDiffLine);
 		return {
 			file,
-			header: file.header.map(clipDiffLine),
 			content,
 			contentCost: content.reduce((n, line) => n + line.length + 1, 0),
 			isLarge,
@@ -314,8 +315,9 @@ function buildDiffBlocks(files: DiffFile[]): DiffBlock[] {
 	});
 }
 
-// Fits the blocks into `budget` chars, keeping every header/summary and sharing
-// the rest fairly, so one big diff can't push the others out.
+// Renders each file as its own ```diff block under a subtext label. Fits into
+// `budget` chars, keeping every label + fence and sharing the rest fairly, so one
+// big diff can't push the others out. Callers place the result in one TextDisplay.
 function formatDiff(text: string, budget: number): string {
 	const files = parseDiffFiles(text);
 	if (files.length === 0) return "";
@@ -324,14 +326,11 @@ function formatDiff(text: string, budget: number): string {
 	const baseCost = (bs: DiffBlock[]) =>
 		bs.reduce(
 			(n, block) =>
-				n +
-				block.header.reduce((m, line) => m + line.length + 1, 0) +
-				diffSummary(block.file, 0).length +
-				1,
+				n + diffLabel(block.file, 0).length + 1 + DIFF_BLOCK_OVERHEAD + DIFF_LABEL_SLACK,
 			0
 		);
 
-	// Shed whole trailing files if even the summaries don't fit (the list below still names them).
+	// Shed whole trailing files if even the labels don't fit (the list below still names them).
 	let dropped = 0;
 	while (blocks.length > 1 && baseCost(blocks) > budget) {
 		blocks.pop();
@@ -375,18 +374,16 @@ function formatDiff(text: string, budget: number): string {
 	const rendered = blocks
 		.map((block, i) => {
 			const shown = block.content.slice(0, take[i]);
-			const lines = [...block.header, ...shown];
-			if (block.isLarge || shown.length < block.content.length) {
-				lines.push(diffSummary(block.file, shown.filter(isChangedLine).length));
-			}
-			return lines.join("\n");
+			const label = diffLabel(block.file, shown.filter(isChangedLine).length);
+			return shown.length === 0 ? label : `${label}\n\`\`\`diff\n${shown.join("\n")}\n\`\`\``;
 		})
-		.join("\n")
-		.trim();
+		.join("\n\n");
 
-	return dropped > 0
-		? `${rendered}\n@@ ... and ${dropped} more file${dropped > 1 ? "s" : ""} (listed below) @@`
-		: rendered;
+	const note =
+		dropped > 0
+			? `-# ... and ${dropped} more file${dropped > 1 ? "s" : ""} (listed below)`
+			: "";
+	return [rendered, note].filter(Boolean).join("\n\n");
 }
 
 // Uses the authenticated Octokit client (GitHub App install token) instead of an
@@ -1041,9 +1038,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					: undefined;
 				if (diffBody) {
 					container.addSeparatorComponents(sep => sep);
-					container.addTextDisplayComponents(text =>
-						text.setContent(`\`\`\`diff\n${diffBody}\`\`\``)
-					);
+					container.addTextDisplayComponents(text => text.setContent(diffBody));
 				}
 
 				if (changeLines.length > 0) {
@@ -1384,8 +1379,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 					diffBudget(repoLine, heading, prBody, changeLinesContent, footerContent)
 				)
 			: "";
-		const diffContent = diffBody ? `\`\`\`diff\n${diffBody}\`\`\`` : "";
-
 		addContainerHeader(container, repoLine, heading, repo.owner?.avatar_url);
 
 		if (prBody) {
@@ -1395,7 +1388,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		if (diffBody) {
 			container.addSeparatorComponents(sep => sep);
-			container.addTextDisplayComponents(text => text.setContent(diffContent));
+			container.addTextDisplayComponents(text => text.setContent(diffBody));
 		}
 
 		if (changeLines.length > 0) {
@@ -1757,9 +1750,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					: undefined;
 				if (diffBody) {
 					container.addSeparatorComponents(sep => sep);
-					container.addTextDisplayComponents(text =>
-						text.setContent(`\`\`\`diff\n${diffBody}\`\`\``)
-					);
+					container.addTextDisplayComponents(text => text.setContent(diffBody));
 				}
 
 				if (changeLines.length > 0) {
@@ -1907,8 +1898,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 					diffBudget(repoLine, heading, mrBody, changeLinesContent, footerContent)
 				)
 			: "";
-		const diffContent = diffBody ? `\`\`\`diff\n${diffBody}\`\`\`` : "";
-
 		addContainerHeader(container, repoLine, heading, mr.target.avatar_url ?? undefined);
 
 		if (mrBody) {
@@ -1918,7 +1907,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		if (diffBody) {
 			container.addSeparatorComponents(sep => sep);
-			container.addTextDisplayComponents(text => text.setContent(diffContent));
+			container.addTextDisplayComponents(text => text.setContent(diffBody));
 		}
 
 		if (changeLines.length > 0) {
