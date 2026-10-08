@@ -725,6 +725,24 @@ export class Fluxer extends Service {
 		return `/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}?${params.toString()}`;
 	}
 
+	private fluxerWebhookMessagePath(
+		webhook: FluxerWebhook,
+		route: ChannelRoute,
+		messageId: string
+	) {
+		const params = new URLSearchParams();
+		if (this.isNativeFluxerThread(route)) params.set("thread_id", route.fluxerChannelId);
+		const query = params.toString();
+		return `/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}/messages/${messageId}${query ? `?${query}` : ""}`;
+	}
+
+	// Attachments for a thread message are claimed against the webhook's channel, not the thread.
+	private fluxerWebhookChannelId(route: ChannelRoute) {
+		return this.isNativeFluxerThread(route)
+			? (route.fluxerParentId ?? route.fluxerChannelId)
+			: route.fluxerChannelId;
+	}
+
 	// A message in a native Fluxer thread whose Discord counterpart does not exist yet.
 	private async resolveFluxerThreadRoute(
 		message: FluxerMessage
@@ -1262,7 +1280,7 @@ export class Fluxer extends Service {
 		await this.withFluxerWebhook(route, webhook =>
 			this.rest.request(
 				"PATCH",
-				`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}/messages/${mapping.fluxer_message_id}`,
+				this.fluxerWebhookMessagePath(webhook, route, mapping.fluxer_message_id),
 				{
 					content: payload.content || null,
 					...(embeds.length > 0 ? { embeds } : {}),
@@ -1301,7 +1319,7 @@ export class Fluxer extends Service {
 				await this.withFluxerWebhook(route, webhook =>
 					this.rest.request(
 						"DELETE",
-						`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}/messages/${mapping.fluxer_message_id}`,
+						this.fluxerWebhookMessagePath(webhook, route, mapping.fluxer_message_id),
 						undefined,
 						false
 					)
@@ -1754,7 +1772,10 @@ export class Fluxer extends Service {
 		}
 		try {
 			return {
-				attachments: await this.rest.uploadAttachments(route.fluxerChannelId, files),
+				attachments: await this.rest.uploadAttachments(
+					this.fluxerWebhookChannelId(route),
+					files
+				),
 				fallbackUrls,
 			};
 		} catch (error) {
@@ -1836,9 +1857,7 @@ export class Fluxer extends Service {
 		route: ChannelRoute,
 		operation: (webhook: FluxerWebhook) => Promise<T>
 	) {
-		const channelId = this.isNativeFluxerThread(route)
-			? (route.fluxerParentId ?? route.fluxerChannelId)
-			: route.fluxerChannelId;
+		const channelId = this.fluxerWebhookChannelId(route);
 		for (let attempt = 0; ; attempt++) {
 			const webhook = await this.getFluxerWebhook(channelId);
 			try {
