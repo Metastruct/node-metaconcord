@@ -35,8 +35,6 @@ function GetColorFromChanges(added: number, removed: number, modified: number) {
 // commit/PR/MR is its own message, so the diff gets whatever is left over.
 const BODY_SIZE = 300;
 const PR_BODY_SIZE = 1500;
-const CHANGE_LIST_SIZE = 1000;
-const MAX_FIELDS = 10;
 const MAX_COMMITS = 5;
 const COMPONENT_TEXT_LIMIT = 4000;
 const DIFF_SAFETY_MARGIN = 100;
@@ -206,7 +204,6 @@ const MAX_DIFF_CHANGES_PER_FILE = 6; // full body at/below this many changes
 const MAX_DIFF_PEEK_CHANGES = 4; // changed lines shown for a larger file
 const MAX_DIFF_LINE_LENGTH = 160; // clip minified lines
 const DIFF_BLOCK_OVERHEAD = "```diff\n".length + "\n```".length; // per-file fence
-const DIFF_LABEL_SLACK = 16; // reserve room for a "(showing N)" suffix
 
 interface DiffFile {
 	header: string[];
@@ -271,14 +268,13 @@ function parseDiffFiles(text: string): DiffFile[] {
 	return files;
 }
 
-// Subtext label naming a file and its change counts.
-function diffLabel(file: DiffFile, shownChanges: number): string {
-	const showing = shownChanges < file.maxChanges ? `showing ${shownChanges}` : "";
-	if (file.isNew)
-		return `-# \`${file.path}\` +${file.added} (new${showing ? `, ${showing}` : ""})`;
-	if (file.isDeleted)
-		return `-# \`${file.path}\` -${file.removed} (deleted${showing ? `, ${showing}` : ""})`;
-	return `-# \`${file.path}\` +${file.added} -${file.removed}${showing ? ` (${showing})` : ""}`;
+// Subtext label naming a file (linked when we have a change-list line) and its counts.
+function diffLabel(file: DiffFile, shownChanges: number, link?: string): string {
+	const name = link ?? `\`${file.path}\``;
+	const showing = shownChanges < file.maxChanges ? ` (showing ${shownChanges})` : "";
+	if (file.isNew) return `-# ${name} +${file.added}${showing}`;
+	if (file.isDeleted) return `-# ${name} -${file.removed}${showing}`;
+	return `-# ${name} +${file.added} -${file.removed}${showing}`;
 }
 
 const clipDiffLine = (line: string) =>
@@ -309,7 +305,7 @@ function buildDiffBlocks(files: DiffFile[]): DiffBlock[] {
 		return {
 			file,
 			content,
-			contentCost: content.reduce((n, line) => n + line.length + 1, 0),
+			contentCost: DIFF_BLOCK_OVERHEAD + content.reduce((n, line) => n + line.length + 1, 0),
 			isLarge,
 		};
 	});
@@ -318,28 +314,29 @@ function buildDiffBlocks(files: DiffFile[]): DiffBlock[] {
 // Renders each file as its own ```diff block under a subtext label. Fits into
 // `budget` chars, keeping every label + fence and sharing the rest fairly, so one
 // big diff can't push the others out. Callers place the result in one TextDisplay.
-function formatDiff(text: string, budget: number): string {
+function formatDiff(text: string, budget: number, links?: Map<string, string>): string {
 	const files = parseDiffFiles(text);
 	if (files.length === 0) return "";
 	const blocks = buildDiffBlocks(files);
 
-	const baseCost = (bs: DiffBlock[]) =>
+	// Every file keeps its label; only the diff content is budgeted, so a big
+	// diff never hides the fact that a file changed.
+	const labelCost = (bs: DiffBlock[]) =>
 		bs.reduce(
-			(n, block) =>
-				n + diffLabel(block.file, 0).length + 1 + DIFF_BLOCK_OVERHEAD + DIFF_LABEL_SLACK,
+			(n, block) => n + diffLabel(block.file, 0, links?.get(block.file.path)).length + 1,
 			0
 		);
 
-	// Shed whole trailing files if even the labels don't fit (the list below still names them).
+	// Only shed files if there are so many that even the labels don't fit.
 	let dropped = 0;
-	while (blocks.length > 1 && baseCost(blocks) > budget) {
+	while (blocks.length > 1 && labelCost(blocks) > budget) {
 		blocks.pop();
 		dropped++;
 	}
-	if (baseCost(blocks) > budget) return "";
+	if (labelCost(blocks) > budget) return "";
 
 	const take: number[] = new Array(blocks.length).fill(0);
-	let remaining = budget - baseCost(blocks);
+	let remaining = budget - labelCost(blocks);
 	const pending = blocks.map((_, i) => i).filter(i => blocks[i].content.length > 0);
 
 	// Water-filling: equal share per file, leftovers flow to the bigger ones.
@@ -361,7 +358,7 @@ function formatDiff(text: string, budget: number): string {
 
 		// Nothing fits whole: give each remaining file its share of lines.
 		for (const i of pending) {
-			let used = 0;
+			let used = DIFF_BLOCK_OVERHEAD;
 			for (const line of blocks[i].content) {
 				if (used + line.length + 1 > share) break;
 				used += line.length + 1;
@@ -374,15 +371,18 @@ function formatDiff(text: string, budget: number): string {
 	const rendered = blocks
 		.map((block, i) => {
 			const shown = block.content.slice(0, take[i]);
-			const label = diffLabel(block.file, shown.filter(isChangedLine).length);
-			return shown.length === 0 ? label : `${label}\n\`\`\`diff\n${shown.join("\n")}\n\`\`\``;
+			const changed = shown.filter(isChangedLine).length;
+			// don't open a block for context-only output; just show the label
+			const label = diffLabel(
+				block.file,
+				changed > 0 ? changed : block.file.maxChanges,
+				links?.get(block.file.path)
+			);
+			return changed > 0 ? `${label}\n\`\`\`diff\n${shown.join("\n")}\n\`\`\`` : label;
 		})
 		.join("\n");
 
-	const note =
-		dropped > 0
-			? `-# ... and ${dropped} more file${dropped > 1 ? "s" : ""} (listed below)`
-			: "";
+	const note = dropped > 0 ? `-# ... and ${dropped} more file${dropped > 1 ? "s" : ""}` : "";
 	return [rendered, note].filter(Boolean).join("\n");
 }
 
@@ -551,20 +551,15 @@ function findCommitUrl(message: Discord.Message): string | undefined {
 	return COMMIT_URL_REGEX.exec(text)?.[0];
 }
 
-function buildChangeLines(changes: string[]): string[] {
-	const lines: string[] = [];
-	let length = 0;
-
-	for (let i = 0; i < changes.length; i++) {
-		if (i >= MAX_FIELDS || length + changes[i].length > CHANGE_LIST_SIZE) {
-			lines.push(`... and ${changes.length - i} more changes`);
-			break;
-		}
-		const change = changes[i].length > 1024 ? "<LINK TOO LONG>" : changes[i];
-		lines.push(change);
-		length += change.length;
+// The change-list lines ("+ [path](url)") already link each file, so they double
+// as the diff labels and the separate list can go away. Keyed by repo path.
+function linkByPath(changes: string[]): Map<string, string> {
+	const links = new Map<string, string>();
+	for (const change of changes) {
+		const path = /^\S+ \[(.+?)\]\(/.exec(change)?.[1];
+		if (path) links.set(path, change);
 	}
-	return lines;
+	return links;
 }
 
 function GetPullRequestChanges(files: components["schemas"]["diff-entry"][]): string[] {
@@ -964,7 +959,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			for (const commit of commits) {
 				const changes = GetGithubChanges(
 					repo.full_name,
-					payload.ref,
+					commit.id,
 					commit.added,
 					commit.removed,
 					commit.modified
@@ -1015,9 +1010,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const isOnlyOgg =
 					allFiles.length > 0 && allFiles.every(str => str.endsWith(".ogg"));
 
-				const changeLines = buildChangeLines(changes);
-				const changeLinesContent = changeLines.join("\n");
-
 				const diff =
 					isMergeCommit(commit.message) || isOnlyOgg || !repo.owner || !github
 						? undefined
@@ -1034,16 +1026,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 				addContainerHeader(container, repoLine, heading, repo.owner?.avatar_url);
 
 				const diffBody = diff
-					? formatDiff(diff, diffBudget(repoLine, heading, changeLinesContent, footer))
+					? formatDiff(diff, diffBudget(repoLine, heading, footer), linkByPath(changes))
 					: undefined;
 				if (diffBody) {
 					container.addSeparatorComponents(sep => sep);
 					container.addTextDisplayComponents(text => text.setContent(diffBody));
-				}
-
-				if (changeLines.length > 0) {
-					container.addSeparatorComponents(sep => sep);
-					container.addTextDisplayComponents(text => text.setContent(changeLinesContent));
 				}
 
 				container.addSeparatorComponents(sep => sep.setDivider(false));
@@ -1356,7 +1343,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			: undefined;
 
 		const files = await getPullRequestFiles(pr.url);
-		const changeLines = files ? buildChangeLines(GetPullRequestChanges(files)) : [];
+		const links = files ? linkByPath(GetPullRequestChanges(files)) : undefined;
 		const prBody = formatPrBody(pr.body);
 
 		const container = new Discord.ContainerBuilder().setAccentColor(
@@ -1369,15 +1356,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const repoLine = `-# [${repo.full_name.substring(0, 256)}](${repo.html_url})`;
 		const heading = `### [${title}](${pr.html_url})`;
-		const changeLinesContent = changeLines.join("\n");
 		const footerContent = `-# PR #${pr.number} ${action} by ${payload.sender.login ?? "unknown"}`;
 
 		// Keep the body whole and shrink the diff to fit, rather than dropping it.
 		const diffBody = diff
-			? formatDiff(
-					diff,
-					diffBudget(repoLine, heading, prBody, changeLinesContent, footerContent)
-				)
+			? formatDiff(diff, diffBudget(repoLine, heading, prBody, footerContent), links)
 			: "";
 		addContainerHeader(container, repoLine, heading, repo.owner?.avatar_url);
 
@@ -1389,11 +1372,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 		if (diffBody) {
 			container.addSeparatorComponents(sep => sep);
 			container.addTextDisplayComponents(text => text.setContent(diffBody));
-		}
-
-		if (changeLines.length > 0) {
-			container.addSeparatorComponents(sep => sep);
-			container.addTextDisplayComponents(text => text.setContent(changeLinesContent));
 		}
 
 		container.addSeparatorComponents(sep => sep.setDivider(false));
@@ -1729,9 +1707,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 					includesLua || (allFiles.length > 0 && allFiles.some(f => f.endsWith(".lua")));
 				const isOnlyOgg = allFiles.length > 0 && allFiles.every(f => f.endsWith(".ogg"));
 
-				const changeLines = buildChangeLines(changes);
-				const changeLinesContent = changeLines.join("\n");
-
 				const diffFiles =
 					isMergeCommit(commit.message) || isOnlyOgg || !gitlab
 						? undefined
@@ -1746,16 +1721,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 				addContainerHeader(container, repoLine, heading, project.avatar_url ?? undefined);
 
 				const diffBody = diff
-					? formatDiff(diff, diffBudget(repoLine, heading, changeLinesContent, footer))
+					? formatDiff(diff, diffBudget(repoLine, heading, footer), linkByPath(changes))
 					: undefined;
 				if (diffBody) {
 					container.addSeparatorComponents(sep => sep);
 					container.addTextDisplayComponents(text => text.setContent(diffBody));
-				}
-
-				if (changeLines.length > 0) {
-					container.addSeparatorComponents(sep => sep);
-					container.addTextDisplayComponents(text => text.setContent(changeLinesContent));
 				}
 
 				container.addSeparatorComponents(sep => sep.setDivider(false));
@@ -1862,15 +1832,15 @@ export default async (bot: DiscordBot): Promise<void> => {
 			mr.last_commit && !isMergeCommit(mr.last_commit.message) && gitlab
 				? await getGitlabDiff(gitlab.api, mr.target_project_id, mr.last_commit.id)
 				: undefined;
-		const changeLines = diffFiles
-			? buildChangeLines(
+		const links = diffFiles
+			? linkByPath(
 					GetGitlabDiffChanges(
 						mr.target.path_with_namespace,
 						mr.last_commit.id,
 						diffFiles
 					)
 				)
-			: [];
+			: undefined;
 		const diff = diffFiles?.length ? formatDiffText(joinGitlabDiffFiles(diffFiles)) : undefined;
 		const mrBody = formatPrBody(mr.description);
 
@@ -1888,15 +1858,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const repoLine = `[${mr.target.path_with_namespace.substring(0, 256)}](${mr.target.web_url})`;
 		const heading = `### [${title}](${mr.url})`;
-		const changeLinesContent = changeLines.join("\n");
 		const footerContent = `-# MR !${mr.iid} ${action} by ${body.user.username}`;
 
 		// Keep the body whole and shrink the diff to fit, rather than dropping it.
 		const diffBody = diff
-			? formatDiff(
-					diff,
-					diffBudget(repoLine, heading, mrBody, changeLinesContent, footerContent)
-				)
+			? formatDiff(diff, diffBudget(repoLine, heading, mrBody, footerContent), links)
 			: "";
 		addContainerHeader(container, repoLine, heading, mr.target.avatar_url ?? undefined);
 
@@ -1908,11 +1874,6 @@ export default async (bot: DiscordBot): Promise<void> => {
 		if (diffBody) {
 			container.addSeparatorComponents(sep => sep);
 			container.addTextDisplayComponents(text => text.setContent(diffBody));
-		}
-
-		if (changeLines.length > 0) {
-			container.addSeparatorComponents(sep => sep);
-			container.addTextDisplayComponents(text => text.setContent(changeLinesContent));
 		}
 
 		container.addSeparatorComponents(sep => sep.setDivider(false));
