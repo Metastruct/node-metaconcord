@@ -148,15 +148,15 @@
 			"relayEnabled": true
 		},
 		{
-			"discordChannelId": "471411029708898315",
-			"fluxerChannelId": "1550434036025917440",
+			"discordChannelId": "164779286971154433",
+			"fluxerChannelId": "1550434063360196608",
 			"discordParentId": "355972744212381696",
 			"channelKind": "text",
 			"relayEnabled": true
 		},
 		{
-			"discordChannelId": "164779286971154433",
-			"fluxerChannelId": "1550434063360196608",
+			"discordChannelId": "471411029708898315",
+			"fluxerChannelId": "1550434036025917440",
 			"discordParentId": "355972744212381696",
 			"channelKind": "text",
 			"relayEnabled": true
@@ -185,13 +185,6 @@
 		{
 			"discordChannelId": "541968605269458967",
 			"fluxerChannelId": "1550434172781199360",
-			"discordParentId": "355972744212381696",
-			"channelKind": "text",
-			"relayEnabled": true
-		},
-		{
-			"discordChannelId": "1379395761757880320",
-			"fluxerChannelId": "1550434200182587392",
 			"discordParentId": "355972744212381696",
 			"channelKind": "text",
 			"relayEnabled": true
@@ -247,10 +240,17 @@
 		},
 		{
 			"discordChannelId": "1221875200581177454",
-			"fluxerChannelId": "1550431692164956160",
+			"fluxerChannelId": "1557703586685648916",
 			"discordParentId": "1221874751052451891",
-			"channelKind": "forum_placeholder",
-			"relayEnabled": false
+			"channelKind": "forum",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1557030742972698704",
+			"fluxerChannelId": "1557705438537973762",
+			"discordParentId": "1221874751052451891",
+			"channelKind": "forum",
+			"relayEnabled": true
 		},
 		{
 			"discordChannelId": "278143312186310657",
@@ -261,21 +261,21 @@
 		},
 		{
 			"discordChannelId": "1007016808613687398",
-			"fluxerChannelId": "1550434227550420992",
+			"fluxerChannelId": "1557703614552604672",
 			"discordParentId": "355972922407518208",
-			"channelKind": "forum_placeholder",
-			"relayEnabled": false
-		},
-		{
-			"discordChannelId": "1009704968070107148",
-			"fluxerChannelId": "1550431911657078784",
-			"discordParentId": "1007016808613687398",
-			"channelKind": "thread",
+			"channelKind": "forum",
 			"relayEnabled": true
 		},
 		{
 			"discordChannelId": "608811374826618908",
 			"fluxerChannelId": "1550434254830174208",
+			"discordParentId": "355972922407518208",
+			"channelKind": "text",
+			"relayEnabled": true
+		},
+		{
+			"discordChannelId": "1379395761757880320",
+			"fluxerChannelId": "1557703642033684480",
 			"discordParentId": "355972922407518208",
 			"channelKind": "text",
 			"relayEnabled": true
@@ -323,27 +323,6 @@
 			"relayEnabled": true
 		},
 		{
-			"discordChannelId": "1189924848793833532",
-			"fluxerChannelId": "1550431993727025152",
-			"discordParentId": "695015287766122527",
-			"channelKind": "archived_thread",
-			"relayEnabled": false
-		},
-		{
-			"discordChannelId": "1189924793756155974",
-			"fluxerChannelId": "1550432021380071424",
-			"discordParentId": "695015287766122527",
-			"channelKind": "thread",
-			"relayEnabled": true
-		},
-		{
-			"discordChannelId": "1189925977627836466",
-			"fluxerChannelId": "1550432048915677184",
-			"discordParentId": "695015287766122527",
-			"channelKind": "thread",
-			"relayEnabled": true
-		},
-		{
 			"discordChannelId": "1029765639746883624",
 			"fluxerChannelId": "1550434419246891008",
 			"discordParentId": "415562885696323595",
@@ -380,10 +359,10 @@
 		},
 		{
 			"discordChannelId": "1007029304871366676",
-			"fluxerChannelId": "1550434475010162688",
+			"fluxerChannelId": "1557703669338603525",
 			"discordParentId": "415562885696323595",
-			"channelKind": "forum_placeholder",
-			"relayEnabled": false
+			"channelKind": "forum",
+			"relayEnabled": true
 		},
 		{
 			"discordChannelId": "560151470058635275",
@@ -442,10 +421,332 @@
 			"relayEnabled": true
 		}
 	],
+	"threads": [
+		{
+			"discordThreadId": "1009704968070107148",
+			"fluxerThreadId": "1557703698652594176",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1189924848793833532",
+			"fluxerThreadId": "1557703726314029056",
+			"discordParentId": "695015287766122527",
+			"fluxerParentId": "1550432105031270400",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1189924793756155974",
+			"fluxerThreadId": "1557703753841246210",
+			"discordParentId": "695015287766122527",
+			"fluxerParentId": "1550432105031270400",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1189925977627836466",
+			"fluxerThreadId": "1557703782299598848",
+			"discordParentId": "695015287766122527",
+			"fluxerParentId": "1550432105031270400",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1557506146640597204",
+			"fluxerThreadId": "1557705469127032832",
+			"discordParentId": "1557030742972698704",
+			"fluxerParentId": "1557705438537973762",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1557483379912478910",
+			"fluxerThreadId": "1557705498847870976",
+			"discordParentId": "1557030742972698704",
+			"fluxerParentId": "1557705438537973762",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1554620723543154760",
+			"fluxerThreadId": "1557703810107834368",
+			"discordParentId": "1523370423004303523",
+			"fluxerParentId": "1550432076505808896",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1550562250622898217",
+			"fluxerThreadId": "1557703837651828736",
+			"discordParentId": "1523370423004303523",
+			"fluxerParentId": "1550432076505808896",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1547360282538676268",
+			"fluxerThreadId": "1557703865153880066",
+			"discordParentId": "1523370423004303523",
+			"fluxerParentId": "1550432076505808896",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1555683194337235085",
+			"fluxerThreadId": "1557703893855502338",
+			"discordParentId": "1221875200581177454",
+			"fluxerParentId": "1557703586685648916",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1554560180249825360",
+			"fluxerThreadId": "1557703925602189312",
+			"discordParentId": "1221875200581177454",
+			"fluxerParentId": "1557703586685648916",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1554438385488371732",
+			"fluxerThreadId": "1557703955532742656",
+			"discordParentId": "1221875200581177454",
+			"fluxerParentId": "1557703586685648916",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1548843332405559448",
+			"fluxerThreadId": "1557703986709004288",
+			"discordParentId": "1221875200581177454",
+			"fluxerParentId": "1557703586685648916",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1528047942127325354",
+			"fluxerThreadId": "1557704015498706944",
+			"discordParentId": "1221875200581177454",
+			"fluxerParentId": "1557703586685648916",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1555458993156132954",
+			"fluxerThreadId": "1557704044342935552",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1286019068691877980",
+			"fluxerThreadId": "1557704073967304704",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1278015371802185860",
+			"fluxerThreadId": "1557704103075774464",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1205697914601611284",
+			"fluxerThreadId": "1557704133257986048",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1175118377585487912",
+			"fluxerThreadId": "1557704163113041920",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1157420435609243808",
+			"fluxerThreadId": "1557704193320419328",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1069073910949228634",
+			"fluxerThreadId": "1557704222160453632",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1023086139348881479",
+			"fluxerThreadId": "1557704251130511360",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1017820090084888667",
+			"fluxerThreadId": "1557704280331255808",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1008351302759235654",
+			"fluxerThreadId": "1557704309737521152",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1008147646415908964",
+			"fluxerThreadId": "1557704339361890304",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1008085574764220516",
+			"fluxerThreadId": "1557704369195974656",
+			"discordParentId": "1007016808613687398",
+			"fluxerParentId": "1557703614552604672",
+			"channelKind": "forum_post",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1546556667942932676",
+			"fluxerThreadId": "1557704396849020928",
+			"discordParentId": "350010538555604995",
+			"fluxerParentId": "1550433871756001280",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1525782351895072849",
+			"fluxerThreadId": "1557704424128774144",
+			"discordParentId": "289906269278568448",
+			"fluxerParentId": "1550431856682336256",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1403316248225386607",
+			"fluxerThreadId": "1557704451739877376",
+			"discordParentId": "289906269278568448",
+			"fluxerParentId": "1550431856682336256",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1254236969571975258",
+			"fluxerThreadId": "1557704479032213504",
+			"discordParentId": "289906269278568448",
+			"fluxerParentId": "1550431856682336256",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1241149617458905178",
+			"fluxerThreadId": "1557704506362298368",
+			"discordParentId": "289906269278568448",
+			"fluxerParentId": "1550431856682336256",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "888433243907571713",
+			"fluxerThreadId": "1557704534208282624",
+			"discordParentId": "289906269278568448",
+			"fluxerParentId": "1550431856682336256",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1212853220238565487",
+			"fluxerThreadId": "1557704561609670656",
+			"discordParentId": "278143312186310657",
+			"fluxerParentId": "1550431719562149888",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1551150507005837322",
+			"fluxerThreadId": "1557704588990087168",
+			"discordParentId": "165513567800393728",
+			"fluxerParentId": "1550434008662278144",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1455695027836682453",
+			"fluxerThreadId": "1557704616584413184",
+			"discordParentId": "165513567800393728",
+			"fluxerParentId": "1550434008662278144",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1326227279944220693",
+			"fluxerThreadId": "1557704644359094272",
+			"discordParentId": "165513567800393728",
+			"fluxerParentId": "1550434008662278144",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "964155763738165320",
+			"fluxerThreadId": "1557704671651430400",
+			"discordParentId": "165513567800393728",
+			"fluxerParentId": "1550434008662278144",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "933075343982624819",
+			"fluxerThreadId": "1557704699505803264",
+			"discordParentId": "165513567800393728",
+			"fluxerParentId": "1550434008662278144",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "1326225270444658750",
+			"fluxerThreadId": "1557704727414702080",
+			"discordParentId": "164771969848311808",
+			"fluxerParentId": "1550434090677698560",
+			"channelKind": "thread",
+			"relayEnabled": true
+		},
+		{
+			"discordThreadId": "873178537006342184",
+			"fluxerThreadId": "1557704755210354688",
+			"discordParentId": "164771969848311808",
+			"fluxerParentId": "1550434090677698560",
+			"channelKind": "thread",
+			"relayEnabled": true
+		}
+	],
 	"roles": [
 		{
 			"discordRoleId": "164743136428556288",
-			"fluxerRoleId": "1550209112967479296"
+			"fluxerRoleId": "1550471521670004736"
 		},
 		{
 			"discordRoleId": "587653001422831627",

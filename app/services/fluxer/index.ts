@@ -14,6 +14,7 @@ import {
 	FluxerMessage,
 	FluxerMessageSnapshot,
 	FluxerRest,
+	FluxerThreadChannel,
 	FluxerUser,
 	FluxerWebhook,
 } from "./Rest.js";
@@ -26,6 +27,7 @@ type ChannelRoute = {
 	discordChannelId: string;
 	fluxerChannelId: string;
 	discordParentId: string | null;
+	fluxerParentId?: string | null;
 	channelKind: string;
 	relayEnabled: boolean;
 };
@@ -37,6 +39,30 @@ type MessageMapping = {
 	fluxer_channel_id: string;
 	origin: "discord" | "fluxer";
 };
+
+type ThreadKind = "thread" | "forum_post";
+
+type ThreadLink = {
+	discord_thread_id: string;
+	fluxer_thread_id: string;
+	discord_parent_id: string;
+	fluxer_parent_id: string;
+	channel_kind: ThreadKind;
+	relay_enabled: number;
+};
+
+type SeedThread = {
+	discordThreadId: string;
+	fluxerThreadId: string;
+	discordParentId: string;
+	fluxerParentId: string;
+	channelKind: ThreadKind;
+	relayEnabled: boolean;
+};
+
+type ThreadResolution = { route: ChannelRoute; handled: boolean };
+
+const FLUXER_THREAD_TYPES = new Set([10, 11, 12]);
 
 type MentionPayload = {
 	content: string;
@@ -270,6 +296,8 @@ export class Fluxer extends Service {
 	private gateway?: FluxerGateway;
 	private readonly routesByDiscord = new Map<string, ChannelRoute>();
 	private readonly routesByFluxer = new Map<string, ChannelRoute>();
+	private readonly threadLinksByDiscord = new Map<string, ThreadLink>();
+	private readonly threadLinksByFluxer = new Map<string, ThreadLink>();
 	private readonly fluxerRolesByDiscord = new Map<string, string>();
 	private readonly discordRolesByFluxer = new Map<string, string>();
 	private readonly fluxerUsersByDiscord = new Map<string, string>();
@@ -387,6 +415,15 @@ export class Fluxer extends Service {
 				name TEXT NOT NULL,
 				updated_at_ms INTEGER NOT NULL
 			);
+			CREATE TABLE IF NOT EXISTS fluxer_thread_links (
+				discord_thread_id TEXT PRIMARY KEY,
+				fluxer_thread_id TEXT NOT NULL UNIQUE,
+				discord_parent_id TEXT NOT NULL,
+				fluxer_parent_id TEXT NOT NULL,
+				channel_kind TEXT NOT NULL,
+				relay_enabled INTEGER NOT NULL DEFAULT 1 CHECK (relay_enabled IN (0, 1)),
+				updated_at_ms INTEGER NOT NULL
+			);
 		`);
 	}
 
@@ -439,6 +476,11 @@ export class Fluxer extends Service {
 		for (const row of stickerRows) {
 			this.stickerFluxerByDiscord.set(row.discord_sticker_id, row.fluxer_sticker_id);
 		}
+		const threadRows = await database.all<ThreadLink[]>("SELECT * FROM fluxer_thread_links");
+		for (const row of threadRows) {
+			this.threadLinksByDiscord.set(row.discord_thread_id, row);
+			this.threadLinksByFluxer.set(row.fluxer_thread_id, row);
+		}
 	}
 
 	private async seedMappings() {
@@ -479,6 +521,28 @@ export class Fluxer extends Service {
 					updatedAt
 				);
 			}
+			// Seed mirror-created threads without dropping runtime-created links.
+			for (const thread of mappingSeed.threads as SeedThread[]) {
+				await database.run(
+					`INSERT INTO fluxer_thread_links
+						(discord_thread_id, fluxer_thread_id, discord_parent_id, fluxer_parent_id, channel_kind, relay_enabled, updated_at_ms)
+					 VALUES (?, ?, ?, ?, ?, ?, ?)
+					 ON CONFLICT(discord_thread_id) DO UPDATE SET
+						fluxer_thread_id = excluded.fluxer_thread_id,
+						discord_parent_id = excluded.discord_parent_id,
+						fluxer_parent_id = excluded.fluxer_parent_id,
+						channel_kind = excluded.channel_kind,
+						relay_enabled = excluded.relay_enabled,
+						updated_at_ms = excluded.updated_at_ms`,
+					thread.discordThreadId,
+					thread.fluxerThreadId,
+					thread.discordParentId,
+					thread.fluxerParentId,
+					thread.channelKind,
+					thread.relayEnabled ? 1 : 0,
+					updatedAt
+				);
+			}
 			await database.exec("COMMIT");
 		} catch (error) {
 			await database.exec("ROLLBACK");
@@ -503,6 +567,47 @@ export class Fluxer extends Service {
 				);
 			}
 		});
+		this.discordBot.discord.on("threadUpdate", (_oldThread, thread) => {
+			this.enqueue(`discord:${thread.id}`, () => this.relayDiscordThreadUpdate(thread));
+		});
+		this.discordBot.discord.on("threadDelete", thread => {
+			this.enqueue(`discord:${thread.id}`, () => this.relayDiscordThreadDelete(thread));
+		});
+	}
+
+	private async relayDiscordThreadUpdate(thread: Discord.AnyThreadChannel) {
+		const link = this.threadLinksByDiscord.get(thread.id);
+		if (!link) return;
+		const body: Record<string, unknown> = { name: thread.name.slice(0, 100) };
+		if (thread.archived === true) body.archived = true;
+		await this.rest.request("PATCH", `/channels/${link.fluxer_thread_id}`, body).catch(error =>
+			log.warn(
+				{
+					err: error,
+					discordThreadId: thread.id,
+					fluxerThreadId: link.fluxer_thread_id,
+				},
+				"Discord->Fluxer thread update failed"
+			)
+		);
+	}
+
+	private async relayDiscordThreadDelete(thread: Discord.AnyThreadChannel) {
+		const link = this.threadLinksByDiscord.get(thread.id);
+		if (!link) return;
+		await this.rest.request("DELETE", `/channels/${link.fluxer_thread_id}`).catch(error => {
+			if (!(error instanceof FluxerApiError) || error.status !== 404) {
+				log.warn(
+					{
+						err: error,
+						discordThreadId: thread.id,
+						fluxerThreadId: link.fluxer_thread_id,
+					},
+					"Discord->Fluxer thread delete failed"
+				);
+			}
+		});
+		await this.deleteThreadLink(link);
 	}
 
 	private relayFailure(op: string, context: Record<string, unknown>, error: unknown): never {
@@ -523,13 +628,333 @@ export class Fluxer extends Service {
 		return current;
 	}
 
+	private routeForThreadLink(link: ThreadLink): ChannelRoute {
+		return {
+			discordChannelId: link.discord_thread_id,
+			fluxerChannelId: link.fluxer_thread_id,
+			discordParentId: link.discord_parent_id,
+			fluxerParentId: link.fluxer_parent_id,
+			channelKind: link.channel_kind,
+			relayEnabled: link.relay_enabled === 1,
+		};
+	}
+
+	private routeByDiscordChannel(channelId: string): ChannelRoute | undefined {
+		const route = this.routesByDiscord.get(channelId);
+		if (route) return route;
+		const link = this.threadLinksByDiscord.get(channelId);
+		return link ? this.routeForThreadLink(link) : undefined;
+	}
+
+	private routeByFluxerChannel(channelId: string): ChannelRoute | undefined {
+		const route = this.routesByFluxer.get(channelId);
+		if (route) return route;
+		const link = this.threadLinksByFluxer.get(channelId);
+		return link ? this.routeForThreadLink(link) : undefined;
+	}
+
+	private isThreadDestination(route: ChannelRoute) {
+		return route.channelKind === "thread" || route.channelKind === "forum_post";
+	}
+
+	// Native Fluxer threads live in a parent channel; legacy routes pointed at a stand-in channel.
+	private isNativeFluxerThread(route: ChannelRoute) {
+		return this.isThreadDestination(route) && Boolean(route.fluxerParentId);
+	}
+
+	private isDiscordForumLike(channel: Discord.Channel) {
+		return (
+			channel.type === Discord.ChannelType.GuildForum ||
+			channel.type === Discord.ChannelType.GuildMedia
+		);
+	}
+
+	private async saveThreadLink(link: ThreadLink) {
+		this.threadLinksByDiscord.set(link.discord_thread_id, link);
+		this.threadLinksByFluxer.set(link.fluxer_thread_id, link);
+		await this.sql.getLocalDatabase().run(
+			`INSERT INTO fluxer_thread_links
+				(discord_thread_id, fluxer_thread_id, discord_parent_id, fluxer_parent_id, channel_kind, relay_enabled, updated_at_ms)
+			 VALUES (?, ?, ?, ?, ?, ?, ?)
+			 ON CONFLICT(discord_thread_id) DO UPDATE SET
+				fluxer_thread_id = excluded.fluxer_thread_id,
+				discord_parent_id = excluded.discord_parent_id,
+				fluxer_parent_id = excluded.fluxer_parent_id,
+				channel_kind = excluded.channel_kind,
+				relay_enabled = excluded.relay_enabled,
+				updated_at_ms = excluded.updated_at_ms`,
+			link.discord_thread_id,
+			link.fluxer_thread_id,
+			link.discord_parent_id,
+			link.fluxer_parent_id,
+			link.channel_kind,
+			link.relay_enabled,
+			Date.now()
+		);
+	}
+
+	private async deleteThreadLink(link: ThreadLink) {
+		this.threadLinksByDiscord.delete(link.discord_thread_id);
+		this.threadLinksByFluxer.delete(link.fluxer_thread_id);
+		await this.sql
+			.getLocalDatabase()
+			.run(
+				"DELETE FROM fluxer_thread_links WHERE discord_thread_id = ?",
+				link.discord_thread_id
+			);
+	}
+
+	private async fetchFluxerChannel(channelId: string) {
+		try {
+			return await this.rest.request<FluxerThreadChannel>("GET", `/channels/${channelId}`);
+		} catch (error) {
+			if (error instanceof FluxerApiError && error.status === 404) return undefined;
+			throw error;
+		}
+	}
+
+	private fluxerWebhookPath(webhook: FluxerWebhook, route: ChannelRoute, wait = true) {
+		const params = new URLSearchParams();
+		if (wait) params.set("wait", "true");
+		if (this.isNativeFluxerThread(route)) params.set("thread_id", route.fluxerChannelId);
+		return `/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}?${params.toString()}`;
+	}
+
+	// A message in a native Fluxer thread whose Discord counterpart does not exist yet.
+	private async resolveFluxerThreadRoute(
+		message: FluxerMessage
+	): Promise<ThreadResolution | undefined> {
+		const channel = await this.fetchFluxerChannel(message.channel_id);
+		if (!channel) return undefined;
+		const parentId = message._fluxer_thread?.parent_id ?? channel.parent_id ?? undefined;
+		if (!parentId) return undefined;
+		const parentRoute = this.routesByFluxer.get(parentId);
+		if (!parentRoute?.relayEnabled) return undefined;
+		const parentChannel = await this.discordBot.discord.channels.fetch(
+			parentRoute.discordChannelId
+		);
+		if (!parentChannel) return undefined;
+		const name = (channel.name ?? "thread").slice(0, 100);
+		const link: ThreadLink = {
+			discord_thread_id: "",
+			fluxer_thread_id: message.channel_id,
+			discord_parent_id: parentRoute.discordChannelId,
+			fluxer_parent_id: parentId,
+			channel_kind: this.isDiscordForumLike(parentChannel) ? "forum_post" : "thread",
+			relay_enabled: 1,
+		};
+		if (link.channel_kind === "thread") {
+			if (
+				parentChannel.type !== Discord.ChannelType.GuildText &&
+				parentChannel.type !== Discord.ChannelType.GuildAnnouncement
+			) {
+				return undefined;
+			}
+			const archiveDuration = channel.thread_metadata?.auto_archive_duration;
+			const thread = await parentChannel.threads.create({
+				name,
+				...((archiveDuration === 60 ||
+				archiveDuration === 1440 ||
+				archiveDuration === 4320 ||
+				archiveDuration === 10080
+					? { autoArchiveDuration: archiveDuration }
+					: {}) as { autoArchiveDuration?: Discord.ThreadAutoArchiveDuration }),
+			});
+			link.discord_thread_id = thread.id;
+			if (channel.thread_metadata?.archived) {
+				await thread.setArchived(true).catch(() => undefined);
+			}
+			await this.saveThreadLink(link);
+			return { route: this.routeForThreadLink(link), handled: false };
+		}
+		// Forum post: the triggering message becomes the starter, sent via the forum webhook.
+		const destination = await this.getDiscordWebhook(parentRoute);
+		const forumChannel = parentChannel as Discord.ForumChannel | Discord.MediaChannel;
+		const fluxerParent = await this.fetchFluxerChannel(parentId);
+		const nameByFluxerTag = new Map(
+			(fluxerParent?.available_tags ?? []).map(tag => [tag.id, tag.name])
+		);
+		const appliedTags = (channel.applied_tags ?? [])
+			.map(id => nameByFluxerTag.get(id))
+			.map(name =>
+				name ? forumChannel.availableTags.find(tag => tag.name === name)?.id : undefined
+			)
+			.filter((id): id is string => Boolean(id))
+			.slice(0, 5);
+		const payload = this.translateFluxerMessage(message);
+		const { files, fallbackUrls } = await this.prepareDiscordAttachments(
+			message.attachments ?? []
+		);
+		payload.content = await this.fluxerReplyContent(message, payload.content, fallbackUrls);
+		const embeds = normalizeEmbeds(message.embeds ?? [], message.content);
+		const sent = await destination.webhook
+			.send({
+				content: payload.content || undefined,
+				username: this.fluxerDisplayName(message).slice(0, 80),
+				avatarURL: this.fluxerAvatarUrl(message),
+				...(embeds.length > 0 ? { embeds } : {}),
+				files,
+				threadName: name,
+				...(appliedTags.length > 0 ? { appliedTags } : {}),
+				allowedMentions: {
+					parse: [],
+					users: payload.users,
+					roles: payload.roles,
+					repliedUser: false,
+				},
+			})
+			.catch(error =>
+				this.relayFailure(
+					"fluxer->discord forum post create",
+					{
+						fluxerMessageId: message.id,
+						fluxerChannelId: message.channel_id,
+						discordChannelId: parentRoute.discordChannelId,
+					},
+					error
+				)
+			);
+		link.discord_thread_id = sent.channelId;
+		await this.saveThreadLink(link);
+		const route = this.routeForThreadLink(link);
+		await this.saveMessageMapping(sent.id, message.id, route, "fluxer");
+		return { route, handled: true };
+	}
+
+	// A message in a native Discord thread whose Fluxer counterpart does not exist yet.
+	private async resolveDiscordThreadRoute(
+		message: Discord.Message
+	): Promise<ThreadResolution | undefined> {
+		const threadChannel = message.channel;
+		if (!threadChannel.isThread()) return undefined;
+		const parentId = threadChannel.parentId;
+		if (!parentId) return undefined;
+		const parentRoute = this.routesByDiscord.get(parentId);
+		if (!parentRoute?.relayEnabled) return undefined;
+		const parentChannel =
+			threadChannel.parent ??
+			(await this.discordBot.discord.channels.fetch(parentId).catch(() => null));
+		const isForum = parentChannel != null && this.isDiscordForumLike(parentChannel);
+		const link: ThreadLink = {
+			discord_thread_id: threadChannel.id,
+			fluxer_thread_id: "",
+			discord_parent_id: parentId,
+			fluxer_parent_id: parentRoute.fluxerChannelId,
+			channel_kind: isForum ? "forum_post" : "thread",
+			relay_enabled: 1,
+		};
+		if (isForum) {
+			const payload = this.translateDiscordMessage(message);
+			const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(parentRoute, [
+				...message.attachments.values(),
+			]);
+			payload.content = appendContent(payload.content, fallbackUrls, 4000);
+			const embeds = normalizeEmbeds(
+				message.embeds.map(embed => embed.toJSON()),
+				message.content
+			);
+			const forumChannel = parentChannel as Discord.ForumChannel | Discord.MediaChannel;
+			const fluxerParent = await this.fetchFluxerChannel(parentRoute.fluxerChannelId);
+			const fluxerTagByName = new Map(
+				(fluxerParent?.available_tags ?? []).map(tag => [tag.name, tag.id])
+			);
+			const appliedTags = threadChannel.appliedTags
+				.map(id => forumChannel.availableTags.find(tag => tag.id === id)?.name)
+				.map(name => (name ? fluxerTagByName.get(name) : undefined))
+				.filter((id): id is string => Boolean(id))
+				.slice(0, 5);
+			const sent = await this.withFluxerWebhook(parentRoute, webhook =>
+				this.rest.request<FluxerMessage>(
+					"POST",
+					`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}?wait=true`,
+					{
+						content: payload.content || null,
+						thread_name: threadChannel.name.slice(0, 100),
+						...(appliedTags.length > 0 ? { applied_tags: appliedTags } : {}),
+						username: (message.member?.displayName ?? message.author.displayName).slice(
+							0,
+							80
+						),
+						avatar_url: message.author.displayAvatarURL({ size: 128 }),
+						...(embeds.length > 0 ? { embeds } : {}),
+						...(attachments.length > 0 ? { attachments } : {}),
+						allowed_mentions: {
+							parse: [],
+							users: payload.users,
+							roles: payload.roles,
+							replied_user: false,
+						},
+					},
+					false,
+					true
+				)
+			).catch(error =>
+				this.relayFailure(
+					"discord->fluxer forum post create",
+					{
+						discordMessageId: message.id,
+						discordChannelId: message.channelId,
+						fluxerChannelId: parentRoute.fluxerChannelId,
+					},
+					error
+				)
+			);
+			link.fluxer_thread_id = sent.channel_id;
+			await this.saveThreadLink(link);
+			const route = this.routeForThreadLink(link);
+			await this.saveMessageMapping(message.id, sent.id, route, "discord");
+			return { route, handled: true };
+		}
+		const fluxerType = threadChannel.type === Discord.ChannelType.PrivateThread ? 12 : 11;
+		const created = await this.rest
+			.request<FluxerThreadChannel>(
+				"POST",
+				`/channels/${parentRoute.fluxerChannelId}/threads`,
+				{
+					name: threadChannel.name.slice(0, 100),
+					type: fluxerType,
+					...(threadChannel.autoArchiveDuration != null
+						? { auto_archive_duration: threadChannel.autoArchiveDuration }
+						: {}),
+					...(threadChannel.type === Discord.ChannelType.PrivateThread
+						? { invitable: threadChannel.invitable ?? true }
+						: {}),
+				},
+				true,
+				true
+			)
+			.catch(error =>
+				this.relayFailure(
+					"discord->fluxer thread create",
+					{
+						discordMessageId: message.id,
+						discordChannelId: message.channelId,
+						fluxerChannelId: parentRoute.fluxerChannelId,
+					},
+					error
+				)
+			);
+		link.fluxer_thread_id = created.id;
+		await this.saveThreadLink(link);
+		return { route: this.routeForThreadLink(link), handled: false };
+	}
+
 	private async relayDiscordCreate(message: Discord.Message | Discord.PartialMessage) {
 		if (!config.enabled || message.guildId !== this.discordBot.config.bot.primaryGuildId)
 			return;
 		if (message.webhookId && this.discordBridgeWebhookIds.has(message.webhookId)) return;
-		const route = this.routesByDiscord.get(message.channelId);
+		let route = this.routeByDiscordChannel(message.channelId);
+		let handled = false;
+		if (!route && message.channel.isThread()) {
+			if (message.partial) message = await message.fetch();
+			const resolution = await this.resolveDiscordThreadRoute(message);
+			if (!resolution) return;
+			route = resolution.route;
+			handled = resolution.handled;
+		}
 		if (!route?.relayEnabled || (await this.mappingByDiscordMessage(message.id))) return;
 		if (message.partial) message = await message.fetch();
+		if (handled) return;
 		if (message.reference?.type === Discord.MessageReferenceType.Forward) {
 			await this.relayDiscordForward(message, route);
 			return;
@@ -577,10 +1002,10 @@ export class Fluxer extends Service {
 		const reply = message.reference?.messageId
 			? await this.mappingByDiscordMessage(message.reference.messageId)
 			: undefined;
-		const sent = await this.withFluxerWebhook(route.fluxerChannelId, webhook =>
+		const sent = await this.withFluxerWebhook(route, webhook =>
 			this.rest.request<FluxerMessage>(
 				"POST",
-				`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}?wait=true`,
+				this.fluxerWebhookPath(webhook, route),
 				{
 					content: voiceMessage ? null : payload.content || null,
 					nonce: message.id,
@@ -641,10 +1066,10 @@ export class Fluxer extends Service {
 		if (sourceMapping) {
 			// The source is bridged, so create a native Fluxer forward that references it.
 			try {
-				const sent = await this.withFluxerWebhook(route.fluxerChannelId, webhook =>
+				const sent = await this.withFluxerWebhook(route, webhook =>
 					this.rest.request<FluxerMessage>(
 						"POST",
-						`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}?wait=true`,
+						this.fluxerWebhookPath(webhook, route),
 						{
 							nonce: message.id,
 							username: (
@@ -720,10 +1145,10 @@ export class Fluxer extends Service {
 		} else if (payload.content || fallbackStickerUrls.length > 0) {
 			payload.content = appendContent(header, [payload.content], 4000);
 		}
-		await this.withFluxerWebhook(route.fluxerChannelId, webhook =>
+		await this.withFluxerWebhook(route, webhook =>
 			this.rest.request<FluxerMessage>(
 				"POST",
-				`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}?wait=true`,
+				this.fluxerWebhookPath(webhook, route),
 				{
 					content: payload.content || null,
 					nonce: message.id,
@@ -798,7 +1223,7 @@ export class Fluxer extends Service {
 		if (!config.enabled) return;
 		if (message.webhookId && this.discordBridgeWebhookIds.has(message.webhookId)) return;
 		const mapping = await this.mappingByDiscordMessage(message.id);
-		const route = mapping ? this.routesByDiscord.get(mapping.discord_channel_id) : undefined;
+		const route = mapping ? this.routeByDiscordChannel(mapping.discord_channel_id) : undefined;
 		if (!mapping || mapping.origin !== "discord" || !route?.relayEnabled) return;
 		if (message.partial) message = await message.fetch();
 		const payload = this.translateDiscordMessage(message);
@@ -829,7 +1254,7 @@ export class Fluxer extends Service {
 		) {
 			return;
 		}
-		await this.withFluxerWebhook(mapping.fluxer_channel_id, webhook =>
+		await this.withFluxerWebhook(route, webhook =>
 			this.rest.request(
 				"PATCH",
 				`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}/messages/${mapping.fluxer_message_id}`,
@@ -863,12 +1288,12 @@ export class Fluxer extends Service {
 		if (!config.enabled) return;
 		if (this.suppressedDiscordDeletes.delete(messageId)) return;
 		const mapping = await this.mappingByDiscordMessage(messageId);
-		const route = mapping ? this.routesByDiscord.get(mapping.discord_channel_id) : undefined;
+		const route = mapping ? this.routeByDiscordChannel(mapping.discord_channel_id) : undefined;
 		if (!mapping || !route?.relayEnabled) return;
 		this.suppress(this.suppressedFluxerDeletes, mapping.fluxer_message_id);
 		try {
 			if (mapping.origin === "discord") {
-				await this.withFluxerWebhook(mapping.fluxer_channel_id, webhook =>
+				await this.withFluxerWebhook(route, webhook =>
 					this.rest.request(
 						"DELETE",
 						`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}/messages/${mapping.fluxer_message_id}`,
@@ -914,7 +1339,38 @@ export class Fluxer extends Service {
 		} else if (event === "MESSAGE_DELETE_BULK") {
 			const payload = data as { ids: string[] };
 			for (const id of payload.ids) await this.relayFluxerDelete(id);
+		} else if (event === "THREAD_UPDATE") {
+			await this.relayFluxerThreadUpdate(data as FluxerThreadChannel);
+		} else if (event === "THREAD_DELETE") {
+			await this.relayFluxerThreadDelete(data as { id: string });
 		}
+	}
+
+	private async relayFluxerThreadUpdate(thread: FluxerThreadChannel) {
+		const link = this.threadLinksByFluxer.get(thread.id);
+		if (!link) return;
+		const channel = await this.discordBot.discord.channels
+			.fetch(link.discord_thread_id)
+			.catch(() => null);
+		if (!channel?.isThread()) return;
+		if (thread.name && channel.name !== thread.name) {
+			await channel.setName(thread.name.slice(0, 100)).catch(() => undefined);
+		}
+		if (thread.thread_metadata?.archived === true && !channel.archived) {
+			await channel.setArchived(true).catch(() => undefined);
+		}
+	}
+
+	private async relayFluxerThreadDelete(payload: { id: string }) {
+		const link = this.threadLinksByFluxer.get(payload.id);
+		if (!link) return;
+		const channel = await this.discordBot.discord.channels
+			.fetch(link.discord_thread_id)
+			.catch(() => null);
+		if (channel?.isThread()) {
+			await channel.delete().catch(() => undefined);
+		}
+		await this.deleteThreadLink(link);
 	}
 
 	private async relayFluxerCreate(message: FluxerMessage) {
@@ -922,8 +1378,19 @@ export class Fluxer extends Service {
 		if (message.type !== 0 && message.type !== 19) return;
 		if (message.author.id === config.applicationId) return;
 		if (message.webhook_id && this.fluxerBridgeWebhookIds.has(message.webhook_id)) return;
-		const route = this.routesByFluxer.get(message.channel_id);
+		let route = this.routeByFluxerChannel(message.channel_id);
+		let handled = false;
+		if (
+			!route &&
+			(FLUXER_THREAD_TYPES.has(message.channel_type ?? -1) || message._fluxer_thread != null)
+		) {
+			const resolution = await this.resolveFluxerThreadRoute(message);
+			if (!resolution) return;
+			route = resolution.route;
+			handled = resolution.handled;
+		}
 		if (!route?.relayEnabled || (await this.mappingByFluxerMessage(message.id))) return;
+		if (handled) return;
 		if (isFluxerForward(message)) {
 			await this.relayFluxerForward(message, route);
 			return;
@@ -1034,7 +1501,7 @@ export class Fluxer extends Service {
 		const mapping = await this.mappingByFluxerMessage(message.id);
 		if (!mapping || mapping.origin !== "fluxer") return;
 		if (isFluxerForward(message)) return;
-		const route = this.routesByFluxer.get(mapping.fluxer_channel_id);
+		const route = this.routeByFluxerChannel(mapping.fluxer_channel_id);
 		if (!route?.relayEnabled) return;
 		const payload = this.translateFluxerMessage(message);
 		payload.content = appendContent(
@@ -1084,7 +1551,7 @@ export class Fluxer extends Service {
 		if (this.suppressedFluxerDeletes.delete(messageId)) return;
 		const mapping = await this.mappingByFluxerMessage(messageId);
 		if (!mapping) return;
-		const route = this.routesByFluxer.get(mapping.fluxer_channel_id);
+		const route = this.routeByFluxerChannel(mapping.fluxer_channel_id);
 		if (!route?.relayEnabled) return;
 		this.suppress(this.suppressedDiscordDeletes, mapping.discord_message_id);
 		try {
@@ -1308,9 +1775,12 @@ export class Fluxer extends Service {
 	}
 
 	private async withFluxerWebhook<T>(
-		channelId: string,
+		route: ChannelRoute,
 		operation: (webhook: FluxerWebhook) => Promise<T>
 	) {
+		const channelId = this.isNativeFluxerThread(route)
+			? (route.fluxerParentId ?? route.fluxerChannelId)
+			: route.fluxerChannelId;
 		for (let attempt = 0; ; attempt++) {
 			const webhook = await this.getFluxerWebhook(channelId);
 			try {
@@ -1328,8 +1798,10 @@ export class Fluxer extends Service {
 	}
 
 	private async getDiscordWebhook(route: ChannelRoute): Promise<DiscordDestination> {
-		const webhookChannelId =
-			route.channelKind === "thread" ? route.discordParentId! : route.discordChannelId;
+		const isThreadDestination = this.isThreadDestination(route);
+		const webhookChannelId = isThreadDestination
+			? route.discordParentId!
+			: route.discordChannelId;
 		let pending = this.discordWebhooks.get(webhookChannelId);
 		if (!pending) {
 			pending = (async () => {
@@ -1352,7 +1824,7 @@ export class Fluxer extends Service {
 				this.discordBridgeWebhookIds.add(webhook.id);
 				return {
 					webhook,
-					...(route.channelKind === "thread" ? { threadId: route.discordChannelId } : {}),
+					...(isThreadDestination ? { threadId: route.discordChannelId } : {}),
 				};
 			})();
 			this.discordWebhooks.set(webhookChannelId, pending);
@@ -1361,7 +1833,7 @@ export class Fluxer extends Service {
 		const destination = await pending;
 		return {
 			webhook: destination.webhook,
-			...(route.channelKind === "thread" ? { threadId: route.discordChannelId } : {}),
+			...(isThreadDestination ? { threadId: route.discordChannelId } : {}),
 		};
 	}
 

@@ -195,16 +195,25 @@ const warn = msg => log(`  ! ${msg}`);
 
 // ---------------------------------------------------------------- fetch source
 phase("Fetching Discord source data");
-const [discordRoles, discordChannels] = await Promise.all([
+const [discordRoles, discordChannels, discordActiveThreads] = await Promise.all([
 	discordApi(`/guilds/${DISCORD_GUILD}/roles`),
 	discordApi(`/guilds/${DISCORD_GUILD}/channels`),
+	discordApi(`/guilds/${DISCORD_GUILD}/threads/active`).catch(error => {
+		warn(`could not fetch active threads: ${error.message}`);
+		return { threads: [] };
+	}),
 ]);
 const roleById = new Map(discordRoles.map(r => [r.id, r]));
 const channelById = new Map(discordChannels.map(c => [c.id, c]));
+const addDiscordThread = thread => {
+	if (!thread?.id || channelById.has(thread.id)) return;
+	channelById.set(thread.id, thread);
+};
+for (const thread of discordActiveThreads.threads ?? []) addDiscordThread(thread);
 for (const threadId of Object.values(discordConfig.threads)) {
 	if (channelById.has(threadId)) continue;
 	const thread = await discordApi(`/channels/${threadId}`);
-	channelById.set(threadId, thread);
+	addDiscordThread(thread);
 }
 
 // ---------------------------------------------------------------- build plan
@@ -213,10 +222,12 @@ const FLUXER_CHANNEL_TYPE = {
 	2: 2, // GUILD_VOICE
 	4: 4, // GUILD_CATEGORY
 	5: 0, // GUILD_ANNOUNCEMENT -> text
-	11: 0, // GUILD_PUBLIC_THREAD -> text
 	13: 2, // GUILD_STAGE_VOICE -> voice
-	15: 0, // GUILD_FORUM -> text
+	15: 15, // GUILD_FORUM
+	16: 16, // GUILD_MEDIA
 };
+const DISCORD_THREAD_TYPES = new Set([10, 11, 12]);
+const FORUM_PARENT_TYPES = new Set([15, 16]);
 
 const desiredRoles = [];
 for (const [configName, discordId] of Object.entries(discordConfig.roles)) {
@@ -232,12 +243,21 @@ for (const [configName, discordId] of Object.entries(discordConfig.roles)) {
 // Channels + threads + categories from config, deduped by id.
 const desiredChannels = new Map();
 const desiredCategories = new Map();
+const desiredThreads = new Map();
 const addChannel = (discordId, configName) => {
 	if (!channelById.has(discordId)) {
 		warn(`channel ${configName} (${discordId}) missing from Discord`);
 		return;
 	}
 	const src = channelById.get(discordId);
+	if (DISCORD_THREAD_TYPES.has(src.type)) {
+		if (!src.parent_id) {
+			warn(`thread ${configName} (${discordId}) has no parent, skipping`);
+			return;
+		}
+		desiredThreads.set(discordId, { configName, src, parentDiscordId: src.parent_id });
+		return;
+	}
 	const type = FLUXER_CHANNEL_TYPE[src.type];
 	if (type == null) {
 		warn(`channel ${configName} (${discordId}) unsupported type ${src.type}, skipping`);
@@ -301,15 +321,40 @@ for (const [configName, discordId] of Object.entries(discordConfig.threads)) {
 for (const [configName, discordId] of Object.entries(discordConfig.categories)) {
 	addChannel(discordId, configName);
 }
+// Pick up channels newly added to categories we already mirror (e.g. "projects").
+for (const src of discordChannels) {
+	if (src.type === 4 || desiredChannels.has(src.id) || desiredThreads.has(src.id)) continue;
+	if (src.parent_id && desiredCategories.has(src.parent_id)) {
+		addChannel(src.id, `category-new:${src.name}`);
+	}
+}
+// Every active (or explicitly configured) thread whose parent we mirror.
+for (const src of channelById.values()) {
+	if (!DISCORD_THREAD_TYPES.has(src.type) || desiredThreads.has(src.id)) continue;
+	if (!src.parent_id) continue;
+	desiredThreads.set(src.id, {
+		configName: `thread:${src.name}`,
+		src,
+		parentDiscordId: src.parent_id,
+	});
+}
+const isArchivedThread = src =>
+	src.thread_metadata?.archived === true || src.thread_metadata?.locked === true;
+const desiredThreadList = [...desiredThreads.values()].filter(thread =>
+	desiredChannels.has(thread.parentDiscordId)
+);
 
 const channelPosition = ch => {
-	if (ch.src.type !== 11) return ch.src.position ?? 0;
+	if (!DISCORD_THREAD_TYPES.has(ch.src.type)) return ch.src.position ?? 0;
 	const threadParent = ch.src.parent_id ? channelById.get(ch.src.parent_id) : null;
 	return (threadParent?.position ?? 0) + 0.5;
 };
+const isTextLike = type => type === 0 || type === 5 || type === 15 || type === 16;
 const compareChannels = (a, b) => {
-	// Fluxer groups text channels before voice channels within each category.
-	if (a.type !== b.type) return a.type === 0 ? -1 : 1;
+	// Fluxer groups text-like channels before voice channels within each category.
+	const aText = isTextLike(a.type) ? 0 : 1;
+	const bText = isTextLike(b.type) ? 0 : 1;
+	if (aText !== bText) return aText - bText;
 	return channelPosition(a) - channelPosition(b);
 };
 
@@ -322,12 +367,11 @@ const [fluxerRoles, fluxerChannels, fluxerMember] = await Promise.all([
 	fluxerApi("GET", `/guilds/${FLUXER_GUILD}/members/@me`),
 ]);
 const administratorRole = desiredRoles.find(r => r.configName === "administrator");
-const stockAdministrator = fluxerRoles.find(
-	r =>
-		fluxerMember.roles.includes(r.id) &&
-		r.name === administratorRole?.name &&
-		(BigInt(r.permissions) & (1n << 3n)) !== 0n
+const botAdminRoles = fluxerRoles.filter(
+	r => fluxerMember.roles.includes(r.id) && (BigInt(r.permissions) & (1n << 3n)) !== 0n
 );
+const stockAdministrator =
+	botAdminRoles.find(r => r.name === administratorRole?.name) ?? botAdminRoles[0];
 if (!administratorRole || !stockAdministrator) {
 	throw new Error("Could not identify the bot's existing Fluxer Administrator role");
 }
@@ -336,6 +380,41 @@ const fluxerRoleByName = new Map(
 		.filter(r => r.id !== FLUXER_EVERYONE && r.id !== stockAdministrator.id)
 		.map(r => [r.name, r])
 );
+
+// Prior bridge mappings let reruns reuse created threads and retire legacy stand-ins.
+const priorMappingsPath = resolve(root, "app/services/fluxer/mappings.json");
+let priorMappings = { channels: [], threads: [], roles: [] };
+try {
+	priorMappings = JSON.parse(await readFile(priorMappingsPath, "utf8"));
+} catch {
+	warn("no prior mappings.json found; treating this as a first run");
+}
+const priorChannelByDiscord = new Map(
+	(priorMappings.channels ?? []).map(channel => [channel.discordChannelId, channel])
+);
+const priorThreadByDiscord = new Map(
+	(priorMappings.threads ?? []).map(thread => [thread.discordThreadId, thread])
+);
+// Merge runtime-created thread links from the bridge database so reruns reuse them.
+const databasePath = process.env.METACONCORD_DB_PATH ?? resolve(root, "metaconcord.db");
+try {
+	const existingDb = await open({ driver: sqlite3.Database, filename: databasePath });
+	const rows = await existingDb.all("SELECT * FROM fluxer_thread_links").catch(() => []);
+	await existingDb.close();
+	for (const row of rows) {
+		if (priorThreadByDiscord.has(row.discord_thread_id)) continue;
+		priorThreadByDiscord.set(row.discord_thread_id, {
+			discordThreadId: row.discord_thread_id,
+			fluxerThreadId: row.fluxer_thread_id,
+			discordParentId: row.discord_parent_id,
+			fluxerParentId: row.fluxer_parent_id,
+			channelKind: row.channel_kind,
+			relayEnabled: row.relay_enabled === 1,
+		});
+	}
+} catch {
+	warn("could not read runtime thread links from the bridge database");
+}
 
 // ---------------------------------------------------------------- print plan
 phase("Plan");
@@ -363,6 +442,20 @@ for (const cat of catOrder) {
 			`    - ${ch.configName}: "${ch.src.name}" (discord type ${ch.src.type} -> fluxer ${ch.type})`
 		);
 	}
+}
+log(`Threads to mirror (${desiredThreadList.length}):`);
+for (const thread of desiredThreadList) {
+	const parent = desiredChannels.get(thread.parentDiscordId);
+	const kind = FORUM_PARENT_TYPES.has(parent?.src.type)
+		? isArchivedThread(thread.src)
+			? "archived forum post"
+			: "forum post"
+		: isArchivedThread(thread.src)
+			? "archived thread"
+			: "thread";
+	log(
+		`  - ${thread.configName}: "${thread.src.name}" (${kind}, parent "${parent?.src.name ?? thread.parentDiscordId}")`
+	);
 }
 
 // ---------------------------------------------------------------- confirm
@@ -450,11 +543,23 @@ if (manageableRoles.length > 0) {
 // ---------------------------------------------------------------- channels
 phase("Mirroring channels");
 const fluxerIdByDiscordChannel = new Map();
-// Existing fluxer channels keyed by name for idempotent re-runs.
+// Existing fluxer channels keyed by type+name for idempotent re-runs.
 const fluxerCategoryByName = new Map(
 	fluxerChannels.filter(c => c.type === 4).map(c => [c.name, c])
 );
-const fluxerChannelByName = new Map(fluxerChannels.filter(c => c.type !== 4).map(c => [c.name, c]));
+const fluxerChannelByTypeName = new Map(
+	fluxerChannels.filter(c => c.type !== 4).map(c => [`${c.type}:${c.name}`, c])
+);
+// Discord tag id -> Fluxer tag id, resolved by name against the mirrored forum.
+const fluxerTagIdByDiscordTagId = new Map();
+const registerForumTags = (discordChannel, fluxerChannel) => {
+	for (const tag of discordChannel.available_tags ?? []) {
+		const match = (fluxerChannel.available_tags ?? []).find(
+			candidate => candidate.name === tag.name
+		);
+		if (match) fluxerTagIdByDiscordTagId.set(tag.id, match.id);
+	}
+};
 
 const overwritesFor = srcChannel => {
 	const out = [];
@@ -477,27 +582,36 @@ const overwritesFor = srcChannel => {
 	return out;
 };
 
-const readOnlyOverwritesFor = srcChannel => {
-	const parent = srcChannel.parent_id ? channelById.get(srcChannel.parent_id) : null;
-	const permissionSource =
-		(srcChannel.permission_overwrites ?? []).length > 0 ? srcChannel : parent;
-	const sendMessages = 1n << BigInt(FLUXER_PERM_BITS.SEND_MESSAGES);
-	const overwrites = overwritesFor(permissionSource ?? srcChannel).map(overwrite => ({
-		...overwrite,
-		allow: (BigInt(overwrite.allow) & ~sendMessages).toString(),
-		deny: (
-			BigInt(overwrite.deny) | (overwrite.id === FLUXER_EVERYONE ? sendMessages : 0n)
-		).toString(),
+const forumFieldsFor = src => {
+	if (!FORUM_PARENT_TYPES.has(src.type)) return {};
+	// Discord custom-emoji ids are not valid Fluxer ids, so only unicode emoji are mirrored.
+	const tags = (src.available_tags ?? []).slice(0, 20).map(tag => ({
+		name: tag.name,
+		moderated: tag.moderated === true,
+		...(tag.emoji_name ? { emoji_name: tag.emoji_name } : {}),
 	}));
-	if (!overwrites.some(overwrite => overwrite.id === FLUXER_EVERYONE)) {
-		overwrites.push({
-			id: FLUXER_EVERYONE,
-			type: 0,
-			allow: "0",
-			deny: sendMessages.toString(),
-		});
-	}
-	return overwrites;
+	const defaultReactionName = src.default_reaction_emoji?.emoji_name;
+	const forumFlagMask = (1 << 4) | (1 << 15); // REQUIRE_TAG | HIDE_MEDIA_DOWNLOAD_OPTIONS
+	const flags = (src.flags ?? 0) & forumFlagMask;
+	return {
+		...(src.default_auto_archive_duration != null
+			? { default_auto_archive_duration: src.default_auto_archive_duration }
+			: {}),
+		...(src.default_thread_rate_limit_per_user != null
+			? {
+					default_thread_rate_limit_per_user: src.default_thread_rate_limit_per_user,
+				}
+			: {}),
+		...(tags.length > 0 ? { available_tags: tags } : {}),
+		...(defaultReactionName
+			? { default_reaction_emoji: { emoji_name: defaultReactionName } }
+			: {}),
+		...(src.default_sort_order != null ? { default_sort_order: src.default_sort_order } : {}),
+		...(src.default_forum_layout != null
+			? { default_forum_layout: src.default_forum_layout }
+			: {}),
+		...(flags !== 0 ? { flags } : {}),
+	};
 };
 
 const createChannel = (src, type, parentFluxerId) => {
@@ -511,6 +625,7 @@ const createChannel = (src, type, parentFluxerId) => {
 			: {}),
 		...(type === 2 ? { bitrate: src.bitrate ?? 64000 } : {}),
 		...(type === 2 ? { user_limit: Math.min(src.user_limit ?? 0, 99) } : {}),
+		...forumFieldsFor(src),
 	};
 	const overwrites = overwritesFor(src);
 	if (overwrites.length > 0) body.permission_overwrites = overwrites;
@@ -554,28 +669,115 @@ for (const ch of orderedChannels) {
 		step(`[dry] would create channel "${ch.src.name}" ${JSON.stringify(body)}`);
 		continue;
 	}
-	const existing = fluxerChannelByName.get(ch.src.name);
+	const existing = fluxerChannelByTypeName.get(`${ch.type}:${ch.src.name}`);
 	if (existing && (existing.parent_id ?? null) === (categoryFluxerId ?? null)) {
 		fluxerIdByDiscordChannel.set(ch.src.id, existing.id);
+		registerForumTags(ch.src, existing);
 		step(`reusing existing channel "${ch.src.name}" (${existing.id})`);
 		continue;
 	}
 	const created = await fluxerApi("POST", `/guilds/${FLUXER_GUILD}/channels`, body);
 	await sleep(6200);
 	fluxerIdByDiscordChannel.set(ch.src.id, created.id);
+	registerForumTags(ch.src, created);
 	step(`created channel "${ch.src.name}" (${created.id})`);
 }
 
-phase("Reconciling channel topics and access");
-const fluxerChannelForName = name => {
-	const source = [...desiredChannels.values()].find(ch => ch.src.name === name);
-	return source ? fluxerIdByDiscordChannel.get(source.src.id) : null;
+phase("Mirroring threads and forum posts");
+const fluxerIdByDiscordThread = new Map();
+const bridgeThreadMappings = [];
+const fetchFluxerChannel = async id => {
+	try {
+		return await fluxerApi("GET", `/channels/${id}`);
+	} catch {
+		return null;
+	}
 };
-const forumFallbacks = new Map([
-	["gaming", "gaming-chat"],
-	["development", "dev-chat"],
-	["post-your-stuff", "art-chat"],
-]);
+const starterMessageFor = async thread => {
+	if (!FORUM_PARENT_TYPES.has(channelById.get(thread.parentDiscordId)?.type)) return null;
+	try {
+		return await discordApi(`/channels/${thread.src.id}/messages/${thread.src.id}`);
+	} catch {
+		return null;
+	}
+};
+const threadLinkFor = (thread, fluxerThreadId, channelKind) => ({
+	discordThreadId: thread.src.id,
+	fluxerThreadId,
+	discordParentId: thread.parentDiscordId,
+	fluxerParentId: fluxerIdByDiscordChannel.get(thread.parentDiscordId),
+	channelKind,
+	relayEnabled: true,
+});
+for (const thread of desiredThreadList) {
+	const parent = desiredChannels.get(thread.parentDiscordId);
+	const parentFluxerId = fluxerIdByDiscordChannel.get(thread.parentDiscordId);
+	const isForumPost = FORUM_PARENT_TYPES.has(parent?.src.type);
+	const archived = isArchivedThread(thread.src);
+	const channelKind = isForumPost ? "forum_post" : "thread";
+	if (dryRun) {
+		step(`[dry] would create ${channelKind} "${thread.src.name}" under "${parent.src.name}"`);
+		continue;
+	}
+	const prior = priorThreadByDiscord.get(thread.src.id);
+	let fluxerThread = prior ? await fetchFluxerChannel(prior.fluxerThreadId) : null;
+	if (fluxerThread && (fluxerThread.parent_id ?? null) === parentFluxerId) {
+		step(`reusing existing ${channelKind} "${thread.src.name}" (${fluxerThread.id})`);
+	} else {
+		fluxerThread = null;
+	}
+	if (!fluxerThread) {
+		if (isForumPost) {
+			const starter = await starterMessageFor(thread);
+			const appliedTags = (thread.src.applied_tags ?? [])
+				.map(id => fluxerTagIdByDiscordTagId.get(id))
+				.filter(Boolean)
+				.slice(0, 5);
+			const body = {
+				name: thread.src.name,
+				message: {
+					content:
+						starter?.content?.trim() ||
+						`[View this Discord post](<https://discord.com/channels/${DISCORD_GUILD}/${thread.src.id}>)`,
+				},
+				...(appliedTags.length > 0 ? { applied_tags: appliedTags } : {}),
+			};
+			fluxerThread = await fluxerApi("POST", `/channels/${parentFluxerId}/threads`, body);
+			await sleep(6200); // channel:thread:create is 10/min
+			step(`created forum post "${thread.src.name}" (${fluxerThread.id})`);
+		} else {
+			const body = {
+				name: thread.src.name,
+				type: thread.src.type === 10 ? 11 : thread.src.type,
+				...(thread.src.thread_metadata?.auto_archive_duration != null
+					? {
+							auto_archive_duration: thread.src.thread_metadata.auto_archive_duration,
+						}
+					: {}),
+				...(thread.src.rate_limit_per_user != null
+					? { rate_limit_per_user: thread.src.rate_limit_per_user }
+					: {}),
+				...(thread.src.type === 12 && thread.src.thread_metadata?.invitable != null
+					? { invitable: thread.src.thread_metadata.invitable }
+					: {}),
+			};
+			fluxerThread = await fluxerApi("POST", `/channels/${parentFluxerId}/threads`, body);
+			await sleep(6200);
+			step(`created thread "${thread.src.name}" (${fluxerThread.id})`);
+		}
+		if (archived) {
+			await fluxerApi("PATCH", `/channels/${fluxerThread.id}`, {
+				archived: true,
+				...(thread.src.thread_metadata?.locked ? { locked: true } : {}),
+			});
+			step(`archived "${thread.src.name}"`);
+		}
+	}
+	fluxerIdByDiscordThread.set(thread.src.id, fluxerThread.id);
+	bridgeThreadMappings.push(threadLinkFor(thread, fluxerThread.id, channelKind));
+}
+
+phase("Reconciling channel topics and access");
 const translateTopic = topic => {
 	if (topic == null) return null;
 	return topic
@@ -594,15 +796,6 @@ const translateTopic = topic => {
 			}
 		);
 };
-const normalizeOverwrites = overwrites =>
-	[...(overwrites ?? [])]
-		.map(overwrite => ({
-			id: overwrite.id,
-			type: overwrite.type,
-			allow: String(overwrite.allow ?? 0),
-			deny: String(overwrite.deny ?? 0),
-		}))
-		.sort((a, b) => a.id.localeCompare(b.id));
 const currentFluxerChannels = await fluxerApi("GET", `/guilds/${FLUXER_GUILD}/channels`);
 const currentFluxerChannelById = new Map(
 	currentFluxerChannels.map(channel => [channel.id, channel])
@@ -610,38 +803,11 @@ const currentFluxerChannelById = new Map(
 for (const ch of orderedChannels) {
 	const fluxerId = fluxerIdByDiscordChannel.get(ch.src.id);
 	const current = currentFluxerChannelById.get(fluxerId);
-	const fallbackName = ch.src.type === 15 ? forumFallbacks.get(ch.src.name) : null;
-	const archivedThread =
-		ch.src.type === 11 &&
-		(ch.src.thread_metadata?.archived === true || ch.src.thread_metadata?.locked === true);
-	let topic = translateTopic(ch.src.topic);
-	if (fallbackName) {
-		const fallbackId = fluxerChannelForName(fallbackName);
-		if (!fallbackId) throw new Error(`Missing Fluxer fallback channel "${fallbackName}"`);
-		const notice =
-			`Forum channels are not supported on Fluxer. Continue in <#${fallbackId}> ` +
-			`or use the Discord forum: https://discord.com/channels/${DISCORD_GUILD}/${ch.src.id}`;
-		topic = topic ? `${notice}\n\n${topic}` : notice;
-	} else if (archivedThread) {
-		const notice = "This Discord thread is archived and read-only on Fluxer.";
-		topic = topic ? `${notice}\n\n${topic}` : notice;
-	}
-
-	const body = {};
-	if ((current?.topic ?? null) !== topic) body.topic = topic;
-	if (fallbackName || archivedThread) {
-		const permissionOverwrites = readOnlyOverwritesFor(ch.src);
-		if (
-			JSON.stringify(normalizeOverwrites(current?.permission_overwrites)) !==
-			JSON.stringify(normalizeOverwrites(permissionOverwrites))
-		) {
-			body.permission_overwrites = permissionOverwrites;
-		}
-	}
-	if (Object.keys(body).length === 0) continue;
-	await fluxerApi("PATCH", `/channels/${fluxerId}`, body);
+	const topic = translateTopic(ch.src.topic);
+	if ((current?.topic ?? null) === topic) continue;
+	await fluxerApi("PATCH", `/channels/${fluxerId}`, { topic });
 	await sleep(600);
-	step(`updated topic/access for "${ch.src.name}"`);
+	step(`updated topic for "${ch.src.name}"`);
 }
 
 phase("Ordering channels");
@@ -673,12 +839,43 @@ for (const cat of catOrder) {
 await fluxerApi("PATCH", `/guilds/${FLUXER_GUILD}/channels`, positionUpdates);
 step(`reordered ${positionUpdates.length} categories and channels`);
 
+phase("Retiring legacy thread and forum stand-ins");
+const legacyRetired = [];
+for (const [discordId, prior] of priorChannelByDiscord) {
+	if (!["thread", "archived_thread", "forum_placeholder"].includes(prior.channelKind)) continue;
+	const replacedByThread = fluxerIdByDiscordThread.has(discordId);
+	const replacedByForum = FORUM_PARENT_TYPES.has(desiredChannels.get(discordId)?.src.type);
+	if (!replacedByThread && !replacedByForum) continue;
+	if (!prior.fluxerChannelId) continue;
+	const stale = await fetchFluxerChannel(prior.fluxerChannelId);
+	if (!stale) continue;
+	if (args.has("--delete-legacy")) {
+		if (dryRun) step(`[dry] would delete legacy channel ${stale.id}`);
+		else {
+			await fluxerApi("DELETE", `/channels/${stale.id}`);
+			await sleep(600);
+			legacyRetired.push(stale.id);
+			step(`deleted legacy channel "${stale.name}" (${stale.id})`);
+		}
+	} else if (!stale.name?.endsWith(" (legacy)")) {
+		if (dryRun) step(`[dry] would retire legacy channel "${stale.name}" (${stale.id})`);
+		else {
+			await fluxerApi("PATCH", `/channels/${stale.id}`, {
+				name: `${stale.name} (legacy)`,
+			});
+			await sleep(600);
+			legacyRetired.push(stale.id);
+			step(`retired legacy channel "${stale.name}" (${stale.id})`);
+		}
+	}
+}
+
 phase("Persisting bridge mappings");
 const bridgeChannelMappings = [];
 const bridgeRoleMappings = [];
 const database = await open({
 	driver: sqlite3.Database,
-	filename: process.env.METACONCORD_DB_PATH ?? resolve(root, "metaconcord.db"),
+	filename: databasePath,
 });
 await database.exec(`
 	CREATE TABLE IF NOT EXISTS fluxer_channel_mappings (
@@ -692,6 +889,15 @@ await database.exec(`
 	CREATE TABLE IF NOT EXISTS fluxer_role_mappings (
 		discord_role_id TEXT PRIMARY KEY,
 		fluxer_role_id TEXT NOT NULL UNIQUE,
+		updated_at_ms INTEGER NOT NULL
+	);
+	CREATE TABLE IF NOT EXISTS fluxer_thread_links (
+		discord_thread_id TEXT PRIMARY KEY,
+		fluxer_thread_id TEXT NOT NULL UNIQUE,
+		discord_parent_id TEXT NOT NULL,
+		fluxer_parent_id TEXT NOT NULL,
+		channel_kind TEXT NOT NULL,
+		relay_enabled INTEGER NOT NULL DEFAULT 1 CHECK (relay_enabled IN (0, 1)),
 		updated_at_ms INTEGER NOT NULL
 	);
 `);
@@ -724,20 +930,12 @@ try {
 		);
 	}
 	for (const ch of orderedChannels) {
-		const archivedThread =
-			ch.src.type === 11 &&
-			(ch.src.thread_metadata?.archived === true || ch.src.thread_metadata?.locked === true);
-		const channelKind =
-			ch.src.type === 15
-				? "forum_placeholder"
-				: ch.src.type === 11
-					? archivedThread
-						? "archived_thread"
-						: "thread"
-					: ch.type === 2
-						? "voice"
-						: "text";
-		const relayEnabled = ch.type === 0 && ch.src.type !== 15 && !archivedThread ? 1 : 0;
+		const channelKind = FORUM_PARENT_TYPES.has(ch.src.type)
+			? "forum"
+			: ch.type === 2
+				? "voice"
+				: "text";
+		const relayEnabled = channelKind === "text" || channelKind === "forum" ? 1 : 0;
 		const mapping = {
 			discordChannelId: ch.src.id,
 			fluxerChannelId: fluxerIdByDiscordChannel.get(ch.src.id),
@@ -761,6 +959,28 @@ try {
 			mapping.discordParentId,
 			mapping.channelKind,
 			relayEnabled,
+			updatedAt
+		);
+	}
+	await database.run("DELETE FROM fluxer_thread_links");
+	for (const thread of bridgeThreadMappings) {
+		await database.run(
+			`INSERT INTO fluxer_thread_links
+				(discord_thread_id, fluxer_thread_id, discord_parent_id, fluxer_parent_id, channel_kind, relay_enabled, updated_at_ms)
+			 VALUES (?, ?, ?, ?, ?, ?, ?)
+			 ON CONFLICT(discord_thread_id) DO UPDATE SET
+				fluxer_thread_id = excluded.fluxer_thread_id,
+				discord_parent_id = excluded.discord_parent_id,
+				fluxer_parent_id = excluded.fluxer_parent_id,
+				channel_kind = excluded.channel_kind,
+				relay_enabled = excluded.relay_enabled,
+				updated_at_ms = excluded.updated_at_ms`,
+			thread.discordThreadId,
+			thread.fluxerThreadId,
+			thread.discordParentId,
+			thread.fluxerParentId,
+			thread.channelKind,
+			thread.relayEnabled ? 1 : 0,
 			updatedAt
 		);
 	}
@@ -790,6 +1010,7 @@ await writeFile(
 	JSON.stringify(
 		{
 			channels: bridgeChannelMappings,
+			threads: bridgeThreadMappings,
 			roles: bridgeRoleMappings,
 			permanentMessageChannelIds: [
 				discordConfig.channels.rules,
@@ -800,7 +1021,11 @@ await writeFile(
 		"\t"
 	) + "\n"
 );
-step(`persisted ${catOrder.length + orderedChannels.length} channel and role mappings`);
+step(
+	`persisted ${catOrder.length + orderedChannels.length} channels, ` +
+		`${bridgeThreadMappings.length} threads, ${bridgeRoleMappings.length} roles`
+);
+step(`retired ${legacyRetired.length} legacy stand-in channels`);
 
 // ---------------------------------------------------------------- summary
 phase("Summary");

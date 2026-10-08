@@ -25,6 +25,7 @@ export type FluxerAttachment = {
 export type FluxerMessage = {
 	id: string;
 	channel_id: string;
+	channel_type?: number | null;
 	guild_id?: string;
 	author: FluxerUser;
 	webhook_id?: string | null;
@@ -45,6 +46,28 @@ export type FluxerMessage = {
 	member?: { nick?: string | null; avatar?: string | null };
 	message_snapshots?: FluxerMessageSnapshot[] | null;
 	flags?: number;
+	_fluxer_thread?: { id: string; parent_id: string | null; type: number } | null;
+};
+
+export type FluxerThreadChannel = {
+	id: string;
+	type: number;
+	guild_id?: string | null;
+	parent_id?: string | null;
+	name?: string | null;
+	topic?: string | null;
+	owner_id?: string | null;
+	thread_metadata?: {
+		archived: boolean;
+		locked: boolean;
+		auto_archive_duration?: number;
+		invitable?: boolean;
+		create_timestamp?: string;
+	} | null;
+	applied_tags?: string[] | null;
+	message_count?: number;
+	member_count?: number;
+	available_tags?: { id: string; name: string; moderated?: boolean }[] | null;
 };
 
 export type FluxerMessageSnapshot = {
