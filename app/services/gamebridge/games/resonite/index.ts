@@ -179,13 +179,14 @@ async function removeSession(bridge: GameBridge, sessionId: string): Promise<voi
 function updatePresence(connection: ResoniteConnection): void {
 	const sessions = [...connection.sessions.values()];
 	const totalPlayers = sessions.reduce((sum, s) => sum + s.session.joinedUsers, 0);
+	const populated = sessions.filter(s => s.session.joinedUsers > 0).length;
 
 	if (totalPlayers > 0) {
 		connection.setPresence("online", {
 			activity: {
 				name:
-					sessions.length > 1
-						? `${totalPlayers} players across ${sessions.length} sessions`
+					populated > 1
+						? `${totalPlayers} players across ${populated} sessions`
 						: `${totalPlayers === 1 ? "a" : totalPlayers} player${totalPlayers !== 1 ? "s" : ""}`,
 				type: Discord.ActivityType.Watching,
 			},
