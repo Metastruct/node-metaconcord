@@ -377,13 +377,13 @@ function formatDiff(text: string, budget: number): string {
 			const label = diffLabel(block.file, shown.filter(isChangedLine).length);
 			return shown.length === 0 ? label : `${label}\n\`\`\`diff\n${shown.join("\n")}\n\`\`\``;
 		})
-		.join("\n\n");
+		.join("\n");
 
 	const note =
 		dropped > 0
 			? `-# ... and ${dropped} more file${dropped > 1 ? "s" : ""} (listed below)`
 			: "";
-	return [rendered, note].filter(Boolean).join("\n\n");
+	return [rendered, note].filter(Boolean).join("\n");
 }
 
 // Uses the authenticated Octokit client (GitHub App install token) instead of an
