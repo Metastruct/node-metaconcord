@@ -208,8 +208,8 @@ function formatDiffText(text: string): string {
 	);
 }
 
-const MAX_DIFF_CHANGES_PER_FILE = 6; // full body at/below this many changes
-const MAX_DIFF_PEEK_CHANGES = 4; // changed lines shown for a larger file
+const MAX_DIFF_CHANGES_PER_FILE = 8; // full body at/below this many changes
+const MAX_DIFF_PEEK_CHANGES = 8; // changed lines shown for a larger file
 const MAX_DIFF_LINE_LENGTH = 160; // clip minified lines
 const DIFF_BLOCK_OVERHEAD = "```diff\n".length + "\n```".length; // per-file fence
 
