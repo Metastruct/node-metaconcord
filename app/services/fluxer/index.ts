@@ -22,6 +22,11 @@ import {
 const log = logger(import.meta);
 const LINK_COMMAND = /^METACONCORD_LINK\s+([A-Z0-9]{8})$/i;
 const MAX_BRIDGE_FILE_SIZE = 25 * 1024 * 1024;
+const DISCORD_API_BASE = "https://discord.com/api/v10";
+const MAX_REFRESH_URLS = 50;
+// Bare attachment links (e.g. a GIF a user saved and pasted) are unsigned and expire.
+const DISCORD_ATTACHMENT_CDN =
+	/https?:\/\/(?:cdn\.discordapp\.com|media\.discordapp\.net)\/attachments?\/\d+\/\d+\/[^\s<>"'`]+/g;
 
 type ChannelRoute = {
 	discordChannelId: string;
@@ -844,7 +849,7 @@ export class Fluxer extends Service {
 			relay_enabled: 1,
 		};
 		if (isForum) {
-			const payload = this.translateDiscordMessage(message);
+			const payload = await this.translateDiscordMessage(message);
 			const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(parentRoute, [
 				...message.attachments.values(),
 			]);
@@ -960,7 +965,7 @@ export class Fluxer extends Service {
 			return;
 		}
 		if (message.system) return;
-		const payload = this.translateDiscordMessage(message);
+		const payload = await this.translateDiscordMessage(message);
 		const voiceAttachment =
 			message.flags.has(Discord.MessageFlags.IsVoiceMessage) &&
 			message.attachments.size === 1 &&
@@ -1108,7 +1113,7 @@ export class Fluxer extends Service {
 			}
 		}
 		// The source is not on Fluxer; relay the snapshot contents as a regular message.
-		const payload = this.translateDiscordMessage({
+		const payload = await this.translateDiscordMessage({
 			...message,
 			content: snapshot?.content ?? "",
 			mentions: snapshot?.mentions ?? message.mentions,
@@ -1226,7 +1231,7 @@ export class Fluxer extends Service {
 		const route = mapping ? this.routeByDiscordChannel(mapping.discord_channel_id) : undefined;
 		if (!mapping || mapping.origin !== "discord" || !route?.relayEnabled) return;
 		if (message.partial) message = await message.fetch();
-		const payload = this.translateDiscordMessage(message);
+		const payload = await this.translateDiscordMessage(message);
 		payload.content = appendContent(
 			payload.content,
 			[...message.stickers.values()].map(sticker => sticker.url),
@@ -1590,7 +1595,59 @@ export class Fluxer extends Service {
 		await this.deleteMessageMapping(mapping);
 	}
 
-	private translateDiscordMessage(message: Discord.Message): MentionPayload {
+	private isStaleDiscordCdnUrl(url: string): boolean {
+		const signature = /[?&]hm=/.exec(url);
+		if (!signature) return true;
+		const expiry = /[?&]ex=([0-9a-f]+)/i.exec(url);
+		if (!expiry) return true;
+		const expiresAt = Number.parseInt(expiry[1], 16) * 1000;
+		return !Number.isFinite(expiresAt) || expiresAt <= Date.now() + 60_000;
+	}
+
+	private async refreshDiscordCdnUrls(content: string): Promise<string> {
+		const urls = new Set<string>();
+		for (const match of content.matchAll(DISCORD_ATTACHMENT_CDN)) {
+			const url = match[0].replace(/[.,;!]+$/, "");
+			if (this.isStaleDiscordCdnUrl(url)) urls.add(url);
+		}
+		if (urls.size === 0) return content;
+		const requested = [...urls].slice(0, MAX_REFRESH_URLS);
+		try {
+			const response = await fetch(`${DISCORD_API_BASE}/attachments/refresh-urls`, {
+				method: "POST",
+				headers: {
+					Authorization: `Bot ${this.discordBot.config.bot.token}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ attachment_urls: requested }),
+				signal: AbortSignal.timeout(15_000),
+			});
+			if (!response.ok) {
+				log.warn({ status: response.status }, "Discord attachment refresh request failed");
+				return content;
+			}
+			const data = (await response.json()) as {
+				refreshed_urls?: { original: string; refreshed: string | null }[];
+			};
+			const refreshed = new Map<string, string>();
+			for (const entry of data.refreshed_urls ?? []) {
+				if (entry.refreshed && entry.refreshed !== entry.original) {
+					refreshed.set(entry.original, entry.refreshed);
+				}
+			}
+			if (refreshed.size === 0) return content;
+			return content.replace(DISCORD_ATTACHMENT_CDN, match => {
+				const stripped = match.replace(/[.,;!]+$/, "");
+				const suffix = match.slice(stripped.length);
+				return `${refreshed.get(stripped) ?? stripped}${suffix}`;
+			});
+		} catch (error) {
+			log.warn({ err: error }, "Discord attachment refresh failed");
+			return content;
+		}
+	}
+
+	private async translateDiscordMessage(message: Discord.Message): Promise<MentionPayload> {
 		const users = new Set<string>();
 		const roles = new Set<string>();
 		const emojiFallbackById = new Map<string, UnmappedEmoji>();
@@ -1642,6 +1699,7 @@ export class Fluxer extends Service {
 				return `${config.webAppBaseUrl}/channels/${config.guildId}/${route.fluxerChannelId}`;
 			}
 		);
+		content = await this.refreshDiscordCdnUrls(content);
 		return { content, users: [...users].slice(0, 100), roles: [...roles].slice(0, 100) };
 	}
 
