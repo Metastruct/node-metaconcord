@@ -194,10 +194,18 @@ const GetGithubChanges = (
 };
 
 function formatDiffText(text: string): string {
-	return text
-		.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)([^\n])/g, "$1\n$2")
-		.replaceAll(/diff.+\nindex.+\n/g, "")
-		.replaceAll("```", "​`​`​`");
+	return (
+		text
+			.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)([^\n])/g, "$1\n$2")
+			.replaceAll(/diff.+\nindex.+\n/g, "")
+			// binary diffs carry no ---/+++ headers, so synthesise them from the line
+			.replaceAll(
+				/^Binary files (.+) and (.+) differ$/gm,
+				(_match, from: string, to: string) =>
+					`--- ${from}\n+++ ${to}\nBinary files ${from} and ${to} differ`
+			)
+			.replaceAll("```", "​`​`​`")
+	);
 }
 
 const MAX_DIFF_CHANGES_PER_FILE = 6; // full body at/below this many changes
@@ -212,6 +220,9 @@ interface DiffFile {
 	removed: number;
 	maxChanges: number;
 	path: string;
+	oldPath?: string;
+	renamed: boolean;
+	binary: boolean;
 	isNew: boolean;
 	isDeleted: boolean;
 }
@@ -229,14 +240,18 @@ function parseDiffFiles(text: string): DiffFile[] {
 		const removed = body.filter(l => l.startsWith("-")).length;
 		const isNew = header.some(l => /^--- \/dev\/null$/.test(l));
 		const isDeleted = header.some(l => /^\+\+\+ \/dev\/null$/.test(l));
-		const path =
+		const headerPath = (prefix: string) =>
 			header
-				.find(
-					l => !l.includes("/dev/null") && (l.startsWith("--- ") || l.startsWith("+++ "))
-				)
+				.find(l => l.startsWith(prefix) && !l.includes("/dev/null"))
 				?.slice(4)
 				.replace(/^[ab]\//, "")
-				.trim() ?? "unknown";
+				.trim();
+		const newPath = headerPath("+++ ");
+		const oldPath = headerPath("--- ");
+		// prefer the new path so renames match the linked change list
+		const path = newPath ?? oldPath ?? "unknown";
+		const renamed = !!newPath && !!oldPath && newPath !== oldPath;
+		const binary = body.some(l => l.startsWith("Binary files "));
 		files.push({
 			header,
 			body,
@@ -244,6 +259,9 @@ function parseDiffFiles(text: string): DiffFile[] {
 			removed,
 			maxChanges: Math.max(added, removed),
 			path,
+			oldPath,
+			renamed,
+			binary,
 			isNew,
 			isDeleted,
 		});
@@ -268,13 +286,21 @@ function parseDiffFiles(text: string): DiffFile[] {
 	return files;
 }
 
-// Subtext label naming a file (linked when we have a change-list line) and its counts.
+// Label naming a file (linked when we have a change-list line) and its counts.
 function diffLabel(file: DiffFile, shownChanges: number, link?: string): string {
-	const name = link ?? `\`${file.path}\``;
-	const showing = shownChanges < file.maxChanges ? ` (showing ${shownChanges})` : "";
-	if (file.isNew) return `${name} +${file.added}${showing}`;
-	if (file.isDeleted) return `${name} -${file.removed}${showing}`;
-	return `${name} +${file.added} -${file.removed}${showing}`;
+	let name = link ?? `\`${file.path}\``;
+	if (file.renamed && file.oldPath) {
+		const renamed = `${file.oldPath} → ${file.path}`;
+		name = link ? link.replace(/\[[^\]]*\]/, `[${renamed}]`) : `\`${renamed}\``;
+	}
+	const notes: string[] = [];
+	if (file.binary) notes.push("binary");
+	if (shownChanges < file.maxChanges) notes.push(`showing ${shownChanges}`);
+	const suffix = notes.length > 0 ? ` (${notes.join(", ")})` : "";
+	if (file.binary) return `${name}${suffix}`;
+	if (file.isNew) return `${name} +${file.added}${suffix}`;
+	if (file.isDeleted) return `${name} -${file.removed}${suffix}`;
+	return `${name} +${file.added} -${file.removed}${suffix}`;
 }
 
 const clipDiffLine = (line: string) =>
@@ -502,9 +528,11 @@ function GetGitlabDiffChanges(
 function joinGitlabDiffFiles(files: CommitDiffSchema[]): string {
 	return files
 		.map(f => {
-			// Gitlab's flags don't survive the join; /dev/null lets formatDiff detect new/deleted.
-			const oldPath = f.new_file ? "/dev/null" : f.old_path;
-			const newPath = f.deleted_file ? "/dev/null" : f.new_path;
+			// binary diffs have no hunks; formatDiffText synthesises their headers
+			if (f.diff.startsWith("Binary files")) return f.diff;
+			// match Github's a/ b/ headers so formatDiff strips them and detects new/deleted
+			const oldPath = f.new_file ? "/dev/null" : `a/${f.old_path}`;
+			const newPath = f.deleted_file ? "/dev/null" : `b/${f.new_path}`;
 			return `--- ${oldPath}\n+++ ${newPath}\n${f.diff}`;
 		})
 		.join("\n");
