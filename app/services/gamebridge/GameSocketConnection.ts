@@ -50,6 +50,7 @@ export default abstract class GameSocketConnection extends GameConnection {
 
 		this.wsConnection?.on("message", async (msg: Message) => {
 			if (!msg || msg.type !== "utf8") return;
+			if (msg.utf8Data === "") return; // empty message/heartbeat
 
 			let data: WsPayload;
 			try {
