@@ -1,11 +1,10 @@
 {
 	"compilerOptions": {
-		"baseUrl": "./",
 		"paths": {
 			"@/*": ["./*"]
 		},
-		"target": "ES2022",
-		"lib": ["es2021.string", "dom"],
+		"target": "es2022",
+		"lib": ["es2022", "dom"],
 		"module": "NodeNext",
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
@@ -13,7 +12,8 @@
 		"moduleResolution": "node16",
 		"outDir": "./dist",
 		"strictNullChecks": true,
-		"skipLibCheck": true // discord.js moment
+		"skipLibCheck": true, // discord.js moment
+		"noImplicitAny": false
 	},
 	"ts-node": {
 		"transpileOnly": true,
