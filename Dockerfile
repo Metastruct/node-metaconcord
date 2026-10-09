@@ -6,9 +6,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 WORKDIR /app
 
-COPY package.json yarn.lock .yarnrc.yml ./
-COPY .yarn ./.yarn
-RUN yarn install && yarn cache clean
+COPY package.json ./
+RUN npm install
 
 COPY . .
 
@@ -20,8 +19,8 @@ RUN for f in *.example.json; do \
 # hack, remove build config so production config can be mounted at /app/dist/config
 # todo: handle empty config in the app
 WORKDIR /app
-RUN yarn test:fluxer && yarn build && yarn test:fluxer:dist && rm -rf ./config
+RUN node --run test:fluxer && node --run build && node --run test:fluxer:dist && rm -rf ./config
 
 EXPOSE 20122
 
-CMD [ "yarn", "start" ]
+CMD [ "node", "--run", "start" ]
