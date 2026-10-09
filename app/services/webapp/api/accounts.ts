@@ -72,6 +72,10 @@ export default (webApp: WebApp): void => {
 			res.status(404).json({ error: "unknown provider" });
 			return;
 		}
+		if (typeof req.params.id !== "string") {
+			res.status(400).json({ error: `invalid id type` });
+			return;
+		}
 		const id = normalizeId(provider, req.params.id);
 		if (!id) {
 			res.status(400).json({ error: `invalid ${provider} id` });

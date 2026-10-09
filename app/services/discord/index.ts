@@ -21,7 +21,7 @@ const ImgurRegex = /https?:\/\/(?:i.)?imgur.com\/(\w+)(?:.mp4)?/g;
 
 export class DiscordBot extends Service {
 	name = "DiscordBot";
-	bridge: GameBridge;
+	bridge!: GameBridge;
 	readonly config = DiscordConfig;
 	readonly discord: Discord.Client = new Discord.Client({
 		allowedMentions: { parse: ["users", "roles"] },
@@ -45,9 +45,9 @@ export class DiscordBot extends Service {
 		closeTimeout: 5000,
 		rest: { timeout: 30000 },
 	});
-	ready: boolean;
+	ready!: boolean;
 	currentEvent = "none";
-	private data: Data;
+	private data!: Data;
 
 	constructor(container: Container) {
 		super(container);

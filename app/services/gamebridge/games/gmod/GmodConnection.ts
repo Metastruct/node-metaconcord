@@ -18,19 +18,19 @@ export type GmodConnectionConfig = GameConnectionConfig & {
 
 export default class GmodConnection extends GameSocketConnection {
 	config: GmodConnectionConfig;
-	defcon: number;
-	gamemode: {
+	defcon!: number;
+	gamemode!: {
 		folderName: string;
 		name: string;
 	};
-	gamemodes: string[];
+	gamemodes!: string[];
 	hostname?: string;
 	/** from the last StatsPayload, which is where game.MaxPlayers() arrives */
 	maxPlayers?: number;
-	serverUptime: number;
+	serverUptime!: number;
 	/** epoch ms the server booted, derived from serverUptime when it was received */
 	serverUpSince?: number;
-	mapUptime: number;
+	mapUptime!: number;
 	workshopMap?: {
 		name: string;
 		id: string;

@@ -16,8 +16,8 @@ const STARBOARD_CONFIG = {
 export class Starboard extends Service {
 	name = "Starboard";
 	private pendingMessages = new Set<string>();
-	private sql: SQL;
-	private bot: DiscordBot;
+	private sql!: SQL;
+	private bot!: DiscordBot;
 
 	async init(): Promise<void> {
 		this.sql = this.container.getService("SQL");

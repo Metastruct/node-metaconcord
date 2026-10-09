@@ -27,7 +27,7 @@ export default (webApp: WebApp): void => {
 			if (req.query.all) args.push("all");
 			spawn("bash", args);
 			return;
-		} catch (err) {
+		} catch (err: any) {
 			res.status(ERROR).send(err.message);
 			return;
 		}

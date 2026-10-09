@@ -250,7 +250,7 @@ export class FluxerRest {
 				const response = await fetch(url, {
 					method: "PUT",
 					headers: { "Content-Type": contentType },
-					body: data,
+					body: Buffer.from(data),
 					signal: AbortSignal.timeout(120_000),
 				});
 				if (response.ok) return;

@@ -8,7 +8,7 @@ const log = logger(import.meta);
 export default class DiscordClient extends Discord.Client {
 	config = config;
 	gameServer: GameConnection;
-	ready: boolean;
+	ready!: boolean;
 
 	constructor(gameServer: GameConnection, options: Discord.ClientOptions) {
 		super(options);

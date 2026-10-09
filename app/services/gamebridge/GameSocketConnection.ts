@@ -1,5 +1,5 @@
 import {
-	IUtf8Message,
+	Message,
 	connection as WebSocketConnection,
 	request as WebSocketRequest,
 } from "websocket";
@@ -48,8 +48,8 @@ export default abstract class GameSocketConnection extends GameConnection {
 			for (const data of pending) this.dispatch(data);
 		});
 
-		this.wsConnection?.on("message", async (msg: IUtf8Message) => {
-			if (!msg || msg.utf8Data == "") return;
+		this.wsConnection?.on("message", async (msg: Message) => {
+			if (!msg || msg.type !== "utf8") return;
 
 			let data: WsPayload;
 			try {

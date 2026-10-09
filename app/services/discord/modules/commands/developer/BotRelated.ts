@@ -70,7 +70,10 @@ export const MenuManageMediaLinksCommand: MenuCommand = {
 		type: Discord.ApplicationCommandType.Message,
 		default_member_permissions: "0",
 	},
-	execute: async (ctx: Discord.MessageContextMenuCommandInteraction, bot) => {
+	execute: async (ctx, bot) => {
+		if (!(ctx instanceof Discord.MessageContextMenuCommandInteraction))
+			return;
+
 		const msg = ctx.targetMessage;
 		const text = msg.content;
 

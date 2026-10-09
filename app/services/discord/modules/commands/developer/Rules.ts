@@ -222,7 +222,7 @@ export const SlashRuleCommand: SlashCommand = {
 				case "edit":
 					await editRule(ctx, bot);
 			}
-		} catch (err) {
+		} catch (err: any) {
 			ctx.reply(EphemeralResponse(err));
 		}
 	},

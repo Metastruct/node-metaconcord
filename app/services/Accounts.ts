@@ -164,7 +164,7 @@ const toLink = (row: LinkRow): AccountLink => ({
 
 export class Accounts extends Service {
 	name = "Accounts";
-	private sql: SQL;
+	private sql!: SQL;
 	private cache = new Map<number, { account: AccountWithLinks; at: number }>();
 
 	async init(): Promise<void> {

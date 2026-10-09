@@ -6,7 +6,10 @@ export const MenuGetVoiceMessageUrlCommand: MenuCommand = {
 		name: "get voice message url",
 		type: Discord.ApplicationCommandType.Message,
 	},
-	execute: async (ctx: Discord.MessageContextMenuCommandInteraction) => {
+	execute: async (ctx) => {
+		if (!(ctx instanceof Discord.MessageContextMenuCommandInteraction))
+			return;
+
 		if (ctx.targetMessage.attachments.size === 0) {
 			await ctx.reply(EphemeralResponse("no attachments found in this message..."));
 			return;

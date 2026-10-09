@@ -374,6 +374,11 @@ export default (webApp: WebApp): void => {
 		const session = await requireTeam(req, res);
 		if (!session) return;
 
+		if (typeof req.params.steamid !== "string") {
+			res.status(400).json({ error: "invalid steamid type" });
+			return;
+		}
+
 		let sid: SteamID;
 		try {
 			sid = new SteamID(req.params.steamid);

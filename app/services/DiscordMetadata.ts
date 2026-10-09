@@ -102,10 +102,10 @@ type RevokeDBEntry = Pick<LocalDatabaseEntry, "user_id" | "access_token" | "refr
 export class DiscordMetadata extends Service {
 	name = "DiscordMetadata";
 	private ARCOCache: Record<string, ApplicationRoleConnectionObject> = {};
-	private sql: SQL;
-	private bot: DiscordBot;
-	private bans: Bans;
-	private accounts: Accounts;
+	private sql!: SQL;
+	private bot!: DiscordBot;
+	private bans!: Bans;
+	private accounts!: Accounts;
 
 	constructor(container: Container) {
 		super(container);

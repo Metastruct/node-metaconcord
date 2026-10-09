@@ -79,7 +79,7 @@ export const SlashSQLCommand: SlashCommand = {
 					break;
 				}
 			}
-		} catch (err) {
+		} catch (err: any) {
 			if (ctx.deferred) {
 				await ctx.followUp(err.message);
 			} else {

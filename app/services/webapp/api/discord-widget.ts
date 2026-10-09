@@ -36,8 +36,8 @@ export default (webApp: WebApp): void => {
 			lastAttempt = now;
 			refreshing ??= bot.discord.rest
 				.get(`/guilds/${guild.id}/widget.json`)
-				.then((data: Widget) => {
-					cached = { data, expires: Date.now() + TTL };
+				.then(data => {
+					cached = { data: data as Widget, expires: Date.now() + TTL };
 				})
 				.finally(() => {
 					refreshing = undefined;

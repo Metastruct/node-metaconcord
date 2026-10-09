@@ -734,7 +734,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		bot.config.roles.administrator,
 	]);
 
-	bot.discord.on("interactionCreate", async (ctx: Discord.ButtonInteraction) => {
+	bot.discord.on("interactionCreate", async (ctx: Discord.Interaction<Discord.CacheType>) => {
 		if (!ctx.member || !ctx.isButton() || !bridge) return;
 		const [action, override] = ctx.customId.split("_");
 		const where =
@@ -826,7 +826,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						}
 						const res = await github.octokit.rest.repos.getCommit({ owner, repo, ref });
 						files = res.data.files?.flatMap(f => f.filename);
-					} catch (err) {
+					} catch (err: any) {
 						await ctx.reply(
 							"something went wrong fetching the files from github :( ... aborting\n" +
 								`\`${err.message}\``
@@ -851,7 +851,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						}
 						const diffs = await getGitlabDiff(gitlab.api, id, sha);
 						files = diffs?.filter(f => !f.deleted_file).flatMap(f => f.new_path);
-					} catch (err) {
+					} catch (err: any) {
 						await ctx.reply(
 							"something went wrong fetching the files from gitlab :( ... aborting\n" +
 								`\`${err.message}\``
