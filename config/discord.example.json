@@ -56,5 +56,8 @@
 		"userId": "",
 		"allowedShitpostingChannels": [""],
 		"oAuthCallbackUri": ""
+	},
+	"trim-channels": {
+		"channel": "ISO 8601 duration"
 	}
 }
