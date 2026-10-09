@@ -101,6 +101,7 @@ export default (bot: DiscordBot): void => {
 
 		const message = msg.content && msg.content.length > 0 ? msg.content : undefined;
 
+		if (msg.channelId === bot.config.channels.log) return;
 		if (!msg.author && !message) return;
 
 		const attachments =
