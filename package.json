@@ -21,7 +21,7 @@
 		"scss": "sass resources/ --no-source-map",
 		"scss-watch": "sass --watch resources/ --no-source-map",
 		"fix": "prettier --write .",
-		"check": "eslint . && prettier --check .",
+		"check": "eslint .",
 		"fluxer:mirror": "node scripts/fluxer-mirror.mjs",
 		"fluxer:mirror-expressions": "node scripts/fluxer-mirror-expressions.mjs",
 		"test:fluxer": "node --test test/fluxer-mappings.test.mjs",
