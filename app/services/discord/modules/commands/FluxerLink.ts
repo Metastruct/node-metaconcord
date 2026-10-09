@@ -14,7 +14,7 @@ export const SlashFluxerLinkCommand: SlashCommand = {
 		const { code } = await fluxer.createLinkCode(interaction.user.id);
 		await interaction.reply(
 			EphemeralResponse(
-				`In any writable mirrored Fluxer channel, send:\n\n` +
+				"In any writable mirrored Fluxer channel, send:\n\n" +
 					`\`METACONCORD_LINK ${code}\`\n\nThis code expires in 10 minutes and can only be used once.`
 			)
 		);

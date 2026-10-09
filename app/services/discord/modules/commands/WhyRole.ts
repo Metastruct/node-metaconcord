@@ -1,5 +1,4 @@
 import * as Discord from "discord.js";
-import { DiscordBot } from "@/app/services/index.js";
 import { EphemeralResponse, MenuCommand } from "@/extensions/discord.js";
 
 export const MenuWhyRoleCommand: MenuCommand = {
@@ -8,7 +7,7 @@ export const MenuWhyRoleCommand: MenuCommand = {
 		type: Discord.ApplicationCommandType.User,
 		default_member_permissions: Discord.PermissionsBitField.Flags.ManageRoles.toString(),
 	},
-	execute: async (ctx: Discord.MessageContextMenuCommandInteraction, bot: DiscordBot) => {
+	execute: async (ctx, bot) => {
 		const dataService = bot.container.getService("Data");
 		const { permaRoles } = dataService;
 		const userId = ctx.targetId;

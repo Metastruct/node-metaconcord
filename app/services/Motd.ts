@@ -92,7 +92,7 @@ export class Motd extends Service {
 	images: ImgurImage[] = [];
 	lastimages: ImgurImage[] = [];
 
-	private bot: DiscordBot;
+	private bot!: DiscordBot;
 	private rerolls = 0;
 
 	private ignorelist: Array<string> = ["STEAM_0:1:161162716", "STEAM_0:0:25648317"];

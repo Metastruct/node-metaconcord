@@ -16,14 +16,14 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version: 22
-                  cache: yarn
-            - run: yarn install --immutable
-            - run: yarn check
-            - run: yarn test:fluxer
-            - run: yarn schema:gen
+                  cache: npm
+            - run: npm ci
+            - run: npm run check
+            - run: npm run test:fluxer
+            - run: npm run schema:gen
             - name: Check generated schemas are up to date
               run: |
                   git diff --exit-code -- '**/handlers/structures/*.json' || {
-                    echo "::error::Generated JSON schemas are out of date - run 'yarn schema:gen' and commit the result."
+                    echo "::error::Generated JSON schemas are out of date - run 'npm run schema:gen' and commit the result."
                     exit 1
                   }

@@ -6,7 +6,10 @@ export const MenuGetStickerUrlCommand: MenuCommand = {
 		name: "get sticker url",
 		type: Discord.ApplicationCommandType.Message,
 	},
-	execute: async (ctx: Discord.MessageContextMenuCommandInteraction) => {
+	execute: async (ctx) => {
+		if (!(ctx instanceof Discord.MessageContextMenuCommandInteraction))
+			return;
+
 		if (ctx.targetMessage.stickers.size === 0) {
 			await ctx.reply(EphemeralResponse("no stickers found in this message..."));
 			return;

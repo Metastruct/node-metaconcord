@@ -97,8 +97,8 @@ export class Resonite extends Service {
 	name = "Resonite";
 	ResoniteUserCache: Record<string, ResoniteUser> = {};
 
-	ResoniteToken: string;
-	LastTokenTime: number;
+	ResoniteToken!: string;
+	LastTokenTime!: number;
 	UserID = config.userID;
 	Username = config.username;
 

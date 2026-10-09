@@ -38,7 +38,7 @@ function buildSessionContainer(
 	}
 
 	if (session.hideFromListing) {
-		desc += `\n:no_entry_sign: Hidden from public listing`;
+		desc += "\n:no_entry_sign: Hidden from public listing";
 	}
 
 	if (state === "ended") {

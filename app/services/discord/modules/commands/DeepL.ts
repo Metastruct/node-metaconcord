@@ -347,7 +347,10 @@ export const MenuDeeplCommand: MenuCommand = {
 		name: "DeepL translate",
 		type: Discord.ApplicationCommandType.Message,
 	},
-	execute: async (ctx: Discord.MessageContextMenuCommandInteraction) => {
+	execute: async (ctx) => {
+		if (!(ctx instanceof Discord.MessageContextMenuCommandInteraction))
+			return;
+
 		const msg = ctx.targetMessage;
 		const text = msg.content;
 		if (text && Buffer.from(text).length < 128 * 1024) {

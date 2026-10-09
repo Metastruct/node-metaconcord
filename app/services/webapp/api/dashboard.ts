@@ -83,8 +83,8 @@ const evalJs = async (code: string): Promise<string> => {
 		compile(`return (${statements}\n);`) ??
 		(split > 0
 			? compile(
-					`${statements.slice(0, split + 1)}\nreturn (${statements.slice(split + 1)}\n);`
-				)
+				`${statements.slice(0, split + 1)}\nreturn (${statements.slice(split + 1)}\n);`
+			)
 			: undefined) ??
 		new AsyncFunction(code);
 	const result = await fn();
@@ -266,6 +266,10 @@ export default (webApp: WebApp): void => {
 		express.json({ limit: "1mb" }),
 		async (req, res) => {
 			const { name } = req.params;
+			if (typeof name !== "string") {
+				res.status(400).json({ error: "invalid config type" });
+				return;
+			}
 			const session = res.locals.session as Session;
 			if (!isConfigFile(name)) {
 				res.status(400).json({ error: "invalid config name" });

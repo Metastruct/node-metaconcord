@@ -12,14 +12,14 @@ export class Data extends Service {
 	private dataPath = path.join(process.cwd(), "data");
 
 	addons: AddonsStore = {};
-	lastDiscordBanner: string;
-	lastDiscordGuildEvent: string;
-	lastDiscordGuildIcon: string;
-	lastDiscordNickName: string;
-	lastMotd: string;
-	lastMsgTime: number;
-	lastResoniteToken: string;
-	lastResoniteTokenTime: number;
+	lastDiscordBanner!: string;
+	lastDiscordGuildEvent!: string;
+	lastDiscordGuildIcon!: string;
+	lastDiscordNickName!: string;
+	lastMotd!: string;
+	lastMsgTime!: number;
+	lastResoniteToken!: string;
+	lastResoniteTokenTime!: number;
 	permaRoles: {
 		[userId: string]: {
 			roles: { [roleId: string]: { adderId: string; timeStamp: number } };
@@ -33,7 +33,7 @@ export class Data extends Service {
 			muter?: string;
 		};
 	} = {};
-	rules: Array<Rule>;
+	rules!: Array<Rule>;
 	tempVoiceChannels: {
 		[ownerId: string]: {
 			channelId: string;

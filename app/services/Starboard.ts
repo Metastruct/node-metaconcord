@@ -16,14 +16,14 @@ const STARBOARD_CONFIG = {
 export class Starboard extends Service {
 	name = "Starboard";
 	private pendingMessages = new Set<string>();
-	private sql: SQL;
-	private bot: DiscordBot;
+	private sql!: SQL;
+	private bot!: DiscordBot;
 
 	async init(): Promise<void> {
 		this.sql = this.container.getService("SQL");
 		this.bot = this.container.getService("DiscordBot");
 		const db = this.sql.getLocalDatabase();
-		await db.exec(`CREATE TABLE IF NOT EXISTS starboard (MessageId INTEGER PRIMARY KEY);`);
+		await db.exec("CREATE TABLE IF NOT EXISTS starboard (MessageId INTEGER PRIMARY KEY);");
 
 		const filter = (btn: Discord.MessageComponentInteraction) =>
 			btn.customId.startsWith("starboard");
@@ -212,13 +212,13 @@ export class Starboard extends Service {
 								.setURL(msg.url),
 							...(!msg.author.bot
 								? [
-										new Discord.ButtonBuilder()
-											.setLabel("Delete")
-											.setStyle(Discord.ButtonStyle.Danger)
-											.setCustomId(
-												`starboard:${msg.id}:${msg.channelId}:${msg.author.id}`
-											),
-									]
+									new Discord.ButtonBuilder()
+										.setLabel("Delete")
+										.setStyle(Discord.ButtonStyle.Danger)
+										.setCustomId(
+											`starboard:${msg.id}:${msg.channelId}:${msg.author.id}`
+										),
+								]
 								: [])
 						),
 					];

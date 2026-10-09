@@ -22,17 +22,17 @@ export type RevokeBanInput = {
 };
 
 export const buildBanLua = (input: IssueBanInput): string =>
-	`if not banni then return false end ` +
+	"if not banni then return false end " +
 	`local data = banni.Ban(${luaString(input.steamId)}, ${luaString(input.nick)}, ` +
 	`${luaString(input.actor)}, ${luaString(input.reason)}, ${Math.floor(input.unbanTime)}, ` +
 	`false, ${luaStringOrNil(input.gamemode)}) ` +
-	`if istable(data) then return data.b else return data end`;
+	"if istable(data) then return data.b else return data end";
 
 export const buildUnbanLua = (input: RevokeBanInput): string =>
-	`if not banni then return false end ` +
+	"if not banni then return false end " +
 	`local data = banni.UnBan(${luaString(input.steamId)}, ${luaString(input.actor)}, ` +
 	`${luaString(input.reason)}) ` +
-	`if istable(data) then return data.b == false else return data end`;
+	"if istable(data) then return data.b == false else return data end";
 
 const isUsable = (server?: GmodConnection): boolean =>
 	!!server && !server.disconnected && !!server.wsConnection?.connected;

@@ -142,6 +142,10 @@ export default async (webApp: WebApp): Promise<void> => {
 		res.send(data);
 	});
 	webApp.app.get("/discord/link/:id/refresh", secretLimiter, async (req, res) => {
+		if (typeof req.params.id !== "string") {
+			res.sendStatus(400);
+			return;
+		}
 		try {
 			res.send((await metadata().update(req.params.id)) ? "👌" : "👎");
 		} catch (err) {
@@ -153,6 +157,10 @@ export default async (webApp: WebApp): Promise<void> => {
 		const secret = req.query.secret;
 		if (secret !== webApp.config.cookieSecret) {
 			res.sendStatus(403);
+			return;
+		}
+		if (typeof req.params.id !== "string") {
+			res.sendStatus(400);
 			return;
 		}
 		const result = await metadata().revoke(req.params.id);

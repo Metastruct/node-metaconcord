@@ -37,7 +37,7 @@ export interface GameBridgeEvents {
 
 export default class GameBridge extends Service {
 	name = "GameBridge";
-	webApp: WebApp;
+	webApp!: WebApp;
 	/** Each game keeps its own id space, starting at 1 -- ids are only unique within a game. */
 	servers: {
 		gmod: GmodConnection[];

@@ -65,7 +65,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const server = bot.container.tryService("GameBridge")?.servers.gmod[4];
 				if (server) {
 					await server.sendLua(
-						`local request = require("gm_request") if request and not request:IsServerGamemode(3,"terrortown") then request:SwitchGamemodeAsync("terrortown",print) end`
+						"local request = require(\"gm_request\") if request and not request:IsServerGamemode(3,\"terrortown\") then request:SwitchGamemodeAsync(\"terrortown\",print) end"
 					);
 				}
 			},

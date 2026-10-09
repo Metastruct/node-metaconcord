@@ -10,7 +10,10 @@ export const MenuRemoveHighlightMessageCommand: MenuCommand = {
 		name: "remove message from highlights",
 		type: Discord.ApplicationCommandType.Message,
 	},
-	execute: async (ctx: Discord.MessageContextMenuCommandInteraction, bot) => {
+	execute: async (ctx, bot) => {
+		if (!(ctx instanceof Discord.MessageContextMenuCommandInteraction))
+			return;
+
 		try {
 			if (ctx.targetMessage.author.username !== ctx.user.username) {
 				await ctx.reply(EphemeralResponse("you can only delete your own messages..."));

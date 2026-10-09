@@ -102,10 +102,10 @@ type RevokeDBEntry = Pick<LocalDatabaseEntry, "user_id" | "access_token" | "refr
 export class DiscordMetadata extends Service {
 	name = "DiscordMetadata";
 	private ARCOCache: Record<string, ApplicationRoleConnectionObject> = {};
-	private sql: SQL;
-	private bot: DiscordBot;
-	private bans: Bans;
-	private accounts: Accounts;
+	private sql!: SQL;
+	private bot!: DiscordBot;
+	private bans!: Bans;
+	private accounts!: Accounts;
 
 	constructor(container: Container) {
 		super(container);
@@ -247,7 +247,7 @@ export class DiscordMetadata extends Service {
 		if (!account || !steamId) return false;
 		const accountId = new SteamID(steamId).accountid;
 
-		const query1 = await this.sql.queryPool(`SELECT coins FROM coins WHERE accountid = $1;`, [
+		const query1 = await this.sql.queryPool("SELECT coins FROM coins WHERE accountid = $1;", [
 			accountId,
 		]);
 		const query2 = await this.sql.queryPool(

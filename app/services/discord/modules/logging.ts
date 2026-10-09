@@ -106,16 +106,16 @@ export default (bot: DiscordBot): void => {
 		const attachments =
 			msg.attachments.size > 0
 				? msg.attachments.map(a => {
-						return `[${a.name}](${a.url})`;
-					})
+					return `[${a.name}](${a.url})`;
+				})
 				: undefined;
 
 		const embeds =
 			msg.embeds.length > 0
 				? msg.embeds.map(e => {
-						const data = "```ansi\n" + format(e.data);
-						return trimfield(data, 1024, true);
-					})
+					const data = "```ansi\n" + format(e.data);
+					return trimfield(data, 1024, true);
+				})
 				: undefined;
 
 		const embed = new Discord.EmbedBuilder()
@@ -372,21 +372,21 @@ export default (bot: DiscordBot): void => {
 									: typeof change.old === "object" &&
 										  typeof change.new === "object"
 										? diffJson(
-												JSON.stringify(sanitizeEntity(change.old), null, 2),
-												JSON.stringify(sanitizeEntity(change.new), null, 2)
-											)
+											JSON.stringify(sanitizeEntity(change.old), null, 2),
+											JSON.stringify(sanitizeEntity(change.new), null, 2)
+										)
 										: diffWords(
-												change.old && hastoString(change.old)
-													? change.old.toString()
-													: (format(sanitizeEntity(change.old), {
-															colors: false,
-														}) ?? "undefined"),
-												change.new && hastoString(change.new)
-													? change.new.toString()
-													: (format(sanitizeEntity(change.new), {
-															colors: false,
-														}) ?? "undefined")
-											);
+											change.old && hastoString(change.old)
+												? change.old.toString()
+												: (format(sanitizeEntity(change.old), {
+													colors: false,
+												}) ?? "undefined"),
+											change.new && hastoString(change.new)
+												? change.new.toString()
+												: (format(sanitizeEntity(change.new), {
+													colors: false,
+												}) ?? "undefined")
+										);
 							for (const part of diffList) {
 								changef += part.added
 									? `\u001b[1;42m${part.value}\u001b[0m`

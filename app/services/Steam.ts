@@ -197,7 +197,7 @@ export class Steam extends Service {
 		return (
 			await axios
 				.post<GetPublishedFileDetailsResponse>(
-					`https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/`,
+					"https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/",
 					qs.stringify(query)
 				)
 				.catch(() => {

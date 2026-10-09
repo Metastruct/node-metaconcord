@@ -51,7 +51,7 @@ export function queryTopic(
 			socket.write(Buffer.concat([header, Buffer.alloc(5), body]));
 		});
 
-		socket.on("data", chunk => {
+		socket.on("data", (chunk: Buffer) => {
 			chunks.push(chunk);
 			const response = Buffer.concat(chunks);
 			if (response.length < 4) return;

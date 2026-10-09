@@ -42,7 +42,7 @@ export default class GameConnection extends EventEmitter {
 	discord: DiscordClient;
 	discordIcon: string | undefined = undefined;
 	discordBanner: string | undefined = undefined;
-	playerListImage: Buffer;
+	playerListImage!: Buffer;
 	status: {
 		backgroundImage?: string;
 		players: Player[];
@@ -50,7 +50,7 @@ export default class GameConnection extends EventEmitter {
 	} = { players: [] };
 	/** The one background image picked for this connection's lifetime. */
 	backgroundImage: string | undefined;
-	mapName: string;
+	mapName!: string;
 	private lastStatusSignature?: string;
 
 	constructor(config: { bridge: GameBridge; serverConfig: GameConnectionConfig }) {
@@ -59,8 +59,8 @@ export default class GameConnection extends EventEmitter {
 		this.bridge = config.bridge;
 		this.backgroundImage = Array.isArray(this.config.backgroundImage)
 			? this.config.backgroundImage[
-					Math.floor(Math.random() * this.config.backgroundImage.length)
-				]
+				Math.floor(Math.random() * this.config.backgroundImage.length)
+			]
 			: this.config.backgroundImage;
 		this.discord = new DiscordClient(this, {
 			intents: ["Guilds", "GuildMessages", "MessageContent"],
@@ -165,10 +165,10 @@ export default class GameConnection extends EventEmitter {
 				containers.length > 0
 					? containers
 					: [
-							new Discord.ContainerBuilder()
-								.setAccentColor(0x808080)
-								.addTextDisplayComponents(text => text.setContent("[NO DATA]")),
-						],
+						new Discord.ContainerBuilder()
+							.setAccentColor(0x808080)
+							.addTextDisplayComponents(text => text.setContent("[NO DATA]")),
+					],
 			files: containers.length > 0 ? files : [],
 			flags: Discord.MessageFlags.IsComponentsV2 as const,
 		};

@@ -23,7 +23,7 @@ const Ban = async (
 		await ctx.followUp("That server isn't a GMod server.");
 		return;
 	}
-	const plyName = nickname ?? `???`;
+	const plyName = nickname ?? "???";
 	const steamid = ctx.options.getString("steamid", true);
 	const length = Math.round(
 		Date.now() / 1000 + parseDuration(ctx.options.getString("length", true))

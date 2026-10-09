@@ -13,7 +13,7 @@ import crypto from "crypto";
  * needs (SQL, WebApp, a fake Accounts, OIDC) into a standalone Container, so
  * nothing touches Discord, IRC, gamebridge or GitHub. Run with:
  *
- *   yarn test:oidc
+ *   npm run test:oidc
  *
  * Which drives a real authorization-code flow over HTTP against the local
  * webapp, using a forged session cookie (the same AES-GCM one the site sets).

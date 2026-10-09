@@ -42,7 +42,7 @@ export class ServiceNotEnabledError extends Error {
 }
 
 export class Service {
-	readonly name: string;
+	readonly name!: string;
 	container: Container;
 
 	constructor(container: Container) {

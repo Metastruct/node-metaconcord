@@ -1,10 +1,10 @@
 export type ReportChatResponsePayload =
 	| { type: "message"; username: string; content: string; reporterSteamId64: string }
 	| {
-			type: "queued";
-			messages: Array<{ username: string; content: string }>;
-			reporterSteamId64: string;
-	  }
+		type: "queued";
+		messages: Array<{ username: string; content: string }>;
+		reporterSteamId64: string;
+	}
 	| { type: "resolve"; isResolved: true; resolvedBy?: string; reporterSteamId64: string }
 	| { type: "info"; content: string; reporterSteamId64: string };
 

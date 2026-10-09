@@ -83,8 +83,8 @@ async function formatForMinecraft(msg: Discord.Message | Discord.MessageSnapshot
 		const avatarhash = msg.author.avatar;
 		avatar = avatarhash
 			? `https://cdn.discordapp.com/avatars/${msg.author.id}/${avatarhash}${
-					avatarhash.startsWith("a_") ? ".gif" : ".png"
-				}`
+				avatarhash.startsWith("a_") ? ".gif" : ".png"
+			}`
 			: msg.author.defaultAvatarURL;
 	}
 
