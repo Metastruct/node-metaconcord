@@ -15,7 +15,6 @@
 		// some of these require rather big refactoring, so we agree to not see the issues, mkay?
 		// we still extend from @tsconfig/strictest
 		// to ensure that we need to document below how we're departing from good practices
-		// "strict": false,
 		"exactOptionalPropertyTypes": false,
 		"noPropertyAccessFromIndexSignature": false,
 		"noImplicitReturns": false,
