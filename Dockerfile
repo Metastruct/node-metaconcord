@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:26-alpine
 
 RUN apk add --no-cache bash font-noto ffmpeg python3 make g++
 

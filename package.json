@@ -5,7 +5,7 @@
 	"description": "metaluvit but typescript",
 	"exports": "./index.ts",
 	"engines": {
-		"node": ">=22.0.0"
+		"node": ">=26.0.0"
 	},
 	"repository": "git@github.com:metastruct/metaconcord",
 	"author": "marceau-maubert <marceau.maubert2@gmail.com>",
