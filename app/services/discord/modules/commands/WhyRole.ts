@@ -1,5 +1,4 @@
 import * as Discord from "discord.js";
-import { DiscordBot } from "@/app/services/index.js";
 import { EphemeralResponse, MenuCommand } from "@/extensions/discord.js";
 
 export const MenuWhyRoleCommand: MenuCommand = {

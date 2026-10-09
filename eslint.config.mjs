@@ -15,6 +15,7 @@ export default defineConfig([
 		extends: [js.configs.recommended, tseslint.configs.recommended],
 		rules: {
 			"no-empty": ["warn", { allowEmptyCatch: true }],
+			"@typescript-eslint/no-explicit-any": [ "warn" ],
 			"@typescript-eslint/no-unused-vars": [
 				"error",
 				{ argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
