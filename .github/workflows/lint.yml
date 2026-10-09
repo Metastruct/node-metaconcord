@@ -24,6 +24,6 @@ jobs:
             - name: Check generated schemas are up to date
               run: |
                   git diff --exit-code -- '**/handlers/structures/*.json' || {
-                    echo "::error::Generated JSON schemas are out of date - run 'yarn schema:gen' and commit the result."
+                    echo "::error::Generated JSON schemas are out of date - run 'npm run schema:gen' and commit the result."
                     exit 1
                   }

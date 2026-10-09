@@ -14,27 +14,28 @@ Of course, you'll need the [gmod-metaconcord](https://github.com/Metastruct/gmod
 
 ```bash
 # Install dependencies
-$ yarn
+$ npm ci
 
 # Generate the gamebridge payload schemas
-$ node schema_gen.mjs
+$ npm run schema:gen
 
 # Go wacky
-$ yarn build
-$ yarn start
+$ npm run build
+$ npm start
 ```
 
 ### Development
 
 ```bash
 # Install dependencies
-$ yarn
+$ npm install
 
 # Generate the gamebridge payload schemas
-$ node schema_gen.mjs
+$ npm run schema:gen
 
 # Go wacky
-$ yarn dev
+$ npm run build
+$ npm run dev
 ```
 
 ## Accounts and website auth (metastruct.net)
