@@ -44,9 +44,9 @@ export const SlashKickCommand: SlashCommand = {
 		}
 		const reason = ctx.options.getString("reason") ?? "byebye!!!";
 		const code =
-			`if not easylua then return false end ` +
+			"if not easylua then return false end " +
 			`local ply = easylua.FindEntity("${ctx.options.getString("name")}") ` +
-			`if not IsValid(ply) or not ply:IsPlayer() then return false end ` +
+			"if not IsValid(ply) or not ply:IsPlayer() then return false end " +
 			`ply:Kick([[${reason}]])`;
 		try {
 			const res = await server.sendLua(code, "sv", ctx.user.username ?? "???");

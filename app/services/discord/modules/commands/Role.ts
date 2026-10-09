@@ -405,7 +405,7 @@ export const SlashRoleCommand: SlashCommand = {
 		} catch (err) {
 			log.error(err);
 			await ctx.followUp(
-				EphemeralResponse(`Something went wrong adding your role :(\n` + err)
+				EphemeralResponse("Something went wrong adding your role :(\n" + err)
 			);
 		}
 	},

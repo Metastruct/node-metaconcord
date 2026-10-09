@@ -138,10 +138,10 @@ function buildStutterFilter(
 			}
 		}
 	} else if (method === "reverse") {
-		f.push(`[seg_v]reverse[rev_v]`);
+		f.push("[seg_v]reverse[rev_v]");
 		stutterV = "rev_v";
 		if (info.hasAudio) {
-			f.push(`[seg_a]areverse[rev_a]`);
+			f.push("[seg_a]areverse[rev_a]");
 			stutterA = "rev_a";
 		}
 		if (loopCount >= 0) {
@@ -153,17 +153,17 @@ function buildStutterFilter(
 			}
 		}
 	} else if (method === "ping-pong") {
-		f.push(`[seg_v]split[fw_v][bw_v]`);
-		if (info.hasAudio) f.push(`[seg_a]asplit[fw_a][bw_a]`);
-		f.push(`[bw_v]reverse[rev_v]`);
-		if (info.hasAudio) f.push(`[bw_a]areverse[rev_a]`);
+		f.push("[seg_v]split[fw_v][bw_v]");
+		if (info.hasAudio) f.push("[seg_a]asplit[fw_a][bw_a]");
+		f.push("[bw_v]reverse[rev_v]");
+		if (info.hasAudio) f.push("[bw_a]areverse[rev_a]");
 
 		if (info.hasAudio) {
-			f.push(`[fw_v][fw_a][rev_v][rev_a]concat=n=2:v=1:a=1[pp_v][pp_a]`);
+			f.push("[fw_v][fw_a][rev_v][rev_a]concat=n=2:v=1:a=1[pp_v][pp_a]");
 			stutterV = "pp_v";
 			stutterA = "pp_a";
 		} else {
-			f.push(`[fw_v][rev_v]concat=n=2:v=1:a=0[pp_v]`);
+			f.push("[fw_v][rev_v]concat=n=2:v=1:a=0[pp_v]");
 			stutterV = "pp_v";
 		}
 		const ppFrameCount = 2 * frameCount;
@@ -250,7 +250,7 @@ function buildFreezeFilter(
 					`[freeze_audio_raw]aloop=${freezeAudioLoops}:${freezeAudioSamples}:0[freeze_a]`
 				);
 			} else {
-				f.push(`[freeze_audio_raw]asetpts=PTS[freeze_a]`);
+				f.push("[freeze_audio_raw]asetpts=PTS[freeze_a]");
 			}
 		}
 	}
@@ -276,8 +276,8 @@ function buildFreezeFilter(
 
 	const n = segLabels.length / (info.hasAudio ? 2 : 1);
 	if (n === 1) {
-		f.push(`[freeze_v]setpts=PTS[outv]`);
-		if (info.hasAudio) f.push(`[freeze_a]asetpts=PTS[outa]`);
+		f.push("[freeze_v]setpts=PTS[outv]");
+		if (info.hasAudio) f.push("[freeze_a]asetpts=PTS[outa]");
 	} else {
 		f.push(
 			`${segLabels.map(l => `[${l}]`).join("")}concat=n=${n}:v=1:a=${info.hasAudio ? 1 : 0}[outv]${

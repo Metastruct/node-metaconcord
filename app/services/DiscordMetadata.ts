@@ -247,7 +247,7 @@ export class DiscordMetadata extends Service {
 		if (!account || !steamId) return false;
 		const accountId = new SteamID(steamId).accountid;
 
-		const query1 = await this.sql.queryPool(`SELECT coins FROM coins WHERE accountid = $1;`, [
+		const query1 = await this.sql.queryPool("SELECT coins FROM coins WHERE accountid = $1;", [
 			accountId,
 		]);
 		const query2 = await this.sql.queryPool(

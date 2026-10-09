@@ -63,11 +63,11 @@ export default (webApp: WebApp): void => {
 		});
 		const tokens = tokenRes?.ok
 			? ((await tokenRes.json()) as {
-					access_token?: string;
-					refresh_token?: string;
-					expires_in?: number;
-					error?: string;
-				})
+				access_token?: string;
+				refresh_token?: string;
+				expires_in?: number;
+				error?: string;
+			})
 			: undefined;
 		if (!tokens?.access_token) {
 			log.warn(tokens, "github token exchange returned no token");

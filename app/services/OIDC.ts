@@ -67,7 +67,7 @@ export class OIDC extends Service {
 							| "code token"
 							| "code id_token token"
 							| "none"
-					  )[]
+					)[]
 					| undefined,
 			})),
 			routes: {
@@ -148,10 +148,10 @@ export class OIDC extends Service {
 				const esc = (value: unknown) =>
 					String(value).replace(/[&<>"]/g, ch => `&#${ch.charCodeAt(0)};`);
 				ctx.body =
-					`<h1>SSO error</h1>` +
+					"<h1>SSO error</h1>" +
 					`<p><code>${esc(out.error)}${out.error_description ? `: ${esc(out.error_description)}` : ""}</code></p>` +
-					`<p>If this happened while logging in, the parameters the login site sent were rejected. ` +
-					`Plain visits to this URL without parameters is expected to fail like this.</p>`;
+					"<p>If this happened while logging in, the parameters the login site sent were rejected. " +
+					"Plain visits to this URL without parameters is expected to fail like this.</p>";
 			},
 			cookies: {
 				keys: [OIDCConfig.cookieKeys],
@@ -233,9 +233,9 @@ export class OIDC extends Service {
 					attempt === 0
 						? [clearCookie("_session"), clearCookie("_session.sig")]
 						: [
-								clearCookie("_session", cookieDomain),
-								clearCookie("_session.sig", cookieDomain),
-							]
+							clearCookie("_session", cookieDomain),
+							clearCookie("_session.sig", cookieDomain),
+						]
 				);
 				res.cookie("__mcscrub", String(attempt + 1), {
 					httpOnly: true,

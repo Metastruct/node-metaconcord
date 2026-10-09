@@ -110,24 +110,24 @@ export function normalizeEmbeds(embeds: readonly unknown[], content = ""): Disco
 				...(typeof embed.timestamp === "string" ? { timestamp: embed.timestamp } : {}),
 				...(author && typeof author.name === "string"
 					? {
-							author: {
-								name: author.name,
-								...(typeof author.url === "string" ? { url: author.url } : {}),
-								...(typeof author.icon_url === "string"
-									? { icon_url: author.icon_url }
-									: {}),
-							},
-						}
+						author: {
+							name: author.name,
+							...(typeof author.url === "string" ? { url: author.url } : {}),
+							...(typeof author.icon_url === "string"
+								? { icon_url: author.icon_url }
+								: {}),
+						},
+					}
 					: {}),
 				...(footer && typeof footer.text === "string"
 					? {
-							footer: {
-								text: footer.text,
-								...(typeof footer.icon_url === "string"
-									? { icon_url: footer.icon_url }
-									: {}),
-							},
-						}
+						footer: {
+							text: footer.text,
+							...(typeof footer.icon_url === "string"
+								? { icon_url: footer.icon_url }
+								: {}),
+						},
+					}
 					: {}),
 				...(image && typeof image.url === "string" ? { image: { url: image.url } } : {}),
 				...(thumbnail && typeof thumbnail.url === "string"
@@ -135,23 +135,23 @@ export function normalizeEmbeds(embeds: readonly unknown[], content = ""): Disco
 					: {}),
 				...(Array.isArray(embed.fields)
 					? {
-							fields: embed.fields.slice(0, 25).flatMap(field => {
-								const item = field as Record<string, unknown>;
-								return typeof item.name === "string" &&
+						fields: embed.fields.slice(0, 25).flatMap(field => {
+							const item = field as Record<string, unknown>;
+							return typeof item.name === "string" &&
 									typeof item.value === "string"
-									? [
-											{
-												name: item.name,
-												value:
+								? [
+									{
+										name: item.name,
+										value:
 													item.value.trim().length === 0
 														? "\u200b"
 														: item.value,
-												inline: item.inline === true,
-											},
-										]
-									: [];
-							}),
-						}
+										inline: item.inline === true,
+									},
+								]
+								: [];
+						}),
+					}
 					: {}),
 			};
 		});
@@ -283,12 +283,12 @@ export function fluxerSnapshotMentions(snapshot: FluxerMessageSnapshot): FluxerU
 	return (snapshot.mentions ?? []).map(mention =>
 		typeof mention === "string"
 			? {
-					id: mention,
-					username: mention,
-					discriminator: "0",
-					global_name: null,
-					avatar: null,
-				}
+				id: mention,
+				username: mention,
+				discriminator: "0",
+				global_name: null,
+				avatar: null,
+			}
 			: mention
 	);
 }
@@ -1011,12 +1011,12 @@ export class Fluxer extends Service {
 		const embeds = voiceMessage
 			? []
 			: normalizeEmbeds(
-					[
-						...message.embeds.map(embed => embed.toJSON()),
-						...componentEmbeds(components),
-					],
-					message.content
-				);
+				[
+					...message.embeds.map(embed => embed.toJSON()),
+					...componentEmbeds(components),
+				],
+				message.content
+			);
 		if (!voiceMessage && !payload.content && embeds.length === 0 && attachments.length === 0) {
 			payload.content =
 				componentFallbackText(components).slice(0, 4000) ||
@@ -1040,9 +1040,9 @@ export class Fluxer extends Service {
 					...(embeds.length > 0 ? { embeds } : {}),
 					...(voiceMessage
 						? {
-								flags: Discord.MessageFlags.IsVoiceMessage,
-								attachments: [attachments[0]],
-							}
+							flags: Discord.MessageFlags.IsVoiceMessage,
+							attachments: [attachments[0]],
+						}
 						: { attachments }),
 					...(voiceMessage || stickerIds.length === 0 ? {} : { sticker_ids: stickerIds }),
 					allowed_mentions: {
@@ -1053,12 +1053,12 @@ export class Fluxer extends Service {
 					},
 					...(reply
 						? {
-								message_reference: {
-									message_id: reply.fluxer_message_id,
-									channel_id: reply.fluxer_channel_id,
-									type: 0,
-								},
-							}
+							message_reference: {
+								message_id: reply.fluxer_message_id,
+								channel_id: reply.fluxer_channel_id,
+								type: 0,
+							},
+						}
 						: {}),
 				},
 				false,

@@ -362,8 +362,8 @@ async function fetchReadme(
 		if (github) {
 			const res = subpath
 				? await github.rest.repos
-						.getReadmeInDirectory({ owner, repo, dir: subpath, ref })
-						.catch(() => undefined)
+					.getReadmeInDirectory({ owner, repo, dir: subpath, ref })
+					.catch(() => undefined)
 				: await github.rest.repos.getReadme({ owner, repo, ref }).catch(() => undefined);
 			return res?.data.content
 				? Buffer.from(res.data.content, "base64").toString("utf8")
@@ -553,12 +553,12 @@ export async function resolveModrinth(hashes: string[]): Promise<Map<string, Mod
 		const projectIds = [...new Set(Object.values(versions).map(v => v.project_id))];
 		const projects = projectIds.length
 			? (
-					await axios.get<ModrinthProject[]>("https://api.modrinth.com/v2/projects", {
-						params: { ids: JSON.stringify(projectIds) },
-						headers: { "User-Agent": USER_AGENT },
-						timeout: 15000,
-					})
-				).data
+				await axios.get<ModrinthProject[]>("https://api.modrinth.com/v2/projects", {
+					params: { ids: JSON.stringify(projectIds) },
+					headers: { "User-Agent": USER_AGENT },
+					timeout: 15000,
+				})
+			).data
 			: [];
 		const byId = new Map(projects.map(p => [p.id, p]));
 
@@ -629,20 +629,20 @@ export async function resolveCurseforge(
 		const modIds = [...new Set(fpToMod.values())];
 		const mods = modIds.length
 			? (
-					await axios.post<{
-						data: {
-							id: number;
-							name: string;
-							summary: string;
-							logo: { thumbnailUrl: string } | null;
-							links: { websiteUrl: string };
-						}[];
-					}>(
-						"https://api.curseforge.com/v1/mods",
-						{ modIds },
-						{ headers, timeout: 15000 }
-					)
-				).data.data
+				await axios.post<{
+					data: {
+						id: number;
+						name: string;
+						summary: string;
+						logo: { thumbnailUrl: string } | null;
+						links: { websiteUrl: string };
+					}[];
+				}>(
+					"https://api.curseforge.com/v1/mods",
+					{ modIds },
+					{ headers, timeout: 15000 }
+				)
+			).data.data
 			: [];
 		const byId = new Map(mods.map(m => [m.id, m]));
 

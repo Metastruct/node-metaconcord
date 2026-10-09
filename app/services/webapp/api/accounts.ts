@@ -73,7 +73,7 @@ export default (webApp: WebApp): void => {
 			return;
 		}
 		if (typeof req.params.id !== "string") {
-			res.status(400).json({ error: `invalid id type` });
+			res.status(400).json({ error: "invalid id type" });
 			return;
 		}
 		const id = normalizeId(provider, req.params.id);

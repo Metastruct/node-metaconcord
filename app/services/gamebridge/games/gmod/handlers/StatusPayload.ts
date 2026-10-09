@@ -153,7 +153,7 @@ export default class StatusPayload extends Payload {
 
 				player.nick = player.nick.trim();
 			}
-			current_players.sort(function (a, b) {
+			current_players.sort(function(a, b) {
 				let i = 0;
 				if (!a.isAdmin && b.isAdmin) i = i + 2;
 				if (a.isAdmin && !b.isAdmin) i = i - 2;

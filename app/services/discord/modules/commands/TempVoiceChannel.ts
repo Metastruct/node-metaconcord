@@ -40,7 +40,7 @@ export const SlashVoiceCommand: SlashCommand = {
 
 		if (pending.includes(ctx.user.id)) {
 			await ctx.reply(
-				EphemeralResponse(`please wait 30 seconds before using this command again`)
+				EphemeralResponse("please wait 30 seconds before using this command again")
 			);
 			return;
 		}

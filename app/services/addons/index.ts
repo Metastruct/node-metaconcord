@@ -298,12 +298,12 @@ export class Addons extends Service {
 			const restricted = git.public
 				? undefined
 				: {
-						...(repoUrl ? { source: { repoUrl } } : {}),
-						...(description ? { description } : {}),
-						...(!ws?.thumbnail && git.meta?.thumbnail
-							? { thumbnail: git.meta.thumbnail }
-							: {}),
-					};
+					...(repoUrl ? { source: { repoUrl } } : {}),
+					...(description ? { description } : {}),
+					...(!ws?.thumbnail && git.meta?.thumbnail
+						? { thumbnail: git.meta.thumbnail }
+						: {}),
+				};
 			return {
 				name: ws?.name ?? publicMeta?.name ?? fallbackName,
 				// workshop entries often carry an empty description, which is not an answer
@@ -494,10 +494,10 @@ export class Addons extends Service {
 						named.platform === "modrinth"
 							? { kind: "modrinth", projectId: named.projectId, url: named.meta.url }
 							: {
-									kind: "curseforge",
-									projectId: named.projectId,
-									url: named.meta.url,
-								},
+								kind: "curseforge",
+								projectId: named.projectId,
+								url: named.meta.url,
+							},
 					private: false,
 				});
 				continue;

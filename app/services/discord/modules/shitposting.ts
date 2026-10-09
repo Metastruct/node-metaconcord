@@ -214,8 +214,8 @@ export default async (bot: DiscordBot) => {
 				forceReply: options.forceReply,
 				forceMessage: shouldSendSticker
 					? ({
-							stickers: [bot.getGuild()?.stickers.cache.random()],
-						} as Discord.MessageCreateOptions)
+						stickers: [bot.getGuild()?.stickers.cache.random()],
+					} as Discord.MessageCreateOptions)
 					: shouldSendEmoji
 						? getRandomEmoji().toString()
 						: undefined,
@@ -420,8 +420,8 @@ export default async (bot: DiscordBot) => {
 		const isAllowedChannel = bot.config.bot.allowedShitpostingChannels.includes(msg.channelId);
 		const isHidden = msg.guild
 			? !(msg.channel as Discord.GuildChannel)
-					.permissionsFor(msg.guild.roles.everyone)
-					.has("ViewChannel")
+				.permissionsFor(msg.guild.roles.everyone)
+				.has("ViewChannel")
 			: true;
 
 		// Motd Messages
@@ -463,10 +463,10 @@ export default async (bot: DiscordBot) => {
 					msg.stickers.size > 0
 						? { forceImage: true, ping: true }
 						: {
-								msg: msg,
-								originalMsg: reference,
-								ping: true,
-							}
+							msg: msg,
+							originalMsg: reference,
+							ping: true,
+						}
 				);
 				data.lastMsgTime = lastMsgTime = Date.now();
 			} else {

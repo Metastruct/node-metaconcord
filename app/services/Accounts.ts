@@ -586,8 +586,8 @@ export class Accounts extends Service {
 		if (github) {
 			const teams = members
 				? [...members.entries()]
-						.filter(([, logins]) => logins.has(github.name.toLowerCase()))
-						.map(([team]) => team)
+					.filter(([, logins]) => logins.has(github.name.toLowerCase()))
+					.map(([team]) => team)
 				: await this.githubTeams(github, account);
 			for (const team of teams) {
 				const role = TEAM_ROLES[team];
@@ -670,10 +670,10 @@ export class Accounts extends Service {
 		});
 		const body = res?.ok
 			? ((await res.json()) as {
-					access_token?: string;
-					refresh_token?: string;
-					expires_in?: number;
-				})
+				access_token?: string;
+				refresh_token?: string;
+				expires_in?: number;
+			})
 			: undefined;
 		if (!body?.access_token) return;
 

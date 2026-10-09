@@ -740,8 +740,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const where =
 			override !== undefined
 				? bridge.servers.gmod.filter(s =>
-						override.split(",").includes(s.config.id.toString())
-					)
+					override.split(",").includes(s.config.id.toString())
+				)
 				: bridge.servers.gmod.filter(s => !!s);
 
 		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(x =>
@@ -782,12 +782,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 								where.length === bridge.servers.gmod.length - 1 // 0 = empty
 									? "all servers"
 									: where
-											.map(s =>
-												s.discord.ready
-													? `<@${s.discord.user?.id}>`
-													: `#${s.config.id}`
-											)
-											.join()
+										.map(s =>
+											s.discord.ready
+												? `<@${s.discord.user?.id}>`
+												: `#${s.config.id}`
+										)
+										.join()
 							}!`
 						);
 					})
@@ -921,12 +921,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 								where.length === bridge.servers.gmod.length - 1 // 0 = empty
 									? "all servers"
 									: where
-											.map(s =>
-												s.discord.ready
-													? `<@${s.discord.user?.id}>`
-													: `#${s.config.id}`
-											)
-											.join()
+										.map(s =>
+											s.discord.ready
+												? `<@${s.discord.user?.id}>`
+												: `#${s.config.id}`
+										)
+										.join()
 							} and refreshed files!`
 						);
 					})
@@ -1042,11 +1042,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 					isMergeCommit(commit.message) || isOnlyOgg || !repo.owner || !github
 						? undefined
 						: await getGitHubCommitDiff(
-								github.octokit,
-								repo.owner.login,
-								repo.name,
-								commit.id
-							);
+							github.octokit,
+							repo.owner.login,
+							repo.name,
+							commit.id
+						);
 
 				const repoLine = `[${repoLabel}](${repoUrl})`;
 				const heading = `### [${title}](${commit.url})${body}`;
@@ -1078,8 +1078,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const forcePushText = payload.forced
 			? new Discord.TextDisplayBuilder().setContent(
-					"<a:ALERTA:843518761160015933> Force Pushed <a:ALERTA:843518761160015933>"
-				)
+				"<a:ALERTA:843518761160015933> Force Pushed <a:ALERTA:843518761160015933>"
+			)
 			: undefined;
 
 		const actionRow = <Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow>>{
@@ -1099,7 +1099,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						: "everything",
 					label: serverOverride
 						? `Update and Refresh Files on ${serverOverride.map(s => `#${s}`).join()}`
-						: `Update and Refresh Files on all Servers`,
+						: "Update and Refresh Files on all Servers",
 					style: 1,
 				},
 			],
@@ -1536,8 +1536,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 				description = `[${payload.invitation.inviter?.login}](${payload.invitation.inviter?.html_url}) invited [${payload.user?.login}](${payload.user?.html_url}) as \`${payload.invitation.role}\``;
 				thumbnail = payload.user?.avatar_url
 					? {
-							url: payload.user.avatar_url,
-						}
+						url: payload.user.avatar_url,
+					}
 					: undefined;
 				timestamp = payload.invitation.created_at;
 				break;
@@ -1546,8 +1546,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 				description = `[${payload.membership.user?.login}](${payload.membership.user?.html_url}) joined ${payload.organization.login} as \`${payload.membership.role}\``;
 				thumbnail = payload.membership.user?.avatar_url
 					? {
-							url: payload.membership.user.avatar_url,
-						}
+						url: payload.membership.user.avatar_url,
+					}
 					: undefined;
 				break;
 			case "member_removed":
@@ -1555,8 +1555,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 				description = `[${payload.membership.user?.login}](${payload.membership.user?.html_url}) left ${payload.organization.login}`;
 				thumbnail = payload.membership.user?.avatar_url
 					? {
-							url: payload.membership.user.avatar_url,
-						}
+						url: payload.membership.user.avatar_url,
+					}
 					: undefined;
 				break;
 			case "renamed":
@@ -1773,8 +1773,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const actionRow:
 			Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow> | undefined =
-			includesLua
-				? {
+				includesLua
+					? {
 						type: Discord.ComponentType.ActionRow,
 						components: [
 							{
@@ -1791,7 +1791,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 							},
 						],
 					}
-				: undefined;
+					: undefined;
 
 		if (containers.length > 1) {
 			for (let i = 0; i < containers.length; i++) {
@@ -1862,12 +1862,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 				: undefined;
 		const links = diffFiles
 			? linkByPath(
-					GetGitlabDiffChanges(
-						mr.target.path_with_namespace,
-						mr.last_commit.id,
-						diffFiles
-					)
+				GetGitlabDiffChanges(
+					mr.target.path_with_namespace,
+					mr.last_commit.id,
+					diffFiles
 				)
+			)
 			: undefined;
 		const diff = diffFiles?.length ? formatDiffText(joinGitlabDiffFiles(diffFiles)) : undefined;
 		const mrBody = formatPrBody(mr.description);
