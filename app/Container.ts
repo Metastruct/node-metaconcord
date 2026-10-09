@@ -130,7 +130,7 @@ export class Container {
 
 	/** Express middleware: 503 unless every named service is enabled. */
 	requireServices(...names: string[]) {
-		return (req: Request, res: Response, next: NextFunction): void => {
+		return (_req: Request, res: Response, next: NextFunction): void => {
 			const missing = names.filter(name => !this.has(name));
 			if (missing.length) {
 				res.status(503).json({

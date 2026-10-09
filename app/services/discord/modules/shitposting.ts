@@ -344,7 +344,7 @@ export default async (bot: DiscordBot) => {
 	});
 
 	bot.discord.on("messageReactionAdd", async (reaction, user) => {
-		let message: Discord.Message<boolean>;
+		let message: Discord.MessageReaction["message"];
 		try {
 			message = reaction.message.partial ? await reaction.message.fetch() : reaction.message;
 		} catch {

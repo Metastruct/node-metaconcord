@@ -668,7 +668,7 @@ export class Accounts extends Service {
 		}).catch(err => {
 			log.error(err, "github token refresh failed");
 		});
-		const body = res?.ok
+		const body = res && res.ok
 			? ((await res.json()) as {
 				access_token?: string;
 				refresh_token?: string;

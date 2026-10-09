@@ -30,11 +30,8 @@ export default (bot: DiscordBot): void => {
 		// not sure if this actually works
 		if (oldGuild.premiumTier !== newGuild.premiumTier) setProgressBar();
 	});
-	bot.discord.on("guildMemberUpdate", async (oldMember, updatedMember) => {
-		if (
-			updatedMember.premiumSinceTimestamp &&
-			Date.now() - updatedMember.premiumSinceTimestamp < 1000 * 60
-		)
+	bot.discord.on("guildMemberUpdate", async (_oldMember, updatedMember) => {
+		if (updatedMember.premiumSinceTimestamp && Date.now() - updatedMember.premiumSinceTimestamp < 1000 * 60)
 			setProgressBar();
 	});
 };

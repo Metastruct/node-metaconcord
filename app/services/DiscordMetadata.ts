@@ -223,7 +223,7 @@ export class DiscordMetadata extends Service {
 		}).catch(err => {
 			log.error(err, "network error fetching metadata");
 		});
-		if (!res?.ok) {
+		if (!res || !res.ok) {
 			delete this.ARCOCache[userId];
 			return;
 		}

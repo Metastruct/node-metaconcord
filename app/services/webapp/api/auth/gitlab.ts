@@ -62,7 +62,7 @@ export default (webApp: WebApp): void => {
 		}).catch(err => {
 			log.error(err, "gitlab token exchange failed");
 		});
-		const tokens = tokenRes?.ok
+		const tokens = tokenRes && tokenRes.ok
 			? ((await tokenRes.json()) as { access_token?: string })
 			: undefined;
 		if (!tokens?.access_token) {
@@ -76,7 +76,8 @@ export default (webApp: WebApp): void => {
 		}).catch(err => {
 			log.error(err, "failed fetching gitlab user");
 		});
-		const user = userRes?.ok
+
+		const user = userRes && userRes.ok
 			? ((await userRes.json()) as { id: number; username: string; avatar_url?: string })
 			: undefined;
 		if (!user) {

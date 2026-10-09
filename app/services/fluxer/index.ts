@@ -846,7 +846,7 @@ export class Fluxer extends Service {
 
 	// A message in a native Discord thread whose Fluxer counterpart does not exist yet.
 	private async resolveDiscordThreadRoute(
-		message: Discord.Message
+		message: Discord.Message | Discord.PartialMessage
 	): Promise<ThreadResolution | undefined> {
 		const threadChannel = message.channel;
 		if (!threadChannel.isThread()) return undefined;
@@ -1081,7 +1081,7 @@ export class Fluxer extends Service {
 		await this.saveMessageMapping(message.id, sent.id, route, "discord");
 	}
 
-	private async relayDiscordForward(message: Discord.Message, route: ChannelRoute) {
+	private async relayDiscordForward(message: Discord.Message | Discord.PartialMessage, route: ChannelRoute) {
 		const snapshot = message.messageSnapshots.first();
 		const sourceMapping = message.reference?.messageId
 			? await this.mappingByDiscordMessage(message.reference.messageId)
@@ -1665,7 +1665,7 @@ export class Fluxer extends Service {
 		}
 	}
 
-	private async translateDiscordMessage(message: Discord.Message): Promise<MentionPayload> {
+	private async translateDiscordMessage(message: Discord.Message | Discord.PartialMessage): Promise<MentionPayload> {
 		const users = new Set<string>();
 		const roles = new Set<string>();
 		const emojiFallbackById = new Map<string, UnmappedEmoji>();

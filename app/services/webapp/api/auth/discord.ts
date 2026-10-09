@@ -78,7 +78,7 @@ export const getOAuthTokens = async (code: string) => {
 	}).catch(err => {
 		log.error(err, "failed fetching tokens");
 	});
-	if (res?.ok) return res.json() as Promise<AccessTokenResponse>;
+	if (res && res.ok) return res.json() as Promise<AccessTokenResponse>;
 };
 
 export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
@@ -119,7 +119,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		}).catch(err => {
 			log.error(err, "failed fetching authorization data");
 		});
-		if (res?.ok) return res.json() as Promise<CurrentAuthorizationInformation>;
+		if (res && res.ok) return res.json() as Promise<CurrentAuthorizationInformation>;
 	};
 
 	// the Linked Roles button on Discord points here, so does the site's login page
@@ -270,7 +270,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				}).catch(err => {
 					log.error(err, "failed fetching discord user");
 				});
-				return res?.ok ? ((await res.json()) as Discord.APIUser) : data.user;
+				return res && res?.ok ? ((await res.json()) as Discord.APIUser) : data.user;
 			})();
 			let account;
 			try {

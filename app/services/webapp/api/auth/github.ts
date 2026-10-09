@@ -61,7 +61,7 @@ export default (webApp: WebApp): void => {
 		}).catch(err => {
 			log.error(err, "github token exchange failed");
 		});
-		const tokens = tokenRes?.ok
+		const tokens = tokenRes && tokenRes.ok
 			? ((await tokenRes.json()) as {
 				access_token?: string;
 				refresh_token?: string;

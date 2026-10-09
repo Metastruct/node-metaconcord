@@ -189,7 +189,7 @@ export async function renderPlayerListImage(
 	// entry across the whole list - otherwise one long name in one column
 	// stretches out the other column's gap too.
 	const colWidths = new Array(cols).fill(0);
-	players.forEach((p, i) => {
+	players.forEach((_p, i) => {
 		const col = i % cols;
 		colWidths[col] = Math.max(colWidths[col], requiredWidths[i]);
 	});

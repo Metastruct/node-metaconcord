@@ -17,7 +17,7 @@ export type GmodConnectionConfig = GameConnectionConfig & {
 };
 
 export default class GmodConnection extends GameSocketConnection {
-	config: GmodConnectionConfig;
+	declare config: GmodConnectionConfig;
 	defcon!: number;
 	gamemode!: {
 		folderName: string;

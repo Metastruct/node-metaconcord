@@ -9,7 +9,7 @@ import JoinLeaveRequest from "./JoinLeaveRequest.js";
 import PayloadRequest from "./PayloadRequest.js";
 import StatsRequest from "./StatsRequest.js";
 import StatusRequest from "./StatusRequest.js";
-export {
+export type {
 	AddonsRequest,
 	AdvancementRequest,
 	ChatRequest,

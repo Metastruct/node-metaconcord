@@ -20,7 +20,7 @@ import StatsRequest from "./StatsRequest.js";
 import StatusRequest from "./StatusRequest.js";
 import UnbanRequest from "./UnbanRequest.js";
 import VoteKickRequest from "./VoteKickRequest.js";
-export {
+export type {
 	AddonsRequest,
 	AdminNotifyRequest,
 	BanAppealRequest,

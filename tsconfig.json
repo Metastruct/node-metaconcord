@@ -1,24 +1,27 @@
 {
+	"extends": [
+		"@tsconfig/node26/tsconfig.json",
+		"@tsconfig/strictest/tsconfig.json"
+	],
 	"compilerOptions": {
 		"paths": {
 			"@/*": ["./*"]
 		},
-		"target": "es2022",
-		"lib": ["es2022", "dom"],
-		"module": "NodeNext",
-		"esModuleInterop": true,
-		"resolveJsonModule": true,
-		"allowSyntheticDefaultImports": true,
-		"moduleResolution": "node16",
+
 		"outDir": "./dist",
-		"strictNullChecks": true,
-		"skipLibCheck": true, // discord.js moment
-		"noImplicitAny": false
-	},
-	"ts-node": {
-		"transpileOnly": true,
-		"files": true,
-		"experimentalResolver": true,
-		"esm": true
+
+		"lib": ["es2025", "ESNext.Collection", "ESNext.Temporal", "DOM"],
+
+		// some of these require rather big refactoring, so we agree to not see the issues, mkay?
+		// we still extend from @tsconfig/strictest
+		// to ensure that we need to document below how we're departing from good practices
+		// "strict": false,
+		"exactOptionalPropertyTypes": false,
+		"noPropertyAccessFromIndexSignature": false,
+		"noImplicitReturns": false,
+		"noImplicitOverride": false,
+		"strictNullChecks": false,
+		"noImplicitAny": false,
+		"noUnusedLocals": false
 	}
 }
