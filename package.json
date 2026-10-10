@@ -22,6 +22,7 @@
 		"check": "run-s check:*",
 		"clean": "rimraf ./dist",
 		"compile": "tsc",
+		"dev:setup-git-hooks": "git config core.hooksPath .githooks",
 		"dev:web": "cross-env METACONCORD_SERVICES=infra,web NODE_ENV=development DEBUG=express:*,router,router:* node dist",
 		"dev": "cross-env NODE_ENV=development DEBUG=express:*,router,router:* node dist",
 		"fluxer:mirror-expressions": "node scripts/fluxer-mirror-expressions.mjs",
