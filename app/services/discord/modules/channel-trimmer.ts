@@ -19,7 +19,7 @@ type MessageFetchResult = Awaited<ReturnType<TextChannel["messages"]["fetch"]>>;
 const Instant = (timestamp: Timestamp) => timestamp instanceof Date ? timestamp.toTemporalInstant() : timestamp;
 
 const now = () => Temporal.Now.instant();
-const durationSince = (time: Timestamp) => now().since(Instant(time));
+const durationSince = (time: Timestamp) => now().since(Instant(time)).round({ largestUnit: "year", relativeTo: Temporal.Now.plainDateISO() });
 const olderThan = (instant: Timestamp, duration: Temporal.Duration) =>
 	Temporal.Duration.compare(durationSince(instant), duration, { relativeTo: Temporal.Now.plainDateISO() }) > 0;
 
@@ -99,10 +99,18 @@ export default (bot: DiscordBot): void => {
 				state.replaceAllMessages(list);
 				reply.edit("fetching... OK!");
 			};
+		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim simulate") {
+			for (const [channel, state] of channelStates) {
+				const message = state.popOldMessage();
+				channel.send(message ? `(task:delete:simulate) ${message.id}` : "(task:null)");
+			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim step") {
 			for (const [channel, state] of channelStates) {
 				const message = state.popOldMessage();
-				channel.send(message ? `(task:delete) ${message.id}` : "(task:null)");
+				const reply = await channel.send(message ? `(task:delete) ${message.id}` : "(task:null)");
+				await message.delete()
+					.then(() => reply.edit(reply.content + " ... OK!"))
+					.catch(err => reply.edit(reply.content + ` ... FAIL: ${err}`));
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim peek") {
 			for (const [channel, state] of channelStates) {
