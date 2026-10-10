@@ -18,7 +18,7 @@ jobs:
                   node-version: 26
                   cache: npm
             - run: npm ci
-            - run: npm run check
+            - run: npm run lint
             - run: npm run test:fluxer
             - run: npm run schema:gen
             - name: Check generated schemas are up to date
