@@ -37,10 +37,12 @@ const messageDateComparator = (a: Message, b: Message) => a.createdAt.getTime() 
 class ChannelTrimmingState {
 	#maxAge: Temporal.Duration;
 	#cache: MinHeap<Message>;
+	#fetchTimestamp: string;
 
 	constructor(duration: Temporal.Duration) {
 		this.#maxAge = duration;
 		this.#cache = new MinHeap<Message>(messageDateComparator);
+		this.#fetchTimestamp = "0";
 	}
 	
 	public get maxAge() {
@@ -50,11 +52,17 @@ class ChannelTrimmingState {
 	public get size() {
 		return this.#cache.size;
 	}
+
+	public get fetchTimestamp() {
+		return this.#fetchTimestamp;
+	}
 	
 	public popOldMessage() {
 		const top = this.#cache.peek();
-		if (top && olderThan(top.createdAt, this.#maxAge))
+		if (top && olderThan(top.createdAt, this.#maxAge)) {
+			this.#fetchTimestamp = top.id;
 			return this.#cache.pop();
+		}
 	}
 
 	public peekMessage() {
@@ -71,7 +79,7 @@ class ChannelTrimmingState {
 	}
 
 	public toString() {
-		return `<ChannelTrimmingState size=${this.#cache.size}>`;
+		return `<ChannelTrimmingState size=${this.#cache.size} maxAge=${durationFormatter.format(this.#maxAge)} timestamp=${this.#fetchTimestamp}>`;
 	}
 }
 
@@ -86,7 +94,7 @@ class ChannelTrimmer {
 
 	public async fetch() {
 		log.debug(`Fetching 100 messages in ${this}`);
-		const list = await this.#channel.messages.fetch({ cache: false, limit: 100, after: "0" });
+		const list = await this.#channel.messages.fetch({ cache: false, limit: 100, after: this.#state.fetchTimestamp });
 		this.#state.replaceAllMessages(list);
 		return true;
 	}
@@ -143,7 +151,7 @@ export default (bot: DiscordBot): void => {
 				if (channel)
 					trimmers.set(channel, new ChannelTrimmer(channel, duration));
 			});
-		setTimeout(enableTimer, DELAY);
+		//setTimeout(enableTimer, DELAY);
 	});
 
 	/**
