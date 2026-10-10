@@ -1,6 +1,12 @@
 import { TextChannel, Message } from "discord.js";
 import { DiscordBot } from "../index.js";
 import { MinHeap } from "mnemonist";
+import { logger } from "#/utils.js";
+
+const log = logger(import.meta);
+
+const INTERVAL = 1e3; // once per second
+const DELAY = 30e3;   // wait 30s before starting
 
 // Hack: Node typings don't include this yet, but Node actually supports it.
 declare global {
@@ -40,6 +46,10 @@ class ChannelTrimmingState {
 	public get maxAge() {
 		return this.#maxAge;
 	}
+
+	public get size() {
+		return this.#cache.size;
+	}
 	
 	public popOldMessage() {
 		const top = this.#cache.peek();
@@ -75,9 +85,22 @@ class ChannelTrimmer {
 	}
 
 	public async fetch() {
+		log.debug(`Fetching 100 messages in ${this}`);
 		const list = await this.#channel.messages.fetch({ cache: false, limit: 100, after: "0" });
 		this.#state.replaceAllMessages(list);
 		return true;
+	}
+
+	public async fetchIfEmpty() {
+		if (this.#state.size === 0)
+			await this.fetch();
+	}
+
+	public async trim() {
+		await this.fetchIfEmpty();
+		const candidate = this.#state.popOldMessage();
+		if (candidate)
+			return candidate.delete();
 	}
 
 	public get state() {
@@ -101,6 +124,18 @@ export default (bot: DiscordBot): void => {
 	const trimmers = new Map<TextChannel, ChannelTrimmer>();
 	let timer: NodeJS.Timeout;
 
+	function enableTimer() {
+		disableTimer();
+		timer = setInterval(() => trimmers.forEach(trimmer => trimmer.trim()), INTERVAL);
+	}
+
+	function disableTimer() {
+		if (timer) {
+			clearInterval(timer);
+			timer = undefined;
+		}
+	}
+
 	bot.discord.once("clientReady", () => {
 		Object.entries(bot.config["trim-channels"])
 			.map(([channelId, durationString]) => [bot.getTextChannel(channelId), Temporal.Duration.from(durationString)] as const)
@@ -108,6 +143,7 @@ export default (bot: DiscordBot): void => {
 				if (channel)
 					trimmers.set(channel, new ChannelTrimmer(channel, duration));
 			});
+		setTimeout(enableTimer, DELAY);
 	});
 
 	/**
@@ -128,26 +164,26 @@ export default (bot: DiscordBot): void => {
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim step") {
 			for (const [channel, trimmer] of trimmers) {
-				const message = trimmer.state.popOldMessage();
-				const reply = await channel.send(message ? `(task:delete) ${message.id}` : "(task:null)");
-				await message.delete()
+				const message = trimmer.state.peekMessage();
+				const reply = await channel.send(message ? `(task:step) ${message.id} ${message.url}` : "(task:null)");
+				await trimmer.trim()
 					.then(() => reply.edit(reply.content + " ... OK!"))
 					.catch(err => reply.edit(reply.content + ` ... FAIL: ${err}`));
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim peek") {
 			for (const [channel, trimmer] of trimmers) {
 				const message = trimmer.state.peekMessage();
-				channel.send(message ? `(task:peek) \`\`\`\n${message.content}\n\`\`\`\nAge: ${durationFormatter.format(durationSince(message.createdAt))} ${olderThan(message.createdAt, trimmer.maxAge) ? "🗑️" : "📜"}` : "(task:null)");
+				channel.send(message ? `(task:peek) \`\`\`\n${message.content}\n\`\`\`\nURL: ${message.url}\nAge: ${durationFormatter.format(durationSince(message.createdAt))} ${olderThan(message.createdAt, trimmer.maxAge) ? "🗑️" : "📜"}` : "(task:null)");
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim") {
 			for (const [channel, trimmer] of trimmers) {
-				channel.send(`(task:info) ${trimmer}`);
+				channel.send(`(task:info) ${trimmer} TIMER=${timer}`);
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim timer=on") {
-			timer = setInterval(() => trimmers.forEach(trimmer => trimmer.channel.send(`(timer:tick) trimmer: ${trimmer}`)), 60e3);
+			enableTimer();
 			await msg.channel.send("started");
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim timer=off") {
-			clearInterval(timer);
+			disableTimer();
 			await msg.channel.send("stopped");
 		}
 	});
