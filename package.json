@@ -19,7 +19,7 @@
 		"build": "run-s clean build:* compile",
 		"check:eslint": "eslint",
 		"check:typescript": "tsc --noEmit",
-		"check": "run-s check:*",
+		"check": "run-s check:typescript check:eslint",
 		"clean": "rimraf ./dist",
 		"compile": "tsc",
 		"dev:setup-git-hooks": "git config core.hooksPath .githooks",
