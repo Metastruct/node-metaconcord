@@ -93,20 +93,21 @@ export default (bot: DiscordBot): void => {
 	bot.discord.on("messageCreate", async msg => {
 		msg = await bot.fetchPartial(msg);
 		if (msg.channelId === bot.config.channels.log && msg.content === "!trim fetch") {
-			await msg.channel.send("fetching...");
+			const reply = await msg.channel.send("fetching...");
 			for (const [channel, state] of channelStates) {
-				const list = await channel.messages.fetch({ cache: false, limit: 100 });
+				const list = await channel.messages.fetch({ cache: false, limit: 100, after: "0" });
 				state.replaceAllMessages(list);
+				reply.edit("fetching... OK!");
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim step") {
 			for (const [channel, state] of channelStates) {
 				const message = state.popOldMessage();
-				channel.send(message ? `(task:delete) ${message}` : "(task:null)");
+				channel.send(message ? `(task:delete) ${message.id}` : "(task:null)");
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim peek") {
 			for (const [channel, state] of channelStates) {
 				const message = state.peekMessage();
-				channel.send(message ? `(task:peek) \`\`\`\n${message}\n\`\`\`\nAge: ${durationFormatter.format(durationSince(message.createdAt))} ${olderThan(message.createdAt, state.maxAge) ? "🗑️" : "📜"}` : "(task:null)");
+				channel.send(message ? `(task:peek) \`\`\`\n${message.content}\n\`\`\`\nAge: ${durationFormatter.format(durationSince(message.createdAt))} ${olderThan(message.createdAt, state.maxAge) ? "🗑️" : "📜"}` : "(task:null)");
 			};
 		}
 	});
