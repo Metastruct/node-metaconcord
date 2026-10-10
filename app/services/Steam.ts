@@ -1,7 +1,7 @@
 import { Container, Service } from "../Container.js";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 import SteamID from "steamid";
-import apikeys from "@/config/apikeys.json" with { type: "json" };
+import apikeys from "#/config/apikeys.json" with { type: "json" };
 import axios from "axios";
 import qs from "qs";
 

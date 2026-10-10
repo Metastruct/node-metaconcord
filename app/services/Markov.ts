@@ -1,5 +1,5 @@
 // thank u mr swadical https://github.com/SwadicalRag/node-markov-lite
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 import { Container, Service } from "../Container.js";
 import { Database } from "sqlite";
 

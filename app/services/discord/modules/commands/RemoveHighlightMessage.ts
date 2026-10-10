@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
-import { EphemeralResponse, MenuCommand } from "@/extensions/discord.js";
-import discordConfig from "@/config/discord.json" with { type: "json" };
-import { logger } from "@/utils.js";
+import { EphemeralResponse, MenuCommand } from "#/extensions/discord.js";
+import discordConfig from "#/config/discord.json" with { type: "json" };
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

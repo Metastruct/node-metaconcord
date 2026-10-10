@@ -4,7 +4,7 @@ import MinecraftConnection, { MinecraftStatus } from "../MinecraftConnection.js"
 import Payload from "./Payload.js";
 import { renderPlayerListImage } from "../../../renderPlayerList.js";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
-import { actorLabel, parseBanActor } from "@/app/services/gamebridge/games/gmod/banActor.js";
-import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
+import { actorLabel, parseBanActor } from "#/app/services/gamebridge/games/gmod/banActor.js";
+import { EphemeralResponse, SlashCommand } from "#/extensions/discord.js";
 import SteamID from "steamid";
 
 export const SlashWhyBanCommand: SlashCommand = {

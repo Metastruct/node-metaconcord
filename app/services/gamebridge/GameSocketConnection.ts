@@ -5,7 +5,7 @@ import {
 } from "websocket";
 import GameBridge from "./GameBridge.js";
 import GameConnection, { GameConnectionConfig } from "./GameConnection.js";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

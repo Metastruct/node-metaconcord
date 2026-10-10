@@ -1,11 +1,11 @@
 import * as Discord from "discord.js";
 import { randomBytes } from "node:crypto";
-import { Container, Service } from "@/app/Container.js";
-import type { DiscordBot } from "@/app/services/discord/index.js";
-import type { SQL } from "@/app/services/SQL.js";
-import config from "@/config/fluxer.json" with { type: "json" };
+import { Container, Service } from "#/app/Container.js";
+import type { DiscordBot } from "#/app/services/discord/index.js";
+import type { SQL } from "#/app/services/SQL.js";
+import config from "#/config/fluxer.json" with { type: "json" };
 import mappingSeed from "./mappings.json" with { type: "json" };
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 import { FluxerGateway } from "./Gateway.js";
 import {
 	BridgeFile,

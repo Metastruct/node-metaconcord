@@ -1,5 +1,5 @@
 // import { DiscordBot } from "../index.js";
-// import config from "@/config/motd.json";
+// import config from "#/config/motd.json";
 
 // export default (bot: DiscordBot): void => {
 // bot.discord.on("messageReactionAdd", async reaction => {

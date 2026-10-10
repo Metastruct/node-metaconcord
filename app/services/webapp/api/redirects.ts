@@ -1,4 +1,4 @@
-import { WebApp } from "@/app/services/webapp/index.js";
+import { WebApp } from "#/app/services/webapp/index.js";
 import { resolveIp } from "./servers.js";
 
 /** Short links that used to live on the metastruct.net express server. */

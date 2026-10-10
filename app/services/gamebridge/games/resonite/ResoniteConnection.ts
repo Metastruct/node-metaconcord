@@ -1,4 +1,4 @@
-import { ResoniteSession } from "@/app/services/Resonite.js";
+import { ResoniteSession } from "#/app/services/Resonite.js";
 import GameConnection, { Player } from "../../GameConnection.js";
 
 export type ResoniteSessionState = {

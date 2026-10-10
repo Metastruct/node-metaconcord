@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
-import { logger } from "@/utils.js";
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
+import { logger } from "#/utils.js";
+import GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import requestSchema from "./structures/ReportChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ReportChatResponse.json" with { type: "json" };
-import { Data } from "@/app/services/Data.js";
+import { Data } from "#/app/services/Data.js";
 import { QueuedReportChatResponse } from "./structures/ReportChatResponse.js";
 
 type ReportChatRequest = import("./structures/ReportChatRequest.js").default;

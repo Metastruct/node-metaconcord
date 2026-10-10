@@ -1,5 +1,5 @@
-import { Container, Service } from "@/app/Container.js";
-import { WebApp } from "@/app/services/webapp/index.js";
+import { Container, Service } from "#/app/Container.js";
+import { WebApp } from "#/app/services/webapp/index.js";
 import { attachGmod } from "./games/gmod/index.js";
 import GmodConnection from "./games/gmod/GmodConnection.js";
 import { attachMinecraft } from "./games/minecraft/index.js";

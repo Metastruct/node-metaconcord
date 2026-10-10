@@ -1,4 +1,4 @@
-import { WebApp } from "@/app/services/webapp/index.js";
+import { WebApp } from "#/app/services/webapp/index.js";
 
 export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/discord/guild/emojis", async (_, res) => {

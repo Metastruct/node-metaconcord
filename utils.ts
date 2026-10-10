@@ -1,5 +1,5 @@
-import apikeys from "@/config/apikeys.json" with { type: "json" };
-import webappconfig from "@/config/webapp.json" with { type: "json" };
+import apikeys from "#/config/apikeys.json" with { type: "json" };
+import webappconfig from "#/config/webapp.json" with { type: "json" };
 import { createCanvas, loadImage } from "@napi-rs/canvas";
 import axios from "axios";
 import { PathLike, promises as fs } from "fs";

@@ -1,4 +1,4 @@
-import { Container, Service } from "@/app/Container.js";
+import { Container, Service } from "#/app/Container.js";
 import {
 	Addon,
 	AddonGame,
@@ -24,7 +24,7 @@ import {
 import { TTLCache } from "./cache.js";
 import GmodConnection from "../gamebridge/games/gmod/GmodConnection.js";
 import MinecraftConnection from "../gamebridge/games/minecraft/MinecraftConnection.js";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 export * from "./types.js";
 

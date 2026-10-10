@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { DiscordBot } from "../app/services/discord/index.js";
-import DiscordConfig from "@/config/discord.json" with { type: "json" };
+import DiscordConfig from "#/config/discord.json" with { type: "json" };
 
 export function EphemeralResponse(content: string): Discord.InteractionReplyOptions {
 	return { content: content, flags: Discord.MessageFlags.Ephemeral };

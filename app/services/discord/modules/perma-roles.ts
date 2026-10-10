@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

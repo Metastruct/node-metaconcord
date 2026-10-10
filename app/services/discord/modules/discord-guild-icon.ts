@@ -4,7 +4,7 @@ import { join } from "path";
 import { scheduleJob } from "node-schedule";
 import { stat } from "fs/promises";
 import dayjs from "dayjs";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

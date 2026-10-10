@@ -1,9 +1,9 @@
 import type { Request } from "express";
-import { LinkConflictError } from "@/app/services/Accounts.js";
+import { LinkConflictError } from "#/app/services/Accounts.js";
 import { getSessionAccountId, setSessionCookie, storeRedirect, takeRedirect } from "./session.js";
-import { WebApp } from "@/app/services/webapp/index.js";
-import { logger } from "@/utils.js";
-import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
+import { WebApp } from "#/app/services/webapp/index.js";
+import { logger } from "#/utils.js";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
 import axios from "axios";
 

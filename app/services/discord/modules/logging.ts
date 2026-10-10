@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
 import { InspectOptions, inspect } from "node:util";
 import { diffJson, diffWords } from "diff";
-import { f } from "@/utils.js";
+import { f } from "#/utils.js";
 
 const RED_COLOR = Discord.Colors.Red;
 const YELLOW_COLOR = Discord.Colors.Yellow;

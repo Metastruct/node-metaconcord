@@ -1,7 +1,7 @@
 import { TTLCache } from "./cache.js";
 import type { GitHost } from "./types.js";
-import { logger } from "@/utils.js";
-import apikeys from "@/config/apikeys.json" with { type: "json" };
+import { logger } from "#/utils.js";
+import apikeys from "#/config/apikeys.json" with { type: "json" };
 import axios from "axios";
 
 const log = logger(import.meta);

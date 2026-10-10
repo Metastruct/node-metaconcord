@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
-import GameConnection from "@/app/services/gamebridge/GameConnection.js";
-import config from "@/config/discord.json" with { type: "json" };
-import { logger, sleep } from "@/utils.js";
+import GameConnection from "#/app/services/gamebridge/GameConnection.js";
+import config from "#/config/discord.json" with { type: "json" };
+import { logger, sleep } from "#/utils.js";
 
 const log = logger(import.meta);
 

@@ -1,7 +1,7 @@
 import { APIEmbed } from "discord.js";
 import { ErrorRequest, ErrorResponse } from "./structures/index.js";
-import { getOrFetchGmodFile, matchGmodPath } from "@/utils.js";
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
+import { getOrFetchGmodFile, matchGmodPath } from "#/utils.js";
+import GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import dayjs from "dayjs";
 import { errorWebhook, pacErrorWebhook } from "../webhooks.js";

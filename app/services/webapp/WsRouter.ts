@@ -1,6 +1,6 @@
 import { request as WebSocketRequest, server as WebSocketServer } from "websocket";
 import { Server as HTTPServer } from "http";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

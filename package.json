@@ -11,6 +11,9 @@
 	"author": "marceau-maubert <marceau.maubert2@gmail.com>",
 	"license": "MIT",
 	"private": true,
+	"imports": {
+		"#/*": "./*"
+	},
 	"scripts": {
 		"start": "cross-env NODE_ENV=production node dist",
 		"dev": "cross-env NODE_ENV=development DEBUG=express:*,router,router:* node dist",
@@ -106,8 +109,6 @@
 		"ts-json-schema-generator": "^2.9.0",
 		"ts-node": "^10.9.2",
 		"ts-node-dev": "^2.0.0",
-		"tsconfig-paths": "^4.2.0",
-		"tsconfig-replace-paths": "^1.0.0",
 		"typescript": "^6",
 		"typescript-eslint": "^8.71.1"
 	}

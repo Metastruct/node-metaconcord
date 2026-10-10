@@ -3,10 +3,10 @@ import * as signalR from "@microsoft/signalr";
 import GameBridge from "../../GameBridge.js";
 import ResoniteConnection, { ResoniteSessionState } from "./ResoniteConnection.js";
 import { Player } from "../../GameConnection.js";
-import { ResoniteSession } from "@/app/services/Resonite.js";
-import resoniteConfig from "@/config/resonite.json" with { type: "json" };
+import { ResoniteSession } from "#/app/services/Resonite.js";
+import resoniteConfig from "#/config/resonite.json" with { type: "json" };
 import { renderPlayerListImage } from "../../renderPlayerList.js";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

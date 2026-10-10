@@ -1,4 +1,4 @@
-import { luaString, luaStringOrNil } from "@/utils.js";
+import { luaString, luaStringOrNil } from "#/utils.js";
 import GameBridge from "../../GameBridge.js";
 import GmodConnection from "./GmodConnection.js";
 

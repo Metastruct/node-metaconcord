@@ -1,10 +1,10 @@
 import { Accounts, Bans, DiscordBot, SQL } from "./index.js";
 import { Container, Service } from "../Container.js";
 import { Role } from "./Accounts.js";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 import { revokeOAuthToken } from "./webapp/api/auth/discord.js";
 import SteamID from "steamid";
-import config from "@/config/metadata.json" with { type: "json" };
+import config from "#/config/metadata.json" with { type: "json" };
 
 const log = logger(import.meta);
 

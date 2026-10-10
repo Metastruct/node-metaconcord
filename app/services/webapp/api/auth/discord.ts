@@ -1,9 +1,9 @@
 import * as Discord from "discord.js";
-import { SQL } from "@/app/services/SQL.js";
-import { WebApp } from "@/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
+import { SQL } from "#/app/services/SQL.js";
+import { WebApp } from "#/app/services/webapp/index.js";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
-import { LinkConflictError } from "@/app/services/Accounts.js";
+import { LinkConflictError } from "#/app/services/Accounts.js";
 import {
 	cookieOptions,
 	getSessionAccountId,
@@ -11,10 +11,10 @@ import {
 	storeRedirect,
 	takeRedirect,
 } from "./session.js";
-import DiscordConfig from "@/config/discord.json" with { type: "json" };
+import DiscordConfig from "#/config/discord.json" with { type: "json" };
 import crypto from "crypto";
 import { verifyWebhookEventMiddleware } from "discord-interactions";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

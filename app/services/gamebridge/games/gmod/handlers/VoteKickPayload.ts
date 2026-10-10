@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import { VoteKickRequest } from "./structures/index.js";
-import { f, logger } from "@/utils.js";
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
+import { f, logger } from "#/utils.js";
+import GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import SteamID from "steamid";
 import requestSchema from "./structures/VoteKickRequest.json" with { type: "json" };

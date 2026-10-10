@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { DiscordBot } from "@/app/services/discord/index.js";
+import { DiscordBot } from "#/app/services/discord/index.js";
 import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL.js";
 import { MenuGetStickerUrlCommand } from "./GetStickerUrl.js";
 import { MenuGetVoiceMessageUrlCommand } from "./GetVoiceMessageUrl.js";
@@ -22,8 +22,8 @@ import { SlashSQLCommand } from "./developer/SQL.js";
 import { SlashVideoCommand } from "./Video.js";
 import { SlashVoiceCommand } from "./TempVoiceChannel.js";
 import { SlashWhyBanCommand } from "./WhyBan.js";
-import { gmodSlashCommands } from "@/app/services/gamebridge/games/gmod/commands/index.js";
-import { logger } from "@/utils.js";
+import { gmodSlashCommands } from "#/app/services/gamebridge/games/gmod/commands/index.js";
+import { logger } from "#/utils.js";
 
 const log = logger("Commands");
 

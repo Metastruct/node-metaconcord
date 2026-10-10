@@ -1,13 +1,13 @@
 import * as Discord from "discord.js";
 import { ChatRequest, ChatResponse } from "./structures/index.js";
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
+import GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import { chatWebhook } from "../webhooks.js";
 import { formatDiscordMessage } from "../../../discord/formatDiscordMessage.js";
 import { matchLinkCode, redeemLinkFromChat } from "../../../linkChat.js";
 import requestSchema from "./structures/ChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ChatResponse.json" with { type: "json" };
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

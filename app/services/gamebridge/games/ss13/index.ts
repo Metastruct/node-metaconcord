@@ -6,8 +6,8 @@ import SS13Connection, { SS13InstanceState, SS13Status } from "./SS13Connection.
 import { WatchdogStatus, getDreamDaemonStatus, getInstance } from "./tgsClient.js";
 import { getServerStatus, getPlayerList } from "./topics.js";
 import { queryTopic } from "./byondTopic.js";
-import config from "@/config/ss13.json" with { type: "json" };
-import { logger } from "@/utils.js";
+import config from "#/config/ss13.json" with { type: "json" };
+import { logger } from "#/utils.js";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration.js";
 

@@ -8,14 +8,14 @@ import {
 	Provider,
 	Role,
 	STAFF_ROLES,
-} from "@/app/services/Accounts.js";
-import { WebApp } from "@/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
+} from "#/app/services/Accounts.js";
+import { WebApp } from "#/app/services/webapp/index.js";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
 import express from "express";
-import { decrypt, encrypt } from "@/app/services/webapp/secretBox.js";
-import WebAppConfig from "@/config/webapp.json" with { type: "json" };
-import { logger } from "@/utils.js";
+import { decrypt, encrypt } from "#/app/services/webapp/secretBox.js";
+import WebAppConfig from "#/config/webapp.json" with { type: "json" };
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

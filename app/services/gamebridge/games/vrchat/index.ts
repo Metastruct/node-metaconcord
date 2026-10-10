@@ -3,9 +3,9 @@ import { VRChat } from "vrchat";
 import type { Group, GroupInstance } from "vrchat";
 import GameBridge from "../../GameBridge.js";
 import VRChatConnection from "./VRChatConnection.js";
-import config from "@/config/vrchat.json" with { type: "json" };
-import pkg from "@/package.json" with { type: "json" };
-import { logger } from "@/utils.js";
+import config from "#/config/vrchat.json" with { type: "json" };
+import pkg from "#/package.json" with { type: "json" };
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

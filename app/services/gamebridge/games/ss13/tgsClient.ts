@@ -1,6 +1,6 @@
 import axios from "axios";
 import jwt from "jsonwebtoken";
-import config from "@/config/ss13.json" with { type: "json" };
+import config from "#/config/ss13.json" with { type: "json" };
 
 const USER_AGENT = "node-metaconcord";
 

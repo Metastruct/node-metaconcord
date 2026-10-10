@@ -1,8 +1,8 @@
 import GameBridge from "../../GameBridge.js";
 import MinecraftConnection, { MinecraftConnectionConfig } from "./MinecraftConnection.js";
-import { WsRouter } from "@/app/services/webapp/WsRouter.js";
+import { WsRouter } from "#/app/services/webapp/WsRouter.js";
 import { attachWsGame } from "../../attachWsGame.js";
-import servers from "@/config/minecraft.servers.json" with { type: "json" };
+import servers from "#/config/minecraft.servers.json" with { type: "json" };
 
 export function attachMinecraft(bridge: GameBridge, router: WsRouter): void {
 	attachWsGame<MinecraftConnectionConfig, MinecraftConnection>({

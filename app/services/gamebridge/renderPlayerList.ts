@@ -3,7 +3,7 @@ import { GlobalFonts, createCanvas, loadImage } from "@napi-rs/canvas";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { Player } from "./GameConnection.js";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

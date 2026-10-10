@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { DiscordClient } from "./discord/index.js";
 import { EventEmitter } from "events";
 import GameBridge from "./GameBridge.js";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

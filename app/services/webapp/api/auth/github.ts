@@ -1,8 +1,8 @@
 import { Octokit } from "@octokit/rest";
-import { WebApp } from "@/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
+import { WebApp } from "#/app/services/webapp/index.js";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
-import { Accounts, LinkConflictError } from "@/app/services/Accounts.js";
+import { Accounts, LinkConflictError } from "#/app/services/Accounts.js";
 import {
 	cookieOptions,
 	getSessionAccountId,
@@ -10,9 +10,9 @@ import {
 	storeRedirect,
 	takeRedirect,
 } from "./session.js";
-import GithubConfig from "@/config/github.json" with { type: "json" };
+import GithubConfig from "#/config/github.json" with { type: "json" };
 import crypto from "crypto";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

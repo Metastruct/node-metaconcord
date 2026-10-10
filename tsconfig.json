@@ -4,10 +4,6 @@
 		"@tsconfig/strictest/tsconfig.json"
 	],
 	"compilerOptions": {
-		"paths": {
-			"@/*": ["./*"]
-		},
-
 		"outDir": "./dist",
 
 		"lib": ["es2025", "ESNext.Collection", "ESNext.Temporal", "DOM"],

@@ -1,5 +1,5 @@
 import GameBridge from "./GameBridge.js";
-import { Provider } from "@/app/services/Accounts.js";
+import { Provider } from "#/app/services/Accounts.js";
 
 /**
  * In-game account linking: the profile page hands out a code, the player types

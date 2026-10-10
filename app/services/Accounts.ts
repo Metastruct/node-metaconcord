@@ -2,10 +2,10 @@ import { Container, Service } from "../Container.js";
 import { SQL } from "./SQL.js";
 import { decrypt, encrypt } from "./webapp/secretBox.js";
 import { Octokit } from "@octokit/rest";
-import AccountsConfig from "@/config/accounts.json" with { type: "json" };
-import GithubConfig from "@/config/github.json" with { type: "json" };
+import AccountsConfig from "#/config/accounts.json" with { type: "json" };
+import GithubConfig from "#/config/github.json" with { type: "json" };
 import crypto from "crypto";
-import { isSteamGroupMember, logger } from "@/utils.js";
+import { isSteamGroupMember, logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

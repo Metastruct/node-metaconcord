@@ -1,13 +1,13 @@
-import { WebApp } from "@/app/services/webapp/index.js";
-import GameBridge from "@/app/services/gamebridge/GameBridge.js";
-import { GmodConnectionConfig } from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
-import { MinecraftConnectionConfig } from "@/app/services/gamebridge/games/minecraft/MinecraftConnection.js";
-import { ConsoleGame, ConsoleListener, consoleHub } from "@/app/services/gamebridge/consoleHub.js";
+import { WebApp } from "#/app/services/webapp/index.js";
+import GameBridge from "#/app/services/gamebridge/GameBridge.js";
+import { GmodConnectionConfig } from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
+import { MinecraftConnectionConfig } from "#/app/services/gamebridge/games/minecraft/MinecraftConnection.js";
+import { ConsoleGame, ConsoleListener, consoleHub } from "#/app/services/gamebridge/consoleHub.js";
 import { Session, getSession, getSessionFromCookieHeader, isStaff } from "./auth/session.js";
 import { connection as WebSocketConnection } from "websocket";
-import gmodServers from "@/config/gmod.servers.json" with { type: "json" };
-import minecraftServers from "@/config/minecraft.servers.json" with { type: "json" };
-import { logger } from "@/utils.js";
+import gmodServers from "#/config/gmod.servers.json" with { type: "json" };
+import minecraftServers from "#/config/minecraft.servers.json" with { type: "json" };
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

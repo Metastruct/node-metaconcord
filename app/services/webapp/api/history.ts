@@ -1,13 +1,13 @@
 import type { Request, Response } from "express";
 import { Octokit } from "@octokit/rest";
-import { WebApp } from "@/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
+import { WebApp } from "#/app/services/webapp/index.js";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
 import express from "express";
 import { MirrorError, mirrorImage } from "./history-images.js";
 import { Session, requireStaff } from "./auth/session.js";
-import HistoryConfig from "@/config/history.json" with { type: "json" };
-import { logger } from "@/utils.js";
+import HistoryConfig from "#/config/history.json" with { type: "json" };
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

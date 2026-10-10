@@ -4,7 +4,7 @@ import GameConnection, { GameConnectionConfig, Player } from "./GameConnection.j
 export { DiscordClient, GameConnection, GameBridge };
 export type { GameConnectionConfig, Player };
 
-import { Container, Service } from "@/app/Container.js";
+import { Container, Service } from "#/app/Container.js";
 export default (container: Container): Service => {
 	return new GameBridge(container);
 };

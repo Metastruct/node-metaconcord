@@ -1,4 +1,4 @@
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 import { Container, Service } from "../Container.js";
 import { Rule } from "./discord/index.js";
 import { AddonsStore } from "./addons/types.js";

@@ -4,21 +4,21 @@ import {
 	githubActor,
 	HARDBAN_ACTOR,
 	parseBanActor,
-} from "@/app/services/gamebridge/games/gmod/banActor.js";
+} from "#/app/services/gamebridge/games/gmod/banActor.js";
 import { Session, getSession, isStaff } from "./auth/session.js";
 import {
 	issueBan,
 	pickGmodServer,
 	revokeBan,
-} from "@/app/services/gamebridge/games/gmod/banActions.js";
-import { MetaBan, PERMANENT_UNBAN_TIME } from "@/app/services/Bans.js";
-import { logger, parseDuration } from "@/utils.js";
-import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
+} from "#/app/services/gamebridge/games/gmod/banActions.js";
+import { MetaBan, PERMANENT_UNBAN_TIME } from "#/app/services/Bans.js";
+import { logger, parseDuration } from "#/utils.js";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
 import express from "express";
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
+import GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import SteamID from "steamid";
-import { WebApp } from "@/app/services/webapp/index.js";
+import { WebApp } from "#/app/services/webapp/index.js";
 
 const log = logger(import.meta);
 

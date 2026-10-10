@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
-import { EphemeralResponse, SlashCommand } from "@/extensions/discord.js";
-import { logger } from "@/utils.js";
+import { EphemeralResponse, SlashCommand } from "#/extensions/discord.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

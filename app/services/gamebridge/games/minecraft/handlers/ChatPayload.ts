@@ -7,7 +7,7 @@ import { chatWebhook } from "../webhooks.js";
 import { matchLinkCode, redeemLinkFromChat } from "../../../linkChat.js";
 import requestSchema from "./structures/ChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ChatResponse.json" with { type: "json" };
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

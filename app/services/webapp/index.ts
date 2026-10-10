@@ -1,14 +1,14 @@
-import { Container, Service, ServiceNotEnabledError } from "@/app/Container.js";
+import { Container, Service, ServiceNotEnabledError } from "#/app/Container.js";
 import { Server as HTTPServer, createServer } from "http";
 import type { Request, Response } from "express";
 import APIs from "./api/index.js";
-import config from "@/config/webapp.json" with { type: "json" };
+import config from "#/config/webapp.json" with { type: "json" };
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import type pino from "pino";
 import { pinoHttp } from "pino-http";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 import { WsRouter } from "./WsRouter.js";
 
 const log = logger("WebApp");

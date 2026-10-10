@@ -2,10 +2,10 @@ import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
 import express from "express";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
-import { clamp, logger } from "@/utils.js";
-import { chatWebhook } from "@/app/services/gamebridge/games/gmod/webhooks.js";
+import { clamp, logger } from "#/utils.js";
+import { chatWebhook } from "#/app/services/gamebridge/games/gmod/webhooks.js";
 import axios from "axios";
-import webhookConfig from "@/config/webhooks.json" with { type: "json" };
+import webhookConfig from "#/config/webhooks.json" with { type: "json" };
 import { EmitterWebhookEvent } from "@octokit/webhooks/types";
 import { components } from "@octokit/openapi-types";
 import type {
@@ -16,7 +16,7 @@ import type {
 	WebhookPushEventSchema,
 } from "@gitbeaker/rest";
 import type { Octokit } from "@octokit/rest";
-import gitlabConfig from "@/config/gitlab.json" with { type: "json" };
+import gitlabConfig from "#/config/gitlab.json" with { type: "json" };
 
 const log = logger(import.meta);
 

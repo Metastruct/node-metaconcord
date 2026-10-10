@@ -1,18 +1,18 @@
 import * as Discord from "discord.js";
 import type { Response } from "express";
 import { resolveProfiles, toEntry } from "./bans.js";
-import { EMBED_FIELD_LIMIT } from "@/app/services/discord/index.js";
-import { MetaBan, PERMANENT_UNBAN_TIME } from "@/app/services/Bans.js";
+import { EMBED_FIELD_LIMIT } from "#/app/services/discord/index.js";
+import { MetaBan, PERMANENT_UNBAN_TIME } from "#/app/services/Bans.js";
 import { getSession } from "./auth/session.js";
-import { Accounts } from "@/app/services/Accounts.js";
-import { actorLabel } from "@/app/services/gamebridge/games/gmod/banActor.js";
-import { pickGmodServer, revokeBan } from "@/app/services/gamebridge/games/gmod/banActions.js";
-import { f, logger } from "@/utils.js";
-import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
+import { Accounts } from "#/app/services/Accounts.js";
+import { actorLabel } from "#/app/services/gamebridge/games/gmod/banActor.js";
+import { pickGmodServer, revokeBan } from "#/app/services/gamebridge/games/gmod/banActions.js";
+import { f, logger } from "#/utils.js";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
 import express, { Request } from "express";
-import { WebApp } from "@/app/services/webapp/index.js";
-import { ServiceNotEnabledError } from "@/app/Container.js";
+import { WebApp } from "#/app/services/webapp/index.js";
+import { ServiceNotEnabledError } from "#/app/Container.js";
 
 const log = logger(import.meta);
 

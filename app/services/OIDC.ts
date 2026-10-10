@@ -2,8 +2,8 @@ import { Container, Service } from "../Container.js";
 import { getSessionAccountId } from "./webapp/api/auth/session.js";
 import { SQL } from "./SQL.js";
 import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.js";
-import { logger } from "@/utils.js";
-import OIDCConfig from "@/config/oidc.json" with { type: "json" };
+import { logger } from "#/utils.js";
+import OIDCConfig from "#/config/oidc.json" with { type: "json" };
 import crypto from "node:crypto";
 import {
 	Provider as OIDCProvider,

@@ -1,8 +1,8 @@
 import GameBridge from "../../GameBridge.js";
 import GmodConnection, { GmodConnectionConfig } from "./GmodConnection.js";
-import { WsRouter } from "@/app/services/webapp/WsRouter.js";
+import { WsRouter } from "#/app/services/webapp/WsRouter.js";
 import { attachWsGame } from "../../attachWsGame.js";
-import servers from "@/config/gmod.servers.json" with { type: "json" };
+import servers from "#/config/gmod.servers.json" with { type: "json" };
 
 export function attachGmod(bridge: GameBridge, router: WsRouter): void {
 	attachWsGame<GmodConnectionConfig, GmodConnection>({

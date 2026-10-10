@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
-import { WebApp } from "@/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
+import { WebApp } from "#/app/services/webapp/index.js";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
-import GameBridgeConfig from "@/config/gamebridge.json" with { type: "json" };
+import GameBridgeConfig from "#/config/gamebridge.json" with { type: "json" };
 import SteamID from "steamid";
 
 /**

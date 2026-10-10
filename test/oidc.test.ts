@@ -1,11 +1,11 @@
-import { Container, Service } from "@/app/Container.js";
-import type { App } from "@/app/index.js";
-import OIDCProvider from "@/app/services/OIDC.js";
-import SQLProvider, { SQL } from "@/app/services/SQL.js";
-import WebAppProvider, { WebApp } from "@/app/services/webapp/index.js";
-import { encrypt } from "@/app/services/webapp/secretBox.js";
-import WebAppConfig from "@/config/webapp.json" with { type: "json" };
-import OIDCConfig from "@/config/oidc.json" with { type: "json" };
+import { Container, Service } from "#/app/Container.js";
+import type { App } from "#/app/index.js";
+import OIDCProvider from "#/app/services/OIDC.js";
+import SQLProvider, { SQL } from "#/app/services/SQL.js";
+import WebAppProvider, { WebApp } from "#/app/services/webapp/index.js";
+import { encrypt } from "#/app/services/webapp/secretBox.js";
+import WebAppConfig from "#/config/webapp.json" with { type: "json" };
+import OIDCConfig from "#/config/oidc.json" with { type: "json" };
 import crypto from "crypto";
 
 /**

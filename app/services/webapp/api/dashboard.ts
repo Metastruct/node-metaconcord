@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
-import { WebApp } from "@/app/services/webapp/index.js";
-import { logBuffer, LogLine } from "@/app/services/webapp/dashboard/LogBuffer.js";
-import { rateLimitKeyGenerator } from "@/app/services/webapp/rateLimit.js";
+import { WebApp } from "#/app/services/webapp/index.js";
+import { logBuffer, LogLine } from "#/app/services/webapp/dashboard/LogBuffer.js";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import { Session, getSession, getSessionFromCookieHeader, hasRole } from "./auth/session.js";
 import { rateLimit } from "express-rate-limit";
 import { ChildProcess, spawn } from "child_process";
@@ -11,7 +11,7 @@ import express from "express";
 import path from "path";
 import pug from "pug";
 import util from "util";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

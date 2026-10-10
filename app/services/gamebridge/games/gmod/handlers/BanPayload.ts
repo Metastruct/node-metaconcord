@@ -1,9 +1,9 @@
 import * as Discord from "discord.js";
 import { actorLabel, parseBanActor } from "../banActor.js";
 import { BanRequest } from "./structures/index.js";
-import { PlayerSummary } from "@/app/services/Steam.js";
-import { f } from "@/utils.js";
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
+import { PlayerSummary } from "#/app/services/Steam.js";
+import { f } from "#/utils.js";
+import GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import SteamID from "steamid";
 import requestSchema from "./structures/BanRequest.json" with { type: "json" };

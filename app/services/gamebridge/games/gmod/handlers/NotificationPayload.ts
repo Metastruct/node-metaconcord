@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { NotificationResponse } from "./structures/index.js";
-import GmodConnection from "@/app/services/gamebridge/games/gmod/GmodConnection.js";
+import GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
 import requestSchema from "./structures/NotificationResponse.json" with { type: "json" };
 

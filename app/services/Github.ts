@@ -1,7 +1,7 @@
 import { Container, Service } from "../Container.js";
 import { Octokit } from "@octokit/rest";
 import { createAppAuth, StrategyOptions } from "@octokit/auth-app";
-import config from "@/config/github.json" with { type: "json" };
+import config from "#/config/github.json" with { type: "json" };
 
 export class Github extends Service {
 	name = "Github";

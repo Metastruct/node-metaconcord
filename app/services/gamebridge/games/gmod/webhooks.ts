@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import config from "@/config/gmod.json" with { type: "json" };
+import config from "#/config/gmod.json" with { type: "json" };
 
 let chat: Discord.WebhookClient | undefined;
 let error: Discord.WebhookClient | undefined;

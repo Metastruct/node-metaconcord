@@ -1,7 +1,7 @@
 import { Ajv, type ErrorObject } from "ajv";
 import { connection as WebSocketConnection } from "websocket";
 import GameConnection from "./GameConnection.js";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

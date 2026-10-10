@@ -1,8 +1,8 @@
 import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
 import { join } from "path";
-import DiscordConfig from "@/config/discord.json" with { type: "json" };
-import { logger } from "@/utils.js";
+import DiscordConfig from "#/config/discord.json" with { type: "json" };
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

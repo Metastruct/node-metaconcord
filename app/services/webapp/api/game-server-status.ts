@@ -1,11 +1,11 @@
-import { WebApp } from "@/app/services/webapp/index.js";
-import { renderPlayerListImage } from "@/app/services/gamebridge/renderPlayerList.js";
+import { WebApp } from "#/app/services/webapp/index.js";
+import { renderPlayerListImage } from "#/app/services/gamebridge/renderPlayerList.js";
 import path from "path";
 import pug from "pug";
 import { access, FileHandle, mkdir, readFile, writeFile } from "fs/promises";
 import { constants as fs_constants, PathLike } from "fs";
 import mime from "mime";
-import { logger } from "@/utils.js";
+import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

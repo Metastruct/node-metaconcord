@@ -1,4 +1,4 @@
-import { WebApp } from "@/app/services/webapp/index.js";
+import { WebApp } from "#/app/services/webapp/index.js";
 
 /** Nothing here is worth indexing, tell the clankers to go away. */
 export default (webApp: WebApp): void => {
