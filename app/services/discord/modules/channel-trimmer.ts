@@ -2,11 +2,15 @@ import { TextChannel, Message } from "discord.js";
 import { DiscordBot } from "../index.js";
 import { MinHeap } from "mnemonist";
 import { logger } from "#/utils.js";
+import { SQL } from "#/app/services/index.js";
 
 const log = logger(import.meta);
 
 const INTERVAL = 1e3;
 const DELAY = 30e3; // wait 30s before starting
+const PROGRESS_TABLE = "channeltrimmer_progress";
+const TOTAL_KEY = "total";
+const DELETED_KEY = "deleted";
 
 // Hack: Node typings don't include this yet, but Node actually supports it.
 declare global {
@@ -21,6 +25,15 @@ declare global {
 
 type Timestamp = Date | Temporal.Instant;
 type MessageFetchResult = Awaited<ReturnType<TextChannel["messages"]["fetch"]>>;
+type ProgressRow = {
+	value: number;
+};
+
+type TrimStats = {
+	deleted: number;
+	total: number;
+	percentage: number;
+};
 
 const Instant = (timestamp: Timestamp) => timestamp instanceof Date ? timestamp.toTemporalInstant() : timestamp;
 
@@ -80,13 +93,74 @@ class ChannelTrimmingState {
 	}
 }
 
+class ChannelTrimmerProgressStore {
+	#sql: SQL;
+
+	constructor(sql: SQL) {
+		this.#sql = sql;
+		this.#sql.execLocal(`
+			CREATE TABLE IF NOT EXISTS ${PROGRESS_TABLE} (
+				textchannel_id TEXT NOT NULL,
+				key TEXT NOT NULL,
+				value INTEGER NOT NULL DEFAULT 0,
+				PRIMARY KEY (textchannel_id, key)
+			);
+		`);
+	}
+
+	public getValue(channelId: string, key: string) {
+		return this.#sql.getLocal<ProgressRow>(
+			`SELECT value FROM ${PROGRESS_TABLE} WHERE textchannel_id = ? AND key = ? LIMIT 1;`,
+			channelId,
+			key,
+		)?.value ?? 0;
+	}
+
+	public setValue(channelId: string, key: string, value: number) {
+		this.#sql.runLocal(
+			`INSERT INTO ${PROGRESS_TABLE}(textchannel_id, key, value) VALUES(?, ?, ?)
+			 ON CONFLICT(textchannel_id, key) DO UPDATE SET value = excluded.value;`,
+			channelId,
+			key,
+			value,
+		);
+	}
+
+	public incrementValue(channelId: string, key: string, amount = 1) {
+		this.#sql.runLocal(
+			`INSERT INTO ${PROGRESS_TABLE}(textchannel_id, key, value) VALUES(?, ?, ?)
+			 ON CONFLICT(textchannel_id, key) DO UPDATE SET value = value + excluded.value;`,
+			channelId,
+			key,
+			amount,
+		);
+	}
+
+	public setTotal(channelId: string, total: number) {
+		this.setValue(channelId, TOTAL_KEY, total);
+	}
+
+	public incrementDeleted(channelId: string) {
+		this.incrementValue(channelId, DELETED_KEY);
+	}
+
+	public getStats(channelId: string): TrimStats {
+		const deleted = this.getValue(channelId, DELETED_KEY);
+		const total = this.getValue(channelId, TOTAL_KEY);
+		const percentage = total > 0 ? deleted / total * 100 : 0;
+		return { deleted, total, percentage };
+	}
+}
+
 class ChannelTrimmer {
 	#channel: TextChannel;
 	#state: ChannelTrimmingState;
+	#progressStore: ChannelTrimmerProgressStore;
 
-	constructor(channel: TextChannel, duration: Temporal.Duration) {
+	constructor(channel: TextChannel, duration: Temporal.Duration, progressStore: ChannelTrimmerProgressStore) {
 		this.#channel = channel;
 		this.#state = new ChannelTrimmingState(duration);
+		this.#progressStore = progressStore;
 	}
 
 	public async fetch() {
@@ -104,8 +178,19 @@ class ChannelTrimmer {
 	public async trim() {
 		await this.fetchIfEmpty();
 		const candidate = this.#state.popOldMessage();
-		if (candidate)
-			return candidate.delete();
+		if (candidate) {
+			await candidate.delete();
+			this.#progressStore.incrementDeleted(this.#channel.id);
+			return candidate;
+		}
+	}
+
+	public setTotal(total: number) {
+		this.#progressStore.setTotal(this.#channel.id, total);
+	}
+
+	public getStats() {
+		return this.#progressStore.getStats(this.#channel.id);
 	}
 
 	public get state() {
@@ -125,8 +210,13 @@ class ChannelTrimmer {
 	}
 }
 
+const formatStatsLine = (channel: TextChannel, stats: TrimStats) =>
+	`${channel}: deleted ${stats.deleted}/${stats.total} (${stats.percentage.toFixed(2)}%)`;
+
 export default (bot: DiscordBot): void => {
 	const trimmers = new Map<TextChannel, ChannelTrimmer>();
+	const progressStore = new ChannelTrimmerProgressStore(bot.container.getService("SQL"));
+
 	let timerEnabled = true;
 
 	function timerFunc() {
@@ -151,7 +241,7 @@ export default (bot: DiscordBot): void => {
 			.map(([channelId, durationString]) => [bot.getTextChannel(channelId), Temporal.Duration.from(durationString)] as const)
 			.forEach(([channel, duration]) => {
 				if (channel)
-					trimmers.set(channel, new ChannelTrimmer(channel, duration));
+					trimmers.set(channel, new ChannelTrimmer(channel, duration, progressStore));
 			});
 		setTimeout(timerFunc, DELAY);
 	});
@@ -182,6 +272,20 @@ export default (bot: DiscordBot): void => {
 				const message = trimmer.state.peekMessage();
 				channel.send(message ? `(task:peek) \`\`\`\n${message.content}\n\`\`\`\nURL: ${message.url}\nAge: ${durationFormatter.format(durationSince(message.createdAt))} ${olderThan(message.createdAt, trimmer.maxAge) ? "🗑️" : "📜"}` : "(task:null)");
 			};
+		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim stats") {
+			const lines = [...trimmers.entries()].map(([channel, trimmer]) => formatStatsLine(channel, trimmer.getStats()));
+			await msg.channel.send(lines.length > 0 ? lines.join("\n") : "No trimmers configured.");
+		} else if (msg.channelId === bot.config.channels.log && msg.content.startsWith("!trim set-total ")) {
+			const total = Number.parseInt(msg.content.slice("!trim set-total ".length).trim(), 10);
+			if (!Number.isFinite(total) || total < 0) {
+				await msg.channel.send("invalid total");
+				return;
+			}
+
+			for (const [channel, trimmer] of trimmers) {
+				trimmer.setTotal(total);
+				await msg.channel.send(`${channel}: total set to ${total}`);
+			}
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim") {
 			for (const [channel, trimmer] of trimmers) {
 				channel.send(`(task:info) ${trimmer} TIMER=${timerEnabled}`);
