@@ -11,6 +11,7 @@ const DELAY = 30e3; // wait 30s before starting
 const PROGRESS_TABLE = "channeltrimmer_progress";
 const TOTAL_KEY = "total";
 const DELETED_KEY = "deleted";
+const STARTED_AT_KEY = "started_at";
 
 // Hack: Node typings don't include this yet, but Node actually supports it.
 declare global {
@@ -33,6 +34,8 @@ type TrimStats = {
 	deleted: number;
 	total: number;
 	percentage: number;
+	startedAt: Temporal.Instant | null;
+	remainingDuration: Temporal.Duration | null;
 };
 
 const Instant = (timestamp: Timestamp) => timestamp instanceof Date ? timestamp.toTemporalInstant() : timestamp;
@@ -43,6 +46,9 @@ const olderThan = (instant: Timestamp, duration: Temporal.Duration) =>
 
 const durationFormatter = new Intl.DurationFormat("en", { style: "digital" });
 const messageDateComparator = (a: Message, b: Message) => a.createdAt.getTime() - b.createdAt.getTime();
+
+const formatEta = (remainingDuration: Temporal.Duration | null) =>
+	remainingDuration ? `ETA: ${durationFormatter.format(remainingDuration.round({ largestUnit: "day" }))}` : "ETA: unknown";
 
 class ChannelTrimmingState {
 	#maxAge: Temporal.Duration;
@@ -147,8 +153,25 @@ class ChannelTrimmerProgressStore {
 	public getStats(channelId: string): TrimStats {
 		const deleted = this.getValue(channelId, DELETED_KEY);
 		const total = this.getValue(channelId, TOTAL_KEY);
+		const startedAtUnix = this.getValue(channelId, STARTED_AT_KEY);
+		const startedAt = startedAtUnix > 0 ? Temporal.Instant.fromEpochMilliseconds(startedAtUnix) : null;
 		const percentage = total > 0 ? deleted / total * 100 : 0;
-		return { deleted, total, percentage };
+		const remaining = Math.max(total - deleted, 0);
+		const elapsedDuration = startedAt ? Temporal.Now.instant().since(startedAt) : null;
+		const remainingDuration = elapsedDuration && deleted > 0 && remaining > 0
+			? elapsedDuration.total({ unit: "second" }) / deleted * remaining
+			: remaining === 0
+				? Temporal.Duration.from({ seconds: 0 })
+				: null;
+		return {
+			deleted,
+			total,
+			percentage,
+			startedAt,
+			remainingDuration: typeof remainingDuration === "number"
+				? Temporal.Duration.from({ seconds: remainingDuration })
+				: remainingDuration,
+		};
 	}
 }
 
@@ -211,7 +234,7 @@ class ChannelTrimmer {
 }
 
 const formatStatsLine = (channel: TextChannel, stats: TrimStats) =>
-	`${channel}: deleted ${stats.deleted}/${stats.total} (${stats.percentage.toFixed(2)}%)`;
+	`${channel}: deleted ${stats.deleted}/${stats.total} (${stats.percentage.toFixed(2)}%) ${formatEta(stats.remainingDuration)}`;
 
 export default (bot: DiscordBot): void => {
 	const trimmers = new Map<TextChannel, ChannelTrimmer>();
