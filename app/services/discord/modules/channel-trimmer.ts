@@ -5,8 +5,8 @@ import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 
-const INTERVAL = 1e3; // once per second
-const DELAY = 30e3;   // wait 30s before starting
+const INTERVAL = 1e3;
+const DELAY = 30e3; // wait 30s before starting
 
 // Hack: Node typings don't include this yet, but Node actually supports it.
 declare global {
@@ -130,18 +130,21 @@ class ChannelTrimmer {
 
 export default (bot: DiscordBot): void => {
 	const trimmers = new Map<TextChannel, ChannelTrimmer>();
-	let timer: NodeJS.Timeout;
+	let timerEnabled = false;
+
+	function timerFunc() {
+		if (!timerEnabled) return;
+		Promise.all(trimmers.values().map(trimmer => trimmer.trim()))
+			.then(() => setTimeout(timerFunc, INTERVAL));
+	}
 
 	function enableTimer() {
-		disableTimer();
-		timer = setInterval(() => trimmers.forEach(trimmer => trimmer.trim()), INTERVAL);
+		timerEnabled = true;
+		timerFunc();
 	}
 
 	function disableTimer() {
-		if (timer) {
-			clearInterval(timer);
-			timer = undefined;
-		}
+		timerEnabled = false;
 	}
 
 	bot.discord.once("clientReady", () => {
@@ -151,7 +154,6 @@ export default (bot: DiscordBot): void => {
 				if (channel)
 					trimmers.set(channel, new ChannelTrimmer(channel, duration));
 			});
-		//setTimeout(enableTimer, DELAY);
 	});
 
 	/**
@@ -185,7 +187,7 @@ export default (bot: DiscordBot): void => {
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim") {
 			for (const [channel, trimmer] of trimmers) {
-				channel.send(`(task:info) ${trimmer} TIMER=${timer}`);
+				channel.send(`(task:info) ${trimmer} TIMER=${timerEnabled}`);
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim timer=on") {
 			enableTimer();
