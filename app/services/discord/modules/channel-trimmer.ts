@@ -151,26 +151,20 @@ class ChannelTrimmerProgressStore {
 	}
 
 	public getStats(channelId: string): TrimStats {
-		const deleted = this.getValue(channelId, DELETED_KEY);
-		const total = this.getValue(channelId, TOTAL_KEY);
-		const startedAtUnix = this.getValue(channelId, STARTED_AT_KEY);
-		const startedAt = startedAtUnix > 0 ? Temporal.Instant.fromEpochMilliseconds(startedAtUnix) : null;
-		const percentage = total > 0 ? deleted / total * 100 : 0;
-		const remaining = Math.max(total - deleted, 0);
-		const elapsedDuration = startedAt ? Temporal.Now.instant().since(startedAt) : null;
-		const remainingDuration = elapsedDuration && deleted > 0 && remaining > 0
-			? elapsedDuration.total({ unit: "second" }) / deleted * remaining
-			: remaining === 0
-				? Temporal.Duration.from({ seconds: 0 })
-				: null;
+		const deletedCnt = this.getValue(channelId, DELETED_KEY);
+		const totalCnt = this.getValue(channelId, TOTAL_KEY);
+		const startedAt = this.getValue(channelId, STARTED_AT_KEY);
+		const percentage = totalCnt > 0 ? deletedCnt / totalCnt * 100 : 0;
+		const remainingCnt = Math.max(totalCnt - deletedCnt, 0);
+		const elapsedDuration = Date.now() - (startedAt ?? 0);
+		const remainingDuration = elapsedDuration / deletedCnt * remainingCnt;
 		return {
-			deleted,
-			total,
+			deleted: deletedCnt,
+			total: totalCnt,
 			percentage,
-			startedAt,
-			remainingDuration: typeof remainingDuration === "number"
-				? Temporal.Duration.from({ seconds: remainingDuration })
-				: remainingDuration,
+			startedAt: Temporal.Instant.fromEpochMilliseconds(startedAt ?? 0),
+			remainingDuration: Temporal.Duration.from({ milliseconds: remainingDuration })
+				.round({ largestUnit: "year", relativeTo: Temporal.Now.plainDateISO() })
 		};
 	}
 }
