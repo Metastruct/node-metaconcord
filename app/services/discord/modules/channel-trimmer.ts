@@ -8,6 +8,7 @@ const log = logger(import.meta);
 
 const INTERVAL = 1e3;
 const DELAY = 30e3; // wait 30s before starting
+const PIN_EDIT_INTERVAL = 5*60*1000;
 const PROGRESS_TABLE = "channeltrimmer_progress";
 const TOTAL_KEY = "total";
 const DELETED_KEY = "deleted";
@@ -195,7 +196,7 @@ class ChannelTrimmer {
 	public async trim() {
 		await this.fetchIfEmpty();
 		const candidate = this.#state.popOldMessage();
-		if (candidate) {
+		if (candidate && !candidate.pinned) {
 			await candidate.delete();
 			this.#progressStore.incrementDeleted(this.#channel.id);
 			return candidate;
@@ -227,8 +228,8 @@ class ChannelTrimmer {
 	}
 }
 
-const formatStatsLine = (channel: TextChannel, stats: TrimStats) =>
-	`${channel}: deleted ${stats.deleted}/${stats.total} (${stats.percentage.toFixed(2)}%) ${formatEta(stats.remainingDuration)}`;
+const formatStatsLine = (_channel: TextChannel, stats: TrimStats) =>
+	`deleted ${stats.deleted}/${stats.total} (${stats.percentage.toFixed(2)}%) ${formatEta(stats.remainingDuration)}`;
 
 export default (bot: DiscordBot): void => {
 	const trimmers = new Map<TextChannel, ChannelTrimmer>();
@@ -253,6 +254,15 @@ export default (bot: DiscordBot): void => {
 		timerEnabled = false;
 	}
 
+	async function updateStatusMessages() {
+		for (const [channel, trimmer] of trimmers) {
+			const pinnedMessages = await channel.messages.fetchPins();
+			const statusMessage = pinnedMessages.items.map(messagePin => messagePin.message).find(message => message.author.id === bot.discord.user?.id);
+			if (!statusMessage) return;
+			await statusMessage.edit(formatStatsLine(trimmer.channel, trimmer.getStats()));
+		}
+	};
+
 	bot.discord.once("clientReady", () => {
 		Object.entries(bot.config["trim-channels"])
 			.map(([channelId, durationString]) => [bot.getTextChannel(channelId), Temporal.Duration.from(durationString)] as const)
@@ -261,6 +271,7 @@ export default (bot: DiscordBot): void => {
 					trimmers.set(channel, new ChannelTrimmer(channel, duration, progressStore));
 			});
 		setTimeout(timerFunc, DELAY);
+		setInterval(updateStatusMessages, PIN_EDIT_INTERVAL);
 	});
 
 	bot.discord.on("messageCreate", async msg => {
