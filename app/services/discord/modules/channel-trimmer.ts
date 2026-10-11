@@ -24,15 +24,12 @@ type MessageFetchResult = Awaited<ReturnType<TextChannel["messages"]["fetch"]>>;
 
 const Instant = (timestamp: Timestamp) => timestamp instanceof Date ? timestamp.toTemporalInstant() : timestamp;
 
-const now = () => Temporal.Now.instant();
-const durationSince = (time: Timestamp) => now().since(Instant(time)).round({ largestUnit: "year", relativeTo: Temporal.Now.plainDateISO() });
+const durationSince = (time: Timestamp) => Temporal.Now.instant().since(Instant(time)).round({ largestUnit: "year", relativeTo: Temporal.Now.plainDateISO() });
 const olderThan = (instant: Timestamp, duration: Temporal.Duration) =>
 	Temporal.Duration.compare(durationSince(instant), duration, { relativeTo: Temporal.Now.plainDateISO() }) > 0;
 
 const durationFormatter = new Intl.DurationFormat("en", { style: "digital" });
-
 const messageDateComparator = (a: Message, b: Message) => a.createdAt.getTime() - b.createdAt.getTime();
-
 
 class ChannelTrimmingState {
 	#maxAge: Temporal.Duration;
@@ -130,7 +127,7 @@ class ChannelTrimmer {
 
 export default (bot: DiscordBot): void => {
 	const trimmers = new Map<TextChannel, ChannelTrimmer>();
-	let timerEnabled = false;
+	let timerEnabled = true;
 
 	function timerFunc() {
 		if (!timerEnabled) return;
@@ -139,8 +136,10 @@ export default (bot: DiscordBot): void => {
 	}
 
 	function enableTimer() {
-		timerEnabled = true;
-		timerFunc();
+		if (!timerEnabled) {
+			timerEnabled = true;
+			timerFunc();
+		}
 	}
 
 	function disableTimer() {
@@ -154,11 +153,9 @@ export default (bot: DiscordBot): void => {
 				if (channel)
 					trimmers.set(channel, new ChannelTrimmer(channel, duration));
 			});
+		setTimeout(timerFunc, DELAY);
 	});
 
-	/**
-	 * WIP testing commands.
-	 */
 	bot.discord.on("messageCreate", async msg => {
 		msg = await bot.fetchPartial(msg);
 		if (msg.channelId === bot.config.channels.log && msg.content === "!trim fetch") {
@@ -189,10 +186,10 @@ export default (bot: DiscordBot): void => {
 			for (const [channel, trimmer] of trimmers) {
 				channel.send(`(task:info) ${trimmer} TIMER=${timerEnabled}`);
 			};
-		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim timer=on") {
+		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim on") {
 			enableTimer();
 			await msg.channel.send("started");
-		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim timer=off") {
+		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim off") {
 			disableTimer();
 			await msg.channel.send("stopped");
 		}
