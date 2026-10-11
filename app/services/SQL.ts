@@ -1,8 +1,7 @@
 import { Container, Service } from "../Container.js";
-import { Database, open } from "sqlite";
+import BetterSqlite3 from "better-sqlite3";
 import { Pool } from "pg";
 import config from "#/config/psql.json" with { type: "json" };
-import sqlite3 from "sqlite3";
 
 const pool = new Pool({
 	user: config.user,
@@ -11,30 +10,46 @@ const pool = new Pool({
 	password: config.password,
 });
 
+export type LocalDatabase = BetterSqlite3.Database;
+export type LocalBindParameters = unknown[];
+export type LocalRow = BetterSqlite3.RunResult;
+
 export class SQL extends Service {
 	name = "SQL";
-	database!: Database;
+	database!: LocalDatabase;
 
 	async init(): Promise<void> {
-		this.database = await open({
-			driver: sqlite3.Database,
-			filename: process.env.METACONCORD_DB_PATH ?? "metaconcord.db",
-		});
-
-		await this.database.exec("PRAGMA journal_mode=WAL;");
-		await this.database.exec("PRAGMA busy_timeout=5000;");
+		this.database = new BetterSqlite3(process.env.METACONCORD_DB_PATH ?? "metaconcord.db");
+		this.database.pragma("journal_mode = WAL");
+		this.database.pragma("busy_timeout = 5000");
 	}
 
-	getLocalDatabase(): Database {
+	getLocalDatabase(): LocalDatabase {
 		return this.database;
+	}
+
+	execLocal(sql: string): void {
+		this.database.exec(sql);
+	}
+
+	getLocal<T>(query: string, ...params: LocalBindParameters): T | undefined {
+		return this.database.prepare(query).get(...params) as T | undefined;
+	}
+
+	allLocal<T>(query: string, ...params: LocalBindParameters): T[] {
+		return this.database.prepare(query).all(...params) as T[];
+	}
+
+	runLocal(query: string, ...params: LocalBindParameters): LocalRow {
+		return this.database.prepare(query).run(...params);
 	}
 
 	public async queryPool(query: string, values?: unknown[]) {
 		return (await pool.query(query, values)).rows;
 	}
 
-	public async tableExists(tableName: string): Promise<boolean> {
-		const result = await this.database.get(
+	public tableExists(tableName: string): boolean {
+		const result = this.getLocal<{ name: string }>(
 			"SELECT name FROM sqlite_master WHERE type='table' AND name=?;",
 			tableName
 		);

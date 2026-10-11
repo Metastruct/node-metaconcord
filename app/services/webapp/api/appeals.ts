@@ -130,13 +130,13 @@ export default (webApp: WebApp): void => {
 	});
 	const messagesCache = new Map<string, { at: number; messages: AppealMessage[] }>();
 
-	let tableReady: Promise<void> | undefined;
+	let tableReady = false;
 	const db = async () => {
 		const database = sql?.getLocalDatabase();
 		if (!database) throw new ServiceNotEnabledError("SQL");
-		tableReady ??= database
-			.exec(
-				`CREATE TABLE IF NOT EXISTS appeals (
+		if (!tableReady) {
+			database.exec(`
+				CREATE TABLE IF NOT EXISTS appeals (
 					id INTEGER PRIMARY KEY AUTOINCREMENT,
 					steam_id64 TEXT NOT NULL,
 					banned_at INTEGER NOT NULL,
@@ -148,14 +148,13 @@ export default (webApp: WebApp): void => {
 				);
 				CREATE INDEX IF NOT EXISTS appeals_steam ON appeals(steam_id64);
 				CREATE UNIQUE INDEX IF NOT EXISTS appeals_open
-					ON appeals(steam_id64, banned_at) WHERE closed_at IS NULL;`
-			)
-			// tables created before the buttons existed lack the column
-			.then(() =>
-				database.exec("ALTER TABLE appeals ADD COLUMN resolution TEXT;").catch(() => {})
-			)
-			.then(() => undefined);
-		await tableReady;
+					ON appeals(steam_id64, banned_at) WHERE closed_at IS NULL;
+			`);
+			try {
+				database.exec("ALTER TABLE appeals ADD COLUMN resolution TEXT;");
+			} catch {}
+			tableReady = true;
+		}
 		return database;
 	};
 
@@ -175,49 +174,44 @@ export default (webApp: WebApp): void => {
 	};
 
 	const openAppeal = async (steamId64: string): Promise<AppealRow | undefined> =>
-		(await db()).get<AppealRow>(
-			"SELECT * FROM appeals WHERE steam_id64 = ? AND closed_at IS NULL ORDER BY id DESC LIMIT 1;",
-			steamId64
-		);
+		(await db())
+			.prepare<[string], AppealRow>("SELECT * FROM appeals WHERE steam_id64 = ? AND closed_at IS NULL ORDER BY id DESC LIMIT 1;")
+			.get(steamId64);
 
 	const closeAppeals = async (
 		steamId64: string,
 		resolution?: AppealRow["resolution"]
 	): Promise<void> => {
-		await (
-			await db()
-		).run(
-			"UPDATE appeals SET closed_at = ?, resolution = ? WHERE steam_id64 = ? AND closed_at IS NULL;",
-			Math.round(Date.now() / 1000),
-			resolution ?? null,
-			steamId64
-		);
+		(await db())
+			.prepare("UPDATE appeals SET closed_at = ?, resolution = ? WHERE steam_id64 = ? AND closed_at IS NULL;")
+			.run(
+				Math.round(Date.now() / 1000),
+				resolution ?? null,
+				steamId64
+			);
 	};
 
 	const closeAppealRow = async (
 		id: number,
 		resolution?: AppealRow["resolution"]
 	): Promise<void> => {
-		await (
-			await db()
-		).run(
-			"UPDATE appeals SET closed_at = ?, resolution = ? WHERE id = ? AND closed_at IS NULL;",
-			Math.round(Date.now() / 1000),
-			resolution ?? null,
-			id
-		);
+		(await db())
+			.prepare("UPDATE appeals SET closed_at = ?, resolution = ? WHERE id = ? AND closed_at IS NULL;")
+			.run(
+				Math.round(Date.now() / 1000),
+				resolution ?? null,
+				id
+			);
 	};
 
 	const rowById = async (id: number): Promise<AppealRow | undefined> =>
-		(await db()).get<AppealRow>("SELECT * FROM appeals WHERE id = ?;", id);
+		(await db()).prepare<[number], AppealRow>("SELECT * FROM appeals WHERE id = ?;").get(id);
 
 	/** The most recent appeal for one specific ban, open or resolved. */
 	const rowForBan = async (steamId64: string, bannedAt: number): Promise<AppealRow | undefined> =>
-		(await db()).get<AppealRow>(
-			"SELECT * FROM appeals WHERE steam_id64 = ? AND banned_at = ? ORDER BY id DESC LIMIT 1;",
-			steamId64,
-			bannedAt
-		);
+		(await db())
+			.prepare<[string, number], AppealRow>("SELECT * FROM appeals WHERE steam_id64 = ? AND banned_at = ? ORDER BY id DESC LIMIT 1;")
+			.get(steamId64, bannedAt);
 
 	/** The appeal thread, or "gone" when it was deleted on the Discord side. */
 	const fetchThread = async (
@@ -396,19 +390,14 @@ export default (webApp: WebApp): void => {
 		}
 
 		const createdAt = Math.round(Date.now() / 1000);
-		const inserted = await (
-			await db()
-		).run(
-			"INSERT INTO appeals (steam_id64, banned_at, thread_id, message_id, created_at) VALUES (?, ?, ?, ?, ?);",
-			session.steamId64,
-			ban.whenbanned,
-			thread.id,
-			starterId,
-			createdAt
-		);
+		const inserted = (await db())
+			.prepare(
+				"INSERT INTO appeals (steam_id64, banned_at, thread_id, message_id, created_at) VALUES (?, ?, ?, ?, ?);"
+			)
+			.run(session.steamId64, ban.whenbanned, thread.id, starterId, createdAt);
 
 		log.info(`${session.steamId64} (${name}) appealed their ban, thread ${thread.id}`);
-		res.status(201).json({ status: "appealed", appeal: { id: inserted.lastID, createdAt } });
+		res.status(201).json({ status: "appealed", appeal: { id: inserted.lastInsertRowid, createdAt } });
 	});
 
 	/**
@@ -583,16 +572,14 @@ export default (webApp: WebApp): void => {
 	};
 
 	const openAppealByThread = async (threadId: string): Promise<AppealRow | undefined> =>
-		(await db()).get<AppealRow>(
-			"SELECT * FROM appeals WHERE thread_id = ? AND closed_at IS NULL LIMIT 1;",
-			threadId
-		);
+		(await db())
+			.prepare<[string], AppealRow>("SELECT * FROM appeals WHERE thread_id = ? AND closed_at IS NULL LIMIT 1;")
+			.get(threadId);
 
 	const openAppealByMessage = async (messageId: string): Promise<AppealRow | undefined> =>
-		(await db()).get<AppealRow>(
-			"SELECT * FROM appeals WHERE message_id = ? AND closed_at IS NULL LIMIT 1;",
-			messageId
-		);
+		(await db())
+			.prepare<[string], AppealRow>("SELECT * FROM appeals WHERE message_id = ? AND closed_at IS NULL LIMIT 1;")
+			.get(messageId);
 
 	const settleStarter = async (
 		row: AppealRow,

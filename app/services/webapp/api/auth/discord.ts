@@ -98,7 +98,7 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 		if (!res) return false;
 	}
 
-	await sql.getLocalDatabase().run("DELETE FROM discord_tokens WHERE access_token = ?", token);
+	sql.getLocalDatabase().prepare("DELETE FROM discord_tokens WHERE access_token = ?").run(token);
 
 	return true;
 };
@@ -205,9 +205,10 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.sendStatus(403);
 			return;
 		}
-		const entries = await sql
+		const entries = sql
 			.getLocalDatabase()
-			.all<LocalDatabaseEntry[]>("SELECT access_token FROM discord_tokens");
+			.prepare<[], LocalDatabaseEntry>("SELECT access_token FROM discord_tokens")
+			.all();
 		if (!entries || entries.length === 0) {
 			res.status(404).send("no data");
 			return;
@@ -223,9 +224,10 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.sendStatus(403);
 			return;
 		}
-		const entries = await sql
+		const entries = sql
 			.getLocalDatabase()
-			.all<LocalDatabaseEntry[]>("SELECT user_id FROM discord_tokens");
+			.prepare<[], LocalDatabaseEntry>("SELECT user_id FROM discord_tokens")
+			.all();
 		for (const entry of entries ?? []) {
 			await metadata().update(entry.user_id);
 		}
@@ -297,18 +299,17 @@ export default async (webApp: WebApp): Promise<void> => {
 			setSessionCookie(res, account);
 
 			const db = sql.getLocalDatabase();
-			await db.exec(
+			db.exec(
 				"CREATE TABLE IF NOT EXISTS discord_tokens (user_id VARCHAR(255) PRIMARY KEY, steam_id VARCHAR(255), access_token VARCHAR(255), refresh_token VARCHAR(255), expires_at DATETIME)"
 			);
-			await db.run(
-				"INSERT INTO discord_tokens (user_id, access_token, refresh_token, expires_at) VALUES($user_id, $access_token, $refresh_token, $expires_at) ON CONFLICT (user_id) DO UPDATE SET access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at",
-				{
-					$user_id: user.id,
-					$access_token: tokens.access_token,
-					$refresh_token: tokens.refresh_token,
-					$expires_at: Date.now() + tokens.expires_in * 1000,
-				}
-			);
+			db.prepare(
+				"INSERT INTO discord_tokens (user_id, access_token, refresh_token, expires_at) VALUES($user_id, $access_token, $refresh_token, $expires_at) ON CONFLICT (user_id) DO UPDATE SET access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at"
+			).run({
+				$user_id: user.id,
+				$access_token: tokens.access_token,
+				$refresh_token: tokens.refresh_token,
+				$expires_at: Date.now() + tokens.expires_in * 1000,
+			});
 
 			// needs a Steam link on the account, the profile page says so when it is missing
 			await metadata()

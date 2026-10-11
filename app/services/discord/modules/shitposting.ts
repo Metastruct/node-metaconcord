@@ -105,9 +105,7 @@ export const Shat = async (options?: {
 			try {
 				const db = globalThis.MetaConcord.container.getService("SQL").getLocalDatabase();
 
-				const url = (await db.get("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1"))
-					.url;
-
+				const url = db.prepare<[], { url: string } | undefined>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1").get()?.url;
 				return { content: url ?? "wtf" };
 			} catch {
 				return { content: "wtf" };
@@ -367,7 +365,7 @@ export default async (bot: DiscordBot) => {
 				message
 					.delete()
 					.then(() => {
-						db.run("DELETE FROM media_urls WHERE url = ?", url);
+						db.prepare("DELETE FROM media_urls WHERE url = ?").run(url);
 					})
 					.catch(() => {}); // if it doesn't exist, who cares could be an external link too
 			}
@@ -484,7 +482,7 @@ export default async (bot: DiscordBot) => {
 		if (msg.content.startsWith("http") && !isBot && !isHidden) {
 			const url = getMediaUrl(msg.content);
 			if (url)
-				db.run("INSERT INTO media_urls VALUES($url) ON CONFLICT DO NOTHING", {
+				db.prepare("INSERT INTO media_urls VALUES($url) ON CONFLICT DO NOTHING").run({
 					$url: url,
 				});
 		}

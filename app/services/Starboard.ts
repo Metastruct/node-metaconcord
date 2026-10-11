@@ -23,7 +23,7 @@ export class Starboard extends Service {
 		this.sql = this.container.getService("SQL");
 		this.bot = this.container.getService("DiscordBot");
 		const db = this.sql.getLocalDatabase();
-		await db.exec("CREATE TABLE IF NOT EXISTS starboard (MessageId INTEGER PRIMARY KEY);");
+		db.exec("CREATE TABLE IF NOT EXISTS starboard (MessageId INTEGER PRIMARY KEY);");
 
 		const filter = (btn: Discord.MessageComponentInteraction) =>
 			btn.customId.startsWith("starboard");
@@ -55,13 +55,13 @@ export class Starboard extends Service {
 
 	async isMsgStarred(msgId: string): Promise<boolean> {
 		const db = this.sql.getLocalDatabase();
-		const res = await db.get("SELECT 1 FROM starboard WHERE MessageId = ? LIMIT 1;", msgId);
+		const res = db.prepare("SELECT 1 FROM starboard WHERE MessageId = ? LIMIT 1;").get(msgId);
 		return res != null;
 	}
 
 	private async starMsg(msgId: string): Promise<void> {
 		const db = this.sql.getLocalDatabase();
-		await db.run("INSERT OR IGNORE INTO starboard(MessageId) VALUES(?)", msgId);
+		db.prepare("INSERT OR IGNORE INTO starboard(MessageId) VALUES(?)").run(msgId);
 	}
 
 	public async handleReactionAdded(reaction: Discord.MessageReaction): Promise<void> {

@@ -33,7 +33,7 @@ export const SlashManageMediaLinks: SlashCommand = {
 					ctx.followUp(EphemeralResponse("Could not get the DB :("));
 					return;
 				}
-				const result = await db.run("DELETE FROM media_urls WHERE url = ?", url);
+				const result = db.prepare("DELETE FROM media_urls WHERE url = ?").run(url);
 				await ctx.followUp(
 					EphemeralResponse(
 						result?.changes !== undefined && result?.changes > 0 // wtf can this not be a oneliner without checking for undefined explicitly somehow?
@@ -94,7 +94,7 @@ export const MenuManageMediaLinksCommand: MenuCommand = {
 			ctx.followUp(EphemeralResponse("Could not get the DB :("));
 			return;
 		}
-		const result = await db.run("DELETE FROM media_urls WHERE url = ?", text);
+		const result = db.prepare("DELETE FROM media_urls WHERE url = ?").run(text);
 		await msg.delete();
 		await ctx.followUp(
 			EphemeralResponse(

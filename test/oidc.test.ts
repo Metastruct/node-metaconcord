@@ -81,23 +81,24 @@ const sessionCookie = (accountId: number): string => {
 /** Forges a provider session naming a (possibly deleted) account. */
 const providerSession = async (accountId: number, value: string): Promise<void> => {
 	const sql = container.getService("SQL") as SQL;
-	await sql.database.run(
-		"INSERT INTO oidc_tokens (id, grant_id, payload) VALUES (?, ?, ?)",
-		value,
-		null,
-		JSON.stringify({
-			payload: {
-				// jti must match the row id, like a provider-saved session: without
-				// it the model fabricates a new id and the reset lands on another row
-				jti: value,
-				iat: Math.floor(Date.now() / 1000),
-				exp: Math.floor(Date.now() / 1000) + 3600,
-				authorizations: {},
-				accountId: String(accountId),
-				uid: `uid-${accountId}`,
-			},
-		})
-	);
+	sql.database
+		.prepare("INSERT INTO oidc_tokens (id, grant_id, payload) VALUES (?, ?, ?)")
+		.run(
+			value,
+			null,
+			JSON.stringify({
+				payload: {
+					// jti must match the row id, like a provider-saved session: without
+					// it the model fabricates a new id and the reset lands on another row
+					jti: value,
+					iat: Math.floor(Date.now() / 1000),
+					exp: Math.floor(Date.now() / 1000) + 3600,
+					authorizations: {},
+					accountId: String(accountId),
+					uid: `uid-${accountId}`,
+				},
+			})
+		);
 };
 
 const client = { ...OIDCConfig.clients[0] };
@@ -292,7 +293,7 @@ async function main(): Promise<void> {
 		check("code replay rejected", replay.error === "invalid_grant", JSON.stringify(replay));
 
 		// 5. adapter round trip: the interaction and grant landed in sqlite
-		const rows = (await sql.database.all("SELECT id FROM oidc_tokens;")) as { id: string }[];
+		const rows = sql.database.prepare("SELECT id FROM oidc_tokens;").all() as { id: string }[];
 		check("adapter persisted state", rows.length >= 2, `${rows.length} rows`);
 
 		// 6. an account without a verified email gets the "needs email" picker
@@ -358,7 +359,7 @@ async function main(): Promise<void> {
 			`status ${shadowed.status}: ${shadowedLocation}`
 		);
 	} finally {
-		await sql.database.close();
+		sql.database.close();
 		(container.getService("WebApp") as WebApp).http.close();
 	}
 

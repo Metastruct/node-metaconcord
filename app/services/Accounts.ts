@@ -767,9 +767,9 @@ export class Accounts extends Service {
 	private async migrateDiscordTokens(): Promise<void> {
 		const db = this.sql.getLocalDatabase();
 		if (!(await this.sql.tableExists("discord_tokens"))) return;
-		const rows = await db.all<{ user_id: string; steam_id: string | null }[]>(
-			"SELECT user_id, steam_id FROM discord_tokens"
-		);
+		const rows = db
+			.prepare<[], { user_id: string; steam_id: string | null }>("SELECT user_id, steam_id FROM discord_tokens")
+			.all();
 		let created = 0;
 		for (const row of rows) {
 			if (await this.linkFor("discord", row.user_id)) continue;

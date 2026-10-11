@@ -1,7 +1,7 @@
 // thank u mr swadical https://github.com/SwadicalRag/node-markov-lite
 import { logger } from "#/utils.js";
 import { Container, Service } from "../Container.js";
-import { Database } from "sqlite";
+import type { LocalDatabase } from "./SQL.js";
 
 const log = logger(import.meta);
 
@@ -158,29 +158,30 @@ abstract class MarkovChainBase {
 }
 
 class MarkovChain extends MarkovChainBase {
-	private db: Database;
+	private db: LocalDatabase;
 
-	constructor(db: Database) {
+	constructor(db: LocalDatabase) {
 		super();
 		this.db = db;
 	}
 
 	async ready(): Promise<void> {
-		await this.db.run("CREATE TABLE IF NOT EXISTS markov (`message` VARCHAR(255));");
+		this.db.exec("CREATE TABLE IF NOT EXISTS markov (`message` VARCHAR(255));");
 	}
 
 	async learn(data: string): Promise<void> {
 		data = data.trim().replace(/\s+/g, " ");
-		await this.db.run("INSERT INTO markov VALUES (?)", [data]);
+		this.db.prepare("INSERT INTO markov VALUES (?)").run(data);
 	}
 
 	async sampleWords(limit = 5000): Promise<Map<number, string[]>> {
-		const rows = await this.db.all<{ message: string }[]>(
-			`SELECT message FROM markov WHERE rowid >= (
-       SELECT ABS(RANDOM()) % MAX(rowid) + 1 FROM markov
-     ) LIMIT ?`,
-			[limit]
-		);
+		const rows = this.db
+			.prepare<[number], { message: string }>(
+				`SELECT message FROM markov WHERE rowid >= (
+			    SELECT ABS(RANDOM()) % MAX(rowid) + 1 FROM markov
+			  ) LIMIT ?`
+			)
+			.all(limit);
 		const wordsByLength = new Map<number, string[]>();
 		for (const row of rows) {
 			for (const w of row.message.toLowerCase().split(/\s+/)) {
@@ -200,16 +201,17 @@ class MarkovChain extends MarkovChainBase {
 		const sentence = chain.join(" ");
 
 		if (sentence.trim() === "") {
-			const res = await this.db.get<{ message: string }>(
-				"SELECT * FROM markov ORDER BY RANDOM() LIMIT 1"
-			);
+			const res = this.db
+				.prepare<[], { message: string }>("SELECT * FROM markov ORDER BY RANDOM() LIMIT 1")
+				.get();
 			return res?.message ?? null;
 		}
 
-		const resArr = await this.db.all<{ message: string }[]>(
-			"SELECT * FROM markov WHERE (message LIKE ? OR message LIKE ?) ORDER BY RANDOM() LIMIT 1",
-			[`_% ${sentence} %_`, `${sentence} %_`]
-		);
+		const resArr = this.db
+			.prepare<[string, string], { message: string }>(
+				"SELECT * FROM markov WHERE (message LIKE ? OR message LIKE ?) ORDER BY RANDOM() LIMIT 1"
+			)
+			.all(`_% ${sentence} %_`, `${sentence} %_`);
 		for (const res of resArr) {
 			if (!res.message.endsWith(sentence)) {
 				return res.message;

@@ -359,21 +359,17 @@ export class Fluxer extends Service {
 		const database = this.sql.getLocalDatabase();
 		const code = randomBytes(4).toString("hex").toUpperCase();
 		const expiresAt = Date.now() + 10 * 60 * 1000;
-		await database.run(
-			"DELETE FROM fluxer_link_codes WHERE discord_user_id = ?",
-			discordUserId
-		);
-		await database.run(
-			"INSERT INTO fluxer_link_codes (code, discord_user_id, expires_at_ms) VALUES (?, ?, ?)",
-			code,
-			discordUserId,
-			expiresAt
-		);
+		database
+			.prepare("DELETE FROM fluxer_link_codes WHERE discord_user_id = ?")
+			.run(discordUserId);
+		database
+			.prepare("INSERT INTO fluxer_link_codes (code, discord_user_id, expires_at_ms) VALUES (?, ?, ?)")
+			.run(code, discordUserId, expiresAt);
 		return { code, expiresAt };
 	}
 
 	private async initializeSchema() {
-		await this.sql.getLocalDatabase().exec(`
+		this.sql.getLocalDatabase().exec(`
 			CREATE TABLE IF NOT EXISTS fluxer_channel_mappings (
 				discord_channel_id TEXT PRIMARY KEY,
 				fluxer_channel_id TEXT NOT NULL UNIQUE,
@@ -434,15 +430,13 @@ export class Fluxer extends Service {
 
 	private async loadMappings() {
 		const database = this.sql.getLocalDatabase();
-		const channelRows = await database.all<
-			{
-				discord_channel_id: string;
-				fluxer_channel_id: string;
-				discord_parent_id: string | null;
-				channel_kind: string;
-				relay_enabled: number;
-			}[]
-		>("SELECT * FROM fluxer_channel_mappings");
+		const channelRows = database.prepare<[], {
+			discord_channel_id: string;
+			fluxer_channel_id: string;
+			discord_parent_id: string | null;
+			channel_kind: string;
+			relay_enabled: number;
+		}>("SELECT * FROM fluxer_channel_mappings").all();
 		for (const row of channelRows) {
 			const route: ChannelRoute = {
 				discordChannelId: row.discord_channel_id,
@@ -454,34 +448,34 @@ export class Fluxer extends Service {
 			this.routesByDiscord.set(route.discordChannelId, route);
 			this.routesByFluxer.set(route.fluxerChannelId, route);
 		}
-		const roleRows = await database.all<{ discord_role_id: string; fluxer_role_id: string }[]>(
-			"SELECT discord_role_id, fluxer_role_id FROM fluxer_role_mappings"
-		);
+		const roleRows = database
+			.prepare<[], { discord_role_id: string; fluxer_role_id: string }>("SELECT discord_role_id, fluxer_role_id FROM fluxer_role_mappings")
+			.all();
 		for (const row of roleRows) {
 			this.fluxerRolesByDiscord.set(row.discord_role_id, row.fluxer_role_id);
 			this.discordRolesByFluxer.set(row.fluxer_role_id, row.discord_role_id);
 		}
-		const userRows = await database.all<{ discord_user_id: string; fluxer_user_id: string }[]>(
-			"SELECT discord_user_id, fluxer_user_id FROM fluxer_user_links"
-		);
+		const userRows = database
+			.prepare<[], { discord_user_id: string; fluxer_user_id: string }>("SELECT discord_user_id, fluxer_user_id FROM fluxer_user_links")
+			.all();
 		for (const row of userRows) {
 			this.fluxerUsersByDiscord.set(row.discord_user_id, row.fluxer_user_id);
 			this.discordUsersByFluxer.set(row.fluxer_user_id, row.discord_user_id);
 		}
-		const emojiRows = await database.all<
-			{ discord_emoji_id: string; fluxer_emoji_id: string }[]
-		>("SELECT discord_emoji_id, fluxer_emoji_id FROM fluxer_emoji_mappings");
+		const emojiRows = database
+			.prepare<[], { discord_emoji_id: string; fluxer_emoji_id: string }>("SELECT discord_emoji_id, fluxer_emoji_id FROM fluxer_emoji_mappings")
+			.all();
 		for (const row of emojiRows) {
 			this.emojiFluxerByDiscord.set(row.discord_emoji_id, row.fluxer_emoji_id);
 			this.emojiDiscordByFluxer.set(row.fluxer_emoji_id, row.discord_emoji_id);
 		}
-		const stickerRows = await database.all<
-			{ discord_sticker_id: string; fluxer_sticker_id: string }[]
-		>("SELECT discord_sticker_id, fluxer_sticker_id FROM fluxer_sticker_mappings");
+		const stickerRows = database
+			.prepare<[], { discord_sticker_id: string; fluxer_sticker_id: string }>("SELECT discord_sticker_id, fluxer_sticker_id FROM fluxer_sticker_mappings")
+			.all();
 		for (const row of stickerRows) {
 			this.stickerFluxerByDiscord.set(row.discord_sticker_id, row.fluxer_sticker_id);
 		}
-		const threadRows = await database.all<ThreadLink[]>("SELECT * FROM fluxer_thread_links");
+		const threadRows = database.prepare<[], ThreadLink>("SELECT * FROM fluxer_thread_links").all();
 		for (const row of threadRows) {
 			this.threadLinksByDiscord.set(row.discord_thread_id, row);
 			this.threadLinksByFluxer.set(row.fluxer_thread_id, row);
@@ -490,67 +484,72 @@ export class Fluxer extends Service {
 
 	private async seedMappings() {
 		const database = this.sql.getLocalDatabase();
-		await database.exec("BEGIN IMMEDIATE");
+		database.exec("BEGIN IMMEDIATE");
 		try {
 			const updatedAt = Date.now();
-			await database.run("DELETE FROM fluxer_channel_mappings");
+			database.prepare("DELETE FROM fluxer_channel_mappings").run();
 			for (const route of mappingSeed.channels) {
-				await database.run(
-					`INSERT INTO fluxer_channel_mappings
-						(discord_channel_id, fluxer_channel_id, discord_parent_id, channel_kind, relay_enabled, updated_at_ms)
-					 VALUES (?, ?, ?, ?, ?, ?)
-					 ON CONFLICT(discord_channel_id) DO UPDATE SET
-						fluxer_channel_id = excluded.fluxer_channel_id,
-						discord_parent_id = excluded.discord_parent_id,
-						channel_kind = excluded.channel_kind,
-						relay_enabled = excluded.relay_enabled,
-						updated_at_ms = excluded.updated_at_ms`,
-					route.discordChannelId,
-					route.fluxerChannelId,
-					route.discordParentId,
-					route.channelKind,
-					route.relayEnabled ? 1 : 0,
-					updatedAt
-				);
+				database
+					.prepare(
+						`INSERT INTO fluxer_channel_mappings
+							(discord_channel_id, fluxer_channel_id, discord_parent_id, channel_kind, relay_enabled, updated_at_ms)
+						 VALUES (?, ?, ?, ?, ?, ?)
+						 ON CONFLICT(discord_channel_id) DO UPDATE SET
+							fluxer_channel_id = excluded.fluxer_channel_id,
+							discord_parent_id = excluded.discord_parent_id,
+							channel_kind = excluded.channel_kind,
+							relay_enabled = excluded.relay_enabled,
+							updated_at_ms = excluded.updated_at_ms`
+					)
+					.run(
+						route.discordChannelId,
+						route.fluxerChannelId,
+						route.discordParentId,
+						route.channelKind,
+						route.relayEnabled ? 1 : 0,
+						updatedAt
+					);
 			}
-			await database.run("DELETE FROM fluxer_role_mappings");
+			database.prepare("DELETE FROM fluxer_role_mappings").run();
 			for (const role of mappingSeed.roles) {
-				await database.run(
-					`INSERT INTO fluxer_role_mappings (discord_role_id, fluxer_role_id, updated_at_ms)
-					 VALUES (?, ?, ?)
-					 ON CONFLICT(discord_role_id) DO UPDATE SET
-						fluxer_role_id = excluded.fluxer_role_id,
-						updated_at_ms = excluded.updated_at_ms`,
-					role.discordRoleId,
-					role.fluxerRoleId,
-					updatedAt
-				);
+				database
+					.prepare(
+						`INSERT INTO fluxer_role_mappings (discord_role_id, fluxer_role_id, updated_at_ms)
+						 VALUES (?, ?, ?)
+						 ON CONFLICT(discord_role_id) DO UPDATE SET
+							fluxer_role_id = excluded.fluxer_role_id,
+							updated_at_ms = excluded.updated_at_ms`
+					)
+					.run(role.discordRoleId, role.fluxerRoleId, updatedAt);
 			}
 			// Seed mirror-created threads without dropping runtime-created links.
 			for (const thread of mappingSeed.threads as SeedThread[]) {
-				await database.run(
-					`INSERT INTO fluxer_thread_links
-						(discord_thread_id, fluxer_thread_id, discord_parent_id, fluxer_parent_id, channel_kind, relay_enabled, updated_at_ms)
-					 VALUES (?, ?, ?, ?, ?, ?, ?)
-					 ON CONFLICT(discord_thread_id) DO UPDATE SET
-						fluxer_thread_id = excluded.fluxer_thread_id,
-						discord_parent_id = excluded.discord_parent_id,
-						fluxer_parent_id = excluded.fluxer_parent_id,
-						channel_kind = excluded.channel_kind,
-						relay_enabled = excluded.relay_enabled,
-						updated_at_ms = excluded.updated_at_ms`,
-					thread.discordThreadId,
-					thread.fluxerThreadId,
-					thread.discordParentId,
-					thread.fluxerParentId,
-					thread.channelKind,
-					thread.relayEnabled ? 1 : 0,
-					updatedAt
-				);
+				database
+					.prepare(
+						`INSERT INTO fluxer_thread_links
+							(discord_thread_id, fluxer_thread_id, discord_parent_id, fluxer_parent_id, channel_kind, relay_enabled, updated_at_ms)
+						 VALUES (?, ?, ?, ?, ?, ?, ?)
+						 ON CONFLICT(discord_thread_id) DO UPDATE SET
+							fluxer_thread_id = excluded.fluxer_thread_id,
+							discord_parent_id = excluded.discord_parent_id,
+							fluxer_parent_id = excluded.fluxer_parent_id,
+							channel_kind = excluded.channel_kind,
+							relay_enabled = excluded.relay_enabled,
+							updated_at_ms = excluded.updated_at_ms`
+					)
+					.run(
+						thread.discordThreadId,
+						thread.fluxerThreadId,
+						thread.discordParentId,
+						thread.fluxerParentId,
+						thread.channelKind,
+						thread.relayEnabled ? 1 : 0,
+						updatedAt
+					);
 			}
-			await database.exec("COMMIT");
+			database.exec("COMMIT");
 		} catch (error) {
-			await database.exec("ROLLBACK");
+			database.exec("ROLLBACK");
 			throw error;
 		}
 	}
@@ -677,36 +676,38 @@ export class Fluxer extends Service {
 	private async saveThreadLink(link: ThreadLink) {
 		this.threadLinksByDiscord.set(link.discord_thread_id, link);
 		this.threadLinksByFluxer.set(link.fluxer_thread_id, link);
-		await this.sql.getLocalDatabase().run(
-			`INSERT INTO fluxer_thread_links
-				(discord_thread_id, fluxer_thread_id, discord_parent_id, fluxer_parent_id, channel_kind, relay_enabled, updated_at_ms)
-			 VALUES (?, ?, ?, ?, ?, ?, ?)
-			 ON CONFLICT(discord_thread_id) DO UPDATE SET
-				fluxer_thread_id = excluded.fluxer_thread_id,
-				discord_parent_id = excluded.discord_parent_id,
-				fluxer_parent_id = excluded.fluxer_parent_id,
-				channel_kind = excluded.channel_kind,
-				relay_enabled = excluded.relay_enabled,
-				updated_at_ms = excluded.updated_at_ms`,
-			link.discord_thread_id,
-			link.fluxer_thread_id,
-			link.discord_parent_id,
-			link.fluxer_parent_id,
-			link.channel_kind,
-			link.relay_enabled,
-			Date.now()
-		);
+		this.sql
+			.getLocalDatabase()
+			.prepare(
+				`INSERT INTO fluxer_thread_links
+					(discord_thread_id, fluxer_thread_id, discord_parent_id, fluxer_parent_id, channel_kind, relay_enabled, updated_at_ms)
+				 VALUES (?, ?, ?, ?, ?, ?, ?)
+				 ON CONFLICT(discord_thread_id) DO UPDATE SET
+					fluxer_thread_id = excluded.fluxer_thread_id,
+					discord_parent_id = excluded.discord_parent_id,
+					fluxer_parent_id = excluded.fluxer_parent_id,
+					channel_kind = excluded.channel_kind,
+					relay_enabled = excluded.relay_enabled,
+					updated_at_ms = excluded.updated_at_ms`
+			)
+			.run(
+				link.discord_thread_id,
+				link.fluxer_thread_id,
+				link.discord_parent_id,
+				link.fluxer_parent_id,
+				link.channel_kind,
+				link.relay_enabled,
+				Date.now()
+			);
 	}
 
 	private async deleteThreadLink(link: ThreadLink) {
 		this.threadLinksByDiscord.delete(link.discord_thread_id);
 		this.threadLinksByFluxer.delete(link.fluxer_thread_id);
-		await this.sql
+		this.sql
 			.getLocalDatabase()
-			.run(
-				"DELETE FROM fluxer_thread_links WHERE discord_thread_id = ?",
-				link.discord_thread_id
-			);
+			.prepare("DELETE FROM fluxer_thread_links WHERE discord_thread_id = ?")
+			.run(link.discord_thread_id);
 	}
 
 	private async fetchFluxerChannel(channelId: string) {
@@ -1960,31 +1961,28 @@ export class Fluxer extends Service {
 		let code: { discord_user_id: string } | undefined;
 		let previousFluxerUser: string | undefined;
 		let previousDiscordUser: string | undefined;
-		await database.exec("BEGIN IMMEDIATE");
+		database.exec("BEGIN IMMEDIATE");
 		try {
-			code = await database.get<{ discord_user_id: string }>(
-				"DELETE FROM fluxer_link_codes WHERE code = ? AND expires_at_ms > ? RETURNING discord_user_id",
-				match[1].toUpperCase(),
-				Date.now()
-			);
+			code = database
+				.prepare(
+					"DELETE FROM fluxer_link_codes WHERE code = ? AND expires_at_ms > ? RETURNING discord_user_id"
+				)
+				.get(match[1].toUpperCase(), Date.now()) as { discord_user_id: string } | undefined;
 			if (code) {
 				previousFluxerUser = this.fluxerUsersByDiscord.get(code.discord_user_id);
 				previousDiscordUser = this.discordUsersByFluxer.get(message.author.id);
-				await database.run(
-					"DELETE FROM fluxer_user_links WHERE discord_user_id = ? OR fluxer_user_id = ?",
-					code.discord_user_id,
-					message.author.id
-				);
-				await database.run(
-					"INSERT INTO fluxer_user_links (discord_user_id, fluxer_user_id, created_at_ms) VALUES (?, ?, ?)",
-					code.discord_user_id,
-					message.author.id,
-					Date.now()
-				);
+				database
+					.prepare("DELETE FROM fluxer_user_links WHERE discord_user_id = ? OR fluxer_user_id = ?")
+					.run(code.discord_user_id, message.author.id);
+				database
+					.prepare(
+						"INSERT INTO fluxer_user_links (discord_user_id, fluxer_user_id, created_at_ms) VALUES (?, ?, ?)"
+					)
+					.run(code.discord_user_id, message.author.id, Date.now());
 			}
-			await database.exec("COMMIT");
+			database.exec("COMMIT");
 		} catch (error) {
-			await database.exec("ROLLBACK");
+			database.exec("ROLLBACK");
 			throw error;
 		}
 		if (code) {
@@ -2005,19 +2003,15 @@ export class Fluxer extends Service {
 	private async mappingByDiscordMessage(id: string) {
 		return this.sql
 			.getLocalDatabase()
-			.get<MessageMapping>(
-				"SELECT * FROM fluxer_message_mappings WHERE discord_message_id = ?",
-				id
-			);
+			.prepare<[string], MessageMapping>("SELECT * FROM fluxer_message_mappings WHERE discord_message_id = ?")
+			.get(id);
 	}
 
 	private async mappingByFluxerMessage(id: string) {
 		return this.sql
 			.getLocalDatabase()
-			.get<MessageMapping>(
-				"SELECT * FROM fluxer_message_mappings WHERE fluxer_message_id = ?",
-				id
-			);
+			.prepare<[string], MessageMapping>("SELECT * FROM fluxer_message_mappings WHERE fluxer_message_id = ?")
+			.get(id);
 	}
 
 	private async saveMessageMapping(
@@ -2026,26 +2020,28 @@ export class Fluxer extends Service {
 		route: ChannelRoute,
 		origin: "discord" | "fluxer"
 	) {
-		await this.sql.getLocalDatabase().run(
-			`INSERT OR IGNORE INTO fluxer_message_mappings
-				(discord_message_id, fluxer_message_id, discord_channel_id, fluxer_channel_id, origin, created_at_ms)
-			 VALUES (?, ?, ?, ?, ?, ?)`,
-			discordMessageId,
-			fluxerMessageId,
-			route.discordChannelId,
-			route.fluxerChannelId,
-			origin,
-			Date.now()
-		);
+		this.sql
+			.getLocalDatabase()
+			.prepare(
+				`INSERT OR IGNORE INTO fluxer_message_mappings
+					(discord_message_id, fluxer_message_id, discord_channel_id, fluxer_channel_id, origin, created_at_ms)
+				 VALUES (?, ?, ?, ?, ?, ?)`
+			)
+			.run(
+				discordMessageId,
+				fluxerMessageId,
+				route.discordChannelId,
+				route.fluxerChannelId,
+				origin,
+				Date.now()
+			);
 	}
 
 	private async deleteMessageMapping(mapping: MessageMapping) {
-		await this.sql
+		this.sql
 			.getLocalDatabase()
-			.run(
-				"DELETE FROM fluxer_message_mappings WHERE discord_message_id = ?",
-				mapping.discord_message_id
-			);
+			.prepare("DELETE FROM fluxer_message_mappings WHERE discord_message_id = ?")
+			.run(mapping.discord_message_id);
 	}
 
 	private suppress(set: Set<string>, id: string) {
