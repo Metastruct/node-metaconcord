@@ -14,17 +14,6 @@ const TOTAL_KEY = "total";
 const DELETED_KEY = "deleted";
 const STARTED_AT_KEY = "started_at";
 
-// Hack: Node typings don't include this yet, but Node actually supports it.
-declare global {
-	interface Date {
-	/**
-	 * The toTemporalInstant() method of Date instances returns a new Temporal.Instant object
-	 * with the same epochMilliseconds value as this date's timestamp.
-	 */
-		toTemporalInstant(): Temporal.Instant;
-	}
-}
-
 type Timestamp = Date | Temporal.Instant;
 type MessageFetchResult = Awaited<ReturnType<TextChannel["messages"]["fetch"]>>;
 type ProgressRow = {
