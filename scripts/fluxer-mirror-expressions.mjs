@@ -5,8 +5,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { open } from "sqlite";
-import sqlite3 from "sqlite3";
+import BetterSqlite3 from "better-sqlite3";
 
 const root = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
@@ -340,11 +339,11 @@ for (const dropped of stickerMappings.filter(
 		`dropping duplicate mapping for Fluxer sticker "${dropped.name}" (${dropped.fluxerStickerId})`
 	);
 }
-const database = await open({
-	driver: sqlite3.Database,
-	filename: process.env.METACONCORD_DB_PATH ?? resolve(root, "metaconcord.db"),
-});
-await database.exec(`
+const database = new BetterSqlite3(
+	process.env.METACONCORD_DB_PATH ?? resolve(root, "metaconcord.db")
+);
+
+database.exec(`
 	CREATE TABLE IF NOT EXISTS fluxer_emoji_mappings (
 		discord_emoji_id TEXT PRIMARY KEY,
 		fluxer_emoji_id TEXT NOT NULL UNIQUE,
@@ -359,40 +358,46 @@ await database.exec(`
 		updated_at_ms INTEGER NOT NULL
 	);
 `);
-await database.exec("BEGIN IMMEDIATE");
+database.exec("BEGIN IMMEDIATE");
 try {
 	const updatedAt = Date.now();
-	await database.run("DELETE FROM fluxer_emoji_mappings");
+	database.prepare("DELETE FROM fluxer_emoji_mappings").run();
 	for (const mapping of emojiMappingsByFluxer.values()) {
-		await database.run(
-			`INSERT INTO fluxer_emoji_mappings
-				(discord_emoji_id, fluxer_emoji_id, name, animated, updated_at_ms)
-			 VALUES (?, ?, ?, ?, ?)`,
-			mapping.discordEmojiId,
-			mapping.fluxerEmojiId,
-			mapping.name,
-			mapping.animated ? 1 : 0,
-			updatedAt
-		);
+		database
+			.prepare(
+				`INSERT INTO fluxer_emoji_mappings
+					(discord_emoji_id, fluxer_emoji_id, name, animated, updated_at_ms)
+				 VALUES (?, ?, ?, ?, ?)`
+			)
+			.run(
+				mapping.discordEmojiId,
+				mapping.fluxerEmojiId,
+				mapping.name,
+				mapping.animated ? 1 : 0,
+				updatedAt
+			);
 	}
-	await database.run("DELETE FROM fluxer_sticker_mappings");
+	database.prepare("DELETE FROM fluxer_sticker_mappings").run();
 	for (const mapping of stickerMappingsByFluxer.values()) {
-		await database.run(
-			`INSERT INTO fluxer_sticker_mappings
-				(discord_sticker_id, fluxer_sticker_id, name, updated_at_ms)
-			 VALUES (?, ?, ?, ?)`,
-			mapping.discordStickerId,
-			mapping.fluxerStickerId,
-			mapping.name,
-			updatedAt
-		);
+		database
+			.prepare(
+				`INSERT INTO fluxer_sticker_mappings
+					(discord_sticker_id, fluxer_sticker_id, name, updated_at_ms)
+				 VALUES (?, ?, ?, ?)`
+			)
+			.run(
+				mapping.discordStickerId,
+				mapping.fluxerStickerId,
+				mapping.name,
+				updatedAt
+			);
 	}
-	await database.exec("COMMIT");
+	database.exec("COMMIT");
 } catch (error) {
-	await database.exec("ROLLBACK");
+	database.exec("ROLLBACK");
 	throw error;
 } finally {
-	await database.close();
+	database.close();
 }
 step(
 	`persisted ${emojiMappingsByFluxer.size} emoji and ${stickerMappingsByFluxer.size} sticker mappings`

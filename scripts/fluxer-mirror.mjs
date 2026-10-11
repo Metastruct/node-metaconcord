@@ -5,8 +5,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { open } from "sqlite";
-import sqlite3 from "sqlite3";
+import BetterSqlite3 from "better-sqlite3";
 
 const root = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
@@ -398,9 +397,9 @@ const priorThreadByDiscord = new Map(
 // Merge runtime-created thread links from the bridge database so reruns reuse them.
 const databasePath = process.env.METACONCORD_DB_PATH ?? resolve(root, "metaconcord.db");
 try {
-	const existingDb = await open({ driver: sqlite3.Database, filename: databasePath });
-	const rows = await existingDb.all("SELECT * FROM fluxer_thread_links").catch(() => []);
-	await existingDb.close();
+	const existingDb = new BetterSqlite3(databasePath, { readonly: true });
+	const rows = existingDb.prepare("SELECT * FROM fluxer_thread_links").all();
+	existingDb.close();
 	for (const row of rows) {
 		if (priorThreadByDiscord.has(row.discord_thread_id)) continue;
 		priorThreadByDiscord.set(row.discord_thread_id, {
@@ -873,11 +872,9 @@ for (const [discordId, prior] of priorChannelByDiscord) {
 phase("Persisting bridge mappings");
 const bridgeChannelMappings = [];
 const bridgeRoleMappings = [];
-const database = await open({
-	driver: sqlite3.Database,
-	filename: databasePath,
-});
-await database.exec(`
+const database = new BetterSqlite3(databasePath);
+
+database.exec(`
 	CREATE TABLE IF NOT EXISTS fluxer_channel_mappings (
 		discord_channel_id TEXT PRIMARY KEY,
 		fluxer_channel_id TEXT NOT NULL UNIQUE,
@@ -901,10 +898,10 @@ await database.exec(`
 		updated_at_ms INTEGER NOT NULL
 	);
 `);
-await database.exec("BEGIN IMMEDIATE");
+database.exec("BEGIN IMMEDIATE");
 try {
 	const updatedAt = Date.now();
-	await database.run("DELETE FROM fluxer_channel_mappings");
+	database.prepare("DELETE FROM fluxer_channel_mappings").run();
 	for (const cat of catOrder) {
 		const mapping = {
 			discordChannelId: cat.id,
@@ -914,20 +911,19 @@ try {
 			relayEnabled: false,
 		};
 		bridgeChannelMappings.push(mapping);
-		await database.run(
-			`INSERT INTO fluxer_channel_mappings
-				(discord_channel_id, fluxer_channel_id, discord_parent_id, channel_kind, relay_enabled, updated_at_ms)
-			 VALUES (?, ?, NULL, 'category', 0, ?)
-			 ON CONFLICT(discord_channel_id) DO UPDATE SET
-				fluxer_channel_id = excluded.fluxer_channel_id,
-				discord_parent_id = excluded.discord_parent_id,
-				channel_kind = excluded.channel_kind,
-				relay_enabled = excluded.relay_enabled,
-				updated_at_ms = excluded.updated_at_ms`,
-			mapping.discordChannelId,
-			mapping.fluxerChannelId,
-			updatedAt
-		);
+		database
+			.prepare(
+				`INSERT INTO fluxer_channel_mappings
+					(discord_channel_id, fluxer_channel_id, discord_parent_id, channel_kind, relay_enabled, updated_at_ms)
+				 VALUES (?, ?, NULL, 'category', 0, ?)
+				 ON CONFLICT(discord_channel_id) DO UPDATE SET
+					fluxer_channel_id = excluded.fluxer_channel_id,
+					discord_parent_id = excluded.discord_parent_id,
+					channel_kind = excluded.channel_kind,
+					relay_enabled = excluded.relay_enabled,
+					updated_at_ms = excluded.updated_at_ms`
+			)
+			.run(mapping.discordChannelId, mapping.fluxerChannelId, updatedAt);
 	}
 	for (const ch of orderedChannels) {
 		const channelKind = FORUM_PARENT_TYPES.has(ch.src.type)
@@ -944,66 +940,71 @@ try {
 			relayEnabled: relayEnabled === 1,
 		};
 		bridgeChannelMappings.push(mapping);
-		await database.run(
-			`INSERT INTO fluxer_channel_mappings
-				(discord_channel_id, fluxer_channel_id, discord_parent_id, channel_kind, relay_enabled, updated_at_ms)
-			 VALUES (?, ?, ?, ?, ?, ?)
-			 ON CONFLICT(discord_channel_id) DO UPDATE SET
-				fluxer_channel_id = excluded.fluxer_channel_id,
-				discord_parent_id = excluded.discord_parent_id,
-				channel_kind = excluded.channel_kind,
-				relay_enabled = excluded.relay_enabled,
-				updated_at_ms = excluded.updated_at_ms`,
-			mapping.discordChannelId,
-			mapping.fluxerChannelId,
-			mapping.discordParentId,
-			mapping.channelKind,
-			relayEnabled,
-			updatedAt
-		);
+		database
+			.prepare(
+				`INSERT INTO fluxer_channel_mappings
+					(discord_channel_id, fluxer_channel_id, discord_parent_id, channel_kind, relay_enabled, updated_at_ms)
+				 VALUES (?, ?, ?, ?, ?, ?)
+				 ON CONFLICT(discord_channel_id) DO UPDATE SET
+					fluxer_channel_id = excluded.fluxer_channel_id,
+					discord_parent_id = excluded.discord_parent_id,
+					channel_kind = excluded.channel_kind,
+					relay_enabled = excluded.relay_enabled,
+					updated_at_ms = excluded.updated_at_ms`
+			)
+			.run(
+				mapping.discordChannelId,
+				mapping.fluxerChannelId,
+				mapping.discordParentId,
+				mapping.channelKind,
+				relayEnabled,
+				updatedAt
+			);
 	}
-	await database.run("DELETE FROM fluxer_thread_links");
+	database.prepare("DELETE FROM fluxer_thread_links").run();
 	for (const thread of bridgeThreadMappings) {
-		await database.run(
-			`INSERT INTO fluxer_thread_links
-				(discord_thread_id, fluxer_thread_id, discord_parent_id, fluxer_parent_id, channel_kind, relay_enabled, updated_at_ms)
-			 VALUES (?, ?, ?, ?, ?, ?, ?)
-			 ON CONFLICT(discord_thread_id) DO UPDATE SET
-				fluxer_thread_id = excluded.fluxer_thread_id,
-				discord_parent_id = excluded.discord_parent_id,
-				fluxer_parent_id = excluded.fluxer_parent_id,
-				channel_kind = excluded.channel_kind,
-				relay_enabled = excluded.relay_enabled,
-				updated_at_ms = excluded.updated_at_ms`,
-			thread.discordThreadId,
-			thread.fluxerThreadId,
-			thread.discordParentId,
-			thread.fluxerParentId,
-			thread.channelKind,
-			thread.relayEnabled ? 1 : 0,
-			updatedAt
-		);
+		database
+			.prepare(
+				`INSERT INTO fluxer_thread_links
+					(discord_thread_id, fluxer_thread_id, discord_parent_id, fluxer_parent_id, channel_kind, relay_enabled, updated_at_ms)
+				 VALUES (?, ?, ?, ?, ?, ?, ?)
+				 ON CONFLICT(discord_thread_id) DO UPDATE SET
+					fluxer_thread_id = excluded.fluxer_thread_id,
+					discord_parent_id = excluded.discord_parent_id,
+					fluxer_parent_id = excluded.fluxer_parent_id,
+					channel_kind = excluded.channel_kind,
+					relay_enabled = excluded.relay_enabled,
+					updated_at_ms = excluded.updated_at_ms`
+			)
+			.run(
+				thread.discordThreadId,
+				thread.fluxerThreadId,
+				thread.discordParentId,
+				thread.fluxerParentId,
+				thread.channelKind,
+				thread.relayEnabled ? 1 : 0,
+				updatedAt
+			);
 	}
-	await database.run("DELETE FROM fluxer_role_mappings");
+	database.prepare("DELETE FROM fluxer_role_mappings").run();
 	for (const [discordRoleId, fluxerRoleId] of fluxerIdByDiscordRole) {
 		bridgeRoleMappings.push({ discordRoleId, fluxerRoleId });
-		await database.run(
-			`INSERT INTO fluxer_role_mappings (discord_role_id, fluxer_role_id, updated_at_ms)
-			 VALUES (?, ?, ?)
-			 ON CONFLICT(discord_role_id) DO UPDATE SET
-				fluxer_role_id = excluded.fluxer_role_id,
-				updated_at_ms = excluded.updated_at_ms`,
-			discordRoleId,
-			fluxerRoleId,
-			updatedAt
-		);
+		database
+			.prepare(
+				`INSERT INTO fluxer_role_mappings (discord_role_id, fluxer_role_id, updated_at_ms)
+				 VALUES (?, ?, ?)
+				 ON CONFLICT(discord_role_id) DO UPDATE SET
+					fluxer_role_id = excluded.fluxer_role_id,
+					updated_at_ms = excluded.updated_at_ms`
+			)
+			.run(discordRoleId, fluxerRoleId, updatedAt);
 	}
-	await database.exec("COMMIT");
+	database.exec("COMMIT");
 } catch (error) {
-	await database.exec("ROLLBACK");
+	database.exec("ROLLBACK");
 	throw error;
 } finally {
-	await database.close();
+	database.close();
 }
 await writeFile(
 	resolve(root, "app/services/fluxer/mappings.json"),
