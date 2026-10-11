@@ -157,7 +157,7 @@ class ChannelTrimmerProgressStore {
 		const percentage = totalCnt > 0 ? deletedCnt / totalCnt * 100 : 0;
 		const remainingCnt = Math.max(totalCnt - deletedCnt, 0);
 		const elapsedDuration = Date.now() - (startedAt ?? 0);
-		const remainingDuration = elapsedDuration / deletedCnt * remainingCnt;
+		const remainingDuration = Math.floor(elapsedDuration / deletedCnt * remainingCnt);
 		return {
 			deleted: deletedCnt,
 			total: totalCnt,
