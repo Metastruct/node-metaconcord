@@ -294,7 +294,7 @@ export function fluxerSnapshotMentions(snapshot: FluxerMessageSnapshot): FluxerU
 }
 
 export class Fluxer extends Service {
-	name = "Fluxer";
+	override name = "Fluxer";
 	private sql!: SQL;
 	private discordBot!: DiscordBot;
 	private rest!: FluxerRest;
@@ -322,7 +322,7 @@ export class Fluxer extends Service {
 		super(container);
 	}
 
-	async init() {
+	override async init() {
 		this.sql = this.container.getService("SQL");
 		this.discordBot = this.container.getService("DiscordBot");
 		this.rest = new FluxerRest(config.apiBaseUrl, config.botToken);

@@ -9,12 +9,12 @@ import requestSchema from "./structures/VoteKickRequest.json" with { type: "json
 const log = logger(import.meta);
 
 export default class VoteKickPayload extends Payload {
-	protected static requestSchema = requestSchema;
+	protected static override requestSchema = requestSchema;
 	private static votekickCache: {
 		[steamId64: string]: number;
 	} = {};
 
-	static async handle(payload: VoteKickRequest, server: GmodConnection): Promise<void> {
+	static override async handle(payload: VoteKickRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { offender, reporter, reason, result } = payload.data;

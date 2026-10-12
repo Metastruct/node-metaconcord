@@ -13,9 +13,9 @@ const FRAMES: Record<string, { verb: string; color: number }> = {
 };
 
 export default class AdvancementPayload extends Payload {
-	protected static requestSchema = requestSchema;
+	protected static override requestSchema = requestSchema;
 
-	static async handle(payload: AdvancementRequest, server: MinecraftConnection): Promise<void> {
+	static override async handle(payload: AdvancementRequest, server: MinecraftConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { player, title, description, type } = payload.data;

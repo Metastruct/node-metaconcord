@@ -5,9 +5,9 @@ import Payload from "./Payload.js";
 import requestSchema from "./structures/DeathRequest.json" with { type: "json" };
 
 export default class DeathPayload extends Payload {
-	protected static requestSchema = requestSchema;
+	protected static override requestSchema = requestSchema;
 
-	static async handle(payload: DeathRequest, server: MinecraftConnection): Promise<void> {
+	static override async handle(payload: DeathRequest, server: MinecraftConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { player, message } = payload.data;

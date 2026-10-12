@@ -15,10 +15,10 @@ export type LocalBindParameters = unknown[];
 export type LocalRow = BetterSqlite3.RunResult;
 
 export class SQL extends Service {
-	name = "SQL";
+	override name = "SQL";
 	database!: LocalDatabase;
 
-	async init(): Promise<void> {
+	override async init(): Promise<void> {
 		this.database = new BetterSqlite3(process.env.METACONCORD_DB_PATH ?? "metaconcord.db");
 		this.database.pragma("journal_mode = WAL");
 		this.database.pragma("busy_timeout = 5000");

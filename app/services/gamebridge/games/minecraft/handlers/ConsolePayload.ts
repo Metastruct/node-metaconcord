@@ -10,17 +10,17 @@ import responseSchema from "./structures/ConsoleResponse.json" with { type: "jso
  * and the subscribe/unsubscribe/command control messages going the other way.
  */
 export default class ConsolePayload extends Payload {
-	protected static requestSchema = requestSchema;
-	protected static responseSchema = responseSchema;
+	protected static override requestSchema = requestSchema;
+	protected static override responseSchema = responseSchema;
 
-	static async initialize(server: MinecraftConnection): Promise<void> {
+	static override async initialize(server: MinecraftConnection): Promise<void> {
 		consoleHub.start("minecraft", server);
 		server.wsConnection?.on("close", () =>
 			consoleHub.mark("minecraft", server.config.id, "disconnected")
 		);
 	}
 
-	static async handle(payload: ConsoleRequest, server: MinecraftConnection): Promise<void> {
+	static override async handle(payload: ConsoleRequest, server: MinecraftConnection): Promise<void> {
 		super.handle(payload, server);
 		const { lines, replay } = payload.data;
 		consoleHub.emit("minecraft", server.config.id, { type: "lines", lines, replay: !!replay });

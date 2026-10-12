@@ -22,17 +22,17 @@ type Run = {
  * unexpected comes back as an error rather than running.
  */
 export default class GservPayload extends Payload {
-	protected static requestSchema = requestSchema;
-	protected static responseSchema = responseSchema;
+	protected static override requestSchema = requestSchema;
+	protected static override responseSchema = responseSchema;
 
 	private static nextId = 0;
 	private static runs = new Map<string, Run>();
 
-	static async send(payload: GservResponse, server: GmodConnection): Promise<void> {
+	static override async send(payload: GservResponse, server: GmodConnection): Promise<void> {
 		super.send(payload, server);
 	}
 
-	static async handle(payload: GservRequest, server: GmodConnection): Promise<void> {
+	static override async handle(payload: GservRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { identifier, kind, data, done, code, error } = payload.data;

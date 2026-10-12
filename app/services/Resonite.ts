@@ -94,7 +94,7 @@ export type ResoniteUser = {
 };
 
 export class Resonite extends Service {
-	name = "Resonite";
+	override name = "Resonite";
 	ResoniteUserCache: Record<string, ResoniteUser> = {};
 
 	ResoniteToken!: string;
@@ -148,7 +148,7 @@ export class Resonite extends Service {
 		return this.FetchAssetDataUri(url);
 	}
 
-	async init(): Promise<void> {
+	override async init(): Promise<void> {
 		await this.GetOrFetchToken();
 	}
 

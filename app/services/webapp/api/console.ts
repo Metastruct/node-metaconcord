@@ -171,7 +171,7 @@ class BridgeConsoleSession extends ConsoleSession {
 	}
 
 	/** Runs a gserv verb on the host, streaming its output into the terminal. */
-	protected runGserv(command: unknown): void {
+	protected override runGserv(command: unknown): void {
 		if (typeof command !== "string" || !GSERV_ACTIONS.includes(command as never)) return;
 		if (this.gservRunning || this.server.game !== "gmod") return;
 		const server = this.bridge.servers.gmod[this.server.id];

@@ -56,7 +56,7 @@ export default class DiscordClient extends Discord.Client {
 		}
 	}
 
-	public async destroy(): Promise<void> {
+	public override async destroy(): Promise<void> {
 		this.ready = false;
 		await super.destroy();
 	}

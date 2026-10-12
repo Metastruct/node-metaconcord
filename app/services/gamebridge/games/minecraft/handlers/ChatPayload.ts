@@ -92,10 +92,10 @@ async function formatForMinecraft(msg: Discord.Message | Discord.MessageSnapshot
 }
 
 export default class ChatPayload extends Payload {
-	protected static requestSchema = requestSchema;
-	protected static responseSchema = responseSchema;
+	protected static override requestSchema = requestSchema;
+	protected static override responseSchema = responseSchema;
 
-	static async initialize(server: MinecraftConnection): Promise<void> {
+	static override async initialize(server: MinecraftConnection): Promise<void> {
 		const discord = server.discord;
 		discord.on("messageCreate", async msg => {
 			if (msg.channel.id != server.discord.config.channels.minecraftRelay) return;
@@ -147,7 +147,7 @@ export default class ChatPayload extends Payload {
 		});
 	}
 
-	static async handle(payload: ChatRequest, server: MinecraftConnection): Promise<void> {
+	static override async handle(payload: ChatRequest, server: MinecraftConnection): Promise<void> {
 		super.handle(payload, server);
 		const { player, emote } = payload.data;
 		let { content } = payload.data;
@@ -217,7 +217,7 @@ export default class ChatPayload extends Payload {
 			.catch(log.error.bind(log));
 	}
 
-	static async send(payload: ChatResponse, server: MinecraftConnection): Promise<void> {
+	static override async send(payload: ChatResponse, server: MinecraftConnection): Promise<void> {
 		super.send(payload, server);
 	}
 }

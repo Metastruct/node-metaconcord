@@ -54,7 +54,7 @@ const accountsStore = new Map(
 );
 
 class FakeAccounts extends Service {
-	name = "Accounts";
+	override name = "Accounts";
 	async get(id: number) {
 		return accountsStore.get(id);
 	}

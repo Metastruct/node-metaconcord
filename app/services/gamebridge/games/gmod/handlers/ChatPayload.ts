@@ -12,10 +12,10 @@ import { logger } from "#/utils.js";
 const log = logger(import.meta);
 
 export default class ChatPayload extends Payload {
-	protected static requestSchema = requestSchema;
-	protected static responseSchema = responseSchema;
+	protected static override requestSchema = requestSchema;
+	protected static override responseSchema = responseSchema;
 
-	static async initialize(server: GmodConnection): Promise<void> {
+	static override async initialize(server: GmodConnection): Promise<void> {
 		const discord = server.discord;
 		discord.on("messageCreate", async msg => {
 			if (msg.channel.id != server.discord.config.channels.relay) return;
@@ -68,7 +68,7 @@ export default class ChatPayload extends Payload {
 		});
 	}
 
-	static async handle(payload: ChatRequest, server: GmodConnection): Promise<void> {
+	static override async handle(payload: ChatRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 		const { player } = payload.data;
 		let { content } = payload.data;
@@ -139,7 +139,7 @@ export default class ChatPayload extends Payload {
 			.catch(log.error.bind(log));
 	}
 
-	static async send(payload: ChatResponse, server: GmodConnection): Promise<void> {
+	static override async send(payload: ChatResponse, server: GmodConnection): Promise<void> {
 		super.send(payload, server);
 	}
 }

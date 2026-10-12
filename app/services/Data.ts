@@ -8,7 +8,7 @@ import path from "path";
 const log = logger(import.meta);
 
 export class Data extends Service {
-	name = "Data";
+	override name = "Data";
 	private dataPath = path.join(process.cwd(), "data");
 
 	addons: AddonsStore = {};
@@ -64,7 +64,7 @@ export class Data extends Service {
 		"tempVoiceChannels",
 	];
 
-	async init(): Promise<void> {
+	override async init(): Promise<void> {
 		try {
 			if (!(await fs.stat(this.dataPath)).isDirectory()) {
 				await fs.unlink(this.dataPath);

@@ -19,7 +19,7 @@ type message = {
 };
 
 export class IRC extends Service {
-	name = "IRC";
+	override name = "IRC";
 
 	client = new nIRC.Client(config.host, config.nick, {
 		port: config.port,
@@ -55,7 +55,7 @@ export class IRC extends Service {
 		this.client.say(config.relayIRCChannel, `\u000314[Discord]\u000f ${text}`);
 	}
 
-	async init() {
+	override async init() {
 		await this.setupDiscord();
 	}
 	private async setupDiscord() {

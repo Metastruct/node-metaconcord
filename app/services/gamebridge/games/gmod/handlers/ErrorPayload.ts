@@ -9,14 +9,14 @@ import requestSchema from "./structures/ErrorRequest.json" with { type: "json" }
 import responseSchema from "./structures/ErrorResponse.json" with { type: "json" };
 
 export default class ErrorPayload extends Payload {
-	protected static requestSchema = requestSchema;
-	protected static responseSchema = responseSchema;
+	protected static override requestSchema = requestSchema;
+	protected static override responseSchema = responseSchema;
 	private static lastError: ErrorRequest["data"]["hook_error"];
 
 	// static async initialize(server: GmodConnection): Promise<void> {
 	// }
 
-	static async handle(payload: ErrorRequest, server: GmodConnection): Promise<void> {
+	static override async handle(payload: ErrorRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { hook_error } = payload.data;
@@ -81,7 +81,7 @@ export default class ErrorPayload extends Payload {
 		}
 	}
 
-	static async send(payload: ErrorResponse, server: GmodConnection): Promise<void> {
+	static override async send(payload: ErrorResponse, server: GmodConnection): Promise<void> {
 		super.send(payload, server);
 	}
 }

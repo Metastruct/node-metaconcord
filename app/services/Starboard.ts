@@ -14,12 +14,12 @@ const STARBOARD_CONFIG = {
 } as const;
 
 export class Starboard extends Service {
-	name = "Starboard";
+	override name = "Starboard";
 	private pendingMessages = new Set<string>();
 	private sql!: SQL;
 	private bot!: DiscordBot;
 
-	async init(): Promise<void> {
+	override async init(): Promise<void> {
 		this.sql = this.container.getService("SQL");
 		this.bot = this.container.getService("DiscordBot");
 		const db = this.sql.getLocalDatabase();

@@ -4,9 +4,9 @@ import Payload from "./Payload.js";
 import requestSchema from "./structures/StatsRequest.json" with { type: "json" };
 
 export default class StatsPayload extends Payload {
-	protected static requestSchema = requestSchema;
+	protected static override requestSchema = requestSchema;
 
-	static async handle(payload: StatsRequest, server: MinecraftConnection): Promise<void> {
+	static override async handle(payload: StatsRequest, server: MinecraftConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { cpu, memUsed, memMax, netRx, netTx, tps, mspt, players } = payload.data;

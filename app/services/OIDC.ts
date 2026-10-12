@@ -38,7 +38,7 @@ type ClientConfig = {
 };
 
 export class OIDC extends Service {
-	name = "OIDC";
+	override name = "OIDC";
 	config = OIDCConfig as {
 		issuer: string;
 		cookieKeys: string;
@@ -48,7 +48,7 @@ export class OIDC extends Service {
 
 	provider!: OIDCProvider;
 
-	async init(): Promise<void> {
+	override async init(): Promise<void> {
 		const webApp = this.container.getService("WebApp");
 		const sql = this.container.getService("SQL");
 		const accounts = this.container.getService("Accounts");
@@ -313,7 +313,7 @@ export class OIDC extends Service {
 		log.info(`OIDC provider mounted at ${this.config.issuer}`);
 	}
 
-	async start(): Promise<void> {
+	override async start(): Promise<void> {
 		const webApp = this.container.getService("WebApp");
 		webApp.app.use(this.provider.callback());
 	}

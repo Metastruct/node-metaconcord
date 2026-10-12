@@ -100,7 +100,7 @@ type LocalDatabaseEntry = {
 type RevokeDBEntry = Pick<LocalDatabaseEntry, "user_id" | "access_token" | "refresh_token">;
 
 export class DiscordMetadata extends Service {
-	name = "DiscordMetadata";
+	override name = "DiscordMetadata";
 	private ARCOCache: Record<string, ApplicationRoleConnectionObject> = {};
 	private sql!: SQL;
 	private bot!: DiscordBot;
@@ -111,7 +111,7 @@ export class DiscordMetadata extends Service {
 		super(container);
 	}
 
-	async init() {
+	override async init() {
 		this.sql = this.container.getService("SQL");
 		this.bot = this.container.getService("DiscordBot");
 		this.bans = this.container.getService("Bans");

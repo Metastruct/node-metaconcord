@@ -5,17 +5,17 @@ import requestSchema from "./structures/RconRequest.json" with { type: "json" };
 import responseSchema from "./structures/RconResponse.json" with { type: "json" };
 
 export default class RconPayload extends Payload {
-	protected static requestSchema = requestSchema;
-	protected static responseSchema = responseSchema;
+	protected static override requestSchema = requestSchema;
+	protected static override responseSchema = responseSchema;
 
 	private static callbackId = 0;
 	private static callbackMap: Map<string, (req: RconRequest) => void> = new Map();
 
-	static async send(payload: RconResponse, server: GmodConnection): Promise<void> {
+	static override async send(payload: RconResponse, server: GmodConnection): Promise<void> {
 		super.send(payload, server);
 	}
 
-	static async handle(payload: RconRequest, server: GmodConnection): Promise<void> {
+	static override async handle(payload: RconRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const callbackId = payload.data.identifier;

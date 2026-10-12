@@ -72,13 +72,13 @@ async function mapLimit<T, R>(
 }
 
 export class Addons extends Service {
-	name = "Addons";
+	override name = "Addons";
 	private lastGmodRefresh = new Map<number, number>();
 	private gmodGames = new Map<number, MountedGame[]>();
 	private retryTimers = new Map<number, NodeJS.Timeout>();
 	private workshopCache = new TTLCache<ResolvedMeta | null>(DAY);
 
-	async init(): Promise<void> {
+	override async init(): Promise<void> {
 		const data = this.container.getService("Data");
 		if (!data.addons) data.addons = {};
 	}

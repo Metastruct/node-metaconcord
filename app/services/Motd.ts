@@ -86,7 +86,7 @@ const filter = [
 ];
 
 export class Motd extends Service {
-	name = "Motd";
+	override name = "Motd";
 	messages: string[] = [];
 	images: ImgurImage[] = [];
 	lastimages: ImgurImage[] = [];
@@ -98,7 +98,7 @@ export class Motd extends Service {
 		this.messages = [];
 		scheduleJob({ minute: 0, hour: 12, tz: "Etc/GMT-2" }, this.executeMessageJob.bind(this));
 	}
-	async init() {
+	override async init() {
 		this.bot = this.container.getService("DiscordBot");
 	}
 

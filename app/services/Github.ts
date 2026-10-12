@@ -4,7 +4,7 @@ import { createAppAuth, StrategyOptions } from "@octokit/auth-app";
 import config from "#/config/github.json" with { type: "json" };
 
 export class Github extends Service {
-	name = "Github";
+	override name = "Github";
 
 	octokit = new Octokit({
 		authStrategy: createAppAuth,

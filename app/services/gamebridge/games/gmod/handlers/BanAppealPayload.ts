@@ -8,9 +8,9 @@ import SteamID from "steamid";
 import requestSchema from "./structures/BanAppealRequest.json" with { type: "json" };
 
 export default class BanAppealPayload extends Payload {
-	protected static requestSchema = requestSchema;
+	protected static override requestSchema = requestSchema;
 
-	static async handle(payload: BanAppealRequest, server: GmodConnection): Promise<void> {
+	static override async handle(payload: BanAppealRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { player, banned, banReason, appeal, unbanTime } = payload.data;

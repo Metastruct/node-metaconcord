@@ -222,7 +222,7 @@ class MarkovChain extends MarkovChainBase {
 }
 
 export class Markov extends Service {
-	name = "Markov";
+	override name = "Markov";
 	private _markov: MarkovChain | null = null;
 
 	private async getMarkov(): Promise<MarkovChain> {

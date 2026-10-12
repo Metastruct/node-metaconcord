@@ -20,7 +20,7 @@ let lastMessageId: string;
 const ImgurRegex = /https?:\/\/(?:i.)?imgur.com\/(\w+)(?:.mp4)?/g;
 
 export class DiscordBot extends Service {
-	name = "DiscordBot";
+	override name = "DiscordBot";
 	bridge!: GameBridge;
 	readonly config = DiscordConfig;
 	readonly discord: Discord.Client = new Discord.Client({
@@ -53,7 +53,7 @@ export class DiscordBot extends Service {
 		super(container);
 	}
 
-	async init() {
+	override async init() {
 		this.data = this.container.getService("Data");
 		this.bridge = this.container.getService("GameBridge");
 

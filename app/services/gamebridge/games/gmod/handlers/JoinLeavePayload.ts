@@ -5,9 +5,9 @@ import Payload from "./Payload.js";
 import requestSchema from "./structures/JoinLeaveRequest.json" with { type: "json" };
 
 export default class JoinLeavePayload extends Payload {
-	protected static requestSchema = requestSchema;
+	protected static override requestSchema = requestSchema;
 
-	static async handle(payload: JoinLeaveRequest, server: GmodConnection): Promise<void> {
+	static override async handle(payload: JoinLeaveRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { player, reason, spawned } = payload.data;

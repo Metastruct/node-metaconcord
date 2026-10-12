@@ -10,7 +10,7 @@ import requestSchema from "./structures/AdminNotifyRequest.json" with { type: "j
 const log = logger(import.meta);
 
 export default class AdminNotifyPayload extends Payload {
-	protected static requestSchema = requestSchema;
+	protected static override requestSchema = requestSchema;
 	private static reportCache: {
 		[steamId64: string]: number;
 	} = {};
@@ -60,7 +60,7 @@ export default class AdminNotifyPayload extends Payload {
 		}
 	}
 
-	static async initialize(server: GmodConnection): Promise<void> {
+	static override async initialize(server: GmodConnection): Promise<void> {
 		const discord = server.discord;
 		const reportsChannel = discord.channels.cache.get(
 			server.discord.config.channels.reports
@@ -187,7 +187,7 @@ export default class AdminNotifyPayload extends Payload {
 		});
 	}
 
-	static async handle(payload: AdminNotifyRequest, server: GmodConnection): Promise<void> {
+	static override async handle(payload: AdminNotifyRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { player, reported } = payload.data;

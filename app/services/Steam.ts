@@ -83,7 +83,7 @@ const validTime = 30 * 60 * 1000;
 const avatarRegExp = /<avatarFull>\s*<!\[CDATA\[\s*([^\s]*)\s*\]\]>\s*<\/avatarFull>/;
 
 export class Steam extends Service {
-	name = "Steam";
+	override name = "Steam";
 	private userCache: {
 		[steamId64: string]: UserCache;
 	} = {};

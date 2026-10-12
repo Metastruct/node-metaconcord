@@ -12,8 +12,8 @@ type ReportChatRequest = import("./structures/ReportChatRequest.js").default;
 const log = logger(import.meta);
 
 export default class ReportChatPayload extends Payload {
-	protected static requestSchema = requestSchema;
-	protected static responseSchema = responseSchema;
+	protected static override requestSchema = requestSchema;
+	protected static override responseSchema = responseSchema;
 
 	private static getReporterSteamId64(threadChannelId: string, data: Data): string | undefined {
 		const threads = data.reportThreads;
@@ -34,7 +34,7 @@ export default class ReportChatPayload extends Payload {
 		return server.status.players.some(p => p.steamId64 === steamId64);
 	}
 
-	static async initialize(server: GmodConnection): Promise<void> {
+	static override async initialize(server: GmodConnection): Promise<void> {
 		const discord = server.discord;
 
 		discord.on("messageCreate", async (msg: Discord.Message | Discord.PartialMessage) => {
@@ -104,7 +104,7 @@ export default class ReportChatPayload extends Payload {
 		});
 	}
 
-	static async handle(payload: ReportChatRequest, server: GmodConnection): Promise<void> {
+	static override async handle(payload: ReportChatRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { steamId64, content } = payload.data;

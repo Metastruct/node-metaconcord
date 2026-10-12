@@ -11,17 +11,17 @@ import responseSchema from "./structures/ConsoleResponse.json" with { type: "jso
  * lines come from gm_enginespew, so they carry a level and the spew colour.
  */
 export default class ConsolePayload extends Payload {
-	protected static requestSchema = requestSchema;
-	protected static responseSchema = responseSchema;
+	protected static override requestSchema = requestSchema;
+	protected static override responseSchema = responseSchema;
 
-	static async initialize(server: GmodConnection): Promise<void> {
+	static override async initialize(server: GmodConnection): Promise<void> {
 		consoleHub.start("gmod", server);
 		server.wsConnection?.on("close", () =>
 			consoleHub.mark("gmod", server.config.id, "disconnected")
 		);
 	}
 
-	static async handle(payload: ConsoleRequest, server: GmodConnection): Promise<void> {
+	static override async handle(payload: ConsoleRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 		const { lines, replay } = payload.data;
 		consoleHub.emit("gmod", server.config.id, { type: "lines", lines, replay: !!replay });

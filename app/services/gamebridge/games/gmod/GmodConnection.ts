@@ -62,12 +62,12 @@ export default class GmodConnection extends GameSocketConnection {
 		return this.bridge.servers.gmod;
 	}
 
-	protected onMalformedPayload(err: unknown): void {
+	protected override onMalformedPayload(err: unknown): void {
 		const message = err instanceof Error ? err.message : String(err);
 		ErrorPayload.send({ error: { message } }, this);
 	}
 
-	protected onUnknownPayload(): void {
+	protected override onUnknownPayload(): void {
 		ErrorPayload.send({ error: { message: "Payload doesn't exist, nothing was done" } }, this);
 	}
 

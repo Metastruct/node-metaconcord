@@ -5,9 +5,9 @@ import Payload from "./Payload.js";
 import requestSchema from "./structures/NotificationResponse.json" with { type: "json" };
 
 export default class NotificationPayload extends Payload {
-	protected static requestSchema = requestSchema;
+	protected static override requestSchema = requestSchema;
 
-	static async handle(payload: NotificationResponse, server: GmodConnection): Promise<void> {
+	static override async handle(payload: NotificationResponse, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { title, message, color } = payload.data;

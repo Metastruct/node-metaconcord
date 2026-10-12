@@ -71,9 +71,9 @@ function buildStatusContainer(
 }
 
 export default class StatusPayload extends Payload {
-	protected static requestSchema = requestSchema;
+	protected static override requestSchema = requestSchema;
 
-	static async handle(payload: StatusRequest, server: MinecraftConnection): Promise<void> {
+	static override async handle(payload: StatusRequest, server: MinecraftConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { hostname, version, maxPlayers, uptime, players } = payload.data;

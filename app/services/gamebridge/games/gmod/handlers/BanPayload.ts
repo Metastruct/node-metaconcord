@@ -9,9 +9,9 @@ import SteamID from "steamid";
 import requestSchema from "./structures/BanRequest.json" with { type: "json" };
 
 export default class BanPayload extends Payload {
-	protected static requestSchema = requestSchema;
+	protected static override requestSchema = requestSchema;
 
-	static async handle(payload: BanRequest, server: GmodConnection): Promise<void> {
+	static override async handle(payload: BanRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { player, banned, reason, unbanTime, gamemode } = payload.data;

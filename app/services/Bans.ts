@@ -36,14 +36,14 @@ export type BansStatus = {
 };
 
 export class Bans extends Service {
-	name = "Bans";
+	override name = "Bans";
 	private banCache: MetaBan[] = [];
 	private lastSuccess = 0;
 	private lastAttempt = 0;
 	private lastError: string | undefined;
 	private refresh: Promise<void> | undefined;
 
-	async init(): Promise<void> {
+	override async init(): Promise<void> {
 		await this.updateCache();
 	}
 

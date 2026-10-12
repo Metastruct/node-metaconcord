@@ -163,11 +163,11 @@ const toLink = (row: LinkRow): AccountLink => ({
 });
 
 export class Accounts extends Service {
-	name = "Accounts";
+	override name = "Accounts";
 	private sql!: SQL;
 	private cache = new Map<number, { account: AccountWithLinks; at: number }>();
 
-	async init(): Promise<void> {
+	override async init(): Promise<void> {
 		this.sql = this.container.getService("SQL");
 		await this.sql.queryPool(`
 			CREATE TABLE IF NOT EXISTS accounts (

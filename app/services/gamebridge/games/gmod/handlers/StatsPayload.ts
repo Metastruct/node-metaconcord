@@ -9,9 +9,9 @@ import requestSchema from "./structures/StatsRequest.json" with { type: "json" }
  * reporting instead of filling the log with ssh timeouts.
  */
 export default class StatsPayload extends Payload {
-	protected static requestSchema = requestSchema;
+	protected static override requestSchema = requestSchema;
 
-	static async handle(payload: StatsRequest, server: GmodConnection): Promise<void> {
+	static override async handle(payload: StatsRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
 		const { cpu, memUsed, memMax, netRx, netTx, fps, players, maxPlayers } = payload.data;

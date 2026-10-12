@@ -36,7 +36,7 @@ export interface GameBridgeEvents {
 }
 
 export default class GameBridge extends Service {
-	name = "GameBridge";
+	override name = "GameBridge";
 	webApp!: WebApp;
 	/** Each game keeps its own id space, starting at 1 -- ids are only unique within a game. */
 	servers: {
@@ -68,13 +68,13 @@ export default class GameBridge extends Service {
 		super(container);
 	}
 
-	async init() {
+	override async init() {
 		this.webApp = this.container.getService("WebApp");
 		this.ready = true;
 	}
 
 	/** WebApp creates its ws router in start(), after all services init. */
-	async start() {
+	override async start() {
 		const router = this.webApp.ws;
 		attachGmod(this, router);
 		attachResonite(this);

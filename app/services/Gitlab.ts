@@ -3,7 +3,7 @@ import { Gitlab as Gl } from "@gitbeaker/rest";
 import config from "#/config/apikeys.json" with { type: "json" };
 
 export class Gitlab extends Service {
-	name = "Gitlab";
+	override name = "Gitlab";
 
 	api = new Gl({ token: config.gitlab });
 }

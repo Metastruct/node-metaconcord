@@ -26,7 +26,7 @@ const PATH_IGNORE = [
 ];
 
 export class WebApp extends Service {
-	name = "WebApp";
+	override name = "WebApp";
 	config = config;
 	app = express();
 	http: HTTPServer;
@@ -85,7 +85,7 @@ export class WebApp extends Service {
 	}
 
 	/** Only open the port once every service has finished init(). */
-	async start(): Promise<void> {
+	override async start(): Promise<void> {
 		this.http.listen(this.config.port, "0.0.0.0", () => {
 			log.info(`HTTP server listening on ${this.config.port}`);
 		});
