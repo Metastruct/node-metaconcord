@@ -14,7 +14,7 @@ Of course, you'll need the [gmod-metaconcord](https://github.com/Metastruct/gmod
 
 ```bash
 # Install dependencies
-$ npm ci
+$ npm ci --omit=dev
 
 # Generate the gamebridge payload schemas
 $ npm run schema:gen
