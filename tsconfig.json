@@ -16,7 +16,6 @@
 		"noImplicitReturns": false,
 		"noImplicitOverride": false,
 		"strictNullChecks": false,
-		"noImplicitAny": false,
-		"noUnusedLocals": false
+		"noImplicitAny": false
 	}
 }

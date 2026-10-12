@@ -1,7 +1,6 @@
 import { Container, Service } from "../Container.js";
 import { DiscordBot } from "./index.js";
 import { scheduleJob } from "node-schedule";
-import FormData from "form-data";
 import axios, { AxiosResponse } from "axios";
 import config from "#/config/motd.json" with { type: "json" };
 
@@ -120,18 +119,6 @@ export class Motd extends Service {
 		if (msg.indexOf(" ") === -1) return false;
 
 		return true;
-	}
-
-	private clearImageAlbumAndHistory(): void {
-		const data = new FormData();
-		axios
-			.post(`https://api.imgur.com/3/album/${config.imgurAlbumDeleteHash}`, data, {
-				headers: {
-					Authorization: `Client-ID ${config.imgurClientId}`,
-				},
-			})
-			.catch();
-		this.lastimages = [];
 	}
 
 	async executeMessageJob(): Promise<string | undefined> {
