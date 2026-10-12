@@ -1,25 +1,30 @@
-FROM node:26-alpine
-
-RUN apk add --no-cache bash font-noto ffmpeg python3 make g++
-
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
+FROM node:26-alpine AS builder
 WORKDIR /app
+RUN apk add --no-cache python3 make
 
 COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
 
-WORKDIR /app/config
-RUN for f in *.example.json; do \
-  cp "$f" "${f/.example.json/.json}"; \
+RUN cd /app/config && \
+  for f in *.example.json; do \
+    cp "$f" "${f%.example.json}.json"; \
   done
 
-# hack, remove build config so production config can be mounted at /app/dist/config
-# todo: handle empty config in the app
+RUN node --run test:fluxer && node --run build && node --run test:fluxer:dist
+
+########################## Stage ##########################
+
+FROM node:26-alpine AS runner
 WORKDIR /app
-RUN node --run test:fluxer && node --run build && node --run test:fluxer:dist && rm -rf ./config
+RUN apk add --no-cache font-noto ffmpeg python3 make bash
+
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/resources ./resources
 
 EXPOSE 20122
 
