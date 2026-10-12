@@ -9,10 +9,13 @@ COPY . .
 
 RUN cd /app/config && \
   for f in *.example.json; do \
-    cp "$f" "${f%.example.json}.json"; \
+    mv "$f" "${f%.example.json}.json"; \
   done
 
-RUN node --run test:fluxer && node --run build && node --run test:fluxer:dist
+RUN node --run test:fluxer && \
+  node --run build && \
+  node --run test:fluxer:dist && \
+  rm -r /app/dist/config
 
 ########################## Stage ##########################
 
@@ -23,8 +26,10 @@ RUN apk add --no-cache font-noto ffmpeg python3 make bash
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
+COPY --from=builder /app/config ./config
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/resources ./resources
+RUN ln -s /app/config /app/dist/config
 
 EXPOSE 20122
 
