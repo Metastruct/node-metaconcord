@@ -3,7 +3,7 @@
 	"name": "metaconcord",
 	"version": "0.0.1",
 	"description": "metaluvit but typescript",
-	"exports": "./index.ts",
+	"exports": null,
 	"engines": {
 		"node": ">=26.0.0"
 	},
@@ -31,7 +31,7 @@
 		"lint": "eslint",
 		"schema:gen": "node schema_gen.mjs",
 		"scss-watch": "sass --watch resources/ --no-source-map",
-		"start": "cross-env NODE_ENV=production node dist",
+		"start": "node dist",
 		"test:fluxer:dist": "node --test test/fluxer-formatting-dist.test.mjs",
 		"test:fluxer": "node --test test/fluxer-mappings.test.mjs",
 		"test:oidc": "cross-env NODE_ENV=development node dist/test/oidc.test.js"

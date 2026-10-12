@@ -297,7 +297,7 @@ export default (webApp: WebApp): void => {
 			return;
 		}
 		const allowed = [...webApp.config.allowedOrigins, webApp.config.url];
-		if (!allowed.includes(req.origin) && process.env.NODE_ENV === "production") {
+		if (!allowed.includes(req.origin) && process.env.NODE_ENV !== "development") {
 			log.warn(`console ws rejected, bad origin ${req.origin} for ${session.login}`);
 			req.reject(403);
 			return;

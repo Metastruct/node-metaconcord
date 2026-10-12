@@ -318,7 +318,7 @@ export default (webApp: WebApp): void => {
 			req.reject(session ? 403 : 401);
 			return;
 		}
-		if (req.origin !== webApp.config.url && process.env.NODE_ENV === "production") {
+		if (req.origin !== webApp.config.url && process.env.NODE_ENV !== "development") {
 			log.warn(`dashboard ws rejected, bad origin ${req.origin} for ${session.login}`);
 			req.reject(403);
 			return;

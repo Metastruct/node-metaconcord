@@ -27,7 +27,7 @@ const log = logger(import.meta);
 
 const SESSION_COOKIE = "mcSession";
 const SESSION_TTL = 30 * 24 * 60 * 60 * 1000;
-const IS_PROD = process.env.NODE_ENV === "production";
+const IS_PROD = process.env.NODE_ENV !== "development";
 
 type SessionCookie = { accountId: number; version: number; expiresAt: number };
 
