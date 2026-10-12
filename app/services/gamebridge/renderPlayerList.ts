@@ -220,7 +220,7 @@ export async function renderPlayerListImage(
 		const nickX = x + avatarSize + gap;
 
 		const avatar = avatarDataUri
-			? `<image href="${avatarDataUri}" x="${x}" y="${rowCenterY - avatarSize / 2}" width="${avatarSize}" height="${avatarSize}" clip-path="url(#clip)"/>`
+			? `<image href="${avatarDataUri}" x="${x}" y="${rowCenterY - avatarSize / 2}" width="${avatarSize}" height="${avatarSize}" image-rendering="optimizeSpeed" clip-path="url(#clip)"/>`
 			: `<circle cx="${x + avatarSize / 2}" cy="${rowCenterY}" r="${avatarSize / 2}" fill="#444" stroke="#555" stroke-width="1"/>`;
 
 		const nameY = p.description ? rowCenterY - 4 : rowCenterY + nameFontSize * 0.35;
