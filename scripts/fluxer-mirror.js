@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // One-off mirror: create config/discord.json roles + channels in the Fluxer guild.
 // Reads config/discord.json (Discord side) + config/fluxer.json (Fluxer side).
-// Usage: node scripts/mirror.mjs [--dry-run] [--yes]
+// Usage: node scripts/fluxer-mirror.js [--dry-run] [--yes]
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -598,8 +598,8 @@ const forumFieldsFor = src => {
 			: {}),
 		...(src.default_thread_rate_limit_per_user != null
 			? {
-					default_thread_rate_limit_per_user: src.default_thread_rate_limit_per_user,
-				}
+				default_thread_rate_limit_per_user: src.default_thread_rate_limit_per_user,
+			}
 			: {}),
 		...(tags.length > 0 ? { available_tags: tags } : {}),
 		...(defaultReactionName
@@ -750,8 +750,8 @@ for (const thread of desiredThreadList) {
 				type: thread.src.type === 10 ? 11 : thread.src.type,
 				...(thread.src.thread_metadata?.auto_archive_duration != null
 					? {
-							auto_archive_duration: thread.src.thread_metadata.auto_archive_duration,
-						}
+						auto_archive_duration: thread.src.thread_metadata.auto_archive_duration,
+					}
 					: {}),
 				...(thread.src.rate_limit_per_user != null
 					? { rate_limit_per_user: thread.src.rate_limit_per_user }

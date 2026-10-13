@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // One-off mirror: copy the Discord guild's custom emojis and stickers into the Fluxer guild.
 // Reads config/discord.json (Discord side) + config/fluxer.json (Fluxer side).
-// Usage: node scripts/mirror-expressions.mjs [--dry-run] [--yes] [--prune]
+// Usage: node scripts/fluxer-mirror-expressions.js [--dry-run] [--yes] [--prune]
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -267,12 +267,12 @@ for (const sticker of discordStickers) {
 		...(sticker.description ? { description: sticker.description } : {}),
 		...(typeof sticker.tags === "string" && sticker.tags.length > 0
 			? {
-					tags: sticker.tags
-						.split(",")
-						.map(tag => tag.trim())
-						.filter(Boolean)
-						.slice(0, 10),
-				}
+				tags: sticker.tags
+					.split(",")
+					.map(tag => tag.trim())
+					.filter(Boolean)
+					.slice(0, 10),
+			}
 			: {}),
 		image,
 		_source: sticker,

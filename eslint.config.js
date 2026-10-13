@@ -14,10 +14,6 @@ export default [
 	},
 	{
 		languageOptions: {
-			parser: typescriptEslint.parser,
-			parserOptions: {
-				project: "tsconfig.json"
-			},
 			globals: {
 				...globals.node
 			}
@@ -86,7 +82,18 @@ export default [
 			"@stylistic/function-call-spacing": [
 				"error",
 				"never"
-			],
+			]
+		}
+	},
+	{
+		files: ["**/*.ts"],
+		languageOptions: {
+			parser: typescriptEslint.parser,
+			parserOptions: {
+				project: "tsconfig.json"
+			}
+		},
+		rules: {
 			"@typescript-eslint/switch-exhaustiveness-check": "warn"
 		}
 	}
