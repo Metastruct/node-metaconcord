@@ -63,9 +63,9 @@ export const parseDuration = (input: string): number => {
 		.trim()
 		.toLowerCase()
 		.replace(/\s+/g, "")
-		.matchAll(/(\d+)(y|mo|w|d|h|m|s)/g)) {
-		const amount = parseInt(match[1]);
-		if (!isNaN(amount) && amount > 0) len += amount * DURATION_UNITS[match[2]];
+		.concord.matchAll("(?<amount>\\d+)(?<unit>y|mo|w|d|h|m|s)", "g")) {
+		const amount = parseInt(match.groups.amount);
+		if (!isNaN(amount) && amount > 0) len += amount * DURATION_UNITS[match.groups.unit as keyof typeof DURATION_UNITS];
 	}
 	return len;
 };
@@ -169,10 +169,10 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 		const file = await fs.readFile(fullpath, "utf8");
 		return gpath.linenos
 			? getStackLines(
-					file,
-					Number(gpath.linenos),
-					gpath.linenoe ? Number(gpath.linenoe) : undefined
-				)
+				file,
+				Number(gpath.linenos),
+				gpath.linenoe ? Number(gpath.linenoe) : undefined
+			)
 			: file;
 	} else {
 		const url: string | undefined = gpath.addon ? AddonURIS[gpath.addon] : undefined;
