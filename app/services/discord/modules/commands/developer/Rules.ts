@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 import { DiscordBot, Rule } from "#/app/services/discord/index.js";
 import { EphemeralResponse, SlashCommand } from "#/extensions/discord.js";
+import { errToMessage } from "#/utils.js";
 
 let ruleCache: Rule[] = [];
 let ruleCacheLoaded = false;
@@ -222,8 +223,8 @@ export const SlashRuleCommand: SlashCommand = {
 				case "edit":
 					await editRule(ctx, bot);
 			}
-		} catch (err: any) {
-			ctx.reply(EphemeralResponse(err));
+		} catch (err: unknown) {
+			ctx.reply(EphemeralResponse(errToMessage(err)));
 		}
 	},
 	async autocomplete(ctx, bot) {

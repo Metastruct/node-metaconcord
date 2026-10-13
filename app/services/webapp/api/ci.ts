@@ -1,6 +1,7 @@
 import { WebApp } from "#/app/services/webapp/index.js";
 import { spawn } from "child_process";
 import config from "#/config/ci.json" with { type: "json" };
+import { errToMessage } from "#/utils.js";
 
 const FORBIDDEN = 403;
 const SUCCESS = 200;
@@ -27,8 +28,8 @@ export default (webApp: WebApp): void => {
 			if (req.query.all) args.push("all");
 			spawn("bash", args);
 			return;
-		} catch (err: any) {
-			res.status(ERROR).send(err.message);
+		} catch (err: unknown) {
+			res.status(ERROR).send(errToMessage(err));
 			return;
 		}
 	});

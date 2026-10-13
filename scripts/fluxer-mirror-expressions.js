@@ -55,9 +55,9 @@ async function fluxerApi(method, path, body, { retries = 5 } = {}) {
 			method,
 			headers: {
 				Authorization: `Bot ${fluxerConfig.botToken}`,
-				...(body != null ? { "Content-Type": "application/json" } : {}),
+				...(body ? { "Content-Type": "application/json" } : {}),
 			},
-			...(body != null ? { body: JSON.stringify(body) } : {}),
+			...(body ? { body: JSON.stringify(body) } : {}),
 		});
 		if (res.status === 429 && attempt < retries) {
 			const retryAfter = Number(res.headers.get("Retry-After") ?? 1) * 1000;

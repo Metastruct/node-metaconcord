@@ -124,30 +124,21 @@ export class DiscordBot extends Service {
 		return this.discord.guilds.cache.get(this.config.bot.primaryGuildId);
 	}
 
-	async setActivity(
-		status: string | Discord.Activity | undefined,
-		options?: Discord.ActivitiesOptions
-	): Promise<void> {
+	setActivity(activity: string | Discord.ActivitiesOptions): Promise<void> {
 		if (!this.ready) return;
-		const activity: Discord.ActivitiesOptions = { name: "Starting up", ...options };
-		switch (true) {
-			case status instanceof Discord.Activity: {
-				status = status as Discord.Activity;
-				activity.name = status.name;
-				break;
-			}
 
-			case typeof status === "string": {
-				status = status as string;
-				if (status && status.length > 127) status = status.substring(0, 120) + "...";
-				activity.name = status;
-				break;
-			}
-			case typeof status === "undefined":
-			default:
+		let opt: Discord.ActivitiesOptions = { name: "Starting up" };
+
+		if (typeof activity === "string") {
+			if (activity.length > 127)
+				opt.name = activity.substring(0, 120) + "...";
+			else
+				opt.name = activity;
+		} else {
+			opt = activity;
 		}
 
-		this.discord.user?.setActivity(activity);
+		this.discord.user.setActivity(opt);
 	}
 
 	// sets both the bot's avatar and the guild's icon

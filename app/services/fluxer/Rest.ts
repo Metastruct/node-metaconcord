@@ -144,9 +144,9 @@ export class FluxerRest {
 					method,
 					headers: {
 						...(authenticated ? { Authorization: `Bot ${this.botToken}` } : {}),
-						...(body == null ? {} : { "Content-Type": "application/json" }),
+						...(body ? { "Content-Type": "application/json" } : {}),
 					},
-					...(body == null ? {} : { body: JSON.stringify(body) }),
+					...(body ? { body: JSON.stringify(body) } : {}),
 					signal: AbortSignal.timeout(30_000),
 				});
 				if (response.status === 429 && rateLimitAttempts < 8) {
@@ -202,7 +202,7 @@ export class FluxerRest {
 					file_size: file.data.byteLength,
 					content_type: file.type,
 					...(file.description ? { description: file.description } : {}),
-					...(file.duration != null ? { duration: Math.round(file.duration) } : {}),
+					...(file.duration ? { duration: Math.round(file.duration) } : {}),
 					...(file.waveform ? { waveform: file.waveform } : {}),
 				})),
 			}

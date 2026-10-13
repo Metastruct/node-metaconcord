@@ -86,12 +86,11 @@ export function normalizeEmbeds(embeds: readonly unknown[], content = ""): Disco
 			const embed = value as Record<string, unknown>;
 			const url = typeof embed.url === "string" ? embed.url : null;
 			if (!url || !content.includes(url)) return true;
-			return !(
-				embed.type !== "rich" ||
-				embed.provider != null ||
-				embed.reference_id != null ||
-				embed.content_scan_version != null
-			);
+
+			return embed.type === "rich" &&
+				!embed.provider &&
+				!embed.reference_id &&
+				!embed.content_scan_version;
 		})
 		.slice(0, 10)
 		.map(value => {
@@ -858,7 +857,7 @@ export class Fluxer extends Service {
 		const parentChannel =
 			threadChannel.parent ??
 			(await this.discordBot.discord.channels.fetch(parentId).catch(() => null));
-		const isForum = parentChannel != null && this.isDiscordForumLike(parentChannel);
+		const isForum = parentChannel && this.isDiscordForumLike(parentChannel);
 		const link: ThreadLink = {
 			discord_thread_id: threadChannel.id,
 			fluxer_thread_id: "",
@@ -937,7 +936,7 @@ export class Fluxer extends Service {
 				{
 					name: threadChannel.name.slice(0, 100),
 					type: fluxerType,
-					...(threadChannel.autoArchiveDuration != null
+					...(typeof threadChannel.autoArchiveDuration !== "undefined"
 						? { auto_archive_duration: threadChannel.autoArchiveDuration }
 						: {}),
 					...(threadChannel.type === Discord.ChannelType.PrivateThread
@@ -988,14 +987,14 @@ export class Fluxer extends Service {
 		const voiceAttachment =
 			message.flags.has(Discord.MessageFlags.IsVoiceMessage) &&
 			message.attachments.size === 1 &&
-			message.attachments.first()?.duration != null &&
+			message.attachments.first()?.duration &&
 			message.attachments.first()?.waveform
 				? message.attachments.first()
 				: undefined;
 		const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(route, [
 			...message.attachments.values(),
 		]);
-		const voiceMessage = voiceAttachment != null && attachments.length === 1;
+		const voiceMessage = voiceAttachment && attachments.length === 1;
 		const stickerIds = [...message.stickers.values()]
 			.map(sticker => this.stickerFluxerByDiscord.get(sticker.id))
 			.filter((id): id is string => Boolean(id))
@@ -1406,7 +1405,7 @@ export class Fluxer extends Service {
 		let handled = false;
 		if (
 			!route &&
-			(FLUXER_THREAD_TYPES.has(message.channel_type ?? -1) || message._fluxer_thread != null)
+			(FLUXER_THREAD_TYPES.has(message.channel_type ?? -1) || message._fluxer_thread)
 		) {
 			const resolution = await this.resolveFluxerThreadRoute(message);
 			if (!resolution) return;
@@ -1765,7 +1764,7 @@ export class Fluxer extends Service {
 				type: attachment.contentType ?? "application/octet-stream",
 				data,
 				description: attachment.description,
-				...(attachment.duration != null
+				...(typeof attachment.duration !== "undefined"
 					? { duration: Math.round(attachment.duration) }
 					: {}),
 				...(attachment.waveform ? { waveform: attachment.waveform } : {}),

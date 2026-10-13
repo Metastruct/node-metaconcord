@@ -35,7 +35,7 @@ export const MenuWhyRoleCommand: MenuCommand = {
 		} else {
 			await ctx.reply(
 				EphemeralResponse(
-					userId == ctx.user.id
+					userId === ctx.user.id
 						? "You're don't have any perma roles... yet!"
 						: "That user doesn't have perma roles... yet!"
 				)

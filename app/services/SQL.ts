@@ -53,7 +53,7 @@ export class SQL extends Service {
 			"SELECT name FROM sqlite_master WHERE type='table' AND name=?;",
 			tableName
 		);
-		return result != null;
+		return !!result;
 	}
 }
 

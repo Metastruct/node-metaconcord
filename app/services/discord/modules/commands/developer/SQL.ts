@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "#/extensions/discord.js";
+import { errToMessage } from "#/utils.js";
 
 const makeFile = (content: unknown) => {
 	return <Discord.BaseMessageOptions>{
@@ -79,11 +80,11 @@ export const SlashSQLCommand: SlashCommand = {
 					break;
 				}
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			if (ctx.deferred) {
-				await ctx.followUp(err.message);
+				await ctx.followUp(errToMessage(err));
 			} else {
-				await ctx.reply(EphemeralResponse(err.message));
+				await ctx.reply(EphemeralResponse(errToMessage(err)));
 			}
 		}
 	},

@@ -28,6 +28,10 @@ const LUA_ESCAPES: Record<string, string> = {
 	"\t": "\\t",
 };
 
+export function errToMessage(err: unknown) {
+	return err instanceof Error ? err.message : `${err}`;
+}
+
 // built from a string literal so no raw control bytes end up in this file
 // eslint-disable-next-line no-control-regex -- escaping control bytes is the point
 const LUA_UNSAFE = new RegExp('[\\\\"\\u0000-\\u001f\\u007f]', "g");
@@ -169,10 +173,10 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 		const file = await fs.readFile(fullpath, "utf8");
 		return gpath.linenos
 			? getStackLines(
-					file,
-					Number(gpath.linenos),
-					gpath.linenoe ? Number(gpath.linenoe) : undefined
-				)
+				file,
+				Number(gpath.linenos),
+				gpath.linenoe ? Number(gpath.linenoe) : undefined
+			)
 			: file;
 	} else {
 		const url: string | undefined = gpath.addon ? AddonURIS[gpath.addon] : undefined;

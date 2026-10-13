@@ -125,7 +125,7 @@ export class Container {
 
 	/** True when the service is enabled (not necessarily ready). */
 	has(name: string): boolean {
-		return this.services[name] != null;
+		return !!this.services[name];
 	}
 
 	/** Express middleware: 503 unless every named service is enabled. */

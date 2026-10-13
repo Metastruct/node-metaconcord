@@ -294,7 +294,7 @@ export default async (bot: DiscordBot) => {
 	// });
 
 	bot.discord.once("clientReady", async client => {
-		bot.setActivity(undefined, await getRandomActivity());
+		bot.setActivity(await getRandomActivity());
 
 		if (lastMsgs.length === 0) {
 			const lastmsg = bot.getTextChannel(bot.config.channels.chat)?.lastMessage;
@@ -328,7 +328,7 @@ export default async (bot: DiscordBot) => {
 				replied = false;
 			}
 			if (now - lastActivityChange > ACTIVITY_CHANGE_INTERVAL) {
-				bot.setActivity(undefined, await getRandomActivity());
+				bot.setActivity(await getRandomActivity());
 				lastActivityChange = now;
 			}
 			lastMsgs.splice(0, lastMsgs.length - 1); // delete lastmsg cache

@@ -106,7 +106,7 @@ export default (webApp: WebApp): void => {
 					source: "oauth",
 					token: Accounts.tokenFromResponse(tokens),
 					email: primaryEmail,
-					emailVerified: primaryEmail != null,
+					emailVerified: !!primaryEmail,
 				});
 			setSessionCookie(res, account);
 			log.info(`github login for ${user.login} (account ${account.id})`);

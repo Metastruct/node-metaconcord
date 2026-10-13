@@ -126,7 +126,7 @@ export class Motd extends Service {
 
 		const msg: string = this.messages[(Math.random() * this.messages.length) | 0];
 		this.messages = [];
-		if (msg == null || msg.length === 0) return;
+		if (!msg) return;
 		const data = this.container.getService("Data");
 		data.lastMotd = msg;
 		data.save();

@@ -134,7 +134,7 @@ export class FluxerGateway {
 			});
 			return;
 		}
-		if (payload.op !== 0 || !payload.t || payload.s == null) return;
+		if (payload.op !== 0 || !payload.t || typeof payload.s !== "number") return;
 		if (payload.t === "READY") {
 			this.sessionId = (payload.d as { session_id: string }).session_id;
 			log.info("Fluxer gateway ready");

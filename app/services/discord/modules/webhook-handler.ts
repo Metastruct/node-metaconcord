@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
 import express from "express";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
-import { clamp, logger } from "#/utils.js";
+import { clamp, errToMessage, logger } from "#/utils.js";
 import { chatWebhook } from "#/app/services/gamebridge/games/gmod/webhooks.js";
 import axios from "axios";
 import webhookConfig from "#/config/webhooks.json" with { type: "json" };
@@ -826,10 +826,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 						}
 						const res = await github.octokit.rest.repos.getCommit({ owner, repo, ref });
 						files = res.data.files?.flatMap(f => f.filename);
-					} catch (err: any) {
+					} catch (err: unknown) {
 						await ctx.reply(
 							"something went wrong fetching the files from github :( ... aborting\n" +
-								`\`${err.message}\``
+								`\`${errToMessage(err)}\``
 						);
 						log.error(
 							{ err, context: { url, owner, repo, ref } },
@@ -851,10 +851,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 						}
 						const diffs = await getGitlabDiff(gitlab.api, id, sha);
 						files = diffs?.filter(f => !f.deleted_file).flatMap(f => f.new_path);
-					} catch (err: any) {
+					} catch (err: unknown) {
 						await ctx.reply(
 							"something went wrong fetching the files from gitlab :( ... aborting\n" +
-								`\`${err.message}\``
+								`\`${errToMessage(err)}\``
 						);
 						log.error(
 							{

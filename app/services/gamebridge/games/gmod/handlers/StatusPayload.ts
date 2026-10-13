@@ -219,7 +219,7 @@ export default class StatusPayload extends Payload {
 			if (!backgroundImage) {
 				if (current_map && /^gm_construct_m/i.test(current_map)) {
 					backgroundImage = DEFAULT_BACKGROUND;
-				} else if (current_map && current_map.toLowerCase().trim() == "rp_unioncity") {
+				} else if (current_map && current_map.toLowerCase().trim() === "rp_unioncity") {
 					backgroundImage = path.join(
 						process.cwd(),
 						"resources/map-thumbnails/rp_unioncity.png"

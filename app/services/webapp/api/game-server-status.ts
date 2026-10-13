@@ -29,14 +29,14 @@ export default async (webApp: WebApp): Promise<void> => {
 			return;
 		}
 
-		if (!Array.isArray(server.status?.players) && server.status?.backgroundImage != null) {
+		if (!Array.isArray(server.status?.players) && server.status?.backgroundImage) {
 			res.sendStatus(204);
 			return;
 		}
 
 		// Discord Bot and Cloudflare
 		const discordBot =
-			req.headers.accept == "*/*" ||
+			req.headers.accept === "*/*" ||
 			!req.headers.accept ||
 			req.headers["user-agent"]?.includes("+https://discordapp.com");
 

@@ -56,7 +56,7 @@ export class Starboard extends Service {
 	async isMsgStarred(msgId: string): Promise<boolean> {
 		const db = this.sql.getLocalDatabase();
 		const res = db.prepare("SELECT 1 FROM starboard WHERE MessageId = ? LIMIT 1;").get(msgId);
-		return res != null;
+		return !!res;
 	}
 
 	private async starMsg(msgId: string): Promise<void> {

@@ -79,7 +79,7 @@ export class Data extends Service {
 	private async load(): Promise<void> {
 		for (const file of await fs.readdir(this.dataPath)) {
 			const filePath = path.join(this.dataPath, file);
-			if ((await fs.stat(filePath)).isFile() && path.extname(filePath) == ".json") {
+			if ((await fs.stat(filePath)).isFile() && path.extname(filePath) === ".json") {
 				let data: unknown;
 				try {
 					data = JSON.parse(await fs.readFile(filePath, "utf8"));

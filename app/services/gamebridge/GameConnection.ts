@@ -176,7 +176,7 @@ export default class GameConnection extends EventEmitter {
 		try {
 			const messages = await channel.messages.fetch();
 			const message = messages
-				.filter((msg: Discord.Message) => msg.author.id == this.discord.user?.id)
+				.filter((msg: Discord.Message) => msg.author.id === this.discord.user?.id)
 				.first();
 
 			if (message) {

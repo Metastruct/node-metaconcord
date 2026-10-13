@@ -1,7 +1,11 @@
 #!/usr/bin/env node
+
 // One-off mirror: create config/discord.json roles + channels in the Fluxer guild.
 // Reads config/discord.json (Discord side) + config/fluxer.json (Fluxer side).
 // Usage: node scripts/fluxer-mirror.js [--dry-run] [--yes]
+
+/* eslint eqeqeq: off */
+
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -479,6 +483,7 @@ if (!fluxerGuild.features.includes("TEXT_CHANNEL_FLEXIBLE_NAMES")) {
 	const features = [...new Set([...fluxerGuild.features, "TEXT_CHANNEL_FLEXIBLE_NAMES"])];
 	if (dryRun) step(`would PATCH features: ${features.join(", ")}`);
 	else {
+		// eslint-disable-next-line no-useless-assignment
 		fluxerGuild = await fluxerApi("PATCH", `/guilds/${FLUXER_GUILD}`, { features });
 		step("done");
 	}

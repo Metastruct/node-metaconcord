@@ -241,8 +241,8 @@ async function main(): Promise<void> {
 		};
 		const idClaims = tokens.id_token
 			? (JSON.parse(Buffer.from(tokens.id_token.split(".")[1], "base64url").toString()) as {
-					sub: string;
-				})
+				sub: string;
+			})
 			: undefined;
 		check("id_token subject", idClaims?.sub === "1", JSON.stringify(idClaims ?? tokens));
 

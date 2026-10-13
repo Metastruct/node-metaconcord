@@ -18,7 +18,7 @@ export default class ChatPayload extends Payload {
 	static override async initialize(server: GmodConnection): Promise<void> {
 		const discord = server.discord;
 		discord.on("messageCreate", async msg => {
-			if (msg.channel.id != server.discord.config.channels.relay) return;
+			if (msg.channel.id !== server.discord.config.channels.relay) return;
 			if (msg.author.bot || !msg.author.client) return;
 
 			if (msg.partial) {
@@ -29,9 +29,9 @@ export default class ChatPayload extends Payload {
 			let reply: Discord.Message | undefined;
 			if (msg.reference) {
 				try {
-					if (msg.reference.type == 0) {
+					if (msg.reference.type === 0) {
 						reply = await msg.fetchReference();
-					} else if (msg.reference.type == 1) {
+					} else if (msg.reference.type === 1) {
 						// who knows maybe discord will add more
 						reply = undefined;
 						const newContent = mainMsg.content;

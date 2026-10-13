@@ -157,7 +157,7 @@ export class Resonite extends Service {
 		let lastToken = data.lastResoniteToken;
 		let lastTokenTime = data.lastResoniteTokenTime ?? Date.now();
 
-		if (!lastToken || lastToken == "" || Date.now() - lastTokenTime >= 259_200_000_0) {
+		if (!lastToken || Date.now() - lastTokenTime >= 259_200_000_0) {
 			try {
 				const UUID = randomUUID();
 				const UID = createHash("sha256").update(this.name).digest("hex");

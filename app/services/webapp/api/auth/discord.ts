@@ -285,7 +285,7 @@ export default async (webApp: WebApp): Promise<void> => {
 						avatar: avatarUrl(user),
 						source: "oauth",
 						email: user.email ?? undefined,
-						emailVerified: user.verified === true || user.email != null,
+						emailVerified: user.verified === true || !!user.email,
 					});
 			} catch (err) {
 				if (err instanceof LinkConflictError) {

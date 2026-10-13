@@ -8,8 +8,8 @@ export default [
 	...typescriptEslint.configs.recommended,
 	{
 		ignores: [
-			"**",
-			"!app/**"
+			"dist",
+			"resources"
 		]
 	},
 	{
