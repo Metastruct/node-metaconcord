@@ -28,7 +28,7 @@ export default class DeathPayload extends Payload {
 				url: `https://namemc.com/profile/${player.uuid}`,
 			})
 			// grey, so it stays distinct from JoinLeavePayload's green/red pair
-			.setColor(0x808080);
+			.setColor(0x80_80_80);
 		await (relayChannel as Discord.TextChannel).send({ embeds: [embed] });
 	}
 }

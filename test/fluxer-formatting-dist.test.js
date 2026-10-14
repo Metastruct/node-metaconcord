@@ -35,7 +35,7 @@ test("authored embeds and commit component containers remain relayable", () => {
 	const components = [
 		{
 			type: 17,
-			accent_color: 3289725,
+			accent_color: 3_289_725,
 			components: [
 				{
 					type: 9,

@@ -28,7 +28,7 @@ export default class JoinLeavePayload extends Payload {
 				iconURL: avatar,
 				url: `https://steamcommunity.com/profiles/${player.steamId64}`,
 			})
-			.setColor(spawned ? 0x4bb543 : 0xb54343);
+			.setColor(spawned ? 0x4b_b5_43 : 0xb5_43_43);
 		if (reason) embed.setDescription(`Reason: ${reason}`);
 		await (relayChannel as Discord.TextChannel).send({ embeds: [embed] });
 	}

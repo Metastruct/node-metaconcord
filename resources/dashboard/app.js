@@ -181,7 +181,7 @@
 				location.href = "/";
 				return;
 			}
-			const delay = Math.min(30000, 1000 * 2 ** retry++);
+			const delay = Math.min(30_000, 1000 * 2 ** retry++);
 			renderOut("meta", `disconnected, retrying in ${Math.round(delay / 1000)}s`);
 			setTimeout(connect, delay);
 		});

@@ -13,7 +13,7 @@ const REDIRECTS: Record<string, string> = {
 };
 
 const DEFAULT_PASSWORD = "metawebsite";
-const DEFAULT_PORT = 27015;
+const DEFAULT_PORT = 27_015;
 
 export default (webApp: WebApp): void => {
 	for (const [path, target] of Object.entries(REDIRECTS)) {

@@ -20,7 +20,7 @@ const GamemodeExtras = {
 	jazztronauts: {
 		activities: ["stealing props", "collecting shards"],
 		icon: "https://github.com/Foohy/jazztronauts/blob/master/gamemodes/jazztronauts/icon24.png?raw=true",
-		color: 0x320032,
+		color: 0x32_00_32,
 		seagull: undefined,
 	},
 	metastruct: {
@@ -35,14 +35,14 @@ const GamemodeExtras = {
 			"crashing the server",
 		],
 		icon: "https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
-		color: 0x4bf5ca,
+		color: 0x4b_f5_ca,
 		seagull:
 			"https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
 	},
 	mta: {
 		activities: ["shooting combines", "drilling vaults", "upgrading skills"],
 		icon: "https://github.com/Metastruct/MTA-Gamemode/blob/master/gamemodes/mta/icon24.png?raw=true",
-		color: 0xf48702,
+		color: 0xf4_87_02,
 		seagull: undefined,
 	},
 	ttt2: {
@@ -56,7 +56,7 @@ const GamemodeExtras = {
 			"swapping",
 		],
 		icon: "https://github.com/Metastruct/TTT2/blob/master/gamemodes/terrortown/logo.png?raw=true",
-		color: 0xdcb400,
+		color: 0xdc_b4_00,
 		seagull:
 			"https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull_ttt.png?inline=false",
 	},
@@ -250,7 +250,7 @@ export default class StatusPayload extends Payload {
 
 			container.setAccentColor(
 				current_defcon === 1 || current_countdown
-					? 0xff0000
+					? 0xff_00_00
 					: current_gamemode
 						? (gamemodeExtras?.color ?? null)
 						: undefined

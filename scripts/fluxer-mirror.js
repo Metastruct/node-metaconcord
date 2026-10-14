@@ -626,7 +626,7 @@ const createChannel = (src, type, parentFluxerId) => {
 		...(src.rate_limit_per_user != null
 			? { rate_limit_per_user: src.rate_limit_per_user }
 			: {}),
-		...(type === 2 ? { bitrate: src.bitrate ?? 64000 } : {}),
+		...(type === 2 ? { bitrate: src.bitrate ?? 64_000 } : {}),
 		...(type === 2 ? { user_limit: Math.min(src.user_limit ?? 0, 99) } : {}),
 		...forumFieldsFor(src),
 	};

@@ -142,7 +142,7 @@ async function resolveGitUncached(
 			const res = await axios.head(remote.webUrl, {
 				maxRedirects: 0,
 				validateStatus: () => true,
-				timeout: 10000,
+				timeout: 10_000,
 				headers: { "User-Agent": USER_AGENT },
 			});
 			result = {
@@ -187,7 +187,7 @@ async function fetchGithubRepo(
 
 	const res = await axios.get<GithubRepo>(`https://api.github.com/repos/${owner}/${repo}`, {
 		validateStatus: () => true,
-		timeout: 10000,
+		timeout: 10_000,
 		headers: { "User-Agent": USER_AGENT, Accept: "application/vnd.github+json" },
 	});
 	if (res.status === 403 && res.headers["x-ratelimit-remaining"] === "0") {
@@ -275,7 +275,7 @@ async function resolveGitlab(remote: GitRemote): Promise<GitResolution> {
 		namespace?: { avatar_url: string | null };
 	}>(`https://${remote.hostname}/api/v4/projects/${encodeURIComponent(remote.path)}`, {
 		validateStatus: () => true,
-		timeout: 10000,
+		timeout: 10_000,
 		headers: gitlabHeaders(),
 	});
 	if (res.status !== 200) return { public: false, transient: res.status >= 500 };
@@ -299,7 +299,7 @@ async function resolveGitlab(remote: GitRemote): Promise<GitResolution> {
 		{
 			params: { per_page: 1 },
 			validateStatus: () => true,
-			timeout: 10000,
+			timeout: 10_000,
 			headers: { "User-Agent": USER_AGENT },
 		}
 	);
@@ -374,7 +374,7 @@ async function fetchReadme(
 		const res = await axios.get<string>(url, {
 			params: ref ? { ref } : undefined,
 			validateStatus: () => true,
-			timeout: 10000,
+			timeout: 10_000,
 			headers: { "User-Agent": USER_AGENT, Accept: "application/vnd.github.raw" },
 		});
 		return res.status === 200 && typeof res.data === "string" ? res.data : undefined;
@@ -388,7 +388,7 @@ async function fetchReadme(
 			{
 				params: { ref: ref ?? "HEAD" },
 				validateStatus: () => true,
-				timeout: 10000,
+				timeout: 10_000,
 				headers: gitlabHeaders(),
 				// a README is text, but axios guesses JSON from the content type
 				responseType: "text",
@@ -546,7 +546,7 @@ export async function resolveModrinth(hashes: string[]): Promise<Map<string, Mod
 			await axios.post<Record<string, ModrinthVersion>>(
 				"https://api.modrinth.com/v2/version_files",
 				{ hashes: missing, algorithm: "sha512" },
-				{ headers: { "User-Agent": USER_AGENT }, timeout: 15000 }
+				{ headers: { "User-Agent": USER_AGENT }, timeout: 15_000 }
 			)
 		).data;
 
@@ -556,7 +556,7 @@ export async function resolveModrinth(hashes: string[]): Promise<Map<string, Mod
 				await axios.get<ModrinthProject[]>("https://api.modrinth.com/v2/projects", {
 					params: { ids: JSON.stringify(projectIds) },
 					headers: { "User-Agent": USER_AGENT },
-					timeout: 15000,
+					timeout: 15_000,
 				})
 			).data
 			: [];
@@ -619,7 +619,7 @@ export async function resolveCurseforge(
 			}>(
 				"https://api.curseforge.com/v1/fingerprints",
 				{ fingerprints: missing },
-				{ headers, timeout: 15000 }
+				{ headers, timeout: 15_000 }
 			)
 		).data.data.exactMatches;
 
@@ -640,7 +640,7 @@ export async function resolveCurseforge(
 				}>(
 					"https://api.curseforge.com/v1/mods",
 					{ modIds },
-					{ headers, timeout: 15000 }
+					{ headers, timeout: 15_000 }
 				)
 			).data.data
 			: [];
@@ -726,7 +726,7 @@ export async function resolveByName(
 				`https://api.modrinth.com/v2/project/${encodeURIComponent(slug)}`,
 				{
 					validateStatus: () => true,
-					timeout: 10000,
+					timeout: 10_000,
 					headers: { "User-Agent": USER_AGENT },
 				}
 			);
@@ -758,7 +758,7 @@ export async function resolveByName(
 						params: { gameId: 432, classId: 6, slug, pageSize: 5 },
 						headers: { "x-api-key": curseforgeKey, "User-Agent": USER_AGENT },
 						validateStatus: () => true,
-						timeout: 10000,
+						timeout: 10_000,
 					}
 				);
 				if (res.status !== 200) continue;

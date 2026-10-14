@@ -779,7 +779,7 @@ export class Fluxer extends Service {
 				...((archiveDuration === 60 ||
 				archiveDuration === 1440 ||
 				archiveDuration === 4320 ||
-				archiveDuration === 10080
+				archiveDuration === 10_080
 					? { autoArchiveDuration: archiveDuration }
 					: {}) as { autoArchiveDuration?: Discord.ThreadAutoArchiveDuration }),
 			});
@@ -1596,7 +1596,7 @@ export class Fluxer extends Service {
 				await channel.messages.delete(mapping.discord_message_id);
 			}
 		} catch (error) {
-			if ((error as { code?: number }).code !== 10008) {
+			if ((error as { code?: number }).code !== 10_008) {
 				this.relayFailure(
 					"fluxer->discord delete",
 					{

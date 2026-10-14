@@ -65,9 +65,9 @@ const setRoleColorSpecial = async (
 
 			if (options?.holographic) {
 				// for some reason only this one has a third colour option and it's static
-				primaryColor = 11127295;
-				secondaryColor = 16759788;
-				tertiaryColor = 16761760;
+				primaryColor = 11_127_295;
+				secondaryColor = 16_759_788;
+				tertiaryColor = 16_761_760;
 			}
 			colors = {
 				primaryColor,

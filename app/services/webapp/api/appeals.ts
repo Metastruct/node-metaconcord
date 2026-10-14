@@ -226,7 +226,7 @@ export default (webApp: WebApp): void => {
 			if (!channel?.isThread()) return "gone";
 			return channel;
 		} catch (error) {
-			if (error instanceof Discord.DiscordAPIError && error.code === 10003) return "gone";
+			if (error instanceof Discord.DiscordAPIError && error.code === 10_003) return "gone";
 			log.error(error, `failed fetching appeal thread ${row.thread_id}`);
 			return undefined;
 		}

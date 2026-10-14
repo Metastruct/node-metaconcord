@@ -35,7 +35,7 @@ const FLUXER_GUILD = fluxerConfig.guildId;
 
 // Fluxer create rate limits from the documentation, with a safety margin.
 const BULK_CREATE_INTERVAL_MS = 12_000; // 6 per minute
-const ITEM_CREATE_INTERVAL_MS = 4_000; // 10 per 30 seconds
+const ITEM_CREATE_INTERVAL_MS = 4000; // 10 per 30 seconds
 const BULK_CHUNK_SIZE = 50;
 const MAX_EXPRESSION_BYTES = 524_288; // resolved emoji_max_size / sticker_max_size default
 
