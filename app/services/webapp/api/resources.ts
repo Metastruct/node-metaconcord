@@ -1,6 +1,6 @@
 import { WebApp } from "#/app/services/webapp/index.js";
 import express from "express";
-import path from "path";
+import path from "node:path";
 
 export default (webApp: WebApp): void => {
 	webApp.app.use(

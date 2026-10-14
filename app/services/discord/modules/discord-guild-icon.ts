@@ -1,8 +1,8 @@
 import { DiscordBot } from "../index.js";
-import { PathLike } from "fs";
-import { join } from "path";
+import { PathLike } from "node:fs";
+import { join } from "node:path";
 import { scheduleJob } from "node-schedule";
-import { stat } from "fs/promises";
+import { stat } from "node:fs/promises";
 import dayjs from "dayjs";
 import { logger } from "#/utils.js";
 

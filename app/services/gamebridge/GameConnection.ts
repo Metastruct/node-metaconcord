@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { DiscordClient } from "./discord/index.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import GameBridge from "./GameBridge.js";
 import { logger } from "#/utils.js";
 

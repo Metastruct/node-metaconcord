@@ -1,11 +1,11 @@
 /* eslint-disable typescript-eslint/no-explicit-any */
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "#/extensions/discord.js";
-import { spawn } from "child_process";
-import fs from "fs/promises";
-import { createWriteStream } from "fs";
-import path from "path";
-import os from "os";
+import { spawn } from "node:child_process";
+import fs from "node:fs/promises";
+import { createWriteStream } from "node:fs";
+import path from "node:path";
+import os from "node:os";
 import axios from "axios";
 import { logger } from "#/utils.js";
 

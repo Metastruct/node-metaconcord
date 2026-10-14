@@ -6,7 +6,7 @@ import WebAppProvider, { WebApp } from "#/app/services/webapp/index.js";
 import { encrypt } from "#/app/services/webapp/secretBox.js";
 import WebAppConfig from "#/config/webapp.json" with { type: "json" };
 import OIDCConfig from "#/config/oidc.json" with { type: "json" };
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 /**
  * Local integration test for the OIDC provider. Boots ONLY the services it

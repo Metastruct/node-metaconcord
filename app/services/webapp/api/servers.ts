@@ -1,8 +1,8 @@
 import { GameState } from "#/app/services/gamebridge/games/ss13/topics.js";
 import type { Player } from "#/app/services/gamebridge/GameConnection.js";
 import type { WebApp } from "#/app/services/webapp/index.js";
-import { promises as dns } from "dns";
-import path from "path";
+import { promises as dns } from "node:dns";
+import path from "node:path";
 import ss13Config from "#/config/ss13.json" with { type: "json" };
 import vrchatConfig from "#/config/vrchat.json" with { type: "json" };
 
