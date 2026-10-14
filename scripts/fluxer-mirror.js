@@ -483,7 +483,6 @@ if (!fluxerGuild.features.includes("TEXT_CHANNEL_FLEXIBLE_NAMES")) {
 	const features = [...new Set([...fluxerGuild.features, "TEXT_CHANNEL_FLEXIBLE_NAMES"])];
 	if (dryRun) step(`would PATCH features: ${features.join(", ")}`);
 	else {
-		// eslint-disable-next-line no-useless-assignment
 		fluxerGuild = await fluxerApi("PATCH", `/guilds/${FLUXER_GUILD}`, { features });
 		step("done");
 	}

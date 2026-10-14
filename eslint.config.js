@@ -1,64 +1,48 @@
+import typescriptEslintParser from '@typescript-eslint/parser';
 import eslintJs from "@eslint/js";
-import stylistic from "@stylistic/eslint-plugin";
-import globals from "globals";
-import typescriptEslint from "typescript-eslint";
+import unicorn from 'eslint-plugin-unicorn';
+import {defineConfig} from 'eslint/config';
+import globals from 'globals';
 
-export default [
-	eslintJs.configs.recommended,
-	...typescriptEslint.configs.recommended,
+export default defineConfig([
 	{
-		ignores: [
-			"dist",
-			"resources"
-		]
-	},
-	{
+		files: ['**/*.ts'],
 		languageOptions: {
-			globals: {
-				...globals.node
-			}
+			globals: globals.nodeBuiltin,
+			parser: typescriptEslintParser,
 		},
 		plugins: {
-			"@stylistic": stylistic
+			unicorn, eslintJs
 		},
+		extends: [
+			'eslintJs/recommended',
+			'unicorn/recommended',
+		],
 		rules: {
-			"@stylistic/indent": [
-				"error",
-				"tab",
-				{
-					"flatTernaryExpressions": true
-				}
-			],
-			"@stylistic/eol-last": [
-				"error"
-			],
-			"@stylistic/linebreak-style": [
-				"error",
-				"unix"
-			],
-			"@stylistic/quotes": [
-				"error",
-				"double",
-				{
-					"avoidEscape": true
-				}
-			],
-			"@stylistic/semi": [
-				"error",
-				"always"
-			],
-			"eqeqeq": [
-				"warn",
-				"always"
-			],
-			"no-empty": [
+			"unicorn/no-asterisk-prefix-in-documentation-comments": "off",
+			"unicorn/filename-case": "off",
+			"unicorn/name-replacements": "off",
+			"unicorn/prefer-await": "off",
+			"unicorn/prefer-string-raw": "off",
+			"unicorn/no-null": "off",
+			"unicorn/single-line-block-comment-style": "off",
+			"unicorn/switch-case-braces": "off",
+			"unicorn/consistent-boolean-name": "off",
+			"unicorn/prefer-ternary": "off",
+			"unicorn/no-nested-ternary": "off",
+			"unicorn/prefer-unicode-code-point-escapes": "off",
+			"unicorn/prefer-combined-guards": "off",
+			//"unicorn/": "off",
+			"unicorn/no-useless-undefined": "off",
+			"unicorn/prefer-early-return": [
 				"error",
 				{
-					"allowEmptyCatch": true
+					"maximumStatements": 3
 				}
 			],
-			"@typescript-eslint/no-explicit-any": "warn",
-			"@typescript-eslint/no-unused-vars": [
+			"unicorn/prefer-number-properties": "off",
+			"unicorn/no-for-each": "off",
+			"no-unused-vars": [
 				"warn",
 				{
 					args: "all",
@@ -69,32 +53,7 @@ export default [
 					varsIgnorePattern: "^_",
 					ignoreRestSiblings: true
 				}
-			],
-			"@stylistic/space-before-function-paren": [
-				"error",
-				{
-					anonymous: "never",
-					named: "never",
-					asyncArrow: "always",
-					catch: "always"
-				}
-			],
-			"@stylistic/function-call-spacing": [
-				"error",
-				"never"
 			]
-		}
-	},
-	{
-		files: ["**/*.ts"],
-		languageOptions: {
-			parser: typescriptEslint.parser,
-			parserOptions: {
-				project: "tsconfig.json"
-			}
 		},
-		rules: {
-			"@typescript-eslint/switch-exhaustiveness-check": "warn"
-		}
 	}
-];
+]);
