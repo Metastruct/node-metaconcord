@@ -18,7 +18,10 @@
 									"type": "string"
 								}
 							},
-							"required": ["nick", "steamId64"],
+							"required": [
+								"nick",
+								"steamId64"
+							],
 							"type": "object"
 						},
 						"reason": {
@@ -28,7 +31,9 @@
 							"type": "boolean"
 						}
 					},
-					"required": ["player"],
+					"required": [
+						"player"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -36,7 +41,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

@@ -7,7 +7,9 @@
 			"properties": {
 				"error": {}
 			},
-			"required": ["error"],
+			"required": [
+				"error"
+			],
 			"type": "object"
 		}
 	}

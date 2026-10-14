@@ -18,14 +18,21 @@
 					"type": "boolean"
 				},
 				"realm": {
-					"enum": ["sh", "sv", "cl"],
+					"enum": [
+						"sh",
+						"sv",
+						"cl"
+					],
 					"type": "string"
 				},
 				"runner": {
 					"type": "string"
 				}
 			},
-			"required": ["isLua", "runner"],
+			"required": [
+				"isLua",
+				"runner"
+			],
 			"type": "object"
 		}
 	}

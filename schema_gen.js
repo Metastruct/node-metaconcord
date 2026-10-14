@@ -11,7 +11,6 @@ import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import path from "path";
 import { fileURLToPath } from "url";
-import * as prettier from "prettier";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -56,13 +55,8 @@ for (const relDir of structureDirs) {
 		const schema = generator.createSchema(typeName);
 
 		// safe-stable-stringify deep-sorts object keys, matching --unstable-less
-		// (i.e. sortProps) CLI output; prettier then applies the project's own
-		// json formatting (tabs, collapsed short arrays, ...).
-		const prettierConfig = await prettier.resolveConfig(outPath);
-		const formatted = await prettier.format(stringify(schema, null, 2), {
-			...prettierConfig,
-			filepath: outPath,
-		});
+		// (i.e. sortProps) CLI output, and applies the project's tab indentation.
+		const formatted = `${stringify(schema, null, "\t")}\n`;
 
 		writeFileSync(outPath, formatted);
 	}

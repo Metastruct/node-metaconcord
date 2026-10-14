@@ -13,7 +13,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		},
 		"ReportChatResponsePayload": {
@@ -35,7 +38,12 @@
 							"type": "string"
 						}
 					},
-					"required": ["type", "username", "content", "reporterSteamId64"],
+					"required": [
+						"type",
+						"username",
+						"content",
+						"reporterSteamId64"
+					],
 					"type": "object"
 				},
 				{
@@ -52,7 +60,10 @@
 										"type": "string"
 									}
 								},
-								"required": ["username", "content"],
+								"required": [
+									"username",
+									"content"
+								],
 								"type": "object"
 							},
 							"type": "array"
@@ -65,7 +76,11 @@
 							"type": "string"
 						}
 					},
-					"required": ["type", "messages", "reporterSteamId64"],
+					"required": [
+						"type",
+						"messages",
+						"reporterSteamId64"
+					],
 					"type": "object"
 				},
 				{
@@ -86,7 +101,11 @@
 							"type": "string"
 						}
 					},
-					"required": ["type", "isResolved", "reporterSteamId64"],
+					"required": [
+						"type",
+						"isResolved",
+						"reporterSteamId64"
+					],
 					"type": "object"
 				},
 				{
@@ -103,7 +122,11 @@
 							"type": "string"
 						}
 					},
-					"required": ["type", "content", "reporterSteamId64"],
+					"required": [
+						"type",
+						"content",
+						"reporterSteamId64"
+					],
 					"type": "object"
 				}
 			]

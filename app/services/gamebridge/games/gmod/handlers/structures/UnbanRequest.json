@@ -24,7 +24,10 @@
 									"type": "string"
 								}
 							},
-							"required": ["nick", "steamId"],
+							"required": [
+								"nick",
+								"steamId"
+							],
 							"type": "object"
 						},
 						"player": {
@@ -37,14 +40,23 @@
 									"type": "string"
 								}
 							},
-							"required": ["nick", "steamId"],
+							"required": [
+								"nick",
+								"steamId"
+							],
 							"type": "object"
 						},
 						"unbanReason": {
 							"type": "string"
 						}
 					},
-					"required": ["player", "banned", "banReason", "unbanReason", "banTime"],
+					"required": [
+						"player",
+						"banned",
+						"banReason",
+						"unbanReason",
+						"banTime"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -52,7 +64,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

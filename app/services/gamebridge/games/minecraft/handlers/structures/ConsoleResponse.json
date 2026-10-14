@@ -6,7 +6,11 @@
 			"additionalProperties": false,
 			"properties": {
 				"action": {
-					"enum": ["subscribe", "unsubscribe", "command"],
+					"enum": [
+						"subscribe",
+						"unsubscribe",
+						"command"
+					],
 					"type": "string"
 				},
 				"command": {
@@ -17,7 +21,9 @@
 					"type": "string"
 				}
 			},
-			"required": ["action"],
+			"required": [
+				"action"
+			],
 			"type": "object"
 		}
 	}

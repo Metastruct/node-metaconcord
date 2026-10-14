@@ -19,7 +19,10 @@
 										"type": "string"
 									}
 								},
-								"required": ["level", "text"],
+								"required": [
+									"level",
+									"text"
+								],
 								"type": "object"
 							},
 							"type": "array"
@@ -29,7 +32,9 @@
 							"type": "boolean"
 						}
 					},
-					"required": ["lines"],
+					"required": [
+						"lines"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -37,7 +42,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

@@ -27,7 +27,12 @@
 							"type": "string"
 						}
 					},
-					"required": ["identifier", "returns", "errors", "stdout"],
+					"required": [
+						"identifier",
+						"returns",
+						"errors",
+						"stdout"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -35,7 +40,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

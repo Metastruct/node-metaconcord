@@ -16,7 +16,10 @@
 							"type": "string"
 						}
 					},
-					"required": ["steamId64", "content"],
+					"required": [
+						"steamId64",
+						"content"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -24,7 +27,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

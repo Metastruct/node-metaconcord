@@ -39,13 +39,19 @@
 										"type": "string"
 									}
 								},
-								"required": ["modId", "displayName", "version"],
+								"required": [
+									"modId",
+									"displayName",
+									"version"
+								],
 								"type": "object"
 							},
 							"type": "array"
 						}
 					},
-					"required": ["mods"],
+					"required": [
+						"mods"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -53,7 +59,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

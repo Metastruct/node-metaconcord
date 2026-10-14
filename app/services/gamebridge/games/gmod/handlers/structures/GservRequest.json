@@ -31,11 +31,16 @@
 						},
 						"kind": {
 							"description": "Which stream the line came from; absent on the final message.",
-							"enum": ["stdout", "stderr"],
+							"enum": [
+								"stdout",
+								"stderr"
+							],
 							"type": "string"
 						}
 					},
-					"required": ["identifier"],
+					"required": [
+						"identifier"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -43,7 +48,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

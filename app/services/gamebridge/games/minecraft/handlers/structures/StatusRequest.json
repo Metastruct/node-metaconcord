@@ -25,7 +25,10 @@
 										"type": "string"
 									}
 								},
-								"required": ["nick", "uuid"],
+								"required": [
+									"nick",
+									"uuid"
+								],
 								"type": "object"
 							},
 							"type": "array"
@@ -38,7 +41,13 @@
 							"type": "string"
 						}
 					},
-					"required": ["hostname", "version", "maxPlayers", "uptime", "players"],
+					"required": [
+						"hostname",
+						"version",
+						"maxPlayers",
+						"uptime",
+						"players"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -46,7 +55,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

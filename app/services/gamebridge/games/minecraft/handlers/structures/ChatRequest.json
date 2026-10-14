@@ -26,11 +26,17 @@
 									"type": "string"
 								}
 							},
-							"required": ["nick", "uuid"],
+							"required": [
+								"nick",
+								"uuid"
+							],
 							"type": "object"
 						}
 					},
-					"required": ["player", "content"],
+					"required": [
+						"player",
+						"content"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -38,7 +44,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

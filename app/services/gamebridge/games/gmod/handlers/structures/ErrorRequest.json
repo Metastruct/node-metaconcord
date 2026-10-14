@@ -21,11 +21,17 @@
 									"type": "string"
 								}
 							},
-							"required": ["name", "identifier", "errormsg"],
+							"required": [
+								"name",
+								"identifier",
+								"errormsg"
+							],
 							"type": "object"
 						}
 					},
-					"required": ["hook_error"],
+					"required": [
+						"hook_error"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -33,7 +39,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

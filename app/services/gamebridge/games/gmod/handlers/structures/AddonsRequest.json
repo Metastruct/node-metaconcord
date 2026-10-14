@@ -26,7 +26,9 @@
 										"type": "string"
 									}
 								},
-								"required": ["folder"],
+								"required": [
+									"folder"
+								],
 								"type": "object"
 							},
 							"type": "array"
@@ -57,7 +59,13 @@
 										"type": "string"
 									}
 								},
-								"required": ["repo", "sub", "remote", "wsid", "branch"],
+								"required": [
+									"repo",
+									"sub",
+									"remote",
+									"wsid",
+									"branch"
+								],
 								"type": "object"
 							},
 							"type": "array"
@@ -70,7 +78,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

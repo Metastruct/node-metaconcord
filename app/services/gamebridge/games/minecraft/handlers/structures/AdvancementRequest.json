@@ -22,7 +22,10 @@
 									"type": "string"
 								}
 							},
-							"required": ["nick", "uuid"],
+							"required": [
+								"nick",
+								"uuid"
+							],
 							"type": "object"
 						},
 						"title": {
@@ -31,11 +34,20 @@
 						},
 						"type": {
 							"description": "the advancement's frame type",
-							"enum": ["task", "goal", "challenge"],
+							"enum": [
+								"task",
+								"goal",
+								"challenge"
+							],
 							"type": "string"
 						}
 					},
-					"required": ["player", "title", "description", "type"],
+					"required": [
+						"player",
+						"title",
+						"description",
+						"type"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -43,7 +55,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

@@ -21,7 +21,10 @@
 									"type": "string"
 								}
 							},
-							"required": ["nick", "steamId"],
+							"required": [
+								"nick",
+								"steamId"
+							],
 							"type": "object"
 						},
 						"reported": {
@@ -34,11 +37,18 @@
 									"type": "string"
 								}
 							},
-							"required": ["nick", "steamId"],
+							"required": [
+								"nick",
+								"steamId"
+							],
 							"type": "object"
 						}
 					},
-					"required": ["player", "reported", "message"],
+					"required": [
+						"player",
+						"reported",
+						"message"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -46,7 +56,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}

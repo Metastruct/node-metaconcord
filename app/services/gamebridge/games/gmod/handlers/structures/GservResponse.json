@@ -13,7 +13,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["command", "identifier"],
+			"required": [
+				"command",
+				"identifier"
+			],
 			"type": "object"
 		}
 	}

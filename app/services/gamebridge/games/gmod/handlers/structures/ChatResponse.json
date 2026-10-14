@@ -24,7 +24,11 @@
 							"type": "string"
 						}
 					},
-					"required": ["content", "ingameName", "msgID"],
+					"required": [
+						"content",
+						"ingameName",
+						"msgID"
+					],
 					"type": "object"
 				},
 				"user": {
@@ -46,11 +50,21 @@
 							"type": "string"
 						}
 					},
-					"required": ["avatar_url", "color", "id", "nick", "username"],
+					"required": [
+						"avatar_url",
+						"color",
+						"id",
+						"nick",
+						"username"
+					],
 					"type": "object"
 				}
 			},
-			"required": ["user", "content", "msgID"],
+			"required": [
+				"user",
+				"content",
+				"msgID"
+			],
 			"type": "object"
 		}
 	}

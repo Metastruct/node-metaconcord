@@ -13,7 +13,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["name", "data"],
+			"required": [
+				"name",
+				"data"
+			],
 			"type": "object"
 		}
 	}

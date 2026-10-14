@@ -18,7 +18,10 @@
 									"type": "string"
 								}
 							},
-							"required": ["nick", "steamID"],
+							"required": [
+								"nick",
+								"steamID"
+							],
 							"type": "object"
 						},
 						"reason": {
@@ -34,7 +37,10 @@
 									"type": "string"
 								}
 							},
-							"required": ["nick", "steamID"],
+							"required": [
+								"nick",
+								"steamID"
+							],
 							"type": "object"
 						},
 						"result": {
@@ -47,11 +53,17 @@
 									"type": "boolean"
 								}
 							},
-							"required": ["success"],
+							"required": [
+								"success"
+							],
 							"type": "object"
 						}
 					},
-					"required": ["offender", "reporter", "reason"],
+					"required": [
+						"offender",
+						"reporter",
+						"reason"
+					],
 					"type": "object"
 				},
 				"name": {
@@ -59,7 +71,10 @@
 					"type": "string"
 				}
 			},
-			"required": ["data", "name"],
+			"required": [
+				"data",
+				"name"
+			],
 			"type": "object"
 		}
 	}
