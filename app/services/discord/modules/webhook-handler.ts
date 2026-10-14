@@ -197,7 +197,6 @@ function formatDiffText(text: string): string {
 	return (
 		text
 			.replaceAll(/(@@ -\d+,\d+ .+\d+,\d+ @@)([^\n])/g, "$1\n$2")
-			.replaceAll(/diff.+\nindex.+\n/g, "")
 			// binary diffs carry no ---/+++ headers, so synthesise them from the line
 			.replaceAll(
 				/^Binary files (.+) and (.+) differ$/gm,
@@ -225,17 +224,58 @@ interface DiffFile {
 	binary: boolean;
 	isNew: boolean;
 	isDeleted: boolean;
+	modeChanged: boolean;
 }
 
 const isChangedLine = (line: string) => line.startsWith("+") || line.startsWith("-");
+
+const DIFF_METADATA_PREFIXES = [
+	"index ",
+	"similarity index ",
+	"rename from ",
+	"rename to ",
+	"copy from ",
+	"copy to ",
+	"new file mode ",
+	"deleted file mode ",
+	"old mode ",
+	"new mode ",
+];
+const isDiffMetadata = (line: string) =>
+	DIFF_METADATA_PREFIXES.some(prefix => line.startsWith(prefix));
+
+// "diff --git a/foo b/bar", where git quotes paths containing spaces etc.
+function parseGitDiffPaths(line: string): [string | undefined, string | undefined] {
+	const tokens: string[] = [];
+	const re = /"((?:[^"\\]|\\.)*)"|(\S+)/g;
+	let match: RegExpExecArray | null;
+	while ((match = re.exec(line.slice("diff --git ".length))) !== null) {
+		tokens.push(match[1] ?? match[2]);
+	}
+	const stripPrefix = (value: string | undefined, prefix: string) =>
+		value !== undefined && value.startsWith(prefix) ? value.slice(prefix.length) : value;
+	return [stripPrefix(tokens[0], "a/"), stripPrefix(tokens[1], "b/")];
+}
 
 function parseDiffFiles(text: string): DiffFile[] {
 	const files: DiffFile[] = [];
 	let header: string[] = [];
 	let body: string[] = [];
+	let gitFrom: string | undefined;
+	let gitTo: string | undefined;
+	let renameFrom: string | undefined;
+	let renameTo: string | undefined;
+	let modeChanged = false;
 
 	const flush = () => {
-		if (header.length === 0 && body.length === 0) return;
+		if (
+			header.length === 0 &&
+			body.length === 0 &&
+			gitFrom === undefined &&
+			renameFrom === undefined
+		) {
+			return;
+		}
 		const added = body.filter(l => l.startsWith("+")).length;
 		const removed = body.filter(l => l.startsWith("-")).length;
 		const isNew = header.some(l => /^--- \/dev\/null$/.test(l));
@@ -246,8 +286,8 @@ function parseDiffFiles(text: string): DiffFile[] {
 				?.slice(4)
 				.replace(/^[ab]\//, "")
 				.trim();
-		const newPath = headerPath("+++ ");
-		const oldPath = headerPath("--- ");
+		const newPath = headerPath("+++ ") ?? renameTo ?? gitTo;
+		const oldPath = headerPath("--- ") ?? renameFrom ?? gitFrom;
 		// prefer the new path so renames match the linked change list
 		const path = newPath ?? oldPath ?? "unknown";
 		const renamed = !!newPath && !!oldPath && newPath !== oldPath;
@@ -264,9 +304,15 @@ function parseDiffFiles(text: string): DiffFile[] {
 			binary,
 			isNew,
 			isDeleted,
+			modeChanged,
 		});
 		header = [];
 		body = [];
+		gitFrom = undefined;
+		gitTo = undefined;
+		renameFrom = undefined;
+		renameTo = undefined;
+		modeChanged = false;
 	};
 
 	// a file header is only a "--- old" line immediately followed by "+++ new";
@@ -274,13 +320,35 @@ function parseDiffFiles(text: string): DiffFile[] {
 	const lines = text.split("\n");
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];
+		if (line.startsWith("diff --git ")) {
+			// every git file section starts here, so it's the only reliable
+			// boundary for sections without ---/+++ (renames, mode changes)
+			flush();
+			[gitFrom, gitTo] = parseGitDiffPaths(line);
+			continue;
+		}
 		if (line.startsWith("--- ") && lines[i + 1]?.startsWith("+++ ")) {
 			if (header.length > 0 || body.length > 0) flush();
 			header.push(line, lines[i + 1]);
 			i++;
-		} else {
-			body.push(line);
+			continue;
 		}
+		const fromMatch = /^(?:rename|copy) from (.+)$/.exec(line);
+		if (fromMatch) {
+			renameFrom = fromMatch[1].trim();
+			continue;
+		}
+		const toMatch = /^(?:rename|copy) to (.+)$/.exec(line);
+		if (toMatch) {
+			renameTo = toMatch[1].trim();
+			continue;
+		}
+		if (line.startsWith("old mode ") || line.startsWith("new mode ")) {
+			modeChanged = true;
+			continue;
+		}
+		if (isDiffMetadata(line)) continue;
+		body.push(line);
 	}
 	flush();
 	return files;
@@ -295,11 +363,15 @@ function diffLabel(file: DiffFile, shownChanges: number, link?: string): string 
 	}
 	const notes: string[] = [];
 	if (file.binary) notes.push("binary");
+	if (file.modeChanged) notes.push("mode");
 	if (shownChanges < file.maxChanges) notes.push(`showing ${shownChanges}`);
 	const suffix = notes.length > 0 ? ` (${notes.join(", ")})` : "";
 	if (file.binary) return `${name}${suffix}`;
 	if (file.isNew) return `${name} +${file.added}${suffix}`;
 	if (file.isDeleted) return `${name} -${file.removed}${suffix}`;
+	// a pure rename / mode change has nothing to count, so don't show "+0 -0"
+	if (file.added === 0 && file.removed === 0 && (file.renamed || file.modeChanged))
+		return `${name}${suffix}`;
 	return `${name} +${file.added} -${file.removed}${suffix}`;
 }
 
