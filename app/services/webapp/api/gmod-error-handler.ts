@@ -84,6 +84,7 @@ const funcIgnore = ["CreateFont", "require"];
 const ignoreRegex = [
 	/Warning! A net message \(.+\) is already started! Discarding in favor of the new message! \(.+\)/g,
 	/unsuccessful/,
+	/Couldn't include file 'includes\/modules\/string\.lua'/,
 ];
 //const fileIgnore = [];
 
