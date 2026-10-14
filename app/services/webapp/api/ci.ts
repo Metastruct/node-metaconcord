@@ -28,8 +28,8 @@ export default (webApp: WebApp): void => {
 			if (req.query.all) args.push("all");
 			spawn("bash", args);
 			return;
-		} catch (err: unknown) {
-			res.status(ERROR).send(errToMessage(err));
+		} catch (error: unknown) {
+			res.status(ERROR).send(errToMessage(error));
 			return;
 		}
 	});

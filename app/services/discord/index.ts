@@ -90,11 +90,11 @@ export class DiscordBot extends Service {
 			try {
 				await this.discord.login(this.config.bot.token);
 				return;
-			} catch (err) {
+			} catch (error) {
 				attempts++;
 				const delay = Math.min(5000 * 2 ** (attempts - 1), 120_000);
 				log.error(
-					{ err, attempt: attempts },
+					{ err: error, attempt: attempts },
 					`Discord login failed, retrying in ${delay}ms`
 				);
 				await sleep(delay);

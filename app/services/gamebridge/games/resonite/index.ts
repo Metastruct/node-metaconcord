@@ -194,9 +194,9 @@ async function upsertSession(
 				return false;
 			}
 			connection.verifiedEmptySessions.add(session.sessionId);
-		} catch (err) {
+		} catch (error) {
 			log.warn(
-				{ err, sessionId: session.sessionId },
+				{ error, sessionId: session.sessionId },
 				"failed to verify empty Resonite session"
 			);
 		}
@@ -308,8 +308,8 @@ function createConnection(bridge: GameBridge): ResoniteConnection {
 				await upsertSession(bridge, resonite, session);
 			}
 			await renderStatus(bridge);
-		} catch (err) {
-			log.error(err, "Resonite login seed failed");
+		} catch (error) {
+			log.error(error, "Resonite login seed failed");
 		}
 	});
 	return connection;
@@ -345,16 +345,16 @@ export function attachResonite(bridge: GameBridge): void {
 			if (await upsertSession(bridge, resonite, session)) {
 				await renderStatus(bridge);
 			}
-		} catch (err) {
-			log.error(err, "ReceiveSessionUpdate");
+		} catch (error) {
+			log.error(error, "ReceiveSessionUpdate");
 		}
 	});
 
 	con.on("RemoveSession", async (sessionId: string) => {
 		try {
 			await removeSession(bridge, sessionId);
-		} catch (err) {
-			log.error(err, "RemoveSession");
+		} catch (error) {
+			log.error(error, "RemoveSession");
 		}
 	});
 
@@ -371,8 +371,8 @@ export function attachResonite(bridge: GameBridge): void {
 					files,
 					buildSignature(connection)
 				);
-			} catch (err) {
-				log.error(err, "failed to post disconnect status");
+			} catch (error) {
+				log.error(error, "failed to post disconnect status");
 			}
 		}
 

@@ -54,8 +54,8 @@ const Ban = async (
 				? "GameServer not connected :("
 				: `Could not ban \`${plyName}(${steamid})\` expires in: <t:${length}:R>`
 		);
-	} catch (err) {
-		const errMsg = (err as Error)?.message ?? err;
+	} catch (error) {
+		const errMsg = (error as Error)?.message ?? error;
 		await ctx.followUp(errMsg);
 	}
 };

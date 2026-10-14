@@ -431,8 +431,8 @@ async function processVideo(
 		await ctx.followUp({
 			files: [{ attachment: buf, name: `${effectName}.mp4` }],
 		});
-	} catch (err) {
-		log.error({ err, effectName }, "video command failed");
+	} catch (error) {
+		log.error({ err: error, effectName }, "video command failed");
 		await ctx.followUp(EphemeralResponse("Something went wrong processing the video."));
 	} finally {
 		await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});

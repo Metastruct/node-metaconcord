@@ -212,8 +212,8 @@ export class Addons extends Service {
 			this.retryTimers.set(
 				id,
 				setTimeout(() => {
-					this.refreshGmodRepos(server, rows, attempt + 1).catch(err =>
-						log.error({ err, server: name }, "addon refresh retry failed")
+					this.refreshGmodRepos(server, rows, attempt + 1).catch(error =>
+						log.error({ err: error, server: name }, "addon refresh retry failed")
 					);
 				}, TRANSIENT_RETRY_DELAY)
 			);

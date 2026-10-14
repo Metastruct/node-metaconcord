@@ -244,8 +244,8 @@ export class OIDC extends Service {
 					path: "/oauth",
 				});
 				res.redirect(req.originalUrl);
-			} catch (err) {
-				log.error(err, "oidc session cookie scrub failed");
+			} catch (error) {
+				log.error(error, "oidc session cookie scrub failed");
 				next();
 			}
 		});
@@ -304,9 +304,9 @@ export class OIDC extends Service {
 				await this.provider.interactionFinished(req, res, result, {
 					mergeWithLastSubmission: true,
 				});
-			} catch (err) {
-				log.error(err, `interaction ${req.params.uid} failed`);
-				throw err;
+			} catch (error) {
+				log.error(error, `interaction ${req.params.uid} failed`);
+				throw error;
 			}
 		});
 

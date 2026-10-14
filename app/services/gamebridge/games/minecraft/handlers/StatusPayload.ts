@@ -119,8 +119,8 @@ export default class StatusPayload extends Payload {
 				files.push(
 					new Discord.AttachmentBuilder(server.playerListImage).setName("players.png")
 				);
-			} catch (err) {
-				log.warn(err, "failed to render minecraft player list");
+			} catch (error) {
+				log.warn(error, "failed to render minecraft player list");
 			}
 		}
 

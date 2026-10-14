@@ -230,8 +230,8 @@ export default async (bot: DiscordBot) => {
 					} else {
 						await bot.getTextChannel(bot.config.channels.chat)?.send(shat);
 					}
-				} catch (e) {
-					log.error({ e, shat, options });
+				} catch (error) {
+					log.error({ e: error, shat, options });
 				}
 			}
 		} finally {

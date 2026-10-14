@@ -46,8 +46,8 @@ export default (webApp: WebApp): void => {
 		if (refreshing) {
 			try {
 				await refreshing;
-			} catch (err) {
-				log.warn(err, "failed fetching the guild widget");
+			} catch (error) {
+				log.warn(error, "failed fetching the guild widget");
 			}
 		}
 

@@ -244,8 +244,8 @@ export class Markov extends Service {
 			return await (
 				await this.getMarkov()
 			).generate(options?.depth, options?.length, sentence, options?.continuation);
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 			return;
 		}
 	}

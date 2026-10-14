@@ -99,15 +99,15 @@ const readPublic = async (appOctokit: Octokit): Promise<HistoryEvent[]> => {
 			Buffer.from(data.content, "base64").toString("utf8")
 		) as HistoryEvent[];
 		publicCache = { events, etag: headers.etag, checkedAt: Date.now() };
-	} catch (err) {
-		const status = (err as { status?: number }).status;
+	} catch (error) {
+		const status = (error as { status?: number }).status;
 		if (status === 304 && publicCache) {
 			publicCache.checkedAt = Date.now();
 		} else if (publicCache) {
-			log.warn(err, "history revalidation failed, serving the cached copy");
+			log.warn(error, "history revalidation failed, serving the cached copy");
 			publicCache.checkedAt = Date.now();
 		} else {
-			throw err;
+			throw error;
 		}
 	}
 	return publicCache.events;
@@ -187,14 +187,14 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 		log.info(`${session.login}: ${result.message}`);
 		publicCache = { events: result.events, etag: undefined, checkedAt: Date.now() };
 		res.json({ event: result.event, events: result.events, commitUrl });
-	} catch (err) {
+	} catch (error) {
 		// a source we cannot copy is the editor's to fix, so refuse rather than
 		// store a link that will rot
-		if (err instanceof MirrorError) {
-			res.status(400).json({ error: `could not copy the image: ${err.message}` });
+		if (error instanceof MirrorError) {
+			res.status(400).json({ error: `could not copy the image: ${error.message}` });
 			return;
 		}
-		const status = (err as { status?: number }).status;
+		const status = (error as { status?: number }).status;
 		if (status === 409) {
 			res.status(409).json({ error: "history changed concurrently, retry" });
 			return;
@@ -203,7 +203,7 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 			res.status(403).json({ error: "your GitHub token cannot write the history repo" });
 			return;
 		}
-		log.error(err, "history mutation failed");
+		log.error(error, "history mutation failed");
 		res.status(500).json({ error: "history update failed" });
 	}
 };
@@ -222,8 +222,8 @@ export default (webApp: WebApp): void => {
 			const events = await readPublic(github.octokit);
 			res.set("Cache-Control", "public, max-age=15");
 			res.json({ events });
-		} catch (err) {
-			log.error(err, "failed reading history");
+		} catch (error) {
+			log.error(error, "failed reading history");
 			res.status(502).json({ error: "history unavailable" });
 		}
 	});

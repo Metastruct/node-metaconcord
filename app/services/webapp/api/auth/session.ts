@@ -221,12 +221,12 @@ export default (webApp: WebApp): void => {
 			setSessionCookie(res, account);
 			log.info(`${session.login} unlinked ${provider}`);
 			res.json(publicAccount({ ...session, account, roles: account.roles }));
-		} catch (err) {
-			if (err instanceof LastLoginError) {
-				res.status(409).json({ error: err.message });
+		} catch (error) {
+			if (error instanceof LastLoginError) {
+				res.status(409).json({ error: error.message });
 				return;
 			}
-			throw err;
+			throw error;
 		}
 	});
 

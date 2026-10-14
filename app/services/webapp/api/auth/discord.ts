@@ -75,8 +75,8 @@ export const getOAuthTokens = async (code: string) => {
 			code,
 			redirect_uri: DiscordConfig.bot.oAuthCallbackUri,
 		}),
-	}).catch(err => {
-		log.error(err, "failed fetching tokens");
+	}).catch(error => {
+		log.error(error, "failed fetching tokens");
 	});
 	if (res && res.ok) return res.json() as Promise<AccessTokenResponse>;
 };
@@ -92,8 +92,8 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 				token: token,
 				token_type_hint: "access_token",
 			}),
-		}).catch(err => {
-			log.error(err, "failed revoking token");
+		}).catch(error => {
+			log.error(error, "failed revoking token");
 		});
 		if (!res) return false;
 	}
@@ -116,8 +116,8 @@ export default async (webApp: WebApp): Promise<void> => {
 	const getAuthorizationData = async (tokens: AccessTokenResponse) => {
 		const res = await fetch("https://discord.com/api/v10/oauth2/@me", {
 			headers: { Authorization: `Bearer ${tokens.access_token}` },
-		}).catch(err => {
-			log.error(err, "failed fetching authorization data");
+		}).catch(error => {
+			log.error(error, "failed fetching authorization data");
 		});
 		if (res && res.ok) return res.json() as Promise<CurrentAuthorizationInformation>;
 	};
@@ -148,8 +148,8 @@ export default async (webApp: WebApp): Promise<void> => {
 		}
 		try {
 			res.send((await metadata().update(req.params.id)) ? "👌" : "👎");
-		} catch (err) {
-			log.error(err, "failed refreshing linked role metadata");
+		} catch (error) {
+			log.error(error, "failed refreshing linked role metadata");
 			res.status(502).send("👎");
 		}
 	});
@@ -269,8 +269,8 @@ export default async (webApp: WebApp): Promise<void> => {
 			const user = await (async () => {
 				const res = await fetch("https://discord.com/api/v10/users/@me", {
 					headers: { Authorization: `Bearer ${tokens.access_token}` },
-				}).catch(err => {
-					log.error(err, "failed fetching discord user");
+				}).catch(error => {
+					log.error(error, "failed fetching discord user");
 				});
 				return res && res?.ok ? ((await res.json()) as Discord.APIUser) : data.user;
 			})();
@@ -287,14 +287,14 @@ export default async (webApp: WebApp): Promise<void> => {
 						email: user.email ?? undefined,
 						emailVerified: user.verified === true || !!user.email,
 					});
-			} catch (err) {
-				if (err instanceof LinkConflictError) {
+			} catch (error) {
+				if (error instanceof LinkConflictError) {
 					res.redirect(
 						`${webApp.config.siteUrl}/profile?error=conflict&provider=discord`
 					);
 					return;
 				}
-				throw err;
+				throw error;
 			}
 			setSessionCookie(res, account);
 
@@ -314,12 +314,12 @@ export default async (webApp: WebApp): Promise<void> => {
 			// needs a Steam link on the account, the profile page says so when it is missing
 			await metadata()
 				.update(user.id)
-				.catch(err => log.error(err, "linked role metadata update failed"));
+				.catch(error => log.error(error, "linked role metadata update failed"));
 
 			log.info(`discord login for ${user.username} (account ${account.id})`);
 			res.redirect(redirect);
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 			res.sendStatus(500);
 		}
 	});

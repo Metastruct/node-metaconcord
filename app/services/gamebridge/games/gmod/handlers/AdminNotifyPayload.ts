@@ -54,8 +54,8 @@ export default class AdminNotifyPayload extends Payload {
 				});
 
 				await message.edit({ embeds: [newEmbed] });
-			} catch (err) {
-				log.error(err, `Failed to update reporter status for ${steamId64}`);
+			} catch (error) {
+				log.error(error, `Failed to update reporter status for ${steamId64}`);
 			}
 		}
 	}
@@ -110,9 +110,9 @@ export default class AdminNotifyPayload extends Payload {
 						content: `${ctx.user.mention}, could not kick player: not on server`,
 					});
 				}
-			} catch (err) {
+			} catch (error) {
 				await thread?.send({
-					content: `${ctx.user.mention}, could not kick player: ${err}`,
+					content: `${ctx.user.mention}, could not kick player: ${error}`,
 				});
 			}
 		});
@@ -150,8 +150,8 @@ export default class AdminNotifyPayload extends Payload {
 					await thread.setLocked(true);
 					await thread.setArchived(true);
 				}
-			} catch (err) {
-				log.error(err, "Failed to lock report thread");
+			} catch (error) {
+				log.error(error, "Failed to lock report thread");
 			}
 
 			try {
@@ -164,8 +164,8 @@ export default class AdminNotifyPayload extends Payload {
 					},
 					server
 				);
-			} catch (err) {
-				log.error(err, "Failed to send resolve notification");
+			} catch (error) {
+				log.error(error, "Failed to send resolve notification");
 			}
 			try {
 				const newResolveBtn = new Discord.ButtonBuilder()
@@ -181,8 +181,8 @@ export default class AdminNotifyPayload extends Payload {
 						),
 					],
 				});
-			} catch (err) {
-				thread?.send({ content: `Failed to resolve report: ${err}` }).catch(() => {});
+			} catch (error) {
+				thread?.send({ content: `Failed to resolve report: ${error}` }).catch(() => {});
 			}
 		});
 	}

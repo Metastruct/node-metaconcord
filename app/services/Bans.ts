@@ -55,9 +55,9 @@ export class Bans extends Service {
 			this.banCache = res.data;
 			this.lastSuccess = Date.now();
 			this.lastError = undefined;
-		} catch (err) {
-			this.lastError = (err as Error)?.message ?? String(err);
-			log.warn(err, "failed refreshing the ban list, keeping the cached copy");
+		} catch (error) {
+			this.lastError = (error as Error)?.message ?? String(error);
+			log.warn(error, "failed refreshing the ban list, keeping the cached copy");
 		}
 	}
 

@@ -240,9 +240,9 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 						baseLogger.info({ path, url }, "missing file from Gitlab repo");
 					}
 				}
-			} catch (err) {
+			} catch (error) {
 				baseLogger.error(
-					{ err, context: { path, gmod: gpath.fpath, owner, repo, url } },
+					{ err: error, context: { path, gmod: gpath.fpath, owner, repo, url } },
 					"GraphQL request failed"
 				);
 				return;
@@ -340,8 +340,8 @@ export const isSteamGroupMember = async (groupId: string, steamId64: string): Pr
 		c.refresh ??= refreshSteamGroup(groupId, c).finally(() => {
 			c.refresh = undefined;
 		});
-		await c.refresh.catch(err => {
-			baseLogger.error(err, `failed refreshing steam group ${groupId}`);
+		await c.refresh.catch(error => {
+			baseLogger.error(error, `failed refreshing steam group ${groupId}`);
 		});
 	}
 	return !!cache.members?.has(steamId64);

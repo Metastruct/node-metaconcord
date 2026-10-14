@@ -153,8 +153,8 @@
 			logEl.textContent = "";
 			for (const line of await res.json()) renderLog(line);
 			renderOut("meta", "--- live ---");
-		} catch (err) {
-			renderOut("error", "backlog fetch failed: " + err.message);
+		} catch (error) {
+			renderOut("error", "backlog fetch failed: " + error.message);
 		}
 
 		const proto = location.protocol === "https:" ? "wss:" : "ws:";
@@ -397,8 +397,8 @@
 				if (!res.ok) throw new Error(data.error || res.statusText);
 				msg.textContent = "saved, restart to apply";
 				dirty.textContent = "";
-			} catch (err) {
-				msg.textContent = "save failed: " + err.message;
+			} catch (error_) {
+				msg.textContent = "save failed: " + error_.message;
 			} finally {
 				save.disabled = false;
 			}

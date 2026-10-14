@@ -92,7 +92,7 @@ export default class ChatPayload extends Payload {
 					`local p = player.GetBySteamID64(${JSON.stringify(player.steamId64)}) ` +
 						`if IsValid(p) then p:ChatPrint(${JSON.stringify(result.message)}) end`
 				)
-				.catch(err => log.warn(err, "could not answer a link code in game"));
+				.catch(error => log.warn(error, "could not answer a link code in game"));
 			return;
 		}
 

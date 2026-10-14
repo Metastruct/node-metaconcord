@@ -179,12 +179,12 @@ export default class GameConnection extends EventEmitter {
 				.first();
 
 			if (message) {
-				await message.edit(payload).catch(e => log.error(e, "message edit failed"));
+				await message.edit(payload).catch(error => log.error(error, "message edit failed"));
 			} else {
 				await channel.send(payload).catch(() => {});
 			}
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 		}
 	}
 }

@@ -223,8 +223,8 @@ export const SlashRuleCommand: SlashCommand = {
 				case "edit":
 					await editRule(ctx, bot);
 			}
-		} catch (err: unknown) {
-			ctx.reply(EphemeralResponse(errToMessage(err)));
+		} catch (error: unknown) {
+			ctx.reply(EphemeralResponse(errToMessage(error)));
 		}
 	},
 	async autocomplete(ctx, bot) {

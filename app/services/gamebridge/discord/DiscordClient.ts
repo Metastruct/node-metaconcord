@@ -44,11 +44,11 @@ export default class DiscordClient extends Discord.Client {
 			try {
 				await this.login(token);
 				return;
-			} catch (err) {
+			} catch (error) {
 				attempts++;
 				const delay = Math.min(5000 * 2 ** (attempts - 1), 120_000);
 				log.error(
-					{ err, attempt: attempts },
+					{ err: error, attempt: attempts },
 					`Game bridge Discord login failed, retrying in ${delay}ms`
 				);
 				await sleep(delay);
