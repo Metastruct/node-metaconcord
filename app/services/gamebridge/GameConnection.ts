@@ -166,7 +166,7 @@ export default class GameConnection extends EventEmitter {
 					? containers
 					: [
 						new Discord.ContainerBuilder()
-							.setAccentColor(0x808080)
+							.setAccentColor(0x80_80_80)
 							.addTextDisplayComponents(text => text.setContent("[NO DATA]")),
 					],
 			files: containers.length > 0 ? files : [],

@@ -124,7 +124,7 @@ export const SlashBanCommand: SlashCommand = {
 					},
 				],
 			});
-			const response = await ctx.awaitModalSubmit({ time: 60000 }).catch(() => {});
+			const response = await ctx.awaitModalSubmit({ time: 60_000 }).catch(() => {});
 			if (response) {
 				await Ban(response.fields.getTextInputValue("nickname_input"), ctx, bot, false);
 			}

@@ -51,10 +51,10 @@ export const luaStringOrNil = (value?: string | null): string =>
 	value === undefined || value === null ? "nil" : luaString(value);
 
 const DURATION_UNITS = {
-	y: 31556926,
-	mo: 2628000,
-	w: 604800,
-	d: 86400,
+	y: 31_556_926,
+	mo: 2_628_000,
+	w: 604_800,
+	d: 86_400,
 	h: 3600,
 	m: 60,
 	s: 1,

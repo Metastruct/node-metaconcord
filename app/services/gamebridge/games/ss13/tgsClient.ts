@@ -80,7 +80,7 @@ async function login(): Promise<string> {
 }
 
 async function ensureToken(): Promise<string> {
-	if (token && tokenExpiresAt - Date.now() > 5_000) return token;
+	if (token && tokenExpiresAt - Date.now() > 5000) return token;
 	return login();
 }
 

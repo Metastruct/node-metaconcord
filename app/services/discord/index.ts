@@ -43,7 +43,7 @@ export class DiscordBot extends Service {
 		],
 		partials: [Discord.Partials.Message, Discord.Partials.Channel, Discord.Partials.Reaction],
 		closeTimeout: 5000,
-		rest: { timeout: 30000 },
+		rest: { timeout: 30_000 },
 	});
 	ready!: boolean;
 	currentEvent = "none";

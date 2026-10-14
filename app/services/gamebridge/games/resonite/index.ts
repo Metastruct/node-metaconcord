@@ -22,7 +22,7 @@ function buildSessionContainer(
 	const count = session.joinedUsers;
 	const container = new Discord.ContainerBuilder();
 
-	container.setAccentColor(state === "ended" ? 0x808080 : 4796260);
+	container.setAccentColor(state === "ended" ? 0x80_80_80 : 4_796_260);
 
 	let desc =
 		`### ${session.tags[0] ?? session.name}\n` +

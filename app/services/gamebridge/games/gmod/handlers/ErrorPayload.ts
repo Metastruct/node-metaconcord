@@ -48,7 +48,7 @@ export default class ErrorPayload extends Payload {
 					value: `<t:${dayjs().subtract(server.mapUptime, "s").unix()}:R>`,
 				},
 			],
-			color: 0x03a9f4,
+			color: 0x03_a9_f4,
 		};
 
 		if (file) {

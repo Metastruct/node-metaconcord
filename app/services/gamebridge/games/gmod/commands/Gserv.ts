@@ -73,7 +73,7 @@ export const SlashGservCommand: SlashCommand = {
 			],
 		});
 
-		const modalSubmit = await ctx.awaitModalSubmit({ time: 60000 }).catch(() => {});
+		const modalSubmit = await ctx.awaitModalSubmit({ time: 60_000 }).catch(() => {});
 		if (!modalSubmit) return;
 
 		const command = modalSubmit.fields.getStringSelectValues("command")[0];

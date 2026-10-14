@@ -89,7 +89,7 @@ async function getVideoInfo(input: string): Promise<VideoInfo> {
 	}
 	return {
 		fps,
-		sampleRate: Number(as?.sample_rate) || 48000,
+		sampleRate: Number(as?.sample_rate) || 48_000,
 		channels: Number(as?.channels) || 2,
 		duration: Number(data.format.duration) || 0,
 		hasAudio: !!as,
