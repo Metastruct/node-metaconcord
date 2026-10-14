@@ -11,7 +11,7 @@ import {
 	takeRedirect,
 } from "./session.js";
 import GithubConfig from "#/config/github.json" with { type: "json" };
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { logger } from "#/utils.js";
 
 const log = logger(import.meta);

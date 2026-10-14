@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
-import { join } from "path";
+import { join } from "node:path";
 import DiscordConfig from "#/config/discord.json" with { type: "json" };
 import { logger } from "#/utils.js";
 

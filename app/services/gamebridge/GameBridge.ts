@@ -10,7 +10,7 @@ import { attachSS13 } from "./games/ss13/index.js";
 import SS13Connection from "./games/ss13/SS13Connection.js";
 import { attachVRChat } from "./games/vrchat/index.js";
 import VRChatConnection from "./games/vrchat/VRChatConnection.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import StatsHistory from "./StatsHistory.js";
 
 export type GitHubPushPayload = {

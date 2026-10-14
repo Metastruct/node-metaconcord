@@ -6,7 +6,7 @@ import ReportChatPayload from "./ReportChatPayload.js";
 import AdminNotifyPayload from "./AdminNotifyPayload.js";
 import dayjs from "dayjs";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
-import path from "path";
+import path from "node:path";
 import { logger } from "#/utils.js";
 
 const log = logger(import.meta);

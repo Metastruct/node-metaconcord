@@ -1,5 +1,5 @@
 import { Container, Service, ServiceNotEnabledError } from "#/app/Container.js";
-import { Server as HTTPServer, createServer } from "http";
+import { Server as HTTPServer, createServer } from "node:http";
 import type { Request, Response } from "express";
 import APIs from "./api/index.js";
 import config from "#/config/webapp.json" with { type: "json" };

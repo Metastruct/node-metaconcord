@@ -1,5 +1,5 @@
 import { WebApp } from "#/app/services/webapp/index.js";
-import { spawn } from "child_process";
+import { spawn } from "node:child_process";
 import config from "#/config/ci.json" with { type: "json" };
 import { errToMessage } from "#/utils.js";
 

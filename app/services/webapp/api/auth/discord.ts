@@ -12,7 +12,7 @@ import {
 	takeRedirect,
 } from "./session.js";
 import DiscordConfig from "#/config/discord.json" with { type: "json" };
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { verifyWebhookEventMiddleware } from "discord-interactions";
 import { logger } from "#/utils.js";
 
