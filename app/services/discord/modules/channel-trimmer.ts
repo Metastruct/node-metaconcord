@@ -282,7 +282,7 @@ export default (bot: DiscordBot): void => {
 				const reply = await channel.send(message ? `(task:step) ${message.id} ${message.url}` : "(task:null)");
 				await trimmer.trim()
 					.then(() => reply.edit(reply.content + " ... OK!"))
-					.catch(err => reply.edit(reply.content + ` ... FAIL: ${err}`));
+					.catch(error => reply.edit(reply.content + ` ... FAIL: ${error}`));
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim peek") {
 			for (const [channel, trimmer] of trimmers) {

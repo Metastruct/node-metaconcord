@@ -59,8 +59,8 @@ export default (webApp: WebApp): void => {
 				grant_type: "authorization_code",
 				redirect_uri: callbackUrl,
 			}),
-		}).catch(err => {
-			log.error(err, "gitlab token exchange failed");
+		}).catch(error => {
+			log.error(error, "gitlab token exchange failed");
 		});
 		const tokens = tokenRes && tokenRes.ok
 			? ((await tokenRes.json()) as { access_token?: string })
@@ -73,8 +73,8 @@ export default (webApp: WebApp): void => {
 
 		const userRes = await fetch(`${GITLAB_URL}/api/v4/user`, {
 			headers: { Authorization: `Bearer ${tokens.access_token}` },
-		}).catch(err => {
-			log.error(err, "failed fetching gitlab user");
+		}).catch(error => {
+			log.error(error, "failed fetching gitlab user");
 		});
 
 		const user = userRes && userRes.ok
@@ -98,12 +98,12 @@ export default (webApp: WebApp): void => {
 			setSessionCookie(res, account);
 			log.info(`gitlab login for ${user.username} (account ${account.id})`);
 			res.redirect(redirect);
-		} catch (err) {
-			if (err instanceof LinkConflictError) {
+		} catch (error) {
+			if (error instanceof LinkConflictError) {
 				res.redirect(`${webApp.config.siteUrl}/profile?error=conflict&provider=gitlab`);
 				return;
 			}
-			throw err;
+			throw error;
 		}
 	});
 };

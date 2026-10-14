@@ -80,8 +80,8 @@ export const SlashVoiceCommand: SlashCommand = {
 					)
 				);
 			}
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 			await ctx.followUp(
 				EphemeralResponse(
 					"Something went wrong while creating the channel.\nDiscord probably didn't like your channel name."

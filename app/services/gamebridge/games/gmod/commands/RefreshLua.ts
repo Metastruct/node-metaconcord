@@ -103,8 +103,8 @@ export const SlashRefreshLuaCommand: SlashCommand = {
 					.join(", ");
 				await ctx.editReply(`Refreshed ${fileList} on ${serverNames}`);
 			}
-		} catch (err) {
-			const errMsg = (err as Error)?.message ?? err;
+		} catch (error) {
+			const errMsg = (error as Error)?.message ?? error;
 			await ctx.editReply(errMsg);
 		}
 	},

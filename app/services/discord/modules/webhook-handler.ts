@@ -504,8 +504,8 @@ const getGitHubCommitDiff = async (
 			request: { signal: AbortSignal.timeout(10_000) },
 		});
 		return formatDiffText(res.data as unknown as string);
-	} catch (err) {
-		log.error({ err, owner, repo, ref }, "failed to fetch Github commit diff");
+	} catch (error) {
+		log.error({ err: error, owner, repo, ref }, "failed to fetch Github commit diff");
 		return;
 	}
 };
@@ -525,8 +525,8 @@ const getGitHubPullRequestDiff = async (
 			request: { signal: AbortSignal.timeout(10_000) },
 		});
 		return formatDiffText(res.data as unknown as string);
-	} catch (err) {
-		log.error({ err, owner, repo, pull_number }, "failed to fetch Github PR diff");
+	} catch (error) {
+		log.error({ err: error, owner, repo, pull_number }, "failed to fetch Github PR diff");
 		return;
 	}
 };
@@ -539,8 +539,8 @@ const getPullRequestFiles = async (
 			timeout: 10_000,
 		}); // why this isn't in the payload I have no idea
 		return res.data;
-	} catch (err) {
-		log.error({ err, prApiUrl }, "failed to fetch PR files from Github");
+	} catch (error) {
+		log.error({ err: error, prApiUrl }, "failed to fetch PR files from Github");
 		return;
 	}
 };
@@ -552,8 +552,8 @@ const getGitlabDiff = async (
 ): Promise<CommitDiffSchema[] | undefined> => {
 	try {
 		return await api.Commits.showDiff(id, sha);
-	} catch (err) {
-		log.error({ err, id, sha }, "failed to fetch Gitlab diff");
+	} catch (error) {
+		log.error({ err: error, id, sha }, "failed to fetch Gitlab diff");
 		return;
 	}
 };
@@ -731,8 +731,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const gitlabHandler = eventKind ? gitlabHandlers[eventKind] : undefined;
 		if (!gitlabHandler) return;
 
-		gitlabHandler(req.body).catch(err =>
-			log.error({ err, eventKind }, "Gitlab webhook event handler failed")
+		gitlabHandler(req.body).catch(error =>
+			log.error({ err: error, eventKind }, "Gitlab webhook event handler failed")
 		);
 	});
 
@@ -863,11 +863,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 							}!`
 						);
 					})
-					.catch(err => {
+					.catch(error => {
 						ctx.editReply(
-							`<@${ctx.user.id}> something went wrong :(\`\`\`\n${err}\`\`\``
+							`<@${ctx.user.id}> something went wrong :(\`\`\`\n${error}\`\`\``
 						);
-						log.error(err);
+						log.error(error);
 					});
 				break;
 			case "everything": {
@@ -898,13 +898,13 @@ export default async (bot: DiscordBot): Promise<void> => {
 						}
 						const res = await github.octokit.rest.repos.getCommit({ owner, repo, ref });
 						files = res.data.files?.flatMap(f => f.filename);
-					} catch (err: unknown) {
+					} catch (error: unknown) {
 						await ctx.reply(
 							"something went wrong fetching the files from github :( ... aborting\n" +
-								`\`${errToMessage(err)}\``
+								`\`${errToMessage(error)}\``
 						);
 						log.error(
-							{ err, context: { url, owner, repo, ref } },
+							{ err: error, context: { url, owner, repo, ref } },
 							"Failed to fetch files from GitHub"
 						);
 						return;
@@ -923,14 +923,14 @@ export default async (bot: DiscordBot): Promise<void> => {
 						}
 						const diffs = await getGitlabDiff(gitlab.api, id, sha);
 						files = diffs?.filter(f => !f.deleted_file).flatMap(f => f.new_path);
-					} catch (err: unknown) {
+					} catch (error: unknown) {
 						await ctx.reply(
 							"something went wrong fetching the files from gitlab :( ... aborting\n" +
-								`\`${errToMessage(err)}\``
+								`\`${errToMessage(error)}\``
 						);
 						log.error(
 							{
-								err,
+								err: error,
 								context: {
 									url,
 									id,
@@ -1002,11 +1002,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 							} and refreshed files!`
 						);
 					})
-					.catch(err => {
+					.catch(error => {
 						ctx.editReply(
-							`<@${ctx.user.id}> something went wrong :(\`\`\`\n${err}\`\`\``
+							`<@${ctx.user.id}> something went wrong :(\`\`\`\n${error}\`\`\``
 						);
-						log.error(err);
+						log.error(error);
 					});
 				break;
 			}

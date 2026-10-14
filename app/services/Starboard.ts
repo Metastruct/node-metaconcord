@@ -47,8 +47,8 @@ export class Starboard extends Service {
 							`Highlighted Message in ${interaction.channel} deleted by ${interaction.user} (${interaction.user.id}) -> https://discord.com/channels/${interaction.guildId}/${originalChannelID}/${originalMsgID}`
 						);
 				}
-			} catch (err) {
-				log.error(err, "failed to delete message");
+			} catch (error) {
+				log.error(error, "failed to delete message");
 			}
 		});
 	}
@@ -239,8 +239,8 @@ export class Starboard extends Service {
 					}
 				}
 			}
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 		} finally {
 			this.pendingMessages.delete(reaction.message.id);
 		}

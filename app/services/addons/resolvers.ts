@@ -154,8 +154,8 @@ async function resolveGitUncached(
 				transient: res.status >= 500,
 			};
 		}
-	} catch (err) {
-		log.warn({ err: errInfo(err), remote: remote.webUrl }, "git resolution failed");
+	} catch (error) {
+		log.warn({ err: errInfo(error), remote: remote.webUrl }, "git resolution failed");
 		result = { public: false, transient: true };
 	}
 	if (result.transient) {
@@ -174,12 +174,12 @@ async function fetchGithubRepo(
 		try {
 			const res = await github.rest.repos.get({ owner, repo });
 			return { status: res.status, data: res.data };
-		} catch (err) {
-			const status = (err as { status?: number }).status ?? 0;
+		} catch (error) {
+			const status = (error as { status?: number }).status ?? 0;
 			// 404 is a definitive answer; auth problems fall through to the anonymous path
 			if (status === 404 || status >= 500) return { status };
 			log.warn(
-				{ err: errInfo(err), owner, repo },
+				{ err: errInfo(error), owner, repo },
 				"authenticated github lookup failed, retrying anonymously"
 			);
 		}
@@ -339,8 +339,8 @@ export async function resolveReadme(
 			readmeCache.set(key, summary ?? null);
 			return summary;
 		})
-		.catch(err => {
-			log.warn({ err: errInfo(err), remote: remote.webUrl, subpath }, "readme lookup failed");
+		.catch(error => {
+			log.warn({ err: errInfo(error), remote: remote.webUrl, subpath }, "readme lookup failed");
 			return undefined;
 		})
 		.finally(() => readmeInflight.delete(key));
@@ -578,8 +578,8 @@ export async function resolveModrinth(hashes: string[]): Promise<Map<string, Mod
 			modrinthCache.set(hash, match);
 			out.set(hash, match);
 		}
-	} catch (err) {
-		log.warn({ err: errInfo(err) }, "modrinth resolution failed");
+	} catch (error) {
+		log.warn({ err: errInfo(error) }, "modrinth resolution failed");
 	}
 	return out;
 }
@@ -663,8 +663,8 @@ export async function resolveCurseforge(
 			curseforgeCache.set(String(fp), match);
 			out.set(fp, match);
 		}
-	} catch (err) {
-		log.warn({ err: errInfo(err) }, "curseforge resolution failed");
+	} catch (error) {
+		log.warn({ err: errInfo(error) }, "curseforge resolution failed");
 	}
 	return out;
 }
@@ -743,8 +743,8 @@ export async function resolveByName(
 					url: `https://modrinth.com/mod/${res.data.slug}`,
 				},
 			}) as PlatformMatch;
-		} catch (err) {
-			log.warn({ err: errInfo(err), slug }, "modrinth slug lookup failed");
+		} catch (error) {
+			log.warn({ err: errInfo(error), slug }, "modrinth slug lookup failed");
 		}
 	}
 
@@ -774,8 +774,8 @@ export async function resolveByName(
 						url: mod.links.websiteUrl,
 					},
 				}) as PlatformMatch;
-			} catch (err) {
-				log.warn({ err: errInfo(err), slug }, "curseforge slug lookup failed");
+			} catch (error) {
+				log.warn({ err: errInfo(error), slug }, "curseforge slug lookup failed");
 			}
 		}
 	}

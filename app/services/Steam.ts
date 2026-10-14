@@ -170,8 +170,8 @@ export class Steam extends Service {
 					for (const summary of data.response.players ?? []) {
 						out[summary.steamid] = summary;
 					}
-				} catch (err) {
-					log.warn(err, "bulk steam summaries request failed");
+				} catch (error) {
+					log.warn(error, "bulk steam summaries request failed");
 				}
 			})
 		);

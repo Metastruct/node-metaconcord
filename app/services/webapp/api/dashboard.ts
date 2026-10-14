@@ -40,8 +40,8 @@ const listConfigs = async (): Promise<{ name: string; content: unknown; error?: 
 			try {
 				const content = JSON.parse(await fs.readFile(new URL(name, CONFIG_DIR), "utf8"));
 				return { name, content };
-			} catch (err) {
-				return { name, content: null, error: (err as Error).message };
+			} catch (error) {
+				return { name, content: null, error: (error as Error).message };
 			}
 		})
 	);
@@ -132,7 +132,7 @@ class DashboardSession {
 			} catch {
 				return;
 			}
-			this.handle(parsed).catch(err => log.error(err, "dashboard message failed"));
+			this.handle(parsed).catch(error => log.error(error, "dashboard message failed"));
 		});
 	}
 
@@ -155,8 +155,8 @@ class DashboardSession {
 				log.warn({ login: this.user.login, mode: "js" }, msg.code);
 				try {
 					this.out("result", await evalJs(msg.code));
-				} catch (err) {
-					this.out("error", util.inspect(err));
+				} catch (error) {
+					this.out("error", util.inspect(error));
 				}
 				return;
 			}

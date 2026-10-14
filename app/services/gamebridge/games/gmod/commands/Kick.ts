@@ -57,8 +57,8 @@ export const SlashKickCommand: SlashCommand = {
 			}
 
 			await ctx.followUp("Kicked player");
-		} catch (err) {
-			const errMsg = (err as Error)?.message ?? err;
+		} catch (error) {
+			const errMsg = (error as Error)?.message ?? error;
 			await ctx.followUp(errMsg);
 		}
 	},

@@ -315,16 +315,16 @@ export function attachResonite(bridge: GameBridge): void {
 				state: connection.disconnected ? "disconnected" : undefined,
 			});
 			await connection.postOrEditStatusMessage(containers, files, buildSignature(connection));
-		} catch (err) {
-			log.error(err, "ReceiveSessionUpdate");
+		} catch (error) {
+			log.error(error, "ReceiveSessionUpdate");
 		}
 	});
 
 	con.on("RemoveSession", async (sessionId: string) => {
 		try {
 			await removeSession(bridge, sessionId);
-		} catch (err) {
-			log.error(err, "RemoveSession");
+		} catch (error) {
+			log.error(error, "RemoveSession");
 		}
 	});
 
@@ -341,8 +341,8 @@ export function attachResonite(bridge: GameBridge): void {
 					files,
 					buildSignature(connection)
 				);
-			} catch (err) {
-				log.error(err, "failed to post disconnect status");
+			} catch (error) {
+				log.error(error, "failed to post disconnect status");
 			}
 		}
 

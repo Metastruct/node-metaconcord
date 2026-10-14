@@ -56,9 +56,9 @@ export default abstract class GameSocketConnection extends GameConnection {
 			try {
 				data = JSON.parse(msg.utf8Data) as WsPayload;
 				if (!data.name || !data.data) throw new Error("Malformed payload");
-			} catch (err) {
-				log.warn({ err, raw: msg.utf8Data }, "malformed payload");
-				this.onMalformedPayload?.(err);
+			} catch (error) {
+				log.warn({ err: error, raw: msg.utf8Data }, "malformed payload");
+				this.onMalformedPayload?.(error);
 				return;
 			}
 
@@ -77,8 +77,8 @@ export default abstract class GameSocketConnection extends GameConnection {
 			this.disconnected = true;
 			try {
 				await this.postDisconnected();
-			} catch (err) {
-				log.error(err, "failed to post disconnect status");
+			} catch (error) {
+				log.error(error, "failed to post disconnect status");
 			}
 			this.discord.destroy();
 			log.info(`'${this.config.name}' Game Server disconnected - [${code}] ${desc}`);
@@ -101,8 +101,8 @@ export default abstract class GameSocketConnection extends GameConnection {
 
 		try {
 			this.emit(data.name, data);
-		} catch (err) {
-			log.error({ data, err });
+		} catch (error) {
+			log.error({ data, err: error });
 		}
 	}
 

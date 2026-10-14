@@ -107,8 +107,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 					);
 					data.lastDiscordGuildEvent = eventName;
 					await data.save();
-				} catch (err) {
-					log.error(err);
+				} catch (error) {
+					log.error(error);
 					return;
 				}
 			}

@@ -95,8 +95,8 @@ export const SlashLuaCommand: SlashCommand = {
 			await ctx.followUp({
 				embeds: [embed.toJSON()],
 			});
-		} catch (err) {
-			const errMsg = (err as Error)?.message ?? err;
+		} catch (error) {
+			const errMsg = (error as Error)?.message ?? error;
 			await ctx.followUp(errMsg);
 		}
 	},

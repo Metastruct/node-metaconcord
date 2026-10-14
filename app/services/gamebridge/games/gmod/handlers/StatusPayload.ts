@@ -327,14 +327,14 @@ export default class StatusPayload extends Payload {
 
 			try {
 				await ReportChatPayload.drainQueuedMessages(server);
-			} catch (err) {
-				log.error(err);
+			} catch (error) {
+				log.error(error);
 			}
 
 			try {
 				await AdminNotifyPayload.updateReporterStatus(server);
-			} catch (err) {
-				log.error(err);
+			} catch (error) {
+				log.error(error);
 			}
 
 			const attachments = [
@@ -364,8 +364,8 @@ export default class StatusPayload extends Payload {
 		if (discord.ready) {
 			try {
 				await updateStatus();
-			} catch (err) {
-				log.error(err);
+			} catch (error) {
+				log.error(error);
 			}
 		}
 	}

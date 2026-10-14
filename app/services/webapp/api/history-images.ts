@@ -108,8 +108,8 @@ const download = async (
 				"user-agent": "metaconcord history mirror (+https://metastruct.net)",
 			},
 		});
-	} catch (err) {
-		const e = err as { response?: { status?: number }; code?: string };
+	} catch (error) {
+		const e = error as { response?: { status?: number }; code?: string };
 		if (e.response?.status) throw new MirrorError(`source returned ${e.response.status}`);
 		if (e.code === "ERR_FR_MAX_CONTENT_LENGTH_EXCEEDED")
 			throw new MirrorError(`image is larger than ${Math.round(MAX_BYTES / 1024 / 1024)} MB`);
@@ -165,9 +165,9 @@ const listImages = async (octokit: Octokit): Promise<Set<string>> => {
 		});
 		// TODO: switch to git.getTree({ recursive }) if this ever passes 1000 entries
 		return new Set(Array.isArray(data) ? data.map(entry => entry.name) : []);
-	} catch (err) {
-		if ((err as { status?: number }).status === 404) return new Set();
-		throw err;
+	} catch (error) {
+		if ((error as { status?: number }).status === 404) return new Set();
+		throw error;
 	}
 };
 
@@ -205,9 +205,9 @@ export const mirrorImage = async (
 	let got: { bytes: Buffer; ext: string; via?: string };
 	try {
 		got = await download(sourceUrl, 15_000);
-	} catch (err) {
+	} catch (error) {
 		const archived = await fromWayback(sourceUrl);
-		if (!archived) throw err;
+		if (!archived) throw error;
 		got = archived;
 	}
 
@@ -236,18 +236,18 @@ export const mirrorImage = async (
 	let sha: string | undefined;
 	try {
 		sha = await commit();
-	} catch (err) {
-		const status = (err as { status?: number }).status;
+	} catch (error) {
+		const status = (error as { status?: number }).status;
 		// 422 means someone committed the same bytes first, 409 means the branch moved
 		if (status === 409) {
 			await sleep(750);
 			try {
 				sha = await commit();
-			} catch (retryErr) {
-				if ((retryErr as { status?: number }).status !== 422) throw retryErr;
+			} catch (error_) {
+				if ((error_ as { status?: number }).status !== 422) throw error_;
 			}
 		} else if (status !== 422) {
-			throw err;
+			throw error;
 		}
 	}
 

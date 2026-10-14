@@ -38,11 +38,11 @@ export default class VoteKickPayload extends Payload {
 				if (relayChannel) {
 					await this.getLastReport(payload.data, relayChannel as Discord.TextChannel)
 						.then(msg => msg?.react("✅"))
-						.catch(err => log.error(err));
+						.catch(error => log.error(error));
 				}
 				await this.getLastReport(payload.data, notificationsChannel as Discord.TextChannel)
 					.then(msg => msg?.react("✅"))
-					.catch(err => log.error(err));
+					.catch(error => log.error(error));
 				return;
 			} else {
 				if (relayChannel) {

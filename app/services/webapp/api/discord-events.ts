@@ -129,8 +129,8 @@ export default (webApp: WebApp): void => {
 		if (refreshing) {
 			try {
 				await refreshing;
-			} catch (err) {
-				log.warn(err, "failed fetching scheduled events");
+			} catch (error) {
+				log.warn(error, "failed fetching scheduled events");
 			}
 		}
 

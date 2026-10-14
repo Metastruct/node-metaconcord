@@ -84,8 +84,8 @@ const setRoleColorSpecial = async (
 				`👍\nhere is your old role color if you want to change back: Primary: \`${role.hexColor}\`${role.colors.secondaryColor ? ` Secondary: ${`#${role.colors.secondaryColor.toString(16).padStart(6, "0")}`}` : ""}${role.colors.tertiaryColor ? ` Tertiary: ${`#${role.colors.tertiaryColor.toString(16).padStart(6, "0")}`}` : ""}`
 			)
 		);
-	} catch (err) {
-		log.error(err);
+	} catch (error) {
+		log.error(error);
 		await ctx.followUp(EphemeralResponse("Something went wrong trying to add the gradient :("));
 	}
 };
@@ -252,8 +252,8 @@ const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<void> 
 				{ primaryColor: roleColor },
 				"Updated role color via command"
 			);
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 			await ctx.followUp(
 				EphemeralResponse("Something went wrong changing the color of the role :(")
 			);
@@ -402,10 +402,10 @@ export const SlashRoleCommand: SlashCommand = {
 					await removeRoleIcon(ctx);
 					break;
 			}
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 			await ctx.followUp(
-				EphemeralResponse("Something went wrong adding your role :(\n" + err)
+				EphemeralResponse("Something went wrong adding your role :(\n" + error)
 			);
 		}
 	},

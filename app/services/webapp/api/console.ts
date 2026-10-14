@@ -68,11 +68,11 @@ abstract class ConsoleSession {
 
 	/** Attaches the transport. Separate from the constructor so subclass fields exist by then. */
 	start(): this {
-		this.open().catch(err => {
+		this.open().catch(error => {
 			// the viewer switched away mid-attach: teardown kills the pending
 			// connect, which then rejects; a cancellation, not a failure
 			if (this.closed) return;
-			log.error({ err, server: this.server.name }, "console open failed");
+			log.error({ err: error, server: this.server.name }, "console open failed");
 			this.send({ type: "exit", reason: "could not attach to the console" });
 			this.close();
 		});
@@ -167,7 +167,7 @@ class BridgeConsoleSession extends ConsoleSession {
 			.then(sent => {
 				if (!sent) this.send({ type: "meta", text: "server not connected" });
 			})
-			.catch(err => log.warn(err, "console command failed"));
+			.catch(error => log.warn(error, "console command failed"));
 	}
 
 	/** Runs a gserv verb on the host, streaming its output into the terminal. */

@@ -105,9 +105,9 @@ export default async (webApp: WebApp): Promise<void> => {
 					"content-length": server.playerListImage.length,
 				});
 				res.send(server.playerListImage);
-			} catch (err) {
-				log.error(err, "image failed");
-				res.send(err);
+			} catch (error) {
+				log.error(error, "image failed");
+				res.send(error);
 			}
 		} else {
 			res.send(html);

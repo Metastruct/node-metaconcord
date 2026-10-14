@@ -205,7 +205,7 @@ export class Accounts extends Service {
 		`);
 		await this.migrateDiscordTokens();
 
-		const sweep = () => this.sweepRoles().catch(err => log.error(err, "role sweep failed"));
+		const sweep = () => this.sweepRoles().catch(error => log.error(error, "role sweep failed"));
 		setTimeout(sweep, 30 * 1000);
 		setInterval(sweep, SWEEP_INTERVAL).unref();
 	}
@@ -476,8 +476,8 @@ export class Accounts extends Service {
 		const account = await this.get(accountId);
 		if (!account) throw new Error("no such account");
 
-		const roles = await this.computeRoles(account).catch(err => {
-			log.error(err, `role computation failed for account ${accountId}`);
+		const roles = await this.computeRoles(account).catch(error => {
+			log.error(error, `role computation failed for account ${accountId}`);
 			return undefined;
 		});
 		// a failed lookup keeps the previous roles rather than silently demoting anyone,
@@ -569,7 +569,7 @@ export class Accounts extends Service {
 		await this.container
 			.getService("DiscordMetadata")
 			.update(discord.providerId)
-			.catch(err => log.warn(err, `linked roles push failed for account ${account.id}`));
+			.catch(error => log.warn(error, `linked roles push failed for account ${account.id}`));
 	}
 
 	/**
@@ -641,10 +641,10 @@ export class Accounts extends Service {
 				username: login,
 			});
 			return data.state === "active";
-		} catch (err) {
-			const status = (err as { status?: number }).status;
+		} catch (error) {
+			const status = (error as { status?: number }).status;
 			if (status === 404) return false;
-			log.warn(err, `team membership check failed for ${login} in ${team}`);
+			log.warn(error, `team membership check failed for ${login} in ${team}`);
 			return undefined;
 		}
 	}
@@ -665,8 +665,8 @@ export class Accounts extends Service {
 				grant_type: "refresh_token",
 				refresh_token: token.refreshToken,
 			}),
-		}).catch(err => {
-			log.error(err, "github token refresh failed");
+		}).catch(error => {
+			log.error(error, "github token refresh failed");
 		});
 		const body = res && res.ok
 			? ((await res.json()) as {
@@ -751,9 +751,9 @@ export class Accounts extends Service {
 			});
 			log.info(`account ${accountId} linked ${provider} ${providerId} (${name}) from game`);
 			return { account };
-		} catch (err) {
-			if (err instanceof LinkConflictError) return { error: err.message };
-			throw err;
+		} catch (error) {
+			if (error instanceof LinkConflictError) return { error: error.message };
+			throw error;
 		}
 	}
 

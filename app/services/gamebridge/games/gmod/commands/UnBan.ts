@@ -64,8 +64,8 @@ export const SlashUnBanCommand: SlashCommand = {
 			}
 
 			await ctx.followUp(`Could not unban \`${steamid}\``);
-		} catch (err) {
-			const errMsg = (err as Error)?.message ?? err;
+		} catch (error) {
+			const errMsg = (error as Error)?.message ?? error;
 			await ctx.followUp(errMsg);
 		}
 	},

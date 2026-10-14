@@ -116,8 +116,8 @@ export class DiscordMetadata extends Service {
 		this.bot = this.container.getService("DiscordBot");
 		this.bans = this.container.getService("Bans");
 		this.accounts = this.container.getService("Accounts");
-		this.registerSchema().catch(err =>
-			log.error(err, "linked roles metadata registration failed")
+		this.registerSchema().catch(error =>
+			log.error(error, "linked roles metadata registration failed")
 		);
 	}
 
@@ -179,8 +179,8 @@ export class DiscordMetadata extends Service {
 				grant_type: "refresh_token",
 				refresh_token: data.refresh_token,
 			}),
-		}).catch(err => {
-			log.error(err, "network error fetching tokens");
+		}).catch(error => {
+			log.error(error, "network error fetching tokens");
 		});
 		if (!res) return;
 
@@ -221,8 +221,8 @@ export class DiscordMetadata extends Service {
 
 		const res = await fetch(url, {
 			headers: { Authorization: `Bearer ${accessToken}` },
-		}).catch(err => {
-			log.error(err, "network error fetching metadata");
+		}).catch(error => {
+			log.error(error, "network error fetching metadata");
 		});
 		if (!res || !res.ok) {
 			delete this.ARCOCache[userId];
@@ -318,8 +318,8 @@ export class DiscordMetadata extends Service {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify(body),
-		}).catch(err => {
-			log.error(err, "network error pushing metadata");
+		}).catch(error => {
+			log.error(error, "network error pushing metadata");
 		});
 
 		if (!res) return false;

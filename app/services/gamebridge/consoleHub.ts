@@ -87,7 +87,7 @@ export const consoleHub = {
 		if (consoleFor(game, server.config.id).backlog.length) {
 			consoleHub.mark(game, server.config.id, "connected");
 		}
-		sendAction(game, server, "subscribe").catch(err => log.warn(err));
+		sendAction(game, server, "subscribe").catch(error => log.warn(error));
 	},
 
 	/** Adds a viewer and hands back the backlog for it to paint first. */
@@ -143,8 +143,8 @@ export const consoleHub = {
 		for (const listener of state.listeners) {
 			try {
 				listener(event);
-			} catch (err) {
-				log.warn(err, "console listener failed");
+			} catch (error) {
+				log.warn(error, "console listener failed");
 			}
 		}
 	},

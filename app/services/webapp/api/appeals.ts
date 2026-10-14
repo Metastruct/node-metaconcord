@@ -225,9 +225,9 @@ export default (webApp: WebApp): void => {
 			const channel = await guild.channels.fetch(row.thread_id);
 			if (!channel?.isThread()) return "gone";
 			return channel;
-		} catch (err) {
-			if (err instanceof Discord.DiscordAPIError && err.code === 10003) return "gone";
-			log.error(err, `failed fetching appeal thread ${row.thread_id}`);
+		} catch (error) {
+			if (error instanceof Discord.DiscordAPIError && error.code === 10003) return "gone";
+			log.error(error, `failed fetching appeal thread ${row.thread_id}`);
 			return undefined;
 		}
 	};
@@ -383,8 +383,8 @@ export default (webApp: WebApp): void => {
 					allowedMentions: { users: [discordId] },
 				});
 			}
-		} catch (err) {
-			log.error(err, "failed creating appeal thread");
+		} catch (error) {
+			log.error(error, "failed creating appeal thread");
 			res.status(503).json({ error: "appeals are unavailable right now" });
 			return;
 		}
@@ -511,8 +511,8 @@ export default (webApp: WebApp): void => {
 				content: `**${name}**: ${content}`,
 				allowedMentions: { parse: [] },
 			});
-		} catch (err) {
-			log.error(err, `failed relaying appeal message to thread ${row.thread_id}`);
+		} catch (error) {
+			log.error(error, `failed relaying appeal message to thread ${row.thread_id}`);
 			res.status(503).json({ error: "Discord is unavailable right now" });
 			return;
 		}
@@ -566,8 +566,8 @@ export default (webApp: WebApp): void => {
 		try {
 			await thread.setLocked(true);
 			await thread.setArchived(true);
-		} catch (err) {
-			log.error(err, `failed archiving appeal thread ${thread.id}`);
+		} catch (error) {
+			log.error(error, `failed archiving appeal thread ${thread.id}`);
 		}
 	};
 
@@ -590,8 +590,8 @@ export default (webApp: WebApp): void => {
 			const channel = bot().getTextChannel(bot().config.channels.appeals);
 			if (!channel) return;
 			await settleButtons(await channel.messages.fetch(row.message_id), label, style);
-		} catch (err) {
-			log.error(err, `failed settling appeal message ${row.message_id}`);
+		} catch (error) {
+			log.error(error, `failed settling appeal message ${row.message_id}`);
 		}
 	};
 
@@ -668,8 +668,8 @@ export default (webApp: WebApp): void => {
 			// and Discord voids the interaction 3 seconds after the click
 			try {
 				await interaction.deferUpdate();
-			} catch (err) {
-				log.warn(err, "could not acknowledge an appeal button in time");
+			} catch (error) {
+				log.warn(error, "could not acknowledge an appeal button in time");
 				return;
 			}
 

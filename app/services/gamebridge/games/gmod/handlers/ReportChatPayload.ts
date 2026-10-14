@@ -130,8 +130,8 @@ export default class ReportChatPayload extends Payload {
 			const player = server.status.players.find(p => p.steamId64 === steamId64);
 			const username = player?.nick ?? "Unknown";
 			await thread.send({ content: `${username}: ${content}` });
-		} catch (err) {
-			log.error(err, "Failed to send report chat message");
+		} catch (error) {
+			log.error(error, "Failed to send report chat message");
 		}
 	}
 

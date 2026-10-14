@@ -193,8 +193,8 @@ async function pollInstance(
 	// rest of the status embed - fall back to the aggregate TGS data.
 	try {
 		Object.assign(status, await getServerStatus(host, status.port, instanceConfig.commsKey));
-	} catch (err) {
-		log.warn(err, "SS13 status topic query failed");
+	} catch (error) {
+		log.warn(error, "SS13 status topic query failed");
 	}
 
 	let players: Player[] = [];
@@ -211,8 +211,8 @@ async function pollInstance(
 				isBanned: false,
 				ip: "",
 			}));
-		} catch (err) {
-			log.warn(err, "SS13 playerlist topic query failed");
+		} catch (error) {
+			log.warn(error, "SS13 playerlist topic query failed");
 		}
 	}
 
@@ -250,9 +250,9 @@ export function attachSS13(bridge: GameBridge): void {
 				} else {
 					conn.instances.delete(instanceConfig.instanceId);
 				}
-			} catch (err) {
+			} catch (error) {
 				log.warn(
-					{ err, instanceId: instanceConfig.instanceId },
+					{ err: error, instanceId: instanceConfig.instanceId },
 					"SS13 instance poll failed"
 				);
 				conn.instances.delete(instanceConfig.instanceId);
@@ -269,8 +269,8 @@ export function attachSS13(bridge: GameBridge): void {
 				files,
 				buildSignature(conn, conn.disconnected)
 			);
-		} catch (err) {
-			log.error(err, "failed to post SS13 status");
+		} catch (error) {
+			log.error(error, "failed to post SS13 status");
 		}
 	};
 
@@ -299,8 +299,8 @@ export function attachSS13(bridge: GameBridge): void {
 
 			try {
 				await queryTopic(host, state.status.port, query);
-			} catch (err) {
-				log.warn({ err, repo: payload.repo }, "failed to send commits to SS13");
+			} catch (error) {
+				log.warn({ err: error, repo: payload.repo }, "failed to send commits to SS13");
 			}
 		}
 	});

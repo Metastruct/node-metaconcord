@@ -131,8 +131,8 @@ export const SlashGservCommand: SlashCommand = {
 							if (message) message.react("👍");
 						}
 						return success;
-					} catch (err) {
-						const response = `<a:ALERTA:843518761160015933> failed to run gserv <a:ALERTA:843518761160015933>\n\`\`\`${err}\`\`\``;
+					} catch (error) {
+						const response = `<a:ALERTA:843518761160015933> failed to run gserv <a:ALERTA:843518761160015933>\n\`\`\`${error}\`\`\``;
 						if (message) {
 							await message.reply(response);
 						} else {
@@ -145,6 +145,6 @@ export const SlashGservCommand: SlashCommand = {
 			.then(() => {
 				modalSubmit.editReply(`sent \`${command}\` successfully!`);
 			})
-			.catch(err => modalSubmit.editReply(`something went wrong!\`\`\`\n${err}\`\`\``));
+			.catch(error => modalSubmit.editReply(`something went wrong!\`\`\`\n${error}\`\`\``));
 	},
 };

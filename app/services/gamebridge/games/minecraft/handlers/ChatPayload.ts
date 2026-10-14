@@ -176,7 +176,7 @@ export default class ChatPayload extends Payload {
 						runner: "Metaconcord",
 					},
 					server
-				).catch(err => log.warn(err, "could not answer a link code in game"));
+				).catch(error => log.warn(error, "could not answer a link code in game"));
 			}
 			return;
 		}

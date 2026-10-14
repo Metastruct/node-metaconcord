@@ -49,9 +49,9 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.status(failed ? 500 : 200)
 				.contentType("text/plain")
 				.send(output);
-		} catch (err) {
-			log.error({ err, server: id }, "gserv failed");
-			res.status(500).contentType("text/plain").send(String(err));
+		} catch (error) {
+			log.error({ err: error, server: id }, "gserv failed");
+			res.status(500).contentType("text/plain").send(String(error));
 		}
 	});
 };

@@ -80,11 +80,11 @@ export const SlashSQLCommand: SlashCommand = {
 					break;
 				}
 			}
-		} catch (err: unknown) {
+		} catch (error: unknown) {
 			if (ctx.deferred) {
-				await ctx.followUp(errToMessage(err));
+				await ctx.followUp(errToMessage(error));
 			} else {
-				await ctx.reply(EphemeralResponse(errToMessage(err)));
+				await ctx.reply(EphemeralResponse(errToMessage(error)));
 			}
 		}
 	},
