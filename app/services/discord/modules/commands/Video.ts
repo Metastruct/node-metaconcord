@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable typescript-eslint/no-explicit-any */
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "#/extensions/discord.js";
 import { spawn } from "child_process";

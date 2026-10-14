@@ -289,7 +289,7 @@ export class DiscordBot extends Service {
 		await (await chan.lastMessage.fetch(false)).reactions.removeAll();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// eslint-disable-next-line typescript-eslint/no-explicit-any
 	async fetchPartial(obj): Promise<any> {
 		try {
 			return obj.partial ? await obj.fetch() : obj;
