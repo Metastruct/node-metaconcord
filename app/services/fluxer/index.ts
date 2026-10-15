@@ -130,7 +130,7 @@ export function normalizeEmbeds(embeds: readonly unknown[], content = ""): Disco
 										name: item.name,
 										value:
 													item.value.trim().length === 0
-														? "\u200b"
+														? "\u200B"
 														: item.value,
 										inline: item.inline === true,
 									},

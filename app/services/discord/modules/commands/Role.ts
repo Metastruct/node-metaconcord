@@ -156,7 +156,7 @@ const setEmoji = async (
 	role: Discord.Role
 ): Promise<void> => {
 	const unicode = emoji.match(
-		/^(?:\p{RI}\p{RI}|\p{Extended_Pictographic}(?:\uFE0F)?|\p{Emoji_Modifier_Base}\p{Emoji_Modifier})(?:\u200d(?:\p{RI}\p{RI}|\p{Extended_Pictographic}(?:\uFE0F)?|\p{Emoji_Modifier_Base}\p{Emoji_Modifier}))*$/u
+		/^(?:\p{RI}\p{RI}|\p{Extended_Pictographic}(?:\uFE0F)?|\p{Emoji_Modifier_Base}\p{Emoji_Modifier})(?:\u200D(?:\p{RI}\p{RI}|\p{Extended_Pictographic}(?:\uFE0F)?|\p{Emoji_Modifier_Base}\p{Emoji_Modifier}))*$/u
 	);
 	const custom = emoji.match(/<?(a)?:?(\w{2,32}):(\d{17,19})>?$/);
 
