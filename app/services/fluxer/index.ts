@@ -239,7 +239,7 @@ export function rewriteEmojiMarkup(
 	lookup: (id: string) => string | undefined,
 	onUnmapped?: (emoji: UnmappedEmoji) => void
 ): string {
-	return content.replace(/<(a?):([^:>]+):(\d+)>/g, (_match, animated, name, id) => {
+	return content.replaceAll(/<(a?):([^:>]+):(\d+)>/g, (_match, animated, name, id) => {
 		const target = lookup(id);
 		if (target) return `<${animated}:${name}:${target}>`;
 		onUnmapped?.({ id, name, animated: animated === "a" });
@@ -1632,7 +1632,7 @@ export class Fluxer extends Service {
 				}
 			}
 			if (refreshed.size === 0) return content;
-			return content.replace(DISCORD_ATTACHMENT_CDN, match => {
+			return content.replaceAll(DISCORD_ATTACHMENT_CDN, match => {
 				const stripped = match.replace(/[.,;!]+$/, "");
 				const suffix = match.slice(stripped.length);
 				return `${refreshed.get(stripped) ?? stripped}${suffix}`;
@@ -1648,7 +1648,7 @@ export class Fluxer extends Service {
 		const roles = new Set<string>();
 		const emojiFallbackById = new Map<string, UnmappedEmoji>();
 		let content = message.content
-			.replace(/<@&(\d+)>/g, (_match, id) => {
+			.replaceAll(/<@&(\d+)>/g, (_match, id) => {
 				const mapped = this.fluxerRolesByDiscord.get(id);
 				if (mapped) {
 					if (message.mentions.roles.has(id)) roles.add(mapped);
@@ -1656,7 +1656,7 @@ export class Fluxer extends Service {
 				}
 				return `@${message.guild?.roles.cache.get(id)?.name ?? "role"}`;
 			})
-			.replace(/<@!?(\d+)>/g, (_match, id) => {
+			.replaceAll(/<@!?(\d+)>/g, (_match, id) => {
 				const mapped = this.fluxerUsersByDiscord.get(id);
 				if (mapped) {
 					if (message.mentions.users.has(id)) users.add(mapped);
@@ -1664,7 +1664,7 @@ export class Fluxer extends Service {
 				}
 				return `@${message.mentions.users.get(id)?.displayName ?? "user"}`;
 			})
-			.replace(/<#(\d+)>/g, (_match, id) => {
+			.replaceAll(/<#(\d+)>/g, (_match, id) => {
 				const route = this.routesByDiscord.get(id);
 				return route
 					? `<#${route.fluxerChannelId}>`
@@ -1686,7 +1686,7 @@ export class Fluxer extends Service {
 				4000
 			);
 		}
-		content = content.replace(
+		content = content.replaceAll(
 			/https?:\/\/(?:canary\.|ptb\.)?discord(?:app)?\.com\/channels\/(\d+)\/(\d+)(?:\/(\d+))?/g,
 			(match, _guildId, channelId, messageId) => {
 				if (messageId) return match;
@@ -1703,7 +1703,7 @@ export class Fluxer extends Service {
 		const users = new Set<string>();
 		const roles = new Set<string>();
 		let content = message.content
-			.replace(/<@&(\d+)>/g, (_match, id) => {
+			.replaceAll(/<@&(\d+)>/g, (_match, id) => {
 				const mapped = this.discordRolesByFluxer.get(id);
 				if (mapped) {
 					if (message.mention_roles.includes(id)) roles.add(mapped);
@@ -1711,7 +1711,7 @@ export class Fluxer extends Service {
 				}
 				return "@role";
 			})
-			.replace(/<@!?(\d+)>/g, (_match, id) => {
+			.replaceAll(/<@!?(\d+)>/g, (_match, id) => {
 				const mapped = this.discordUsersByFluxer.get(id);
 				if (mapped) {
 					if (message.mentions.some(user => user.id === id)) users.add(mapped);
@@ -1720,7 +1720,7 @@ export class Fluxer extends Service {
 				const user = message.mentions.find(item => item.id === id);
 				return `@${user?.global_name ?? user?.username ?? "user"}`;
 			})
-			.replace(/<#(\d+)>/g, (_match, id) => {
+			.replaceAll(/<#(\d+)>/g, (_match, id) => {
 				const route = this.routesByFluxer.get(id);
 				return route ? `<#${route.discordChannelId}>` : "#channel";
 			});

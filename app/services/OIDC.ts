@@ -147,7 +147,7 @@ export class OIDC extends Service {
 				);
 				ctx.type = "html";
 				const esc = (value: unknown) =>
-					String(value).replace(/[&<>"]/g, ch => `&#${ch.charCodeAt(0)};`);
+					String(value).replaceAll(/[&<>"]/g, ch => `&#${ch.charCodeAt(0)};`);
 				ctx.body =
 					"<h1>SSO error</h1>" +
 					`<p><code>${esc(out.error)}${out.error_description ? `: ${esc(out.error_description)}` : ""}</code></p>` +
@@ -188,8 +188,8 @@ export class OIDC extends Service {
 				.createHmac("sha1", this.config.cookieKeys)
 				.update(`_session=${value}`)
 				.digest("base64")
-				.replace(/\+/g, "-")
-				.replace(/\//g, "_")
+				.replaceAll('+', "-")
+				.replaceAll('/', "_")
 				.replace(/=+$/, "");
 		const clearCookie = (name: string, domain?: string) =>
 			`${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; httpOnly` +

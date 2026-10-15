@@ -170,7 +170,7 @@ class MarkovChain extends MarkovChainBase {
 	}
 
 	async learn(data: string): Promise<void> {
-		data = data.trim().replace(/\s+/g, " ");
+		data = data.trim().replaceAll(/\s+/g, " ");
 		this.db.prepare("INSERT INTO markov VALUES (?)").run(data);
 	}
 

@@ -105,7 +105,7 @@ abstract class ConsoleSession {
 			return;
 		}
 		this.lineTimes.push(now);
-		const line = msg.line.replace(/[\r\n]/g, " ").slice(0, 2000);
+		const line = msg.line.replaceAll(/[\r\n]/g, " ").slice(0, 2000);
 		log.warn({ login: this.user.login, server: this.server.name }, line);
 		this.input(line);
 	}

@@ -96,7 +96,7 @@ function renderMessage(
 	for (const s of connection.sessions.values()) {
 		// sessionId contains characters (e.g. ":") that break attachment://
 		// URL parsing when used as-is.
-		const attachmentName = `players-${s.session.sessionId.replace(/[^a-zA-Z0-9_-]/g, "_")}.png`;
+		const attachmentName = `players-${s.session.sessionId.replaceAll(/[^a-zA-Z0-9_-]/g, "_")}.png`;
 		containers.push(
 			buildSessionContainer(s.session, s.backgroundImage, attachmentName, opts.state)
 		);

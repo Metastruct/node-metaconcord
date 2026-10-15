@@ -8,7 +8,7 @@ import { logger } from "#/utils.js";
 const log = logger(import.meta);
 
 const escapeXml = (s: string) =>
-	s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+	s.replaceAll('&', "&amp;").replaceAll('<', "&lt;").replaceAll('>', "&gt;").replaceAll('"', "&quot;");
 
 const FONT_PATH = path.join(process.cwd(), "resources/fonts/NotoSans-Regular.ttf");
 const FONT_FAMILY = "PlayerListFont";

@@ -42,7 +42,7 @@ const LUA_UNSAFE = new RegExp('[\\\\"\\u0000-\\u001f\\u007f]', "g");
  * Bytes above 0x7f pass through, gmod's Lua strings are byte arrays not unicode.
  */
 export const luaString = (value: string): string =>
-	`"${value.replace(
+	`"${value.replaceAll(
 		LUA_UNSAFE,
 		c => LUA_ESCAPES[c] ?? `\\${c.charCodeAt(0).toString().padStart(3, "0")}`
 	)}"`;
@@ -66,7 +66,7 @@ export const parseDuration = (input: string): number => {
 	for (const match of input
 		.trim()
 		.toLowerCase()
-		.replace(/\s+/g, "")
+		.replaceAll(/\s+/g, "")
 		.matchAll(/(\d+)(y|mo|w|d|h|m|s)/g)) {
 		const amount = parseInt(match[1]);
 		if (!isNaN(amount) && amount > 0) len += amount * DURATION_UNITS[match[2]];

@@ -39,8 +39,8 @@ const slugify = (s: string): string =>
 	s
 		.toLowerCase()
 		.normalize("NFKD")
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-+|-+$/g, "")
+		.replaceAll(/[^a-z0-9]+/g, "-")
+		.replaceAll(/^-+|-+$/g, "")
 		.slice(0, 48) || "event";
 
 const validate = (input: unknown): HistoryEvent | string => {

@@ -74,7 +74,7 @@ const assertPublicHost = (raw: string): void => {
 	}
 	if (parsed.protocol !== "http:" && parsed.protocol !== "https:")
 		throw new MirrorError("the image URL must be http or https");
-	const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+	const host = parsed.hostname.toLowerCase().replaceAll(/^\[|\]$/g, "");
 	if (
 		host === "localhost" ||
 		host.endsWith(".localhost") ||
