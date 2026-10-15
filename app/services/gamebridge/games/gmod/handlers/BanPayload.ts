@@ -80,7 +80,7 @@ export default class BanPayload extends Payload {
 		);
 
 		embed.setThumbnail(bannedAvatar ?? null);
-		embed.setColor(0xc4_21_44);
+		embed.setColor(0xC4_21_44);
 		await (notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
 		await (guild.channels.cache.get(discord.config.channels.relay) as Discord.TextChannel).send(
 			{

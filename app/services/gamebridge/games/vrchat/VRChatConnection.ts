@@ -3,7 +3,7 @@ import GameConnection from "../../GameConnection.js";
 import type { Group, GroupInstance } from "vrchat";
 import config from "#/config/vrchat.json" with { type: "json" };
 
-export const VRCHAT_ACCENT = 0x17_78_e9;
+export const VRCHAT_ACCENT = 0x17_78_E9;
 
 export default class VRChatConnection extends GameConnection {
 	group?: Group;

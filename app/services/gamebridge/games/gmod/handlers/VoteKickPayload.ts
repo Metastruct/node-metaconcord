@@ -108,7 +108,7 @@ export default class VoteKickPayload extends Payload {
 				)
 			)
 			.setThumbnail(offenderAvatar ?? null)
-			.setColor(0xc4_af_21);
+			.setColor(0xC4_AF_21);
 
 		if (offenderSteamId64 !== "BOT") {
 			const sql = bridge.container.getService("SQL");

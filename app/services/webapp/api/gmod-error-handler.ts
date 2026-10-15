@@ -198,7 +198,7 @@ export default async (webApp: WebApp): Promise<void> => {
 								: body.realm
 					}`,
 				},
-				color: server ? 0x03_a9_f4 : 0xde_a9_09,
+				color: server ? 0x03_A9_F4 : 0xDE_A9_09,
 			};
 			embed.fields = [];
 			if (player) {

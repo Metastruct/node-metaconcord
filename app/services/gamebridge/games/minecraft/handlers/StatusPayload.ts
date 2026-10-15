@@ -36,7 +36,7 @@ function buildStatusContainer(
 ): Discord.ContainerBuilder {
 	const container = new Discord.ContainerBuilder();
 
-	container.setAccentColor(disconnected ? 0xb5_43_43 : 0x4b_b5_43);
+	container.setAccentColor(disconnected ? 0xB5_43_43 : 0x4B_B5_43);
 
 	let desc =
 		`### ${status.hostname}\n` +

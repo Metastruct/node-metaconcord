@@ -4,7 +4,7 @@ import net from "node:net";
 // uses to speak this protocol) - string and float are swapped from what
 // their names suggest.
 const PACKET_TYPE_STRING = 0x06;
-const PACKET_TYPE_FLOAT = 0x2a;
+const PACKET_TYPE_FLOAT = 0x2A;
 
 /**
  * Sends a raw world.Topic() query straight to a BYOND game server (the same
