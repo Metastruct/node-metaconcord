@@ -147,130 +147,130 @@ export default async (webApp: WebApp): Promise<void> => {
 			return;
 		} // external servers?
 
-		if (body.stack) {
-			if (body.error.startsWith("@repl_")) {
-				return;
-			} // gcompute
-			if (body.error.startsWith("SF:")) {
-				return;
-			} // starfall
+		if (!body.stack) return;
 
-			for (const regex of ignoreRegex) {
-				if (body.error.match(regex)) {
-					return;
-				}
-			}
+		if (body.error.startsWith("@repl_")) {
+			return;
+		} // gcompute
+		if (body.error.startsWith("SF:")) {
+			return;
+		} // starfall
 
-			const stack = body.stack.replaceAll(megaRex, SuperReplacer);
-			const matches = [...body.stack.matchAll(megaRex)];
-			if (
-				body.realm === "client" &&
-				matches.some(
-					m =>
-						m.groups?.steamid ||
-						m.groups?.partialsteamid ||
-						m.groups?.runnables ||
-						(m.groups?.fn && funcIgnore.includes(m.groups?.fn)) //||
-					//	(m.groups?.filename && fileIgnore.includes(m.groups?.filename))
-				)
-			) {
-				return; // player (self) errors
-			}
-			if (
-				matches.some(
-					m => m.groups?.fn && funcIgnore.includes(m.groups?.fn) //||
-					// (m.groups?.filename && fileIgnore.includes(m.groups?.filename))
-				)
-			) {
+		for (const regex of ignoreRegex) {
+			if (body.error.match(regex)) {
 				return;
 			}
-			const embeds: Discord.APIEmbed[] = [];
+		}
 
-			// main embed
-			const embed: Discord.APIEmbed = {
-				description: stack.replaceAll("```", "​`​`​`"),
-				footer: {
-					text: `${body.gamemode}@${
-						body.realm === "server"
-							? (server?.name ?? `unknown server(${ip})`)
-							: gameserver
-								? gameserver.config.name
-								: body.realm
-					}`,
-				},
-				color: server ? 0x03_A9_F4 : 0xDE_A9_09,
+		const stack = body.stack.replaceAll(megaRex, SuperReplacer);
+		const matches = [...body.stack.matchAll(megaRex)];
+		if (
+			body.realm === "client" &&
+			matches.some(
+				m =>
+					m.groups?.steamid ||
+					m.groups?.partialsteamid ||
+					m.groups?.runnables ||
+					(m.groups?.fn && funcIgnore.includes(m.groups?.fn)) //||
+				//	(m.groups?.filename && fileIgnore.includes(m.groups?.filename))
+			)
+		) {
+			return; // player (self) errors
+		}
+		if (
+			matches.some(
+				m => m.groups?.fn && funcIgnore.includes(m.groups?.fn) //||
+				// (m.groups?.filename && fileIgnore.includes(m.groups?.filename))
+			)
+		) {
+			return;
+		}
+		const embeds: Discord.APIEmbed[] = [];
+
+		// main embed
+		const embed: Discord.APIEmbed = {
+			description: stack.replaceAll("```", "​`​`​`"),
+			footer: {
+				text: `${body.gamemode}@${
+					body.realm === "server"
+						? (server?.name ?? `unknown server(${ip})`)
+						: gameserver
+							? gameserver.config.name
+							: body.realm
+				}`,
+			},
+			color: server ? 0x03_A9_F4 : 0xDE_A9_09,
+		};
+		embed.fields = [];
+		if (player) {
+			if (player.isPirate) {
+				return;
+			} // dont care about pirates
+
+			embed.author = {
+				name: player.nick,
+				icon_url: (player.avatar as string) ?? undefined,
+				url: `https://steamcommunity.com/profiles/${player.steamId64}`,
 			};
-			embed.fields = [];
-			if (player) {
-				if (player.isPirate) {
-					return;
-				} // dont care about pirates
-
-				embed.author = {
-					name: player.nick,
-					icon_url: (player.avatar as string) ?? undefined,
-					url: `https://steamcommunity.com/profiles/${player.steamId64}`,
+			if (player.isLinux) embed.fields = [{ name: "OS:", value: "UNIX", inline: true }];
+		}
+		if (server && gameserver) {
+			if (gameserver.mapUptime) {
+				embed.fields.push({
+					name: "Map running since:",
+					value: `<t:${dayjs().subtract(gameserver.mapUptime, "s").unix()}:R>`,
+					inline: true,
+				});
+			}
+			if (
+				gameserver.config.defaultGamemode &&
+				body.gamemode !== gameserver.config.defaultGamemode
+			) {
+				const gamemode = gameserver.gamemode ?? {
+					folderName: "???",
+					name: body.gamemode,
 				};
-				if (player.isLinux) embed.fields = [{ name: "OS:", value: "UNIX", inline: true }];
+
+				embed.fields.push({
+					name: "Gamemode:",
+					value: `${gamemode.name} (${gamemode.folderName})`,
+					inline: true,
+				});
 			}
-			if (server && gameserver) {
-				if (gameserver.mapUptime) {
-					embed.fields.push({
-						name: "Map running since:",
-						value: `<t:${dayjs().subtract(gameserver.mapUptime, "s").unix()}:R>`,
-						inline: true,
-					});
-				}
-				if (
-					gameserver.config.defaultGamemode &&
-					body.gamemode !== gameserver.config.defaultGamemode
-				) {
-					const gamemode = gameserver.gamemode ?? {
-						folderName: "???",
-						name: body.gamemode,
-					};
+		}
+		embeds.push(embed);
+		const payload: Discord.MessageCreateOptions = {
+			allowedMentions: { parse: [] },
+			content: `**${body.error.replaceAll("*", "\\*")}**`,
+			embeds: embeds,
+		};
 
-					embed.fields.push({
-						name: "Gamemode:",
-						value: `${gamemode.name} (${gamemode.folderName})`,
-						inline: true,
-					});
-				}
+		// code embed
+
+		const filematches = matches.filter(
+			m => !m.groups?.engine && Number(m.groups?.stacknr) <= 3
+		);
+		for (const match of filematches) {
+			const smg = match.groups as StackMatchGroups;
+
+			if (!smg.fpath) continue;
+			const file = await getOrFetchGmodFile(smg.fpath);
+			if (file && smg.filename) {
+				payload.files = [
+					{
+						attachment: Buffer.from(file),
+						name: `${smg.stacknr}-${smg.filename}.${smg.ext}`,
+					},
+				];
+				break;
 			}
-			embeds.push(embed);
-			const payload: Discord.MessageCreateOptions = {
-				allowedMentions: { parse: [] },
-				content: `**${body.error.replaceAll("*", "\\*")}**`,
-				embeds: embeds,
-			};
+		}
 
-			// code embed
-
-			const filematches = matches.filter(
-				m => !m.groups?.engine && Number(m.groups?.stacknr) <= 3
-			);
-			for (const match of filematches) {
-				const smg = match.groups as StackMatchGroups;
-
-				if (!smg.fpath) continue;
-				const file = await getOrFetchGmodFile(smg.fpath);
-				if (file && smg.filename) {
-					payload.files = [
-						{
-							attachment: Buffer.from(file),
-							name: `${smg.stacknr}-${smg.filename}.${smg.ext}`,
-						},
-					];
-					break;
-				}
-			}
-
-			if (body.v === "test") return;
-			if (matches.some(m => (m.groups as StackMatchGroups).addon === "pac3")) {
-				getPacErrorWebhook().send(payload).catch(log.error.bind(log));
-			} else {
-				getWebhook().send(payload).catch(log.error.bind(log));
-			}
+		if (body.v === "test") return;
+		if (matches.some(m => (m.groups as StackMatchGroups).addon === "pac3")) {
+			getPacErrorWebhook().send(payload).catch(log.error.bind(log));
+		} else {
+			getWebhook().send(payload).catch(log.error.bind(log));
 		}
 	});
 };

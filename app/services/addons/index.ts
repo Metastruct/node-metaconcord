@@ -207,17 +207,19 @@ export class Addons extends Service {
 		});
 		log.info({ server: name, count: addons.length, transient }, "refreshed gmod addons");
 
-		if (transient > 0 && attempt < TRANSIENT_MAX_RETRIES) {
-			log.warn({ server: name, transient, attempt }, "retrying unresolved git entries later");
-			this.retryTimers.set(
-				id,
-				setTimeout(() => {
-					this.refreshGmodRepos(server, rows, attempt + 1).catch(error =>
-						log.error({ err: error, server: name }, "addon refresh retry failed")
-					);
-				}, TRANSIENT_RETRY_DELAY)
-			);
+		if (transient === 0 || attempt >= TRANSIENT_MAX_RETRIES) {
+			return;
 		}
+
+		log.warn({ server: name, transient, attempt }, "retrying unresolved git entries later");
+		this.retryTimers.set(
+			id,
+			setTimeout(() => {
+				this.refreshGmodRepos(server, rows, attempt + 1).catch(error =>
+					log.error({ err: error, server: name }, "addon refresh retry failed")
+				);
+			}, TRANSIENT_RETRY_DELAY)
+		);
 	}
 
 	private async buildGmodAddon(
