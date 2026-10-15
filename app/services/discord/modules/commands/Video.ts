@@ -13,7 +13,7 @@ const log = logger("VideoCommand");
 
 type Method = "repeat" | "reverse" | "ping-pong";
 
-const AllowedVideoTypes = ["video/webm", "video/mp4", "video/quicktime"];
+const AllowedVideoTypes = new Set(["video/webm", "video/mp4", "video/quicktime"]);
 const MAX_FILE_SIZE = 25_000_000;
 
 const GLITCH: { segment: number; count: number }[] = [
@@ -365,7 +365,7 @@ async function processVideo(
 		return;
 	}
 
-	if (file && file.contentType && !AllowedVideoTypes.includes(file.contentType)) {
+	if (file && file.contentType && !AllowedVideoTypes.has(file.contentType)) {
 		await ctx.editReply(
 			`${file.contentType} is not a supported video type. Supported: MP4, WebM, QuickTime`
 		);

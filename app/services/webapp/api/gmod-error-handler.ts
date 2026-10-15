@@ -79,8 +79,8 @@ const SuperReplacer = (_: string, ...args: unknown[]) => {
 	}:${groups.lineno}`;
 };
 
-const gamemodes = ["sandbox_modded", "mta", "jazztronauts"]; //proper gamemode support when???
-const funcIgnore = ["CreateFont", "require"];
+const gamemodes = new Set(["sandbox_modded", "mta", "jazztronauts"]); //proper gamemode support when???
+const funcIgnore = new Set(["CreateFont", "require"]);
 const ignoreRegex = [
 	/Warning! A net message \(.+\) is already started! Discarding in favor of the new message! \(.+\)/g,
 	/unsuccessful/,
@@ -140,7 +140,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			)[0];
 		}
 
-		if (body.realm === "client" && !gamemodes.includes(body.gamemode)) {
+		if (body.realm === "client" && !gamemodes.has(body.gamemode)) {
 			return;
 		} // external players?
 		if (body.realm === "server" && !server) {
@@ -171,7 +171,7 @@ export default async (webApp: WebApp): Promise<void> => {
 					m.groups?.steamid ||
 					m.groups?.partialsteamid ||
 					m.groups?.runnables ||
-					(m.groups?.fn && funcIgnore.includes(m.groups?.fn)) //||
+					(m.groups?.fn && funcIgnore.has(m.groups?.fn)) //||
 				//	(m.groups?.filename && fileIgnore.includes(m.groups?.filename))
 			)
 		) {
@@ -179,7 +179,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		}
 		if (
 			matches.some(
-				m => m.groups?.fn && funcIgnore.includes(m.groups?.fn) //||
+				m => m.groups?.fn && funcIgnore.has(m.groups?.fn) //||
 				// (m.groups?.filename && fileIgnore.includes(m.groups?.filename))
 			)
 		) {

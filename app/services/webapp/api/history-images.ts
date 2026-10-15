@@ -36,7 +36,7 @@ const CDN_PREFIX = `${CDN_BASE}/gh/${HistoryConfig.owner}/${HistoryConfig.repo}@
 /** A source we cannot use. The message is shown to the editor, so keep it readable. */
 export class MirrorError extends Error {}
 
-const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 
 /**
  * The extension has to come from the bytes: several imgur URLs ending in .jpg
@@ -120,7 +120,7 @@ const download = async (
 		.split(";", 1)[0]
 		.trim()
 		.toLowerCase();
-	if (!ALLOWED_TYPES.includes(type))
+	if (!ALLOWED_TYPES.has(type))
 		throw new MirrorError(`unsupported content type ${type || "none"}`);
 
 	const bytes = Buffer.from(res.data);
