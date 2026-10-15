@@ -143,10 +143,10 @@ export class FluxerRest {
 				const response = await fetch(`${this.apiBaseUrl}${path}`, {
 					method,
 					headers: {
-						...(authenticated ? { Authorization: `Bot ${this.botToken}` } : {}),
-						...(body ? { "Content-Type": "application/json" } : {}),
+						...(authenticated && { Authorization: `Bot ${this.botToken}` }),
+						...(body && { "Content-Type": "application/json" }),
 					},
-					...(body ? { body: JSON.stringify(body) } : {}),
+					...(body && { body: JSON.stringify(body) }),
 					signal: AbortSignal.timeout(30_000),
 				});
 				if (response.status === 429 && rateLimitAttempts < 8) {
@@ -201,9 +201,9 @@ export class FluxerRest {
 					filename: file.name,
 					file_size: file.data.byteLength,
 					content_type: file.type,
-					...(file.description ? { description: file.description } : {}),
-					...(file.duration ? { duration: Math.round(file.duration) } : {}),
-					...(file.waveform ? { waveform: file.waveform } : {}),
+					...(file.description && { description: file.description }),
+					...(file.duration && { duration: Math.round(file.duration) }),
+					...(file.waveform && { waveform: file.waveform }),
 				})),
 			}
 		);

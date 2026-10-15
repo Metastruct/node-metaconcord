@@ -173,9 +173,9 @@ async function fluxerApi(method, path, body, { retries = 5 } = {}) {
 			method,
 			headers: {
 				Authorization: `Bot ${fluxerConfig.botToken}`,
-				...(body != null ? { "Content-Type": "application/json" } : {}),
+				...((body != null) && { "Content-Type": "application/json" }),
 			},
-			...(body != null ? { body: JSON.stringify(body) } : {}),
+			...((body != null) && { body: JSON.stringify(body) }),
 		});
 		if (res.status === 429 && attempt < retries) {
 			const retryAfter = Number(res.headers.get("Retry-After") ?? 1) * 1000;
@@ -591,29 +591,21 @@ const forumFieldsFor = src => {
 	const tags = (src.available_tags ?? []).slice(0, 20).map(tag => ({
 		name: tag.name,
 		moderated: tag.moderated === true,
-		...(tag.emoji_name ? { emoji_name: tag.emoji_name } : {}),
+		...(tag.emoji_name && { emoji_name: tag.emoji_name }),
 	}));
 	const defaultReactionName = src.default_reaction_emoji?.emoji_name;
 	const forumFlagMask = (1 << 4) | (1 << 15); // REQUIRE_TAG | HIDE_MEDIA_DOWNLOAD_OPTIONS
 	const flags = (src.flags ?? 0) & forumFlagMask;
 	return {
-		...(src.default_auto_archive_duration != null
-			? { default_auto_archive_duration: src.default_auto_archive_duration }
-			: {}),
-		...(src.default_thread_rate_limit_per_user != null
-			? {
-				default_thread_rate_limit_per_user: src.default_thread_rate_limit_per_user,
-			}
-			: {}),
-		...(tags.length > 0 ? { available_tags: tags } : {}),
-		...(defaultReactionName
-			? { default_reaction_emoji: { emoji_name: defaultReactionName } }
-			: {}),
-		...(src.default_sort_order != null ? { default_sort_order: src.default_sort_order } : {}),
-		...(src.default_forum_layout != null
-			? { default_forum_layout: src.default_forum_layout }
-			: {}),
-		...(flags !== 0 ? { flags } : {}),
+		...((src.default_auto_archive_duration != null) && { default_auto_archive_duration: src.default_auto_archive_duration }),
+		...((src.default_thread_rate_limit_per_user != null) && {
+			default_thread_rate_limit_per_user: src.default_thread_rate_limit_per_user,
+		}),
+		...((tags.length > 0) && { available_tags: tags }),
+		...(defaultReactionName && { default_reaction_emoji: { emoji_name: defaultReactionName } }),
+		...((src.default_sort_order != null) && { default_sort_order: src.default_sort_order }),
+		...((src.default_forum_layout != null) && { default_forum_layout: src.default_forum_layout }),
+		...((flags !== 0) && { flags }),
 	};
 };
 
@@ -621,13 +613,11 @@ const createChannel = (src, type, parentFluxerId) => {
 	const body = {
 		type,
 		name: src.name,
-		...(src.topic != null ? { topic: src.topic } : {}),
-		...(parentFluxerId ? { parent_id: parentFluxerId } : {}),
-		...(src.rate_limit_per_user != null
-			? { rate_limit_per_user: src.rate_limit_per_user }
-			: {}),
-		...(type === 2 ? { bitrate: src.bitrate ?? 64_000 } : {}),
-		...(type === 2 ? { user_limit: Math.min(src.user_limit ?? 0, 99) } : {}),
+		...((src.topic != null) && { topic: src.topic }),
+		...(parentFluxerId && { parent_id: parentFluxerId }),
+		...((src.rate_limit_per_user != null) && { rate_limit_per_user: src.rate_limit_per_user }),
+		...((type === 2) && { bitrate: src.bitrate ?? 64_000 }),
+		...((type === 2) && { user_limit: Math.min(src.user_limit ?? 0, 99) }),
 		...forumFieldsFor(src),
 	};
 	const overwrites = overwritesFor(src);
@@ -743,7 +733,7 @@ for (const thread of desiredThreadList) {
 						starter?.content?.trim() ||
 						`[View this Discord post](<https://discord.com/channels/${DISCORD_GUILD}/${thread.src.id}>)`,
 				},
-				...(appliedTags.length > 0 ? { applied_tags: appliedTags } : {}),
+				...((appliedTags.length > 0) && { applied_tags: appliedTags }),
 			};
 			fluxerThread = await fluxerApi("POST", `/channels/${parentFluxerId}/threads`, body);
 			await sleep(6200); // channel:thread:create is 10/min
@@ -752,17 +742,11 @@ for (const thread of desiredThreadList) {
 			const body = {
 				name: thread.src.name,
 				type: thread.src.type === 10 ? 11 : thread.src.type,
-				...(thread.src.thread_metadata?.auto_archive_duration != null
-					? {
-						auto_archive_duration: thread.src.thread_metadata.auto_archive_duration,
-					}
-					: {}),
-				...(thread.src.rate_limit_per_user != null
-					? { rate_limit_per_user: thread.src.rate_limit_per_user }
-					: {}),
-				...(thread.src.type === 12 && thread.src.thread_metadata?.invitable != null
-					? { invitable: thread.src.thread_metadata.invitable }
-					: {}),
+				...((thread.src.thread_metadata?.auto_archive_duration != null) && {
+					auto_archive_duration: thread.src.thread_metadata.auto_archive_duration,
+				}),
+				...((thread.src.rate_limit_per_user != null) && { rate_limit_per_user: thread.src.rate_limit_per_user }),
+				...(thread.src.type === 12 && thread.src.thread_metadata?.invitable != null && { invitable: thread.src.thread_metadata.invitable }),
 			};
 			fluxerThread = await fluxerApi("POST", `/channels/${parentFluxerId}/threads`, body);
 			await sleep(6200);
@@ -771,7 +755,7 @@ for (const thread of desiredThreadList) {
 		if (archived) {
 			await fluxerApi("PATCH", `/channels/${fluxerThread.id}`, {
 				archived: true,
-				...(thread.src.thread_metadata?.locked ? { locked: true } : {}),
+				...(thread.src.thread_metadata?.locked && { locked: true }),
 			});
 			step(`archived "${thread.src.name}"`);
 		}

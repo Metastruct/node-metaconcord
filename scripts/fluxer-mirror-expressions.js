@@ -55,9 +55,9 @@ async function fluxerApi(method, path, body, { retries = 5 } = {}) {
 			method,
 			headers: {
 				Authorization: `Bot ${fluxerConfig.botToken}`,
-				...(body ? { "Content-Type": "application/json" } : {}),
+				...(body && { "Content-Type": "application/json" }),
 			},
-			...(body ? { body: JSON.stringify(body) } : {}),
+			...(body && { body: JSON.stringify(body) }),
 		});
 		if (res.status === 429 && attempt < retries) {
 			const retryAfter = Number(res.headers.get("Retry-After") ?? 1) * 1000;
@@ -264,16 +264,14 @@ for (const sticker of discordStickers) {
 	if (!image) continue;
 	stickersToCreate.push({
 		name: sticker.name,
-		...(sticker.description ? { description: sticker.description } : {}),
-		...(typeof sticker.tags === "string" && sticker.tags.length > 0
-			? {
-				tags: sticker.tags
-					.split(",")
-					.map(tag => tag.trim())
-					.filter(Boolean)
-					.slice(0, 10),
-			}
-			: {}),
+		...(sticker.description && { description: sticker.description }),
+		...(typeof sticker.tags === "string" && sticker.tags.length > 0 && {
+			tags: sticker.tags
+				.split(",")
+				.map(tag => tag.trim())
+				.filter(Boolean)
+				.slice(0, 10),
+		}),
 		image,
 		_source: sticker,
 	});

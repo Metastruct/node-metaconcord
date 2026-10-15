@@ -127,8 +127,8 @@ export class Addons extends Service {
 				if (!canSeeRestricted || !restricted) return addon;
 				return {
 					...addon,
-					...(restricted.description ? { description: restricted.description } : {}),
-					...(restricted.thumbnail ? { thumbnail: restricted.thumbnail } : {}),
+					...(restricted.description && { description: restricted.description }),
+					...(restricted.thumbnail && { thumbnail: restricted.thumbnail }),
 					// A partial spread cannot be narrowed back onto the source union.
 					source: restricted.source
 						? ({ ...addon.source, ...restricted.source } as AddonSource)
@@ -298,11 +298,9 @@ export class Addons extends Service {
 			const restricted = git.public
 				? undefined
 				: {
-					...(repoUrl ? { source: { repoUrl } } : {}),
-					...(description ? { description } : {}),
-					...(!ws?.thumbnail && git.meta?.thumbnail
-						? { thumbnail: git.meta.thumbnail }
-						: {}),
+					...(repoUrl && { source: { repoUrl } }),
+					...(description && { description }),
+					...(!ws?.thumbnail && git.meta?.thumbnail && { thumbnail: git.meta.thumbnail }),
 				};
 			return {
 				name: ws?.name ?? publicMeta?.name ?? fallbackName,
@@ -316,7 +314,7 @@ export class Addons extends Service {
 					repoUrl: publicRepoUrl,
 				},
 				private: false,
-				...(restricted && Object.keys(restricted).length ? { restricted } : {}),
+				...(restricted && Object.keys(restricted).length && { restricted }),
 			};
 		}
 
@@ -330,9 +328,9 @@ export class Addons extends Service {
 				source: { kind: "git", host: parsed.host, subpath },
 				private: true,
 				restricted: {
-					source: { url: repoUrl, ...(branch ? { branch } : {}) },
-					...(description ? { description } : {}),
-					...(git.meta?.thumbnail ? { thumbnail: git.meta.thumbnail } : {}),
+					source: { url: repoUrl, ...(branch && { branch }) },
+					...(description && { description }),
+					...(git.meta?.thumbnail && { thumbnail: git.meta.thumbnail }),
 				},
 			};
 		}
@@ -529,7 +527,7 @@ export class Addons extends Service {
 			serverId: id,
 			serverName: name,
 			updatedAt: Date.now(),
-			...(runtime.length ? { runtime } : {}),
+			...(runtime.length && { runtime }),
 			addons: addons.sort((a, b) => a.name.localeCompare(b.name)),
 		});
 		log.info({ server: name, count: addons.length }, "stored minecraft mods");

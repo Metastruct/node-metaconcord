@@ -200,7 +200,7 @@ async function fetchGithubRepo(
 const gitlabToken = (apikeys as { gitlab?: string }).gitlab;
 const gitlabHeaders = () => ({
 	"User-Agent": USER_AGENT,
-	...(gitlabToken ? { "PRIVATE-TOKEN": gitlabToken } : {}),
+	...(gitlabToken && { "PRIVATE-TOKEN": gitlabToken }),
 });
 
 /** "https://host/group/repo/-/blob/master/docs/README.rst" -> "docs/README.rst" */
