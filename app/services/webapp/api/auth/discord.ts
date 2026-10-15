@@ -305,10 +305,10 @@ export default async (webApp: WebApp): Promise<void> => {
 			db.prepare(
 				"INSERT INTO discord_tokens (user_id, access_token, refresh_token, expires_at) VALUES($user_id, $access_token, $refresh_token, $expires_at) ON CONFLICT (user_id) DO UPDATE SET access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at"
 			).run({
-				$user_id: user.id,
-				$access_token: tokens.access_token,
-				$refresh_token: tokens.refresh_token,
-				$expires_at: Date.now() + tokens.expires_in * 1000,
+				user_id: user.id,
+				access_token: tokens.access_token,
+				refresh_token: tokens.refresh_token,
+				expires_at: Date.now() + tokens.expires_in * 1000,
 			});
 
 			// needs a Steam link on the account, the profile page says so when it is missing

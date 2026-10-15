@@ -483,7 +483,7 @@ export default async (bot: DiscordBot) => {
 			const url = getMediaUrl(msg.content);
 			if (url)
 				db.prepare("INSERT INTO media_urls VALUES($url) ON CONFLICT DO NOTHING").run({
-					$url: url,
+					url: url,
 				});
 		}
 	});
