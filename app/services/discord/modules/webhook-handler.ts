@@ -834,7 +834,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						.map(s =>
 							s.discord.ready ? `<@${s.discord.user?.id}>` : `#${s.config.id}`
 						)
-						.join()}...`
+						.join(',')}...`
 				);
 				await Promise.all(
 					where.map(async server => {
@@ -859,7 +859,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 												? `<@${s.discord.user?.id}>`
 												: `#${s.config.id}`
 										)
-										.join()
+										.join(',')
 							}!`
 						);
 					})
@@ -953,7 +953,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						.map(s =>
 							s.discord.ready ? `<@${s.discord.user?.id}>` : `#${s.config.id}`
 						)
-						.join()}...`
+						.join(',')}...`
 				);
 
 				await Promise.all(
@@ -998,7 +998,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 												? `<@${s.discord.user?.id}>`
 												: `#${s.config.id}`
 										)
-										.join()
+										.join(',')
 							} and refreshed files!`
 						);
 					})
@@ -1158,19 +1158,19 @@ export default async (bot: DiscordBot): Promise<void> => {
 			components: [
 				{
 					type: Discord.ComponentType.Button,
-					custom_id: serverOverride ? `update_${serverOverride.join()}` : "update",
+					custom_id: serverOverride ? `update_${serverOverride.join(',')}` : "update",
 					label: serverOverride
-						? `Update Files on ${serverOverride.map(s => `#${s}`).join()}`
+						? `Update Files on ${serverOverride.map(s => `#${s}`).join(',')}`
 						: "Update Files on all Servers",
 					style: 1,
 				},
 				{
 					type: Discord.ComponentType.Button,
 					custom_id: serverOverride
-						? `everything_${serverOverride.join()}`
+						? `everything_${serverOverride.join(',')}`
 						: "everything",
 					label: serverOverride
-						? `Update and Refresh Files on ${serverOverride.map(s => `#${s}`).join()}`
+						? `Update and Refresh Files on ${serverOverride.map(s => `#${s}`).join(',')}`
 						: "Update and Refresh Files on all Servers",
 					style: 1,
 				},
