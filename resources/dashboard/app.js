@@ -218,7 +218,7 @@
 			mode === "js" ? { type: "js", code: value } : { type: "bash", input: value }
 		);
 		if (!ok) return;
-		if (history[history.length - 1] !== value) history.push(value);
+		if (history.at(-1) !== value) history.push(value);
 		if (history.length > 200) history.shift();
 		historyIndex = history.length;
 		try {

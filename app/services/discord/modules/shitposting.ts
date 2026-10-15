@@ -314,7 +314,7 @@ export default async (bot: DiscordBot) => {
 			if (!bot.ready) return;
 			const now = Date.now();
 			if (
-				((lastMsgs.length > 0 && lastMsgs.slice(-1)[0].author.id) ||
+				((lastMsgs.length > 0 && lastMsgs.at(-1).author.id) ||
 					(await bot.getTextChannel(bot.config.channels.chat)?.lastMessage?.fetch())
 						?.author.id) !== client.user.id &&
 				(now - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
@@ -322,7 +322,7 @@ export default async (bot: DiscordBot) => {
 				!posting
 			) {
 				await sendShat({
-					msg: Math.random() <= MSG_REPLY_PROB ? lastMsgs.slice(-1)[0] : undefined,
+					msg: Math.random() <= MSG_REPLY_PROB ? lastMsgs.at(-1) : undefined,
 				});
 				data.lastMsgTime = lastMsgTime = now;
 				replied = false;

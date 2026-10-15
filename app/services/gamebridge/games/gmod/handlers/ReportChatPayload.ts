@@ -27,7 +27,7 @@ export default class ReportChatPayload extends Payload {
 	private static getThread(reporterSteamId64: string, data: Data) {
 		const threadArray = data.reportThreads?.[reporterSteamId64];
 		if (!threadArray || threadArray.length === 0) return null;
-		return threadArray[threadArray.length - 1];
+		return threadArray.at(-1);
 	}
 
 	private static isPlayerOnline(steamId64: string, server: GmodConnection): boolean {

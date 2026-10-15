@@ -633,13 +633,13 @@ function sampleBlock(content: string[], budget: number): string[] {
 			}
 			if (used + line.length + 1 > allocated[i]) break;
 			if (gap) {
-				if (shown[shown.length - 1] !== "…") shown.push("…");
+				if (shown.at(-1) !== "…") shown.push("…");
 				gap = false;
 			}
 			shown.push(line);
 			used += line.length + 1;
 		}
-		if (gap && shown[shown.length - 1] !== "…") shown.push("…");
+		if (gap && shown.at(-1) !== "…") shown.push("…");
 	}
 	return shown;
 }
@@ -1112,7 +1112,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const msg = ctx.message;
 				const url =
 					msg.embeds.length > 0
-						? msg.embeds[msg.embeds.length - 1].url
+						? msg.embeds.at(-1).url
 						: findCommitUrl(msg);
 				if (!url) {
 					await ctx.editReply("url not found for refreshing :( ... aborting");
@@ -1292,7 +1292,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			);
 
 			containers.push(container);
-			commitShas.push(payload.head_commit?.id ?? commits[commits.length - 1]?.id);
+			commitShas.push(payload.head_commit?.id ?? commits.at(-1)?.id);
 		} else {
 			for (const commit of commits) {
 				const changes = GetGithubChanges(
@@ -1567,7 +1567,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			flags: Discord.MessageFlags.IsComponentsV2,
 		} as Discord.MessageCreateOptions;
 
-		const sha = payload.head_commit?.id ?? commits[commits.length - 1]?.id;
+		const sha = payload.head_commit?.id ?? commits.at(-1)?.id;
 		webhook
 			.send(message)
 			.then(msg => {
@@ -2016,7 +2016,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			container.addTextDisplayComponents(text => text.setContent(`-# by ${body.user_name}`));
 
 			containers.push(container);
-			commitShas.push(body.checkout_sha || commits[commits.length - 1]?.id);
+			commitShas.push(body.checkout_sha || commits.at(-1)?.id);
 		} else {
 			for (const commit of commits) {
 				const added = commit.added ?? [];
