@@ -15,7 +15,7 @@ export default (webApp: WebApp): void => {
 			return;
 		}
 
-		const token = bearer.split("Bearer ")[1];
+		const token = bearer.split("Bearer ", 2)[1];
 		if (token !== config.token) {
 			res.status(FORBIDDEN).send();
 			return;

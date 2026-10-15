@@ -205,7 +205,7 @@ const gitlabHeaders = () => ({
 
 /** "https://host/group/repo/-/blob/master/docs/README.rst" -> "docs/README.rst" */
 const readmeUrlPath = (url: string | null, branch: string | null): string | undefined => {
-	const after = url?.split("/-/blob/")[1];
+	const after = url?.split("/-/blob/", 2)[1];
 	if (!after) return;
 	const path = decodeURIComponent(after);
 	// the branch can hold slashes of its own, so trim the known one rather than a segment
@@ -214,7 +214,7 @@ const readmeUrlPath = (url: string | null, branch: string | null): string | unde
 };
 
 async function resolveGithub(remote: GitRemote, github?: GithubClient): Promise<GitResolution> {
-	const [owner, repo] = remote.path.split("/");
+	const [owner, repo] = remote.path.split("/", 2);
 	if (!owner || !repo) return { public: false };
 
 	const res = await fetchGithubRepo(owner, repo, github);
@@ -356,7 +356,7 @@ async function fetchReadme(
 	github?: GithubClient
 ): Promise<string | undefined> {
 	if (remote.host === "github") {
-		const [owner, repo] = remote.path.split("/");
+		const [owner, repo] = remote.path.split("/", 2);
 		if (!owner || !repo) return;
 		// The github endpoint finds whatever the readme is called, in a directory too.
 		if (github) {

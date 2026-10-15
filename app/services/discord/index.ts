@@ -185,7 +185,7 @@ export class DiscordBot extends Service {
 	}
 
 	getNickname(): string | undefined {
-		return this.getGuild()?.members.me?.nickname?.split(" ")[0] ?? undefined;
+		return this.getGuild()?.members.me?.nickname?.split(" ", 1)[0] ?? undefined;
 	}
 
 	async setServerBanner(url?: string, reason?: string): Promise<boolean> {

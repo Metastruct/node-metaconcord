@@ -98,7 +98,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		(pacErrorWebhook ??= new Discord.WebhookClient({ url: config.pacWebhookUrl }));
 
 	webApp.app.post("/gmod/errors", express.urlencoded({ extended: false }), async (req, res) => {
-		const ip = req.header("cf-connecting-ip") ?? req.header("x-forwarded-for")?.split(",")[0];
+		const ip = req.header("cf-connecting-ip") ?? req.header("x-forwarded-for")?.split(",", 1)[0];
 		if (!ip) {
 			res.sendStatus(403);
 			return;
@@ -134,7 +134,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				(ps, cs) => ps.concat(cs.status.players),
 				new Array<Player>()
 			);
-			player = allplayers.find(pl => pl.ip.split(":")[0] === ip); // idk if you can combine that into one call
+			player = allplayers.find(pl => pl.ip.split(":", 1)[0] === ip); // idk if you can combine that into one call
 			gameserver = gameBridge.servers.gmod.filter(srv =>
 				srv.status.players.includes(player as Player)
 			)[0];

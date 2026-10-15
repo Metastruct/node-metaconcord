@@ -137,7 +137,7 @@ async function toDataUri(src?: string, playerKey?: string): Promise<string | und
 		}
 		failedFetchCache.delete(src);
 		buf = Buffer.from(await res.arrayBuffer());
-		mime = res.headers.get("content-type")?.split(";")[0] || extMime;
+		mime = res.headers.get("content-type")?.split(";", 1)[0] || extMime;
 	} else {
 		const ext = src.includes(".") ? (src.split(".").pop() ?? "png") : "png";
 		buf = Buffer.from(await readFile(src));

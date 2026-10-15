@@ -159,7 +159,7 @@ export class Resonite extends Service {
 		if (!res) return;
 		const contentType = res.headers["content-type"];
 		const mime =
-			(typeof contentType === "string" ? contentType.split(";")[0] : undefined) ||
+			(typeof contentType === "string" ? contentType.split(";", 1)[0] : undefined) ||
 			"image/png";
 		return `data:${mime};base64,${Buffer.from(res.data).toString("base64")}`;
 	}

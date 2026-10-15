@@ -121,8 +121,8 @@ async function getWithCookies(url: URL | string, cookie?: string): Promise<Respo
 			headers: { cookie: [...jar.values()].join("; ") },
 		});
 		for (const set of res.headers.getSetCookie()) {
-			const [pair] = set.split(";");
-			const [name, value] = pair.split("=");
+			const [pair] = set.split(";", 1);
+			const [name, value] = pair.split("=", 2);
 			// like a browser: a Set-Cookie with an empty value expires the cookie
 			if (value === "") jar.delete(name);
 			else jar.set(name, `${name}=${value}`);
@@ -148,8 +148,8 @@ async function followToCode(authUrl: URL, cookie?: string): Promise<URL> {
 		});
 		// carry oidc-provider's interaction cookies through the hops
 		for (const set of res.headers.getSetCookie()) {
-			const [pair] = set.split(";");
-			const [name, value] = pair.split("=");
+			const [pair] = set.split(";", 1);
+			const [name, value] = pair.split("=", 2);
 			// like a browser: a Set-Cookie with an empty value expires the cookie
 			if (value === "") jar.delete(name);
 			else jar.set(name, `${name}=${value}`);
@@ -240,7 +240,7 @@ async function main(): Promise<void> {
 			error?: string;
 		};
 		const idClaims = tokens.id_token
-			? (JSON.parse(Buffer.from(tokens.id_token.split(".")[1], "base64url").toString()) as {
+			? (JSON.parse(Buffer.from(tokens.id_token.split(".", 2)[1], "base64url").toString()) as {
 				sub: string;
 			})
 			: undefined;

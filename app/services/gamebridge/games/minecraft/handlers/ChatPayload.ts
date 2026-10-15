@@ -18,7 +18,7 @@ const IMAGE_URL = /https?:\/\/\S+/g;
 // and CDN links carry a signed query string (?ex=...&is=...&hm=...) that would otherwise
 // always land after the extension and break a simple $-anchored match
 function collapseImageUrl(url: string): string {
-	const path = url.split(/[?#]/)[0];
+	const path = url.split(/[?#]/, 1)[0];
 	return IMAGE_EXTENSION.test(path) ? `[${path.split("/").pop()}]` : url;
 }
 

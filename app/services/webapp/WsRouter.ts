@@ -23,7 +23,7 @@ export class WsRouter {
 		});
 
 		this.ws.on("request", req => {
-			const path = req.httpRequest.url?.split("?")[0] ?? "";
+			const path = req.httpRequest.url?.split("?", 1)[0] ?? "";
 			const handler = this.routes.get(path);
 			if (!handler) {
 				log.info(`Rejected WebSocket connection on ${req.httpRequest.url}`);
