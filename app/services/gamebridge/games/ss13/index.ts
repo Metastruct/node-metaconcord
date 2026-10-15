@@ -27,7 +27,7 @@ type SS13InstanceConfig = {
 };
 
 // only instances whose watchdog reports Online ever reach buildInstanceContainer.
-const ONLINE_COLOR = 0x4b_b5_43;
+const ONLINE_COLOR = 0x4B_B5_43;
 
 const SHUTTLE_AT_REST = ["idle", "docked"];
 

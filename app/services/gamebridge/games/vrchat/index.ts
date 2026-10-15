@@ -23,7 +23,7 @@ function buildHeaderContainer(
 	disconnected: boolean
 ): Discord.ContainerBuilder {
 	const container = new Discord.ContainerBuilder();
-	container.setAccentColor(0x17_78_e9);
+	container.setAccentColor(0x17_78_E9);
 
 	let desc = `### ${group?.name ?? "VRChat"}`;
 	desc += `\n:busts_in_silhouette: Player${totalPlayers === 1 ? "" : "s"}: **${totalPlayers}**`;
@@ -46,7 +46,7 @@ function buildHeaderContainer(
 // keyed on world info rather than a player list.
 function buildInstanceContainer(instance: GroupInstance): Discord.ContainerBuilder {
 	const container = new Discord.ContainerBuilder();
-	container.setAccentColor(0x17_78_e9);
+	container.setAccentColor(0x17_78_E9);
 
 	const capacity = instance.world.capacity;
 	const desc =

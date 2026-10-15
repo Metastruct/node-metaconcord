@@ -7,9 +7,9 @@ import requestSchema from "./structures/AdvancementRequest.json" with { type: "j
 // wording and colors of the vanilla chat announcement per frame type.
 // keyed loosely: an unknown frame from a modded advancement falls back to task.
 const FRAMES: Record<string, { verb: string; color: number }> = {
-	task: { verb: "has made the advancement", color: 0x55_ff_55 },
-	goal: { verb: "has reached the goal", color: 0x55_ff_55 },
-	challenge: { verb: "has completed the challenge", color: 0xaa_00_aa },
+	task: { verb: "has made the advancement", color: 0x55_FF_55 },
+	goal: { verb: "has reached the goal", color: 0x55_FF_55 },
+	challenge: { verb: "has completed the challenge", color: 0xAA_00_AA },
 };
 
 export default class AdvancementPayload extends Payload {

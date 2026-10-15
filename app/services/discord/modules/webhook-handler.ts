@@ -47,17 +47,17 @@ function diffBudget(...parts: (string | undefined)[]): number {
 const MinimalPushUsers = ["MetaAutomator", "github-actions[bot]"];
 
 const CHECK_CONCLUSION_COLOR: Record<string, number> = {
-	success: 0x28_a7_45,
-	failure: 0xcb_24_31,
-	failed: 0xcb_24_31, // Gitlab pipeline status spelling, as opposed to Github's "failure"
-	timed_out: 0xcb_24_31,
-	startup_failure: 0xcb_24_31,
-	action_required: 0xdb_ab_09,
-	cancelled: 0x6a_73_7d,
-	canceled: 0x6a_73_7d, // Gitlab spelling
-	skipped: 0x6a_73_7d,
-	neutral: 0x6a_73_7d,
-	stale: 0x6a_73_7d,
+	success: 0x28_A7_45,
+	failure: 0xCB_24_31,
+	failed: 0xCB_24_31, // Gitlab pipeline status spelling, as opposed to Github's "failure"
+	timed_out: 0xCB_24_31,
+	startup_failure: 0xCB_24_31,
+	action_required: 0xDB_AB_09,
+	cancelled: 0x6A_73_7D,
+	canceled: 0x6A_73_7D, // Gitlab spelling
+	skipped: 0x6A_73_7D,
+	neutral: 0x6A_73_7D,
+	stale: 0x6A_73_7D,
 };
 
 const CHECK_CONCLUSION_EMOJI: Record<string, string> = {
@@ -1039,7 +1039,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			commits.splice(0, commits.length, payload.head_commit);
 
 		if (commits.length > MAX_COMMITS) {
-			const container = new Discord.ContainerBuilder().setAccentColor(0xff_d7_00);
+			const container = new Discord.ContainerBuilder().setAccentColor(0xFF_D7_00);
 
 			addContainerHeader(
 				container,
@@ -1449,8 +1449,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const container = new Discord.ContainerBuilder().setAccentColor(
 			payload.action === "closed"
 				? pr.merged
-					? 0x89_57_e5
-					: 0xe7_4c_3c
+					? 0x89_57_E5
+					: 0xE7_4C_3C
 				: GetColorFromChanges(pr.additions ?? 0, pr.deletions ?? 0, pr.changed_files ?? 0)
 		);
 
@@ -1584,7 +1584,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				avatarURL: repo.owner?.avatar_url,
 				embeds: [
 					{
-						color: CHECK_CONCLUSION_COLOR[conclusion] ?? 0x6a_73_7d,
+						color: CHECK_CONCLUSION_COLOR[conclusion] ?? 0x6A_73_7D,
 						title: `${name} ${conclusion} on ${target}`,
 						url: run.html_url,
 					},
@@ -1767,7 +1767,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const commitShas: (string | undefined)[] = [];
 
 		if (commits.length > MAX_COMMITS) {
-			const container = new Discord.ContainerBuilder().setAccentColor(0xff_d7_00);
+			const container = new Discord.ContainerBuilder().setAccentColor(0xFF_D7_00);
 
 			addContainerHeader(
 				container,
@@ -1950,9 +1950,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const container = new Discord.ContainerBuilder().setAccentColor(
 			mr.action === "close"
-				? 0xe7_4c_3c
+				? 0xE7_4C_3C
 				: mr.action === "merge"
-					? 0x89_57_e5
+					? 0x89_57_E5
 					: GetColorFromChanges(added, removed, modified)
 		);
 
@@ -2025,7 +2025,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				avatarURL: project.avatar_url ?? undefined,
 				embeds: [
 					{
-						color: CHECK_CONCLUSION_COLOR[status] ?? 0x6a_73_7d,
+						color: CHECK_CONCLUSION_COLOR[status] ?? 0x6A_73_7D,
 						title: `Pipeline ${status} on ${pipe.ref}`,
 						url: pipe.url,
 					},

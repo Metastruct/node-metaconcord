@@ -230,7 +230,7 @@ export default class AdminNotifyPayload extends Payload {
 				)
 			)
 			.setThumbnail(reportedAvatar ?? null)
-			.setColor(0xc4_af_21);
+			.setColor(0xC4_AF_21);
 
 		if (reportedSteamId64 !== "BOT") {
 			const sql = bridge.container.getService("SQL");

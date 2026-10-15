@@ -26,7 +26,7 @@ export default class NotificationPayload extends Payload {
 		const embed = new Discord.EmbedBuilder()
 			.setTitle(title.slice(0, 256))
 			.setDescription(message.slice(0, 4096))
-			.setColor(color ?? 0xc4_af_21);
+			.setColor(color ?? 0xC4_AF_21);
 		await (notificationsChannel as Discord.TextChannel).send({
 			embeds: [embed],
 		});
