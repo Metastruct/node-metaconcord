@@ -28,7 +28,7 @@ const toDiscordSafeAnsi = (text: string) =>
 const format = (input: unknown, options?: InspectOptions) =>
 	toDiscordSafeAnsi(inspect(input, options ?? DEFAULT_INSPECT_OPTIONS)).replaceAll(
 		"```",
-		"​`​`​`"
+		"\u{200B}`\u{200B}`\u{200B}`"
 	);
 
 const trimfield = (input: string, limit: number, isCodeBlock: boolean) =>
@@ -190,7 +190,7 @@ export default (bot: DiscordBot): void => {
 						: part.value;
 			}
 		}
-		diff = diff.replaceAll("```", "​`​`​`");
+		diff = diff.replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`");
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({

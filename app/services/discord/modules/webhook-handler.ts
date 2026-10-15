@@ -204,7 +204,7 @@ function formatDiffText(text: string): string {
 				(_match, from: string, to: string) =>
 					`--- ${from}\n+++ ${to}\nBinary files ${from} and ${to} differ`
 			)
-			.replaceAll("```", "​`​`​`")
+			.replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`")
 	);
 }
 

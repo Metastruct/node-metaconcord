@@ -189,7 +189,7 @@ export default async (webApp: WebApp): Promise<void> => {
 
 		// main embed
 		const embed: Discord.APIEmbed = {
-			description: stack.replaceAll("```", "​`​`​`"),
+			description: stack.replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`"),
 			footer: {
 				text: `${body.gamemode}@${
 					body.realm === "server"
