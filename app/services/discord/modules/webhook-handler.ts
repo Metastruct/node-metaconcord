@@ -808,7 +808,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 	bot.discord.on("interactionCreate", async (ctx: Discord.Interaction<Discord.CacheType>) => {
 		if (!ctx.member || !ctx.isButton() || !bridge) return;
-		const [action, override] = ctx.customId.split("_");
+		const [action, override] = ctx.customId.split("_", 2);
 		const where =
 			override !== undefined
 				? bridge.servers.gmod.filter(s =>
@@ -1018,7 +1018,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const repo = payload.repository;
 		const serverOverride = REPO_SERVER_MAP.get(repo.name);
 		const commits = payload.commits;
-		const branch = payload.ref.split("/")[2];
+		const branch = payload.ref.split("/", 3)[2];
 
 		let includesLua = false;
 
@@ -1065,7 +1065,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					commit.modified
 				);
 
-				const subject = commit.message.split("\n")[0];
+				const subject = commit.message.split("\n", 1)[0];
 				const title = subject.length > 256 ? `${subject.slice(0, 250)}. . .` : subject;
 				const body = formatCommitBody(commit.message);
 
@@ -1220,7 +1220,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		// behold my newest creation that no one will get on their first read
 		// example path "sound/chatsounds/autoadd/{foldername}/{soundname}"
 		return paths.reduce((map, path) => {
-			const [mainFolder, , , folderName, soundName] = path.split("/");
+			const [mainFolder, , , folderName, soundName] = path.split("/", 5);
 			if (mainFolder !== "sound" || !folderName || !soundName) return map;
 			map.set(folderName, [
 				...(map.get(folderName) ?? []),
@@ -1317,7 +1317,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			}
 			container.addTextDisplayComponents(text =>
 				text.setContent(
-					`-# added by ${commit.author.username ?? commit.author.name} via \`${commit.message.split("\n\n")[0]}\`, approved by ${payload.pusher.username ?? payload.pusher.name}`
+					`-# added by ${commit.author.username ?? commit.author.name} via \`${commit.message.split("\n\n", 1)[0]}\`, approved by ${payload.pusher.username ?? payload.pusher.name}`
 				)
 			);
 		}
@@ -1352,7 +1352,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				branch: branchName,
 				commits: payload.commits.map(c => ({
 					author: c.author.username ?? c.author.name,
-					message: c.message.split("\n")[0],
+					message: c.message.split("\n", 1)[0],
 					hash: c.id.slice(0, 12),
 				})),
 			});
@@ -1792,7 +1792,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					modified
 				);
 
-				const subject = commit.message.split("\n")[0];
+				const subject = commit.message.split("\n", 1)[0];
 				const title = subject.length > 256 ? `${subject.slice(0, 250)}. . .` : subject;
 				const commitBody = formatCommitBody(commit.message);
 

@@ -117,7 +117,7 @@ const download = async (
 	}
 
 	const type = String(res.headers["content-type"] || "")
-		.split(";")[0]
+		.split(";", 1)[0]
 		.trim()
 		.toLowerCase();
 	if (!ALLOWED_TYPES.includes(type))

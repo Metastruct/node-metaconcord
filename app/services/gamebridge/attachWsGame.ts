@@ -31,7 +31,7 @@ export function attachWsGame<
 		const ip = req.httpRequest.socket.remoteAddress;
 		const forwarded =
 			req.httpRequest.headers["cf-connecting-ip"]?.toString() ??
-			req.httpRequest.headers["x-forwarded-for"]?.toString()?.split(",")[0];
+			req.httpRequest.headers["x-forwarded-for"]?.toString()?.split(",", 1)[0];
 
 		let serverConfig: TConfig | undefined;
 		for (const serverEntry of opts.servers) {

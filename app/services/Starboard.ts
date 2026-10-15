@@ -34,7 +34,7 @@ export class Starboard extends Service {
 			if (interaction.message.author.username !== interaction.user.username) return;
 
 			const [, originalMsgID, originalChannelID, originalAuthorID] =
-				interaction.customId.split(":");
+				interaction.customId.split(":", 4);
 
 			if (originalAuthorID && originalAuthorID !== interaction.user.id) return;
 

@@ -29,7 +29,7 @@ export default class ErrorPayload extends Payload {
 		const gpath = matchGmodPath(path);
 		const file = gpath.addon
 			? await getOrFetchGmodFile(path + ":" + linenr)
-			: await getOrFetchGmodFile(lines.find(l => matchGmodPath(l.split(":")[0]).addon));
+			: await getOrFetchGmodFile(lines.find(l => matchGmodPath(l.split(":", 1)[0]).addon));
 		const stack = lines.splice(2).map((l, i) => `${i + 1}. ${l}`);
 		const embeds: APIEmbed[] = [];
 		const embed = {
