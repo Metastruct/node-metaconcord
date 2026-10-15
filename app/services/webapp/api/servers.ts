@@ -173,7 +173,7 @@ export default async (webApp: WebApp): Promise<void> => {
 					key: `ss13-${instanceId}`,
 					name,
 					map: status.mapName,
-					mode: status.gamestate !== undefined ? GameState[status.gamestate] : undefined,
+					mode: status.gamestate === undefined ? undefined : GameState[status.gamestate],
 					thumbnail: thumbnailUrl(baseUrl, server.status.backgroundImage),
 					players: players.map(basePlayer),
 					playerCount: players.length,

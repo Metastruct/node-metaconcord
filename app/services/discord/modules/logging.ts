@@ -272,9 +272,9 @@ export default (bot: DiscordBot): void => {
 			})
 			.setFooter({
 				text: `${actionName ?? entry.action}${
-					actionName !== entry.targetType + entry.actionType
-						? ` (${entry.targetType} ${entry.actionType})`
-						: ""
+					actionName === entry.targetType + entry.actionType
+						? ""
+						: ` (${entry.targetType} ${entry.actionType})`
 				}`,
 			})
 			.setTimestamp(Date.now());
@@ -368,9 +368,8 @@ export default (bot: DiscordBot): void => {
 								overwriteNew === undefined &&
 								typeof change.new === "object";
 							const diffList =
-								overwriteOld !== undefined || overwriteNew !== undefined
-									? diffWords(overwriteOld ?? "none", overwriteNew ?? "none")
-									: typeof change.old === "object" &&
+								overwriteOld === undefined && overwriteNew === undefined
+									? typeof change.old === "object" &&
 										  typeof change.new === "object"
 										? diffJson(
 											JSON.stringify(sanitizeEntity(change.old), null, 2),
@@ -387,7 +386,8 @@ export default (bot: DiscordBot): void => {
 												: (format(sanitizeEntity(change.new), {
 													colors: false,
 												}) ?? "undefined")
-										);
+										)
+									: diffWords(overwriteOld ?? "none", overwriteNew ?? "none");
 							for (const part of diffList) {
 								changef += part.added
 									? `\u001B[1;42m${part.value}\u001B[0m`

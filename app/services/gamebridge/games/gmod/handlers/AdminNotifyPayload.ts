@@ -98,16 +98,16 @@ export default class AdminNotifyPayload extends Payload {
 					await thread?.send({
 						content: `${ctx.user.mention}, could not kick player: server not connected`,
 					});
-				} else if (res.data.returns[0] !== "false") {
+				} else if (res.data.returns[0] === "false") {
+					await thread?.send({
+						content: `${ctx.user.mention}, could not kick player: not on server`,
+					});
+				} else {
 					const summary = await steam.getUserSummaries(interactionId64);
 					await thread?.send({
 						content: `${ctx.user.mention} kicked player \`${
 							summary ? summary.personaname : "[nickname not found]"
 						}\``,
-					});
-				} else {
-					await thread?.send({
-						content: `${ctx.user.mention}, could not kick player: not on server`,
 					});
 				}
 			} catch (error) {

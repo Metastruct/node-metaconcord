@@ -115,9 +115,9 @@ export const SlashGservCommand: SlashCommand = {
 
 						const fileName = `${command}_${gameServer.config.id}_${Date.now()}.ansi`;
 						const response = {
-							content: !success
-								? "<a:ALERTA:843518761160015933> FAILED <a:ALERTA:843518761160015933> "
-								: undefined,
+							content: success
+								? undefined
+								: "<a:ALERTA:843518761160015933> FAILED <a:ALERTA:843518761160015933> ",
 							files: [{ attachment: Buffer.from(buffer), name: fileName }],
 						};
 

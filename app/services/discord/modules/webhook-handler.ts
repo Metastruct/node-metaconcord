@@ -788,13 +788,13 @@ export default async (bot: DiscordBot): Promise<void> => {
 		if (channel) {
 			const hooks = await channel.fetchWebhooks();
 			const botHook = hooks.filter(h => h.owner === bot.discord.user).first();
-			if (!botHook) {
+			if (botHook) {
+				webhook = botHook;
+			} else {
 				webhook = await channel.createWebhook({
 					name: "Public Commits",
 					reason: "Webhook missing?",
 				});
-			} else {
-				webhook = botHook;
 			}
 			webhooksByChannel.set(bot.config.channels.publicCommits, Promise.resolve(webhook));
 		}
@@ -810,11 +810,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 		if (!ctx.member || !ctx.isButton() || !bridge) return;
 		const [action, override] = ctx.customId.split("_", 2);
 		const where =
-			override !== undefined
-				? bridge.servers.gmod.filter(s =>
+			override === undefined
+				? bridge.servers.gmod.filter(s => !!s)
+				: bridge.servers.gmod.filter(s =>
 					override.split(",").includes(s.config.id.toString())
-				)
-				: bridge.servers.gmod.filter(s => !!s);
+				);
 
 		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(x =>
 			allowedRoles.has(x.id)
@@ -1072,9 +1072,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const footer = `-# ${commit.id.slice(0, 6)} by ${
 					commit.author.username ?? commit.author.name
 				}${
-					commit.author.name !== commit.committer.name
-						? ` via ${commit.committer.username ?? commit.committer.name}`
-						: ""
+					commit.author.name === commit.committer.name
+						? ""
+						: ` via ${commit.committer.username ?? commit.committer.name}`
 				}`;
 
 				const container = new Discord.ContainerBuilder().setAccentColor(

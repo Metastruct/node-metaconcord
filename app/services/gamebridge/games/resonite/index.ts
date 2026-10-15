@@ -187,7 +187,7 @@ function updatePresence(connection: ResoniteConnection): void {
 				name:
 					populated > 1
 						? `${totalPlayers} players across ${populated} sessions`
-						: `${totalPlayers === 1 ? "a" : totalPlayers} player${totalPlayers !== 1 ? "s" : ""}`,
+						: `${totalPlayers === 1 ? "a" : totalPlayers} player${totalPlayers === 1 ? "" : "s"}`,
 				type: Discord.ActivityType.Watching,
 			},
 		});

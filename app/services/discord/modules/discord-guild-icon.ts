@@ -101,9 +101,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 				try {
 					await bot.setIcon(
 						filePath,
-						eventName !== "none"
-							? `It's ${eventName}!`
-							: "Back to regularly scheduled activities."
+						eventName === "none"
+							? "Back to regularly scheduled activities."
+							: `It's ${eventName}!`
 					);
 					data.lastDiscordGuildEvent = eventName;
 					await data.save();

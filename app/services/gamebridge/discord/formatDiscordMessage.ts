@@ -13,7 +13,7 @@ export async function formatDiscordMessage(
 }> {
 	let content = msg.content;
 	content = content.replaceAll(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
-		const extension = !animated ? "gif" : "png";
+		const extension = animated ? "png" : "gif";
 		return `https://media.discordapp.net/emojis/${id}.${extension}?v=1&size=64 `;
 	});
 	content = content.replaceAll(
