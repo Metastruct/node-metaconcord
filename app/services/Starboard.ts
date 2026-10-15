@@ -210,16 +210,16 @@ export class Starboard extends Service {
 								.setLabel("Jump to message")
 								.setStyle(Discord.ButtonStyle.Link)
 								.setURL(msg.url),
-							...(!msg.author.bot
-								? [
+							...(msg.author.bot
+								? []
+								: [
 									new Discord.ButtonBuilder()
 										.setLabel("Delete")
 										.setStyle(Discord.ButtonStyle.Danger)
 										.setCustomId(
 											`starboard:${msg.id}:${msg.channelId}:${msg.author.id}`
 										),
-								]
-								: [])
+								])
 						),
 					];
 

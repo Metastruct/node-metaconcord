@@ -61,7 +61,7 @@ export default class ReportChatPayload extends Payload {
 			// Extract message info similar to ChatPayload's formatDiscordMessage
 			let content = msg.content;
 			content = content.replaceAll(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
-				const ext = !animated ? "gif" : "png";
+				const ext = animated ? "png" : "gif";
 				return `https://media.discordapp.net/emojis/${id}.${ext}?v=1&size=64`;
 			});
 			content = content.replaceAll(

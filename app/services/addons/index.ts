@@ -279,13 +279,13 @@ export class Addons extends Service {
 		const branch = this.interestingBranch(rawBranch, git);
 		const treeSegment = parsed?.host === "gitlab" ? "/-/tree/" : "/tree/";
 		const ref = branch ?? "HEAD";
-		const repoUrl = !baseUrl
-			? undefined
-			: subpath
+		const repoUrl = baseUrl
+			? subpath
 				? `${baseUrl}${treeSegment}${ref}/${subpath}`
 				: branch
 					? `${baseUrl}${treeSegment}${branch}`
-					: baseUrl;
+					: baseUrl
+			: undefined;
 		// Everything a private repo would reveal is held back for team members, so the
 		// public fields below read from these two and never from `git.meta` directly.
 		const publicRepoUrl = git.public ? repoUrl : undefined;

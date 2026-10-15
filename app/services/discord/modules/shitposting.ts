@@ -51,10 +51,10 @@ function getWord(msg?: string) {
 	const words = msg.replaceAll(`<@${DiscordConfig.bot.userId}> `, "").split(" ");
 	const index = (Math.random() * words.length) | 0;
 	const isLast = index + 1 === words.length;
-	if (!isLast) {
-		search = words.slice(index, index + 2).join(" ");
-	} else {
+	if (isLast) {
 		search = words[index];
+	} else {
+		search = words.slice(index, index + 2).join(" ");
 	}
 	return search;
 }

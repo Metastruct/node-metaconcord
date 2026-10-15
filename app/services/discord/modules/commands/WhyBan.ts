@@ -55,7 +55,7 @@ export const SlashWhyBanCommand: SlashCommand = {
 
 		const bannedAvatar = banned?.avatarfull;
 		const bannedName = `${ban.name}${
-			ban.name !== banned?.personaname ? ` (${banned?.personaname})` : ""
+			ban.name === banned?.personaname ? "" : ` (${banned?.personaname})`
 		}`;
 
 		if (bannedAvatar) {

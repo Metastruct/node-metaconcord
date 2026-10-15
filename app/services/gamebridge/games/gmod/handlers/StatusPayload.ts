@@ -178,7 +178,7 @@ export default class StatusPayload extends Payload {
 			} else if (count > 0) {
 				server.setPresence(status, {
 					activity: {
-						name: `${count === 1 ? "a" : count} player${count !== 1 ? "s" : ""} ${
+						name: `${count === 1 ? "a" : count} player${count === 1 ? "" : "s"} ${
 							getRandomActivity(gamemodeName) ?? ""
 						}`,
 						state: `on ${current_map}`,

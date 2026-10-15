@@ -44,12 +44,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const adderId = lastLog.executorId;
 
 		for (const role of addedPermaRoles) {
-			if (!permaRoles[updated.id]) {
+			if (permaRoles[updated.id]) {
+				permaRoles[updated.id].roles[role[0]] = { adderId: adderId, timeStamp: Date.now() };
+			} else {
 				permaRoles[updated.id] = {
 					roles: { [role[0]]: { adderId: adderId, timeStamp: Date.now() } },
 				};
-			} else {
-				permaRoles[updated.id].roles[role[0]] = { adderId: adderId, timeStamp: Date.now() };
 			}
 		}
 

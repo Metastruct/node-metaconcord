@@ -479,15 +479,15 @@ if (!assumeYes) {
 
 // ---------------------------------------------------------------- features
 phase("Enabling TEXT_CHANNEL_FLEXIBLE_NAMES");
-if (!fluxerGuild.features.includes("TEXT_CHANNEL_FLEXIBLE_NAMES")) {
+if (fluxerGuild.features.includes("TEXT_CHANNEL_FLEXIBLE_NAMES")) {
+	step("already present");
+} else {
 	const features = [...new Set([...fluxerGuild.features, "TEXT_CHANNEL_FLEXIBLE_NAMES"])];
 	if (dryRun) step(`would PATCH features: ${features.join(", ")}`);
 	else {
 		fluxerGuild = await fluxerApi("PATCH", `/guilds/${FLUXER_GUILD}`, { features });
 		step("done");
 	}
-} else {
-	step("already present");
 }
 
 // ---------------------------------------------------------------- roles
@@ -514,13 +514,13 @@ const manageableRoles = desiredRoles
 	.sort((a, b) => a.position - b.position);
 for (const r of manageableRoles) {
 	let fluxerRole = fluxerRoleByName.get(r.name);
-	if (!fluxerRole) {
+	if (fluxerRole) {
+		step(`reusing existing role "${r.name}" (${fluxerRole.id})`);
+	} else {
 		const body = { name: r.name, color: r.color, permissions: mask(r.permissions) };
 		fluxerRole = await fluxerApi("POST", `/guilds/${FLUXER_GUILD}/roles`, body);
 		await sleep(6200); // role:create is 10/min
 		step(`created role "${r.name}" (${fluxerRole.id})`);
-	} else {
-		step(`reusing existing role "${r.name}" (${fluxerRole.id})`);
 	}
 	fluxerIdByDiscordRole.set(r.srcId, fluxerRole.id);
 	await fluxerApi("PATCH", `/guilds/${FLUXER_GUILD}/roles/${fluxerRole.id}`, {
@@ -631,14 +631,14 @@ for (const cat of catOrder) {
 		step(`[dry] would create category "${cat.name}"`);
 	} else {
 		let fluxerCategory = fluxerCategoryByName.get(cat.name);
-		if (!fluxerCategory) {
+		if (fluxerCategory) {
+			step(`reusing existing category "${cat.name}" (${fluxerCategory.id})`);
+		} else {
 			const body = createChannel(cat, type, null);
 			fluxerCategory = await fluxerApi("POST", `/guilds/${FLUXER_GUILD}/channels`, body);
 			await sleep(6200); // channel:create is 10/min
 			fluxerCategoryByName.set(cat.name, fluxerCategory);
 			step(`created category "${cat.name}" (${fluxerCategory.id})`);
-		} else {
-			step(`reusing existing category "${cat.name}" (${fluxerCategory.id})`);
 		}
 		fluxerIdByDiscordChannel.set(cat.id, fluxerCategory.id);
 	}

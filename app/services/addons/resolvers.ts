@@ -648,7 +648,7 @@ export async function resolveCurseforge(
 
 		for (const fp of missing) {
 			const modId = fpToMod.get(fp);
-			const mod = modId !== undefined ? byId.get(modId) : undefined;
+			const mod = typeof modId === "number" ? byId.get(modId) : undefined;
 			if (!mod) {
 				curseforgeCache.set(String(fp), null);
 				continue;
