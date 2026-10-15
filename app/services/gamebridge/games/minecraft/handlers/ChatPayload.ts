@@ -34,16 +34,16 @@ async function formatForMinecraft(msg: Discord.Message | Discord.MessageSnapshot
 }> {
 	let content = msg.content;
 
-	content = content.replace(/<a?:([^\s:<>]*):(\d+)>/g, (_, name) => `:${name}:`);
-	content = content.replace(
+	content = content.replaceAll(/<a?:([^\s:<>]*):(\d+)>/g, (_, name) => `:${name}:`);
+	content = content.replaceAll(
 		/<#(\d+)>/g,
 		(_, id) => `#${msg.guild?.channels.cache.get(id)?.name ?? "(uncached channel)"}`
 	);
-	content = content.replace(
+	content = content.replaceAll(
 		/<@!?(\d+)>/g,
 		(_, id) => `@${msg.guild?.members.cache.get(id)?.displayName ?? "(uncached user)"}`
 	);
-	content = content.replace(
+	content = content.replaceAll(
 		/https?:\/\/tenor\.com\/view\/\S+/g,
 		url => `[${url.split("/").pop()}.gif]`
 	);
@@ -58,7 +58,7 @@ async function formatForMinecraft(msg: Discord.Message | Discord.MessageSnapshot
 		content += (content.length > 0 ? "\n" : "") + `[${sticker.name}]`;
 	}
 
-	content = content.replace(IMAGE_URL, collapseImageUrl);
+	content = content.replaceAll(IMAGE_URL, collapseImageUrl);
 
 	if (content.length === 0) {
 		content =

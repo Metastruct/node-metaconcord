@@ -54,7 +54,7 @@ export const SlashLuaCommand: SlashCommand = {
 			return;
 		}
 		await ctx.deferReply();
-		const code = ctx.options.getString("code", true).replace(/```(?:lua\n?)?/g, "");
+		const code = ctx.options.getString("code", true).replaceAll(/```(?:lua\n?)?/g, "");
 		const server = bridge.servers.gmod[ctx.options.getInteger("server", true)];
 		if (!server) {
 			await ctx.followUp(EphemeralResponse("That server isn't a GMod server."));

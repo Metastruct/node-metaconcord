@@ -406,14 +406,14 @@ async function fetchReadme(
  */
 export function readmeSummary(markdown: string): string | undefined {
 	const body = markdown
-		.replace(/\r\n/g, "\n")
-		.replace(/<!--[\s\S]*?-->/g, "")
+		.replaceAll("\r\n", "\n")
+		.replaceAll(/<!--[\s\S]*?-->/g, "")
 		.replace(/^---\n[\s\S]*?\n---\n/, "") // front matter
-		.replace(/```[\s\S]*?```/g, "")
+		.replaceAll(/```[\s\S]*?```/g, "")
 		// an html title becomes a markdown one so a single rule handles both
-		.replace(
+		.replaceAll(
 			/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/gi,
-			(_, text: string) => `\n\n# ${text.replace(/<[^>]+>/g, " ").trim()}\n\n`
+			(_, text: string) => `\n\n# ${text.replaceAll(/<[^>]+>/g, " ").trim()}\n\n`
 		);
 
 	const out: string[] = [];
@@ -469,12 +469,12 @@ const isProse = (text: string) => text.split(/\s+/).filter(Boolean).length >= 3;
  */
 function isDecoration(block: string): boolean {
 	const withoutLinks = block
-		.replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-		.replace(/\[[^\]]*\]\([^)]*\)/g, "")
-		.replace(/\[[^\]]*\]\[[^\]]*\]/g, "")
-		.replace(/https?:\/\/\S+/g, "") // a bare link on its own line
-		.replace(/<[^>]+>/g, "")
-		.replace(/^\s*(?:[-*+]|\d+[.)])\s+/gm, "");
+		.replaceAll(/!\[[^\]]*\]\([^)]*\)/g, "")
+		.replaceAll(/\[[^\]]*\]\([^)]*\)/g, "")
+		.replaceAll(/\[[^\]]*\]\[[^\]]*\]/g, "")
+		.replaceAll(/https?:\/\/\S+/g, "") // a bare link on its own line
+		.replaceAll(/<[^>]+>/g, "")
+		.replaceAll(/^\s*(?:[-*+]|\d+[.)])\s+/gm, "");
 	return !/[a-z0-9]/i.test(withoutLinks);
 }
 
@@ -491,11 +491,11 @@ const BULLET = /^\s*(?:[-*+]|\d+[.)])\s+/m;
 /** One markdown block to plain text; empty when the block was only decoration. */
 function flattenMarkdown(block: string): string {
 	const cleaned = block
-		.replace(/!\[[^\]]*\]\([^)]*\)/g, "") // images
-		.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1") // links keep their text
-		.replace(/\[([^\]]*)\]\[[^\]]*\]/g, "$1") // reference links
-		.replace(/<[^>]+>/g, "") // inline html and badge markup
-		.replace(/^\s*>\s?/gm, ""); // quotes
+		.replaceAll(/!\[[^\]]*\]\([^)]*\)/g, "") // images
+		.replaceAll(/\[([^\]]*)\]\([^)]*\)/g, "$1") // links keep their text
+		.replaceAll(/\[([^\]]*)\]\[[^\]]*\]/g, "$1") // reference links
+		.replaceAll(/<[^>]+>/g, "") // inline html and badge markup
+		.replaceAll(/^\s*>\s?/gm, ""); // quotes
 
 	// list items read as a sentence rather than running into each other
 	const parts = BULLET.test(cleaned) ? cleaned.split(/\n(?=\s*(?:[-*+]|\d+[.)])\s+)/) : [cleaned];
@@ -503,8 +503,8 @@ function flattenMarkdown(block: string): string {
 		.map(part =>
 			part
 				.replace(BULLET, "")
-				.replace(/[*_~`]/g, "")
-				.replace(/\s+/g, " ")
+				.replaceAll(/[*_~`]/g, "")
+				.replaceAll(/\s+/g, " ")
 				.trim()
 		)
 		.filter(Boolean)
@@ -683,18 +683,18 @@ export type PlatformMatch =
 	| { platform: "curseforge"; projectId: number; meta: ResolvedMeta };
 
 const nameCache = new TTLCache<PlatformMatch | null>(DAY);
-const compact = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+const compact = (s: string) => s.toLowerCase().replaceAll(/[^a-z0-9]/g, "");
 
 const slugCandidates = (modId: string, displayName: string): string[] => {
 	const out = new Set<string>();
 	for (const raw of [modId, displayName]) {
 		const base = (raw ?? "")
 			.toLowerCase()
-			.replace(/[^a-z0-9]+/g, "-")
-			.replace(/^-|-$/g, "");
+			.replaceAll(/[^a-z0-9]+/g, "-")
+			.replaceAll(/^-|-$/g, "");
 		if (!base) continue;
 		out.add(base);
-		out.add(base.replace(/-/g, ""));
+		out.add(base.replaceAll("-", ""));
 	}
 	return [...out];
 };

@@ -60,11 +60,11 @@ export default class ReportChatPayload extends Payload {
 
 			// Extract message info similar to ChatPayload's formatDiscordMessage
 			let content = msg.content;
-			content = content.replace(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
+			content = content.replaceAll(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
 				const ext = !animated ? "gif" : "png";
 				return `https://media.discordapp.net/emojis/${id}.${ext}?v=1&size=64`;
 			});
-			content = content.replace(
+			content = content.replaceAll(
 				/(https?:\/\/tenor\.com\/view\/\S+)/g,
 				(_, url) => url + ".gif"
 			);

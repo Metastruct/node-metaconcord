@@ -35,7 +35,7 @@ const RELAY_RE = /^\*\*(.+?)\*\*: /s;
 // eslint-disable-next-line no-control-regex -- matching control bytes is the point
 const TEXT_CONTROL_RE = new RegExp("[\\u0000-\\u0009\\u000b-\\u001f\\u007f]", "g");
 const cleanText = (value: unknown, max: number): string =>
-	typeof value === "string" ? value.replace(TEXT_CONTROL_RE, "").trim().slice(0, max) : "";
+	typeof value === "string" ? value.replaceAll(TEXT_CONTROL_RE, "").trim().slice(0, max) : "";
 
 type AppealRow = {
 	id: number;
@@ -66,12 +66,12 @@ type SteamSession = { steamId64: string; name: string; avatar: string };
 /** Markdown-significant characters stripped so a persona name cannot fake the relay prefix. */
 const safeName = (session: SteamSession): string =>
 	cleanText(session.name, NAME_MAX)
-		.replace(/[*_~`|\\]/g, "")
+		.replaceAll(/[*_~`|\\]/g, "")
 		.trim() || session.steamId64;
 
 const sanitizeForWeb = (msg: Discord.Message): string => {
 	let content = msg.cleanContent ?? msg.content ?? "";
-	content = content.replace(/<a?:([^\s:<>]*):\d+>/g, (_, name) => `:${name}:`);
+	content = content.replaceAll(/<a?:([^\s:<>]*):\d+>/g, (_, name) => `:${name}:`);
 	for (const [, attachment] of msg.attachments) {
 		content += (content.length > 0 ? "\n" : "") + attachment.url;
 	}

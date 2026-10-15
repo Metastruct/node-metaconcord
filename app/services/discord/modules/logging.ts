@@ -16,7 +16,7 @@ const DEFAULT_INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 1 };
 // styling like bold "stuck on" for the rest of the block. Remap anything unsupported.
 const toDiscordSafeAnsi = (text: string) =>
 	// eslint-disable-next-line no-control-regex -- intentionally matching ESC (\u001b) ansi sequences
-	text.replace(/\u001b\[(\d+)m/g, (_, codeStr: string) => {
+	text.replaceAll(/\u001b\[(\d+)m/g, (_, codeStr: string) => {
 		const code = Number(codeStr);
 		if (code === 0 || code === 1 || code === 4) return `\u001b[${code}m`;
 		if ((code >= 30 && code <= 37) || (code >= 40 && code <= 47)) return `\u001b[${code}m`;

@@ -768,12 +768,12 @@ phase("Reconciling channel topics and access");
 const translateTopic = topic => {
 	if (topic == null) return null;
 	return topic
-		.replace(/<#(\d+)>/g, (_match, discordId) => {
+		.replaceAll(/<#(\d+)>/g, (_match, discordId) => {
 			const fluxerId = fluxerIdByDiscordChannel.get(discordId);
 			if (fluxerId) return `<#${fluxerId}>`;
 			return `#${channelById.get(discordId)?.name ?? "unknown-channel"}`;
 		})
-		.replace(
+		.replaceAll(
 			/https?:\/\/(?:canary\.|ptb\.)?discord(?:app)?\.com\/channels\/(\d+)\/(\d+)/g,
 			(match, _guildId, discordId) => {
 				const fluxerId = fluxerIdByDiscordChannel.get(discordId);
