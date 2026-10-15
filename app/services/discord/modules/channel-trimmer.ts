@@ -255,9 +255,9 @@ export default (bot: DiscordBot): void => {
 	bot.discord.once("clientReady", () => {
 		Object.entries(bot.config["trim-channels"])
 			.map(([channelId, durationString]) => [bot.getTextChannel(channelId), Temporal.Duration.from(durationString)] as const)
+			.filter(([channel]) => !!channel)
 			.forEach(([channel, duration]) => {
-				if (channel)
-					trimmers.set(channel, new ChannelTrimmer(channel, duration, progressStore));
+				trimmers.set(channel, new ChannelTrimmer(channel, duration, progressStore));
 			});
 		setTimeout(timerFunc, DELAY);
 		setInterval(updateStatusMessages, PIN_EDIT_INTERVAL);
