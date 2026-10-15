@@ -372,19 +372,19 @@ export default async (bot: DiscordBot) => {
 		}
 
 		if (
-			!lastReactedMessages.has(message.id) &&
-			!lastReactedUsers.has(user.id) &&
-			Math.random() <= (reaction.emoji.name === "h_" ? 0.01 : MSG_REPLY_REACTION_PROB)
-		) {
-			const theFunny = await mk.generate(reaction.emoji.toString());
-			if (theFunny) {
-				await (message.channel as Discord.TextChannel)
-					.send(`${user.mention} ` + theFunny)
-					.catch(() => {});
-			}
-			lastReactedMessages.add(message.id);
-			lastReactedUsers.add(user.id);
+			lastReactedMessages.has(message.id) ||
+			lastReactedUsers.has(user.id) ||
+			Math.random() > (reaction.emoji.name === "h_" ? 0.01 : MSG_REPLY_REACTION_PROB)
+		) return;
+		
+		const theFunny = await mk.generate(reaction.emoji.toString());
+		if (theFunny) {
+			await (message.channel as Discord.TextChannel)
+				.send(`${user.mention} ` + theFunny)
+				.catch(() => {});
 		}
+		lastReactedMessages.add(message.id);
+		lastReactedUsers.add(user.id);
 	});
 
 	bot.discord.on("messageCreate", async msg => {

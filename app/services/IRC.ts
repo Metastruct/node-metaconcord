@@ -62,21 +62,23 @@ export class IRC extends Service {
 		const bot = this.container.getService("DiscordBot");
 		// Discord
 		bot.discord.on("messageCreate", async msg => {
-			if (msg.channelId === config.relayDiscordChannel) {
-				if (msg.author.bot) return;
-				msg = await bot.fetchPartial(msg);
-				let content = msg.content;
-				for (const [, attachment] of msg.attachments) {
-					content += "\n" + attachment.url;
-				}
-				this.relayIRC(
-					`\u000312${msg.author.username}${
-						msg.reference && msg.reference.type === 0
-							? ` (replying to ${(await msg.fetchReference()).author.username})`
-							: ""
-					}\u000F: ${content}`
-				);
+			if (msg.channelId !== config.relayDiscordChannel) {
+				return;
 			}
+
+			if (msg.author.bot) return;
+			msg = await bot.fetchPartial(msg);
+			let content = msg.content;
+			for (const [, attachment] of msg.attachments) {
+				content += "\n" + attachment.url;
+			}
+			this.relayIRC(
+				`\u000312${msg.author.username}${
+					msg.reference && msg.reference.type === 0
+						? ` (replying to ${(await msg.fetchReference()).author.username})`
+						: ""
+				}\u000F: ${content}`
+			);
 		});
 	}
 

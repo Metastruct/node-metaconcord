@@ -19,12 +19,13 @@ export default class RconPayload extends Payload {
 		super.handle(payload, server);
 
 		const callbackId = payload.data.identifier;
-		if (callbackId && this.callbackMap.has(callbackId)) {
-			const map = this.callbackMap.get(callbackId);
-			if (!map) return;
-			const callback: (req: RconRequest) => void = map;
-			callback.bind(this)(payload);
-		}
+		if (!callbackId || !this.callbackMap.has(callbackId))
+			return;
+
+		const map = this.callbackMap.get(callbackId);
+		if (!map) return;
+		const callback: (req: RconRequest) => void = map;
+		callback.bind(this)(payload);
 	}
 
 	public static async callLua(

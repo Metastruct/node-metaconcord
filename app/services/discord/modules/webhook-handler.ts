@@ -1022,19 +1022,19 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 	bot.discord.on("clientReady", async () => {
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
-		if (channel) {
-			const hooks = await channel.fetchWebhooks();
-			const botHook = hooks.filter(h => h.owner === bot.discord.user).first();
-			if (botHook) {
-				webhook = botHook;
-			} else {
-				webhook = await channel.createWebhook({
-					name: "Public Commits",
-					reason: "Webhook missing?",
-				});
-			}
-			webhooksByChannel.set(bot.config.channels.publicCommits, Promise.resolve(webhook));
+		if (!channel) return;
+		
+		const hooks = await channel.fetchWebhooks();
+		const botHook = hooks.filter(h => h.owner === bot.discord.user).first();
+		if (botHook) {
+			webhook = botHook;
+		} else {
+			webhook = await channel.createWebhook({
+				name: "Public Commits",
+				reason: "Webhook missing?",
+			});
 		}
+		webhooksByChannel.set(bot.config.channels.publicCommits, Promise.resolve(webhook));
 	});
 
 	const allowedRoles = new Set([
