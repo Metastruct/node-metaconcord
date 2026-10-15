@@ -16,13 +16,13 @@ const DEFAULT_INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 1 };
 // styling like bold "stuck on" for the rest of the block. Remap anything unsupported.
 const toDiscordSafeAnsi = (text: string) =>
 	// eslint-disable-next-line no-control-regex -- intentionally matching ESC (\u001b) ansi sequences
-	text.replaceAll(/\u001b\[(\d+)m/g, (_, codeStr: string) => {
+	text.replaceAll(/\u001B\[(\d+)m/g, (_, codeStr: string) => {
 		const code = Number(codeStr);
-		if (code === 0 || code === 1 || code === 4) return `\u001b[${code}m`;
-		if ((code >= 30 && code <= 37) || (code >= 40 && code <= 47)) return `\u001b[${code}m`;
-		if (code >= 90 && code <= 97) return `\u001b[${code - 60}m`; // bright fg -> normal fg
-		if (code >= 100 && code <= 107) return `\u001b[${code - 60}m`; // bright bg -> normal bg
-		return "\u001b[0m"; // unsupported reset variants (22/24/39/49/...) -> full reset
+		if (code === 0 || code === 1 || code === 4) return `\u001B[${code}m`;
+		if ((code >= 30 && code <= 37) || (code >= 40 && code <= 47)) return `\u001B[${code}m`;
+		if (code >= 90 && code <= 97) return `\u001B[${code - 60}m`; // bright fg -> normal fg
+		if (code >= 100 && code <= 107) return `\u001B[${code - 60}m`; // bright bg -> normal bg
+		return "\u001B[0m"; // unsupported reset variants (22/24/39/49/...) -> full reset
 	});
 
 const format = (input: unknown, options?: InspectOptions) =>
@@ -184,9 +184,9 @@ export default (bot: DiscordBot): void => {
 
 			for (const part of diffList) {
 				diff += part.added
-					? `\u001b[1;42m${part.value}\u001b[0m`
+					? `\u001B[1;42m${part.value}\u001B[0m`
 					: part.removed
-						? `\u001b[1;41m${part.value}\u001b[0m`
+						? `\u001B[1;41m${part.value}\u001B[0m`
 						: part.value;
 			}
 		}
@@ -355,8 +355,8 @@ export default (bot: DiscordBot): void => {
 										? roles.map(r => `${r.name} (${r.id})`).join(", ")
 										: "none";
 								return change.key === "$add"
-									? `\u001b[1;42m+ Added roles: ${list}\u001b[0m`
-									: `\u001b[1;41m- Removed roles: ${list}\u001b[0m`;
+									? `\u001B[1;42m+ Added roles: ${list}\u001B[0m`
+									: `\u001B[1;41m- Removed roles: ${list}\u001B[0m`;
 							}
 
 							const overwriteOld = formatOverwriteValue(change.key, change.old);
@@ -390,9 +390,9 @@ export default (bot: DiscordBot): void => {
 										);
 							for (const part of diffList) {
 								changef += part.added
-									? `\u001b[1;42m${part.value}\u001b[0m`
+									? `\u001B[1;42m${part.value}\u001B[0m`
 									: part.removed
-										? `\u001b[1;41m${part.value}\u001b[0m`
+										? `\u001B[1;41m${part.value}\u001B[0m`
 										: isObject
 											? "" // skip value printing on object comparison
 											: part.value;
