@@ -33,7 +33,7 @@ const format = (input: unknown, options?: InspectOptions) =>
 
 const trimfield = (input: string, limit: number, isCodeBlock: boolean) =>
 	input.length >= limit
-		? input.substring(0, limit - (isCodeBlock ? 17 : 6)) +
+		? input.slice(0, Math.max(0, limit - (isCodeBlock ? 17 : 6) === undefined ? Infinity : limit - (isCodeBlock ? 17 : 6))) +
 			"\n. . ." +
 			(isCodeBlock ? "```" : "")
 		: input + (isCodeBlock ? "```" : "");
@@ -236,7 +236,7 @@ export default (bot: DiscordBot): void => {
 			.setTimestamp(Date.now());
 		if (user.joinedTimestamp)
 			embed.addFields(
-				f("Member since", `<t:${user.joinedTimestamp.toString().substring(0, 10)}:D>`)
+				f("Member since", `<t:${user.joinedTimestamp.toString().slice(0, 10)}:D>`)
 			);
 		await logChannel.send({ embeds: [embed] }).catch(() => {});
 	});

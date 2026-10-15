@@ -332,12 +332,12 @@ export default (webApp: WebApp): void => {
 		});
 		embed.addFields(f("Nick", entry.name || name, true));
 		embed.addFields(f("Banned by", actorLabel(entry.bannedBy), true));
-		embed.addFields(f("Ban Reason", entry.reason.substring(0, EMBED_FIELD_LIMIT), true));
+		embed.addFields(f("Ban Reason", entry.reason.slice(0, Math.max(0, EMBED_FIELD_LIMIT === undefined ? Infinity : EMBED_FIELD_LIMIT)), true));
 		embed.addFields(
 			f("Ban Expiration", entry.permanent ? "Permanent" : `<t:${entry.unbanAt}:R>`, true)
 		);
 		embed.addFields(
-			f("Appeal", `\`\`\`${message.substring(0, 1000).replaceAll("```", "​`​`​`")}\`\`\``)
+			f("Appeal", `\`\`\`${message.slice(0, 1000).replaceAll("```", "​`​`​`")}\`\`\``)
 		);
 		embed.addFields(
 			f(

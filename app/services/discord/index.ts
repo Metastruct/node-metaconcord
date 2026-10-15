@@ -131,7 +131,7 @@ export class DiscordBot extends Service {
 
 		if (typeof activity === "string") {
 			if (activity.length > 127)
-				opt.name = activity.substring(0, 120) + "...";
+				opt.name = activity.slice(0, 120) + "...";
 			else
 				opt.name = activity;
 		} else {
@@ -246,7 +246,7 @@ export class DiscordBot extends Service {
 		}
 		if (urls.length === 0) return;
 
-		const fix = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
+		const fix = urls.join("\n").slice(0, Math.max(0, EMBED_FIELD_LIMIT === undefined ? Infinity : EMBED_FIELD_LIMIT));
 		const emoji = "🔉";
 		await msg.react(emoji).catch(() => {});
 		const collected = await msg.awaitReactions({

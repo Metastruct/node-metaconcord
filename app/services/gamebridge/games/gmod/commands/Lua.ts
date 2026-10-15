@@ -76,12 +76,12 @@ export const SlashLuaCommand: SlashCommand = {
 
 			const embed = new Discord.EmbedBuilder();
 			embed.setAuthor({ name: server.config.name, iconURL: server.discordIcon });
-			embed.setDescription(`\`\`\`lua\n${code.substring(0, 1999)}\`\`\``);
+			embed.setDescription(`\`\`\`lua\n${code.slice(0, 1999)}\`\`\``);
 			embed.setColor(res.data.errors.length > 0 ? [255, 0, 0] : [0, 255, 0]);
 			embed.setFooter({ text: realm });
 
 			if (res.data.stdout.length > 0) {
-				embed.addFields(f("Stdout", res.data.stdout.substring(0, 1999)));
+				embed.addFields(f("Stdout", res.data.stdout.slice(0, 1999)));
 			}
 
 			if (res.data.returns.length > 0) {

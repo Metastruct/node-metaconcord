@@ -26,7 +26,7 @@ export const MenuWhyRoleCommand: MenuCommand = {
 						content +
 						`<@&${roleId}> added by <@${data.adderId}> <t:${data.timeStamp
 							.toString()
-							.substring(0, 10)}:R>${Object.entries(roles).length > 1 ? "\n" : ""}`;
+							.slice(0, 10)}:R>${Object.entries(roles).length > 1 ? "\n" : ""}`;
 				}
 				await ctx.reply(EphemeralResponse(content));
 			} else {
