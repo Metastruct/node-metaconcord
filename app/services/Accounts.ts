@@ -503,7 +503,7 @@ export class Accounts extends Service {
 		);
 		this.invalidate(account.id);
 		const fresh = (await this.get(account.id)) as AccountWithLinks;
-		if (roles.join() !== account.roles.join()) {
+		if (roles.join(",") !== account.roles.join(",")) {
 			log.info(
 				`account ${account.id} (${account.displayName}) roles: ${roles.join(", ") || "none"}`
 			);
@@ -535,7 +535,7 @@ export class Accounts extends Service {
 				const account = await this.get(Number(row.account_id));
 				if (!account) continue;
 				const roles = await this.computeRoles(account, members);
-				if (roles.join() !== account.roles.join()) changed++;
+				if (roles.join(",") !== account.roles.join(",")) changed++;
 				await this.storeRoles(account, roles);
 			}
 			log.info(`role sweep: ${rows.length} accounts checked, ${changed} changed`);

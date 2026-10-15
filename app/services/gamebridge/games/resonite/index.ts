@@ -49,7 +49,7 @@ function buildSessionContainer(
 		section
 			.addTextDisplayComponents(text => text.setContent(desc))
 			.setThumbnailAccessory(accessory =>
-				accessory.setURL(backgroundImage).setDescription(session.tags.join())
+				accessory.setURL(backgroundImage).setDescription(session.tags.join(","))
 			)
 	);
 
