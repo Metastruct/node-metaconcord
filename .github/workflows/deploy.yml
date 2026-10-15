@@ -2,7 +2,11 @@ name: Deploy
 
 on:
     push:
+        branches-ignore:
+            - 'experiment/**'
     pull_request:
+        branches-ignore:
+            - 'experiment/**'
 
 env:
     REGISTRY: ghcr.io
