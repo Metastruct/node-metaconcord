@@ -37,9 +37,9 @@ export default class AdvancementPayload extends Payload {
 				iconURL: `https://mc-heads.net/avatar/${player.uuid}`,
 				url: `https://namemc.com/profile/${player.uuid}`,
 			})
-			.setTitle(title.substring(0, 256))
+			.setTitle(title.slice(0, 256))
 			.setColor(frame.color);
-		if (description) embed.setDescription(description.substring(0, 4096));
+		if (description) embed.setDescription(description.slice(0, 4096));
 		await (relayChannel as Discord.TextChannel).send({ embeds: [embed] });
 	}
 }

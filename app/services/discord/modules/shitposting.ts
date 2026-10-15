@@ -274,7 +274,7 @@ export default async (bot: DiscordBot) => {
 
 				status =
 					sentence.length > maxLength
-						? joint + sentence.substring(0, 120) + "..."
+						? joint + sentence.slice(0, 120) + "..."
 						: joint + sentence;
 			}
 		}

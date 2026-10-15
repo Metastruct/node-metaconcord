@@ -116,7 +116,7 @@ export default class ChatPayload extends Payload {
 			}
 		}
 
-		content = content.substring(0, 2000);
+		content = content.slice(0, 2000);
 
 		const motd = bridge.container.getService("Motd");
 		motd.pushMessage(content);
@@ -130,7 +130,7 @@ export default class ChatPayload extends Payload {
 				username: `${serverId} ${player.nick
 					// .replace(/@/g, "(at)")
 					// .replace(/#/g, "")
-					.substring(0, 77)
+					.slice(0, 77)
 					.replaceAll("discord", "discоrd")
 					.replaceAll("Discord", "Discоrd")}`,
 				avatarURL: avatar,

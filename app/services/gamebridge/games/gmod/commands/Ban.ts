@@ -155,7 +155,7 @@ export const SlashBanCommand: SlashCommand = {
 						.filter(player => player.steamId64.includes(focused.value))
 						.slice(0, 25)
 						.map(player => ({
-							name: `${player.steamId64} (${player.nick.substring(0, 100)})`,
+							name: `${player.steamId64} (${player.nick.slice(0, 100)})`,
 							value: player.steamId64,
 						}))
 				);

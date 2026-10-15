@@ -23,7 +23,7 @@ export default class DeathPayload extends Payload {
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
-				name: message.substring(0, 256),
+				name: message.slice(0, 256),
 				iconURL: `https://mc-heads.net/avatar/${player.uuid}`,
 				url: `https://namemc.com/profile/${player.uuid}`,
 			})

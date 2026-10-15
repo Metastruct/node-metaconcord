@@ -912,7 +912,7 @@ function formatCommitBody(message: string): string {
 	const body = message.split("\n").slice(1).join("\n").trim();
 	if (!body) return "";
 
-	const truncated = body.length > BODY_SIZE ? `${body.substring(0, BODY_SIZE - 3)}...` : body;
+	const truncated = body.length > BODY_SIZE ? `${body.slice(0, Math.max(0, BODY_SIZE - 3 === undefined ? Infinity : BODY_SIZE - 3))}...` : body;
 	return "\n" + truncated.replaceAll(/^/gm, "> ");
 }
 
@@ -920,7 +920,7 @@ function formatPrBody(body?: string | null): string {
 	const trimmed = body?.trim();
 	if (!trimmed) return "";
 	const truncated =
-		trimmed.length > PR_BODY_SIZE ? `${trimmed.substring(0, PR_BODY_SIZE - 3)}...` : trimmed;
+		trimmed.length > PR_BODY_SIZE ? `${trimmed.slice(0, Math.max(0, PR_BODY_SIZE - 3 === undefined ? Infinity : PR_BODY_SIZE - 3))}...` : trimmed;
 	return truncated.replaceAll(/^/gm, "> ");
 }
 
@@ -1267,8 +1267,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const onDefaultBranch = branch === repo.default_branch;
 		const repoLabel = onDefaultBranch
-			? repo.name.substring(0, 256)
-			: (repo.name + "/" + branch).substring(0, 256);
+			? repo.name.slice(0, 256)
+			: (repo.name + "/" + branch).slice(0, 256);
 		const repoUrl = onDefaultBranch
 			? repo.html_url
 			: `${repo.html_url}/tree/${branch.split("/").map(encodeURIComponent).join("/")}`;
@@ -1304,10 +1304,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 				);
 
 				const subject = commit.message.split("\n")[0];
-				const title = subject.length > 256 ? `${subject.substring(0, 250)}. . .` : subject;
+				const title = subject.length > 256 ? `${subject.slice(0, 250)}. . .` : subject;
 				const body = formatCommitBody(commit.message);
 
-				const footer = `-# ${commit.id.substring(0, 6)} by ${
+				const footer = `-# ${commit.id.slice(0, 6)} by ${
 					commit.author.username ?? commit.author.name
 				}${
 					commit.author.name !== commit.committer.name
@@ -1591,7 +1591,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				commits: payload.commits.map(c => ({
 					author: c.author.username ?? c.author.name,
 					message: c.message.split("\n")[0],
-					hash: c.id.substring(0, 12),
+					hash: c.id.slice(0, 12),
 				})),
 			});
 		}
@@ -1674,7 +1674,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				return;
 		}
 
-		const title = pr.title.length > 256 ? `${pr.title.substring(0, 250)}. . .` : pr.title;
+		const title = pr.title.length > 256 ? `${pr.title.slice(0, 250)}. . .` : pr.title;
 
 		const diff = github
 			? await getGitHubPullRequestDiff(github.octokit, repo.owner.login, repo.name, pr.number)
@@ -1692,7 +1692,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				: GetColorFromChanges(pr.additions ?? 0, pr.deletions ?? 0, pr.changed_files ?? 0)
 		);
 
-		const repoLine = `-# [${repo.full_name.substring(0, 256)}](${repo.html_url})`;
+		const repoLine = `-# [${repo.full_name.slice(0, 256)}](${repo.html_url})`;
 		const heading = `### [${title}](${pr.html_url})`;
 		const footerContent = `-# PR #${pr.number} ${action} by ${payload.sender.login ?? "unknown"}`;
 
@@ -1994,8 +1994,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const branch = body.ref.split("/").slice(2).join("/");
 		const onDefaultBranch = branch === project.default_branch;
 		const repoLabel = onDefaultBranch
-			? project.path_with_namespace.substring(0, 256)
-			: (project.path_with_namespace + "/" + branch).substring(0, 256);
+			? project.path_with_namespace.slice(0, 256)
+			: (project.path_with_namespace + "/" + branch).slice(0, 256);
 		const repoUrl = onDefaultBranch
 			? project.web_url
 			: `${project.web_url}/-/tree/${branch.split("/").map(encodeURIComponent).join("/")}`;
@@ -2031,10 +2031,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 				);
 
 				const subject = commit.message.split("\n")[0];
-				const title = subject.length > 256 ? `${subject.substring(0, 250)}. . .` : subject;
+				const title = subject.length > 256 ? `${subject.slice(0, 250)}. . .` : subject;
 				const commitBody = formatCommitBody(commit.message);
 
-				const footer = `-# ${commit.id.substring(0, 6)} by ${commit.author.name}`;
+				const footer = `-# ${commit.id.slice(0, 6)} by ${commit.author.name}`;
 
 				const container = new Discord.ContainerBuilder().setAccentColor(
 					GetColorFromChanges(added.length, removed.length, modified.length)
@@ -2164,7 +2164,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const destWebhook = await getGitlabWebhook(mr.target_project_id);
 		if (!destWebhook) return;
 
-		const title = mr.title.length > 256 ? `${mr.title.substring(0, 250)}. . .` : mr.title;
+		const title = mr.title.length > 256 ? `${mr.title.slice(0, 250)}. . .` : mr.title;
 
 		const diffFiles =
 			mr.last_commit && !isMergeCommit(mr.last_commit.message) && gitlab
@@ -2194,7 +2194,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					: GetColorFromChanges(added, removed, modified)
 		);
 
-		const repoLine = `[${mr.target.path_with_namespace.substring(0, 256)}](${mr.target.web_url})`;
+		const repoLine = `[${mr.target.path_with_namespace.slice(0, 256)}](${mr.target.web_url})`;
 		const heading = `### [${title}](${mr.url})`;
 		const footerContent = `-# MR !${mr.iid} ${action} by ${body.user.username}`;
 
