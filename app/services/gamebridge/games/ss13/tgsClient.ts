@@ -92,7 +92,7 @@ async function authedGet<T>(path: string, instanceId?: number): Promise<T> {
 			headers: {
 				Authorization: `Bearer ${bearer}`,
 				Api: `Tgstation.Server.Api/${version}`,
-				...(instanceId !== undefined ? { Instance: String(instanceId) } : {}),
+				...((instanceId !== undefined) && { Instance: String(instanceId) }),
 				"User-Agent": USER_AGENT,
 			},
 		});
