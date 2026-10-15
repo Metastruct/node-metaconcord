@@ -45,7 +45,7 @@ function diffBudget(...parts: (string | undefined)[]): number {
 	return Math.max(0, COMPONENT_TEXT_LIMIT - used - DIFF_SAFETY_MARGIN);
 }
 
-const MinimalPushUsers = ["MetaAutomator", "github-actions[bot]"];
+const MinimalPushUsers = new Set(["MetaAutomator", "github-actions[bot]"]);
 
 const CHECK_CONCLUSION_COLOR: Record<string, number> = {
 	success: 0x28_A7_45,
@@ -1323,7 +1323,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					)
 				);
 
-				if (MinimalPushUsers.includes(payload.sender?.login || payload.pusher.name)) {
+				if (MinimalPushUsers.has(payload.sender?.login || payload.pusher.name)) {
 					addContainerHeader(
 						container,
 						`[${repoLabel}](${repoUrl})`,

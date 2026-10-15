@@ -4,7 +4,7 @@ import { WebApp } from "#/app/services/webapp/index.js";
 import { getSession, isStaff } from "./auth/session.js";
 
 const CACHE_CONTROL = "public, max-age=300, stale-while-revalidate=3600";
-const GAMES: AddonGame[] = ["gmod", "minecraft"];
+const GAMES: Set<AddonGame> = new Set(["gmod", "minecraft"]);
 
 /** Sets the cache headers for who is asking; true when private sources may be served. */
 const viewer = async (req: Request, res: Response): Promise<boolean> => {
@@ -29,7 +29,7 @@ export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/addons/:game/:id", async (req, res) => {
 		const game = req.params.game as AddonGame;
 		const id = Number(req.params.id);
-		if (!GAMES.includes(game) || !Number.isInteger(id)) {
+		if (!GAMES.has(game) || !Number.isInteger(id)) {
 			res.status(404).json({ error: "unknown server" });
 			return;
 		}

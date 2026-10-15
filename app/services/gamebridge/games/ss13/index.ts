@@ -26,7 +26,7 @@ type SS13InstanceConfig = {
 	hasPlayerList?: boolean;
 };
 
-const SHUTTLE_AT_REST = ["idle", "docked"];
+const SHUTTLE_AT_REST = new Set(["idle", "docked"]);
 
 /**
  * Fingerprint of only the state that should trigger a Discord edit - deliberately
@@ -81,7 +81,7 @@ function buildInstanceContainer(
 		desc += `\n:rotating_light: Security Level: **${status.securityLevel}**`;
 	}
 
-	if (status.shuttleMode && !SHUTTLE_AT_REST.includes(status.shuttleMode)) {
+	if (status.shuttleMode && !SHUTTLE_AT_REST.has(status.shuttleMode)) {
 		desc += `\n:rocket: Shuttle: **${status.shuttleMode}**`;
 		if (status.shuttleTimer) {
 			desc += ` (<t:${(Date.now() / 1000 + status.shuttleTimer) | 0}:R>)`;

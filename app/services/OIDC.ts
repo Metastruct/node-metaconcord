@@ -205,12 +205,12 @@ export class OIDC extends Service {
 					.map(m => m[1])
 					.filter(value => value !== "");
 				if (values.length === 0) return next();
-				const sigs = [...header.matchAll(/(?:^|; *)_session\.sig=([^;]*)/g)].map(m => m[1]);
+				const sigs = new Set([...header.matchAll(/(?:^|; *)_session\.sig=([^;]*)/g)].map(m => m[1]));
 				const sessionAdapter = this.provider.Session.adapter;
 				const resolvable = await Promise.all(
 					values.map(
 						async value =>
-							sigs.some(sig => sessionSig(value) === sig) &&
+							sigs.has(sessionSig(value)) &&
 							!!(await sessionAdapter.find(value))
 					)
 				);

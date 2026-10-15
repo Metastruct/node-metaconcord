@@ -39,7 +39,7 @@ type ImgurResponse = {
 	status: number;
 };
 
-const filter = [
+const filter = new Set([
 	"again",
 	"also",
 	"an",
@@ -83,7 +83,7 @@ const filter = [
 	"while",
 	"with",
 	"yet",
-];
+]);
 
 export class Motd extends Service {
 	override name = "Motd";
@@ -167,7 +167,7 @@ export class Motd extends Service {
 		if (motd.length === 0) return;
 		const wordList = motd
 			.split(" ")
-			.filter(w => w.length <= 22 && !filter.includes(w.toLowerCase()));
+			.filter(w => w.length <= 22 && !filter.has(w.toLowerCase()));
 		if (wordList.length === 0) return;
 		const word = wordList[(Math.random() * wordList?.length) | 0];
 		const nick = word.charAt(0).toUpperCase() + word.slice(1);
