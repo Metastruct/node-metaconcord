@@ -82,7 +82,7 @@ export const SlashWhyBanCommand: SlashCommand = {
 			},
 			{
 				name: "Reason",
-				value: ban.banreason.replaceAll("```", "​`​`​`"),
+				value: ban.banreason.replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`"),
 			},
 			{
 				name: "Gamemode",

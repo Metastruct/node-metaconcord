@@ -60,7 +60,7 @@ export default class BanAppealPayload extends Payload {
 		embed.addFields(f("Ban Reason", banReason.slice(0, 1900), true));
 		embed.addFields(f("Ban Expiration", `<t:${unixTime}:R>`, true));
 		embed.addFields(
-			f("Appeal", `\`\`\`${appeal.slice(0, 1900).replaceAll("```", "​`​`​`")}\`\`\``)
+			f("Appeal", `\`\`\`${appeal.slice(0, 1900).replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`")}\`\`\``)
 		);
 		embed.addFields(
 			f(

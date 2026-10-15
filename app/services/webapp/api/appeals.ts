@@ -337,7 +337,7 @@ export default (webApp: WebApp): void => {
 			f("Ban Expiration", entry.permanent ? "Permanent" : `<t:${entry.unbanAt}:R>`, true)
 		);
 		embed.addFields(
-			f("Appeal", `\`\`\`${message.slice(0, 1000).replaceAll("```", "​`​`​`")}\`\`\``)
+			f("Appeal", `\`\`\`${message.slice(0, 1000).replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`")}\`\`\``)
 		);
 		embed.addFields(
 			f(

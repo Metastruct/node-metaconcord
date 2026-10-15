@@ -34,7 +34,7 @@ export default class ErrorPayload extends Payload {
 		const embeds: APIEmbed[] = [];
 		const embed = {
 			title: hook_error.name,
-			description: stack.join("\n").replaceAll("```", "​`​`​`"),
+			description: stack.join("\n").replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`"),
 			footer: {
 				text: `${
 					server.gamemode
