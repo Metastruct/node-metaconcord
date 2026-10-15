@@ -1,24 +1,11 @@
-import AddonsRequest from "./AddonsRequest.js";
-import AdvancementRequest from "./AdvancementRequest.js";
-import ChatRequest from "./ChatRequest.js";
-import ChatResponse from "./ChatResponse.js";
-import ConsoleRequest from "./ConsoleRequest.js";
-import ConsoleResponse from "./ConsoleResponse.js";
-import DeathRequest from "./DeathRequest.js";
-import JoinLeaveRequest from "./JoinLeaveRequest.js";
-import PayloadRequest from "./PayloadRequest.js";
-import StatsRequest from "./StatsRequest.js";
-import StatusRequest from "./StatusRequest.js";
-export type {
-	AddonsRequest,
-	AdvancementRequest,
-	ChatRequest,
-	ChatResponse,
-	ConsoleRequest,
-	ConsoleResponse,
-	DeathRequest,
-	JoinLeaveRequest,
-	PayloadRequest,
-	StatsRequest,
-	StatusRequest,
-};
+export type {default as AddonsRequest} from "./AddonsRequest.js";
+export type {default as AdvancementRequest} from "./AdvancementRequest.js";
+export type {default as ChatRequest} from "./ChatRequest.js";
+export type {default as ChatResponse} from "./ChatResponse.js";
+export type {default as ConsoleRequest} from "./ConsoleRequest.js";
+export type {default as ConsoleResponse} from "./ConsoleResponse.js";
+export type {default as DeathRequest} from "./DeathRequest.js";
+export type {default as JoinLeaveRequest} from "./JoinLeaveRequest.js";
+export type {default as PayloadRequest} from "./PayloadRequest.js";
+export type {default as StatsRequest} from "./StatsRequest.js";
+export type {default as StatusRequest} from "./StatusRequest.js";

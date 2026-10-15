@@ -80,26 +80,7 @@ export const selectServices = (spec: string | undefined): Provider[] => {
 	return ALL.filter(entry => wanted.has(entry.name)).map(entry => entry.provider);
 };
 
-export {
-	Accounts,
-	Addons,
-	Bans,
-	Data,
-	DiscordBot,
-	DiscordMetadata,
-	Fluxer,
-	GameBridge,
-	Github,
-	Gitlab,
-	IRC,
-	Markov,
-	Motd,
-	OIDC,
-	Resonite,
-	SQL,
-	Steam,
-	WebApp,
-};
+
 
 export type ServiceMap = {
 	[key: string]: Service;
@@ -123,3 +104,22 @@ export type ServiceMap = {
 	Steam: Steam;
 	WebApp: WebApp;
 };
+
+export {Accounts} from "./Accounts.js";
+export {Addons} from "./addons/index.js";
+export {Bans} from "./Bans.js";
+export {Data} from "./Data.js";
+export {DiscordBot} from "./discord/index.js";
+export {DiscordMetadata} from "./DiscordMetadata.js";
+export {Fluxer} from "./fluxer/index.js";
+export {GameBridge} from "./gamebridge/index.js";
+export {Github} from "./Github.js";
+export {Gitlab} from "./Gitlab.js";
+export {IRC} from "./IRC.js";
+export {Markov} from "./Markov.js";
+export {Motd} from "./Motd.js";
+export {OIDC} from "./OIDC.js";
+export {Resonite} from "./Resonite.js";
+export {SQL} from "./SQL.js";
+export {Steam} from "./Steam.js";
+export {WebApp} from "./webapp/index.js";
