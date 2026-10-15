@@ -95,7 +95,7 @@ export const Shat = async (options?: {
 
 		if (!word) word = getWord(await markov?.generate());
 
-		if (images.length !== 0 && (Math.random() <= 0.5 || !word)) {
+		if (images.length > 0 && (Math.random() <= 0.5 || !word)) {
 			const imgur = images[(Math.random() * images.length) | 0];
 			const result = await makeSpeechBubble(imgur.link, Math.random() <= 0.5);
 			return result

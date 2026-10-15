@@ -144,7 +144,7 @@ class BridgeConsoleSession extends ConsoleSession {
 				return;
 			}
 			// levels ride along so the site can color and filter per line
-			if (event.lines.length) {
+			if (event.lines.length > 0) {
 				this.send({ type: "log", lines: event.lines, replay: event.replay });
 			}
 		};
@@ -152,7 +152,7 @@ class BridgeConsoleSession extends ConsoleSession {
 		this.send({ type: "ready" });
 		// the hub streams from the moment a server connects, so a viewer joins
 		// mid-stream and gets the scrollback the site would otherwise not have
-		if (backlog.length) this.send({ type: "log", lines: backlog, replay: true });
+		if (backlog.length > 0) this.send({ type: "log", lines: backlog, replay: true });
 		if (!this.bridge.servers[this.server.game][this.server.id]?.wsConnection?.connected) {
 			this.send({ type: "meta", text: "server not connected, waiting" });
 		}

@@ -75,7 +75,7 @@ export const selectServices = (spec: string | undefined): Provider[] => {
 		}
 	}
 	const unknown = [...wanted].filter(name => !ALL.some(entry => entry.name === name));
-	if (unknown.length)
+	if (unknown.length > 0)
 		throw new Error(`unknown services in METACONCORD_SERVICES: ${unknown.join(", ")}`);
 	return ALL.filter(entry => wanted.has(entry.name)).map(entry => entry.provider);
 };

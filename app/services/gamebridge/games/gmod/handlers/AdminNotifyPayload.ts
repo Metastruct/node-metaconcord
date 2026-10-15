@@ -213,7 +213,7 @@ export default class AdminNotifyPayload extends Payload {
 		const reportedAvatar = await steam.getUserAvatar(reportedSteamId64);
 		const selfReport = player.steamId === reported.steamId;
 
-		if (message.trim().length < 1) message = "No message provided..?";
+		if (message.trim().length === 0) message = "No message provided..?";
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({

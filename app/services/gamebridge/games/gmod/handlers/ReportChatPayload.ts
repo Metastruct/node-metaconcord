@@ -26,7 +26,7 @@ export default class ReportChatPayload extends Payload {
 
 	private static getThread(reporterSteamId64: string, data: Data) {
 		const threadArray = data.reportThreads?.[reporterSteamId64];
-		if (!threadArray || !threadArray.length) return null;
+		if (!threadArray || threadArray.length === 0) return null;
 		return threadArray[threadArray.length - 1];
 	}
 
@@ -160,7 +160,7 @@ export default class ReportChatPayload extends Payload {
 		if (!data?.reportThreads) return;
 
 		for (const [reporterSteamId64, threadArray] of Object.entries(data.reportThreads)) {
-			if (!threadArray.length) continue;
+			if (threadArray.length === 0) continue;
 
 			const isOnline = server.status.players.some(p => p.steamId64 === reporterSteamId64);
 			if (!isOnline) continue;

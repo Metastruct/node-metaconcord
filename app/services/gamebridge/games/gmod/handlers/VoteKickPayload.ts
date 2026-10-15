@@ -84,7 +84,7 @@ export default class VoteKickPayload extends Payload {
 		}
 
 		let message = reason;
-		if (message.trim().length < 1) message = "No reason provided..?";
+		if (message.trim().length === 0) message = "No reason provided..?";
 
 		const reporterSteamId64 = new SteamID(reporter.steamID).getSteamID64();
 		const offenderSteamId64 = offender.steamID.startsWith("STEAM")

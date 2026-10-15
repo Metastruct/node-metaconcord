@@ -132,7 +132,7 @@ export class Container {
 	requireServices(...names: string[]) {
 		return (_req: Request, res: Response, next: NextFunction): void => {
 			const missing = names.filter(name => !this.has(name));
-			if (missing.length) {
+			if (missing.length > 0) {
 				res.status(503).json({
 					error: `${missing.join(", ")} not enabled on this instance`,
 				});
