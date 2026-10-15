@@ -124,7 +124,7 @@ const download = async (
 		throw new MirrorError(`unsupported content type ${type || "none"}`);
 
 	const bytes = Buffer.from(res.data);
-	if (!bytes.length) throw new MirrorError("source returned an empty body");
+	if (bytes.length === 0) throw new MirrorError("source returned an empty body");
 	if (bytes.length > MAX_BYTES)
 		throw new MirrorError(`image is larger than ${Math.round(MAX_BYTES / 1024 / 1024)} MB`);
 
@@ -180,7 +180,7 @@ const pinFor = async (octokit: Octokit, path: string): Promise<string> => {
 		path,
 		per_page: 1,
 	});
-	if (!data.length) throw new Error(`no commit found for ${path}`);
+	if (data.length === 0) throw new Error(`no commit found for ${path}`);
 	return data[0].sha;
 };
 

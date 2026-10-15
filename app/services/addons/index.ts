@@ -314,7 +314,7 @@ export class Addons extends Service {
 					repoUrl: publicRepoUrl,
 				},
 				private: false,
-				...(restricted && Object.keys(restricted).length && { restricted }),
+				...(restricted && Object.keys(restricted).length > 0 && { restricted }),
 			};
 		}
 
@@ -527,7 +527,7 @@ export class Addons extends Service {
 			serverId: id,
 			serverName: name,
 			updatedAt: Date.now(),
-			...(runtime.length && { runtime }),
+			...(runtime.length > 0 && { runtime }),
 			addons: addons.sort((a, b) => a.name.localeCompare(b.name)),
 		});
 		log.info({ server: name, count: addons.length }, "stored minecraft mods");

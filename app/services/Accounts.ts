@@ -390,7 +390,7 @@ export class Accounts extends Service {
 		const remaining = account.links.filter(
 			l => l.provider !== provider && LOGIN_PROVIDERS.includes(l.provider)
 		);
-		if (!remaining.length) throw new LastLoginError();
+		if (remaining.length === 0) throw new LastLoginError();
 
 		await this.sql.queryPool(
 			"DELETE FROM account_links WHERE account_id = $1 AND provider = $2",
@@ -428,7 +428,7 @@ export class Accounts extends Service {
 					"DELETE FROM account_links WHERE account_id = $1 AND source = 'import' RETURNING provider",
 					[existing.id]
 				);
-				if (dropped.length) {
+				if (dropped.length > 0) {
 					log.info(
 						`account ${existing.id} claimed through ${link.provider}, dropped imported ${dropped.map(r => r.provider).join(", ")}`
 					);

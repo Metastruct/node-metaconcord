@@ -421,10 +421,10 @@ export function readmeSummary(markdown: string): string | undefined {
 		// A title often sits on the line above its own paragraph, so drop the title
 		// rather than the block, and stop once a later section starts.
 		const { heading, rest } = stripHeadings(block);
-		if (heading && out.length) break;
+		if (heading && out.length > 0) break;
 		if (!rest || isDecoration(rest)) continue;
 		if (isTable(rest)) {
-			if (out.length) break;
+			if (out.length > 0) break;
 			continue;
 		}
 		const text = flattenMarkdown(rest);
@@ -539,7 +539,7 @@ export async function resolveModrinth(hashes: string[]): Promise<Map<string, Mod
 		if (cached === undefined) missing.push(hash);
 		else if (cached) out.set(hash, cached);
 	}
-	if (!missing.length) return out;
+	if (missing.length === 0) return out;
 
 	try {
 		const versions = (
@@ -551,7 +551,7 @@ export async function resolveModrinth(hashes: string[]): Promise<Map<string, Mod
 		).data;
 
 		const projectIds = [...new Set(Object.values(versions).map(v => v.project_id))];
-		const projects = projectIds.length
+		const projects = projectIds.length > 0
 			? (
 				await axios.get<ModrinthProject[]>("https://api.modrinth.com/v2/projects", {
 					params: { ids: JSON.stringify(projectIds) },
@@ -603,7 +603,7 @@ export async function resolveCurseforge(
 		if (cached === undefined) missing.push(fp);
 		else if (cached) out.set(fp, cached);
 	}
-	if (!missing.length) return out;
+	if (missing.length === 0) return out;
 
 	const headers = { "x-api-key": curseforgeKey, "User-Agent": USER_AGENT };
 	try {
@@ -627,7 +627,7 @@ export async function resolveCurseforge(
 		for (const m of matches) fpToMod.set(Number(m.file.fileFingerprint), Number(m.file.modId));
 
 		const modIds = [...new Set(fpToMod.values())];
-		const mods = modIds.length
+		const mods = modIds.length > 0
 			? (
 				await axios.post<{
 					data: {
@@ -718,7 +718,7 @@ export async function resolveByName(
 	const wanted = new Set([compact(modId ?? ""), compact(displayName ?? "")]);
 	wanted.delete("");
 	const candidates = slugCandidates(modId, displayName);
-	if (!wanted.size || !candidates.length) return;
+	if (wanted.size === 0 || candidates.length === 0) return;
 
 	for (const slug of candidates) {
 		try {

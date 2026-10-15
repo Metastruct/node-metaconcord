@@ -114,7 +114,7 @@ export class Steam extends Service {
 							`https://steamcommunity.com/profiles/${steamId64}?xml=1`
 						);
 						const results = avatarRegExp.exec(data);
-						if (results && results[1].trim().length) {
+						if (results && results[1].trim().length > 0) {
 							summary.avatarfull = results[1];
 						}
 					}

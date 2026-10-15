@@ -122,7 +122,7 @@ export class Motd extends Service {
 	}
 
 	async executeMessageJob(): Promise<string | undefined> {
-		if (this.messages.length <= 0) return;
+		if (this.messages.length === 0) return;
 
 		const msg: string = this.messages[(Math.random() * this.messages.length) | 0];
 		this.messages = [];

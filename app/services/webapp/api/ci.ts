@@ -10,7 +10,7 @@ const ERROR = 500;
 export default (webApp: WebApp): void => {
 	webApp.app.get("/ci/reload", async (req, res) => {
 		const bearer = req.headers["authorization"];
-		if (!bearer || bearer.length < 1) {
+		if (!bearer || bearer.length === 0) {
 			res.status(FORBIDDEN).send();
 			return;
 		}

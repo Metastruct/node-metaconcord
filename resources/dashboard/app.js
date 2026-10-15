@@ -81,7 +81,7 @@
 				msg.textContent += (msg.textContent ? "\n" : "") + rest.err.stack;
 				delete rest.err;
 			}
-			if (Object.keys(rest).length) {
+			if (Object.keys(rest).length > 0) {
 				msg.appendChild(el("span", "extra", " " + JSON.stringify(rest)));
 			}
 			row.appendChild(msg);
