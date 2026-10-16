@@ -5,9 +5,7 @@ import { rateLimit } from "express-rate-limit";
 import { Accounts, LinkConflictError } from "#/app/services/Accounts.js";
 import {
 	cookieOptions,
-	getSession,
 	getSessionAccountId,
-	isStaff,
 	setSessionCookie,
 	storeRedirect,
 	takeRedirect,
@@ -28,21 +26,19 @@ export default (webApp: WebApp): void => {
 	const limiter = rateLimit({ keyGenerator: rateLimitKeyGenerator, windowMs: 60_000, limit: 30 });
 	const callbackUrl = `${webApp.config.url}/auth/github/callback`;
 	const oauth = GithubConfig.oauth;
-	/** the write scope staff re-authorize for, on top of the login scopes, to edit history */
+	/** the write scope the history editor re-authorizes for, on top of the login scopes */
 	const EDITOR_SCOPE = "public_repo";
 	// a config without the split-out scope keeps the identity default
 	const loginScope = oauth.scope ?? "read:user user:email";
 
-	webApp.app.get("/auth/github", limiter, async (req, res) => {
+	webApp.app.get("/auth/github", limiter, (req, res) => {
 		const state = crypto.randomUUID();
 		res.cookie(STATE_COOKIE, state, { ...cookieOptions, maxAge: 5 * 60 * 1000, signed: true });
 		storeRedirect(webApp, req, res);
 
-		// login is identity only; a staff member re-running this (the site's
-		// github_reauth for the history editor) already has a session, so they get
-		// the write scope too
-		const session = await getSession(req);
-		const scope = isStaff(session) ? `${loginScope} ${EDITOR_SCOPE}` : loginScope;
+		// login is identity only; the site's github_reauth handler (history editor)
+		// adds editor=1 to ask for the write scope
+		const scope = req.query.editor === "1" ? `${loginScope} ${EDITOR_SCOPE}` : loginScope;
 
 		const url = new URL("https://github.com/login/oauth/authorize");
 		url.searchParams.set("client_id", oauth.clientId);
