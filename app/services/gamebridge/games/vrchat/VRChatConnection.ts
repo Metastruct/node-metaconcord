@@ -14,6 +14,7 @@ export default class VRChatConnection extends GameConnection {
 		return new Discord.ContainerBuilder()
 			.setAccentColor(VRCHAT_ACCENT)
 			.addTextDisplayComponents(text => text.setContent("### No active group instances\nfeel free to create one!"))
+			.addSeparatorComponents(sep => sep)
 			.addActionRowComponents(row =>
 				row.setComponents(
 					new Discord.ButtonBuilder()
