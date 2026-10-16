@@ -12,8 +12,6 @@ export class Github extends Service {
 			appId: config.appId,
 			privateKey: config.privateKey,
 			installationId: config.installationId,
-			clientId: config.clientId,
-			clientSecret: config.clientSecret,
 		} as StrategyOptions,
 	});
 }

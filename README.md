@@ -52,13 +52,10 @@ Roles are derived, never edited, and recomputed on login, on link changes, hourl
 - `developer`: rocket, history editor, bans, private addon sources
 - `trial-developer`, players: profile, linking, own ban appeal
 
-Requirements on the GitHub App in `config/github.json`:
+GitHub uses two apps in `config/github.json`:
 
-- Callback URL: `<webapp.url>/auth/github/callback`
-- Installed on the `Metastruct` org with access to the history repo
-- Permissions: `Contents: read & write`, `Members: read` (team lookups run as the app, the user token is the fallback)
-
-The history editor commits with the user's own token, kept encrypted on their GitHub link; a mutation answers `401 {"error":"github_reauth"}` when it is missing or expired and the site sends them through the GitHub login again.
+- An OAuth App under `oauth` for login: callback URL `<webapp.url>/auth/github/callback`, scopes in `oauth.scope` (`read:user user:email`, identity only). The token is kept encrypted on the GitHub link. The history editor additionally needs the `public_repo` write scope (enough because the history repo is public): when a staff token lacks it, a mutation answers `401 {"error":"github_reauth"}` and the site sends them through `/auth/github` again, which adds `public_repo` because the request carries a staff session.
+- A GitHub App (`appId`, `privateKey`, `installationId`) installed on the `Metastruct` org for webhooks, reading the history file and team lookups. Permissions: `Contents: read & write`, `Members: read` (the user token is the fallback).
 
 GitLab needs an application on gitlab.com with the `read_user` scope and callback `<webapp.url>/auth/gitlab/callback`, in `config/gitlab.json` under `oauth`. Discord uses the existing Linked Roles application (`/discord/link` is both the login start and what the Linked Roles button points to).
 

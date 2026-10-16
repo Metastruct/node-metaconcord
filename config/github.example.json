@@ -1,7 +1,10 @@
 {
+	"oauth": {
+		"clientId": "",
+		"clientSecret": "",
+		"scope": "read:user user:email"
+	},
 	"appId": "",
-	"clientId": "",
-	"clientSecret": "",
 	"installationId": 123,
 	"privateKey": "",
 	"org": "",

@@ -62,8 +62,10 @@ const SESSION_CACHE_TTL = 10 * 1000;
 export type GithubToken = {
 	accessToken: string;
 	refreshToken?: string;
-	/** ms epoch, only set when the GitHub App expires user tokens */
+	/** ms epoch, only set when GitHub expires user tokens */
 	expiresAt?: number;
+	/** OAuth scopes GitHub granted this token, e.g. public_repo */
+	scopes?: string[];
 };
 
 export type Account = {
@@ -660,8 +662,8 @@ export class Accounts extends Service {
 			method: "POST",
 			headers: { Accept: "application/json", "Content-Type": "application/json" },
 			body: JSON.stringify({
-				client_id: GithubConfig.clientId,
-				client_secret: GithubConfig.clientSecret,
+				client_id: GithubConfig.oauth.clientId,
+				client_secret: GithubConfig.oauth.clientSecret,
 				grant_type: "refresh_token",
 				refresh_token: token.refreshToken,
 			}),
@@ -673,11 +675,14 @@ export class Accounts extends Service {
 				access_token?: string;
 				refresh_token?: string;
 				expires_in?: number;
+				scope?: string;
 			})
 			: undefined;
 		if (!body?.access_token) return;
 
 		const fresh = Accounts.tokenFromResponse(body);
+		// a refresh does not always echo the scopes, keep the ones we already know
+		fresh.scopes ??= token.scopes;
 		await this.setGithubToken(account.id, fresh);
 		return fresh;
 	}
@@ -686,12 +691,19 @@ export class Accounts extends Service {
 		access_token?: string;
 		refresh_token?: string;
 		expires_in?: number;
+		scope?: string;
 	}): GithubToken {
 		return {
 			accessToken: body.access_token as string,
 			refreshToken: body.refresh_token,
 			expiresAt: body.expires_in ? Date.now() + body.expires_in * 1000 : undefined,
+			scopes: body.scope ? body.scope.split(/[ ,]+/).filter(Boolean) : undefined,
 		};
+	}
+
+	/** true when the token carries a scope; `repo` covers `public_repo` */
+	static hasGithubScope(token: GithubToken, scope: string): boolean {
+		return !!token.scopes?.some(s => s === scope || (scope === "public_repo" && s === "repo"));
 	}
 
 	// #endregion

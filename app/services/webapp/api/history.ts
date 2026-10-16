@@ -5,6 +5,7 @@ import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
 import express from "express";
 import { MirrorError, mirrorImage } from "./history-images.js";
+import { Accounts } from "#/app/services/Accounts.js";
 import { Session, requireStaff } from "./auth/session.js";
 import HistoryConfig from "#/config/history.json" with { type: "json" };
 import { logger } from "#/utils.js";
@@ -154,7 +155,8 @@ const requireEditor = async (
 	if (!session) return;
 	const accounts = globalThis.MetaConcord.container.tryService("Accounts");
 	const token = await accounts?.freshGithubToken(session.account);
-	if (!token) {
+	// a write scope is not part of the normal login, the site re-runs it to upgrade
+	if (!token || !Accounts.hasGithubScope(token, "public_repo")) {
 		res.status(401).json({ error: "github_reauth" });
 		return;
 	}
