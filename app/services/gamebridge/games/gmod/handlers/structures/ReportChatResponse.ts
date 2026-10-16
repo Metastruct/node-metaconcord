@@ -14,7 +14,4 @@ export type ResolveReportChatResponse = Extract<ReportChatResponsePayload, { typ
 
 export type InfoReportChatResponse = Extract<ReportChatResponsePayload, { type: "info" }>;
 
-export default interface ReportChatResponse {
-	data: ReportChatResponsePayload;
-	name: "ReportChatPayload";
-}
+export type ReportChatResponse = ReportChatResponsePayload;

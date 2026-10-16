@@ -3,21 +3,7 @@
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"definitions": {
 		"ReportChatResponse": {
-			"additionalProperties": false,
-			"properties": {
-				"data": {
-					"$ref": "#/definitions/ReportChatResponsePayload"
-				},
-				"name": {
-					"const": "ReportChatPayload",
-					"type": "string"
-				}
-			},
-			"required": [
-				"data",
-				"name"
-			],
-			"type": "object"
+			"$ref": "#/definitions/ReportChatResponsePayload"
 		},
 		"ReportChatResponsePayload": {
 			"anyOf": [
