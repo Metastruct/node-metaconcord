@@ -22,6 +22,8 @@ export default class ResoniteConnection extends GameConnection {
 	protected override buildEmptyStatusContainer(): Discord.ContainerBuilder {
 		return new Discord.ContainerBuilder()
 			.setAccentColor(RESONITE_ACCENT)
-			.addTextDisplayComponents(text => text.setContent("### No instances online"));
+			.addTextDisplayComponents(text => text.setContent("### No instances online"))
+			.addSeparatorComponents(sep => sep)
+			.addTextDisplayComponents(text => text.setContent("-# metastruct @ Resonite"));
 	}
 }
