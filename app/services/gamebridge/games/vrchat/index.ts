@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { VRChat } from "vrchat";
 import type { Group, GroupInstance } from "vrchat";
 import GameBridge from "../../GameBridge.js";
-import VRChatConnection from "./VRChatConnection.js";
+import VRChatConnection, { VRCHAT_ACCENT } from "./VRChatConnection.js";
 import config from "#/config/vrchat.json" with { type: "json" };
 import pkg from "#/package.json" with { type: "json" };
 import { logger } from "#/utils.js";
@@ -19,19 +19,14 @@ function launchUrl(worldId: string, instanceId: string): string {
 function buildHeaderContainer(
 	group: Group | undefined,
 	totalPlayers: number,
-	instanceCount: number,
-	disconnected: boolean
+	instanceCount: number
 ): Discord.ContainerBuilder {
 	const container = new Discord.ContainerBuilder();
-	container.setAccentColor(0x1778e9);
+	container.setAccentColor(VRCHAT_ACCENT);
 
 	let desc = `### ${group?.name ?? "VRChat"}`;
 	desc += `\n:busts_in_silhouette: Player${totalPlayers === 1 ? "" : "s"}: **${totalPlayers}**`;
 	desc += `\n:map: Instance${instanceCount === 1 ? "" : "s"}: **${instanceCount}**`;
-
-	if (disconnected) {
-		desc = `⚠️ **Server disconnected** info may be outdated\n${desc}`;
-	}
 
 	container.addTextDisplayComponents(text => text.setContent(desc));
 	container.addSeparatorComponents(sep => sep);
@@ -46,7 +41,7 @@ function buildHeaderContainer(
 // keyed on world info rather than a player list.
 function buildInstanceContainer(instance: GroupInstance): Discord.ContainerBuilder {
 	const container = new Discord.ContainerBuilder();
-	container.setAccentColor(0x1778e9);
+	container.setAccentColor(VRCHAT_ACCENT);
 
 	const capacity = instance.world.capacity;
 	const desc =
@@ -92,12 +87,13 @@ function buildSignature(instances: GroupInstance[], disconnected: boolean): unkn
 
 function buildContainers(
 	group: Group | undefined,
-	instances: GroupInstance[],
-	disconnected: boolean
+	instances: GroupInstance[]
 ): Discord.ContainerBuilder[] {
+	// nothing to report -> let the connection's empty-state card handle it
+	if (instances.length === 0) return [];
 	const totalPlayers = instances.reduce((sum, i) => sum + i.memberCount, 0);
 	return [
-		buildHeaderContainer(group, totalPlayers, instances.length, disconnected),
+		buildHeaderContainer(group, totalPlayers, instances.length),
 		...instances.map(buildInstanceContainer),
 	];
 }
@@ -154,7 +150,7 @@ export function attachVRChat(bridge: GameBridge): void {
 				connection.setPresence("idle", { afk: true });
 			}
 
-			const containers = buildContainers(connection.group, instances, false);
+			const containers = buildContainers(connection.group, instances);
 			await connection.postOrEditStatusMessage(
 				containers,
 				[],
@@ -165,21 +161,10 @@ export function attachVRChat(bridge: GameBridge): void {
 			connection.disconnected = true;
 			connection.setPresence("idle", { afk: true });
 
-			if (connection.lastInstances) {
-				try {
-					const containers = buildContainers(
-						connection.group,
-						connection.lastInstances,
-						true
-					);
-					await connection.postOrEditStatusMessage(
-						containers,
-						[],
-						buildSignature(connection.lastInstances, true)
-					);
-				} catch (postErr) {
-					log.error(postErr, "failed to post VRChat disconnect status");
-				}
+			try {
+				await connection.postOrEditStatusMessage([], [], buildSignature([], true));
+			} catch (postErr) {
+				log.error(postErr, "failed to post VRChat disconnect status");
 			}
 		}
 	};

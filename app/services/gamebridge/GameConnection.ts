@@ -121,6 +121,11 @@ export default class GameConnection extends EventEmitter {
 		} catch {}
 	}
 
+	protected buildEmptyStatusContainer(): Discord.ContainerBuilder {
+		return new Discord.ContainerBuilder()
+			.addTextDisplayComponents(text => text.setContent("[NO DATA]"));
+	}
+
 	/**
 	 * Finds this connection's own status message in the server-info channel
 	 * and edits it, or sends a new one. Shared by every game's status embed so
@@ -128,10 +133,8 @@ export default class GameConnection extends EventEmitter {
 	 * container per "thing" being reported (e.g. one per hosted session/instance)
 	 * so a single bot identity can report on several at once.
 	 *
-	 * An empty `containers` array still edits the message in place (to a plain
-	 * "no data" placeholder) rather than deleting it - deleting and later
-	 * re-sending would move the message to the bottom of the channel instead of
-	 * keeping its original slot.
+	 * An empty `containers` array still edits the message in place rather than
+	 * deleting it to prevent reordering.
 	 *
 	 * `signature` is an optional fingerprint of only the meaningful state (player
 	 * counts, round/session state, ...) - deliberately excluding anything that
@@ -162,13 +165,7 @@ export default class GameConnection extends EventEmitter {
 
 		const payload = {
 			components:
-				containers.length > 0
-					? containers
-					: [
-						new Discord.ContainerBuilder()
-							.setAccentColor(0x808080)
-							.addTextDisplayComponents(text => text.setContent("[NO DATA]")),
-					],
+				containers.length > 0 ? containers : [this.buildEmptyStatusContainer()],
 			files: containers.length > 0 ? files : [],
 			flags: Discord.MessageFlags.IsComponentsV2 as const,
 		};

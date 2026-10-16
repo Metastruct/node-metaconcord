@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import GameBridge from "../../GameBridge.js";
 import { Player } from "../../GameConnection.js";
 import { renderPlayerListImage } from "../../renderPlayerList.js";
-import SS13Connection, { SS13InstanceState, SS13Status } from "./SS13Connection.js";
+import SS13Connection, { SS13_ACCENT, SS13InstanceState, SS13Status } from "./SS13Connection.js";
 import { WatchdogStatus, getDreamDaemonStatus, getInstance } from "./tgsClient.js";
 import { getServerStatus, getPlayerList } from "./topics.js";
 import { queryTopic } from "./byondTopic.js";
@@ -25,9 +25,6 @@ type SS13InstanceConfig = {
 	/** Set to false for a codebase that doesn't implement the "playerlist" topic, to skip the doomed query instead of warning on every poll. */
 	hasPlayerList?: boolean;
 };
-
-// only instances whose watchdog reports Online ever reach buildInstanceContainer.
-const ONLINE_COLOR = 0x4bb543;
 
 const SHUTTLE_AT_REST = ["idle", "docked"];
 
@@ -67,7 +64,7 @@ function buildInstanceContainer(
 ): Discord.ContainerBuilder {
 	const container = new Discord.ContainerBuilder();
 
-	container.setAccentColor(ONLINE_COLOR);
+	container.setAccentColor(SS13_ACCENT);
 
 	let desc = `### ${status.mapName ?? name}`;
 

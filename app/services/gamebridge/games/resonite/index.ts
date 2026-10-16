@@ -1,9 +1,9 @@
 import * as Discord from "discord.js";
 import * as signalR from "@microsoft/signalr";
 import GameBridge from "../../GameBridge.js";
-import ResoniteConnection, { ResoniteSessionState } from "./ResoniteConnection.js";
+import ResoniteConnection, { RESONITE_ACCENT, ResoniteSessionState } from "./ResoniteConnection.js";
 import { Player } from "../../GameConnection.js";
-import { ResoniteSession } from "#/app/services/Resonite.js";
+import { Resonite, ResoniteSession } from "#/app/services/Resonite.js";
 import resoniteConfig from "#/config/resonite.json" with { type: "json" };
 import { renderPlayerListImage } from "../../renderPlayerList.js";
 import { logger } from "#/utils.js";
@@ -17,12 +17,12 @@ function buildSessionContainer(
 	session: ResoniteSession,
 	backgroundImage: string,
 	attachmentName: string,
-	state?: "disconnected" | "ended"
+	state?: "disconnected"
 ): Discord.ContainerBuilder {
 	const count = session.joinedUsers;
 	const container = new Discord.ContainerBuilder();
 
-	container.setAccentColor(state === "ended" ? 0x808080 : 4796260);
+	container.setAccentColor(RESONITE_ACCENT);
 
 	let desc =
 		`### ${session.tags[0] ?? session.name}\n` +
@@ -41,9 +41,7 @@ function buildSessionContainer(
 		desc += "\n:no_entry_sign: Hidden from public listing";
 	}
 
-	if (state === "ended") {
-		desc = `🛑 **Headless instance offline**\n${desc}`;
-	} else if (state === "disconnected") {
+	if (state === "disconnected") {
 		desc = `⚠️ **Server disconnected** info may be outdated\n${desc}`;
 	}
 
@@ -55,7 +53,7 @@ function buildSessionContainer(
 			)
 	);
 
-	if (count > 0 && state !== "ended") {
+	if (count > 0) {
 		container.addSeparatorComponents(sep => sep);
 		container.addMediaGalleryComponents(gallery =>
 			gallery.addItems(item => item.setURL(`attachment://${attachmentName}`))
@@ -64,31 +62,26 @@ function buildSessionContainer(
 
 	container.addSeparatorComponents(sep => sep);
 
-	if (state !== "ended") {
-		container.addActionRowComponents(row =>
-			row.setComponents(
-				new Discord.ButtonBuilder()
-					.setStyle(Discord.ButtonStyle.Link)
-					.setLabel("Connect")
-					.setURL(`https://go.resonite.com/session/${session.sessionId}`)
-			)
-		);
+	container.addActionRowComponents(row =>
+		row.setComponents(
+			new Discord.ButtonBuilder()
+				.setStyle(Discord.ButtonStyle.Link)
+				.setLabel("Connect")
+				.setURL(`https://go.resonite.com/session/${session.sessionId}`)
+		)
+	);
 
-		container.addSeparatorComponents(sep => sep);
-	}
+	container.addSeparatorComponents(sep => sep);
 
 	container.addTextDisplayComponents(text => text.setContent("-# metastruct @ Resonite"));
 
 	return container;
 }
 
-/** Renders every currently tracked session into one message, optionally with one extra (e.g. just-ended) session appended. */
+/** Renders every currently tracked session into one message. */
 function renderMessage(
 	connection: ResoniteConnection,
-	opts: {
-		state?: "disconnected";
-		extra?: { session: ResoniteSession; backgroundImage: string };
-	} = {}
+	opts: { state?: "disconnected" } = {}
 ): { containers: Discord.ContainerBuilder[]; files: Discord.AttachmentBuilder[] } {
 	const containers: Discord.ContainerBuilder[] = [];
 	const files: Discord.AttachmentBuilder[] = [];
@@ -103,12 +96,6 @@ function renderMessage(
 		if (s.playerListImage) {
 			files.push(new Discord.AttachmentBuilder(s.playerListImage).setName(attachmentName));
 		}
-	}
-
-	if (opts.extra) {
-		containers.push(
-			buildSessionContainer(opts.extra.session, opts.extra.backgroundImage, "", "ended")
-		);
 	}
 
 	return { containers, files };
@@ -147,26 +134,25 @@ function buildSignature(connection: ResoniteConnection): unknown {
 	};
 }
 
+/** Renders every tracked session (or the empty-state card) into the status message. */
+async function renderStatus(bridge: GameBridge): Promise<void> {
+	const connection = bridge.servers.resonite[RESONITE_SERVER_ID];
+	if (!connection) return;
+	const { containers, files } = renderMessage(connection, {
+		state: connection.disconnected ? "disconnected" : undefined,
+	});
+	await connection.postOrEditStatusMessage(containers, files, buildSignature(connection));
+}
+
 /** Drops a tracked session (explicit RemoveSession, or a hasEnded/invalid update) and re-renders. */
 async function removeSession(bridge: GameBridge, sessionId: string): Promise<void> {
 	const connection = bridge.servers.resonite[RESONITE_SERVER_ID];
-	const ended = connection?.sessions.get(sessionId);
-	if (!connection || !ended) return;
+	if (!connection?.sessions.has(sessionId)) return;
 
 	connection.sessions.delete(sessionId);
+	connection.verifiedEmptySessions.delete(sessionId);
 	updatePresence(connection);
-
-	// a custom session id (S-{hostUserId}:{label}) identifies a persistent
-	// headless instance that will restart under the same id, worth a
-	// lingering "offline" embed; an auto-generated S-{guid} won't recur.
-	const hasCustomSessionId = ended.session.sessionId.startsWith(`S-${ended.session.hostUserId}:`);
-	const { containers, files } = renderMessage(
-		connection,
-		hasCustomSessionId
-			? { extra: { session: ended.session, backgroundImage: ended.backgroundImage } }
-			: {}
-	);
-	await connection.postOrEditStatusMessage(containers, files, buildSignature(connection));
+	await renderStatus(bridge);
 
 	if (connection.sessions.size === 0) {
 		connection.discord.destroy();
@@ -174,6 +160,111 @@ async function removeSession(bridge: GameBridge, sessionId: string): Promise<voi
 			delete bridge.servers.resonite[RESONITE_SERVER_ID];
 		}
 	}
+}
+
+/**
+ * Inserts or updates one tracked session and its rendered state. Shared by the
+ * live SignalR updates and the login-time REST seed. Returns false when the
+ * session turned out to be gone and was removed instead.
+ */
+async function upsertSession(
+	bridge: GameBridge,
+	resonite: Resonite,
+	session: ResoniteSession
+): Promise<boolean> {
+	// RemoveSession tears the connection down once no sessions remain, so a
+	// session starting back up needs a fresh connection created here.
+	const connection = bridge.servers.resonite[RESONITE_SERVER_ID] ?? createConnection(bridge);
+	if (!connection.discord.ready) return false;
+
+	// A 0-player session could be an idle headless that's still up, or one that
+	// died without sending a terminal update. Ask the public REST API once to
+	// tell them apart; a session that's actually alive keeps talking over
+	// SignalR, so it's never worth checking again. Hidden sessions can't be
+	// looked up anonymously, so those are left to SignalR.
+	if (
+		session.joinedUsers === 0 &&
+		!session.hideFromListing &&
+		!connection.verifiedEmptySessions.has(session.sessionId)
+	) {
+		try {
+			const live = await resonite.GetSession(session.sessionId);
+			if (!live || live.hasEnded || !live.isValid) {
+				await removeSession(bridge, session.sessionId);
+				return false;
+			}
+			connection.verifiedEmptySessions.add(session.sessionId);
+		} catch (err) {
+			log.warn(
+				{ err, sessionId: session.sessionId },
+				"failed to verify empty Resonite session"
+			);
+		}
+	}
+
+	const backgroundImage =
+		session.thumbnailUrl ?? connection.backgroundImage ?? DEFAULT_BACKGROUND;
+	const contentKey = sessionContentKey(session);
+	const prior = connection.sessions.get(session.sessionId);
+
+	let players = prior?.players ?? [];
+	let playerListImage = prior?.playerListImage;
+
+	// only refetch avatars and re-render the composite when something that
+	// actually affects them changed - a heartbeat with the same players and
+	// counts has no reason to redo any of this.
+	if (!prior || prior.contentKey !== contentKey) {
+		players = session.sessionUsers
+			.filter(u => u.userID !== resonite.UserID)
+			.map(sessionUser => ({
+				nick: sessionUser.username,
+				isAfk: !sessionUser.isPresent,
+				steamId64: "0",
+				isAdmin: false,
+				isBanned: false,
+				ip: sessionUser.userID,
+				avatar: undefined,
+			}));
+
+		// players keep the plain asset URL (this is also what the website's
+		// server-list API forwards) - only the render below needs the actual
+		// authenticated bytes.
+		await Promise.all(
+			players.map(async u => (u.avatar = await resonite.GetResoniteUserAvatarURL(u.ip)))
+		);
+
+		// assets.resonite.com can require the requester's own auth to serve the
+		// bytes - fall back to the raw URL so the composite at least attempts an
+		// unauthenticated fetch rather than rendering with no image at all.
+		const renderPlayers: Player[] = await Promise.all(
+			players.map(async p => ({
+				...p,
+				avatar: p.avatar
+					? ((await resonite.FetchAssetDataUri(p.avatar)) ?? p.avatar)
+					: undefined,
+			}))
+		);
+		const compositeBackground =
+			(await resonite.FetchAssetDataUri(backgroundImage)) ?? backgroundImage;
+
+		playerListImage = await renderPlayerListImage(renderPlayers, compositeBackground);
+	}
+
+	const state: ResoniteSessionState = {
+		session,
+		backgroundImage,
+		players,
+		playerListImage,
+		contentKey,
+	};
+	connection.sessions.set(session.sessionId, state);
+
+	updatePresence(connection);
+	if (backgroundImage !== connection.discordBanner) {
+		connection.changeBanner(backgroundImage);
+	}
+
+	return true;
 }
 
 function updatePresence(connection: ResoniteConnection): void {
@@ -205,11 +296,21 @@ function createConnection(bridge: GameBridge): ResoniteConnection {
 			discordToken: resoniteConfig.discordToken,
 		},
 	}));
-	connection.discord.on("clientReady", () => {
+	connection.discord.on("clientReady", async () => {
 		connection.setPresence("idle", {
 			afk: true,
 			state: "waiting for server connection",
 		});
+
+		try {
+			const resonite = bridge.container.getService("Resonite");
+			for (const session of await resonite.GetHostSessions(resonite.UserID)) {
+				await upsertSession(bridge, resonite, session);
+			}
+			await renderStatus(bridge);
+		} catch (err) {
+			log.error(err, "Resonite login seed failed");
+		}
 	});
 	return connection;
 }
@@ -241,80 +342,9 @@ export function attachResonite(bridge: GameBridge): void {
 				return;
 			}
 
-			// RemoveSession tears the connection down once no sessions remain, so a
-			// session starting back up needs a fresh connection created here.
-			const connection =
-				bridge.servers.resonite[RESONITE_SERVER_ID] ?? createConnection(bridge);
-			if (!connection.discord.ready) return;
-
-			const backgroundImage =
-				session.thumbnailUrl ?? connection.backgroundImage ?? DEFAULT_BACKGROUND;
-			const contentKey = sessionContentKey(session);
-			const prior = connection.sessions.get(session.sessionId);
-
-			let players = prior?.players ?? [];
-			let playerListImage = prior?.playerListImage;
-
-			// only refetch avatars and re-render the composite when something that
-			// actually affects them changed - a heartbeat with the same players and
-			// counts has no reason to redo any of this.
-			if (!prior || prior.contentKey !== contentKey) {
-				players = session.sessionUsers
-					.filter(u => u.userID !== resonite.UserID)
-					.map(sessionUser => ({
-						nick: sessionUser.username,
-						isAfk: !sessionUser.isPresent,
-						steamId64: "0",
-						isAdmin: false,
-						isBanned: false,
-						ip: sessionUser.userID,
-						avatar: undefined,
-					}));
-
-				// players keep the plain asset URL (this is also what the website's
-				// server-list API forwards) - only the render below needs the actual
-				// authenticated bytes.
-				await Promise.all(
-					players.map(
-						async u => (u.avatar = await resonite.GetResoniteUserAvatarURL(u.ip))
-					)
-				);
-
-				// assets.resonite.com can require the requester's own auth to serve the
-				// bytes - fall back to the raw URL so the composite at least attempts an
-				// unauthenticated fetch rather than rendering with no image at all.
-				const renderPlayers: Player[] = await Promise.all(
-					players.map(async p => ({
-						...p,
-						avatar: p.avatar
-							? ((await resonite.FetchAssetDataUri(p.avatar)) ?? p.avatar)
-							: undefined,
-					}))
-				);
-				const compositeBackground =
-					(await resonite.FetchAssetDataUri(backgroundImage)) ?? backgroundImage;
-
-				playerListImage = await renderPlayerListImage(renderPlayers, compositeBackground);
+			if (await upsertSession(bridge, resonite, session)) {
+				await renderStatus(bridge);
 			}
-
-			const state: ResoniteSessionState = {
-				session,
-				backgroundImage,
-				players,
-				playerListImage,
-				contentKey,
-			};
-			connection.sessions.set(session.sessionId, state);
-
-			updatePresence(connection);
-			if (backgroundImage !== connection.discordBanner) {
-				connection.changeBanner(backgroundImage);
-			}
-
-			const { containers, files } = renderMessage(connection, {
-				state: connection.disconnected ? "disconnected" : undefined,
-			});
-			await connection.postOrEditStatusMessage(containers, files, buildSignature(connection));
 		} catch (err) {
 			log.error(err, "ReceiveSessionUpdate");
 		}
