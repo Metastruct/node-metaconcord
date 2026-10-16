@@ -57,11 +57,7 @@ export default class GameConnection extends EventEmitter {
 		super();
 		this.config = config.serverConfig;
 		this.bridge = config.bridge;
-		this.backgroundImage = Array.isArray(this.config.backgroundImage)
-			? this.config.backgroundImage[
-				Math.floor(Math.random() * this.config.backgroundImage.length)
-			]
-			: this.config.backgroundImage;
+		this.backgroundImage = this.getBackgroundImage();
 		this.discord = new DiscordClient(this, {
 			intents: ["Guilds", "GuildMessages", "MessageContent"],
 		});
@@ -80,6 +76,12 @@ export default class GameConnection extends EventEmitter {
 		});
 
 		log.info(`'${this.config.name}' Discord Bot Launched`);
+	}
+
+	protected getBackgroundImage(): string | undefined {
+		const images = this.config.backgroundImage;
+		if (Array.isArray(images)) return images[Math.floor(Math.random() * images.length)];
+		return images;
 	}
 
 	/**

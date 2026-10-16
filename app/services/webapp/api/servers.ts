@@ -163,7 +163,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		for (const server of Object.values(bridge.servers.ss13)) {
 			if (!server) continue;
 			const host = new URL(ss13Config.baseUrl).hostname;
-			for (const [instanceId, { name, status, players }] of server.instances) {
+			for (const [instanceId, { name, status, players, backgroundImage }] of server.instances) {
 				const extra: Record<string, string> = {};
 				if (status.roundId) extra.round = String(status.roundId);
 				if (status.securityLevel) extra.securityLevel = status.securityLevel;
@@ -174,7 +174,7 @@ export default async (webApp: WebApp): Promise<void> => {
 					name,
 					map: status.mapName,
 					mode: status.gamestate !== undefined ? GameState[status.gamestate] : undefined,
-					thumbnail: thumbnailUrl(baseUrl, server.status.backgroundImage),
+					thumbnail: thumbnailUrl(baseUrl, backgroundImage),
 					players: players.map(basePlayer),
 					playerCount: players.length,
 					maxPlayers: status.popcap || undefined,

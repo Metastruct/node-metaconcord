@@ -216,7 +216,7 @@ async function pollInstance(
 	const playerListImage =
 		players.length > 0 ? await renderPlayerListImage(players, backgroundImage) : undefined;
 
-	return { name: instance.name, status, players, playerListImage };
+	return { name: instance.name, status, players, backgroundImage, playerListImage };
 }
 
 export function attachSS13(bridge: GameBridge): void {
@@ -240,7 +240,11 @@ export function attachSS13(bridge: GameBridge): void {
 		let anySucceeded = false;
 		for (const instanceConfig of config.instances as SS13InstanceConfig[]) {
 			try {
-				const state = await pollInstance(host, instanceConfig, conn.backgroundImage);
+				const state = await pollInstance(
+					host,
+					instanceConfig,
+					conn.getInstanceBackground(instanceConfig.instanceId)
+				);
 				anySucceeded = true;
 				if (state) {
 					conn.instances.set(instanceConfig.instanceId, state);
