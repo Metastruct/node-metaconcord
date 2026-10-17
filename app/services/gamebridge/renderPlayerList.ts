@@ -55,7 +55,7 @@ const failedFetchCache = new Map<string, number>();
 
 // Keyed by player identity (not URL, which may not have succeeded yet under
 // this key) so a currently-failing avatar still shows whatever we last had
-// for that player instead of falling back to the empty circle.
+// for that player instead of falling back to the empty placeholder.
 const lastGoodByPlayerCache = new Map<string, string>();
 
 // resvg only decodes PNG/JPEG raster images embedded in <image> - other
@@ -220,8 +220,8 @@ export async function renderPlayerListImage(
 		const nickX = x + avatarSize + gap;
 
 		const avatar = avatarDataUri
-			? `<image href="${avatarDataUri}" x="${x}" y="${rowCenterY - avatarSize / 2}" width="${avatarSize}" height="${avatarSize}" image-rendering="optimizeSpeed" clip-path="url(#clip)"/>`
-			: `<circle cx="${x + avatarSize / 2}" cy="${rowCenterY}" r="${avatarSize / 2}" fill="#444" stroke="#555" stroke-width="1"/>`;
+			? `<image href="${avatarDataUri}" x="${x}" y="${rowCenterY - avatarSize / 2}" width="${avatarSize}" height="${avatarSize}" image-rendering="optimizeSpeed"/>`
+			: `<rect x="${x}" y="${rowCenterY - avatarSize / 2}" width="${avatarSize}" height="${avatarSize}" fill="#444" stroke="#555" stroke-width="1"/>`;
 
 		const nameY = p.description ? rowCenterY - 4 : rowCenterY + nameFontSize * 0.35;
 		const nameText = `<text x="${nickX}" y="${nameY}" fill="${color}" font-size="${nameFontSize}" font-family="${FONT_FAMILY}">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80" font-style="italic" dx="${JOINING_LABEL_GAP}">${escapeXml(JOINING_LABEL)}</tspan>` : ""}</text>`;
@@ -238,11 +238,6 @@ export async function renderPlayerListImage(
 	});
 
 	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-	<defs>
-		<clipPath id="clip" clipPathUnits="objectBoundingBox">
-			<circle cx="0.5" cy="0.5" r="0.5"/>
-		</clipPath>
-	</defs>
 	<rect width="${width}" height="${height}" fill="#222"/>
 	${backgroundImageDataUri ? `<image href="${backgroundImageDataUri}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice"/>` : ""}
 	<rect width="${width}" height="${height}" fill="rgba(0,0,0,0.85)"/>
