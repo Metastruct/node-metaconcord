@@ -219,9 +219,14 @@ export async function renderPlayerListImage(
 		const avatarDataUri = avatarDataUris[i];
 		const nickX = x + avatarSize + gap;
 
+		const avatarTop = rowCenterY - avatarSize / 2;
 		const avatar = avatarDataUri
-			? `<image href="${avatarDataUri}" x="${x}" y="${rowCenterY - avatarSize / 2}" width="${avatarSize}" height="${avatarSize}" image-rendering="optimizeSpeed"/>`
-			: `<rect x="${x}" y="${rowCenterY - avatarSize / 2}" width="${avatarSize}" height="${avatarSize}" fill="#444" stroke="#555" stroke-width="1"/>`;
+			? `<image href="${avatarDataUri}" x="${x}" y="${avatarTop}" width="${avatarSize}" height="${avatarSize}" image-rendering="optimizeSpeed"/>`
+			: `<rect x="${x}" y="${avatarTop}" width="${avatarSize}" height="${avatarSize}" fill="rgba(255,255,255,0.10)"/>
+				<g transform="translate(${x + avatarSize / 2} ${rowCenterY})" fill="#9aa0a6">
+					<circle cx="0" cy="${-avatarSize * 0.12}" r="${avatarSize * 0.16}"/>
+					<path d="M ${-avatarSize * 0.28} ${avatarSize * 0.32} q 0 ${-avatarSize * 0.26} ${avatarSize * 0.28} ${-avatarSize * 0.26} q ${avatarSize * 0.28} 0 ${avatarSize * 0.28} ${avatarSize * 0.26} z"/>
+				</g>`;
 
 		const nameY = p.description ? rowCenterY - 4 : rowCenterY + nameFontSize * 0.35;
 		const nameText = `<text x="${nickX}" y="${nameY}" fill="${color}" font-size="${nameFontSize}" font-family="${FONT_FAMILY}">${escapeXml(nick)}${isJoining ? `<tspan fill="#4ade80" font-style="italic" dx="${JOINING_LABEL_GAP}">${escapeXml(JOINING_LABEL)}</tspan>` : ""}</text>`;
