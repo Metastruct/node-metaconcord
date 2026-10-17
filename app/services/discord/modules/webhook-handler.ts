@@ -209,7 +209,7 @@ function formatDiffText(text: string): string {
 }
 
 const MAX_DIFF_CHANGES_PER_FILE = 8; // full body at/below this many changes
-const MAX_DIFF_PEEK_CHANGES = 40; // changed lines shown across a larger file's hunks
+const MAX_DIFF_PEEK_CHANGES = 16; // changed lines shown across a larger file's hunks
 const MAX_DIFF_LINE_LENGTH = 160; // lines longer than this get collapsed
 const DIFF_CLIP_CONTEXT = 16; // unchanged chars kept either side of each change
 const DIFF_BLOCK_OVERHEAD = "```diff\n".length + "\n```".length; // per-file fence
