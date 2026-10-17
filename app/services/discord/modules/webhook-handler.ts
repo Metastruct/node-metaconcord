@@ -17,6 +17,7 @@ import type {
 } from "@gitbeaker/rest";
 import type { Octokit } from "@octokit/rest";
 import gitlabConfig from "#/config/gitlab.json" with { type: "json" };
+import { diffChars } from "diff";
 
 const log = logger(import.meta);
 
@@ -208,8 +209,9 @@ function formatDiffText(text: string): string {
 }
 
 const MAX_DIFF_CHANGES_PER_FILE = 8; // full body at/below this many changes
-const MAX_DIFF_PEEK_CHANGES = 8; // changed lines shown for a larger file
-const MAX_DIFF_LINE_LENGTH = 160; // clip minified lines
+const MAX_DIFF_PEEK_CHANGES = 40; // changed lines shown across a larger file's hunks
+const MAX_DIFF_LINE_LENGTH = 160; // lines longer than this get collapsed
+const DIFF_CLIP_CONTEXT = 16; // unchanged chars kept either side of each change
 const DIFF_BLOCK_OVERHEAD = "```diff\n".length + "\n```".length; // per-file fence
 
 interface DiffFile {
@@ -375,9 +377,6 @@ function diffLabel(file: DiffFile, shownChanges: number, link?: string): string 
 	return `${name} +${file.added} -${file.removed}${suffix}`;
 }
 
-const clipDiffLine = (line: string) =>
-	line.length > MAX_DIFF_LINE_LENGTH ? `${line.slice(0, MAX_DIFF_LINE_LENGTH - 1)}…` : line;
-
 interface DiffBlock {
 	file: DiffFile;
 	content: string[];
@@ -385,21 +384,197 @@ interface DiffBlock {
 	isLarge: boolean;
 }
 
-// Small files keep their full body; larger ones get a bounded peek so they
-// can't starve the block.
+interface DiffRegion {
+	oldStart: number;
+	oldEnd: number;
+	newStart: number;
+	newEnd: number;
+}
+
+// Character-level diff of a removed/added line pair, merged into the spans that
+// actually changed - so a long line edited in several places yields several
+// regions rather than one span from the first edit to the last.
+function differingRegions(oldBody: string, newBody: string): DiffRegion[] {
+	const regions: DiffRegion[] = [];
+	let oldPos = 0;
+	let newPos = 0;
+	let current: DiffRegion | undefined;
+	for (const part of diffChars(oldBody, newBody)) {
+		const length = part.value.length;
+		if (part.added || part.removed) {
+			current ??= { oldStart: oldPos, oldEnd: oldPos, newStart: newPos, newEnd: newPos };
+			if (part.removed) oldPos += length;
+			if (part.added) newPos += length;
+			current.oldEnd = oldPos;
+			current.newEnd = newPos;
+		} else {
+			if (current) {
+				regions.push(current);
+				current = undefined;
+			}
+			oldPos += length;
+			newPos += length;
+		}
+	}
+	if (current) regions.push(current);
+	return regions;
+}
+
+// Collapses the runs of a long line that didn't change to "…", keeping a little
+// context around every changed region so multiple edits all stay visible.
+function collapseLine(body: string, regions: [number, number][]): string {
+	const keep = new Array<boolean>(body.length).fill(false);
+	for (const [start, end] of regions) {
+		const from = Math.max(0, start - DIFF_CLIP_CONTEXT);
+		const to = Math.min(body.length, end + DIFF_CLIP_CONTEXT);
+		for (let i = from; i < to; i++) keep[i] = true;
+	}
+
+	let out = "";
+	let gap = false;
+	let i = 0;
+	while (i < body.length) {
+		if (keep[i]) {
+			if (gap) {
+				out += "…";
+				gap = false;
+			}
+			let end = i;
+			while (end < body.length && keep[end]) end++;
+			out += body.slice(i, end);
+			i = end;
+		} else {
+			gap = true;
+			i++;
+		}
+	}
+	if (gap) out += "…";
+	return out.length > MAX_DIFF_LINE_LENGTH ? `${out.slice(0, MAX_DIFF_LINE_LENGTH - 1)}…` : out;
+}
+
+// Keeps an over-long line to just its changed parts, still showing the leading
+// diff marker (+/-/space) so a collapsed line doesn't read as context.
+function clipDiffLine(line: string, regions: [number, number][]): string {
+	if (line.length <= MAX_DIFF_LINE_LENGTH) return line;
+
+	const marker = line[0];
+	const body = line.slice(1);
+	// no counterpart to diff against: fall back to showing the head of the line
+	if (regions.length === 0) return `${marker}${body.slice(0, MAX_DIFF_LINE_LENGTH - 1)}…`;
+	return `${marker}${collapseLine(body, regions)}`;
+}
+
+// Pairs each removed line with its added counterpart so the changed regions
+// within both can be located, then collapses every over-long line.
+function clipDiffLines(content: string[]): string[] {
+	const regions: ([number, number][] | undefined)[] = new Array(content.length).fill(undefined);
+	let i = 0;
+	while (i < content.length) {
+		// a change group runs while we keep seeing +/- lines (and the "\ No newline"
+		// marker, which git may interleave between the removed and added line)
+		const startsChange =
+			content[i].startsWith("-") ||
+			content[i].startsWith("+") ||
+			content[i].startsWith("\\");
+		if (!startsChange) {
+			i++;
+			continue;
+		}
+		const removed: number[] = [];
+		const added: number[] = [];
+		while (i < content.length) {
+			const line = content[i];
+			if (line.startsWith("-")) removed.push(i);
+			else if (line.startsWith("+")) added.push(i);
+			else if (!line.startsWith("\\")) break;
+			i++;
+		}
+		for (let p = 0; p < Math.min(removed.length, added.length); p++) {
+			const oldBody = content[removed[p]].slice(1);
+			const newBody = content[added[p]].slice(1);
+			if (oldBody.length <= MAX_DIFF_LINE_LENGTH && newBody.length <= MAX_DIFF_LINE_LENGTH)
+				continue;
+			const diff = differingRegions(oldBody, newBody);
+			regions[removed[p]] = diff.map(r => [r.oldStart, r.oldEnd]);
+			regions[added[p]] = diff.map(r => [r.newStart, r.newEnd]);
+		}
+	}
+	return content.map((line, index) => clipDiffLine(line, regions[index] ?? []));
+}
+
+// A file's body is a sequence of hunks, each starting at its "@@ ... @@" header.
+function splitHunks(body: string[]): string[][] {
+	const hunks: string[][] = [];
+	let current: string[] = [];
+	for (const line of body) {
+		if (line.startsWith("@@") && current.length > 0) {
+			hunks.push(current);
+			current = [];
+		}
+		current.push(line);
+	}
+	if (current.length > 0) hunks.push(current);
+	return hunks;
+}
+
+// Shares the changed-line budget across a file's hunks so every part of a large
+// diff is represented instead of only the top of the file. A hunk that needs
+// less than its share spills the rest over to the others.
+function hunkQuotas(hunks: string[][], budget: number): number[] {
+	const counts = hunks.map(hunk => hunk.filter(isChangedLine).length);
+	const quotas = new Array<number>(hunks.length).fill(0);
+	let remaining = budget;
+	for (let i = 0; i < hunks.length && remaining > 0; i++) {
+		if (counts[i] > 0) {
+			quotas[i] = 1;
+			remaining--;
+		}
+	}
+	while (remaining > 0) {
+		let progressed = false;
+		for (let i = 0; i < hunks.length && remaining > 0; i++) {
+			if (quotas[i] < counts[i]) {
+				quotas[i]++;
+				remaining--;
+				progressed = true;
+			}
+		}
+		if (!progressed) break;
+	}
+	return quotas;
+}
+
+// For a large file, keeps up to the budget's changed lines from each hunk (with
+// the context leading up to them), marking any hunk that had to be cut short.
+function peekHunks(body: string[], budget: number): string[] {
+	const hunks = splitHunks(body);
+	const quotas = hunkQuotas(hunks, budget);
+	const content: string[] = [];
+	for (let h = 0; h < hunks.length; h++) {
+		if (quotas[h] === 0) continue;
+		const hunk = hunks[h];
+		let shown = 0;
+		let i = 0;
+		for (; i < hunk.length; i++) {
+			content.push(hunk[i]);
+			if (isChangedLine(hunk[i]) && ++shown >= quotas[h]) {
+				i++;
+				break;
+			}
+		}
+		if (i < hunk.length) content.push("…");
+	}
+	return content;
+}
+
+// Small files keep their full body; larger ones get a bounded, hunk-fair peek so
+// they can't starve the block and later changes aren't hidden by churn up top.
 function buildDiffBlocks(files: DiffFile[]): DiffBlock[] {
 	return files.map(file => {
 		const isLarge = file.maxChanges > MAX_DIFF_CHANGES_PER_FILE;
-		let content = file.body;
-		if (isLarge) {
-			content = [];
-			let shown = 0;
-			for (const line of file.body) {
-				content.push(line);
-				if (isChangedLine(line) && ++shown >= MAX_DIFF_PEEK_CHANGES) break;
-			}
-		}
-		content = content.map(clipDiffLine);
+		const content = clipDiffLines(
+			isLarge ? peekHunks(file.body, MAX_DIFF_PEEK_CHANGES) : file.body
+		);
 		return {
 			file,
 			content,
@@ -407,6 +582,66 @@ function buildDiffBlocks(files: DiffFile[]): DiffBlock[] {
 			isLarge,
 		};
 	});
+}
+
+// When a file can't fit its share, takes a slice from each of its hunks rather
+// than just the head, so the budget doesn't always eat the last hunk. Returns
+// the lines to show, with "…" marking where a hunk was cut short.
+function sampleBlock(content: string[], budget: number): string[] {
+	const hunks = splitHunks(content).filter(hunk => hunk.some(isChangedLine));
+	if (hunks.length === 0) return [];
+
+	let remaining = budget - DIFF_BLOCK_OVERHEAD;
+	const allocated = new Array<number>(hunks.length).fill(0);
+	const whole = new Array<boolean>(hunks.length).fill(false);
+	const pending = hunks.map((_, i) => i);
+	while (remaining > 0 && pending.length > 0) {
+		const share = Math.floor(remaining / pending.length);
+		if (share <= 1) break;
+		let progressed = false;
+		for (let p = pending.length - 1; p >= 0; p--) {
+			const i = pending[p];
+			const cost = hunks[i].reduce((n, line) => n + line.length + 1, 0);
+			if (cost <= share) {
+				allocated[i] = cost;
+				whole[i] = true;
+				remaining -= cost;
+				pending.splice(p, 1);
+				progressed = true;
+			}
+		}
+		if (progressed) continue;
+		for (const i of pending) allocated[i] = share;
+		break;
+	}
+
+	const shown: string[] = [];
+	for (let i = 0; i < hunks.length; i++) {
+		if (allocated[i] <= 0) continue;
+		// a hunk that fits is shown in full; one that doesn't keeps its header and
+		// changed lines, dropping context so the budget buys changes, not boilerplate
+		if (whole[i]) {
+			shown.push(...hunks[i]);
+			continue;
+		}
+		let used = 0;
+		let gap = false;
+		for (const line of hunks[i]) {
+			if (!isChangedLine(line) && !line.startsWith("@@")) {
+				gap = true;
+				continue;
+			}
+			if (used + line.length + 1 > allocated[i]) break;
+			if (gap) {
+				if (shown[shown.length - 1] !== "…") shown.push("…");
+				gap = false;
+			}
+			shown.push(line);
+			used += line.length + 1;
+		}
+		if (gap && shown[shown.length - 1] !== "…") shown.push("…");
+	}
+	return shown;
 }
 
 // Renders each file as its own ```diff block under a subtext label. Fits into
@@ -433,7 +668,7 @@ function formatDiff(text: string, budget: number, links?: Map<string, string>): 
 	}
 	if (labelCost(blocks) > budget) return "";
 
-	const take: number[] = new Array(blocks.length).fill(0);
+	const shown: string[][] = blocks.map(() => []);
 	let remaining = budget - labelCost(blocks);
 	const pending = blocks.map((_, i) => i).filter(i => blocks[i].content.length > 0);
 
@@ -446,7 +681,7 @@ function formatDiff(text: string, budget: number, links?: Map<string, string>): 
 		for (let p = pending.length - 1; p >= 0; p--) {
 			const i = pending[p];
 			if (blocks[i].contentCost <= share) {
-				take[i] = blocks[i].content.length;
+				shown[i] = blocks[i].content;
 				remaining -= blocks[i].contentCost;
 				pending.splice(p, 1);
 				progressed = true;
@@ -454,29 +689,24 @@ function formatDiff(text: string, budget: number, links?: Map<string, string>): 
 		}
 		if (progressed) continue;
 
-		// Nothing fits whole: give each remaining file its share of lines.
-		for (const i of pending) {
-			let used = DIFF_BLOCK_OVERHEAD;
-			for (const line of blocks[i].content) {
-				if (used + line.length + 1 > share) break;
-				used += line.length + 1;
-				take[i]++;
-			}
-		}
+		// Nothing fits whole: give each remaining file a slice spread across its
+		// hunks instead of its head, so the budget doesn't always eat the tail.
+		for (const i of pending) shown[i] = sampleBlock(blocks[i].content, share);
 		break;
 	}
 
 	const rendered = blocks
 		.map((block, i) => {
-			const shown = block.content.slice(0, take[i]);
-			const changed = shown.filter(isChangedLine).length;
+			const changed = shown[i].filter(isChangedLine).length;
 			// don't open a block for context-only output; just show the label
 			const label = diffLabel(
 				block.file,
 				changed > 0 ? changed : block.file.maxChanges,
 				links?.get(block.file.path)
 			);
-			return changed > 0 ? `${label}\n\`\`\`diff\n${shown.join("\n")}\n\`\`\`` : label;
+			return changed > 0
+				? `${label}\n\`\`\`diff\n${shown[i].join("\n")}\n\`\`\``
+				: label;
 		})
 		.join("\n");
 
