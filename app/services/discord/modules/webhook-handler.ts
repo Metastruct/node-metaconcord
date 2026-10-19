@@ -1101,13 +1101,14 @@ export default async (bot: DiscordBot): Promise<void> => {
 					});
 				break;
 			case "everything": {
+				await ctx.deferReply();
 				const msg = ctx.message;
 				const url =
 					msg.embeds.length > 0
 						? msg.embeds[msg.embeds.length - 1].url
 						: findCommitUrl(msg);
 				if (!url) {
-					await ctx.reply("url not found for refreshing :( ... aborting");
+					await ctx.editReply("url not found for refreshing :( ... aborting");
 					return;
 				}
 
@@ -1121,7 +1122,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						) || [];
 					try {
 						if (!github) {
-							await ctx.reply(
+							await ctx.editReply(
 								"github is not enabled on this instance :( ... aborting"
 							);
 							return;
@@ -1129,7 +1130,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						const res = await github.octokit.rest.repos.getCommit({ owner, repo, ref });
 						files = res.data.files?.flatMap(f => f.filename);
 					} catch (err: unknown) {
-						await ctx.reply(
+						await ctx.editReply(
 							"something went wrong fetching the files from github :( ... aborting\n" +
 								`\`${errToMessage(err)}\``
 						);
@@ -1146,7 +1147,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						) || [];
 					try {
 						if (!gitlab) {
-							await ctx.reply(
+							await ctx.editReply(
 								"gitlab is not enabled on this instance :( ... aborting"
 							);
 							return;
@@ -1154,7 +1155,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						const diffs = await getGitlabDiff(gitlab.api, id, sha);
 						files = diffs?.filter(f => !f.deleted_file).flatMap(f => f.new_path);
 					} catch (err: unknown) {
-						await ctx.reply(
+						await ctx.editReply(
 							"something went wrong fetching the files from gitlab :( ... aborting\n" +
 								`\`${errToMessage(err)}\``
 						);
@@ -1174,11 +1175,11 @@ export default async (bot: DiscordBot): Promise<void> => {
 				}
 
 				if (!files || files.length === 0) {
-					await ctx.reply("no files found for refreshing :( ... aborting");
+					await ctx.editReply("no files found for refreshing :( ... aborting");
 					return;
 				}
 
-				await ctx.reply(
+				await ctx.editReply(
 					`<@${ctx.user.id}> updating and refreshing files on ${where
 						.map(s =>
 							s.discord.ready ? `<@${s.discord.user?.id}>` : `#${s.config.id}`
