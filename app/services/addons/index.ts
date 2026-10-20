@@ -239,7 +239,7 @@ export class Addons extends Service {
 		if (parsed) {
 			git = await resolveGit(parsed, this.githubClient());
 			const last = previous?.get(key);
-			if (git.transient && last) return { addon: last, transient: true };
+			if (last && git.transient) return { addon: last, transient: true };
 		}
 		const addon = await this.describeGmodAddon(
 			repo,

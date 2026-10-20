@@ -160,7 +160,7 @@ export class FluxerRest {
 					await sleep(Math.max(retryAfter, 250));
 					continue;
 				}
-				if (response.status >= 500 && canRetryTransientFailure && transientAttempts < 4) {
+				if (canRetryTransientFailure && response.status >= 500 && transientAttempts < 4) {
 					await sleep(500 * 2 ** transientAttempts++);
 					continue;
 				}
@@ -175,8 +175,8 @@ export class FluxerRest {
 				return (await response.json()) as T;
 			} catch (error) {
 				if (
-					error instanceof FluxerApiError ||
 					!canRetryTransientFailure ||
+					error instanceof FluxerApiError ||
 					transientAttempts >= 4
 				)
 					throw error;

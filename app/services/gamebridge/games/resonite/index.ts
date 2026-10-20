@@ -27,7 +27,7 @@ function buildSessionContainer(
 	let desc =
 		`### ${session.tags[0] ?? session.name}\n` +
 		`:busts_in_silhouette: Player${
-			count > 1 || count === 0 ? "s" : ""
+			count === 0 || count > 1 ? "s" : ""
 		}: **Active: ${session.activeUsers} • Connected: ${count}**\n` +
 		`:door: Capacity: **${count}/${session.maxUsers}**\n` +
 		`:repeat: Last Update: <t:${(new Date(session.lastUpdate).getTime() / 1000) | 0}:R>\n` +

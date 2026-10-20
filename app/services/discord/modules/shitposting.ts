@@ -95,7 +95,7 @@ export const Shat = async (options?: {
 
 		if (!word) word = getWord(await markov?.generate());
 
-		if (images.length > 0 && (Math.random() <= 0.5 || !word)) {
+		if (images.length > 0 && (!word || Math.random() <= 0.5)) {
 			const imgur = images[(Math.random() * images.length) | 0];
 			const result = await makeSpeechBubble(imgur.link, Math.random() <= 0.5);
 			return result
@@ -314,12 +314,16 @@ export default async (bot: DiscordBot) => {
 			if (!bot.ready) return;
 			const now = Date.now();
 			if (
-				((lastMsgs.length > 0 && lastMsgs.at(-1).author.id) ||
-					(await bot.getTextChannel(bot.config.channels.chat)?.lastMessage?.fetch())
-						?.author.id) !== client.user.id &&
-				(now - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
-					now - lastMsgTime > MSG_CHAT_INTERVAL) &&
 				!posting
+				&& (
+					(lastMsgs.length > 0 && lastMsgs.at(-1).author.id)
+					||
+					(await bot.getTextChannel(bot.config.channels.chat)?.lastMessage?.fetch())?.author.id
+				) !== client.user.id
+				&& (
+					now - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL
+					|| now - lastMsgTime > MSG_CHAT_INTERVAL
+				)
 			) {
 				await sendShat({
 					msg: Math.random() <= MSG_REPLY_PROB ? lastMsgs.at(-1) : undefined,
@@ -447,7 +451,7 @@ export default async (bot: DiscordBot) => {
 		if (
 			isAllowedChannel &&
 			!isBot &&
-			((isMention && msg.content !== `<@${id}>`) || isTriggerWord || isMaybeTriggerWord)
+			(isTriggerWord || isMaybeTriggerWord || (isMention && msg.content !== `<@${id}>`))
 		) {
 			if (!posting && (!replied || !isChatChannel)) {
 				if (isChatChannel) replied = true;
@@ -479,7 +483,7 @@ export default async (bot: DiscordBot) => {
 		}
 
 		// image collector
-		if (msg.content.startsWith("http") && !isBot && !isHidden) {
+		if (!isBot && !isHidden && msg.content.startsWith("http")) {
 			const url = getMediaUrl(msg.content);
 			if (url)
 				db.prepare("INSERT INTO media_urls VALUES($url) ON CONFLICT DO NOTHING").run({

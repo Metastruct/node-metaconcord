@@ -43,7 +43,7 @@ const verifySteamOpenId = async (
 		log.error(error, "steam openid verification failed");
 	});
 	const ident = query["openid.identity"]?.toString();
-	if (!valid || !String(valid.data).includes("is_valid:true") || !ident) return;
+	if (!valid || !ident || !String(valid.data).includes("is_valid:true")) return;
 
 	return ident.match(/^https:\/\/steamcommunity\.com\/openid\/id\/(\d+)$/)?.[1];
 };

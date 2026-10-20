@@ -77,9 +77,9 @@ const assertPublicHost = (raw: string): void => {
 	const host = parsed.hostname.toLowerCase().replaceAll(/^\[|\]$/g, "");
 	if (
 		host === "localhost" ||
+		host === "::1" ||
 		host.endsWith(".localhost") ||
 		host.endsWith(".internal") ||
-		host === "::1" ||
 		/^127\./.test(host) ||
 		/^10\./.test(host) ||
 		/^192\.168\./.test(host) ||

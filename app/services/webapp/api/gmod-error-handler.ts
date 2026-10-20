@@ -140,12 +140,14 @@ export default async (webApp: WebApp): Promise<void> => {
 			)[0];
 		}
 
-		if (body.realm === "client" && !gamemodes.has(body.gamemode)) {
-			return;
-		} // external players?
-		if (body.realm === "server" && !server) {
-			return;
-		} // external servers?
+		switch (body.realm) {
+			case "client":
+				if (!gamemodes.has(body.gamemode)) return; // external players?
+				break;
+			case "server":
+				if (!server) return; // external servers?
+				break;
+		}
 
 		if (!body.stack) return;
 

@@ -44,7 +44,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		const backgroundImage = server.status.backgroundImage;
 		const workshopMap = server.workshopMap;
 		let thumbFilepath: string | undefined = undefined;
-		if (backgroundImage?.match(/^https?:\/\//) && workshopMap) {
+		if (workshopMap && backgroundImage?.match(/^https?:\/\//)) {
 			await access(cacheFolder, fs_constants.F_OK).catch(() =>
 				mkdir(cacheFolder, { recursive: true })
 			);

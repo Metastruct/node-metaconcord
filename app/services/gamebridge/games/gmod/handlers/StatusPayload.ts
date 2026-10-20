@@ -198,7 +198,7 @@ export default class StatusPayload extends Payload {
 
 			// Player count text
 			desc += `\n:busts_in_silhouette: Player${
-				count > 1 || count === 0 ? "s" : ""
+				count === 0 || count > 1 ? "s" : ""
 			}: **Active: ${countPresent} • Connected: ${count}**`;
 
 			// Server Uptime
@@ -303,8 +303,7 @@ export default class StatusPayload extends Payload {
 			}
 
 			if (
-				gamemodeIcon &&
-				(!server.discordIcon || gamemodeIcon !== server.discordIcon || mapChanged)
+				gamemodeIcon && (mapChanged || !server.discordIcon || gamemodeIcon !== server.discordIcon)
 			) {
 				server.changeIcon(gamemodeIcon);
 			}

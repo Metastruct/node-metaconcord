@@ -271,10 +271,10 @@ function parseDiffFiles(text: string): DiffFile[] {
 
 	const flush = () => {
 		if (
-			header.length === 0 &&
-			body.length === 0 &&
 			gitFrom === undefined &&
-			renameFrom === undefined
+			renameFrom === undefined &&
+			header.length === 0 &&
+			body.length === 0
 		) {
 			return;
 		}
@@ -1044,7 +1044,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 	]);
 
 	bot.discord.on("interactionCreate", async (ctx: Discord.Interaction<Discord.CacheType>) => {
-		if (!ctx.member || !ctx.isButton() || !bridge) return;
+		if (!bridge || !ctx.member || !ctx.isButton()) return;
 		const [action, override] = ctx.customId.split("_", 2);
 		const where =
 			override === undefined
@@ -1349,7 +1349,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					allFiles.length > 0 && allFiles.every(str => str.endsWith(".ogg"));
 
 				const diff =
-					isMergeCommit(commit.message) || isOnlyOgg || !repo.owner || !github
+					isOnlyOgg || !github || !repo.owner || isMergeCommit(commit.message)
 						? undefined
 						: await getGitHubCommitDiff(
 							github.octokit,
@@ -1421,7 +1421,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const messageComponents: MessageComponent[] = [];
 				if (i === 0 && forcePushText) messageComponents.push(forcePushText);
 				messageComponents.push(containers[i]);
-				if (i === containers.length - 1 && includesLua) messageComponents.push(actionRow);
+				if (includesLua && i === containers.length - 1) messageComponents.push(actionRow);
 
 				const sha = commitShas[i];
 				webhook
@@ -2046,7 +2046,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const isOnlyOgg = allFiles.length > 0 && allFiles.every(f => f.endsWith(".ogg"));
 
 				const diffFiles =
-					isMergeCommit(commit.message) || isOnlyOgg || !gitlab
+					isOnlyOgg || !gitlab || isMergeCommit(commit.message)
 						? undefined
 						: await getGitlabDiff(gitlab.api, project.id, commit.id);
 				const diff = diffFiles?.length
@@ -2106,7 +2106,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		if (containers.length > 1) {
 			for (let i = 0; i < containers.length; i++) {
 				const messageComponents: MessageComponent[] = [containers[i]];
-				if (i === containers.length - 1 && actionRow) messageComponents.push(actionRow);
+				if (actionRow && i === containers.length - 1) messageComponents.push(actionRow);
 
 				const sha = commitShas[i];
 				destWebhook
@@ -2167,7 +2167,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const title = mr.title.length > 256 ? `${mr.title.slice(0, 250)}. . .` : mr.title;
 
 		const diffFiles =
-			mr.last_commit && !isMergeCommit(mr.last_commit.message) && gitlab
+			gitlab && mr.last_commit && !isMergeCommit(mr.last_commit.message)
 				? await getGitlabDiff(gitlab.api, mr.target_project_id, mr.last_commit.id)
 				: undefined;
 		const links = diffFiles
