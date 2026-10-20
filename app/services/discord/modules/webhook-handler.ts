@@ -864,6 +864,13 @@ const isMergeCommit = (message: string) =>
 const COMMIT_URL_REGEX =
 	/https?:\/\/(?:github\.com\/[^\s)]+\/commit\/[^\s)]+|gitlab\.com\/[^\s)]+\/-\/commit\/[^\s)]+)/;
 
+const REF_BRANCH_REGEX = /^[^/]*\/[^/]*\/(?<branch>.*)$/;
+
+/** something like 'refs/heads/master' -> extracts 'master' */
+function getBranchByRef(ref: string) {
+	return ref.match(REF_BRANCH_REGEX).groups.branch;
+}
+
 function collectComponentText(
 	component: Discord.TopLevelComponent | Discord.ComponentInContainer
 ): string[] {
@@ -1249,7 +1256,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const repo = payload.repository;
 		const serverOverride = REPO_SERVER_MAP.get(repo.name);
 		const commits = payload.commits;
-		const branch = payload.ref.split("/").slice(2).join("/");
+		const branch = getBranchByRef(payload.ref);
 
 		let includesLua = false;
 
@@ -1577,7 +1584,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		if (bridge) {
 			const payload = event.payload;
-			const branchName = payload.ref.split("/").slice(2).join("/");
+			const branchName = getBranchByRef(payload.ref);
 			bridge.events.emit("githubPush", {
 				repo: payload.repository.full_name,
 				branch: branchName,
