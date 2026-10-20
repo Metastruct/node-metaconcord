@@ -13,25 +13,25 @@ const ACTIVITY_CHANGE_INTERVAL = 1000 * 60 * 60 * 0.25; // interval for changing
 const MSG_INTERVAL = 1000 * 60; // interval for checking messages for below trigger count, also resets activity if it was set manually or by other means
 const MSG_CHAT_INTERVAL = 1000 * 60 * 60 * 2; // total time until a message is forced if below interval wasn't met (active chatters)
 const MSG_DEAD_CHAT_REVIVAL_INTERVAL = 1000 * 60 * 60 * 0.75; // idle (no active chatters) time until post, can be delayed by chatting
-const MSG_USE_AUTHOR_FREQ = 0.3; // use the author name instead of message
-const MSG_REPLY_REACTION_FREQ = 0.05;
+const MSG_USE_AUTHOR_PROB = 0.3; // use the author name instead of message
+const MSG_REPLY_REACTION_PROB = 0.05;
 const MSG_REPLY_REACTION_CLEAR_INTERVAL = 1000 * 60 * 60;
-const REACTION_FREQ = 0.0025; // how often to react on messages;
+const REACTION_PROB = 0.0025; // probability to react on messages
 const SAVE_INTERVAL = 1000 * 60 * 60 * 0.25; // saves lastmsg/mk at that interval
-const MSG_REPLY_FREQ = 0.5; // sets how often to take the previous message in the cache
+const MSG_REPLY_PROB = 0.5; // probability for taking the previous message in the cache
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
 const COMMON_EMOJI_RATIO = 0.7;
 
 // trigger word constants
 const TRIGGER_WORDS = ["meta bot", "metabot", "metaconcord", "the bot"]; // these will always count like a normal reply/ping
 const MAYBE_TRIGGER_WORDS = ["bot", "meta", "meta construct", "metaconstruct", "metastruct"]; // not directly the bot but maybe
-const MAYBE_TRIGGER_FREQ = 0.4; // frequency of triggers above
+const MAYBE_TRIGGER_PROB = 0.4; // probability of triggers above
 
 // shat constants
-const DISCORD_IMAGE_FREQ = 0.2; // how often the bot will respond with an image instead of text
-const EMOJI_REPLY_FREQ = 0.2; // how often to reply with just an emoji
-const STICKER_FREQ = 0.02; // how often to reply with just a sticker
-const REPLY_FREQ = 0.5; // how often to when to take a word from a previous message if provided
+const DISCORD_IMAGE_PROB = 0.2; // probability the bot will respond with an image instead of text
+const EMOJI_REPLY_PROB = 0.2; // probability of a reply with just an emoji
+const STICKER_PROB = 0.02; // probability of a reply with just a sticker
+const REPLY_PROB = 0.5; // probability of taking a word from a previous message if provided
 
 const ALLOWED_IMG_PROVIDERS = ["tenor", "imgur", "discordapp", "tumblr"];
 const MEDIA_URL_REGEX = new RegExp(
@@ -75,11 +75,11 @@ export const Shat = async (options?: {
 
 	const rng = Math.random();
 
-	if (rng > DISCORD_IMAGE_FREQ && !options?.forceImage) {
+	if (rng > DISCORD_IMAGE_PROB && !options?.forceImage) {
 		const message = options?.msg?.replaceAll(`<@${DiscordConfig.bot.userId}> `, "");
 		let search: string | undefined;
 
-		if (message && !message.startsWith("http") && (rng <= REPLY_FREQ || options?.forceReply)) {
+		if (message && !message.startsWith("http") && (rng <= REPLY_PROB || options?.forceReply)) {
 			search = getWord(message);
 		}
 
@@ -200,9 +200,9 @@ export default async (bot: DiscordBot) => {
 		posting = true;
 		if (options.msg) (options.msg.channel as Discord.TextChannel).sendTyping();
 		try {
-			const shouldUseAuthor = Math.random() <= MSG_USE_AUTHOR_FREQ;
-			const shouldSendSticker = Math.random() <= STICKER_FREQ;
-			const shouldSendEmoji = Math.random() <= EMOJI_REPLY_FREQ;
+			const shouldUseAuthor = Math.random() <= MSG_USE_AUTHOR_PROB;
+			const shouldSendSticker = Math.random() <= STICKER_PROB;
+			const shouldSendEmoji = Math.random() <= EMOJI_REPLY_PROB;
 			const shat = await Shat({
 				msg: shouldUseAuthor
 					? ((await mk.exists(options.msg?.author.globalName?.toLowerCase())) ??
@@ -322,7 +322,7 @@ export default async (bot: DiscordBot) => {
 				!posting
 			) {
 				await sendShat({
-					msg: Math.random() <= MSG_REPLY_FREQ ? lastMsgs.slice(-1)[0] : undefined,
+					msg: Math.random() <= MSG_REPLY_PROB ? lastMsgs.slice(-1)[0] : undefined,
 				});
 				data.lastMsgTime = lastMsgTime = now;
 				replied = false;
@@ -374,7 +374,7 @@ export default async (bot: DiscordBot) => {
 		if (
 			!lastReactedMessages.has(message.id) &&
 			!lastReactedUsers.has(user.id) &&
-			Math.random() <= (reaction.emoji.name === "h_" ? 0.01 : MSG_REPLY_REACTION_FREQ)
+			Math.random() <= (reaction.emoji.name === "h_" ? 0.01 : MSG_REPLY_REACTION_PROB)
 		) {
 			const theFunny = await mk.generate(reaction.emoji.toString());
 			if (theFunny) {
@@ -408,7 +408,7 @@ export default async (bot: DiscordBot) => {
 			msg.content.toLowerCase()
 		);
 		const isMaybeTriggerWord =
-			rng <= MAYBE_TRIGGER_FREQ &&
+			rng <= MAYBE_TRIGGER_PROB &&
 			new RegExp("\\b" + MAYBE_TRIGGER_WORDS.join("\\b|\\b") + "\\b").test(
 				msg.content.toLowerCase()
 			);
@@ -430,7 +430,7 @@ export default async (bot: DiscordBot) => {
 		// Message Reactions
 		if (
 			!isBot &&
-			(rng <= REACTION_FREQ ||
+			(rng <= REACTION_PROB ||
 				(!isAllowedChannel && (isTriggerWord || isMaybeTriggerWord || isMention)))
 		) {
 			setTimeout(async () => {
