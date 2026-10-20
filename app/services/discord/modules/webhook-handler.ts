@@ -76,10 +76,10 @@ const CHECK_CONCLUSION_EMOJI: Record<string, string> = {
 	in_progress: "🔁",
 };
 
-function getCheckTarget(pullRequests: { number: number }[], headBranch?: string | null): string {
+function getCheckTarget(pullRequests: { number: number }[], headBranch: string = "unknown branch"): string {
 	return pullRequests.length > 0
 		? `pull request #${pullRequests[0].number}`
-		: (headBranch ?? "unknown branch");
+		: (headBranch);
 }
 
 type MessageComponent =

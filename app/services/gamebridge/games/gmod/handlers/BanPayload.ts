@@ -14,7 +14,7 @@ export default class BanPayload extends Payload {
 	static override async handle(payload: BanRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
-		const { player, banned, reason, unbanTime, gamemode } = payload.data;
+		const { player, banned, reason, unbanTime, gamemode = "GLOBAL" } = payload.data;
 		const { bridge, discord } = server;
 
 		if (!discord.ready) return;
@@ -68,7 +68,7 @@ export default class BanPayload extends Payload {
 		if (banned.nick) embed.addFields(f("Nick", banned.nick, true));
 		embed.addFields(f("Expiration", `<t:${unixTime}:R>`, true));
 		embed.addFields(f("Reason", reason.slice(0, 1900)));
-		embed.addFields(f("Gamemode", gamemode ?? "GLOBAL"));
+		embed.addFields(f("Gamemode", gamemode));
 		if (pastBans?.numbans) {
 			embed.addFields(f("Past Bans", pastBans.numbans.toString()));
 		}

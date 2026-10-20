@@ -10,7 +10,7 @@ export default class NotificationPayload extends Payload {
 	static override async handle(payload: NotificationResponse, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
-		const { title, message, color } = payload.data;
+		const { title, message, color = 0xC4_AF_21 } = payload.data;
 		const { discord } = server;
 
 		if (!discord.ready) return;
@@ -26,7 +26,7 @@ export default class NotificationPayload extends Payload {
 		const embed = new Discord.EmbedBuilder()
 			.setTitle(title.slice(0, 256))
 			.setDescription(message.slice(0, 4096))
-			.setColor(color ?? 0xC4_AF_21);
+			.setColor(color);
 		await (notificationsChannel as Discord.TextChannel).send({
 			embeds: [embed],
 		});

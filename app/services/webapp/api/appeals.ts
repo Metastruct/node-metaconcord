@@ -202,26 +202,26 @@ export default (webApp: WebApp): void => {
 
 	const closeAppeals = async (
 		steamId64: string,
-		resolution?: AppealRow["resolution"]
+		resolution: AppealRow["resolution"] = null
 	): Promise<void> => {
 		(await db())
 			.prepare("UPDATE appeals SET closed_at = ?, resolution = ? WHERE steam_id64 = ? AND closed_at IS NULL;")
 			.run(
 				Math.round(Date.now() / 1000),
-				resolution ?? null,
+				resolution,
 				steamId64
 			);
 	};
 
 	const closeAppealRow = async (
 		id: number,
-		resolution?: AppealRow["resolution"]
+		resolution: AppealRow["resolution"] = null
 	): Promise<void> => {
 		(await db())
 			.prepare("UPDATE appeals SET closed_at = ?, resolution = ? WHERE id = ? AND closed_at IS NULL;")
 			.run(
 				Math.round(Date.now() / 1000),
-				resolution ?? null,
+				resolution,
 				id
 			);
 	};
