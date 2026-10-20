@@ -1249,7 +1249,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const repo = payload.repository;
 		const serverOverride = REPO_SERVER_MAP.get(repo.name);
 		const commits = payload.commits;
-		const branch = payload.ref.split("/")[2];
+		const branch = payload.ref.split("/").slice(2).join("/");
 
 		let includesLua = false;
 
