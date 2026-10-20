@@ -186,25 +186,28 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 				gpath.linenoe ? Number(gpath.linenoe) : undefined
 			)
 			: file;
-	} else {
-		const url: string | undefined = gpath.addon ? AddonURIS[gpath.addon] : undefined;
+	}
 
-		if (url) {
-			const provider = url.match(/([^./]+)\.com/);
-			if (!provider) return;
-			const isGithub = provider[1] === "github";
-			const gitlabEndpoint = "https://gitlab.com/api/graphql";
-			const repo = gpath.addon;
-			const owner = url.match(/\.com\/(.+?)\//)?.[1];
-			const branch = url.split("/").at(-2);
+	const url: string | undefined = gpath.addon ? AddonURIS[gpath.addon] : undefined;
 
-			if (!owner) return;
-			let filecontent: string | undefined;
-			try {
-				if (isGithub) {
-					const github = await globalThis.MetaConcord.container.getService("Github");
-					const data = (await github.octokit.graphql(
-						`query text($owner: String!, $repo: String!) {
+	if (!url)
+		return;
+
+	const provider = url.match(/([^./]+)\.com/);
+	if (!provider) return;
+	const isGithub = provider[1] === "github";
+	const gitlabEndpoint = "https://gitlab.com/api/graphql";
+	const repo = gpath.addon;
+	const owner = url.match(/\.com\/(.+?)\//)?.[1];
+	const branch = url.split("/").at(-2);
+
+	if (!owner) return;
+	let filecontent: string | undefined;
+	try {
+		if (isGithub) {
+			const github = await globalThis.MetaConcord.container.getService("Github");
+			const data = (await github.octokit.graphql(
+				`query text($owner: String!, $repo: String!) {
 							repository(owner: $owner, name: $repo) {
 								object(expression: "${branch ?? "HEAD"}:${gpath.fpath}") {
 									... on Blob {
@@ -213,18 +216,18 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 								}
 							}
 						}`,
-						{ owner, repo }
-					)) as GraphQlQueryResponseData;
-					if (data.repository?.object?.text) {
-						filecontent = data.repository.object.text;
-					} else {
-						baseLogger.warn(
-							{ data, context: { path, url } },
-							"unexpected Github GraphQL response"
-						);
-					}
-				} else {
-					const query = gql`{
+				{ owner, repo }
+			)) as GraphQlQueryResponseData;
+			if (data.repository?.object?.text) {
+				filecontent = data.repository.object.text;
+			} else {
+				baseLogger.warn(
+					{ data, context: { path, url } },
+					"unexpected Github GraphQL response"
+				);
+			}
+		} else {
+			const query = gql`{
 		project(fullPath:"${url.match(/\.com\/(.+?)\/-/)?.[1]}") {
 			repository {
 				blobs(paths:"${gpath.fpath}"){
@@ -234,37 +237,37 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 		}
 	}
 `;
-					const data = await request<GitlabResponse>(
-						gitlabEndpoint,
-						query,
-						{},
-						{
-							authorization: `Bearer ${apikeys.gitlab}`,
-						}
-					);
-					if (data.project.repository.blobs.nodes[0]?.rawTextBlob) {
-						filecontent = data.project.repository.blobs.nodes[0].rawTextBlob;
-					} else {
-						baseLogger.info({ path, url }, "missing file from Gitlab repo");
-					}
+			const data = await request<GitlabResponse>(
+				gitlabEndpoint,
+				query,
+				{},
+				{
+					authorization: `Bearer ${apikeys.gitlab}`,
 				}
-			} catch (error) {
-				baseLogger.error(
-					{ err: error, context: { path, gmod: gpath.fpath, owner, repo, url } },
-					"GraphQL request failed"
-				);
-				return;
+			);
+			if (data.project.repository.blobs.nodes[0]?.rawTextBlob) {
+				filecontent = data.project.repository.blobs.nodes[0].rawTextBlob;
+			} else {
+				baseLogger.info({ path, url }, "missing file from Gitlab repo");
 			}
-
-			if (filecontent)
-				filecontent = getStackLines(
-					filecontent,
-					Number(gpath.linenos),
-					gpath.linenoe ? Number(gpath.linenoe) : undefined
-				);
-			return filecontent;
 		}
+	} catch (error) {
+		baseLogger.error(
+			{ err: error, context: { path, gmod: gpath.fpath, owner, repo, url } },
+			"GraphQL request failed"
+		);
+		return;
 	}
+
+	if (filecontent)
+		filecontent = getStackLines(
+			filecontent,
+			Number(gpath.linenos),
+			gpath.linenoe ? Number(gpath.linenoe) : undefined
+		);
+	return filecontent;
+		
+	
 };
 
 export const makeSpeechBubble = async (

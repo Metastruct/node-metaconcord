@@ -138,7 +138,8 @@ abstract class MarkovChainBase {
 
 			if (chain.length - lastChain.length <= 0 && chain.length < depth) {
 				break;
-			} else if (lastChain.length < depth) {
+			}
+			if (lastChain.length < depth) {
 				for (let i = lastChain.length; i < chain.length; i++) {
 					out.push(chain[i]);
 					if (callback) {

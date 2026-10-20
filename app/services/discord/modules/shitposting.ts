@@ -75,20 +75,7 @@ export const Shat = async (options?: {
 
 	const rng = Math.random();
 
-	if (rng > DISCORD_IMAGE_PROB && !options?.forceImage) {
-		const message = options?.msg?.replaceAll(`<@${DiscordConfig.bot.userId}> `, "");
-		let search: string | undefined;
-
-		if (message && !message.startsWith("http") && (rng <= REPLY_PROB || options?.forceReply)) {
-			search = getWord(message);
-		}
-
-		let shat = await markov?.generate(getWord(search));
-
-		if (!shat) shat = await markov?.generate();
-
-		return shat ? { content: shat } : undefined;
-	} else {
+	if (rng <= DISCORD_IMAGE_PROB || options?.forceImage) {
 		const images = globalThis.MetaConcord.container.getService("Motd").images;
 		let word =
 			options?.msg && !options.msg.startsWith("http") ? getWord(options.msg) : undefined;
@@ -101,17 +88,26 @@ export const Shat = async (options?: {
 			return result
 				? { files: [{ attachment: result, description: imgur.title }] }
 				: undefined;
-		} else {
-			try {
-				const db = globalThis.MetaConcord.container.getService("SQL").getLocalDatabase();
+		}
+		try {
+			const db = globalThis.MetaConcord.container.getService("SQL").getLocalDatabase();
 
-				const url = db.prepare<[], { url: string } | undefined>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1").get()?.url;
-				return { content: url ?? "wtf" };
-			} catch {
-				return { content: "wtf" };
-			}
+			const url = db.prepare<[], { url: string } | undefined>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1").get()?.url;
+			return { content: url ?? "wtf" };
+		} catch {
+			return { content: "wtf" };
 		}
 	}
+
+	const message = options?.msg?.replaceAll(`<@${DiscordConfig.bot.userId}> `, "");
+	let search: string | undefined;
+
+	if (message && !message.startsWith("http") && (rng <= REPLY_PROB || options?.forceReply)) {
+		search = getWord(message);
+	}
+
+	let shat = await markov?.generate(getWord(search)) || await markov?.generate();
+	return shat ? { content: shat } : undefined;
 };
 
 const COMMON_EMOJIS = [

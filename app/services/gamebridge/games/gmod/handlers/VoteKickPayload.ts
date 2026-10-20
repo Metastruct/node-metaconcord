@@ -34,6 +34,7 @@ export default class VoteKickPayload extends Payload {
 		if (result) {
 			const success = result.success;
 			const reason = result.reason;
+			
 			if (success) {
 				if (relayChannel) {
 					await this.getLastReport(payload.data, relayChannel as Discord.TextChannel)
@@ -44,28 +45,12 @@ export default class VoteKickPayload extends Payload {
 					.then(msg => msg?.react("✅"))
 					.catch(error => log.error(error));
 				return;
-			} else {
-				if (relayChannel) {
-					await this.getLastReport(
-						payload.data,
-						relayChannel as Discord.TextChannel
-					).then(msg =>
-						msg?.react(
-							reason?.includes("Player left")
-								? "🏃‍♂️"
-								: reason?.includes("not enough coins")
-									? "💲"
-									: reason?.includes("caller has left")
-										? "🤦‍♂️"
-										: reason?.includes("Vote was aborted")
-											? "⛔"
-											: "❌"
-						)
-					);
-				}
+			}
+
+			if (relayChannel) {
 				await this.getLastReport(
 					payload.data,
-					notificationsChannel as Discord.TextChannel
+					relayChannel as Discord.TextChannel
 				).then(msg =>
 					msg?.react(
 						reason?.includes("Player left")
@@ -79,8 +64,24 @@ export default class VoteKickPayload extends Payload {
 										: "❌"
 					)
 				);
-				return;
 			}
+			await this.getLastReport(
+				payload.data,
+				notificationsChannel as Discord.TextChannel
+			).then(msg =>
+				msg?.react(
+					reason?.includes("Player left")
+						? "🏃‍♂️"
+						: reason?.includes("not enough coins")
+							? "💲"
+							: reason?.includes("caller has left")
+								? "🤦‍♂️"
+								: reason?.includes("Vote was aborted")
+									? "⛔"
+									: "❌"
+				)
+			);
+			return;
 		}
 
 		let message = reason;
