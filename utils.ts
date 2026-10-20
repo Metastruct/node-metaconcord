@@ -32,6 +32,9 @@ export function errToMessage(err: unknown) {
 	return err instanceof Error ? err.message : `${err}`;
 }
 
+export const stripPrefix = (value: string, prefix: string) =>
+	value.startsWith(prefix) ? value.slice(prefix.length) : value;
+
 // built from a string literal so no raw control bytes end up in this file
 // eslint-disable-next-line no-control-regex -- escaping control bytes is the point
 const LUA_UNSAFE = new RegExp('[\\\\"\\u0000-\\u001f\\u007f]', "g");

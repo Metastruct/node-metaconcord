@@ -104,6 +104,43 @@ const toAppealMessage = (msg: Discord.Message, botId?: string): AppealMessage | 
 	};
 };
 
+// 401 without a session, 403 with one that has no Steam link: the page tells them apart
+const requireSteam = async (req: Request, res: Response): Promise<SteamSession | undefined> => {
+	const session = await getSession(req);
+	if (!session) {
+		res.status(401).json({ error: "not logged in" });
+		return;
+	}
+	const steam = Accounts.verifiedLink(session.account, "steam");
+	if (!steam) {
+		res.status(403).json({ error: "no_steam_link" });
+		return;
+	}
+	return { steamId64: steam.providerId, name: steam.name, avatar: steam.avatar };
+};
+
+/**
+ * "Close Thread" in Discord is just archiving, which the week of inactivity also does on
+ * its own; only a person's archive should refuse. The audit log tells them apart, and
+ * with no access to it a person is assumed.
+ */
+const wasManuallyArchived = async (thread: Discord.ThreadChannel): Promise<boolean> => {
+	try {
+		const logs = await thread.guild.fetchAuditLogs({
+			type: Discord.AuditLogEvent.ThreadUpdate,
+			limit: 10,
+		});
+		return logs.entries.some(
+			entry =>
+				entry.targetId === thread.id &&
+				Date.now() - entry.createdTimestamp < 60_000 &&
+				entry.changes.some(change => change.key === "archived" && change.new === true)
+		);
+	} catch {
+		return true;
+	}
+};
+
 export default (webApp: WebApp): void => {
 	// both are soft: endpoints below 503 when either is missing (see requireServices)
 	const sql = webApp.container.tryService("SQL");
@@ -156,21 +193,6 @@ export default (webApp: WebApp): void => {
 			tableReady = true;
 		}
 		return database;
-	};
-
-	// 401 without a session, 403 with one that has no Steam link: the page tells them apart
-	const requireSteam = async (req: Request, res: Response): Promise<SteamSession | undefined> => {
-		const session = await getSession(req);
-		if (!session) {
-			res.status(401).json({ error: "not logged in" });
-			return;
-		}
-		const steam = Accounts.verifiedLink(session.account, "steam");
-		if (!steam) {
-			res.status(403).json({ error: "no_steam_link" });
-			return;
-		}
-		return { steamId64: steam.providerId, name: steam.name, avatar: steam.avatar };
 	};
 
 	const openAppeal = async (steamId64: string): Promise<AppealRow | undefined> =>
@@ -547,7 +569,7 @@ export default (webApp: WebApp): void => {
 		msg: Discord.Message,
 		label: string,
 		style: Discord.ButtonStyle
-	): Promise<void> => {
+	): Promise<void> => { // eslint-disable-line unicorn/consistent-function-scoping
 		const settled = new Discord.ButtonBuilder()
 			.setStyle(style)
 			.setCustomId(`${msg.id}_APPEAL_SETTLED`)
@@ -612,28 +634,6 @@ export default (webApp: WebApp): void => {
 			`appeal thread ${row.thread_id} of ${row.steam_id64} was closed on Discord, ` +
 				(refused ? "appeal refused" : "ban no longer active")
 		);
-	};
-
-	/**
-	 * "Close Thread" in Discord is just archiving, which the week of inactivity also does on
-	 * its own; only a person's archive should refuse. The audit log tells them apart, and
-	 * with no access to it a person is assumed.
-	 */
-	const wasManuallyArchived = async (thread: Discord.ThreadChannel): Promise<boolean> => {
-		try {
-			const logs = await thread.guild.fetchAuditLogs({
-				type: Discord.AuditLogEvent.ThreadUpdate,
-				limit: 10,
-			});
-			return logs.entries.some(
-				entry =>
-					entry.targetId === thread.id &&
-					Date.now() - entry.createdTimestamp < 60_000 &&
-					entry.changes.some(change => change.key === "archived" && change.new === true)
-			);
-		} catch {
-			return true;
-		}
 	};
 
 	// deferred so the listeners attach once the container holds every service;

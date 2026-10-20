@@ -18,6 +18,9 @@ import {
 
 const log = logger(import.meta);
 
+const esc = (value: unknown) =>
+	String(value).replaceAll(/[&<>"]/g, ch => `&#${ch.charCodeAt(0)};`);
+
 /**
  * An OpenID Connect provider mounted on the WebApp, so other sites can log in
  * with the same metastruct account. The issuer is the site root, so the
@@ -146,8 +149,6 @@ export class OIDC extends Service {
 					`oidc error on ${ctx.path}`
 				);
 				ctx.type = "html";
-				const esc = (value: unknown) =>
-					String(value).replaceAll(/[&<>"]/g, ch => `&#${ch.charCodeAt(0)};`);
 				ctx.body =
 					"<h1>SSO error</h1>" +
 					`<p><code>${esc(out.error)}${out.error_description ? `: ${esc(out.error_description)}` : ""}</code></p>` +

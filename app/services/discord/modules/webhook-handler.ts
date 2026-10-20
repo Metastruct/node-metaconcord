@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
 import express from "express";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
-import { clamp, errToMessage, logger } from "#/utils.js";
+import { clamp, errToMessage, logger, stripPrefix } from "#/utils.js";
 import { chatWebhook } from "#/app/services/gamebridge/games/gmod/webhooks.js";
 import axios from "axios";
 import webhookConfig from "#/config/webhooks.json" with { type: "json" };
@@ -254,8 +254,6 @@ function parseGitDiffPaths(line: string): [string | undefined, string | undefine
 	while ((match = re.exec(line.slice("diff --git ".length))) !== null) {
 		tokens.push(match[1] ?? match[2]);
 	}
-	const stripPrefix = (value: string | undefined, prefix: string) =>
-		value !== undefined && value.startsWith(prefix) ? value.slice(prefix.length) : value;
 	return [stripPrefix(tokens[0], "a/"), stripPrefix(tokens[1], "b/")];
 }
 

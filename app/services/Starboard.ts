@@ -13,6 +13,9 @@ const STARBOARD_CONFIG = {
 	DEFAULT_EMOTE: config.defaultEmote,
 } as const;
 
+const filterStarboardId = (btn: Discord.MessageComponentInteraction) =>
+	btn.customId.startsWith("starboard");
+
 export class Starboard extends Service {
 	override name = "Starboard";
 	private pendingMessages = new Set<string>();
@@ -25,12 +28,9 @@ export class Starboard extends Service {
 		const db = this.sql.getLocalDatabase();
 		db.exec("CREATE TABLE IF NOT EXISTS starboard (MessageId INTEGER PRIMARY KEY);");
 
-		const filter = (btn: Discord.MessageComponentInteraction) =>
-			btn.customId.startsWith("starboard");
-
 		this.bot.discord.on("interactionCreate", async interaction => {
 			if (!interaction.isButton()) return;
-			if (!filter(interaction)) return;
+			if (!filterStarboardId(interaction)) return;
 			if (interaction.message.author.username !== interaction.user.username) return;
 
 			const [, originalMsgID, originalChannelID, originalAuthorID] =

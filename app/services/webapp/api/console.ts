@@ -203,27 +203,27 @@ class BridgeConsoleSession extends ConsoleSession {
 	}
 }
 
+const hostedServers = (): HostedServer[] => [
+	...(gmodServers as GmodConnectionConfig[]).map(s => ({
+		key: `gmod:${s.id}`,
+		game: "gmod" as const,
+		id: s.id,
+		name: s.name,
+		label: s.label,
+		gserv: true,
+	})),
+	...(minecraftServers as MinecraftConnectionConfig[]).map(s => ({
+		key: `minecraft:${s.id}`,
+		game: "minecraft" as const,
+		id: s.id,
+		name: s.name,
+		label: s.label,
+		gserv: false,
+	})),
+];
+
 export default (webApp: WebApp): void => {
 	const bridge = () => webApp.container.getService("GameBridge");
-
-	const hostedServers = (): HostedServer[] => [
-		...(gmodServers as GmodConnectionConfig[]).map(s => ({
-			key: `gmod:${s.id}`,
-			game: "gmod" as const,
-			id: s.id,
-			name: s.name,
-			label: s.label,
-			gserv: true,
-		})),
-		...(minecraftServers as MinecraftConnectionConfig[]).map(s => ({
-			key: `minecraft:${s.id}`,
-			game: "minecraft" as const,
-			id: s.id,
-			name: s.name,
-			label: s.label,
-			gserv: false,
-		})),
-	];
 
 	const liveConnection = (server: HostedServer) =>
 		server.game === "gmod"
