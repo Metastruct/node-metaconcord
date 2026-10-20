@@ -53,17 +53,17 @@ const SuperReplacer = (_: string, ...args: unknown[]) => {
 		groups.steamid
 			? `[[${groups.steamid}]${
 				groups.steamnick
-			}](http://steamcommunity.com/profiles/${new SteamID(groups.steamid).getSteamID64()})`
+			}](https://steamcommunity.com/profiles/${new SteamID(groups.steamid).getSteamID64()})`
 			: groups.partialsteamid
 				? groups.rfilename
 					? `<[${groups.partialsteamid} |${
 						groups.nick
-					}](http://steamcommunity.com/profiles/${new SteamID(
+					}](https://steamcommunity.com/profiles/${new SteamID(
 						`STEAM_${groups.partialsteamid}`
 					).getSteamID64()})><${groups.rfilename}>`
 					: `<[${groups.partialsteamid} |${
 						groups.nick
-					}](http://steamcommunity.com/profiles/${new SteamID(
+					}](https://steamcommunity.com/profiles/${new SteamID(
 						`STEAM_${groups.partialsteamid}`
 					).getSteamID64()})><${groups.cmdname}:${groups.cmdrealm}>`
 				: groups.path

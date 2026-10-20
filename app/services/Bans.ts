@@ -50,7 +50,7 @@ export class Bans extends Service {
 	private async fetchBans(): Promise<void> {
 		this.lastAttempt = Date.now();
 		try {
-			const res = await axios.get<MetaBan[]>("http://g2.metastruct.net/bans");
+			const res = await axios.get<MetaBan[]>("https://g2.metastruct.net/bans");
 			if (!Array.isArray(res.data)) throw new Error("ban list is not an array");
 			this.banCache = res.data;
 			this.lastSuccess = Date.now();
