@@ -6,7 +6,7 @@ import { Player } from "../../GameConnection.js";
 import { Resonite, ResoniteSession } from "#/app/services/Resonite.js";
 import resoniteConfig from "#/config/resonite.json" with { type: "json" };
 import { renderPlayerListImage } from "../../renderPlayerList.js";
-import { logger } from "#/utils.js";
+import { formatDiscordRelativeTimestamp, logger } from "#/utils.js";
 
 const log = logger(import.meta);
 
@@ -30,8 +30,8 @@ function buildSessionContainer(
 			count === 0 || count > 1 ? "s" : ""
 		}: **Active: ${session.activeUsers} • Connected: ${count}**\n` +
 		`:door: Capacity: **${count}/${session.maxUsers}**\n` +
-		`:repeat: Last Update: <t:${(new Date(session.lastUpdate).getTime() / 1000) | 0}:R>\n` +
-		`:file_cabinet: Server up since: <t:${(new Date(session.sessionBeginTime).getTime() / 1000) | 0}:R>`;
+		`:repeat: Last Update: ${formatDiscordRelativeTimestamp(session.lastUpdate)}\n` +
+		`:file_cabinet: Server up since: ${formatDiscordRelativeTimestamp(session.sessionBeginTime)}`;
 
 	if (session.accessLevel !== "Anyone") {
 		desc += `\n:closed_lock_with_key: Access: **${session.accessLevel}**`;

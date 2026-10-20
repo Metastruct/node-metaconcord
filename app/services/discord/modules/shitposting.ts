@@ -49,7 +49,7 @@ function getWord(msg?: string) {
 	if (!msg) return undefined;
 	let search: string;
 	const words = msg.replaceAll(`<@${DiscordConfig.bot.userId}> `, "").split(" ");
-	const index = (Math.random() * words.length) | 0;
+	const index = Math.trunc(Math.random() * words.length);
 	const isLast = index + 1 === words.length;
 	if (isLast) {
 		search = words[index];
@@ -96,7 +96,7 @@ export const Shat = async (options?: {
 		if (!word) word = getWord(await markov?.generate());
 
 		if (images.length > 0 && (!word || Math.random() <= 0.5)) {
-			const imgur = images[(Math.random() * images.length) | 0];
+			const imgur = images[Math.trunc(Math.random() * images.length)];
 			const result = await makeSpeechBubble(imgur.link, Math.random() <= 0.5);
 			return result
 				? { files: [{ attachment: result, description: imgur.title }] }
@@ -175,8 +175,8 @@ export default async (bot: DiscordBot) => {
 		} else {
 			emoji =
 				Math.random() <= COMMON_EMOJI_RATIO
-					? COMMON_EMOJIS[(Math.random() * COMMON_EMOJIS.length) | 0]
-					: EmojiList[(Math.random() * EmojiList.length) | 0];
+					? COMMON_EMOJIS[Math.trunc(Math.random() * COMMON_EMOJIS.length)]
+					: EmojiList[Math.trunc(Math.random() * EmojiList.length)];
 		}
 		if (eventEmoji) {
 			emoji =
@@ -256,7 +256,7 @@ export default async (bot: DiscordBot) => {
 
 		let status = "crashing the source engine";
 
-		const prefix = selection.ctx[(Math.random() * selection.ctx.length) | 0];
+		const prefix = selection.ctx[Math.trunc(Math.random() * selection.ctx.length)];
 
 		if (prefix !== "custom") {
 			const sentence = await mk.generate(prefix, {

@@ -126,7 +126,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						await bot.setIcon(path);
 						if (nicks) {
 							await bot.setNickname(
-								nicks[(Math.random() * nicks.length) | 0],
+								nicks[Math.trunc(Math.random() * nicks.length)],
 								event.name
 							);
 						}

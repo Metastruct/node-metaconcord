@@ -68,7 +68,7 @@ const GamemodeExtras = {
 const getRandomActivity = (gamemode: string) => {
 	const activities = GamemodeExtras[gamemode as keyof typeof GamemodeExtras]?.activities;
 	if (!activities) return;
-	return activities[(Math.random() * activities.length) | 0];
+	return activities[Math.trunc(Math.random() * activities.length)];
 };
 
 const DEFAULT_BACKGROUND = path.join(process.cwd(), "resources/map-thumbnails/gm_construct_m.png");

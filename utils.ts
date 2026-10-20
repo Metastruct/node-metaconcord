@@ -74,6 +74,9 @@ export const parseDuration = (input: string): number => {
 	return len;
 };
 
+export const formatDiscordRelativeTimestampSeconds = (seconds: number) => `<t:${Math.trunc(seconds)}:R>`;
+export const formatDiscordRelativeTimestamp = (date: Date) => `<t:${Math.trunc(date.getTime() / 1000)}:R>`;
+
 export const f = (
 	name: string,
 	value: string,

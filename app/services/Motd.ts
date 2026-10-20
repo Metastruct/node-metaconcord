@@ -124,7 +124,7 @@ export class Motd extends Service {
 	async executeMessageJob(): Promise<string | undefined> {
 		if (this.messages.length === 0) return;
 
-		const msg: string = this.messages[(Math.random() * this.messages.length) | 0];
+		const msg: string = this.messages[Math.trunc(Math.random() * this.messages.length)];
 		this.messages = [];
 		if (!msg) return;
 		const data = this.container.getService("Data");
@@ -169,7 +169,7 @@ export class Motd extends Service {
 			.split(" ")
 			.filter(w => w.length <= 22 && !filter.has(w.toLowerCase()));
 		if (wordList.length === 0) return;
-		const word = wordList[(Math.random() * wordList?.length) | 0];
+		const word = wordList[Math.trunc(Math.random() * wordList?.length)];
 		const nick = word.charAt(0).toUpperCase() + word.slice(1);
 		return await this.bot.setNickname(nick, "Random Motd name");
 	}

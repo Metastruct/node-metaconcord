@@ -106,7 +106,7 @@ export default class StatusPayload extends Payload {
 			hostname,
 			version,
 			maxPlayers,
-			upSince: ((Date.now() / 1000) | 0) - uptime,
+			upSince: Math.trunc(Date.now() / 1000) - uptime,
 		};
 
 		const files: Discord.AttachmentBuilder[] = [];

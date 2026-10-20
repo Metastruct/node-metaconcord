@@ -7,7 +7,7 @@ import { WatchdogStatus, getDreamDaemonStatus, getInstance } from "./tgsClient.j
 import { getServerStatus, getPlayerList } from "./topics.js";
 import { queryTopic } from "./byondTopic.js";
 import config from "#/config/ss13.json" with { type: "json" };
-import { logger } from "#/utils.js";
+import { formatDiscordRelativeTimestamp, formatDiscordRelativeTimestampSeconds, logger } from "#/utils.js";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration.js";
 
@@ -84,12 +84,12 @@ function buildInstanceContainer(
 	if (status.shuttleMode && !SHUTTLE_AT_REST.has(status.shuttleMode)) {
 		desc += `\n:rocket: Shuttle: **${status.shuttleMode}**`;
 		if (status.shuttleTimer) {
-			desc += ` (<t:${(Date.now() / 1000 + status.shuttleTimer) | 0}:R>)`;
+			desc += ` (${formatDiscordRelativeTimestampSeconds(Date.now() / 1000 + status.shuttleTimer)})`;
 		}
 	}
 
 	if (status.launchTime) {
-		desc += `\n:file_cabinet: Server up since: <t:${(new Date(status.launchTime).getTime() / 1000) | 0}:R>`;
+		desc += `\n:file_cabinet: Server up since ${formatDiscordRelativeTimestamp(new Date(status.launchTime))}`;
 	}
 
 	// Discord's button URL validation only allows http:/https:/discord: - byond:// links
