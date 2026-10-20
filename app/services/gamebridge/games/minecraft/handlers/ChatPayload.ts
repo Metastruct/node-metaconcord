@@ -78,7 +78,7 @@ async function formatForMinecraft(msg: Discord.Message | Discord.MessageSnapshot
 		try {
 			const author = await msg.guild?.members.fetch(msg.author.id);
 			if (author?.nickname) nickname = author.nickname;
-		} catch {}
+		} catch { /* empty */ }
 
 		const avatarhash = msg.author.avatar;
 		avatar = avatarhash
@@ -120,7 +120,7 @@ export default class ChatPayload extends Payload {
 
 						mainMsg.content = `-> Forwarded\n${referenceMessage.content}\n${newContent}`;
 					}
-				} catch {}
+				} catch { /* empty */ }
 			}
 
 			const payload: ChatResponse = {

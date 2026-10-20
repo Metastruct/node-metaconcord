@@ -73,7 +73,7 @@ export async function formatDiscordMessage(
 			if (author && author.nickname && author.nickname.length > 0) {
 				nickname = author.nickname;
 			}
-		} catch {}
+		} catch { /* empty */ }
 
 		const avatarhash = msg.author.avatar;
 		avatar = avatarhash

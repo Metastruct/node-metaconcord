@@ -112,7 +112,7 @@ export default class GameConnection extends EventEmitter {
 		try {
 			await this.discord.user?.setAvatar(path);
 			this.discordIcon = path;
-		} catch {}
+		} catch { /* empty */ }
 	}
 
 	async changeBanner(path: string) {
@@ -120,7 +120,7 @@ export default class GameConnection extends EventEmitter {
 		try {
 			await this.discord.user?.setBanner(path);
 			this.discordBanner = path;
-		} catch {}
+		} catch { /* empty */ }
 	}
 
 	protected buildEmptyStatusContainer(): Discord.ContainerBuilder {

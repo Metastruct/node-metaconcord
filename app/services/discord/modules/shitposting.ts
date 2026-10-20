@@ -459,7 +459,7 @@ export default async (bot: DiscordBot) => {
 				if (msg.reference) {
 					try {
 						reference = await msg.fetchReference();
-					} catch {}
+					} catch { /* empty */ }
 				}
 				await sendShat(
 					msg.stickers.size > 0

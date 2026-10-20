@@ -77,7 +77,7 @@ export default async (webApp: WebApp): Promise<void> => {
 						const buffer = new Uint8Array(Buffer.from(arrayBuffer));
 						await writeFile(thumbFilepath, buffer);
 					}
-				} catch {}
+				} catch { /* empty */ }
 			}
 		} else {
 			thumbFilepath = backgroundImage as string;

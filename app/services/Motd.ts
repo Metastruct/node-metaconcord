@@ -160,7 +160,7 @@ export class Motd extends Service {
 			if (res.data.status === 200) {
 				return res.data.data;
 			}
-		} catch {}
+		} catch { /* empty */ }
 	}
 
 	async setNicknameFromSentence(motd: string): Promise<boolean | undefined> {

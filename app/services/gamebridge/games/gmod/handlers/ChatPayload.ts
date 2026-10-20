@@ -41,7 +41,7 @@ export default class ChatPayload extends Payload {
 
 						mainMsg.content = `-> Forwarded\n${referenceMessage.content}\n${newContent}`;
 					}
-				} catch {}
+				} catch { /* empty */ }
 			}
 
 			const payload: ChatResponse = {

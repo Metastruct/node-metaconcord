@@ -152,7 +152,7 @@ export default (webApp: WebApp): void => {
 			`);
 			try {
 				database.exec("ALTER TABLE appeals ADD COLUMN resolution TEXT;");
-			} catch {}
+			} catch { /* empty */ }
 			tableReady = true;
 		}
 		return database;
