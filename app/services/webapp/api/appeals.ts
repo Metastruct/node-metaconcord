@@ -463,7 +463,7 @@ export default (webApp: WebApp): void => {
 			return;
 		}
 		const messages = [...fetched.values()]
-			.sort((a, b) => a.createdTimestamp - b.createdTimestamp)
+			.toSorted((a, b) => a.createdTimestamp - b.createdTimestamp)
 			.map(msg => toAppealMessage(msg, botId))
 			.filter((msg): msg is AppealMessage => !!msg);
 

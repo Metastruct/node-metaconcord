@@ -50,9 +50,9 @@ function buildSignature(connection: SS13Connection, disconnected: boolean): unkn
 						isAfk: p.isAfk,
 						description: p.description,
 					}))
-					.sort((a, b) => a.nick.localeCompare(b.nick)),
+					.toSorted((a, b) => a.nick.localeCompare(b.nick)),
 			}))
-			.sort((a, b) => a.instanceId - b.instanceId),
+			.toSorted((a, b) => a.instanceId - b.instanceId),
 	};
 }
 

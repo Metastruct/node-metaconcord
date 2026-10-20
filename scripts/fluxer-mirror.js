@@ -435,12 +435,12 @@ log(
 		[...desiredCategories.values()].map(c => `"${c.name}"`).join(", ")
 );
 log(`Channels to mirror (${desiredChannels.size}):`);
-const catOrder = [...desiredCategories.values()].sort((a, b) => a.position - b.position);
+const catOrder = [...desiredCategories.values()].toSorted((a, b) => a.position - b.position);
 for (const cat of catOrder) {
 	log(`  [category] ${cat.name}`);
 	for (const ch of [...desiredChannels.values()]
 		.filter(ch => ch.parentDiscordId === cat.id)
-		.sort(compareChannels)) {
+		.toSorted(compareChannels)) {
 		log(
 			`    - ${ch.configName}: "${ch.src.name}" (discord type ${ch.src.type} -> fluxer ${ch.type})`
 		);
@@ -511,7 +511,7 @@ if (everyone) {
 
 const manageableRoles = desiredRoles
 	.filter(r => r.srcId !== administratorRole.srcId)
-	.sort((a, b) => a.position - b.position);
+	.toSorted((a, b) => a.position - b.position);
 for (const r of manageableRoles) {
 	let fluxerRole = fluxerRoleByName.get(r.name);
 	if (fluxerRole) {
@@ -646,7 +646,7 @@ for (const cat of catOrder) {
 
 // Create channels in source category and channel order; the explicit reorder below
 // also repairs ordering on idempotent reruns.
-const orderedChannels = [...desiredChannels.values()].sort((a, b) => {
+const orderedChannels = [...desiredChannels.values()].toSorted((a, b) => {
 	const parentA = desiredCategories.get(a.parentDiscordId)?.position ?? 0;
 	const parentB = desiredCategories.get(b.parentDiscordId)?.position ?? 0;
 	if (parentA !== parentB) return parentA - parentB;
@@ -812,7 +812,7 @@ for (const cat of catOrder) {
 	let precedingChannelId = null;
 	const children = [...desiredChannels.values()]
 		.filter(ch => ch.parentDiscordId === cat.id)
-		.sort(compareChannels);
+		.toSorted(compareChannels);
 	for (const child of children) {
 		const channelId = fluxerIdByDiscordChannel.get(child.src.id);
 		positionUpdates.push({

@@ -23,7 +23,7 @@ function buildSignature(
 		hostname: status.hostname,
 		version: status.version,
 		maxPlayers: status.maxPlayers,
-		players: players.map(p => p.steamId64).sort(),
+		players: players.map(p => p.steamId64).toSorted(),
 	};
 }
 

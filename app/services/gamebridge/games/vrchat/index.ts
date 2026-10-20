@@ -81,7 +81,7 @@ function buildSignature(instances: GroupInstance[], disconnected: boolean): unkn
 		disconnected,
 		instances: instances
 			.map(i => ({ id: i.instanceId, world: i.world.id, count: i.memberCount }))
-			.sort((a, b) => a.id.localeCompare(b.id)),
+			.toSorted((a, b) => a.id.localeCompare(b.id)),
 	};
 }
 
@@ -142,7 +142,7 @@ export function attachVRChat(bridge: GameBridge): void {
 			if (totalPlayers > 0) {
 				connection.setPresence("online", {
 					activity: {
-						name: `${totalPlayers} player${totalPlayers === 1 ? "" : "s"} in ${instances.sort(i => i.memberCount)[0].world.name}`,
+						name: `${totalPlayers} player${totalPlayers === 1 ? "" : "s"} in ${instances.toSorted(i => i.memberCount)[0].world.name}`,
 						type: Discord.ActivityType.Watching,
 					},
 				});

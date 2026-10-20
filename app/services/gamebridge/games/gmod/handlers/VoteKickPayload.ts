@@ -161,7 +161,7 @@ export default class VoteKickPayload extends Payload {
 							e.fields.some(f => f.value.includes(data.offender.steamID))
 					)
 			)
-			.sort()
+			.sorted()
 			.reverse()
 			.first();
 	}

@@ -94,7 +94,7 @@ export class Addons extends Service {
 		for (const game of Object.keys(store) as AddonGame[]) {
 			for (const entry of Object.values(store[game] ?? {})) out.push(entry);
 		}
-		return out.sort((a, b) => a.game.localeCompare(b.game) || a.serverId - b.serverId);
+		return out.toSorted((a, b) => a.game.localeCompare(b.game) || a.serverId - b.serverId);
 	}
 
 	get(game: AddonGame, serverId: number): ServerAddons | undefined {
@@ -203,7 +203,7 @@ export class Addons extends Service {
 			updatedAt: Date.now(),
 			// the game reports these separately, either side of this rebuild
 			games: this.gmodGames.get(id) ?? this.get("gmod", id)?.games,
-			addons: addons.sort((a, b) => a.name.localeCompare(b.name)),
+			addons: addons.toSorted((a, b) => a.name.localeCompare(b.name)),
 		});
 		log.info({ server: name, count: addons.length, transient }, "refreshed gmod addons");
 
@@ -530,7 +530,7 @@ export class Addons extends Service {
 			serverName: name,
 			updatedAt: Date.now(),
 			...(runtime.length > 0 && { runtime }),
-			addons: addons.sort((a, b) => a.name.localeCompare(b.name)),
+			addons: addons.toSorted((a, b) => a.name.localeCompare(b.name)),
 		});
 		log.info({ server: name, count: addons.length }, "stored minecraft mods");
 	}

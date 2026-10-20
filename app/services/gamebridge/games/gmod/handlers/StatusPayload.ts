@@ -91,7 +91,7 @@ function buildSignature(input: {
 		...input,
 		players: input.players
 			.map(p => ({ steamId64: p.steamId64, nick: p.nick, isAfk: p.isAfk }))
-			.sort((a, b) => a.steamId64.localeCompare(b.steamId64)),
+			.toSorted((a, b) => a.steamId64.localeCompare(b.steamId64)),
 	};
 }
 export default class StatusPayload extends Payload {

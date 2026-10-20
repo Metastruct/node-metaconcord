@@ -1210,7 +1210,7 @@ export class Fluxer extends Service {
 				continue;
 			}
 			const messages = await channel.messages.fetch({ limit: 100 });
-			for (const message of [...messages.values()].sort(
+			for (const message of [...messages.values()].toSorted(
 				(a, b) => a.createdTimestamp - b.createdTimestamp
 			)) {
 				await this.enqueue(`discord:${channelId}`, () => this.relayDiscordCreate(message));

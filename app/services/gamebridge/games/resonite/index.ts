@@ -109,7 +109,7 @@ function sessionContentKey(session: ResoniteSession): string {
 		access: session.accessLevel,
 		hidden: session.hideFromListing,
 		thumbnail: session.thumbnailUrl,
-		users: session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).sort(),
+		users: session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).toSorted(),
 	});
 }
 
@@ -128,9 +128,9 @@ function buildSignature(connection: ResoniteConnection): unknown {
 				active: s.session.activeUsers,
 				access: s.session.accessLevel,
 				hidden: s.session.hideFromListing,
-				users: s.session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).sort(),
+				users: s.session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).toSorted(),
 			}))
-			.sort((a, b) => a.id.localeCompare(b.id)),
+			.toSorted((a, b) => a.id.localeCompare(b.id)),
 	};
 }
 

@@ -34,7 +34,7 @@ const isConfigFile = (name: string): boolean =>
 	CONFIG_NAME.test(name) && !name.endsWith(".example.json");
 
 const listConfigs = async (): Promise<{ name: string; content: unknown; error?: string }[]> => {
-	const names = (await fs.readdir(CONFIG_DIR)).filter(isConfigFile).sort();
+	const names = (await fs.readdir(CONFIG_DIR)).filter(isConfigFile).toSorted();
 	return Promise.all(
 		names.map(async name => {
 			try {

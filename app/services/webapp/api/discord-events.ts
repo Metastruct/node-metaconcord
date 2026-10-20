@@ -101,7 +101,7 @@ async function upcoming(guild: Discord.Guild): Promise<UpcomingEvent[]> {
 		}
 	}
 
-	return out.sort((a, b) => a.start - b.start);
+	return out.toSorted((a, b) => a.start - b.start);
 }
 
 /** Upcoming scheduled events of the Discord guild, recurring ones expanded. */

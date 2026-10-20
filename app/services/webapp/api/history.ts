@@ -67,8 +67,7 @@ const validate = (input: unknown): HistoryEvent | string => {
 	return out;
 };
 
-const sortEvents = (events: HistoryEvent[]): HistoryEvent[] =>
-	events.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+const eventCompareFn = (a: HistoryEvent, b: HistoryEvent) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id);
 
 const uniqueId = (events: HistoryEvent[], ev: HistoryEvent): string => {
 	const base = `${ev.date}-${slugify(ev.name)}`;
@@ -128,7 +127,7 @@ const writeFile = async (
 	sha: string,
 	message: string
 ) => {
-	const content = JSON.stringify(sortEvents(events), null, 2) + "\n";
+	const content = JSON.stringify(events, null, 2) + "\n";
 	const { data } = await octokit.repos.createOrUpdateFileContents({
 		...FILE,
 		branch: HistoryConfig.branch,
@@ -169,12 +168,14 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 	const octokit = new Octokit({ auth: session.token });
 
 	try {
-		const { events, sha } = await readFile(octokit);
-		const result = fn(events);
+		const old = await readFile(octokit);
+		const result = fn(old.events);
+		
 		if (typeof result === "string") {
 			res.status(400).json({ error: result });
 			return;
 		}
+
 		// the image lands first, because its URL names the commit that holds it
 		if (result.mirror && result.event.imageUrl)
 			result.event.imageUrl = await mirrorImage(
@@ -183,7 +184,8 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 				result.event.name
 			);
 
-		const commitUrl = await writeFile(octokit, result.events, sha, result.message);
+		result.events.sort(eventCompareFn);
+		const commitUrl = await writeFile(octokit, result.events, old.sha, result.message);
 		log.info(`${session.login}: ${result.message}`);
 		publicCache = { events: result.events, etag: undefined, checkedAt: Date.now() };
 		res.json({ event: result.event, events: result.events, commitUrl });
