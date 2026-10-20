@@ -11,7 +11,7 @@ import express from "express";
 import path from "node:path";
 import pug from "pug";
 import util from "node:util";
-import { logger } from "#/utils.js";
+import { localeCompare, logger } from "#/utils.js";
 
 const log = logger(import.meta);
 
@@ -34,7 +34,7 @@ const isConfigFile = (name: string): boolean =>
 	CONFIG_NAME.test(name) && !name.endsWith(".example.json");
 
 const listConfigs = async (): Promise<{ name: string; content: unknown; error?: string }[]> => {
-	const names = (await fs.readdir(CONFIG_DIR)).filter(isConfigFile).toSorted();
+	const names = (await fs.readdir(CONFIG_DIR)).filter(isConfigFile).toSorted(localeCompare);
 	return Promise.all(
 		names.map(async name => {
 			try {

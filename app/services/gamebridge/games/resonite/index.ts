@@ -6,7 +6,7 @@ import { Player } from "../../GameConnection.js";
 import { Resonite, ResoniteSession } from "#/app/services/Resonite.js";
 import resoniteConfig from "#/config/resonite.json" with { type: "json" };
 import { renderPlayerListImage } from "../../renderPlayerList.js";
-import { formatDiscordRelativeTimestamp, logger } from "#/utils.js";
+import { formatDiscordRelativeTimestamp, localeCompare, logger } from "#/utils.js";
 
 const log = logger(import.meta);
 
@@ -109,7 +109,7 @@ function sessionContentKey(session: ResoniteSession): string {
 		access: session.accessLevel,
 		hidden: session.hideFromListing,
 		thumbnail: session.thumbnailUrl,
-		users: session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).toSorted(),
+		users: session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).toSorted(localeCompare),
 	});
 }
 
@@ -128,7 +128,7 @@ function buildSignature(connection: ResoniteConnection): unknown {
 				active: s.session.activeUsers,
 				access: s.session.accessLevel,
 				hidden: s.session.hideFromListing,
-				users: s.session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).toSorted(),
+				users: s.session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).toSorted(localeCompare),
 			}))
 			.toSorted((a, b) => a.id.localeCompare(b.id)),
 	};

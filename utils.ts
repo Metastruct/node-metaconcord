@@ -17,6 +17,8 @@ export const logger = (meta: ImportMeta | string) =>
 export const sleep = (ms: number): Promise<unknown> =>
 	new Promise(resolve => setTimeout(resolve, ms));
 
+export const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
 export const clamp = (input: number, min: number, max: number): number =>
 	input <= min ? min : input >= max ? max : input;
 
