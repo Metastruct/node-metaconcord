@@ -290,7 +290,7 @@ export class DiscordMetadata extends Service {
 		userId: string,
 		data: LocalDatabaseEntry,
 		metadata: MetaMetadata,
-		userName?: string
+		username?: string
 	) {
 		const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.bot.applicationId}/role-connection`;
 		const accessToken = await this.getAccessToken(userId, data);
@@ -302,12 +302,12 @@ export class DiscordMetadata extends Service {
 		);
 		const body = {
 			platform_name: "Metastruct",
-			platform_username: userName,
+			platform_username: username,
 			metadata: stringified,
 		};
 
 		if (!accessToken) {
-			log.error({ userId, userName }, "accesstoken missing?");
+			log.error({ userId, username }, "accesstoken missing?");
 			return false;
 		}
 
