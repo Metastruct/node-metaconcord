@@ -57,7 +57,7 @@ export const getOAuthURL = () => {
 	url.searchParams.set("state", state);
 	url.searchParams.set("scope", "role_connections.write identify email");
 	url.searchParams.set("prompt", "consent");
-	return { state, url: url.toString() };
+	return { state, url: url.href };
 };
 
 const basicAuth =

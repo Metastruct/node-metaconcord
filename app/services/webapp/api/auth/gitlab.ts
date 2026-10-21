@@ -35,7 +35,7 @@ export default (webApp: WebApp): void => {
 		url.searchParams.set("response_type", "code");
 		url.searchParams.set("state", state);
 		url.searchParams.set("scope", "read_user");
-		res.redirect(url.toString());
+		res.redirect(url.href);
 	});
 
 	webApp.app.get("/auth/gitlab/callback", limiter, async (req, res) => {

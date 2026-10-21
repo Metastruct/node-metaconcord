@@ -23,7 +23,7 @@ const steamLoginUrl = (returnTo: string, realm: string): string => {
 		"openid.realm": realm,
 		"openid.mode": "checkid_setup",
 	}).toString();
-	return url.toString();
+	return url.href;
 };
 
 /**

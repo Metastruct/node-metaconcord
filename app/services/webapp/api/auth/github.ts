@@ -45,7 +45,7 @@ export default (webApp: WebApp): void => {
 		url.searchParams.set("redirect_uri", callbackUrl);
 		url.searchParams.set("state", state);
 		url.searchParams.set("scope", scope);
-		res.redirect(url.toString());
+		res.redirect(url.href);
 	});
 
 	webApp.app.get("/auth/github/callback", limiter, async (req, res) => {
