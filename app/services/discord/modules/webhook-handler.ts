@@ -548,9 +548,8 @@ function peekHunks(body: string[], budget: number): string[] {
 	const hunks = splitHunks(body);
 	const quotas = hunkQuotas(hunks, budget);
 	const content: string[] = [];
-	for (let h = 0; h < hunks.length; h++) {
+	for (const [h, hunk] of hunks.entries()) {
 		if (quotas[h] === 0) continue;
-		const hunk = hunks[h];
 		let shown = 0;
 		let i = 0;
 		for (; i < hunk.length; i++) {
@@ -614,17 +613,17 @@ function sampleBlock(content: string[], budget: number): string[] {
 	}
 
 	const shown: string[] = [];
-	for (let i = 0; i < hunks.length; i++) {
+	for (const [i, hunk] of hunks.entries()) {
 		if (allocated[i] <= 0) continue;
 		// a hunk that fits is shown in full; one that doesn't keeps its header and
 		// changed lines, dropping context so the budget buys changes, not boilerplate
 		if (whole[i]) {
-			shown.push(...hunks[i]);
+			shown.push(...hunk);
 			continue;
 		}
 		let used = 0;
 		let gap = false;
-		for (const line of hunks[i]) {
+		for (const line of hunk) {
 			if (!isChangedLine(line) && !line.startsWith("@@")) {
 				gap = true;
 				continue;

@@ -171,9 +171,9 @@ async function bulkCreate(collection, items, basePath) {
 		chunks.push(items.slice(i, i + BULK_CHUNK_SIZE));
 	}
 	const results = [];
-	for (let i = 0; i < chunks.length; i++) {
+	for (const [i, chunk] of chunks.entries()) {
 		if (i > 0) await sleep(BULK_CREATE_INTERVAL_MS);
-		const body = { [collection]: chunks[i].map(({ _source, ...item }) => item) };
+		const body = { [collection]: chunk.map(({ _source, ...item }) => item) };
 		try {
 			const response = await fluxerApi("POST", `${basePath}/bulk`, body);
 			results.push(...(response.success ?? []));
@@ -182,7 +182,7 @@ async function bulkCreate(collection, items, basePath) {
 			}
 		} catch (error) {
 			warn(`bulk create failed (${error.message}); falling back per item`);
-			for (const item of chunks[i]) {
+			for (const item of chunk) {
 				try {
 					const { _source, ...body } = item;
 					const created = await fluxerApi("POST", basePath, body);

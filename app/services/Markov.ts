@@ -3,6 +3,8 @@ import { logger } from "#/utils.js";
 import { Container, Service } from "../Container.js";
 import type { LocalDatabase } from "./SQL.js";
 
+/* eslint-disable unicorn/no-for-loop */
+
 const log = logger(import.meta);
 
 function levenshtein(a: string, b: string): number {
