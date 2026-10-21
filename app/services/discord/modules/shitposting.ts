@@ -156,7 +156,7 @@ export default async (bot: DiscordBot) => {
 	const now = Date.now();
 	let lastActivityChange = now;
 	let lastSetActivity: Discord.ActivitiesOptions | undefined;
-	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? now);
+	let lastMsgTime = (data.lastMsgTime ??= now);
 	let lastChatTime = now;
 	let posting = false;
 	let replied = false;

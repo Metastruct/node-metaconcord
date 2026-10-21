@@ -2039,8 +2039,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				);
 
 				const allFiles = [...added, ...modified, ...removed];
-				includesLua =
-					includesLua || (allFiles.length > 0 && allFiles.some(f => f.endsWith(".lua")));
+				includesLua ||= (allFiles.length > 0 && allFiles.some(f => f.endsWith(".lua")));
 				const isOnlyOgg = allFiles.length > 0 && allFiles.every(f => f.endsWith(".ogg"));
 
 				const diffFiles =
