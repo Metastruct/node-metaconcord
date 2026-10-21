@@ -907,7 +907,7 @@ function formatCommitBody(message: string): string {
 	const body = message.split("\n").slice(1).join("\n").trim();
 	if (!body) return "";
 
-	const truncated = body.length > BODY_SIZE ? `${body.slice(0, Math.max(0, BODY_SIZE - 3 === undefined ? Infinity : BODY_SIZE - 3))}...` : body;
+	const truncated = body.length > BODY_SIZE ? `${body.slice(0, Math.max(0, BODY_SIZE - 3))}...` : body;
 	return "\n" + truncated.replaceAll(/^/gm, "> ");
 }
 
@@ -915,7 +915,7 @@ function formatPrBody(body?: string | null): string {
 	const trimmed = body?.trim();
 	if (!trimmed) return "";
 	const truncated =
-		trimmed.length > PR_BODY_SIZE ? `${trimmed.slice(0, Math.max(0, PR_BODY_SIZE - 3 === undefined ? Infinity : PR_BODY_SIZE - 3))}...` : trimmed;
+		trimmed.length > PR_BODY_SIZE ? `${trimmed.slice(0, Math.max(0, PR_BODY_SIZE - 3))}...` : trimmed;
 	return truncated.replaceAll(/^/gm, "> ");
 }
 
