@@ -433,7 +433,7 @@ export default (webApp: WebApp): void => {
 		session: SteamSession
 	): Promise<AppealRow | undefined> => {
 		const id = Number(req.params.id);
-		const row = Number.isInteger(id) && id > 0 ? await rowById(id) : undefined;
+		const row = Number.isSafeInteger(id) && id > 0 ? await rowById(id) : undefined;
 		if (!row || row.steam_id64 !== session.steamId64) {
 			res.status(404).json({ error: "no such appeal" });
 			return undefined;

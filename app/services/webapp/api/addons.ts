@@ -29,7 +29,7 @@ export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/addons/:game/:id", async (req, res) => {
 		const game = req.params.game as AddonGame;
 		const id = Number(req.params.id);
-		if (!GAMES.has(game) || !Number.isInteger(id)) {
+		if (!GAMES.has(game) || !Number.isSafeInteger(id)) {
 			res.status(404).json({ error: "unknown server" });
 			return;
 		}
