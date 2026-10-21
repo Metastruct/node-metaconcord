@@ -16,6 +16,8 @@ const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run");
 const assumeYes = args.has("--yes");
 
+const retries = 5;
+
 const discordConfig = JSON.parse(await readFile(resolve(root, "config/discord.json"), "utf8"));
 const fluxerConfig = JSON.parse(await readFile(resolve(root, "config/fluxer.json"), "utf8"));
 
@@ -167,7 +169,7 @@ async function discordApi(path) {
 	return res.json();
 }
 
-async function fluxerApi(method, path, body, { retries = 5 } = {}) {
+async function fluxerApi(method, path, body) {
 	for (let attempt = 0; ; attempt++) {
 		const res = await fetch(`${FLUXER_API}${path}`, {
 			method,

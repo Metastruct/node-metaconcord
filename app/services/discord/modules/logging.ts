@@ -31,6 +31,7 @@ const format = (input: unknown, options?: InspectOptions) =>
 		"\u{200B}`\u{200B}`\u{200B}`"
 	);
 
+// eslint-disable-next-line unicorn/no-unnecessary-parameters
 const trimfield = (input: string, limit: number, isCodeBlock: boolean) =>
 	(input.length >= limit
 		? input.slice(0, Math.max(0, limit - (isCodeBlock ? 17 : 6) === undefined ? Infinity : limit - (isCodeBlock ? 17 : 6))) + "\n. . ."

@@ -651,22 +651,20 @@ function formatDiff(text: string, budget: number, links?: Map<string, string>): 
 
 	// Every file keeps its label; only the diff content is budgeted, so a big
 	// diff never hides the fact that a file changed.
-	const labelCost = (bs: DiffBlock[]) =>
-		bs.reduce(
-			(n, block) => n + diffLabel(block.file, 0, links?.get(block.file.path)).length + 1,
-			0
-		);
+	const labelCost = () => blocks.reduce(
+		(n, block) => n + diffLabel(block.file, 0, links?.get(block.file.path)).length + 1,
+		0);
 
 	// Only shed files if there are so many that even the labels don't fit.
 	let dropped = 0;
-	while (blocks.length > 1 && labelCost(blocks) > budget) {
+	while (blocks.length > 1 && labelCost() > budget) {
 		blocks.pop();
 		dropped++;
 	}
-	if (labelCost(blocks) > budget) return "";
+	if (labelCost() > budget) return "";
 
 	const shown: string[][] = blocks.map(() => []);
-	let remaining = budget - labelCost(blocks);
+	let remaining = budget - labelCost();
 	const pending = blocks.map((_, i) => i).filter(i => blocks[i].content.length > 0);
 
 	// Water-filling: equal share per file, leftovers flow to the bigger ones.

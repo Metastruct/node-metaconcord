@@ -15,6 +15,7 @@ type Method = "repeat" | "reverse" | "ping-pong";
 
 const AllowedVideoTypes = new Set(["video/webm", "video/mp4", "video/quicktime"]);
 const MAX_FILE_SIZE = 25_000_000;
+const TIMEOUT = 120_000;
 
 const GLITCH: { segment: number; count: number }[] = [
 	{ segment: 1.0, count: 2 }, // 1  mild
@@ -29,11 +30,11 @@ const GLITCH: { segment: number; count: number }[] = [
 	{ segment: 0.05, count: 20 }, // 10 insane
 ];
 
-function runProcess(bin: string, args: string[], timeout = 120_000): Promise<string> {
+function runProcess(bin: string, args: string[]): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const proc = spawn(bin, args, {
 			stdio: ["ignore", "pipe", "pipe"],
-			timeout,
+			timeout: TIMEOUT,
 		});
 		let stdout = "";
 		let stderr = "";
