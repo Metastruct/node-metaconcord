@@ -211,8 +211,8 @@ async function main(): Promise<void> {
 							href.includes("target=self")
 					)
 				) &&
-				!["steam", "gitlab"].some(provider =>
-					pickerLinks.some(href => href.includes(`/auth/${provider}?`))
+				["steam", "gitlab"].every(provider =>
+					pickerLinks.every(href => !href.includes(`/auth/${provider}?`))
 				)
 		);
 

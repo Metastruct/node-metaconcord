@@ -113,7 +113,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				log.info(`Event "${event.name}" running! Setting roles...`); // logging because I don't trust discord
 				const users = await GetParticipants(event);
 				users.forEach(usr => {
-					if (!usr.roles.cache.some(role => role.id === DiscordConfig.roles.event))
+					if (usr.roles.cache.every(role => role.id !== DiscordConfig.roles.event))
 						usr.roles.add(DiscordConfig.roles.event);
 				});
 				for (const { icon, triggers, nicks, execute } of events) {
