@@ -1,5 +1,5 @@
 import { TTLCache } from "./cache.js";
-import type { GitHost } from "./types.js";
+import type { AddonSource, GitHost } from "./types.js";
 import { logger } from "#/utils.js";
 import apikeys from "#/config/apikeys.json" with { type: "json" };
 import axios from "axios";
@@ -681,6 +681,23 @@ type CurseforgeMod = {
 export type PlatformMatch =
 	| { platform: "modrinth"; projectId: string; meta: ResolvedMeta }
 	| { platform: "curseforge"; projectId: number; meta: ResolvedMeta };
+
+export function platformMatchToAddonSource(input: PlatformMatch): AddonSource {
+	switch (input.platform) {
+		case "modrinth":
+			return {
+				kind: input.platform,
+				projectId: input.projectId,
+				url: input.meta.url
+			};
+		case "curseforge":
+			return {
+				kind: input.platform,
+				projectId: input.projectId,
+				url: input.meta.url
+			};
+	}
+}
 
 const nameCache = new TTLCache<PlatformMatch | null>(DAY);
 const compact = (s: string) => s.toLowerCase().replaceAll(/[^a-z0-9]/g, "");

@@ -20,6 +20,7 @@ import {
 	resolveReadme,
 	SUMMARY_LIMIT,
 	workshopUrl,
+	platformMatchToAddonSource,
 } from "./resolvers.js";
 import { TTLCache } from "./cache.js";
 import GmodConnection from "../gamebridge/games/gmod/GmodConnection.js";
@@ -490,14 +491,7 @@ export class Addons extends Service {
 					description: named.meta.description,
 					thumbnail: named.meta.thumbnail,
 					version: mod.version,
-					source:
-						named.platform === "modrinth"
-							? { kind: "modrinth", projectId: named.projectId, url: named.meta.url }
-							: {
-								kind: "curseforge",
-								projectId: named.projectId,
-								url: named.meta.url,
-							},
+					source: platformMatchToAddonSource(named),
 					private: false,
 				});
 				continue;

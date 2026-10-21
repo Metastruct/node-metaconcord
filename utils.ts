@@ -345,7 +345,7 @@ export const isSteamGroupMember = async (groupId: string, steamId64: string): Pr
 		steamGroups.set(groupId, cache);
 	}
 	const age = Date.now() - cache.fetchedAt;
-	const stale = cache.members ? age > STEAM_GROUP_TTL : age > STEAM_GROUP_RETRY;
+	const stale = age > (cache.members ? STEAM_GROUP_TTL : STEAM_GROUP_RETRY);
 	if (stale) {
 		const c = cache;
 		c.refresh ??= refreshSteamGroup(groupId, c).finally(() => {

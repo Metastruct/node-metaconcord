@@ -219,9 +219,9 @@ export default async (bot: DiscordBot) => {
 					if (options.msg) {
 						await options.msg.reply({
 							...shat,
-							allowedMentions: options.ping
-								? { repliedUser: true }
-								: { repliedUser: false },
+							allowedMentions: ({
+								repliedUser: options.ping ? true : false
+							}),
 						});
 					} else {
 						await bot.getTextChannel(bot.config.channels.chat)?.send(shat);

@@ -32,11 +32,10 @@ const format = (input: unknown, options?: InspectOptions) =>
 	);
 
 const trimfield = (input: string, limit: number, isCodeBlock: boolean) =>
-	input.length >= limit
-		? input.slice(0, Math.max(0, limit - (isCodeBlock ? 17 : 6) === undefined ? Infinity : limit - (isCodeBlock ? 17 : 6))) +
-			"\n. . ." +
-			(isCodeBlock ? "```" : "")
-		: input + (isCodeBlock ? "```" : "");
+	(input.length >= limit
+		? input.slice(0, Math.max(0, limit - (isCodeBlock ? 17 : 6) === undefined ? Infinity : limit - (isCodeBlock ? 17 : 6))) + "\n. . ."
+		: input
+	) + (isCodeBlock ? "```" : "");
 
 const hastoString = (obj: object | string | number | boolean) =>
 	obj.toString === Object.prototype.toString;
@@ -169,14 +168,10 @@ export default (bot: DiscordBot): void => {
 		const oldText = oldMsg.content ? trimfield(oldMsg.content, 1024, false) : "";
 		const newText = newMsg.content ? trimfield(newMsg.content, 1024, false) : "";
 
-		const embeds: [boolean, boolean] = // I think this can be done better somehow lol
-			newMsg.embeds.length > 0 && oldMsg.embeds.length > 0
-				? [true, true] // embed was changed
-				: newMsg.embeds.length > 0 && oldMsg.embeds.length === 0
-					? [true, false] // embed was added
-					: newMsg.embeds.length === 0 && oldMsg.embeds.length > 0
-						? [false, true] // embed was removed
-						: [false, false]; // no embed was present at all
+		const embeds = [
+			newMsg.embeds.length > 0,
+			oldMsg.embeds.length > 0,
+		] as const;
 
 		let diff = "";
 		if (oldText.length > 0 || newText.length > 0) {
