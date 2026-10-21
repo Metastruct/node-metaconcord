@@ -114,9 +114,9 @@ export class Motd extends Service {
 		if (msg.length < 5) return false;
 		if (msg.search("^[!\\.\\\\/]") === 0) return false;
 		if (msg.search("[a-zA-Z]") === -1) return false;
-		if (msg.indexOf("http://") >= 0) return false;
-		if (msg.indexOf("https://") >= 0) return false;
-		if (msg.indexOf(" ") === -1) return false;
+		if (msg.includes("http://")) return false;
+		if (msg.includes("https://")) return false;
+		if (!msg.includes(" ")) return false;
 
 		return true;
 	}
