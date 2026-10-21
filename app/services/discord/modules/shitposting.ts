@@ -416,11 +416,10 @@ export default async (bot: DiscordBot) => {
 		const isBot = msg.author.id === id || msg.author.bot;
 		const isMention = msg.mentions.users.first()?.id === id;
 		const isAllowedChannel = bot.config.bot.allowedShitpostingChannels.includes(msg.channelId);
-		const isHidden = msg.guild
-			? !(msg.channel as Discord.GuildChannel)
+		const isHidden = !msg.guild
+			|| !(msg.channel as Discord.GuildChannel)
 				.permissionsFor(msg.guild.roles.everyone)
-				.has("ViewChannel")
-			: true;
+				.has("ViewChannel");
 
 		// Motd Messages
 		if (!isBot && !isHidden) {

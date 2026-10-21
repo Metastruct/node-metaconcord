@@ -65,7 +65,7 @@ export const SlashSpeechbubbleCommand: SlashCommand = {
 		try {
 			const attachment = image;
 			const buffer = await makeSpeechBubble(
-				link ? link : (attachment?.url ?? ""),
+				link || attachment?.url || "",
 				ctx.options.getInteger("direction") === 1 ? true : false,
 				<string>ctx.options.getString("fill_color"),
 				<string>ctx.options.getString("line_color"),

@@ -86,7 +86,7 @@ export const SlashWhyBanCommand: SlashCommand = {
 			},
 			{
 				name: "Gamemode",
-				value: ban.gamemode ? ban.gamemode : "GLOBAL",
+				value: ban.gamemode || "GLOBAL",
 			},
 			{
 				name: "SteamID",

@@ -118,9 +118,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				});
 				for (const { icon, triggers, nicks, execute } of events) {
 					const regex = new RegExp("\\b" + triggers.join("\\b|\\b") + "\\b");
-					const match =
-						regex.test(event.name.toLowerCase()) ||
-						(event.description ? regex.test(event.description?.toLowerCase()) : false);
+					const match = regex.test(event.name.toLowerCase()) || (event.description && regex.test(event.description?.toLowerCase()));
 					if (match) {
 						const path = join(iconsPath, `${icon}.png`);
 						await bot.setIcon(path);
