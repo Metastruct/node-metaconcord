@@ -76,7 +76,7 @@ export class Addons extends Service {
 	override name = "Addons";
 	private lastGmodRefresh = new Map<number, number>();
 	private gmodGames = new Map<number, MountedGame[]>();
-	private retryTimers = new Map<number, NodeJS.Timeout>();
+	private retryTimers = new Map<number, ReturnType<typeof setTimeout>>();
 	private workshopCache = new TTLCache<ResolvedMeta | null>(DAY);
 
 	override async init(): Promise<void> {

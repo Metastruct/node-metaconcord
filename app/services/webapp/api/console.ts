@@ -39,7 +39,7 @@ type HostedServer = {
 abstract class ConsoleSession {
 	protected closed = false;
 	private lineTimes: number[] = [];
-	private expiryTimer: NodeJS.Timeout;
+	private expiryTimer: ReturnType<typeof setTimeout>;
 
 	constructor(
 		protected conn: WebSocketConnection,

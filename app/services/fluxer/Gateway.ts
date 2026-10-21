@@ -14,8 +14,8 @@ type GatewayPayload = {
 export class FluxerGateway {
 	private socket?: WebSocket;
 	private gatewayUrl?: string;
-	private heartbeat?: NodeJS.Timeout;
-	private reconnect?: NodeJS.Timeout;
+	private heartbeat?: ReturnType<typeof setTimeout>;
+	private reconnect?: ReturnType<typeof setTimeout>;
 	private sessionId?: string;
 	private processedSequence: number | null = null;
 	private dispatchQueue = Promise.resolve();

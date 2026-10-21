@@ -13,7 +13,7 @@ type Run = {
 	onChunk?: (chunk: string) => void;
 	lines: string[];
 	settle: (result: GservResult) => void;
-	timer: NodeJS.Timeout;
+	timer: ReturnType<typeof setTimeout>;
 };
 
 /**
