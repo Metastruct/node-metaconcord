@@ -170,9 +170,17 @@
 			} catch {
 				return;
 			}
-			if (msg.type === "log") renderLog(msg);
-			else if (msg.type === "out") renderOut(msg.mode, msg.text.replace(/\n$/, ""));
-			else if (msg.type === "exit") renderOut("meta", `bash exited with code ${msg.code}`);
+			switch (msg.type) {
+				case "log":
+					renderLog(msg);
+					break;
+				case "out":
+					renderOut(msg.mode, msg.text.replace(/\n$/, ""));
+					break;
+				case "exit":
+					renderOut("meta", `bash exited with code ${msg.code}`);
+					break;
+			}
 		});
 		ws.addEventListener("close", ev => {
 			setStatus("closed");

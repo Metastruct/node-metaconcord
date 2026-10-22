@@ -129,53 +129,60 @@ function buildStutterFilter(
 	let stutterV = "seg_v";
 	let stutterA: string | null = info.hasAudio ? "seg_a" : null;
 
-	if (method === "repeat") {
-		if (loopCount >= 0) {
-			f.push(`[seg_v]loop=${loopCount}:${frameCount}:0[stutter_v]`);
-			stutterV = "stutter_v";
-			if (info.hasAudio) {
-				f.push(`[seg_a]aloop=${loopCount}:${sampleCount}:0[stutter_a]`);
-				stutterA = "stutter_a";
+	switch (method) {
+		case "repeat": {
+			if (loopCount >= 0) {
+				f.push(`[seg_v]loop=${loopCount}:${frameCount}:0[stutter_v]`);
+				stutterV = "stutter_v";
+				if (info.hasAudio) {
+					f.push(`[seg_a]aloop=${loopCount}:${sampleCount}:0[stutter_a]`);
+					stutterA = "stutter_a";
+				}
 			}
+			break;
 		}
-	} else if (method === "reverse") {
-		f.push("[seg_v]reverse[rev_v]");
-		stutterV = "rev_v";
-		if (info.hasAudio) {
-			f.push("[seg_a]areverse[rev_a]");
-			stutterA = "rev_a";
-		}
-		if (loopCount >= 0) {
-			f.push(`[rev_v]loop=${loopCount}:${frameCount}:0[stutter_v]`);
-			stutterV = "stutter_v";
+		case "reverse": {
+			f.push("[seg_v]reverse[rev_v]");
+			stutterV = "rev_v";
 			if (info.hasAudio) {
-				f.push(`[rev_a]aloop=${loopCount}:${sampleCount}:0[stutter_a]`);
-				stutterA = "stutter_a";
+				f.push("[seg_a]areverse[rev_a]");
+				stutterA = "rev_a";
 			}
+			if (loopCount >= 0) {
+				f.push(`[rev_v]loop=${loopCount}:${frameCount}:0[stutter_v]`);
+				stutterV = "stutter_v";
+				if (info.hasAudio) {
+					f.push(`[rev_a]aloop=${loopCount}:${sampleCount}:0[stutter_a]`);
+					stutterA = "stutter_a";
+				}
+			}
+			break;
 		}
-	} else if (method === "ping-pong") {
-		f.push("[seg_v]split[fw_v][bw_v]");
-		if (info.hasAudio) f.push("[seg_a]asplit[fw_a][bw_a]");
-		f.push("[bw_v]reverse[rev_v]");
-		if (info.hasAudio) f.push("[bw_a]areverse[rev_a]");
+		case "ping-pong": {
+			f.push("[seg_v]split[fw_v][bw_v]");
+			if (info.hasAudio) f.push("[seg_a]asplit[fw_a][bw_a]");
+			f.push("[bw_v]reverse[rev_v]");
+			if (info.hasAudio) f.push("[bw_a]areverse[rev_a]");
 
-		if (info.hasAudio) {
-			f.push("[fw_v][fw_a][rev_v][rev_a]concat=n=2:v=1:a=1[pp_v][pp_a]");
-			stutterV = "pp_v";
-			stutterA = "pp_a";
-		} else {
-			f.push("[fw_v][rev_v]concat=n=2:v=1:a=0[pp_v]");
-			stutterV = "pp_v";
-		}
-		const ppFrameCount = 2 * frameCount;
-		const ppSampleCount = 2 * sampleCount;
-		if (loopCount >= 0) {
-			f.push(`[pp_v]loop=${loopCount}:${ppFrameCount}:0[stutter_v]`);
-			stutterV = "stutter_v";
 			if (info.hasAudio) {
-				f.push(`[pp_a]aloop=${loopCount}:${ppSampleCount}:0[stutter_a]`);
-				stutterA = "stutter_a";
+				f.push("[fw_v][fw_a][rev_v][rev_a]concat=n=2:v=1:a=1[pp_v][pp_a]");
+				stutterV = "pp_v";
+				stutterA = "pp_a";
+			} else {
+				f.push("[fw_v][rev_v]concat=n=2:v=1:a=0[pp_v]");
+				stutterV = "pp_v";
 			}
+			const ppFrameCount = 2 * frameCount;
+			const ppSampleCount = 2 * sampleCount;
+			if (loopCount >= 0) {
+				f.push(`[pp_v]loop=${loopCount}:${ppFrameCount}:0[stutter_v]`);
+				stutterV = "stutter_v";
+				if (info.hasAudio) {
+					f.push(`[pp_a]aloop=${loopCount}:${ppSampleCount}:0[stutter_a]`);
+					stutterA = "stutter_a";
+				}
+			}
+			break;
 		}
 	}
 

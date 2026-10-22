@@ -1327,23 +1327,36 @@ export class Fluxer extends Service {
 	}
 
 	private async handleFluxerDispatch(event: string, data: unknown) {
-		if (event === "MESSAGE_CREATE") {
-			const message = data as FluxerMessage;
-			if (message.guild_id !== config.guildId) return;
-			if (await this.handleLinkCommand(message)) return;
-			await this.relayFluxerCreate(message);
-		} else if (event === "MESSAGE_UPDATE") {
-			await this.relayFluxerUpdate(data as FluxerMessage);
-		} else if (event === "MESSAGE_DELETE") {
-			const message = data as { id: string; channel_id: string };
-			await this.relayFluxerDelete(message.id);
-		} else if (event === "MESSAGE_DELETE_BULK") {
-			const payload = data as { ids: string[] };
-			for (const id of payload.ids) await this.relayFluxerDelete(id);
-		} else if (event === "THREAD_UPDATE") {
-			await this.relayFluxerThreadUpdate(data as FluxerThreadChannel);
-		} else if (event === "THREAD_DELETE") {
-			await this.relayFluxerThreadDelete(data as { id: string });
+		switch (event) {
+			case "MESSAGE_CREATE": {
+				const message = data as FluxerMessage;
+				if (message.guild_id !== config.guildId) return;
+				if (await this.handleLinkCommand(message)) return;
+				await this.relayFluxerCreate(message);
+				break;
+			}
+			case "MESSAGE_UPDATE": {
+				await this.relayFluxerUpdate(data as FluxerMessage);
+				break;
+			}
+			case "MESSAGE_DELETE": {
+				const message = data as { id: string; channel_id: string };
+				await this.relayFluxerDelete(message.id);
+				break;
+			}
+			case "MESSAGE_DELETE_BULK": {
+				const payload = data as { ids: string[] };
+				for (const id of payload.ids) await this.relayFluxerDelete(id);
+				break;
+			}
+			case "THREAD_UPDATE": {
+				await this.relayFluxerThreadUpdate(data as FluxerThreadChannel);
+				break;
+			}
+			case "THREAD_DELETE": {
+				await this.relayFluxerThreadDelete(data as { id: string });
+				break;
+			}
 		}
 	}
 
