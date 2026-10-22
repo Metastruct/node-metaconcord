@@ -308,8 +308,11 @@ export default (webApp: WebApp): void => {
 	webApp.app.post("/dashboard/restart", limiter, requireAdmin, (_, res) => {
 		const session = res.locals.session as Session;
 		log.warn({ login: session.login }, "restart requested from the dashboard");
-		res.status(202).json({ ok: true });
+		
+		// eslint-disable-next-line unicorn/no-process-exit
 		setTimeout(() => process.exit(0), 300);
+
+		res.status(202).json({ ok: true });
 	});
 
 	webApp.ws.route("/dashboard/ws", async req => {
