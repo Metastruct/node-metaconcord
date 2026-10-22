@@ -293,7 +293,7 @@ export default (bot: DiscordBot): void => {
 			const lines = trimmers.entries().map(([channel, trimmer]) => formatStatsLine(channel, trimmer.getStats())).toArray();
 			await msg.channel.send(lines.length > 0 ? lines.join("\n") : "No trimmers configured.");
 		} else if (msg.channelId === bot.config.channels.log && msg.content.startsWith("!trim set-total ")) {
-			const total = Number.parseInt(msg.content.slice("!trim set-total ".length).trim(), 10);
+			const total = Math.trunc(Number(msg.content.slice("!trim set-total ".length).trim()));
 			if (!Number.isFinite(total) || total < 0) {
 				await msg.channel.send("invalid total");
 				return;
