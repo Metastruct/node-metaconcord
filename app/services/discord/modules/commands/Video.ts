@@ -18,7 +18,7 @@ const MAX_FILE_SIZE = 25_000_000;
 const TIMEOUT = 120_000;
 
 const GLITCH: { segment: number; count: number }[] = [
-	{ segment: 1.0, count: 2 }, // 1  mild
+	{ segment: 1, count: 2 }, // 1  mild
 	{ segment: 0.8, count: 3 }, // 2
 	{ segment: 0.6, count: 4 }, // 3
 	{ segment: 0.4, count: 5 }, // 4
