@@ -163,7 +163,6 @@ export default class VoteKickPayload extends Payload {
 					)
 			)
 			.sorted()
-			.reverse()
-			.first();
+			.last();
 	}
 }
