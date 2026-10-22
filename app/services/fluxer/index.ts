@@ -12,6 +12,7 @@ import {
 	FluxerApiError,
 	FluxerAttachment,
 	FluxerMessage,
+	FluxerMessageEmbed,
 	FluxerMessageSnapshot,
 	FluxerRest,
 	FluxerThreadChannel,
@@ -121,22 +122,17 @@ export function normalizeEmbeds(embeds: readonly unknown[], content = ""): Disco
 				...(image && typeof image.url === "string" && { image: { url: image.url } }),
 				...(thumbnail && typeof thumbnail.url === "string" && { thumbnail: { url: thumbnail.url } }),
 				...(Array.isArray(embed.fields) && {
-					fields: embed.fields.slice(0, 25).flatMap(field => {
-						const item = field as Record<string, unknown>;
-						return typeof item.name === "string" &&
-									typeof item.value === "string"
-							? [
-								{
-									name: item.name,
-									value:
-													item.value.trim().length === 0
-														? "\u200B"
-														: item.value,
-									inline: item.inline === true,
-								},
-							]
-							: [];
-					}),
+					fields: embed.fields
+						.slice(0, 25)
+						.filter((item): item is FluxerMessageEmbed => typeof item.name === "string" && typeof item.value === "string")
+						.map(item => ({
+							name: item.name,
+							value:
+								item.value.trim().length === 0
+									? "\u200B"
+									: item.value,
+							inline: item.inline === true,
+						}))
 				}),
 			};
 		});

@@ -22,6 +22,12 @@ export type FluxerAttachment = {
 	waveform?: string | null;
 };
 
+export type FluxerMessageEmbed = {
+	name: string;
+	value: string;
+	inline?: boolean;
+};
+
 export type FluxerMessage = {
 	id: string;
 	channel_id: string;
@@ -32,7 +38,7 @@ export type FluxerMessage = {
 	content: string;
 	type: number;
 	attachments?: FluxerAttachment[] | null;
-	embeds?: unknown[] | null;
+	embeds?: FluxerMessageEmbed[];
 	stickers?: { id: string; name: string }[] | null;
 	mentions: FluxerUser[];
 	mention_roles: string[];
