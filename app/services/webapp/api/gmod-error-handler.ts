@@ -202,8 +202,9 @@ export default async (webApp: WebApp): Promise<void> => {
 				}`,
 			},
 			color: server ? 0x03_A9_F4 : 0xDE_A9_09,
+			fields: []
 		};
-		embed.fields = [];
+		
 		if (player) {
 			if (player.isPirate) {
 				return;
