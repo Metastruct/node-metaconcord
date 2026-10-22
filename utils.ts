@@ -102,7 +102,7 @@ export const exists = async (path: PathLike): Promise<boolean> =>
 		.catch(() => false);
 
 export const getStackLines = (input: string, linestart: number, lineend?: number): string => {
-	const lines = input.split(/\r?\n/).map(str => "   " + str);
+	const lines = input.split(/\r?\n/).map(str => " ".repeat(3) + str);
 	const line = clamp(linestart, 0, lines.length) - 1;
 	const replace = lines
 		.slice(line, lineend ?? line + 1)
