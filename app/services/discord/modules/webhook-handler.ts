@@ -1453,8 +1453,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 		// behold my newest creation that no one will get on their first read
 		// example path "sound/chatsounds/autoadd/{foldername}/{soundname}"
 		return paths.reduce((map, path) => {
-			const [mainFolder, , , folderName, soundName] = path.split("/", 5);
-			if (mainFolder !== "sound" || !folderName || !soundName) return map;
+			const [soundFolder, _chatsounds, _autoadd, folderName, soundName] = path.split("/", 5);
+			if (soundFolder !== "sound" || !folderName || !soundName) return map;
 			map.set(folderName, [
 				...(map.get(folderName) ?? []),
 				soundName.replace(/\.[^/.]+$/, ""),
