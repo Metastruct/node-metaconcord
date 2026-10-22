@@ -97,7 +97,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			const guildEvents = await guild.scheduledEvents.fetch();
 			if (!eventChange) return;
 
-			if (eventChange && !guildEvents.find(ev => ev.isActive())) {
+			if (eventChange && guildEvents.every(ev => !ev.isActive())) {
 				try {
 					await bot.setIcon(
 						filePath,

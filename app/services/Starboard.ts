@@ -137,7 +137,7 @@ export class Starboard extends Service {
 			if (
 				count >= needed &&
 				(emojiFilter.size === 0 || emojiFilter.has(emoji.name ?? "")) &&
-				!message.reactions.cache.find(
+				!message.reactions.cache.some( // eslint-disable-line unicorn/no-negated-array-predicate
 					e =>
 						e.emoji.name === "⛔" &&
 						message.author &&
