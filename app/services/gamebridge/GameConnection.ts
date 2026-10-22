@@ -101,9 +101,9 @@ export default class GameConnection extends EventEmitter {
 		const { state, afk, activity } = opts;
 		const activities: Discord.ActivitiesOptions[] = activity
 			? [activity]
-			: state
+			: (state
 				? [{ name: "presence", state, type: Discord.ActivityType.Custom }]
-				: [];
+				: []);
 		this.discord.user?.setPresence({ status, afk, activities });
 	}
 

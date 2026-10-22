@@ -8,6 +8,22 @@ import requestSchema from "./structures/VoteKickRequest.json" with { type: "json
 
 const log = logger(import.meta);
 
+function reasonToReaction(reason: string) {
+	if (typeof reason !== "string")
+		return "❌";
+
+	if (reason.includes("Player left"))
+		return "🏃‍♂️";
+	if (reason.includes("not enough coins"))
+		return "💲";
+	if (reason.includes("caller has left"))
+		return "🤦‍♂️";
+	if (reason.includes("Vote was aborted"))
+		return "⛔";
+
+	return "❌";
+}
+
 export default class VoteKickPayload extends Payload {
 	protected static override requestSchema = requestSchema;
 	private static votekickCache: {
@@ -52,34 +68,14 @@ export default class VoteKickPayload extends Payload {
 					payload.data,
 					relayChannel as Discord.TextChannel
 				).then(msg =>
-					msg?.react(
-						reason?.includes("Player left")
-							? "🏃‍♂️"
-							: reason?.includes("not enough coins")
-								? "💲"
-								: reason?.includes("caller has left")
-									? "🤦‍♂️"
-									: reason?.includes("Vote was aborted")
-										? "⛔"
-										: "❌"
-					)
+					msg?.react(reasonToReaction(reason))
 				);
 			}
 			await this.getLastReport(
 				payload.data,
 				notificationsChannel as Discord.TextChannel
 			).then(msg =>
-				msg?.react(
-					reason?.includes("Player left")
-						? "🏃‍♂️"
-						: reason?.includes("not enough coins")
-							? "💲"
-							: reason?.includes("caller has left")
-								? "🤦‍♂️"
-								: reason?.includes("Vote was aborted")
-									? "⛔"
-									: "❌"
-				)
+				msg?.react(reasonToReaction(reason))
 			);
 			return;
 		}

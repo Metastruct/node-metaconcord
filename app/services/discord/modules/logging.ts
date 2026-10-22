@@ -77,7 +77,7 @@ const formatOverwriteValue = (key: string, value: unknown): string | undefined =
 		return perms.length > 0 ? perms.join(", ") : "None";
 	}
 	if (key === "type" && typeof value === "number") {
-		return value === 0 ? "Role" : value === 1 ? "Member" : String(value);
+		return value === 0 ? "Role" : (value === 1 ? "Member" : String(value));
 	}
 	return undefined;
 };
@@ -181,9 +181,9 @@ export default (bot: DiscordBot): void => {
 			for (const part of diffList) {
 				diff += part.added
 					? `\u001B[1;42m${part.value}\u001B[0m`
-					: part.removed
+					: (part.removed
 						? `\u001B[1;41m${part.value}\u001B[0m`
-						: part.value;
+						: part.value);
 			}
 		}
 		diff = diff.replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`");
@@ -209,9 +209,9 @@ export default (bot: DiscordBot): void => {
 					`Embed ${
 						embeds[0] && embeds[1]
 							? "modified"
-							: embeds[0] && !embeds[1]
+							: (embeds[0] && !embeds[1]
 								? "added"
-								: "removed"
+								: "removed")
 					}`
 				)
 			);
@@ -294,9 +294,9 @@ export default (bot: DiscordBot): void => {
 			const targetString =
 				entry.target && entry.target.toString() !== "[object Object]"
 					? entry.target.toString()
-					: entry.targetType === "User"
+					: (entry.targetType === "User"
 						? `<@${entry.targetId}>`
-						: "";
+						: "");
 			embed.addFields(f(`${entry.targetType} (${entry.targetId})`, targetString));
 		}
 
@@ -365,7 +365,7 @@ export default (bot: DiscordBot): void => {
 								typeof change.new === "object";
 							const diffList =
 								overwriteOld === undefined && overwriteNew === undefined
-									? typeof change.old === "object" &&
+									? (typeof change.old === "object" &&
 										  typeof change.new === "object"
 										? diffJson(
 											JSON.stringify(sanitizeEntity(change.old), null, 2),
@@ -382,16 +382,18 @@ export default (bot: DiscordBot): void => {
 												: (format(sanitizeEntity(change.new), {
 													colors: false,
 												}) ?? "undefined")
-										)
+										))
 									: diffWords(overwriteOld ?? "none", overwriteNew ?? "none");
 							for (const part of diffList) {
-								changef += part.added
-									? `\u001B[1;42m${part.value}\u001B[0m`
-									: part.removed
-										? `\u001B[1;41m${part.value}\u001B[0m`
-										: isObject
-											? "" // skip value printing on object comparison
-											: part.value;
+								if (part.added) {
+									changef += `\u001B[1;42m${part.value}\u001B[0m`;
+								} else if (part.removed) {
+									changef += `\u001B[1;41m${part.value}\u001B[0m`;
+								} else if (isObject) {
+									// skip value printing on object comparison
+								} else {
+									changef += part.value;
+								}
 							}
 							return changef;
 						})

@@ -164,7 +164,7 @@ export default class StatusPayload extends Payload {
 
 			// Presence
 			const status: Discord.PresenceStatusData =
-				current_defcon === 1 || current_countdown ? "dnd" : count > 0 ? "online" : "idle";
+				current_defcon === 1 || current_countdown ? "dnd" : (count > 0 ? "online" : "idle");
 
 			if (current_defcon !== 5) {
 				server.setPresence(status, { afk: count === 0, state: "DEFCON " + current_defcon });
@@ -251,9 +251,9 @@ export default class StatusPayload extends Payload {
 			container.setAccentColor(
 				current_defcon === 1 || current_countdown
 					? 0xFF_00_00
-					: current_gamemode
+					: (current_gamemode
 						? (gamemodeExtras?.color ?? null)
-						: undefined
+						: undefined)
 			);
 
 			container.addSectionComponents(section =>

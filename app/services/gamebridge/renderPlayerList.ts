@@ -214,7 +214,7 @@ export async function renderPlayerListImage(
 		const isJoining = p.nick.endsWith(JOINING);
 		const nick = isJoining ? p.nick.slice(0, -JOINING.length) : p.nick;
 
-		const color = p.isBanned ? "#FF0000" : p.isAdmin ? "#933f93" : "#2a77be";
+		const color = p.isBanned ? "#FF0000" : (p.isAdmin ? "#933f93" : "#2a77be");
 		const opacity = p.isAfk ? 0.5 : 1;
 		const avatarDataUri = avatarDataUris[i];
 		const nickX = x + avatarSize + gap;

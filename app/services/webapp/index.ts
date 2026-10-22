@@ -43,9 +43,9 @@ export class WebApp extends Service {
 				customLogLevel: (_, res, err): pino.LevelWithSilent =>
 					err || res.statusCode >= 500
 						? "error"
-						: res.statusCode >= 400
+						: (res.statusCode >= 400
 							? "warn"
-							: "debug",
+							: "debug"),
 				autoLogging: { ignore: req => PATH_IGNORE.some(p => req.path.startsWith(p)) },
 			})
 		);

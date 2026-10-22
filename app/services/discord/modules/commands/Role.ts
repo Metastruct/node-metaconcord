@@ -114,9 +114,9 @@ const uploadIcon = async (ctx: Discord.ChatInputCommandInteraction, role: Discor
 	const url = ctx.options.getString("image_url");
 	const reqURL = attachment
 		? attachment.url
-		: url
+		: (url
 			? url.match(/(https?:\/\/.*\.(?:png|jpg))/)?.[0]
-			: undefined;
+			: undefined);
 
 	if (reqURL) {
 		try {
@@ -224,9 +224,9 @@ const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<void> 
 	// if a colour is defined replace it. Otherwise fall back to the existing one (to change the name only) or get a random one
 	const roleColor: Discord.ColorResolvable = hex
 		? Number.parseInt(hex.replace(/^#+/, ""), 16)
-		: customRole
+		: (customRole
 			? customRole.colors.primaryColor
-			: "Random";
+			: "Random");
 
 	let targetRole = roles.cache.find((r: { name: string }) => r.name === roleName);
 	if (targetRole) {

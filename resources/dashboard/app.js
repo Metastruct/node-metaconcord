@@ -261,7 +261,7 @@
 
 	// #region config editor
 
-	const typeOf = v => (v === null ? "null" : Array.isArray(v) ? "array" : typeof v);
+	const typeOf = v => (v === null ? "null" : (Array.isArray(v) ? "array" : typeof v));
 
 	/** Scalars are edited bare in an input, objects/arrays as JSON in a textarea. */
 	const valueEditor = (value, onChange) => {

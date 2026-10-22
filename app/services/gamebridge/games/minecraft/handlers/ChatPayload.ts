@@ -63,9 +63,9 @@ async function formatForMinecraft(msg: Discord.Message | Discord.MessageSnapshot
 	if (content.length === 0) {
 		content =
 			msg.embeds.length > 0
-				? msg.embeds.some(e => e.image ?? e.thumbnail)
+				? (msg.embeds.some(e => e.image ?? e.thumbnail)
 					? "[image.png]"
-					: "[Embed]"
+					: "[Embed]")
 				: "[Something]";
 	}
 

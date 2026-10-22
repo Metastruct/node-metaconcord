@@ -36,9 +36,9 @@ export function attachWsGame<
 		let serverConfig: TConfig | undefined;
 		for (const serverEntry of opts.servers) {
 			const ips = serverEntry.ip
-				? Array.isArray(serverEntry.ip)
+				? (Array.isArray(serverEntry.ip)
 					? serverEntry.ip
-					: [serverEntry.ip]
+					: [serverEntry.ip])
 				: [];
 			if ((ip && ips.includes(ip)) || (forwarded && ips.includes(forwarded))) {
 				serverConfig = serverEntry;

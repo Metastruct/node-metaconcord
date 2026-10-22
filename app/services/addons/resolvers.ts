@@ -63,9 +63,9 @@ export function parseGitRemote(remote: string): GitRemote | undefined {
 
 	const host: GitHost = hostname.endsWith("github.com")
 		? "github"
-		: hostname.includes("gitlab")
+		: (hostname.includes("gitlab")
 			? "gitlab"
-			: "other";
+			: "other");
 
 	return { host, hostname, path, webUrl: `https://${hostname}/${path}` };
 }

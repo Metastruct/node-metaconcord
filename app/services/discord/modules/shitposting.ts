@@ -210,9 +210,9 @@ export default async (bot: DiscordBot) => {
 					? ({
 						stickers: [bot.getGuild()?.stickers.cache.random()],
 					} as Discord.MessageCreateOptions)
-					: shouldSendEmoji
+					: (shouldSendEmoji
 						? getRandomEmoji().toString()
-						: undefined,
+						: undefined),
 			});
 			if (shat) {
 				try {

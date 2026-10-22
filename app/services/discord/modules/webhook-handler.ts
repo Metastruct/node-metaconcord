@@ -812,7 +812,7 @@ function GetGitlabDiffChanges(
 	return files.map(f => {
 		// leading "-" is escaped: unescaped, Discord renders a line starting with
 		// "- " as a markdown list bullet instead of a literal minus sign
-		const prefix = f.new_file ? "+" : f.deleted_file ? "\\-" : "~";
+		const prefix = f.new_file ? "+" : (f.deleted_file ? "\\-" : "~");
 		const path = f.deleted_file ? f.old_path : f.new_path;
 		return `${prefix} [${path}](https://gitlab.com/${pathWithNamespace}/-/blob/${sha}/${path.replaceAll(" ", "%20")})`;
 	});
@@ -898,7 +898,7 @@ function GetPullRequestChanges(files: components["schemas"]["diff-entry"][]): st
 	return files.map(f => {
 		// leading "-" is escaped: unescaped, Discord renders a line starting with
 		// "- " as a markdown list bullet instead of a literal minus sign
-		const prefix = f.status === "added" ? "+" : f.status === "removed" ? "\\-" : "~";
+		const prefix = f.status === "added" ? "+" : (f.status === "removed" ? "\\-" : "~");
 		return `${prefix} [${f.filename}](${f.blob_url})`;
 	});
 }
@@ -1681,9 +1681,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const container = new Discord.ContainerBuilder().setAccentColor(
 			payload.action === "closed"
-				? pr.merged
+				? (pr.merged
 					? 0x89_57_E5
-					: 0xE7_4C_3C
+					: 0xE7_4C_3C)
 				: GetColorFromChanges(pr.additions ?? 0, pr.deletions ?? 0, pr.changed_files ?? 0)
 		);
 
@@ -2183,9 +2183,9 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const container = new Discord.ContainerBuilder().setAccentColor(
 			mr.action === "close"
 				? 0xE7_4C_3C
-				: mr.action === "merge"
+				: (mr.action === "merge"
 					? 0x89_57_E5
-					: GetColorFromChanges(added, removed, modified)
+					: GetColorFromChanges(added, removed, modified))
 		);
 
 		const repoLine = `[${mr.target.path_with_namespace.slice(0, 256)}](${mr.target.web_url})`;

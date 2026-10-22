@@ -121,14 +121,9 @@ export default async (webApp: WebApp): Promise<void> => {
 		let player: Player | undefined;
 		if (server) {
 			// ip matched so it HAS to exist
-			gameserver = gameBridge.servers.gmod.find(s => {
-				const ips = s.config.ip
-					? Array.isArray(s.config.ip)
-						? s.config.ip
-						: [s.config.ip]
-					: [];
-				return ips.includes(ip);
-			});
+			gameserver = gameBridge.servers.gmod.find(s => 
+				Array.isArray(s.config.ip) ? s.config.ip.includes(ip) : s.config.ip === ip
+			);
 		} else {
 			const allplayers = gameBridge.servers.gmod.reduce(
 				(ps, cs) => ps.concat(cs.status.players),
@@ -196,9 +191,9 @@ export default async (webApp: WebApp): Promise<void> => {
 				text: `${body.gamemode}@${
 					body.realm === "server"
 						? (server?.name ?? `unknown server(${ip})`)
-						: gameserver
+						: (gameserver
 							? gameserver.config.name
-							: body.realm
+							: body.realm)
 				}`,
 			},
 			color: server ? 0x03_A9_F4 : 0xDE_A9_09,

@@ -451,13 +451,8 @@ for (const cat of catOrder) {
 log(`Threads to mirror (${desiredThreadList.length}):`);
 for (const thread of desiredThreadList) {
 	const parent = desiredChannels.get(thread.parentDiscordId);
-	const kind = FORUM_PARENT_TYPES.has(parent?.src.type)
-		? isArchivedThread(thread.src)
-			? "archived forum post"
-			: "forum post"
-		: isArchivedThread(thread.src)
-			? "archived thread"
-			: "thread";
+	const kind = (isArchivedThread(thread.src) ? "archived " : "")
+		+ (FORUM_PARENT_TYPES.has(parent?.src.type) ? "forum post" : "thread");
 	log(
 		`  - ${thread.configName}: "${thread.src.name}" (${kind}, parent "${parent?.src.name ?? thread.parentDiscordId}")`
 	);
@@ -918,9 +913,9 @@ try {
 	for (const ch of orderedChannels) {
 		const channelKind = FORUM_PARENT_TYPES.has(ch.src.type)
 			? "forum"
-			: ch.type === 2
+			: (ch.type === 2
 				? "voice"
-				: "text";
+				: "text");
 		const relayEnabled = channelKind === "text" || channelKind === "forum" ? 1 : 0;
 		const mapping = {
 			discordChannelId: ch.src.id,
