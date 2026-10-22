@@ -1338,7 +1338,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					...(commit.removed ?? []),
 				];
 
-				includesLua = allFiles.length > 0 && allFiles.some(str => str.endsWith(".lua"));
+				includesLua = allFiles.some(str => str.endsWith(".lua"));
 
 				const isOnlyOgg =
 					allFiles.length > 0 && allFiles.every(str => str.endsWith(".ogg"));
@@ -2036,7 +2036,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				);
 
 				const allFiles = [...added, ...modified, ...removed];
-				includesLua ||= (allFiles.length > 0 && allFiles.some(f => f.endsWith(".lua")));
+				includesLua ||= allFiles.some(f => f.endsWith(".lua"));
 				const isOnlyOgg = allFiles.length > 0 && allFiles.every(f => f.endsWith(".ogg"));
 
 				const diffFiles =
