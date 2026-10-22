@@ -50,12 +50,6 @@ Object.defineProperty(Discord.User.prototype, "mention", {
 	},
 });
 
-Object.defineProperty(Discord.GuildMember.prototype, "mention", {
-	get(this: Discord.GuildMember) {
-		return `<@${this.id}>`;
-	},
-});
-
 Object.defineProperty(Discord.Role.prototype, "isCustomRole", {
 	get(this: Discord.Role) {
 		return (
@@ -65,14 +59,20 @@ Object.defineProperty(Discord.Role.prototype, "isCustomRole", {
 	},
 });
 
-Object.defineProperty(Discord.GuildMember.prototype, "hasCustomRole", {
-	get(this: Discord.GuildMember) {
-		return this.roles.cache.some(role => role.isCustomRole);
+Object.defineProperties(Discord.GuildMember.prototype, {
+	mention: {
+		get(this: Discord.GuildMember) {
+			return `<@${this.id}>`;
+		},
 	},
-});
-
-Object.defineProperty(Discord.GuildMember.prototype, "getCustomRole", {
-	get(this: Discord.GuildMember) {
-		return this.roles.cache.find(role => role.isCustomRole);
+	hasCustomRole: {
+		get(this: Discord.GuildMember) {
+			return this.roles.cache.some(role => role.isCustomRole);
+		},
+	},
+	getCustomRole: {
+		get(this: Discord.GuildMember) {
+			return this.roles.cache.find(role => role.isCustomRole);
+		},
 	},
 });
