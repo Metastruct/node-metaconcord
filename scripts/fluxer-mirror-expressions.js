@@ -322,23 +322,22 @@ phase("Persisting bridge mappings");
 const emojiMappingsByFluxer = new Map(
 	emojiMappings.map(mapping => [mapping.fluxerEmojiId, mapping])
 );
-for (const dropped of emojiMappings.filter(
-	mapping => emojiMappingsByFluxer.get(mapping.fluxerEmojiId) !== mapping
-)) {
-	warn(
+emojiMappings
+	.filter(mapping => emojiMappingsByFluxer.get(mapping.fluxerEmojiId) !== mapping)
+	.forEach(dropped => warn(
 		`dropping duplicate mapping for Fluxer emoji "${dropped.name}" (${dropped.fluxerEmojiId})`
-	);
-}
+	));
+
 const stickerMappingsByFluxer = new Map(
 	stickerMappings.map(mapping => [mapping.fluxerStickerId, mapping])
 );
-for (const dropped of stickerMappings.filter(
-	mapping => stickerMappingsByFluxer.get(mapping.fluxerStickerId) !== mapping
-)) {
-	warn(
+
+stickerMappings
+	.filter(mapping => stickerMappingsByFluxer.get(mapping.fluxerStickerId) !== mapping)
+	.forEach(dropped => warn(
 		`dropping duplicate mapping for Fluxer sticker "${dropped.name}" (${dropped.fluxerStickerId})`
-	);
-}
+	));
+
 const database = new BetterSqlite3(
 	process.env.METACONCORD_DB_PATH ?? resolve(root, "metaconcord.db")
 );
