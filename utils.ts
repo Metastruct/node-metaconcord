@@ -49,6 +49,7 @@ const LUA_UNSAFE = new RegExp('[\\\\"\\u0000-\\u001f\\u007f]', "g");
 export const luaString = (value: string): string =>
 	`"${value.replaceAll(
 		LUA_UNSAFE,
+		// eslint-disable-next-line unicorn/prefer-code-point
 		c => LUA_ESCAPES[c] ?? `\\${c.charCodeAt(0).toString().padStart(3, "0")}`
 	)}"`;
 

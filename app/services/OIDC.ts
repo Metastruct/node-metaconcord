@@ -19,7 +19,7 @@ import {
 const log = logger(import.meta);
 
 const esc = (value: unknown) =>
-	String(value).replaceAll(/[&<>"]/g, ch => `&#${ch.charCodeAt(0)};`);
+	String(value).replaceAll(/[&<>"]/g, ch => `&#${ch.codePointAt(0)};`);
 
 /**
  * An OpenID Connect provider mounted on the WebApp, so other sites can log in
