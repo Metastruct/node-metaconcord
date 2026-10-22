@@ -121,23 +121,23 @@ export default async (webApp: WebApp): Promise<void> => {
 		let player: Player | undefined;
 		if (server) {
 			// ip matched so it HAS to exist
-			gameserver = gameBridge.servers.gmod.filter(s => {
+			gameserver = gameBridge.servers.gmod.find(s => {
 				const ips = s.config.ip
 					? Array.isArray(s.config.ip)
 						? s.config.ip
 						: [s.config.ip]
 					: [];
 				return ips.includes(ip);
-			})[0];
+			});
 		} else {
 			const allplayers = gameBridge.servers.gmod.reduce(
 				(ps, cs) => ps.concat(cs.status.players),
 				new Array<Player>()
 			);
 			player = allplayers.find(pl => pl.ip.split(":", 1)[0] === ip); // idk if you can combine that into one call
-			gameserver = gameBridge.servers.gmod.filter(srv =>
+			gameserver = gameBridge.servers.gmod.find(srv =>
 				srv.status.players.includes(player as Player)
-			)[0];
+			);
 		}
 
 		switch (body.realm) {
