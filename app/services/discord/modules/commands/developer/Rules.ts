@@ -110,10 +110,10 @@ const editRule = async (ctx: Discord.ChatInputCommandInteraction, bot: DiscordBo
 			return;
 		}
 	} else {
-		ruleCache.splice(choosenRule - 1, 1, {
+		ruleCache[choosenRule - 1] = {
 			title: title ?? rule.title,
 			description: description ?? rule.description ?? "",
-		});
+		};
 	}
 
 	await refreshRules(ctx, bot);
