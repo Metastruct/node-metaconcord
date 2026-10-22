@@ -1,3 +1,5 @@
+/* eslint-disable unicorn/no-global-object-property-assignment */
+
 // Load environment variables
 import * as dotenv from "dotenv";
 dotenv.config();
