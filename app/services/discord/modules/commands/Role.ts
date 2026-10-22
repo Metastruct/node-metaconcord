@@ -58,9 +58,9 @@ const setRoleColorSpecial = async (
 				: ctx.options.getString("secondary_color", true);
 
 			let primaryColor = primary
-				? parseInt(primary.replace(/^#+/, ""), 16)
+				? Number.parseInt(primary.replace(/^#+/, ""), 16)
 				: role.colors.primaryColor;
-			let secondaryColor = secondary ? parseInt(secondary.replace(/^#+/, ""), 16) : undefined;
+			let secondaryColor = secondary ? Number.parseInt(secondary.replace(/^#+/, ""), 16) : undefined;
 			let tertiaryColor: number | undefined = undefined;
 
 			if (options?.holographic) {
@@ -223,7 +223,7 @@ const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<void> 
 
 	// if a colour is defined replace it. Otherwise fall back to the existing one (to change the name only) or get a random one
 	const roleColor: Discord.ColorResolvable = hex
-		? parseInt(hex.replace(/^#+/, ""), 16)
+		? Number.parseInt(hex.replace(/^#+/, ""), 16)
 		: customRole
 			? customRole.colors.primaryColor
 			: "Random";

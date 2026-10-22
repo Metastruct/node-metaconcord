@@ -280,7 +280,7 @@ export class DiscordMetadata extends Service {
 		const metadata: MetaMetadata = {
 			banned: banned ? 1 : 0,
 			dev: roleLevel(account.roles),
-			time: isNaN(Math.trunc(Number(playtime))) ? undefined : Math.round(Math.trunc(Number(playtime)) / 60 / 60),
+			time: Number.isNaN(Math.trunc(Number(playtime))) ? undefined : Math.round(Math.trunc(Number(playtime)) / 60 / 60),
 			coins: coins,
 		};
 		const res = await this.push(userId, data, metadata, nick);

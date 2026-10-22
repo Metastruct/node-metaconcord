@@ -22,7 +22,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		}
 
 		const id = Math.trunc(Number(req.params.id));
-		if (isNaN(id) || servers.every(srv => srv.id !== id)) {
+		if (Number.isNaN(id) || servers.every(srv => srv.id !== id)) {
 			res.sendStatus(403);
 			return;
 		}

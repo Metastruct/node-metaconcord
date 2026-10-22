@@ -79,7 +79,7 @@ export const parseDuration = (input: string): number => {
 		.replaceAll(/\s+/g, "")
 		.matchAll(/(\d+)(y|mo|w|d|h|m|s)/g)) {
 		const amount = Math.trunc(Number(match[1]));
-		if (!isNaN(amount) && amount > 0) len += amount * DURATION_UNITS[match[2]];
+		if (!Number.isNaN(amount) && amount > 0) len += amount * DURATION_UNITS[match[2]];
 	}
 	return len;
 };
