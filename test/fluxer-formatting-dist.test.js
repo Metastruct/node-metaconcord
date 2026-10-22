@@ -67,7 +67,7 @@ test("rewriteEmojiMarkup reports unmapped emojis via onUnmapped", () => {
 	const result = rewriteEmojiMarkup(
 		"<:pet:1001> <:external:5000> <a:animated:6000>",
 		lookup,
-		emoji => unmapped.push(emoji)
+		emoji => void unmapped.push(emoji)
 	);
 	assert.equal(result, "<:pet:9001> :external: :animated:");
 	assert.deepEqual(unmapped, [
@@ -75,7 +75,7 @@ test("rewriteEmojiMarkup reports unmapped emojis via onUnmapped", () => {
 		{ id: "6000", name: "animated", animated: true },
 	]);
 	assert.deepEqual(
-		rewriteEmojiMarkup("only <:pet:1001>", lookup, emoji => unmapped.push(emoji)),
+		rewriteEmojiMarkup("only <:pet:1001>", lookup, emoji => void unmapped.push(emoji)),
 		"only <:pet:9001>"
 	);
 	assert.equal(unmapped.length, 2);

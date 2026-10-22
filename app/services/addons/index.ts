@@ -428,7 +428,7 @@ export class Addons extends Service {
 		for (const mod of relevant) {
 			// two jars can resolve to the same platform project, and so to the same
 			// name; the mod id is the only thing unique to the mod itself
-			const push = (addon: Addon) => addons.push({ ...addon, key: mod.modId });
+			const push = (addon: Addon): void => void addons.push({ ...addon, key: mod.modId });
 			const modrinth = mod.sha512 ? byHash.get(mod.sha512) : undefined;
 			if (modrinth) {
 				push({

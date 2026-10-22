@@ -184,14 +184,14 @@ export class Starboard extends Service {
 					} else if (reference.type === 1) {
 						const snap = msg.messageSnapshots.first();
 						text += `-# [forwarded message]\n${snap?.content}`;
-						snap?.attachments.map(a => files.push(a.url));
+						snap?.attachments.forEach(a => void files.push(a.url));
 					}
 				}
 
 				text += msg.content;
 				text += msg.stickers.size > 0 ? msg.stickers.first()?.url : "";
 
-				msg.attachments.map(a => files.push(a.url));
+				msg.attachments.forEach(a => void files.push(a.url));
 
 				const channel = targetChannel as Discord.TextChannel;
 
