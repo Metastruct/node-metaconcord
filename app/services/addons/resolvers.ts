@@ -325,7 +325,7 @@ export async function resolveReadme(
 	rootPath: string | undefined,
 	github?: GithubClient
 ): Promise<string | undefined> {
-	const key = `${remote.webUrl}\u0000${subpath ?? ""}\u0000${ref ?? ""}`;
+	const key = `${remote.webUrl}\0${subpath ?? ""}\0${ref ?? ""}`;
 	const cached = readmeCache.get(key);
 	if (cached !== undefined) return cached ?? undefined;
 
