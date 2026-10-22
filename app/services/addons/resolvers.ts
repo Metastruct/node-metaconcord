@@ -482,7 +482,7 @@ function isDecoration(block: string): boolean {
 function isTable(block: string): boolean {
 	const lines = block.trim().split("\n");
 	return (
-		lines.length > 1 && lines.filter(l => l.trim().startsWith("|")).length >= lines.length / 2
+		lines.length > 1 && lines.filter(l => l.trimStart().startsWith("|")).length >= lines.length / 2
 	);
 }
 
