@@ -123,7 +123,6 @@ abstract class MarkovChainBase {
 			}
 		}
 
-		let lastChain: string[];
 		const startCount = out.length;
 
 		while (out.length < maxLength) {
@@ -135,14 +134,14 @@ abstract class MarkovChainBase {
 
 			words = this.getWords(data);
 
-			lastChain = chain;
+			let lastChainLength = chain.length;
 			chain = this.matchCurrentChain(words, chain, depth);
 
-			if (chain.length <= lastChain.length && chain.length < depth) {
+			if (chain.length <= lastChainLength && chain.length < depth) {
 				break;
 			}
-			if (lastChain.length < depth) {
-				for (let i = lastChain.length; i < chain.length; i++) {
+			if (lastChainLength < depth) {
+				for (let i = lastChainLength; i < chain.length; i++) {
 					out.push(chain[i]);
 					if (callback) {
 						callback(chain[i]);
