@@ -140,7 +140,7 @@ const writeFile = async (
 
 type Mutation = (
 	events: HistoryEvent[]
-) => { events: HistoryEvent[]; event: HistoryEvent; message: string; mirror?: boolean } | string;
+) => string | { events: HistoryEvent[]; event: HistoryEvent; message: string; mirror?: boolean };
 
 /**
  * Sends 401 and returns undefined unless the staff session carries a usable GitHub token.
