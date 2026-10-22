@@ -147,7 +147,7 @@
 		try {
 			const res = await fetch("/dashboard/logs?limit=500");
 			if (res.status === 401) {
-				location.href = "/";
+				location.assign("/");
 				return;
 			}
 			logEl.textContent = "";
@@ -178,7 +178,7 @@
 			setStatus("closed");
 			if (ev.code === 4001) {
 				// session expired, "/" serves the login page again
-				location.href = "/";
+				location.assign("/");
 				return;
 			}
 			const delay = Math.min(30_000, 1000 * 2 ** retry++);
@@ -458,7 +458,7 @@
 
 	$("#logout").addEventListener("click", async () => {
 		await fetch("/auth/logout", { method: "POST"});
-		location.href = "/";
+		location.assign("/");
 	});
 
 	$("#restart").addEventListener("click", async () => {
