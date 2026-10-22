@@ -155,8 +155,8 @@ export default class StatusPayload extends Payload {
 			}
 			current_players.sort(function(a, b) {
 				let i = 0;
-				if (!a.isAdmin && b.isAdmin) i = i + 2;
-				if (a.isAdmin && !b.isAdmin) i = i - 2;
+				if (!a.isAdmin && b.isAdmin) i += 2;
+				if (a.isAdmin && !b.isAdmin) i -= 2;
 				if (a.nick.toLowerCase() > b.nick.toLowerCase()) i++;
 				if (a.nick.toLowerCase() < b.nick.toLowerCase()) i--;
 				return i;

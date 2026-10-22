@@ -22,8 +22,7 @@ export const MenuWhyRoleCommand: MenuCommand = {
 			if (guild) {
 				let content = "";
 				for (const [roleId, data] of Object.entries(roles)) {
-					content =
-						content +
+					content +=
 						`<@&${roleId}> added by <@${data.adderId}> <t:${data.timeStamp
 							.toString()
 							.slice(0, 10)}:R>${Object.entries(roles).length > 1 ? "\n" : ""}`;
