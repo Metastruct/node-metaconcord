@@ -36,7 +36,7 @@ const SHUTTLE_AT_REST = new Set(["idle", "docked"]);
 function buildSignature(connection: SS13Connection, disconnected: boolean): unknown {
 	return {
 		disconnected,
-		instances: [...connection.instances.entries()]
+		instances: connection.instances.entries()
 			.map(([instanceId, s]) => ({
 				instanceId,
 				clientCount: s.status.clientCount,
@@ -52,6 +52,7 @@ function buildSignature(connection: SS13Connection, disconnected: boolean): unkn
 					}))
 					.toSorted((a, b) => a.nick.localeCompare(b.nick)),
 			}))
+			.toArray()
 			.toSorted((a, b) => a.instanceId - b.instanceId),
 	};
 }
@@ -143,7 +144,7 @@ function renderMessage(
 }
 
 function updatePresence(connection: SS13Connection): void {
-	const states = [...connection.instances.values()];
+	const states = connection.instances.values().toArray();
 	const totalPlayers = states.reduce((sum, s) => sum + s.status.clientCount, 0);
 	const populated = states.filter(s => s.status.clientCount > 0).length;
 

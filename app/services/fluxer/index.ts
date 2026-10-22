@@ -325,9 +325,13 @@ export class Fluxer extends Service {
 		);
 		log.info(
 			{
-				relayChannels: [...this.routesByDiscord.values()].filter(
-					route => route.relayEnabled
-				).length,
+				relayChannels: this.routesByDiscord
+					.values()
+					.filter(
+						route => route.relayEnabled
+					)
+					.toArray()
+					.length,
 			},
 			"Fluxer bridge initialized"
 		);
@@ -848,9 +852,7 @@ export class Fluxer extends Service {
 		};
 		if (isForum) {
 			const payload = await this.translateDiscordMessage(message);
-			const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(parentRoute, [
-				...message.attachments.values(),
-			]);
+			const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(parentRoute, message.attachments.values().toArray());
 			payload.content = appendContent(payload.content, fallbackUrls, 4000);
 			const embeds = normalizeEmbeds(
 				message.embeds.map(embed => embed.toJSON()),
@@ -967,17 +969,17 @@ export class Fluxer extends Service {
 			message.attachments.first()?.waveform
 				? message.attachments.first()
 				: undefined;
-		const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(route, [
-			...message.attachments.values(),
-		]);
+		const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(route, message.attachments.values().toArray());
 		const voiceMessage = voiceAttachment && attachments.length === 1;
-		const stickerIds = [...message.stickers.values()]
+		const stickerIds = message.stickers.values()
 			.map(sticker => this.stickerFluxerByDiscord.get(sticker.id))
 			.filter((id): id is string => Boolean(id))
-			.slice(0, 3);
-		const fallbackStickerUrls = [...message.stickers.values()]
+			.take(3)
+			.toArray();
+		const fallbackStickerUrls = message.stickers.values()
 			.filter(sticker => !this.stickerFluxerByDiscord.has(sticker.id))
-			.map(sticker => sticker.url);
+			.map(sticker => sticker.url)
+			.toArray();
 		payload.content = appendContent(
 			payload.content,
 			fallbackStickerUrls.concat(fallbackUrls),
@@ -1112,7 +1114,7 @@ export class Fluxer extends Service {
 		} as unknown as Discord.Message);
 		const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(
 			route,
-			snapshot ? [...snapshot.attachments.values()] : []
+			snapshot ? snapshot.attachments.values().toArray() : []
 		);
 		const snapshotStickers = snapshot?.stickers.values() ?? [];
 		const stickerIds = [...snapshotStickers]
@@ -1206,7 +1208,7 @@ export class Fluxer extends Service {
 				continue;
 			}
 			const messages = await channel.messages.fetch({ limit: 100 });
-			for (const message of [...messages.values()].toSorted(
+			for (const message of messages.values().toArray().toSorted(
 				(a, b) => a.createdTimestamp - b.createdTimestamp
 			)) {
 				await this.enqueue(`discord:${channelId}`, () => this.relayDiscordCreate(message));
@@ -1226,7 +1228,7 @@ export class Fluxer extends Service {
 		const payload = await this.translateDiscordMessage(message);
 		payload.content = appendContent(
 			payload.content,
-			[...message.stickers.values()].map(sticker => sticker.url),
+			message.stickers.values().map(sticker => sticker.url).toArray(),
 			4000
 		);
 		const components = message.components.map(component => component.toJSON());
@@ -1689,9 +1691,9 @@ export class Fluxer extends Service {
 		if (emojiFallbackById.size > 0) {
 			content = appendContent(
 				content,
-				[...emojiFallbackById.values()].map(emoji =>
-					discordEmojiCdnUrl(emoji.id, emoji.animated)
-				),
+				emojiFallbackById.values()
+					.map(emoji => discordEmojiCdnUrl(emoji.id, emoji.animated))
+					.toArray(),
 				4000
 			);
 		}

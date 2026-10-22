@@ -345,9 +345,9 @@ for (const src of channelById.values()) {
 }
 const isArchivedThread = src =>
 	src.thread_metadata?.archived === true || src.thread_metadata?.locked === true;
-const desiredThreadList = [...desiredThreads.values()].filter(thread =>
+const desiredThreadList = desiredThreads.values().filter(thread =>
 	desiredChannels.has(thread.parentDiscordId)
-);
+).toArray();
 
 const channelPosition = ch => {
 	if (!DISCORD_THREAD_TYPES.has(ch.src.type)) return ch.src.position ?? 0;
@@ -434,14 +434,15 @@ for (const r of desiredRoles) {
 }
 log(
 	`Categories to mirror (${desiredCategories.size}): ` +
-		[...desiredCategories.values()].map(c => `"${c.name}"`).join(", ")
+		desiredCategories.values().map(c => `"${c.name}"`).toArray().join(", ")
 );
 log(`Channels to mirror (${desiredChannels.size}):`);
-const catOrder = [...desiredCategories.values()].toSorted((a, b) => a.position - b.position);
+const catOrder = desiredCategories.values().toArray().toSorted((a, b) => a.position - b.position);
 for (const cat of catOrder) {
 	log(`  [category] ${cat.name}`);
-	for (const ch of [...desiredChannels.values()]
+	for (const ch of desiredChannels.values()
 		.filter(ch => ch.parentDiscordId === cat.id)
+		.toArray()
 		.toSorted(compareChannels)) {
 		log(
 			`    - ${ch.configName}: "${ch.src.name}" (discord type ${ch.src.type} -> fluxer ${ch.type})`
@@ -643,7 +644,7 @@ for (const cat of catOrder) {
 
 // Create channels in source category and channel order; the explicit reorder below
 // also repairs ordering on idempotent reruns.
-const orderedChannels = [...desiredChannels.values()].toSorted((a, b) => {
+const orderedChannels = desiredChannels.values().toArray().toSorted((a, b) => {
 	const parentA = desiredCategories.get(a.parentDiscordId)?.position ?? 0;
 	const parentB = desiredCategories.get(b.parentDiscordId)?.position ?? 0;
 	if (parentA !== parentB) return parentA - parentB;
@@ -807,8 +808,9 @@ for (const cat of catOrder) {
 	precedingCategoryId = categoryId;
 
 	let precedingChannelId = null;
-	const children = [...desiredChannels.values()]
+	const children = desiredChannels.values()
 		.filter(ch => ch.parentDiscordId === cat.id)
+		.toArray()
 		.toSorted(compareChannels);
 	for (const child of children) {
 		const channelId = fluxerIdByDiscordChannel.get(child.src.id);

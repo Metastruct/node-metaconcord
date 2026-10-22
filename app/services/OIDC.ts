@@ -200,11 +200,12 @@ export class OIDC extends Service {
 				if (req.method !== "GET") return next();
 				const attempt = Number(req.cookies?.__mcscrub ?? 0);
 				const header = req.headers.cookie ?? "";
-				const values = [...header.matchAll(/(?:^|; *)_session=([^;]*)/g)]
+				const values = header.matchAll(/(?:^|; *)_session=([^;]*)/g)
 					.map(m => m[1])
-					.filter(value => value !== "");
+					.filter(value => value !== "")
+					.toArray();
 				if (values.length === 0) return next();
-				const sigs = new Set([...header.matchAll(/(?:^|; *)_session\.sig=([^;]*)/g)].map(m => m[1]));
+				const sigs = new Set(header.matchAll(/(?:^|; *)_session\.sig=([^;]*)/g).map(m => m[1]));
 				const sessionAdapter = this.provider.Session.adapter;
 				const resolvable = await Promise.all(
 					values.map(

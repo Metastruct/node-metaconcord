@@ -338,7 +338,7 @@ const refreshSteamGroup = async (groupId: string, cache: SteamGroupCache): Promi
 		}
 	);
 	cache.members = new Set(
-		[...String(res.data).matchAll(/<steamID64>(\d+)<\/steamID64>/g)].map(m => m[1]).filter(m => typeof m === "string")
+		String(res.data).matchAll(/<steamID64>(\d+)<\/steamID64>/g).map(m => m[1]).filter(m => typeof m === "string")
 	);
 };
 

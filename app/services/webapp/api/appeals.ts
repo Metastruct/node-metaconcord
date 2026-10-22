@@ -484,7 +484,7 @@ export default (webApp: WebApp): void => {
 			res.status(503).json({ error: "Discord is unavailable right now" });
 			return;
 		}
-		const messages = [...fetched.values()]
+		const messages = fetched.values().toArray()
 			.toSorted((a, b) => a.createdTimestamp - b.createdTimestamp)
 			.map(msg => toAppealMessage(msg, botId))
 			.filter((msg): msg is AppealMessage => !!msg);

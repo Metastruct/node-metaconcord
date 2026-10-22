@@ -160,7 +160,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		}
 
 		const stack = body.stack.replaceAll(megaRex, SuperReplacer);
-		const matches = [...body.stack.matchAll(megaRex)];
+		const matches = body.stack.matchAll(megaRex).toArray();
 		if (
 			body.realm === "client" &&
 			matches.some(

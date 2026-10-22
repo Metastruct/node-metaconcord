@@ -121,7 +121,7 @@ function sessionContentKey(session: ResoniteSession): string {
 function buildSignature(connection: ResoniteConnection): unknown {
 	return {
 		disconnected: connection.disconnected,
-		sessions: [...connection.sessions.values()]
+		sessions: connection.sessions.values()
 			.map(s => ({
 				id: s.session.sessionId,
 				count: s.session.joinedUsers,
@@ -130,6 +130,7 @@ function buildSignature(connection: ResoniteConnection): unknown {
 				hidden: s.session.hideFromListing,
 				users: s.session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).toSorted(localeCompare),
 			}))
+			.toArray()
 			.toSorted((a, b) => a.id.localeCompare(b.id)),
 	};
 }
@@ -268,7 +269,7 @@ async function upsertSession(
 }
 
 function updatePresence(connection: ResoniteConnection): void {
-	const sessions = [...connection.sessions.values()];
+	const sessions = connection.sessions.values().toArray();
 	const totalPlayers = sessions.reduce((sum, s) => sum + s.session.joinedUsers, 0);
 	const populated = sessions.filter(s => s.session.joinedUsers > 0).length;
 

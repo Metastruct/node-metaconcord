@@ -118,7 +118,7 @@ async function getWithCookies(url: URL | string, cookie?: string): Promise<Respo
 	for (let hops = 0; hops < 10; hops++) {
 		const res = await fetch(current, {
 			redirect: "manual",
-			headers: { cookie: [...jar.values()].join("; ") },
+			headers: { cookie: jar.values().toArray().join("; ") },
 		});
 		for (const set of res.headers.getSetCookie()) {
 			const [pair] = set.split(";", 1);
@@ -144,7 +144,7 @@ async function followToCode(authUrl: URL, cookie?: string): Promise<URL> {
 	for (let hops = 0; hops < 10; hops++) {
 		const res = await fetch(url, {
 			redirect: "manual",
-			headers: { cookie: [...jar.values()].join("; ") },
+			headers: { cookie: jar.values().toArray().join("; ") },
 		});
 		// carry oidc-provider's interaction cookies through the hops
 		for (const set of res.headers.getSetCookie()) {
@@ -200,7 +200,7 @@ async function main(): Promise<void> {
 		authUrl.searchParams.set("nonce", "no456");
 		const loggedOut = await getWithCookies(authUrl);
 		const pickerHtml = await loggedOut.text();
-		const pickerLinks = [...pickerHtml.matchAll(/href="([^"]+)"/g)].map(m => m[1]);
+		const pickerLinks = pickerHtml.matchAll(/href="([^"]+)"/g).map(m => m[1]).toArray();
 		check(
 			"no session shows provider picker",
 			(loggedOut.headers.get("content-type") ?? "").includes("text/html") &&
@@ -321,7 +321,7 @@ async function main(): Promise<void> {
 		]);
 		const staleRes = await fetch(authUrl, {
 			redirect: "manual",
-			headers: { cookie: [...staleCookies.values()].join("; ") },
+			headers: { cookie: staleCookies.values().toArray().join("; ") },
 		});
 		const staleLocation = new URL(staleRes.headers.get("location") ?? "", authUrl);
 		check(
