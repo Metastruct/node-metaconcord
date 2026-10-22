@@ -8,5 +8,5 @@ connection.prototype.drop = function(reasonCode, ...args) {
 		return;
 	}
 
-	drop.apply(this, [reasonCode, ...args]);
+	Reflect.apply(drop, this, [reasonCode, ...args]);
 };
