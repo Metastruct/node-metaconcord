@@ -344,7 +344,7 @@
 				markDirty();
 			});
 			row.appendChild(del);
-			body.insertBefore(row, addRowEl);
+			addRowEl.before(row);
 			if (isArray) relabel();
 		};
 
