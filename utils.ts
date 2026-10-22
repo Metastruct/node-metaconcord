@@ -78,7 +78,7 @@ export const parseDuration = (input: string): number => {
 		.toLowerCase()
 		.replaceAll(/\s+/g, "")
 		.matchAll(/(\d+)(y|mo|w|d|h|m|s)/g)) {
-		const amount = parseInt(match[1]);
+		const amount = parseInt(match[1], 10);
 		if (!isNaN(amount) && amount > 0) len += amount * DURATION_UNITS[match[2]];
 	}
 	return len;

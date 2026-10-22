@@ -44,7 +44,7 @@ export default class UnbanPayload extends Payload {
 
 		const bannedSteamId64 = new SteamID(banned.steamId).getSteamID64();
 		const bannedAvatar = await steam.getUserAvatar(bannedSteamId64);
-		const unixTime = parseInt(banTime);
+		const unixTime = parseInt(banTime, 10);
 		if (!unixTime || isNaN(unixTime))
 			throw new Error(`ban time is not a number? Supplied time: ${banTime}`);
 

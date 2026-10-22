@@ -21,7 +21,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			return;
 		}
 
-		const id = parseInt(req.params.id);
+		const id = parseInt(req.params.id, 10);
 		if (isNaN(id) || servers.every(srv => srv.id !== id)) {
 			res.sendStatus(403);
 			return;
