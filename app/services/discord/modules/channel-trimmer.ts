@@ -290,7 +290,7 @@ export default (bot: DiscordBot): void => {
 				channel.send(message ? `(task:peek) \`\`\`\n${message.content}\n\`\`\`\nURL: ${message.url}\nAge: ${durationFormatter.format(durationSince(message.createdAt))} ${olderThan(message.createdAt, trimmer.maxAge) ? "🗑️" : "📜"}` : "(task:null)");
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim stats") {
-			const lines = [...trimmers.entries()].map(([channel, trimmer]) => formatStatsLine(channel, trimmer.getStats()));
+			const lines = trimmers.entries().map(([channel, trimmer]) => formatStatsLine(channel, trimmer.getStats())).toArray();
 			await msg.channel.send(lines.length > 0 ? lines.join("\n") : "No trimmers configured.");
 		} else if (msg.channelId === bot.config.channels.log && msg.content.startsWith("!trim set-total ")) {
 			const total = Number.parseInt(msg.content.slice("!trim set-total ".length).trim(), 10);

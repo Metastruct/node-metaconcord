@@ -587,7 +587,7 @@ export class Accounts extends Service {
 		const github = Accounts.verifiedLink(account, "github");
 		if (github) {
 			const teams = members
-				? [...members.entries()]
+				? members.entries()
 					.filter(([, logins]) => logins.has(github.name.toLowerCase()))
 					.map(([team]) => team)
 				: await this.githubTeams(github, account);
