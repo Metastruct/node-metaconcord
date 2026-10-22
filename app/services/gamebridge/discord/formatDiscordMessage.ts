@@ -64,7 +64,7 @@ export async function formatDiscordMessage(
 
 	const username = msg.author?.username;
 	let nickname = "";
-	let avatar: string | undefined = undefined;
+	let avatar: string | undefined;
 	const color = msg.member?.displayColor ?? 0;
 
 	if (msg.author) {

@@ -480,7 +480,7 @@ export class Accounts extends Service {
 
 		const roles = await this.computeRoles(account).catch(error => {
 			log.error(error, `role computation failed for account ${accountId}`);
-			return undefined;
+			return;
 		});
 		// a failed lookup keeps the previous roles rather than silently demoting anyone,
 		// and is retried after a short while instead of on every request

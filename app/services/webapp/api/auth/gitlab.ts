@@ -61,7 +61,7 @@ export default (webApp: WebApp): void => {
 			}),
 		}).catch(error => {
 			log.error(error, "gitlab token exchange failed");
-			return undefined;
+			return;
 		});
 		const rawTokens = tokenRes ? await tokenRes.text() : "";
 		let tokens: { access_token?: string; error?: string; error_description?: string } = {};
@@ -73,7 +73,7 @@ export default (webApp: WebApp): void => {
 		if (!tokens.access_token) {
 			log.warn(
 				{
-					status: tokenRes?.status,
+					status: tokenRes && tokenRes.status || undefined,
 					error: tokens.error,
 					description: tokens.error_description,
 					body: tokens.error ? undefined : rawTokens.slice(0, 500),
@@ -82,7 +82,7 @@ export default (webApp: WebApp): void => {
 			);
 			// a grant GitLab rejected (expired/reused code) is the user's to retry;
 			// a network failure or 5xx is on GitLab and stays a 502
-			const status = tokenRes?.status ?? 0;
+			const status = tokenRes && tokenRes.status || 0;
 			res.status(status >= 400 && status < 500 ? 400 : 502).send(
 				"gitlab login failed, please try again"
 			);

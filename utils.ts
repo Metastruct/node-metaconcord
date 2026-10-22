@@ -182,7 +182,7 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 
 	if (await exists(fullpath)) {
 		const path = await fs.realpath(fullpath);
-		if (!path.startsWith(LOOKUP_PATH)) return undefined;
+		if (!path.startsWith(LOOKUP_PATH)) return;
 		const file = await fs.readFile(fullpath, "utf8");
 		return gpath.linenos
 			? getStackLines(

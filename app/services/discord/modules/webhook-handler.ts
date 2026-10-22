@@ -989,7 +989,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const promise = (async () => {
 			const channel = bot.getTextChannel(channelId);
-			if (!channel) return undefined;
+			if (!channel) return;
 
 			const hooks = await channel.fetchWebhooks();
 			const botHook = hooks.filter(h => h.owner === bot.discord.user).first();

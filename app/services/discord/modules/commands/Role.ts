@@ -61,7 +61,7 @@ const setRoleColorSpecial = async (
 				? Number.parseInt(primary.replace(/^#+/, ""), 16)
 				: role.colors.primaryColor;
 			let secondaryColor = secondary ? Number.parseInt(secondary.replace(/^#+/, ""), 16) : undefined;
-			let tertiaryColor: number | undefined = undefined;
+			let tertiaryColor: number | undefined;
 
 			if (options?.holographic) {
 				// for some reason only this one has a third colour option and it's static

@@ -46,7 +46,7 @@ const getMediaUrl = (url: string) => {
 const IGNORE_LIST = new Set(["437294613976449024"]);
 
 function getWord(msg?: string) {
-	if (!msg) return undefined;
+	if (!msg) return;
 	let search: string;
 	const words = msg.replaceAll(`<@${DiscordConfig.bot.userId}> `, "").split(" ");
 	const index = Math.trunc(Math.random() * words.length);

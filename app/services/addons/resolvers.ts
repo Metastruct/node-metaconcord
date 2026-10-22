@@ -339,9 +339,9 @@ export async function resolveReadme(
 			readmeCache.set(key, summary ?? null);
 			return summary;
 		})
-		.catch(error => {
+		.catch((error): undefined => {
 			log.warn({ err: errInfo(error), remote: remote.webUrl, subpath }, "readme lookup failed");
-			return undefined;
+			return;
 		})
 		.finally(() => readmeInflight.delete(key));
 	readmeInflight.set(key, promise);

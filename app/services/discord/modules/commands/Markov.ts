@@ -67,7 +67,7 @@ export const SlashMarkovCommand: SlashCommand = {
 
 		const cmd = ctx.options.getSubcommand(true);
 
-		let res: string | undefined = undefined;
+		let res: string | undefined;
 		switch (cmd) {
 			case "generate":
 				res = await bot.container

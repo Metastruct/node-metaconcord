@@ -112,7 +112,7 @@ export class Resonite extends Service {
 			this.ResoniteUserCache[id] = res.data;
 			return res.data;
 		}
-		return undefined;
+		return;
 	}
 
 	async GetResoniteUserAvatarURL(id: string) {

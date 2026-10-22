@@ -693,7 +693,7 @@ export class Fluxer extends Service {
 		try {
 			return await this.rest.request<FluxerThreadChannel>("GET", `/channels/${channelId}`);
 		} catch (error) {
-			if (error instanceof FluxerApiError && error.status === 404) return undefined;
+			if (error instanceof FluxerApiError && error.status === 404) return;
 			throw error;
 		}
 	}
@@ -1902,7 +1902,7 @@ export class Fluxer extends Service {
 	}
 
 	private fluxerAvatarUrl(message: FluxerMessage) {
-		if (!message.author.avatar) return undefined;
+		if (!message.author.avatar) return;
 		const extension = message.author.avatar.startsWith("a_") ? "gif" : "png";
 		return `${config.mediaBaseUrl}/avatars/${message.author.id}/${message.author.avatar}.${extension}`;
 	}

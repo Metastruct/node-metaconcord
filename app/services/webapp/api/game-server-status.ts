@@ -43,7 +43,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		// #region Map Thumbnail
 		const backgroundImage = server.status.backgroundImage;
 		const workshopMap = server.workshopMap;
-		let thumbFilepath: string | undefined = undefined;
+		let thumbFilepath: string | undefined;
 		if (workshopMap && backgroundImage?.match(/^https?:\/\//)) {
 			await access(cacheFolder, fs_constants.F_OK).catch(() =>
 				mkdir(cacheFolder, { recursive: true })
