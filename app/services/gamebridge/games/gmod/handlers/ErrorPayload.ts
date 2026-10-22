@@ -53,11 +53,7 @@ export default class ErrorPayload extends Payload {
 
 		if (file) {
 			embed.title = "";
-			embeds.push(embed);
-			embeds.push({
-				title: hook_error.name,
-				description: `\`\`\`lua\n${file}\`\`\``,
-			});
+			embeds.push(embed, { title: hook_error.name, description: `\`\`\`lua\n${file}\`\`\`` });
 		} else {
 			embeds.push(embed);
 		}

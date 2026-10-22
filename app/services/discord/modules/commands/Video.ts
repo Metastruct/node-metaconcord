@@ -239,8 +239,10 @@ function buildFreezeFilter(
 	}
 
 	const frameDuration = 1 / info.fps;
-	f.push(`[0:v]trim=start=${at}:duration=${frameDuration},setpts=PTS-STARTPTS[freeze_raw]`);
-	f.push(`[freeze_raw]loop=${freezeFrames - 1}:1:0[freeze_v]`);
+	f.push(
+		`[0:v]trim=start=${at}:duration=${frameDuration},setpts=PTS-STARTPTS[freeze_raw]`,
+		`[freeze_raw]loop=${freezeFrames - 1}:1:0[freeze_v]`
+	);
 
 	if (info.hasAudio) {
 		if (silence) {
