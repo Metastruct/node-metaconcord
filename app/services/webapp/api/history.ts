@@ -117,7 +117,7 @@ const readFile = async (octokit: Octokit) => {
 	if (Array.isArray(data) || data.type !== "file") throw new Error("history path is not a file");
 	const content = Buffer.from(data.content, "base64").toString("utf8");
 	const events = (content.trim() ? JSON.parse(content) : []) as HistoryEvent[];
-	if (!Array.isArray(events)) throw new Error("history file is not an array");
+	if (!Array.isArray(events)) throw new TypeError("history file is not an array");
 	return { events, sha: data.sha };
 };
 
