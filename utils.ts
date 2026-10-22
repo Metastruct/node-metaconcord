@@ -19,8 +19,12 @@ export const sleep = (ms: number): Promise<unknown> =>
 
 export const localeCompare = (a: string, b: string) => a.localeCompare(b);
 
-export const clamp = (input: number, min: number, max: number): number =>
-	input <= min ? min : input >= max ? max : input;
+export const clamp = (number: number, minimum: number, maximum: number): number => {
+	if (minimum > maximum) {
+		throw new RangeError("`minimum` should be lower than `maximum`");
+	}
+	return Math.min(Math.max(number, minimum), maximum);
+};
 
 const LUA_ESCAPES: Record<string, string> = {
 	"\\": "\\\\",
