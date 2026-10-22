@@ -487,14 +487,14 @@ function clipDiffLines(content: string[]): string[] {
 			else if (!line.startsWith("\\")) break;
 			i++;
 		}
-		for (let p = 0; p < Math.min(removed.length, added.length); p++) {
-			const oldBody = content[removed[p]].slice(1);
-			const newBody = content[added[p]].slice(1);
+		for (const [removedElement, addedElement] of Iterator.zip([removed, added])) {
+			const oldBody = content[removedElement].slice(1);
+			const newBody = content[addedElement].slice(1);
 			if (oldBody.length <= MAX_DIFF_LINE_LENGTH && newBody.length <= MAX_DIFF_LINE_LENGTH)
 				continue;
 			const diff = differingRegions(oldBody, newBody);
-			regions[removed[p]] = diff.map(r => [r.oldStart, r.oldEnd]);
-			regions[added[p]] = diff.map(r => [r.newStart, r.newEnd]);
+			regions[removedElement] = diff.map(r => [r.oldStart, r.oldEnd]);
+			regions[addedElement] = diff.map(r => [r.newStart, r.newEnd]);
 		}
 	}
 	return content.map((line, index) => clipDiffLine(line, regions[index] ?? []));

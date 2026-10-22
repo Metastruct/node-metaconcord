@@ -34,7 +34,9 @@
 		"start": "node dist",
 		"test:fluxer:dist": "node --test test/fluxer-formatting-dist.test.js",
 		"test:fluxer": "node --test test/fluxer-mappings.test.js",
-		"test:oidc": "cross-env NODE_ENV=development node dist/test/oidc.test.js"
+		"test:oidc": "cross-env NODE_ENV=development node dist/test/oidc.test.js",
+		"test:polyfills": "node --test dist/test/iterator-zip.test.js",
+		"test": "run-s test:*"
 	},
 	"dependencies": {
 		"@gitbeaker/rest": "^43.8.0",

@@ -4,6 +4,8 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 
+import "#/polyfills/Iterator-zip.js";
+
 // console.log(process.version);
 
 // Capture process output for the dashboard before anything logs
