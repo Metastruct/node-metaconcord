@@ -920,7 +920,7 @@ export class Fluxer extends Service {
 				{
 					name: threadChannel.name.slice(0, 100),
 					type: fluxerType,
-					...((typeof threadChannel.autoArchiveDuration !== "undefined") && { auto_archive_duration: threadChannel.autoArchiveDuration }),
+					...(threadChannel.autoArchiveDuration && { auto_archive_duration: threadChannel.autoArchiveDuration }),
 					...((threadChannel.type === Discord.ChannelType.PrivateThread) && { invitable: threadChannel.invitable ?? true }),
 				},
 				true,
@@ -1755,7 +1755,7 @@ export class Fluxer extends Service {
 				type: attachment.contentType ?? "application/octet-stream",
 				data,
 				description: attachment.description,
-				...((typeof attachment.duration !== "undefined") && { duration: Math.round(attachment.duration) }),
+				...((typeof attachment.duration === "number") && { duration: Math.round(attachment.duration) }),
 				...(attachment.waveform && { waveform: attachment.waveform }),
 			});
 		}
