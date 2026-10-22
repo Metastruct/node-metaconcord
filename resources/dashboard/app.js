@@ -145,7 +145,7 @@
 	const connect = async () => {
 		setStatus("connecting");
 		try {
-			const res = await fetch("/dashboard/logs?limit=500", { credentials: "same-origin" });
+			const res = await fetch("/dashboard/logs?limit=500");
 			if (res.status === 401) {
 				location.href = "/";
 				return;
@@ -411,7 +411,6 @@
 	const loadConfigs = async () => {
 		configsEl.textContent = "loading…";
 		const res = await fetch("/dashboard/config", {
-			credentials: "same-origin",
 			headers: { Accept: "application/json" },
 		});
 		if (!res.ok) {
@@ -458,7 +457,7 @@
 	});
 
 	$("#logout").addEventListener("click", async () => {
-		await fetch("/auth/logout", { method: "POST", credentials: "same-origin" });
+		await fetch("/auth/logout", { method: "POST"});
 		location.href = "/";
 	});
 
@@ -466,7 +465,6 @@
 		if (!confirm("Exit the process? It only comes back if the container restarts it.")) return;
 		await fetch("/dashboard/restart", {
 			method: "POST",
-			credentials: "same-origin",
 			headers: { Accept: "application/json" },
 		});
 		renderOut("meta", "restart requested");
