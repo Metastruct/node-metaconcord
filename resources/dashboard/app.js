@@ -45,7 +45,7 @@
 	const append = node => {
 		const stick = !paused && atBottom();
 		logEl.appendChild(node);
-		while (logEl.childElementCount > MAX_LINES) logEl.removeChild(logEl.firstChild);
+		while (logEl.childElementCount > MAX_LINES) logEl.firstChild.remove();
 		if (stick) logEl.scrollTop = logEl.scrollHeight;
 	};
 
