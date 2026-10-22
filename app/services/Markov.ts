@@ -138,7 +138,7 @@ abstract class MarkovChainBase {
 			lastChain = chain;
 			chain = this.matchCurrentChain(words, chain, depth);
 
-			if (chain.length - lastChain.length <= 0 && chain.length < depth) {
+			if (chain.length <= lastChain.length && chain.length < depth) {
 				break;
 			}
 			if (lastChain.length < depth) {
