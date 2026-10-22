@@ -52,7 +52,7 @@ export class IRC extends Service {
 	}
 
 	private relayIRC(text: string): void {
-		this.client.say(config.relayIRCChannel, `\u000314[Discord]\u000F ${text}`);
+		this.client.say(config.relayIRCChannel, `\u{3}14[Discord]\u{F} ${text}`);
 	}
 
 	override async init() {
@@ -73,11 +73,11 @@ export class IRC extends Service {
 				content += "\n" + attachment.url;
 			}
 			this.relayIRC(
-				`\u000312${msg.author.username}${
+				`\u{3}12${msg.author.username}${
 					msg.reference && msg.reference.type === 0
 						? ` (replying to ${(await msg.fetchReference()).author.username})`
 						: ""
-				}\u000F: ${content}`
+				}\u{F}: ${content}`
 			);
 		});
 	}
