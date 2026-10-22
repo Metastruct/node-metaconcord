@@ -264,7 +264,7 @@ export class DiscordMetadata extends Service {
 		let nick: string | undefined;
 
 		if (query3[0]) {
-			nick = bytea.toString("utf-8").replaceAll(/<[^>]*>/g, "");
+			nick = bytea.toString("utf8").replaceAll(/<[^>]*>/g, "");
 		} else {
 			const steam = this.bot.container.getService("Steam");
 			const summary = await steam.getUserSummaries(steamId);

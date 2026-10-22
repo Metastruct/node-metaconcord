@@ -6,7 +6,7 @@ const makeFile = (content: unknown) => {
 	return <Discord.BaseMessageOptions>{
 		files: [
 			{
-				attachment: Buffer.from(JSON.stringify(content, null, 2), "utf-8"),
+				attachment: Buffer.from(JSON.stringify(content, null, 2), "utf8"),
 				name: "sql_result.json",
 			},
 		],
