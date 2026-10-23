@@ -66,8 +66,8 @@ export type ResoniteSession = {
 	totalActiveUsers: number;
 	maxUsers: number;
 	mobileFriendly: boolean;
-	sessionBeginTime: Date;
-	lastUpdate: Date;
+	sessionBeginTime: string;
+	lastUpdate: string;
 	accessLevel: "Anyone" | "RegisteredUsers" | "ContactPlus" | "Contact" | "Private" | "LAN";
 	hideFromListing: boolean;
 	broadcastKey: unknown;

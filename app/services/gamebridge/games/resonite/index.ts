@@ -30,8 +30,8 @@ function buildSessionContainer(
 			count === 0 || count > 1 ? "s" : ""
 		}: **Active: ${session.activeUsers} • Connected: ${count}**\n` +
 		`:door: Capacity: **${count}/${session.maxUsers}**\n` +
-		`:repeat: Last Update: ${formatDiscordRelativeTimestamp(session.lastUpdate)}\n` +
-		`:file_cabinet: Server up since: ${formatDiscordRelativeTimestamp(session.sessionBeginTime)}`;
+		`:repeat: Last Update: ${formatDiscordRelativeTimestamp(new Date(session.lastUpdate))}\n` +
+		`:file_cabinet: Server up since: ${formatDiscordRelativeTimestamp(new Date(session.sessionBeginTime))}`;
 
 	if (session.accessLevel !== "Anyone") {
 		desc += `\n:closed_lock_with_key: Access: **${session.accessLevel}**`;
