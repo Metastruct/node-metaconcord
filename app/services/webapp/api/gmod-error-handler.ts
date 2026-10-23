@@ -47,37 +47,45 @@ type StackMatchGroups = {
 export const megaRex =
 	/(?<stacknr>\d+)\. (?<fn>\S+) - (?<runnables>RunString|LuaCmd|LUACMD)?(\[(?<steamid>STEAM_\d:\d:\d+)\](?<steamnick>.+))?(<(?<partialsteamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<fpath>(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lineno>-?\d+))/g;
 
-export const SuperReplacer = (_: string, ...args: unknown[]) => {
-	const groups = args.at(-1) as StackMatchGroups;
-	return `${groups.stacknr}. ${groups.fn} - ${
-		groups.steamid
-			? `[[${groups.steamid}]${
-				groups.steamnick
-			}](https://steamcommunity.com/profiles/${new SteamID(groups.steamid).getSteamID64()})`
-			: groups.partialsteamid
-				? groups.rfilename
-					? `<[${groups.partialsteamid} |${
-						groups.nick
-					}](https://steamcommunity.com/profiles/${new SteamID(
-						`STEAM_${groups.partialsteamid}`
-					).getSteamID64()})><${groups.rfilename}>`
-					: `<[${groups.partialsteamid} |${
-						groups.nick
-					}](https://steamcommunity.com/profiles/${new SteamID(
-						`STEAM_${groups.partialsteamid}`
-					).getSteamID64()})><${groups.cmdname}:${groups.cmdrealm}>`
-				: groups.path
-					? groups.addon &&
-						AddonURIS[
-							groups.addon === "mta" && groups.path.split("/", 1)[0] === "gamemodes"
-								? "mta_gamemode"
-								: groups.addon
-						]
-						? `[${groups.path}](${AddonURIS[groups.addon] + groups.path}#L${groups.lineno})`
-						: groups.path
-					: groups.engine
-	}:${groups.lineno}`;
+
+const steamProfileUrl = (steamId: string) => `https://steamcommunity.com/profiles/${new SteamID(steamId).getSteamID64()}`;
+
+const formatFrame = (groups: StackMatchGroups): string => {
+	if (groups.steamid) {
+		return `[[${groups.steamid}]${groups.steamnick}](${steamProfileUrl(groups.steamid)})`;
+	}
+
+	if (groups.partialsteamid) {
+		const url = steamProfileUrl(`STEAM_${groups.partialsteamid}`);
+		const player = `[${groups.partialsteamid} |${groups.nick}](${url})`;
+		const location = groups.rfilename || `${groups.cmdname}:${groups.cmdrealm}`;
+
+		return `<${player}><${location}>`;
+	}
+
+	if (groups.path) {
+		const { addon, path, lineno } = groups;
+
+		const addonKey =
+			addon === "mta" && path.startsWith("gamemodes")
+				? "mta_gamemode"
+				: addon;
+
+		if (addon && AddonURIS[addonKey]) {
+			return `[${path}](${AddonURIS[addon]}${path}#L${lineno})`;
+		}
+
+		return path;
+	}
+
+	return `${groups.engine}`;
 };
+
+export const SuperReplacer = (_match: string, ...args: unknown[]): string => {
+	const groups = args.at(-1) as StackMatchGroups;
+	return `${groups.stacknr}. ${groups.fn} - ${formatFrame(groups)}:${groups.lineno}`;
+};
+
 
 const gamemodes = new Set(["sandbox_modded", "mta", "jazztronauts"]); //proper gamemode support when???
 const funcIgnore = new Set(["CreateFont", "require"]);
