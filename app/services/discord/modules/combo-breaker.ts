@@ -3,7 +3,7 @@ import { DiscordBot } from "../index.js";
 import { Shat } from "./shitposting.js";
 
 const MESSAGE_COMBO_BREAKER = "C-C-C-COMBO BREAKER!!";
-const REACTION_DOUBLE_POSTER = ":eyes:";
+const REACTION_DOUBLE_POSTER = "🤔";
 
 const THRESHOLD_COMBO = 3;
 const THRESHOLD_REACT_TO_DOUBLE_POST = 3;
@@ -56,6 +56,7 @@ class Combo {
 		if (newHash !== this.#messageHash) {
 			this.reset();
 			this.#messageHash = newHash;
+			this.#participants.add(userId);
 			return wasActive ? ComboMessageEffect.BROKEN : ComboMessageEffect.NONE;
 		}
 
@@ -66,6 +67,11 @@ class Combo {
 			this.#participants.add(userId);
 			return wasActive ? ComboMessageEffect.INCREMENTED : ComboMessageEffect.NONE;
 		}
+	}
+
+	public break() {
+		this.reset();
+		this.#messageHash = "";
 	}
 	
 	public get channelId() {
@@ -114,10 +120,6 @@ class ComboManager {
 export default (bot: DiscordBot): void => {
 	const comboManager = new ComboManager();
 
-	bot.discord.once("clientReady", () => {
-		
-	});
-
 	bot.discord.on("messageCreate", async msg => {
 		// DEV TEST
 		if (msg.channelId !== "731829433425461249")
@@ -126,7 +128,7 @@ export default (bot: DiscordBot): void => {
 		if (msg.author.id === bot.discord.user.id)
 			return;
 
-		const match = msg.content.match(/^U=(?<authorId>[^\s]+)\s+M=(?<content>.*)$/);
+		const match = msg.content.match(/^(?<authorId>[^\s]+)\s+(?<content>.*)$/);
 		if (!match)
 			return;
 
@@ -139,6 +141,7 @@ export default (bot: DiscordBot): void => {
 		switch (effect) {
 			case ComboMessageEffect.INCREMENTED:
 				if (combo.length >= THRESHOLD_BREAK_THE_COMBO) {
+					combo.break();
 					const shitpost = await Shat({msg: msg.content});
 					msg.channel.send(shitpost);
 				}
