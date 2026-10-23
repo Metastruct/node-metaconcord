@@ -72,10 +72,10 @@ class Combo {
 		if (this.#participants.has(userId)) {
 			this.#doublePosters.add(userId);
 			return wasActive ? ComboMessageEffect.DOUBLE_POSTED : ComboMessageEffect.NONE;
-		} else {
-			this.#participants.add(userId);
-			return wasActive ? ComboMessageEffect.INCREMENTED : ComboMessageEffect.NONE;
 		}
+		
+		this.#participants.add(userId);
+		return wasActive ? ComboMessageEffect.INCREMENTED : ComboMessageEffect.NONE;
 	}
 
 	public break() {
@@ -114,7 +114,7 @@ class ComboManager {
 	 * @returns The combo and what this message did to the combo.
 	 */
 	public onMessage(channelId: string, userId: string, message: string): {combo: Combo, effect: ComboMessageEffect} {
-		const combo = this.#combos.getOrInsert(channelId, new Combo(channelId));
+		const combo = this.#combos.getOrInsertComputed(channelId, () => new Combo(channelId));
 		return { combo, effect: combo.onMessage(userId, message) };
 	}
 
