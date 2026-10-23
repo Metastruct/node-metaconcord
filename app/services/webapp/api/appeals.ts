@@ -201,14 +201,13 @@ export default (webApp: WebApp): void => {
 			.get(steamId64);
 
 	const closeAppeals = async (
-		steamId64: string,
-		resolution: AppealRow["resolution"] = null
+		steamId64: string
 	): Promise<void> => {
 		(await db())
 			.prepare("UPDATE appeals SET closed_at = ?, resolution = ? WHERE steam_id64 = ? AND closed_at IS NULL;")
 			.run(
 				Math.round(Date.now() / 1000),
-				resolution,
+				null,
 				steamId64
 			);
 	};
