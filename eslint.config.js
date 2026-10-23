@@ -60,6 +60,7 @@ export default defineConfig([
 			"unicorn/prefer-combined-guards": "off",
 			"unicorn/prefer-continue": "off",
 			"unicorn/prefer-includes-over-repeated-comparisons": "off",
+			"unicorn/prefer-smaller-scope": "off",
 			"unicorn/prefer-spread": "off",
 			"unicorn/prefer-string-raw": "off",
 			"unicorn/prefer-ternary": "off",
