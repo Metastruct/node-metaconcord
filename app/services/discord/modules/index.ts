@@ -1,4 +1,5 @@
 import ChannelTrimmer from "./channel-trimmer.js";
+import ComboBreaker from "./combo-breaker.js";
 import CommandsLoader from "./commands/index.js";
 import DiscordEventsLoader from "./discord-events.js";
 import DiscordGuildIconLoader from "./discord-guild-icon.js";
@@ -12,6 +13,7 @@ import TempVoiceChannelsLoader from "./temp-voice-channels.js";
 import WebhookHandlerLoader from "./webhook-handler.js";
 
 export default [
+	ComboBreaker,
 	ChannelTrimmer,
 	CommandsLoader,
 	DiscordEventsLoader,
