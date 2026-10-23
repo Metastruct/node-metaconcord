@@ -146,7 +146,7 @@ export default (bot: DiscordBot): void => {
 					msg.react(REACTION_DOUBLE_POSTER);
 				break;
 			case ComboMessageEffect.BROKEN:
-				msg.channel.send(MESSAGE_COMBO_BREAKER);
+				msg.reply(MESSAGE_COMBO_BREAKER);
 				break;
 			case ComboMessageEffect.NONE:
 				// Do Nothing.
