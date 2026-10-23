@@ -36,6 +36,7 @@
 		"test:fluxer": "node --test test/fluxer-mappings.test.js",
 		"test:oidc": "cross-env NODE_ENV=development node dist/test/oidc.test.js",
 		"test:polyfills": "node --test dist/test/iterator-zip.test.js",
+		"test:superreplacer": "node --test dist/test/super-replacer.test.js",
 		"test": "run-s test:*"
 	},
 	"dependencies": {

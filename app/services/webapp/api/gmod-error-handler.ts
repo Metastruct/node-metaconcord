@@ -44,10 +44,10 @@ type StackMatchGroups = {
 	steamnick?: string;
 };
 
-const megaRex =
+export const megaRex =
 	/(?<stacknr>\d+)\. (?<fn>\S+) - (?<runnables>RunString|LuaCmd|LUACMD)?(\[(?<steamid>STEAM_\d:\d:\d+)\](?<steamnick>.+))?(<(?<partialsteamid>\d:\d:\d+)\|(?<nick>.+?)>)?(<(?<rfilename>[^:]+)>)?(<(?<cmdname>.+):(?<cmdrealm>.+)>)?(?<engine>\[C\])?(?<fpath>(?<path>(?:lua|gamemodes)\/(?<addon>[-_.A-Za-z0-9]+?)(?:\/.*)?\/(?<filename>[-_.A-Za-z0-9]+)\.(?<ext>lua))?:(?<lineno>-?\d+))/g;
 
-const SuperReplacer = (_: string, ...args: unknown[]) => {
+export const SuperReplacer = (_: string, ...args: unknown[]) => {
 	const groups = args.at(-1) as StackMatchGroups;
 	return `${groups.stacknr}. ${groups.fn} - ${
 		groups.steamid
