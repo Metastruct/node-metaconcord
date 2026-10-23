@@ -7,9 +7,9 @@ import requestSchema from "./structures/AdvancementRequest.json" with { type: "j
 // wording and colors of the vanilla chat announcement per frame type.
 // keyed loosely: an unknown frame from a modded advancement falls back to task.
 const FRAMES: Record<string, { verb: string; color: number }> = {
-	task: { verb: "has made the advancement", color: 0x55ff55 },
-	goal: { verb: "has reached the goal", color: 0x55ff55 },
-	challenge: { verb: "has completed the challenge", color: 0xaa00aa },
+	task: { verb: "has made the advancement", color: 0x55_FF_55 },
+	goal: { verb: "has reached the goal", color: 0x55_FF_55 },
+	challenge: { verb: "has completed the challenge", color: 0xAA_00_AA },
 };
 
 export default class AdvancementPayload extends Payload {
@@ -37,9 +37,9 @@ export default class AdvancementPayload extends Payload {
 				iconURL: `https://mc-heads.net/avatar/${player.uuid}`,
 				url: `https://namemc.com/profile/${player.uuid}`,
 			})
-			.setTitle(title.substring(0, 256))
+			.setTitle(title.slice(0, 256))
 			.setColor(frame.color);
-		if (description) embed.setDescription(description.substring(0, 4096));
+		if (description) embed.setDescription(description.slice(0, 4096));
 		await (relayChannel as Discord.TextChannel).send({ embeds: [embed] });
 	}
 }

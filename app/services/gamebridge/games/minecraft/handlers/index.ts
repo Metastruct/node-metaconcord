@@ -9,17 +9,7 @@ import Payload from "./Payload.js";
 import StatsPayload from "./StatsPayload.js";
 import StatusPayload from "./StatusPayload.js";
 
-export {
-	Payload,
-	AddonsPayload,
-	AdvancementPayload,
-	ChatPayload,
-	ConsolePayload,
-	DeathPayload,
-	JoinLeavePayload,
-	StatsPayload,
-	StatusPayload,
-};
+
 
 // The wire-protocol name (e.g. "ChatPayload") the mod sends is the handler
 // class's own declared name, so no separate name mapping is needed.
@@ -40,3 +30,13 @@ export function attachHandlers(connection: MinecraftConnection): void {
 		handler.initialize(connection);
 	}
 }
+
+export {default as Payload} from "./Payload.js";
+export {default as AddonsPayload} from "./AddonsPayload.js";
+export {default as AdvancementPayload} from "./AdvancementPayload.js";
+export {default as ChatPayload} from "./ChatPayload.js";
+export {default as ConsolePayload} from "./ConsolePayload.js";
+export {default as DeathPayload} from "./DeathPayload.js";
+export {default as JoinLeavePayload} from "./JoinLeavePayload.js";
+export {default as StatsPayload} from "./StatsPayload.js";
+export {default as StatusPayload} from "./StatusPayload.js";

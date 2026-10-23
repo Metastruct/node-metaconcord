@@ -7,7 +7,7 @@ import { WatchdogStatus, getDreamDaemonStatus, getInstance } from "./tgsClient.j
 import { getServerStatus, getPlayerList } from "./topics.js";
 import { queryTopic } from "./byondTopic.js";
 import config from "#/config/ss13.json" with { type: "json" };
-import { logger } from "#/utils.js";
+import { formatDiscordRelativeTimestamp, formatDiscordRelativeTimestampSeconds, logger } from "#/utils.js";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration.js";
 
@@ -26,7 +26,7 @@ type SS13InstanceConfig = {
 	hasPlayerList?: boolean;
 };
 
-const SHUTTLE_AT_REST = ["idle", "docked"];
+const SHUTTLE_AT_REST = new Set(["idle", "docked"]);
 
 /**
  * Fingerprint of only the state that should trigger a Discord edit - deliberately
@@ -36,7 +36,7 @@ const SHUTTLE_AT_REST = ["idle", "docked"];
 function buildSignature(connection: SS13Connection, disconnected: boolean): unknown {
 	return {
 		disconnected,
-		instances: [...connection.instances.entries()]
+		instances: connection.instances.entries()
 			.map(([instanceId, s]) => ({
 				instanceId,
 				clientCount: s.status.clientCount,
@@ -50,9 +50,10 @@ function buildSignature(connection: SS13Connection, disconnected: boolean): unkn
 						isAfk: p.isAfk,
 						description: p.description,
 					}))
-					.sort((a, b) => a.nick.localeCompare(b.nick)),
+					.toSorted((a, b) => a.nick.localeCompare(b.nick)),
 			}))
-			.sort((a, b) => a.instanceId - b.instanceId),
+			.toArray()
+			.toSorted((a, b) => a.instanceId - b.instanceId),
 	};
 }
 
@@ -81,15 +82,15 @@ function buildInstanceContainer(
 		desc += `\n:rotating_light: Security Level: **${status.securityLevel}**`;
 	}
 
-	if (status.shuttleMode && !SHUTTLE_AT_REST.includes(status.shuttleMode)) {
+	if (status.shuttleMode && !SHUTTLE_AT_REST.has(status.shuttleMode)) {
 		desc += `\n:rocket: Shuttle: **${status.shuttleMode}**`;
 		if (status.shuttleTimer) {
-			desc += ` (<t:${(Date.now() / 1000 + status.shuttleTimer) | 0}:R>)`;
+			desc += ` (${formatDiscordRelativeTimestampSeconds(Date.now() / 1000 + status.shuttleTimer)})`;
 		}
 	}
 
 	if (status.launchTime) {
-		desc += `\n:file_cabinet: Server up since: <t:${(new Date(status.launchTime).getTime() / 1000) | 0}:R>`;
+		desc += `\n:file_cabinet: Server up since ${formatDiscordRelativeTimestamp(new Date(status.launchTime))}`;
 	}
 
 	// Discord's button URL validation only allows http:/https:/discord: - byond:// links
@@ -143,7 +144,7 @@ function renderMessage(
 }
 
 function updatePresence(connection: SS13Connection): void {
-	const states = [...connection.instances.values()];
+	const states = connection.instances.values().toArray();
 	const totalPlayers = states.reduce((sum, s) => sum + s.status.clientCount, 0);
 	const populated = states.filter(s => s.status.clientCount > 0).length;
 
@@ -190,8 +191,8 @@ async function pollInstance(
 	// rest of the status embed - fall back to the aggregate TGS data.
 	try {
 		Object.assign(status, await getServerStatus(host, status.port, instanceConfig.commsKey));
-	} catch (err) {
-		log.warn(err, "SS13 status topic query failed");
+	} catch (error) {
+		log.warn(error, "SS13 status topic query failed");
 	}
 
 	let players: Player[] = [];
@@ -208,8 +209,8 @@ async function pollInstance(
 				isBanned: false,
 				ip: "",
 			}));
-		} catch (err) {
-			log.warn(err, "SS13 playerlist topic query failed");
+		} catch (error) {
+			log.warn(error, "SS13 playerlist topic query failed");
 		}
 	}
 
@@ -251,9 +252,9 @@ export function attachSS13(bridge: GameBridge): void {
 				} else {
 					conn.instances.delete(instanceConfig.instanceId);
 				}
-			} catch (err) {
+			} catch (error) {
 				log.warn(
-					{ err, instanceId: instanceConfig.instanceId },
+					{ err: error, instanceId: instanceConfig.instanceId },
 					"SS13 instance poll failed"
 				);
 				conn.instances.delete(instanceConfig.instanceId);
@@ -270,8 +271,8 @@ export function attachSS13(bridge: GameBridge): void {
 				files,
 				buildSignature(conn, conn.disconnected)
 			);
-		} catch (err) {
-			log.error(err, "failed to post SS13 status");
+		} catch (error) {
+			log.error(error, "failed to post SS13 status");
 		}
 	};
 
@@ -300,8 +301,8 @@ export function attachSS13(bridge: GameBridge): void {
 
 			try {
 				await queryTopic(host, state.status.port, query);
-			} catch (err) {
-				log.warn({ err, repo: payload.repo }, "failed to send commits to SS13");
+			} catch (error) {
+				log.warn({ err: error, repo: payload.repo }, "failed to send commits to SS13");
 			}
 		}
 	});

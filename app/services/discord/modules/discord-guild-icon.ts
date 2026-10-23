@@ -1,8 +1,8 @@
 import { DiscordBot } from "../index.js";
-import { PathLike } from "fs";
-import { join } from "path";
+import { PathLike } from "node:fs";
+import { join } from "node:path";
 import { scheduleJob } from "node-schedule";
-import { stat } from "fs/promises";
+import { stat } from "node:fs/promises";
 import dayjs from "dayjs";
 import { logger } from "#/utils.js";
 
@@ -97,18 +97,18 @@ export default async (bot: DiscordBot): Promise<void> => {
 			const guildEvents = await guild.scheduledEvents.fetch();
 			if (!eventChange) return;
 
-			if (eventChange && !guildEvents.find(ev => ev.isActive())) {
+			if (eventChange && guildEvents.every(ev => !ev.isActive())) {
 				try {
 					await bot.setIcon(
 						filePath,
-						eventName !== "none"
-							? `It's ${eventName}!`
-							: "Back to regularly scheduled activities."
+						eventName === "none"
+							? "Back to regularly scheduled activities."
+							: `It's ${eventName}!`
 					);
 					data.lastDiscordGuildEvent = eventName;
 					await data.save();
-				} catch (err) {
-					log.error(err);
+				} catch (error) {
+					log.error(error);
 					return;
 				}
 			}

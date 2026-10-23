@@ -7,7 +7,7 @@ const log = logger(import.meta);
 export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/gamemode/:id", async (req, res) => {
 		const bot = webApp.container.getService("DiscordBot");
-		const ip = req.header("cf-connecting-ip") ?? req.header("x-forwarded-for")?.split(",")[0];
+		const ip = req.header("cf-connecting-ip") ?? req.header("x-forwarded-for")?.split(",", 1)[0];
 		if (!ip) {
 			res.sendStatus(403);
 			return;
@@ -21,8 +21,8 @@ export default async (webApp: WebApp): Promise<void> => {
 			return;
 		}
 
-		const id = parseInt(req.params.id);
-		if (isNaN(id) || !servers.some(srv => srv.id === id)) {
+		const id = Math.trunc(Number(req.params.id));
+		if (Number.isNaN(id) || servers.every(srv => srv.id !== id)) {
 			res.sendStatus(403);
 			return;
 		}
@@ -49,9 +49,9 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.status(failed ? 500 : 200)
 				.contentType("text/plain")
 				.send(output);
-		} catch (err) {
-			log.error({ err, server: id }, "gserv failed");
-			res.status(500).contentType("text/plain").send(String(err));
+		} catch (error) {
+			log.error({ err: error, server: id }, "gserv failed");
+			res.status(500).contentType("text/plain").send(String(error));
 		}
 	});
 };

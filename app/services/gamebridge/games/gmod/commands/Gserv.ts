@@ -73,7 +73,7 @@ export const SlashGservCommand: SlashCommand = {
 			],
 		});
 
-		const modalSubmit = await ctx.awaitModalSubmit({ time: 60000 }).catch(() => {});
+		const modalSubmit = await ctx.awaitModalSubmit({ time: 60_000 }).catch(() => {});
 		if (!modalSubmit) return;
 
 		const command = modalSubmit.fields.getStringSelectValues("command")[0];
@@ -115,9 +115,9 @@ export const SlashGservCommand: SlashCommand = {
 
 						const fileName = `${command}_${gameServer.config.id}_${Date.now()}.ansi`;
 						const response = {
-							content: !success
-								? "<a:ALERTA:843518761160015933> FAILED <a:ALERTA:843518761160015933> "
-								: undefined,
+							content: success
+								? undefined
+								: "<a:ALERTA:843518761160015933> FAILED <a:ALERTA:843518761160015933> ",
 							files: [{ attachment: Buffer.from(buffer), name: fileName }],
 						};
 
@@ -131,8 +131,8 @@ export const SlashGservCommand: SlashCommand = {
 							if (message) message.react("👍");
 						}
 						return success;
-					} catch (err) {
-						const response = `<a:ALERTA:843518761160015933> failed to run gserv <a:ALERTA:843518761160015933>\n\`\`\`${err}\`\`\``;
+					} catch (error) {
+						const response = `<a:ALERTA:843518761160015933> failed to run gserv <a:ALERTA:843518761160015933>\n\`\`\`${error}\`\`\``;
 						if (message) {
 							await message.reply(response);
 						} else {
@@ -145,6 +145,6 @@ export const SlashGservCommand: SlashCommand = {
 			.then(() => {
 				modalSubmit.editReply(`sent \`${command}\` successfully!`);
 			})
-			.catch(err => modalSubmit.editReply(`something went wrong!\`\`\`\n${err}\`\`\``));
+			.catch(error => modalSubmit.editReply(`something went wrong!\`\`\`\n${error}\`\`\``));
 	},
 };

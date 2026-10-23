@@ -26,8 +26,8 @@ export default class ReportChatPayload extends Payload {
 
 	private static getThread(reporterSteamId64: string, data: Data) {
 		const threadArray = data.reportThreads?.[reporterSteamId64];
-		if (!threadArray || !threadArray.length) return null;
-		return threadArray[threadArray.length - 1];
+		if (!threadArray || threadArray.length === 0) return null;
+		return threadArray.at(-1);
 	}
 
 	private static isPlayerOnline(steamId64: string, server: GmodConnection): boolean {
@@ -60,11 +60,11 @@ export default class ReportChatPayload extends Payload {
 
 			// Extract message info similar to ChatPayload's formatDiscordMessage
 			let content = msg.content;
-			content = content.replace(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
-				const ext = !animated ? "gif" : "png";
+			content = content.replaceAll(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
+				const ext = animated ? "gif" : "png";
 				return `https://media.discordapp.net/emojis/${id}.${ext}?v=1&size=64`;
 			});
-			content = content.replace(
+			content = content.replaceAll(
 				/(https?:\/\/tenor\.com\/view\/\S+)/g,
 				(_, url) => url + ".gif"
 			);
@@ -130,8 +130,8 @@ export default class ReportChatPayload extends Payload {
 			const player = server.status.players.find(p => p.steamId64 === steamId64);
 			const username = player?.nick ?? "Unknown";
 			await thread.send({ content: `${username}: ${content}` });
-		} catch (err) {
-			log.error(err, "Failed to send report chat message");
+		} catch (error) {
+			log.error(error, "Failed to send report chat message");
 		}
 	}
 
@@ -160,7 +160,7 @@ export default class ReportChatPayload extends Payload {
 		if (!data?.reportThreads) return;
 
 		for (const [reporterSteamId64, threadArray] of Object.entries(data.reportThreads)) {
-			if (!threadArray.length) continue;
+			if (threadArray.length === 0) continue;
 
 			const isOnline = server.status.players.some(p => p.steamId64 === reporterSteamId64);
 			if (!isOnline) continue;

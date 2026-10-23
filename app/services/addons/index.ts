@@ -20,6 +20,7 @@ import {
 	resolveReadme,
 	SUMMARY_LIMIT,
 	workshopUrl,
+	platformMatchToAddonSource,
 } from "./resolvers.js";
 import { TTLCache } from "./cache.js";
 import GmodConnection from "../gamebridge/games/gmod/GmodConnection.js";
@@ -75,7 +76,7 @@ export class Addons extends Service {
 	override name = "Addons";
 	private lastGmodRefresh = new Map<number, number>();
 	private gmodGames = new Map<number, MountedGame[]>();
-	private retryTimers = new Map<number, NodeJS.Timeout>();
+	private retryTimers = new Map<number, ReturnType<typeof setTimeout>>();
 	private workshopCache = new TTLCache<ResolvedMeta | null>(DAY);
 
 	override async init(): Promise<void> {
@@ -94,7 +95,7 @@ export class Addons extends Service {
 		for (const game of Object.keys(store) as AddonGame[]) {
 			for (const entry of Object.values(store[game] ?? {})) out.push(entry);
 		}
-		return out.sort((a, b) => a.game.localeCompare(b.game) || a.serverId - b.serverId);
+		return out.toSorted((a, b) => a.game.localeCompare(b.game) || a.serverId - b.serverId);
 	}
 
 	get(game: AddonGame, serverId: number): ServerAddons | undefined {
@@ -127,8 +128,8 @@ export class Addons extends Service {
 				if (!canSeeRestricted || !restricted) return addon;
 				return {
 					...addon,
-					...(restricted.description ? { description: restricted.description } : {}),
-					...(restricted.thumbnail ? { thumbnail: restricted.thumbnail } : {}),
+					...(restricted.description && { description: restricted.description }),
+					...(restricted.thumbnail && { thumbnail: restricted.thumbnail }),
 					// A partial spread cannot be narrowed back onto the source union.
 					source: restricted.source
 						? ({ ...addon.source, ...restricted.source } as AddonSource)
@@ -203,21 +204,23 @@ export class Addons extends Service {
 			updatedAt: Date.now(),
 			// the game reports these separately, either side of this rebuild
 			games: this.gmodGames.get(id) ?? this.get("gmod", id)?.games,
-			addons: addons.sort((a, b) => a.name.localeCompare(b.name)),
+			addons: addons.toSorted((a, b) => a.name.localeCompare(b.name)),
 		});
 		log.info({ server: name, count: addons.length, transient }, "refreshed gmod addons");
 
-		if (transient > 0 && attempt < TRANSIENT_MAX_RETRIES) {
-			log.warn({ server: name, transient, attempt }, "retrying unresolved git entries later");
-			this.retryTimers.set(
-				id,
-				setTimeout(() => {
-					this.refreshGmodRepos(server, rows, attempt + 1).catch(err =>
-						log.error({ err, server: name }, "addon refresh retry failed")
-					);
-				}, TRANSIENT_RETRY_DELAY)
-			);
+		if (transient === 0 || attempt >= TRANSIENT_MAX_RETRIES) {
+			return;
 		}
+
+		log.warn({ server: name, transient, attempt }, "retrying unresolved git entries later");
+		this.retryTimers.set(
+			id,
+			setTimeout(() => {
+				this.refreshGmodRepos(server, rows, attempt + 1).catch(error =>
+					log.error({ err: error, server: name }, "addon refresh retry failed")
+				);
+			}, TRANSIENT_RETRY_DELAY)
+		);
 	}
 
 	private async buildGmodAddon(
@@ -237,7 +240,7 @@ export class Addons extends Service {
 		if (parsed) {
 			git = await resolveGit(parsed, this.githubClient());
 			const last = previous?.get(key);
-			if (git.transient && last) return { addon: last, transient: true };
+			if (last && git.transient) return { addon: last, transient: true };
 		}
 		const addon = await this.describeGmodAddon(
 			repo,
@@ -279,13 +282,17 @@ export class Addons extends Service {
 		const branch = this.interestingBranch(rawBranch, git);
 		const treeSegment = parsed?.host === "gitlab" ? "/-/tree/" : "/tree/";
 		const ref = branch ?? "HEAD";
-		const repoUrl = !baseUrl
-			? undefined
-			: subpath
-				? `${baseUrl}${treeSegment}${ref}/${subpath}`
-				: branch
-					? `${baseUrl}${treeSegment}${branch}`
-					: baseUrl;
+		
+		let repoUrl: string | undefined;
+		if (baseUrl) {
+			if (subpath) {
+				repoUrl = `${baseUrl}${treeSegment}${ref}/${subpath}`;
+			} else if (branch) {
+				repoUrl = `${baseUrl}${treeSegment}${branch}`;
+			} else {
+				repoUrl = baseUrl;
+			}
+		}
 		// Everything a private repo would reveal is held back for team members, so the
 		// public fields below read from these two and never from `git.meta` directly.
 		const publicRepoUrl = git.public ? repoUrl : undefined;
@@ -298,11 +305,9 @@ export class Addons extends Service {
 			const restricted = git.public
 				? undefined
 				: {
-					...(repoUrl ? { source: { repoUrl } } : {}),
-					...(description ? { description } : {}),
-					...(!ws?.thumbnail && git.meta?.thumbnail
-						? { thumbnail: git.meta.thumbnail }
-						: {}),
+					...(repoUrl && { source: { repoUrl } }),
+					...(description && { description }),
+					...(!ws?.thumbnail && git.meta?.thumbnail && { thumbnail: git.meta.thumbnail }),
 				};
 			return {
 				name: ws?.name ?? publicMeta?.name ?? fallbackName,
@@ -316,7 +321,7 @@ export class Addons extends Service {
 					repoUrl: publicRepoUrl,
 				},
 				private: false,
-				...(restricted && Object.keys(restricted).length ? { restricted } : {}),
+				...(restricted && Object.keys(restricted).length > 0 && { restricted }),
 			};
 		}
 
@@ -330,9 +335,9 @@ export class Addons extends Service {
 				source: { kind: "git", host: parsed.host, subpath },
 				private: true,
 				restricted: {
-					source: { url: repoUrl, ...(branch ? { branch } : {}) },
-					...(description ? { description } : {}),
-					...(git.meta?.thumbnail ? { thumbnail: git.meta.thumbnail } : {}),
+					source: { url: repoUrl, ...(branch && { branch }) },
+					...(description && { description }),
+					...(git.meta?.thumbnail && { thumbnail: git.meta.thumbnail }),
 				},
 			};
 		}
@@ -427,7 +432,7 @@ export class Addons extends Service {
 		for (const mod of relevant) {
 			// two jars can resolve to the same platform project, and so to the same
 			// name; the mod id is the only thing unique to the mod itself
-			const push = (addon: Addon) => addons.push({ ...addon, key: mod.modId });
+			const push = (addon: Addon): void => void addons.push({ ...addon, key: mod.modId });
 			const modrinth = mod.sha512 ? byHash.get(mod.sha512) : undefined;
 			if (modrinth) {
 				push({
@@ -490,14 +495,7 @@ export class Addons extends Service {
 					description: named.meta.description,
 					thumbnail: named.meta.thumbnail,
 					version: mod.version,
-					source:
-						named.platform === "modrinth"
-							? { kind: "modrinth", projectId: named.projectId, url: named.meta.url }
-							: {
-								kind: "curseforge",
-								projectId: named.projectId,
-								url: named.meta.url,
-							},
+					source: platformMatchToAddonSource(named),
 					private: false,
 				});
 				continue;
@@ -529,8 +527,8 @@ export class Addons extends Service {
 			serverId: id,
 			serverName: name,
 			updatedAt: Date.now(),
-			...(runtime.length ? { runtime } : {}),
-			addons: addons.sort((a, b) => a.name.localeCompare(b.name)),
+			...(runtime.length > 0 && { runtime }),
+			addons: addons.toSorted((a, b) => a.name.localeCompare(b.name)),
 		});
 		log.info({ server: name, count: addons.length }, "stored minecraft mods");
 	}

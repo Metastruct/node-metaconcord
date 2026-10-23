@@ -43,7 +43,7 @@ export class DiscordBot extends Service {
 		],
 		partials: [Discord.Partials.Message, Discord.Partials.Channel, Discord.Partials.Reaction],
 		closeTimeout: 5000,
-		rest: { timeout: 30000 },
+		rest: { timeout: 30_000 },
 	});
 	ready!: boolean;
 	currentEvent = "none";
@@ -90,11 +90,11 @@ export class DiscordBot extends Service {
 			try {
 				await this.discord.login(this.config.bot.token);
 				return;
-			} catch (err) {
+			} catch (error) {
 				attempts++;
 				const delay = Math.min(5000 * 2 ** (attempts - 1), 120_000);
 				log.error(
-					{ err, attempt: attempts },
+					{ err: error, attempt: attempts },
 					`Discord login failed, retrying in ${delay}ms`
 				);
 				await sleep(delay);
@@ -131,7 +131,7 @@ export class DiscordBot extends Service {
 
 		if (typeof activity === "string") {
 			if (activity.length > 127)
-				opt.name = activity.substring(0, 120) + "...";
+				opt.name = activity.slice(0, 120) + "...";
 			else
 				opt.name = activity;
 		} else {
@@ -185,7 +185,7 @@ export class DiscordBot extends Service {
 	}
 
 	getNickname(): string | undefined {
-		return this.getGuild()?.members.me?.nickname?.split(" ")[0] ?? undefined;
+		return this.getGuild()?.members.me?.nickname?.split(" ", 1)[0] ?? undefined;
 	}
 
 	async setServerBanner(url?: string, reason?: string): Promise<boolean> {
@@ -240,13 +240,13 @@ export class DiscordBot extends Service {
 				const id = Array.from(imageUrl.matchAll(ImgurRegex), m => m[1])[0]; // wtf there has to be a better way
 				const info = await this.container.tryService("Motd")?.getImageInfo(id);
 				if (info?.has_sound) {
-					urls.push(imageUrl.replace(/(?:i\.)?imgur\.com/g, "i.imgur.io"));
+					urls.push(imageUrl.replaceAll(/(?:i\.)?imgur\.com/g, "i.imgur.io"));
 				}
 			}
 		}
 		if (urls.length === 0) return;
 
-		const fix = urls.join("\n").substring(0, EMBED_FIELD_LIMIT);
+		const fix = urls.join("\n").slice(0, Math.max(0, EMBED_FIELD_LIMIT === undefined ? Infinity : EMBED_FIELD_LIMIT));
 		const emoji = "🔉";
 		await msg.react(emoji).catch(() => {});
 		const collected = await msg.awaitReactions({
@@ -289,7 +289,7 @@ export class DiscordBot extends Service {
 		await (await chan.lastMessage.fetch(false)).reactions.removeAll();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// eslint-disable-next-line typescript-eslint/no-explicit-any
 	async fetchPartial(obj): Promise<any> {
 		try {
 			return obj.partial ? await obj.fetch() : obj;

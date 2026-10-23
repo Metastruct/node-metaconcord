@@ -11,7 +11,7 @@ import {
 	takeRedirect,
 } from "./session.js";
 import GithubConfig from "#/config/github.json" with { type: "json" };
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
@@ -45,7 +45,7 @@ export default (webApp: WebApp): void => {
 		url.searchParams.set("redirect_uri", callbackUrl);
 		url.searchParams.set("state", state);
 		url.searchParams.set("scope", scope);
-		res.redirect(url.toString());
+		res.redirect(url.href);
 	});
 
 	webApp.app.get("/auth/github/callback", limiter, async (req, res) => {
@@ -68,8 +68,8 @@ export default (webApp: WebApp): void => {
 				code,
 				redirect_uri: callbackUrl,
 			}),
-		}).catch(err => {
-			log.error(err, "github token exchange failed");
+		}).catch(error => {
+			log.error(error, "github token exchange failed");
 		});
 		const tokens = tokenRes && tokenRes.ok
 			? ((await tokenRes.json()) as {
@@ -100,8 +100,8 @@ export default (webApp: WebApp): void => {
 			const primary =
 				emails?.find(e => e.primary && e.verified) ?? emails?.find(e => e.verified);
 			primaryEmail = primary?.email ?? undefined;
-		} catch (err) {
-			log.error(err, "failed fetching github user");
+		} catch (error) {
+			log.error(error, "failed fetching github user");
 			res.status(502).send("github login failed");
 			return;
 		}
@@ -122,12 +122,12 @@ export default (webApp: WebApp): void => {
 			setSessionCookie(res, account);
 			log.info(`github login for ${user.login} (account ${account.id})`);
 			res.redirect(redirect);
-		} catch (err) {
-			if (err instanceof LinkConflictError) {
+		} catch (error) {
+			if (error instanceof LinkConflictError) {
 				res.redirect(`${webApp.config.siteUrl}/profile?error=conflict&provider=github`);
 				return;
 			}
-			throw err;
+			throw error;
 		}
 	});
 };

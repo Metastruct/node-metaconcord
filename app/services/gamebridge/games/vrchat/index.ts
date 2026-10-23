@@ -81,7 +81,7 @@ function buildSignature(instances: GroupInstance[], disconnected: boolean): unkn
 		disconnected,
 		instances: instances
 			.map(i => ({ id: i.instanceId, world: i.world.id, count: i.memberCount }))
-			.sort((a, b) => a.id.localeCompare(b.id)),
+			.toSorted((a, b) => a.id.localeCompare(b.id)),
 	};
 }
 
@@ -126,7 +126,7 @@ export function attachVRChat(bridge: GameBridge): void {
 	vrchat
 		.getGroup({ path: { groupId: config.groupId } })
 		.then(({ data }) => (connection.group = data))
-		.catch(err => log.warn(err, "VRChat group lookup failed"));
+		.catch(error => log.warn(error, "VRChat group lookup failed"));
 
 	const poll = async () => {
 		try {
@@ -142,7 +142,7 @@ export function attachVRChat(bridge: GameBridge): void {
 			if (totalPlayers > 0) {
 				connection.setPresence("online", {
 					activity: {
-						name: `${totalPlayers} player${totalPlayers === 1 ? "" : "s"} in ${instances.sort(i => i.memberCount)[0].world.name}`,
+						name: `${totalPlayers} player${totalPlayers === 1 ? "" : "s"} in ${instances.toSorted(i => i.memberCount)[0].world.name}`,
 						type: Discord.ActivityType.Watching,
 					},
 				});
@@ -156,15 +156,15 @@ export function attachVRChat(bridge: GameBridge): void {
 				[],
 				buildSignature(instances, false)
 			);
-		} catch (err) {
-			log.error(err, "VRChat poll failed");
+		} catch (error) {
+			log.error(error, "VRChat poll failed");
 			connection.disconnected = true;
 			connection.setPresence("idle", { afk: true });
 
 			try {
 				await connection.postOrEditStatusMessage([], [], buildSignature([], true));
-			} catch (postErr) {
-				log.error(postErr, "failed to post VRChat disconnect status");
+			} catch (error) {
+				log.error(error, "failed to post VRChat disconnect status");
 			}
 		}
 	};

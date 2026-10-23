@@ -30,7 +30,7 @@ export default class JoinLeavePayload extends Payload {
 				iconURL: avatar,
 				url: `https://namemc.com/profile/${player.uuid}`,
 			})
-			.setColor(spawned ? 0x4bb543 : 0xb54343);
+			.setColor(spawned ? 0x4B_B5_43 : 0xB5_43_43);
 		if (reason) embed.setDescription(`Reason: ${reason}`);
 		await (relayChannel as Discord.TextChannel).send({ embeds: [embed] });
 	}

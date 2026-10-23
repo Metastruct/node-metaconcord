@@ -89,8 +89,8 @@ export default (bot: DiscordBot): void => {
 				{ body: commands }
 			);
 			log.debug(`Successfully refreshed ${commands.length} commands.`);
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 		}
 	})();
 
@@ -100,24 +100,24 @@ export default (bot: DiscordBot): void => {
 			if (!command) return;
 			try {
 				await command.execute(interaction, bot);
-			} catch (err) {
-				log.error({ interaction, err }, "slash commands");
+			} catch (error) {
+				log.error({ interaction, err: error }, "slash commands");
 			}
 		} else if (interaction.isContextMenuCommand()) {
 			const command = interaction.client.menuCommands.get(interaction.commandName);
 			if (!command) return;
 			try {
 				await command.execute(interaction, bot);
-			} catch (err) {
-				log.error({ interaction, err }, "menu commands");
+			} catch (error) {
+				log.error({ interaction, err: error }, "menu commands");
 			}
 		} else if (interaction.isAutocomplete()) {
 			const command = interaction.client.slashCommands.get(interaction.commandName);
 			if (!command || !command.autocomplete) return;
 			try {
 				await command.autocomplete(interaction, bot);
-			} catch (err) {
-				log.error({ interaction, err }, "autocomplete");
+			} catch (error) {
+				log.error({ interaction, err: error }, "autocomplete");
 			}
 		}
 	});

@@ -141,11 +141,11 @@ const websiteActor = (session: Session): string => {
 	if (github) return githubActor(github.name);
 	const steam = session.account.links.find(l => l.provider === "steam");
 	if (steam) return new SteamID(steam.providerId).getSteam2RenderedID();
-	return githubActor(session.login.replace(/[^A-Za-z0-9-]/g, "").slice(0, 39) || "unknown");
+	return githubActor(session.login.replaceAll(/[^A-Za-z0-9-]/g, "").slice(0, 39) || "unknown");
 };
 
 const clean = (value: unknown, max: number): string =>
-	typeof value === "string" ? value.replace(CONTROL_RE, "").trim().slice(0, max) : "";
+	typeof value === "string" ? value.replaceAll(CONTROL_RE, "").trim().slice(0, max) : "";
 
 type BanInput = {
 	steamId: string;
@@ -196,7 +196,7 @@ const validateBan = (body: unknown, server?: GmodConnection): BanInput | string 
 		unbanTime = now + seconds;
 	} else {
 		const at = Number(input.unbanAt);
-		if (!Number.isInteger(at)) return "unbanAt must be a unix timestamp in seconds";
+		if (!Number.isSafeInteger(at)) return "unbanAt must be a unix timestamp in seconds";
 		if (at !== PERMANENT_UNBAN_TIME) {
 			if (at <= now) return "unbanAt must be in the future";
 			if (at > now + MAX_BAN_LENGTH) return "unbanAt may not be more than 10 years out";

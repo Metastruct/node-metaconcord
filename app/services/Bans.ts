@@ -50,14 +50,14 @@ export class Bans extends Service {
 	private async fetchBans(): Promise<void> {
 		this.lastAttempt = Date.now();
 		try {
-			const res = await axios.get<MetaBan[]>("http://g2.metastruct.net/bans");
-			if (!Array.isArray(res.data)) throw new Error("ban list is not an array");
+			const res = await axios.get<MetaBan[]>("https://g2.metastruct.net/bans");
+			if (!Array.isArray(res.data)) throw new TypeError("ban list is not an array");
 			this.banCache = res.data;
 			this.lastSuccess = Date.now();
 			this.lastError = undefined;
-		} catch (err) {
-			this.lastError = (err as Error)?.message ?? String(err);
-			log.warn(err, "failed refreshing the ban list, keeping the cached copy");
+		} catch (error) {
+			this.lastError = (error as Error)?.message ?? String(error);
+			log.warn(error, "failed refreshing the ban list, keeping the cached copy");
 		}
 	}
 

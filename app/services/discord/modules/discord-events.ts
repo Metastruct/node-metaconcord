@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
-import { join } from "path";
+import { join } from "node:path";
 import DiscordConfig from "#/config/discord.json" with { type: "json" };
 import { logger } from "#/utils.js";
 
@@ -113,20 +113,18 @@ export default async (bot: DiscordBot): Promise<void> => {
 				log.info(`Event "${event.name}" running! Setting roles...`); // logging because I don't trust discord
 				const users = await GetParticipants(event);
 				users.forEach(usr => {
-					if (!usr.roles.cache.some(role => role.id === DiscordConfig.roles.event))
+					if (usr.roles.cache.every(role => role.id !== DiscordConfig.roles.event))
 						usr.roles.add(DiscordConfig.roles.event);
 				});
 				for (const { icon, triggers, nicks, execute } of events) {
 					const regex = new RegExp("\\b" + triggers.join("\\b|\\b") + "\\b");
-					const match =
-						regex.test(event.name.toLowerCase()) ||
-						(event.description ? regex.test(event.description?.toLowerCase()) : false);
+					const match = regex.test(event.name.toLowerCase()) || (event.description && regex.test(event.description?.toLowerCase()));
 					if (match) {
 						const path = join(iconsPath, `${icon}.png`);
 						await bot.setIcon(path);
 						if (nicks) {
 							await bot.setNickname(
-								nicks[(Math.random() * nicks.length) | 0],
+								nicks[Math.trunc(Math.random() * nicks.length)],
 								event.name
 							);
 						}

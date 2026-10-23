@@ -45,7 +45,7 @@
 	const append = node => {
 		const stick = !paused && atBottom();
 		logEl.appendChild(node);
-		while (logEl.childElementCount > MAX_LINES) logEl.removeChild(logEl.firstChild);
+		while (logEl.childElementCount > MAX_LINES) logEl.firstChild.remove();
 		if (stick) logEl.scrollTop = logEl.scrollHeight;
 	};
 
@@ -81,7 +81,7 @@
 				msg.textContent += (msg.textContent ? "\n" : "") + rest.err.stack;
 				delete rest.err;
 			}
-			if (Object.keys(rest).length) {
+			if (Object.keys(rest).length > 0) {
 				msg.appendChild(el("span", "extra", " " + JSON.stringify(rest)));
 			}
 			row.appendChild(msg);
@@ -145,16 +145,16 @@
 	const connect = async () => {
 		setStatus("connecting");
 		try {
-			const res = await fetch("/dashboard/logs?limit=500", { credentials: "same-origin" });
+			const res = await fetch("/dashboard/logs?limit=500");
 			if (res.status === 401) {
-				location.href = "/";
+				location.assign("/");
 				return;
 			}
 			logEl.textContent = "";
 			for (const line of await res.json()) renderLog(line);
 			renderOut("meta", "--- live ---");
-		} catch (err) {
-			renderOut("error", "backlog fetch failed: " + err.message);
+		} catch (error) {
+			renderOut("error", "backlog fetch failed: " + error.message);
 		}
 
 		const proto = location.protocol === "https:" ? "wss:" : "ws:";
@@ -170,18 +170,26 @@
 			} catch {
 				return;
 			}
-			if (msg.type === "log") renderLog(msg);
-			else if (msg.type === "out") renderOut(msg.mode, msg.text.replace(/\n$/, ""));
-			else if (msg.type === "exit") renderOut("meta", `bash exited with code ${msg.code}`);
+			switch (msg.type) {
+				case "log":
+					renderLog(msg);
+					break;
+				case "out":
+					renderOut(msg.mode, msg.text.replace(/\n$/, ""));
+					break;
+				case "exit":
+					renderOut("meta", `bash exited with code ${msg.code}`);
+					break;
+			}
 		});
 		ws.addEventListener("close", ev => {
 			setStatus("closed");
 			if (ev.code === 4001) {
 				// session expired, "/" serves the login page again
-				location.href = "/";
+				location.assign("/");
 				return;
 			}
-			const delay = Math.min(30000, 1000 * 2 ** retry++);
+			const delay = Math.min(30_000, 1000 * 2 ** retry++);
 			renderOut("meta", `disconnected, retrying in ${Math.round(delay / 1000)}s`);
 			setTimeout(connect, delay);
 		});
@@ -218,7 +226,7 @@
 			mode === "js" ? { type: "js", code: value } : { type: "bash", input: value }
 		);
 		if (!ok) return;
-		if (history[history.length - 1] !== value) history.push(value);
+		if (history.at(-1) !== value) history.push(value);
 		if (history.length > 200) history.shift();
 		historyIndex = history.length;
 		try {
@@ -253,7 +261,7 @@
 
 	// #region config editor
 
-	const typeOf = v => (v === null ? "null" : Array.isArray(v) ? "array" : typeof v);
+	const typeOf = v => (v === null ? "null" : (Array.isArray(v) ? "array" : typeof v));
 
 	/** Scalars are edited bare in an input, objects/arrays as JSON in a textarea. */
 	const valueEditor = (value, onChange) => {
@@ -336,7 +344,7 @@
 				markDirty();
 			});
 			row.appendChild(del);
-			body.insertBefore(row, addRowEl);
+			addRowEl.before(row);
 			if (isArray) relabel();
 		};
 
@@ -397,8 +405,8 @@
 				if (!res.ok) throw new Error(data.error || res.statusText);
 				msg.textContent = "saved, restart to apply";
 				dirty.textContent = "";
-			} catch (err) {
-				msg.textContent = "save failed: " + err.message;
+			} catch (error_) {
+				msg.textContent = "save failed: " + error_.message;
 			} finally {
 				save.disabled = false;
 			}
@@ -411,7 +419,6 @@
 	const loadConfigs = async () => {
 		configsEl.textContent = "loading…";
 		const res = await fetch("/dashboard/config", {
-			credentials: "same-origin",
 			headers: { Accept: "application/json" },
 		});
 		if (!res.ok) {
@@ -458,15 +465,14 @@
 	});
 
 	$("#logout").addEventListener("click", async () => {
-		await fetch("/auth/logout", { method: "POST", credentials: "same-origin" });
-		location.href = "/";
+		await fetch("/auth/logout", { method: "POST"});
+		location.assign("/");
 	});
 
 	$("#restart").addEventListener("click", async () => {
 		if (!confirm("Exit the process? It only comes back if the container restarts it.")) return;
 		await fetch("/dashboard/restart", {
 			method: "POST",
-			credentials: "same-origin",
 			headers: { Accept: "application/json" },
 		});
 		renderOut("meta", "restart requested");

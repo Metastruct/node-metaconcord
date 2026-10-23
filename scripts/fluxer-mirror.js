@@ -4,7 +4,7 @@
 // Reads config/discord.json (Discord side) + config/fluxer.json (Fluxer side).
 // Usage: node scripts/fluxer-mirror.js [--dry-run] [--yes]
 
-/* eslint eqeqeq: off */
+/* eslint-disable eqeqeq, no-useless-assignment */
 
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -15,6 +15,8 @@ const root = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run");
 const assumeYes = args.has("--yes");
+
+const retries = 5;
 
 const discordConfig = JSON.parse(await readFile(resolve(root, "config/discord.json"), "utf8"));
 const fluxerConfig = JSON.parse(await readFile(resolve(root, "config/fluxer.json"), "utf8"));
@@ -167,15 +169,15 @@ async function discordApi(path) {
 	return res.json();
 }
 
-async function fluxerApi(method, path, body, { retries = 5 } = {}) {
+async function fluxerApi(method, path, body) {
 	for (let attempt = 0; ; attempt++) {
 		const res = await fetch(`${FLUXER_API}${path}`, {
 			method,
 			headers: {
 				Authorization: `Bot ${fluxerConfig.botToken}`,
-				...(body != null ? { "Content-Type": "application/json" } : {}),
+				...((body != null) && { "Content-Type": "application/json" }),
 			},
-			...(body != null ? { body: JSON.stringify(body) } : {}),
+			...((body != null) && { body: JSON.stringify(body) }),
 		});
 		if (res.status === 429 && attempt < retries) {
 			const retryAfter = Number(res.headers.get("Retry-After") ?? 1) * 1000;
@@ -343,9 +345,9 @@ for (const src of channelById.values()) {
 }
 const isArchivedThread = src =>
 	src.thread_metadata?.archived === true || src.thread_metadata?.locked === true;
-const desiredThreadList = [...desiredThreads.values()].filter(thread =>
+const desiredThreadList = desiredThreads.values().filter(thread =>
 	desiredChannels.has(thread.parentDiscordId)
-);
+).toArray();
 
 const channelPosition = ch => {
 	if (!DISCORD_THREAD_TYPES.has(ch.src.type)) return ch.src.position ?? 0;
@@ -432,15 +434,16 @@ for (const r of desiredRoles) {
 }
 log(
 	`Categories to mirror (${desiredCategories.size}): ` +
-		[...desiredCategories.values()].map(c => `"${c.name}"`).join(", ")
+		desiredCategories.values().map(c => `"${c.name}"`).toArray().join(", ")
 );
 log(`Channels to mirror (${desiredChannels.size}):`);
-const catOrder = [...desiredCategories.values()].sort((a, b) => a.position - b.position);
+const catOrder = desiredCategories.values().toArray().toSorted((a, b) => a.position - b.position);
 for (const cat of catOrder) {
 	log(`  [category] ${cat.name}`);
-	for (const ch of [...desiredChannels.values()]
+	for (const ch of desiredChannels.values()
 		.filter(ch => ch.parentDiscordId === cat.id)
-		.sort(compareChannels)) {
+		.toArray()
+		.toSorted(compareChannels)) {
 		log(
 			`    - ${ch.configName}: "${ch.src.name}" (discord type ${ch.src.type} -> fluxer ${ch.type})`
 		);
@@ -449,13 +452,8 @@ for (const cat of catOrder) {
 log(`Threads to mirror (${desiredThreadList.length}):`);
 for (const thread of desiredThreadList) {
 	const parent = desiredChannels.get(thread.parentDiscordId);
-	const kind = FORUM_PARENT_TYPES.has(parent?.src.type)
-		? isArchivedThread(thread.src)
-			? "archived forum post"
-			: "forum post"
-		: isArchivedThread(thread.src)
-			? "archived thread"
-			: "thread";
+	const kind = (isArchivedThread(thread.src) ? "archived " : "")
+		+ (FORUM_PARENT_TYPES.has(parent?.src.type) ? "forum post" : "thread");
 	log(
 		`  - ${thread.configName}: "${thread.src.name}" (${kind}, parent "${parent?.src.name ?? thread.parentDiscordId}")`
 	);
@@ -479,16 +477,15 @@ if (!assumeYes) {
 
 // ---------------------------------------------------------------- features
 phase("Enabling TEXT_CHANNEL_FLEXIBLE_NAMES");
-if (!fluxerGuild.features.includes("TEXT_CHANNEL_FLEXIBLE_NAMES")) {
+if (fluxerGuild.features.includes("TEXT_CHANNEL_FLEXIBLE_NAMES")) {
+	step("already present");
+} else {
 	const features = [...new Set([...fluxerGuild.features, "TEXT_CHANNEL_FLEXIBLE_NAMES"])];
 	if (dryRun) step(`would PATCH features: ${features.join(", ")}`);
 	else {
-		// eslint-disable-next-line no-useless-assignment
 		fluxerGuild = await fluxerApi("PATCH", `/guilds/${FLUXER_GUILD}`, { features });
 		step("done");
 	}
-} else {
-	step("already present");
 }
 
 // ---------------------------------------------------------------- roles
@@ -512,16 +509,16 @@ if (everyone) {
 
 const manageableRoles = desiredRoles
 	.filter(r => r.srcId !== administratorRole.srcId)
-	.sort((a, b) => a.position - b.position);
+	.toSorted((a, b) => a.position - b.position);
 for (const r of manageableRoles) {
 	let fluxerRole = fluxerRoleByName.get(r.name);
-	if (!fluxerRole) {
+	if (fluxerRole) {
+		step(`reusing existing role "${r.name}" (${fluxerRole.id})`);
+	} else {
 		const body = { name: r.name, color: r.color, permissions: mask(r.permissions) };
 		fluxerRole = await fluxerApi("POST", `/guilds/${FLUXER_GUILD}/roles`, body);
 		await sleep(6200); // role:create is 10/min
 		step(`created role "${r.name}" (${fluxerRole.id})`);
-	} else {
-		step(`reusing existing role "${r.name}" (${fluxerRole.id})`);
 	}
 	fluxerIdByDiscordRole.set(r.srcId, fluxerRole.id);
 	await fluxerApi("PATCH", `/guilds/${FLUXER_GUILD}/roles/${fluxerRole.id}`, {
@@ -592,29 +589,21 @@ const forumFieldsFor = src => {
 	const tags = (src.available_tags ?? []).slice(0, 20).map(tag => ({
 		name: tag.name,
 		moderated: tag.moderated === true,
-		...(tag.emoji_name ? { emoji_name: tag.emoji_name } : {}),
+		...(tag.emoji_name && { emoji_name: tag.emoji_name }),
 	}));
 	const defaultReactionName = src.default_reaction_emoji?.emoji_name;
 	const forumFlagMask = (1 << 4) | (1 << 15); // REQUIRE_TAG | HIDE_MEDIA_DOWNLOAD_OPTIONS
 	const flags = (src.flags ?? 0) & forumFlagMask;
 	return {
-		...(src.default_auto_archive_duration != null
-			? { default_auto_archive_duration: src.default_auto_archive_duration }
-			: {}),
-		...(src.default_thread_rate_limit_per_user != null
-			? {
-				default_thread_rate_limit_per_user: src.default_thread_rate_limit_per_user,
-			}
-			: {}),
-		...(tags.length > 0 ? { available_tags: tags } : {}),
-		...(defaultReactionName
-			? { default_reaction_emoji: { emoji_name: defaultReactionName } }
-			: {}),
-		...(src.default_sort_order != null ? { default_sort_order: src.default_sort_order } : {}),
-		...(src.default_forum_layout != null
-			? { default_forum_layout: src.default_forum_layout }
-			: {}),
-		...(flags !== 0 ? { flags } : {}),
+		...((src.default_auto_archive_duration != null) && { default_auto_archive_duration: src.default_auto_archive_duration }),
+		...((src.default_thread_rate_limit_per_user != null) && {
+			default_thread_rate_limit_per_user: src.default_thread_rate_limit_per_user,
+		}),
+		...((tags.length > 0) && { available_tags: tags }),
+		...(defaultReactionName && { default_reaction_emoji: { emoji_name: defaultReactionName } }),
+		...((src.default_sort_order != null) && { default_sort_order: src.default_sort_order }),
+		...((src.default_forum_layout != null) && { default_forum_layout: src.default_forum_layout }),
+		...((flags !== 0) && { flags }),
 	};
 };
 
@@ -622,13 +611,11 @@ const createChannel = (src, type, parentFluxerId) => {
 	const body = {
 		type,
 		name: src.name,
-		...(src.topic != null ? { topic: src.topic } : {}),
-		...(parentFluxerId ? { parent_id: parentFluxerId } : {}),
-		...(src.rate_limit_per_user != null
-			? { rate_limit_per_user: src.rate_limit_per_user }
-			: {}),
-		...(type === 2 ? { bitrate: src.bitrate ?? 64000 } : {}),
-		...(type === 2 ? { user_limit: Math.min(src.user_limit ?? 0, 99) } : {}),
+		...((src.topic != null) && { topic: src.topic }),
+		...(parentFluxerId && { parent_id: parentFluxerId }),
+		...((src.rate_limit_per_user != null) && { rate_limit_per_user: src.rate_limit_per_user }),
+		...((type === 2) && { bitrate: src.bitrate ?? 64_000 }),
+		...((type === 2) && { user_limit: Math.min(src.user_limit ?? 0, 99) }),
 		...forumFieldsFor(src),
 	};
 	const overwrites = overwritesFor(src);
@@ -642,14 +629,14 @@ for (const cat of catOrder) {
 		step(`[dry] would create category "${cat.name}"`);
 	} else {
 		let fluxerCategory = fluxerCategoryByName.get(cat.name);
-		if (!fluxerCategory) {
+		if (fluxerCategory) {
+			step(`reusing existing category "${cat.name}" (${fluxerCategory.id})`);
+		} else {
 			const body = createChannel(cat, type, null);
 			fluxerCategory = await fluxerApi("POST", `/guilds/${FLUXER_GUILD}/channels`, body);
 			await sleep(6200); // channel:create is 10/min
 			fluxerCategoryByName.set(cat.name, fluxerCategory);
 			step(`created category "${cat.name}" (${fluxerCategory.id})`);
-		} else {
-			step(`reusing existing category "${cat.name}" (${fluxerCategory.id})`);
 		}
 		fluxerIdByDiscordChannel.set(cat.id, fluxerCategory.id);
 	}
@@ -657,7 +644,7 @@ for (const cat of catOrder) {
 
 // Create channels in source category and channel order; the explicit reorder below
 // also repairs ordering on idempotent reruns.
-const orderedChannels = [...desiredChannels.values()].sort((a, b) => {
+const orderedChannels = desiredChannels.values().toArray().toSorted((a, b) => {
 	const parentA = desiredCategories.get(a.parentDiscordId)?.position ?? 0;
 	const parentB = desiredCategories.get(b.parentDiscordId)?.position ?? 0;
 	if (parentA !== parentB) return parentA - parentB;
@@ -744,7 +731,7 @@ for (const thread of desiredThreadList) {
 						starter?.content?.trim() ||
 						`[View this Discord post](<https://discord.com/channels/${DISCORD_GUILD}/${thread.src.id}>)`,
 				},
-				...(appliedTags.length > 0 ? { applied_tags: appliedTags } : {}),
+				...((appliedTags.length > 0) && { applied_tags: appliedTags }),
 			};
 			fluxerThread = await fluxerApi("POST", `/channels/${parentFluxerId}/threads`, body);
 			await sleep(6200); // channel:thread:create is 10/min
@@ -753,17 +740,11 @@ for (const thread of desiredThreadList) {
 			const body = {
 				name: thread.src.name,
 				type: thread.src.type === 10 ? 11 : thread.src.type,
-				...(thread.src.thread_metadata?.auto_archive_duration != null
-					? {
-						auto_archive_duration: thread.src.thread_metadata.auto_archive_duration,
-					}
-					: {}),
-				...(thread.src.rate_limit_per_user != null
-					? { rate_limit_per_user: thread.src.rate_limit_per_user }
-					: {}),
-				...(thread.src.type === 12 && thread.src.thread_metadata?.invitable != null
-					? { invitable: thread.src.thread_metadata.invitable }
-					: {}),
+				...((thread.src.thread_metadata?.auto_archive_duration != null) && {
+					auto_archive_duration: thread.src.thread_metadata.auto_archive_duration,
+				}),
+				...((thread.src.rate_limit_per_user != null) && { rate_limit_per_user: thread.src.rate_limit_per_user }),
+				...(thread.src.type === 12 && thread.src.thread_metadata?.invitable != null && { invitable: thread.src.thread_metadata.invitable }),
 			};
 			fluxerThread = await fluxerApi("POST", `/channels/${parentFluxerId}/threads`, body);
 			await sleep(6200);
@@ -772,7 +753,7 @@ for (const thread of desiredThreadList) {
 		if (archived) {
 			await fluxerApi("PATCH", `/channels/${fluxerThread.id}`, {
 				archived: true,
-				...(thread.src.thread_metadata?.locked ? { locked: true } : {}),
+				...(thread.src.thread_metadata?.locked && { locked: true }),
 			});
 			step(`archived "${thread.src.name}"`);
 		}
@@ -785,12 +766,12 @@ phase("Reconciling channel topics and access");
 const translateTopic = topic => {
 	if (topic == null) return null;
 	return topic
-		.replace(/<#(\d+)>/g, (_match, discordId) => {
+		.replaceAll(/<#(\d+)>/g, (_match, discordId) => {
 			const fluxerId = fluxerIdByDiscordChannel.get(discordId);
 			if (fluxerId) return `<#${fluxerId}>`;
 			return `#${channelById.get(discordId)?.name ?? "unknown-channel"}`;
 		})
-		.replace(
+		.replaceAll(
 			/https?:\/\/(?:canary\.|ptb\.)?discord(?:app)?\.com\/channels\/(\d+)\/(\d+)/g,
 			(match, _guildId, discordId) => {
 				const fluxerId = fluxerIdByDiscordChannel.get(discordId);
@@ -827,9 +808,10 @@ for (const cat of catOrder) {
 	precedingCategoryId = categoryId;
 
 	let precedingChannelId = null;
-	const children = [...desiredChannels.values()]
+	const children = desiredChannels.values()
 		.filter(ch => ch.parentDiscordId === cat.id)
-		.sort(compareChannels);
+		.toArray()
+		.toSorted(compareChannels);
 	for (const child of children) {
 		const channelId = fluxerIdByDiscordChannel.get(child.src.id);
 		positionUpdates.push({
@@ -933,9 +915,9 @@ try {
 	for (const ch of orderedChannels) {
 		const channelKind = FORUM_PARENT_TYPES.has(ch.src.type)
 			? "forum"
-			: ch.type === 2
+			: (ch.type === 2
 				? "voice"
-				: "text";
+				: "text");
 		const relayEnabled = channelKind === "text" || channelKind === "forum" ? 1 : 0;
 		const mapping = {
 			discordChannelId: ch.src.id,

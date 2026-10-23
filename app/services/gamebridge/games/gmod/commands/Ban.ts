@@ -54,8 +54,8 @@ const Ban = async (
 				? "GameServer not connected :("
 				: `Could not ban \`${plyName}(${steamid})\` expires in: <t:${length}:R>`
 		);
-	} catch (err) {
-		const errMsg = (err as Error)?.message ?? err;
+	} catch (error) {
+		const errMsg = (error as Error)?.message ?? error;
 		await ctx.followUp(errMsg);
 	}
 };
@@ -124,7 +124,7 @@ export const SlashBanCommand: SlashCommand = {
 					},
 				],
 			});
-			const response = await ctx.awaitModalSubmit({ time: 60000 }).catch(() => {});
+			const response = await ctx.awaitModalSubmit({ time: 60_000 }).catch(() => {});
 			if (response) {
 				await Ban(response.fields.getTextInputValue("nickname_input"), ctx, bot, false);
 			}
@@ -155,7 +155,7 @@ export const SlashBanCommand: SlashCommand = {
 						.filter(player => player.steamId64.includes(focused.value))
 						.slice(0, 25)
 						.map(player => ({
-							name: `${player.steamId64} (${player.nick.substring(0, 100)})`,
+							name: `${player.steamId64} (${player.nick.slice(0, 100)})`,
 							value: player.steamId64,
 						}))
 				);

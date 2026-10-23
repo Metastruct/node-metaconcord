@@ -39,7 +39,7 @@ type HostedServer = {
 abstract class ConsoleSession {
 	protected closed = false;
 	private lineTimes: number[] = [];
-	private expiryTimer: NodeJS.Timeout;
+	private expiryTimer: ReturnType<typeof setTimeout>;
 
 	constructor(
 		protected conn: WebSocketConnection,
@@ -68,11 +68,11 @@ abstract class ConsoleSession {
 
 	/** Attaches the transport. Separate from the constructor so subclass fields exist by then. */
 	start(): this {
-		this.open().catch(err => {
+		this.open().catch(error => {
 			// the viewer switched away mid-attach: teardown kills the pending
 			// connect, which then rejects; a cancellation, not a failure
 			if (this.closed) return;
-			log.error({ err, server: this.server.name }, "console open failed");
+			log.error({ err: error, server: this.server.name }, "console open failed");
 			this.send({ type: "exit", reason: "could not attach to the console" });
 			this.close();
 		});
@@ -105,7 +105,7 @@ abstract class ConsoleSession {
 			return;
 		}
 		this.lineTimes.push(now);
-		const line = msg.line.replace(/[\r\n]/g, " ").slice(0, 2000);
+		const line = msg.line.replaceAll(/[\r\n]/g, " ").slice(0, 2000);
 		log.warn({ login: this.user.login, server: this.server.name }, line);
 		this.input(line);
 	}
@@ -144,7 +144,7 @@ class BridgeConsoleSession extends ConsoleSession {
 				return;
 			}
 			// levels ride along so the site can color and filter per line
-			if (event.lines.length) {
+			if (event.lines.length > 0) {
 				this.send({ type: "log", lines: event.lines, replay: event.replay });
 			}
 		};
@@ -152,7 +152,7 @@ class BridgeConsoleSession extends ConsoleSession {
 		this.send({ type: "ready" });
 		// the hub streams from the moment a server connects, so a viewer joins
 		// mid-stream and gets the scrollback the site would otherwise not have
-		if (backlog.length) this.send({ type: "log", lines: backlog, replay: true });
+		if (backlog.length > 0) this.send({ type: "log", lines: backlog, replay: true });
 		if (!this.bridge.servers[this.server.game][this.server.id]?.wsConnection?.connected) {
 			this.send({ type: "meta", text: "server not connected, waiting" });
 		}
@@ -167,7 +167,7 @@ class BridgeConsoleSession extends ConsoleSession {
 			.then(sent => {
 				if (!sent) this.send({ type: "meta", text: "server not connected" });
 			})
-			.catch(err => log.warn(err, "console command failed"));
+			.catch(error => log.warn(error, "console command failed"));
 	}
 
 	/** Runs a gserv verb on the host, streaming its output into the terminal. */
@@ -203,27 +203,27 @@ class BridgeConsoleSession extends ConsoleSession {
 	}
 }
 
+const hostedServers = (): HostedServer[] => [
+	...(gmodServers as GmodConnectionConfig[]).map(s => ({
+		key: `gmod:${s.id}`,
+		game: "gmod" as const,
+		id: s.id,
+		name: s.name,
+		label: s.label,
+		gserv: true,
+	})),
+	...(minecraftServers as MinecraftConnectionConfig[]).map(s => ({
+		key: `minecraft:${s.id}`,
+		game: "minecraft" as const,
+		id: s.id,
+		name: s.name,
+		label: s.label,
+		gserv: false,
+	})),
+];
+
 export default (webApp: WebApp): void => {
 	const bridge = () => webApp.container.getService("GameBridge");
-
-	const hostedServers = (): HostedServer[] => [
-		...(gmodServers as GmodConnectionConfig[]).map(s => ({
-			key: `gmod:${s.id}`,
-			game: "gmod" as const,
-			id: s.id,
-			name: s.name,
-			label: s.label,
-			gserv: true,
-		})),
-		...(minecraftServers as MinecraftConnectionConfig[]).map(s => ({
-			key: `minecraft:${s.id}`,
-			game: "minecraft" as const,
-			id: s.id,
-			name: s.name,
-			label: s.label,
-			gserv: false,
-		})),
-	];
 
 	const liveConnection = (server: HostedServer) =>
 		server.game === "gmod"

@@ -23,7 +23,7 @@ const steamLoginUrl = (returnTo: string, realm: string): string => {
 		"openid.realm": realm,
 		"openid.mode": "checkid_setup",
 	}).toString();
-	return url.toString();
+	return url.href;
 };
 
 /**
@@ -39,11 +39,11 @@ const verifySteamOpenId = async (
 	if (!returnTo || !returnTo.startsWith(expectedReturnTo)) return;
 
 	const params = { ...query, "openid.mode": "check_authentication" };
-	const valid = await axios.get(OPENID_URL, { params }).catch(err => {
-		log.error(err, "steam openid verification failed");
+	const valid = await axios.get(OPENID_URL, { params }).catch(error => {
+		log.error(error, "steam openid verification failed");
 	});
 	const ident = query["openid.identity"]?.toString();
-	if (!valid || !String(valid.data).includes("is_valid:true") || !ident) return;
+	if (!valid || !ident || !String(valid.data).includes("is_valid:true")) return;
 
 	return ident.match(/^https:\/\/steamcommunity\.com\/openid\/id\/(\d+)$/)?.[1];
 };
@@ -85,12 +85,12 @@ export default (webApp: WebApp): void => {
 			setSessionCookie(res, account);
 			log.info(`steam login for ${steamId64} (account ${account.id})`);
 			res.redirect(redirect);
-		} catch (err) {
-			if (err instanceof LinkConflictError) {
+		} catch (error) {
+			if (error instanceof LinkConflictError) {
 				res.redirect(`${webApp.config.siteUrl}/profile?error=conflict&provider=steam`);
 				return;
 			}
-			throw err;
+			throw error;
 		}
 	});
 };

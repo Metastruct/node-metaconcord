@@ -8,8 +8,7 @@ export const MenuWhyRoleCommand: MenuCommand = {
 		default_member_permissions: Discord.PermissionsBitField.Flags.ManageRoles.toString(),
 	},
 	execute: async (ctx, bot) => {
-		const dataService = bot.container.getService("Data");
-		const { permaRoles } = dataService;
+		const { permaRoles } = bot.container.getService("Data");
 		const userId = ctx.targetId;
 		if (!userId) {
 			ctx.reply(EphemeralResponse("TargetId missing :( (blame me or discord)"));
@@ -22,11 +21,10 @@ export const MenuWhyRoleCommand: MenuCommand = {
 			if (guild) {
 				let content = "";
 				for (const [roleId, data] of Object.entries(roles)) {
-					content =
-						content +
+					content +=
 						`<@&${roleId}> added by <@${data.adderId}> <t:${data.timeStamp
 							.toString()
-							.substring(0, 10)}:R>${Object.entries(roles).length > 1 ? "\n" : ""}`;
+							.slice(0, 10)}:R>${Object.entries(roles).length > 1 ? "\n" : ""}`;
 				}
 				await ctx.reply(EphemeralResponse(content));
 			} else {

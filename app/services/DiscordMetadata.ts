@@ -116,8 +116,8 @@ export class DiscordMetadata extends Service {
 		this.bot = this.container.getService("DiscordBot");
 		this.bans = this.container.getService("Bans");
 		this.accounts = this.container.getService("Accounts");
-		this.registerSchema().catch(err =>
-			log.error(err, "linked roles metadata registration failed")
+		this.registerSchema().catch(error =>
+			log.error(error, "linked roles metadata registration failed")
 		);
 	}
 
@@ -179,8 +179,8 @@ export class DiscordMetadata extends Service {
 				grant_type: "refresh_token",
 				refresh_token: data.refresh_token,
 			}),
-		}).catch(err => {
-			log.error(err, "network error fetching tokens");
+		}).catch(error => {
+			log.error(error, "network error fetching tokens");
 		});
 		if (!res) return;
 
@@ -221,8 +221,8 @@ export class DiscordMetadata extends Service {
 
 		const res = await fetch(url, {
 			headers: { Authorization: `Bearer ${accessToken}` },
-		}).catch(err => {
-			log.error(err, "network error fetching metadata");
+		}).catch(error => {
+			log.error(error, "network error fetching metadata");
 		});
 		if (!res || !res.ok) {
 			delete this.ARCOCache[userId];
@@ -264,7 +264,7 @@ export class DiscordMetadata extends Service {
 		let nick: string | undefined;
 
 		if (query3[0]) {
-			nick = bytea.toString("utf-8").replace(/<[^>]*>/g, "");
+			nick = bytea.toString("utf8").replaceAll(/<[^>]*>/g, "");
 		} else {
 			const steam = this.bot.container.getService("Steam");
 			const summary = await steam.getUserSummaries(steamId);
@@ -280,7 +280,7 @@ export class DiscordMetadata extends Service {
 		const metadata: MetaMetadata = {
 			banned: banned ? 1 : 0,
 			dev: roleLevel(account.roles),
-			time: isNaN(parseInt(playtime)) ? undefined : Math.round(parseInt(playtime) / 60 / 60),
+			time: Number.isNaN(Math.trunc(Number(playtime))) ? undefined : Math.round(Math.trunc(Number(playtime)) / 60 / 60),
 			coins: coins,
 		};
 		const res = await this.push(userId, data, metadata, nick);
@@ -290,7 +290,7 @@ export class DiscordMetadata extends Service {
 		userId: string,
 		data: LocalDatabaseEntry,
 		metadata: MetaMetadata,
-		userName?: string
+		username?: string
 	) {
 		const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.bot.applicationId}/role-connection`;
 		const accessToken = await this.getAccessToken(userId, data);
@@ -302,12 +302,12 @@ export class DiscordMetadata extends Service {
 		);
 		const body = {
 			platform_name: "Metastruct",
-			platform_username: userName,
+			platform_username: username,
 			metadata: stringified,
 		};
 
 		if (!accessToken) {
-			log.error({ userId, userName }, "accesstoken missing?");
+			log.error({ userId, username }, "accesstoken missing?");
 			return false;
 		}
 
@@ -318,8 +318,8 @@ export class DiscordMetadata extends Service {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify(body),
-		}).catch(err => {
-			log.error(err, "network error pushing metadata");
+		}).catch(error => {
+			log.error(error, "network error pushing metadata");
 		});
 
 		if (!res) return false;

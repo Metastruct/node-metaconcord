@@ -1,5 +1,5 @@
 import { Container, Service } from "../Container.js";
-import { createHash, randomUUID } from "crypto";
+import { createHash, randomUUID } from "node:crypto";
 import axios from "axios";
 import config from "#/config/resonite.json" with { type: "json" };
 import { logger } from "#/utils.js";
@@ -112,7 +112,7 @@ export class Resonite extends Service {
 			this.ResoniteUserCache[id] = res.data;
 			return res.data;
 		}
-		return undefined;
+		return;
 	}
 
 	async GetResoniteUserAvatarURL(id: string) {
@@ -159,7 +159,7 @@ export class Resonite extends Service {
 		if (!res) return;
 		const contentType = res.headers["content-type"];
 		const mime =
-			(typeof contentType === "string" ? contentType.split(";")[0] : undefined) ||
+			(typeof contentType === "string" ? contentType.split(";", 1)[0] : undefined) ||
 			"image/png";
 		return `data:${mime};base64,${Buffer.from(res.data).toString("base64")}`;
 	}
@@ -179,7 +179,7 @@ export class Resonite extends Service {
 		let lastToken = data.lastResoniteToken;
 		let lastTokenTime = data.lastResoniteTokenTime ?? Date.now();
 
-		if (!lastToken || Date.now() - lastTokenTime >= 259_200_000_0) {
+		if (!lastToken || Date.now() - lastTokenTime >= 2_592_000_000) {
 			try {
 				const UUID = randomUUID();
 				const UID = createHash("sha256").update(this.name).digest("hex");

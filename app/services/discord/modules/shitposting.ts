@@ -46,15 +46,15 @@ const getMediaUrl = (url: string) => {
 const IGNORE_LIST = new Set(["437294613976449024"]);
 
 function getWord(msg?: string) {
-	if (!msg) return undefined;
+	if (!msg) return;
 	let search: string;
 	const words = msg.replaceAll(`<@${DiscordConfig.bot.userId}> `, "").split(" ");
-	const index = (Math.random() * words.length) | 0;
+	const index = Math.trunc(Math.random() * words.length);
 	const isLast = index + 1 === words.length;
-	if (!isLast) {
-		search = words.slice(index, index + 2).join(" ");
-	} else {
+	if (isLast) {
 		search = words[index];
+	} else {
+		search = words.slice(index, index + 2).join(" ");
 	}
 	return search;
 }
@@ -75,43 +75,39 @@ export const Shat = async (options?: {
 
 	const rng = Math.random();
 
-	if (rng > DISCORD_IMAGE_PROB && !options?.forceImage) {
-		const message = options?.msg?.replaceAll(`<@${DiscordConfig.bot.userId}> `, "");
-		let search: string | undefined;
-
-		if (message && !message.startsWith("http") && (rng <= REPLY_PROB || options?.forceReply)) {
-			search = getWord(message);
-		}
-
-		let shat = await markov?.generate(getWord(search));
-
-		if (!shat) shat = await markov?.generate();
-
-		return shat ? { content: shat } : undefined;
-	} else {
+	if (rng <= DISCORD_IMAGE_PROB || options?.forceImage) {
 		const images = globalThis.MetaConcord.container.getService("Motd").images;
 		let word =
 			options?.msg && !options.msg.startsWith("http") ? getWord(options.msg) : undefined;
 
 		if (!word) word = getWord(await markov?.generate());
 
-		if (images.length !== 0 && (Math.random() <= 0.5 || !word)) {
-			const imgur = images[(Math.random() * images.length) | 0];
+		if (images.length > 0 && (!word || Math.random() <= 0.5)) {
+			const imgur = images[Math.trunc(Math.random() * images.length)];
 			const result = await makeSpeechBubble(imgur.link, Math.random() <= 0.5);
 			return result
 				? { files: [{ attachment: result, description: imgur.title }] }
 				: undefined;
-		} else {
-			try {
-				const db = globalThis.MetaConcord.container.getService("SQL").getLocalDatabase();
+		}
+		try {
+			const db = globalThis.MetaConcord.container.getService("SQL").getLocalDatabase();
 
-				const url = db.prepare<[], { url: string } | undefined>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1").get()?.url;
-				return { content: url ?? "wtf" };
-			} catch {
-				return { content: "wtf" };
-			}
+			const url = db.prepare<[], { url: string } | undefined>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1").get()?.url;
+			return { content: url ?? "wtf" };
+		} catch {
+			return { content: "wtf" };
 		}
 	}
+
+	const message = options?.msg?.replaceAll(`<@${DiscordConfig.bot.userId}> `, "");
+	let search: string | undefined;
+
+	if (message && !message.startsWith("http") && (rng <= REPLY_PROB || options?.forceReply)) {
+		search = getWord(message);
+	}
+
+	let shat = await markov?.generate(getWord(search)) || await markov?.generate();
+	return shat ? { content: shat } : undefined;
 };
 
 const COMMON_EMOJIS = [
@@ -160,7 +156,7 @@ export default async (bot: DiscordBot) => {
 	const now = Date.now();
 	let lastActivityChange = now;
 	let lastSetActivity: Discord.ActivitiesOptions | undefined;
-	let lastMsgTime = (data.lastMsgTime = data.lastMsgTime ?? now);
+	let lastMsgTime = (data.lastMsgTime ??= now);
 	let lastChatTime = now;
 	let posting = false;
 	let replied = false;
@@ -175,8 +171,8 @@ export default async (bot: DiscordBot) => {
 		} else {
 			emoji =
 				Math.random() <= COMMON_EMOJI_RATIO
-					? COMMON_EMOJIS[(Math.random() * COMMON_EMOJIS.length) | 0]
-					: EmojiList[(Math.random() * EmojiList.length) | 0];
+					? COMMON_EMOJIS[Math.trunc(Math.random() * COMMON_EMOJIS.length)]
+					: EmojiList[Math.trunc(Math.random() * EmojiList.length)];
 		}
 		if (eventEmoji) {
 			emoji =
@@ -214,24 +210,24 @@ export default async (bot: DiscordBot) => {
 					? ({
 						stickers: [bot.getGuild()?.stickers.cache.random()],
 					} as Discord.MessageCreateOptions)
-					: shouldSendEmoji
+					: (shouldSendEmoji
 						? getRandomEmoji().toString()
-						: undefined,
+						: undefined),
 			});
 			if (shat) {
 				try {
 					if (options.msg) {
 						await options.msg.reply({
 							...shat,
-							allowedMentions: options.ping
-								? { repliedUser: true }
-								: { repliedUser: false },
+							allowedMentions: ({
+								repliedUser: options.ping ? true : false
+							}),
 						});
 					} else {
 						await bot.getTextChannel(bot.config.channels.chat)?.send(shat);
 					}
-				} catch (e) {
-					log.error({ e, shat, options });
+				} catch (error) {
+					log.error({ e: error, shat, options });
 				}
 			}
 		} finally {
@@ -256,7 +252,7 @@ export default async (bot: DiscordBot) => {
 
 		let status = "crashing the source engine";
 
-		const prefix = selection.ctx[(Math.random() * selection.ctx.length) | 0];
+		const prefix = selection.ctx[Math.trunc(Math.random() * selection.ctx.length)];
 
 		if (prefix !== "custom") {
 			const sentence = await mk.generate(prefix, {
@@ -274,7 +270,7 @@ export default async (bot: DiscordBot) => {
 
 				status =
 					sentence.length > maxLength
-						? joint + sentence.substring(0, 120) + "..."
+						? joint + sentence.slice(0, 120) + "..."
 						: joint + sentence;
 			}
 		}
@@ -314,15 +310,19 @@ export default async (bot: DiscordBot) => {
 			if (!bot.ready) return;
 			const now = Date.now();
 			if (
-				((lastMsgs.length > 0 && lastMsgs.slice(-1)[0].author.id) ||
-					(await bot.getTextChannel(bot.config.channels.chat)?.lastMessage?.fetch())
-						?.author.id) !== client.user.id &&
-				(now - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL ||
-					now - lastMsgTime > MSG_CHAT_INTERVAL) &&
 				!posting
+				&& (
+					(lastMsgs.length > 0 && lastMsgs.at(-1).author.id)
+					||
+					(await bot.getTextChannel(bot.config.channels.chat)?.lastMessage?.fetch())?.author.id
+				) !== client.user.id
+				&& (
+					now - lastChatTime > MSG_DEAD_CHAT_REVIVAL_INTERVAL
+					|| now - lastMsgTime > MSG_CHAT_INTERVAL
+				)
 			) {
 				await sendShat({
-					msg: Math.random() <= MSG_REPLY_PROB ? lastMsgs.slice(-1)[0] : undefined,
+					msg: Math.random() <= MSG_REPLY_PROB ? lastMsgs.at(-1) : undefined,
 				});
 				data.lastMsgTime = lastMsgTime = now;
 				replied = false;
@@ -372,19 +372,19 @@ export default async (bot: DiscordBot) => {
 		}
 
 		if (
-			!lastReactedMessages.has(message.id) &&
-			!lastReactedUsers.has(user.id) &&
-			Math.random() <= (reaction.emoji.name === "h_" ? 0.01 : MSG_REPLY_REACTION_PROB)
-		) {
-			const theFunny = await mk.generate(reaction.emoji.toString());
-			if (theFunny) {
-				await (message.channel as Discord.TextChannel)
-					.send(`${user.mention} ` + theFunny)
-					.catch(() => {});
-			}
-			lastReactedMessages.add(message.id);
-			lastReactedUsers.add(user.id);
+			lastReactedMessages.has(message.id) ||
+			lastReactedUsers.has(user.id) ||
+			Math.random() > (reaction.emoji.name === "h_" ? 0.01 : MSG_REPLY_REACTION_PROB)
+		) return;
+		
+		const theFunny = await mk.generate(reaction.emoji.toString());
+		if (theFunny) {
+			await (message.channel as Discord.TextChannel)
+				.send(`${user.mention} ` + theFunny)
+				.catch(() => {});
 		}
+		lastReactedMessages.add(message.id);
+		lastReactedUsers.add(user.id);
 	});
 
 	bot.discord.on("messageCreate", async msg => {
@@ -416,11 +416,10 @@ export default async (bot: DiscordBot) => {
 		const isBot = msg.author.id === id || msg.author.bot;
 		const isMention = msg.mentions.users.first()?.id === id;
 		const isAllowedChannel = bot.config.bot.allowedShitpostingChannels.includes(msg.channelId);
-		const isHidden = msg.guild
-			? !(msg.channel as Discord.GuildChannel)
+		const isHidden = !msg.guild
+			|| !(msg.channel as Discord.GuildChannel)
 				.permissionsFor(msg.guild.roles.everyone)
-				.has("ViewChannel")
-			: true;
+				.has("ViewChannel");
 
 		// Motd Messages
 		if (!isBot && !isHidden) {
@@ -447,7 +446,7 @@ export default async (bot: DiscordBot) => {
 		if (
 			isAllowedChannel &&
 			!isBot &&
-			((isMention && msg.content !== `<@${id}>`) || isTriggerWord || isMaybeTriggerWord)
+			(isTriggerWord || isMaybeTriggerWord || (isMention && msg.content !== `<@${id}>`))
 		) {
 			if (!posting && (!replied || !isChatChannel)) {
 				if (isChatChannel) replied = true;
@@ -455,7 +454,7 @@ export default async (bot: DiscordBot) => {
 				if (msg.reference) {
 					try {
 						reference = await msg.fetchReference();
-					} catch {}
+					} catch { /* empty */ }
 				}
 				await sendShat(
 					msg.stickers.size > 0
@@ -479,7 +478,7 @@ export default async (bot: DiscordBot) => {
 		}
 
 		// image collector
-		if (msg.content.startsWith("http") && !isBot && !isHidden) {
+		if (!isBot && !isHidden && msg.content.startsWith("http")) {
 			const url = getMediaUrl(msg.content);
 			if (url)
 				db.prepare("INSERT INTO media_urls VALUES($url) ON CONFLICT DO NOTHING").run({

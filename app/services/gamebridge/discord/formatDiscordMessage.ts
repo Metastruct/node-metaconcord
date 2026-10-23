@@ -12,11 +12,11 @@ export async function formatDiscordMessage(
 	color: number;
 }> {
 	let content = msg.content;
-	content = content.replace(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
-		const extension = !animated ? "gif" : "png";
+	content = content.replaceAll(/<(a?):[^\s:<>]*:(\d+)>/g, (_, animated, id) => {
+		const extension = animated ? "gif" : "png";
 		return `https://media.discordapp.net/emojis/${id}.${extension}?v=1&size=64 `;
 	});
-	content = content.replace(
+	content = content.replaceAll(
 		/<#([\d]+)>/g,
 		(_, id) =>
 			`#${
@@ -25,7 +25,7 @@ export async function formatDiscordMessage(
 					: "(uncached channel)"
 			}`
 	);
-	content = content.replace(
+	content = content.replaceAll(
 		/<@!?(\d+)>/g,
 		(_, id) =>
 			`@${
@@ -34,7 +34,7 @@ export async function formatDiscordMessage(
 					: "(uncached user)"
 			}`
 	);
-	content = content.replace(/(https?:\/\/tenor.com\/view\/\S+)/g, (_, url) => url + ".gif");
+	content = content.replaceAll(/(https?:\/\/tenor.com\/view\/\S+)/g, (_, url) => url + ".gif");
 
 	for (const [, attachment] of msg.attachments) {
 		content += (content.length > 0 ? "\n" : "") + attachment.url;
@@ -64,7 +64,7 @@ export async function formatDiscordMessage(
 
 	const username = msg.author?.username;
 	let nickname = "";
-	let avatar: string | undefined = undefined;
+	let avatar: string | undefined;
 	const color = msg.member?.displayColor ?? 0;
 
 	if (msg.author) {
@@ -73,7 +73,7 @@ export async function formatDiscordMessage(
 			if (author && author.nickname && author.nickname.length > 0) {
 				nickname = author.nickname;
 			}
-		} catch {}
+		} catch { /* empty */ }
 
 		const avatarhash = msg.author.avatar;
 		avatar = avatarhash

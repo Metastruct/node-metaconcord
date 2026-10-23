@@ -1,5 +1,5 @@
 import { WebApp } from "#/app/services/webapp/index.js";
-import { spawn } from "child_process";
+import { spawn } from "node:child_process";
 import config from "#/config/ci.json" with { type: "json" };
 import { errToMessage } from "#/utils.js";
 
@@ -10,12 +10,12 @@ const ERROR = 500;
 export default (webApp: WebApp): void => {
 	webApp.app.get("/ci/reload", async (req, res) => {
 		const bearer = req.headers["authorization"];
-		if (!bearer || bearer.length < 1) {
+		if (!bearer || bearer.length === 0) {
 			res.status(FORBIDDEN).send();
 			return;
 		}
 
-		const token = bearer.split("Bearer ")[1];
+		const token = bearer.split("Bearer ", 2)[1];
 		if (token !== config.token) {
 			res.status(FORBIDDEN).send();
 			return;
@@ -28,8 +28,8 @@ export default (webApp: WebApp): void => {
 			if (req.query.all) args.push("all");
 			spawn("bash", args);
 			return;
-		} catch (err: unknown) {
-			res.status(ERROR).send(errToMessage(err));
+		} catch (error: unknown) {
+			res.status(ERROR).send(errToMessage(error));
 			return;
 		}
 	});

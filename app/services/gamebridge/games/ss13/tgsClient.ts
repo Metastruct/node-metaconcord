@@ -49,11 +49,11 @@ async function getApiVersion(): Promise<string> {
 			},
 		});
 		apiVersion = res.data.apiVersion as string | undefined;
-	} catch (err) {
-		const reportedVersion = axios.isAxiosError(err)
-			? (err.response?.data as { serverApiVersion?: string } | undefined)?.serverApiVersion
+	} catch (error) {
+		const reportedVersion = axios.isAxiosError(error)
+			? (error.response?.data as { serverApiVersion?: string } | undefined)?.serverApiVersion
 			: undefined;
-		if (!reportedVersion) throw err;
+		if (!reportedVersion) throw error;
 		apiVersion = reportedVersion;
 	}
 	if (!apiVersion) throw new Error("TGS did not report an apiVersion");
@@ -80,7 +80,7 @@ async function login(): Promise<string> {
 }
 
 async function ensureToken(): Promise<string> {
-	if (token && tokenExpiresAt - Date.now() > 5_000) return token;
+	if (token && tokenExpiresAt - Date.now() > 5000) return token;
 	return login();
 }
 
@@ -92,7 +92,7 @@ async function authedGet<T>(path: string, instanceId?: number): Promise<T> {
 			headers: {
 				Authorization: `Bearer ${bearer}`,
 				Api: `Tgstation.Server.Api/${version}`,
-				...(instanceId !== undefined ? { Instance: String(instanceId) } : {}),
+				...((instanceId !== undefined) && { Instance: String(instanceId) }),
 				"User-Agent": USER_AGENT,
 			},
 		});
@@ -100,13 +100,13 @@ async function authedGet<T>(path: string, instanceId?: number): Promise<T> {
 	const bearer = await ensureToken();
 	try {
 		return (await request(bearer)).data;
-	} catch (err) {
-		if (axios.isAxiosError(err) && err.response?.status === 401) {
+	} catch (error) {
+		if (axios.isAxiosError(error) && error.response?.status === 401) {
 			// token may have been invalidated early on TGS' side - login once more before giving up
 			token = undefined;
 			return (await request(await login())).data;
 		}
-		throw err;
+		throw error;
 	}
 }
 

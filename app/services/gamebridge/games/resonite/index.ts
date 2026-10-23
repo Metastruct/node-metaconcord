@@ -6,7 +6,7 @@ import { Player } from "../../GameConnection.js";
 import { Resonite, ResoniteSession } from "#/app/services/Resonite.js";
 import resoniteConfig from "#/config/resonite.json" with { type: "json" };
 import { renderPlayerListImage } from "../../renderPlayerList.js";
-import { logger } from "#/utils.js";
+import { formatDiscordRelativeTimestamp, localeCompare, logger } from "#/utils.js";
 
 const log = logger(import.meta);
 
@@ -27,11 +27,11 @@ function buildSessionContainer(
 	let desc =
 		`### ${session.tags[0] ?? session.name}\n` +
 		`:busts_in_silhouette: Player${
-			count > 1 || count === 0 ? "s" : ""
+			count === 0 || count > 1 ? "s" : ""
 		}: **Active: ${session.activeUsers} • Connected: ${count}**\n` +
 		`:door: Capacity: **${count}/${session.maxUsers}**\n` +
-		`:repeat: Last Update: <t:${(new Date(session.lastUpdate).getTime() / 1000) | 0}:R>\n` +
-		`:file_cabinet: Server up since: <t:${(new Date(session.sessionBeginTime).getTime() / 1000) | 0}:R>`;
+		`:repeat: Last Update: ${formatDiscordRelativeTimestamp(session.lastUpdate)}\n` +
+		`:file_cabinet: Server up since: ${formatDiscordRelativeTimestamp(session.sessionBeginTime)}`;
 
 	if (session.accessLevel !== "Anyone") {
 		desc += `\n:closed_lock_with_key: Access: **${session.accessLevel}**`;
@@ -49,7 +49,7 @@ function buildSessionContainer(
 		section
 			.addTextDisplayComponents(text => text.setContent(desc))
 			.setThumbnailAccessory(accessory =>
-				accessory.setURL(backgroundImage).setDescription(session.tags.join())
+				accessory.setURL(backgroundImage).setDescription(session.tags.join(","))
 			)
 	);
 
@@ -89,7 +89,7 @@ function renderMessage(
 	for (const s of connection.sessions.values()) {
 		// sessionId contains characters (e.g. ":") that break attachment://
 		// URL parsing when used as-is.
-		const attachmentName = `players-${s.session.sessionId.replace(/[^a-zA-Z0-9_-]/g, "_")}.png`;
+		const attachmentName = `players-${s.session.sessionId.replaceAll(/[^a-zA-Z0-9_-]/g, "_")}.png`;
 		containers.push(
 			buildSessionContainer(s.session, s.backgroundImage, attachmentName, opts.state)
 		);
@@ -109,7 +109,7 @@ function sessionContentKey(session: ResoniteSession): string {
 		access: session.accessLevel,
 		hidden: session.hideFromListing,
 		thumbnail: session.thumbnailUrl,
-		users: session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).sort(),
+		users: session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).toSorted(localeCompare),
 	});
 }
 
@@ -121,16 +121,17 @@ function sessionContentKey(session: ResoniteSession): string {
 function buildSignature(connection: ResoniteConnection): unknown {
 	return {
 		disconnected: connection.disconnected,
-		sessions: [...connection.sessions.values()]
+		sessions: connection.sessions.values()
 			.map(s => ({
 				id: s.session.sessionId,
 				count: s.session.joinedUsers,
 				active: s.session.activeUsers,
 				access: s.session.accessLevel,
 				hidden: s.session.hideFromListing,
-				users: s.session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).sort(),
+				users: s.session.sessionUsers.map(u => `${u.userID}:${u.isPresent}`).toSorted(localeCompare),
 			}))
-			.sort((a, b) => a.id.localeCompare(b.id)),
+			.toArray()
+			.toSorted((a, b) => a.id.localeCompare(b.id)),
 	};
 }
 
@@ -194,9 +195,9 @@ async function upsertSession(
 				return false;
 			}
 			connection.verifiedEmptySessions.add(session.sessionId);
-		} catch (err) {
+		} catch (error) {
 			log.warn(
-				{ err, sessionId: session.sessionId },
+				{ error, sessionId: session.sessionId },
 				"failed to verify empty Resonite session"
 			);
 		}
@@ -268,7 +269,7 @@ async function upsertSession(
 }
 
 function updatePresence(connection: ResoniteConnection): void {
-	const sessions = [...connection.sessions.values()];
+	const sessions = connection.sessions.values().toArray();
 	const totalPlayers = sessions.reduce((sum, s) => sum + s.session.joinedUsers, 0);
 	const populated = sessions.filter(s => s.session.joinedUsers > 0).length;
 
@@ -278,7 +279,7 @@ function updatePresence(connection: ResoniteConnection): void {
 				name:
 					populated > 1
 						? `${totalPlayers} players across ${populated} sessions`
-						: `${totalPlayers === 1 ? "a" : totalPlayers} player${totalPlayers !== 1 ? "s" : ""}`,
+						: `${totalPlayers === 1 ? "a" : totalPlayers} player${totalPlayers === 1 ? "" : "s"}`,
 				type: Discord.ActivityType.Watching,
 			},
 		});
@@ -308,8 +309,8 @@ function createConnection(bridge: GameBridge): ResoniteConnection {
 				await upsertSession(bridge, resonite, session);
 			}
 			await renderStatus(bridge);
-		} catch (err) {
-			log.error(err, "Resonite login seed failed");
+		} catch (error) {
+			log.error(error, "Resonite login seed failed");
 		}
 	});
 	return connection;
@@ -345,16 +346,16 @@ export function attachResonite(bridge: GameBridge): void {
 			if (await upsertSession(bridge, resonite, session)) {
 				await renderStatus(bridge);
 			}
-		} catch (err) {
-			log.error(err, "ReceiveSessionUpdate");
+		} catch (error) {
+			log.error(error, "ReceiveSessionUpdate");
 		}
 	});
 
 	con.on("RemoveSession", async (sessionId: string) => {
 		try {
 			await removeSession(bridge, sessionId);
-		} catch (err) {
-			log.error(err, "RemoveSession");
+		} catch (error) {
+			log.error(error, "RemoveSession");
 		}
 	});
 
@@ -371,8 +372,8 @@ export function attachResonite(bridge: GameBridge): void {
 					files,
 					buildSignature(connection)
 				);
-			} catch (err) {
-				log.error(err, "failed to post disconnect status");
+			} catch (error) {
+				log.error(error, "failed to post disconnect status");
 			}
 		}
 

@@ -8,6 +8,22 @@ import requestSchema from "./structures/VoteKickRequest.json" with { type: "json
 
 const log = logger(import.meta);
 
+function reasonToReaction(reason: string) {
+	if (typeof reason !== "string")
+		return "❌";
+
+	if (reason.includes("Player left"))
+		return "🏃‍♂️";
+	if (reason.includes("not enough coins"))
+		return "💲";
+	if (reason.includes("caller has left"))
+		return "🤦‍♂️";
+	if (reason.includes("Vote was aborted"))
+		return "⛔";
+
+	return "❌";
+}
+
 export default class VoteKickPayload extends Payload {
 	protected static override requestSchema = requestSchema;
 	private static votekickCache: {
@@ -34,57 +50,38 @@ export default class VoteKickPayload extends Payload {
 		if (result) {
 			const success = result.success;
 			const reason = result.reason;
+			
 			if (success) {
 				if (relayChannel) {
 					await this.getLastReport(payload.data, relayChannel as Discord.TextChannel)
 						.then(msg => msg?.react("✅"))
-						.catch(err => log.error(err));
+						.catch(error => log.error(error));
 				}
 				await this.getLastReport(payload.data, notificationsChannel as Discord.TextChannel)
 					.then(msg => msg?.react("✅"))
-					.catch(err => log.error(err));
-				return;
-			} else {
-				if (relayChannel) {
-					await this.getLastReport(
-						payload.data,
-						relayChannel as Discord.TextChannel
-					).then(msg =>
-						msg?.react(
-							reason?.includes("Player left")
-								? "🏃‍♂️"
-								: reason?.includes("not enough coins")
-									? "💲"
-									: reason?.includes("caller has left")
-										? "🤦‍♂️"
-										: reason?.includes("Vote was aborted")
-											? "⛔"
-											: "❌"
-						)
-					);
-				}
-				await this.getLastReport(
-					payload.data,
-					notificationsChannel as Discord.TextChannel
-				).then(msg =>
-					msg?.react(
-						reason?.includes("Player left")
-							? "🏃‍♂️"
-							: reason?.includes("not enough coins")
-								? "💲"
-								: reason?.includes("caller has left")
-									? "🤦‍♂️"
-									: reason?.includes("Vote was aborted")
-										? "⛔"
-										: "❌"
-					)
-				);
+					.catch(error => log.error(error));
 				return;
 			}
+
+			if (relayChannel) {
+				await this.getLastReport(
+					payload.data,
+					relayChannel as Discord.TextChannel
+				).then(msg =>
+					msg?.react(reasonToReaction(reason))
+				);
+			}
+			await this.getLastReport(
+				payload.data,
+				notificationsChannel as Discord.TextChannel
+			).then(msg =>
+				msg?.react(reasonToReaction(reason))
+			);
+			return;
 		}
 
 		let message = reason;
-		if (message.trim().length < 1) message = "No reason provided..?";
+		if (message.trim().length === 0) message = "No reason provided..?";
 
 		const reporterSteamId64 = new SteamID(reporter.steamID).getSteamID64();
 		const offenderSteamId64 = offender.steamID.startsWith("STEAM")
@@ -108,7 +105,7 @@ export default class VoteKickPayload extends Payload {
 				)
 			)
 			.setThumbnail(offenderAvatar ?? null)
-			.setColor(0xc4af21);
+			.setColor(0xC4_AF_21);
 
 		if (offenderSteamId64 !== "BOT") {
 			const sql = bridge.container.getService("SQL");
@@ -161,8 +158,7 @@ export default class VoteKickPayload extends Payload {
 							e.fields.some(f => f.value.includes(data.offender.steamID))
 					)
 			)
-			.sort()
-			.reverse()
-			.first();
+			.sorted()
+			.last();
 	}
 }

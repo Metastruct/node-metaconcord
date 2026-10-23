@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { DiscordClient } from "./discord/index.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import GameBridge from "./GameBridge.js";
 import { logger } from "#/utils.js";
 
@@ -101,9 +101,9 @@ export default class GameConnection extends EventEmitter {
 		const { state, afk, activity } = opts;
 		const activities: Discord.ActivitiesOptions[] = activity
 			? [activity]
-			: state
+			: (state
 				? [{ name: "presence", state, type: Discord.ActivityType.Custom }]
-				: [];
+				: []);
 		this.discord.user?.setPresence({ status, afk, activities });
 	}
 
@@ -112,7 +112,7 @@ export default class GameConnection extends EventEmitter {
 		try {
 			await this.discord.user?.setAvatar(path);
 			this.discordIcon = path;
-		} catch {}
+		} catch { /* empty */ }
 	}
 
 	async changeBanner(path: string) {
@@ -120,7 +120,7 @@ export default class GameConnection extends EventEmitter {
 		try {
 			await this.discord.user?.setBanner(path);
 			this.discordBanner = path;
-		} catch {}
+		} catch { /* empty */ }
 	}
 
 	protected buildEmptyStatusContainer(): Discord.ContainerBuilder {
@@ -179,12 +179,12 @@ export default class GameConnection extends EventEmitter {
 				.first();
 
 			if (message) {
-				await message.edit(payload).catch(e => log.error(e, "message edit failed"));
+				await message.edit(payload).catch(error => log.error(error, "message edit failed"));
 			} else {
 				await channel.send(payload).catch(() => {});
 			}
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 		}
 	}
 }

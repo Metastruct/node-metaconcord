@@ -4,14 +4,14 @@ import { logBuffer, LogLine } from "#/app/services/webapp/dashboard/LogBuffer.js
 import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import { Session, getSession, getSessionFromCookieHeader, hasRole } from "./auth/session.js";
 import { rateLimit } from "express-rate-limit";
-import { ChildProcess, spawn } from "child_process";
+import { ChildProcess, spawn } from "node:child_process";
 import { connection as WebSocketConnection } from "websocket";
-import { promises as fs } from "fs";
+import { promises as fs } from "node:fs";
 import express from "express";
-import path from "path";
+import path from "node:path";
 import pug from "pug";
-import util from "util";
-import { logger } from "#/utils.js";
+import util from "node:util";
+import { localeCompare, logger } from "#/utils.js";
 
 const log = logger(import.meta);
 
@@ -34,14 +34,14 @@ const isConfigFile = (name: string): boolean =>
 	CONFIG_NAME.test(name) && !name.endsWith(".example.json");
 
 const listConfigs = async (): Promise<{ name: string; content: unknown; error?: string }[]> => {
-	const names = (await fs.readdir(CONFIG_DIR)).filter(isConfigFile).sort();
+	const names = (await fs.readdir(CONFIG_DIR)).filter(isConfigFile).toSorted(localeCompare);
 	return Promise.all(
 		names.map(async name => {
 			try {
 				const content = JSON.parse(await fs.readFile(new URL(name, CONFIG_DIR), "utf8"));
 				return { name, content };
-			} catch (err) {
-				return { name, content: null, error: (err as Error).message };
+			} catch (error) {
+				return { name, content: null, error: (error as Error).message };
 			}
 		})
 	);
@@ -132,7 +132,7 @@ class DashboardSession {
 			} catch {
 				return;
 			}
-			this.handle(parsed).catch(err => log.error(err, "dashboard message failed"));
+			this.handle(parsed).catch(error => log.error(error, "dashboard message failed"));
 		});
 	}
 
@@ -155,8 +155,8 @@ class DashboardSession {
 				log.warn({ login: this.user.login, mode: "js" }, msg.code);
 				try {
 					this.out("result", await evalJs(msg.code));
-				} catch (err) {
-					this.out("error", util.inspect(err));
+				} catch (error) {
+					this.out("error", util.inspect(error));
 				}
 				return;
 			}
@@ -308,8 +308,11 @@ export default (webApp: WebApp): void => {
 	webApp.app.post("/dashboard/restart", limiter, requireAdmin, (_, res) => {
 		const session = res.locals.session as Session;
 		log.warn({ login: session.login }, "restart requested from the dashboard");
-		res.status(202).json({ ok: true });
+		
+		// eslint-disable-next-line unicorn/no-process-exit
 		setTimeout(() => process.exit(0), 300);
+
+		res.status(202).json({ ok: true });
 	});
 
 	webApp.ws.route("/dashboard/ws", async req => {

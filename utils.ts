@@ -2,9 +2,9 @@ import apikeys from "#/config/apikeys.json" with { type: "json" };
 import webappconfig from "#/config/webapp.json" with { type: "json" };
 import { createCanvas, loadImage } from "@napi-rs/canvas";
 import axios from "axios";
-import { PathLike, promises as fs } from "fs";
+import { PathLike, promises as fs } from "node:fs";
 import request, { gql } from "graphql-request";
-import path from "path";
+import path from "node:path";
 import pino from "pino";
 import type { GraphQlQueryResponseData } from "@octokit/graphql";
 
@@ -17,8 +17,14 @@ export const logger = (meta: ImportMeta | string) =>
 export const sleep = (ms: number): Promise<unknown> =>
 	new Promise(resolve => setTimeout(resolve, ms));
 
-export const clamp = (input: number, min: number, max: number): number =>
-	input <= min ? min : input >= max ? max : input;
+export const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+export const clamp = (number: number, minimum: number, maximum: number): number => {
+	if (minimum > maximum) {
+		throw new RangeError("`minimum` should be lower than `maximum`");
+	}
+	return Math.min(Math.max(number, minimum), maximum);
+};
 
 const LUA_ESCAPES: Record<string, string> = {
 	"\\": "\\\\",
@@ -32,6 +38,9 @@ export function errToMessage(err: unknown) {
 	return err instanceof Error ? err.message : `${err}`;
 }
 
+export const stripPrefix = (value: string, prefix: string) =>
+	value.startsWith(prefix) ? value.slice(prefix.length) : value;
+
 // built from a string literal so no raw control bytes end up in this file
 // eslint-disable-next-line no-control-regex -- escaping control bytes is the point
 const LUA_UNSAFE = new RegExp('[\\\\"\\u0000-\\u001f\\u007f]', "g");
@@ -42,8 +51,9 @@ const LUA_UNSAFE = new RegExp('[\\\\"\\u0000-\\u001f\\u007f]', "g");
  * Bytes above 0x7f pass through, gmod's Lua strings are byte arrays not unicode.
  */
 export const luaString = (value: string): string =>
-	`"${value.replace(
+	`"${value.replaceAll(
 		LUA_UNSAFE,
+		// eslint-disable-next-line unicorn/prefer-code-point
 		c => LUA_ESCAPES[c] ?? `\\${c.charCodeAt(0).toString().padStart(3, "0")}`
 	)}"`;
 
@@ -51,10 +61,10 @@ export const luaStringOrNil = (value?: string | null): string =>
 	value === undefined || value === null ? "nil" : luaString(value);
 
 const DURATION_UNITS = {
-	y: 31556926,
-	mo: 2628000,
-	w: 604800,
-	d: 86400,
+	y: 31_556_926,
+	mo: 2_628_000,
+	w: 604_800,
+	d: 86_400,
 	h: 3600,
 	m: 60,
 	s: 1,
@@ -66,13 +76,16 @@ export const parseDuration = (input: string): number => {
 	for (const match of input
 		.trim()
 		.toLowerCase()
-		.replace(/\s+/g, "")
+		.replaceAll(/\s+/g, "")
 		.matchAll(/(\d+)(y|mo|w|d|h|m|s)/g)) {
-		const amount = parseInt(match[1]);
-		if (!isNaN(amount) && amount > 0) len += amount * DURATION_UNITS[match[2]];
+		const amount = Math.trunc(Number(match[1]));
+		if (!Number.isNaN(amount) && amount > 0) len += amount * DURATION_UNITS[match[2]];
 	}
 	return len;
 };
+
+export const formatDiscordRelativeTimestampSeconds = (seconds: number) => `<t:${Math.trunc(seconds)}:R>`;
+export const formatDiscordRelativeTimestamp = (date: Date) => `<t:${Math.trunc(date.getTime() / 1000)}:R>`;
 
 export const f = (
 	name: string,
@@ -93,11 +106,11 @@ export const exists = async (path: PathLike): Promise<boolean> =>
 		.catch(() => false);
 
 export const getStackLines = (input: string, linestart: number, lineend?: number): string => {
-	const lines = input.split(/\r?\n/).map(str => "   " + str);
+	const lines = input.split(/\r?\n/).map(str => " ".repeat(3) + str);
 	const line = clamp(linestart, 0, lines.length) - 1;
 	const replace = lines
 		.slice(line, lineend ?? line + 1)
-		.map(line => ">>" + line.substring(2) + " <<");
+		.map(line => ">>" + line.slice(2) + " <<");
 	lines.splice(line, lineend ? lineend - linestart : 1, ...replace);
 	return lines
 		.slice(clamp(line - 10 / 2, 0, lines.length), clamp(line + 10 / 2, 0, lines.length))
@@ -169,7 +182,7 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 
 	if (await exists(fullpath)) {
 		const path = await fs.realpath(fullpath);
-		if (!path.startsWith(LOOKUP_PATH)) return undefined;
+		if (!path.startsWith(LOOKUP_PATH)) return;
 		const file = await fs.readFile(fullpath, "utf8");
 		return gpath.linenos
 			? getStackLines(
@@ -178,25 +191,28 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 				gpath.linenoe ? Number(gpath.linenoe) : undefined
 			)
 			: file;
-	} else {
-		const url: string | undefined = gpath.addon ? AddonURIS[gpath.addon] : undefined;
+	}
 
-		if (url) {
-			const provider = url.match(/([^./]+)\.com/);
-			if (!provider) return;
-			const isGithub = provider[1] === "github";
-			const gitlabEndpoint = "https://gitlab.com/api/graphql";
-			const repo = gpath.addon;
-			const owner = url.match(/\.com\/(.+?)\//)?.[1];
-			const branch = url.split("/").at(-2);
+	const url: string | undefined = gpath.addon ? AddonURIS[gpath.addon] : undefined;
 
-			if (!owner) return;
-			let filecontent: string | undefined;
-			try {
-				if (isGithub) {
-					const github = await globalThis.MetaConcord.container.getService("Github");
-					const data = (await github.octokit.graphql(
-						`query text($owner: String!, $repo: String!) {
+	if (!url)
+		return;
+
+	const provider = url.match(/([^./]+)\.com/);
+	if (!provider) return;
+	const isGithub = provider[1] === "github";
+	const gitlabEndpoint = "https://gitlab.com/api/graphql";
+	const repo = gpath.addon;
+	const owner = url.match(/\.com\/(.+?)\//)?.[1];
+	const branch = url.split("/").at(-2);
+
+	if (!owner) return;
+	let filecontent: string | undefined;
+	try {
+		if (isGithub) {
+			const github = await globalThis.MetaConcord.container.getService("Github");
+			const data = (await github.octokit.graphql(
+				`query text($owner: String!, $repo: String!) {
 							repository(owner: $owner, name: $repo) {
 								object(expression: "${branch ?? "HEAD"}:${gpath.fpath}") {
 									... on Blob {
@@ -205,18 +221,18 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 								}
 							}
 						}`,
-						{ owner, repo }
-					)) as GraphQlQueryResponseData;
-					if (data.repository?.object?.text) {
-						filecontent = data.repository.object.text;
-					} else {
-						baseLogger.warn(
-							{ data, context: { path, url } },
-							"unexpected Github GraphQL response"
-						);
-					}
-				} else {
-					const query = gql`{
+				{ owner, repo }
+			)) as GraphQlQueryResponseData;
+			if (data.repository?.object?.text) {
+				filecontent = data.repository.object.text;
+			} else {
+				baseLogger.warn(
+					{ data, context: { path, url } },
+					"unexpected Github GraphQL response"
+				);
+			}
+		} else {
+			const query = gql`{
 		project(fullPath:"${url.match(/\.com\/(.+?)\/-/)?.[1]}") {
 			repository {
 				blobs(paths:"${gpath.fpath}"){
@@ -226,45 +242,45 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 		}
 	}
 `;
-					const data = await request<GitlabResponse>(
-						gitlabEndpoint,
-						query,
-						{},
-						{
-							authorization: `Bearer ${apikeys.gitlab}`,
-						}
-					);
-					if (data.project.repository.blobs.nodes[0]?.rawTextBlob) {
-						filecontent = data.project.repository.blobs.nodes[0].rawTextBlob;
-					} else {
-						baseLogger.info({ path, url }, "missing file from Gitlab repo");
-					}
+			const data = await request<GitlabResponse>(
+				gitlabEndpoint,
+				query,
+				{},
+				{
+					authorization: `Bearer ${apikeys.gitlab}`,
 				}
-			} catch (err) {
-				baseLogger.error(
-					{ err, context: { path, gmod: gpath.fpath, owner, repo, url } },
-					"GraphQL request failed"
-				);
-				return;
+			);
+			if (data.project.repository.blobs.nodes[0]?.rawTextBlob) {
+				filecontent = data.project.repository.blobs.nodes[0].rawTextBlob;
+			} else {
+				baseLogger.info({ path, url }, "missing file from Gitlab repo");
 			}
-
-			if (filecontent)
-				filecontent = getStackLines(
-					filecontent,
-					Number(gpath.linenos),
-					gpath.linenoe ? Number(gpath.linenoe) : undefined
-				);
-			return filecontent;
 		}
+	} catch (error) {
+		baseLogger.error(
+			{ err: error, context: { path, gmod: gpath.fpath, owner, repo, url } },
+			"GraphQL request failed"
+		);
+		return;
 	}
+
+	if (filecontent)
+		filecontent = getStackLines(
+			filecontent,
+			Number(gpath.linenos),
+			gpath.linenoe ? Number(gpath.linenoe) : undefined
+		);
+	return filecontent;
+		
+	
 };
 
 export const makeSpeechBubble = async (
 	link: string,
 	flip?: boolean,
 	fillcolor?: string,
-	strokecolor?: string,
-	linewidth?: number
+	strokecolor: string = "rgba(0, 0, 0, 0)",
+	linewidth: number = 4
 ): Promise<Buffer> => {
 	const image = await loadImage(link);
 	const canvas = createCanvas(image.width, image.height);
@@ -296,8 +312,8 @@ export const makeSpeechBubble = async (
 	ctx.quadraticCurveTo(0.6 * w, 0.15 * h, 0.5 * w, 0.2 * h);
 	ctx.quadraticCurveTo(0.75 * w, 0.2 * h, 0.75 * w, 0.1 * h);
 	ctx.quadraticCurveTo(w, 0.1 * h, w, 0);
-	ctx.strokeStyle = strokecolor ?? "rgba(0, 0, 0, 0)";
-	ctx.lineWidth = linewidth ?? 4;
+	ctx.strokeStyle = strokecolor;
+	ctx.lineWidth = linewidth;
 	ctx.stroke();
 
 	return canvas.encode("png");
@@ -322,7 +338,7 @@ const refreshSteamGroup = async (groupId: string, cache: SteamGroupCache): Promi
 		}
 	);
 	cache.members = new Set(
-		[...String(res.data).matchAll(/<steamID64>(\d+)<\/steamID64>/g)].map(m => m[1]).filter(m => typeof m === "string")
+		String(res.data).matchAll(/<steamID64>(\d+)<\/steamID64>/g).map(m => m[1]).filter(m => typeof m === "string")
 	);
 };
 
@@ -334,14 +350,14 @@ export const isSteamGroupMember = async (groupId: string, steamId64: string): Pr
 		steamGroups.set(groupId, cache);
 	}
 	const age = Date.now() - cache.fetchedAt;
-	const stale = cache.members ? age > STEAM_GROUP_TTL : age > STEAM_GROUP_RETRY;
+	const stale = age > (cache.members ? STEAM_GROUP_TTL : STEAM_GROUP_RETRY);
 	if (stale) {
 		const c = cache;
 		c.refresh ??= refreshSteamGroup(groupId, c).finally(() => {
 			c.refresh = undefined;
 		});
-		await c.refresh.catch(err => {
-			baseLogger.error(err, `failed refreshing steam group ${groupId}`);
+		await c.refresh.catch(error => {
+			baseLogger.error(error, `failed refreshing steam group ${groupId}`);
 		});
 	}
 	return !!cache.members?.has(steamId64);

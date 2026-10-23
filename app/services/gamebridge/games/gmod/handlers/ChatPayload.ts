@@ -41,7 +41,7 @@ export default class ChatPayload extends Payload {
 
 						mainMsg.content = `-> Forwarded\n${referenceMessage.content}\n${newContent}`;
 					}
-				} catch {}
+				} catch { /* empty */ }
 			}
 
 			const payload: ChatResponse = {
@@ -92,7 +92,7 @@ export default class ChatPayload extends Payload {
 					`local p = player.GetBySteamID64(${JSON.stringify(player.steamId64)}) ` +
 						`if IsValid(p) then p:ChatPrint(${JSON.stringify(result.message)}) end`
 				)
-				.catch(err => log.warn(err, "could not answer a link code in game"));
+				.catch(error => log.warn(error, "could not answer a link code in game"));
 			return;
 		}
 
@@ -116,7 +116,7 @@ export default class ChatPayload extends Payload {
 			}
 		}
 
-		content = content.substring(0, 2000);
+		content = content.slice(0, 2000);
 
 		const motd = bridge.container.getService("Motd");
 		motd.pushMessage(content);
@@ -130,7 +130,7 @@ export default class ChatPayload extends Payload {
 				username: `${serverId} ${player.nick
 					// .replace(/@/g, "(at)")
 					// .replace(/#/g, "")
-					.substring(0, 77)
+					.slice(0, 77)
 					.replaceAll("discord", "discоrd")
 					.replaceAll("Discord", "Discоrd")}`,
 				avatarURL: avatar,

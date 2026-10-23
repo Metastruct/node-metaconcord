@@ -29,7 +29,7 @@ export default class StatsHistory {
 	}
 
 	latest(): StatsSample | undefined {
-		return this.samples[this.samples.length - 1];
+		return this.samples.at(-1);
 	}
 
 	toArray(): StatsSample[] {

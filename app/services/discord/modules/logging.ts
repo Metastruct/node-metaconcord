@@ -16,27 +16,27 @@ const DEFAULT_INSPECT_OPTIONS: InspectOptions = { colors: true, depth: 1 };
 // styling like bold "stuck on" for the rest of the block. Remap anything unsupported.
 const toDiscordSafeAnsi = (text: string) =>
 	// eslint-disable-next-line no-control-regex -- intentionally matching ESC (\u001b) ansi sequences
-	text.replace(/\u001b\[(\d+)m/g, (_, codeStr: string) => {
+	text.replaceAll(/\u{1B}\[(\d+)m/gu, (_, codeStr: string) => {
 		const code = Number(codeStr);
-		if (code === 0 || code === 1 || code === 4) return `\u001b[${code}m`;
-		if ((code >= 30 && code <= 37) || (code >= 40 && code <= 47)) return `\u001b[${code}m`;
-		if (code >= 90 && code <= 97) return `\u001b[${code - 60}m`; // bright fg -> normal fg
-		if (code >= 100 && code <= 107) return `\u001b[${code - 60}m`; // bright bg -> normal bg
-		return "\u001b[0m"; // unsupported reset variants (22/24/39/49/...) -> full reset
+		if (code === 0 || code === 1 || code === 4) return `\u{1B}[${code}m`;
+		if ((code >= 30 && code <= 37) || (code >= 40 && code <= 47)) return `\u{1B}[${code}m`;
+		if (code >= 90 && code <= 97) return `\u{1B}[${code - 60}m`; // bright fg -> normal fg
+		if (code >= 100 && code <= 107) return `\u{1B}[${code - 60}m`; // bright bg -> normal bg
+		return "\u{1B}[0m"; // unsupported reset variants (22/24/39/49/...) -> full reset
 	});
 
 const format = (input: unknown, options?: InspectOptions) =>
 	toDiscordSafeAnsi(inspect(input, options ?? DEFAULT_INSPECT_OPTIONS)).replaceAll(
 		"```",
-		"​`​`​`"
+		"\u{200B}`\u{200B}`\u{200B}`"
 	);
 
+// eslint-disable-next-line unicorn/no-unnecessary-parameters
 const trimfield = (input: string, limit: number, isCodeBlock: boolean) =>
-	input.length >= limit
-		? input.substring(0, limit - (isCodeBlock ? 17 : 6)) +
-			"\n. . ." +
-			(isCodeBlock ? "```" : "")
-		: input + (isCodeBlock ? "```" : "");
+	(input.length >= limit
+		? input.slice(0, Math.max(0, limit - (isCodeBlock ? 17 : 6))) + "\n. . ."
+		: input
+	) + (isCodeBlock ? "```" : "");
 
 const hastoString = (obj: object | string | number | boolean) =>
 	obj.toString === Object.prototype.toString;
@@ -77,7 +77,7 @@ const formatOverwriteValue = (key: string, value: unknown): string | undefined =
 		return perms.length > 0 ? perms.join(", ") : "None";
 	}
 	if (key === "type" && typeof value === "number") {
-		return value === 0 ? "Role" : value === 1 ? "Member" : String(value);
+		return value === 0 ? "Role" : (value === 1 ? "Member" : String(value));
 	}
 	return undefined;
 };
@@ -102,7 +102,7 @@ export default (bot: DiscordBot): void => {
 		const message = msg.content && msg.content.length > 0 ? msg.content : undefined;
 
 		if (msg.channelId === bot.config.channels.log) return;
-		if (!msg.author && !message) return;
+		if (!message && !msg.author) return;
 
 		const attachments =
 			msg.attachments.size > 0
@@ -169,14 +169,10 @@ export default (bot: DiscordBot): void => {
 		const oldText = oldMsg.content ? trimfield(oldMsg.content, 1024, false) : "";
 		const newText = newMsg.content ? trimfield(newMsg.content, 1024, false) : "";
 
-		const embeds: [boolean, boolean] = // I think this can be done better somehow lol
-			newMsg.embeds.length > 0 && oldMsg.embeds.length > 0
-				? [true, true] // embed was changed
-				: newMsg.embeds.length > 0 && oldMsg.embeds.length === 0
-					? [true, false] // embed was added
-					: newMsg.embeds.length === 0 && oldMsg.embeds.length > 0
-						? [false, true] // embed was removed
-						: [false, false]; // no embed was present at all
+		const embeds = [
+			newMsg.embeds.length > 0,
+			oldMsg.embeds.length > 0,
+		] as const;
 
 		let diff = "";
 		if (oldText.length > 0 || newText.length > 0) {
@@ -184,13 +180,13 @@ export default (bot: DiscordBot): void => {
 
 			for (const part of diffList) {
 				diff += part.added
-					? `\u001b[1;42m${part.value}\u001b[0m`
-					: part.removed
-						? `\u001b[1;41m${part.value}\u001b[0m`
-						: part.value;
+					? `\u{1B}[1;42m${part.value}\u{1B}[0m`
+					: (part.removed
+						? `\u{1B}[1;41m${part.value}\u{1B}[0m`
+						: part.value);
 			}
 		}
-		diff = diff.replaceAll("```", "​`​`​`");
+		diff = diff.replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`");
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
@@ -213,9 +209,9 @@ export default (bot: DiscordBot): void => {
 					`Embed ${
 						embeds[0] && embeds[1]
 							? "modified"
-							: embeds[0] && !embeds[1]
+							: (embeds[0] && !embeds[1]
 								? "added"
-								: "removed"
+								: "removed")
 					}`
 				)
 			);
@@ -236,7 +232,7 @@ export default (bot: DiscordBot): void => {
 			.setTimestamp(Date.now());
 		if (user.joinedTimestamp)
 			embed.addFields(
-				f("Member since", `<t:${user.joinedTimestamp.toString().substring(0, 10)}:D>`)
+				f("Member since", `<t:${user.joinedTimestamp.toString().slice(0, 10)}:D>`)
 			);
 		await logChannel.send({ embeds: [embed] }).catch(() => {});
 	});
@@ -272,9 +268,9 @@ export default (bot: DiscordBot): void => {
 			})
 			.setFooter({
 				text: `${actionName ?? entry.action}${
-					actionName !== entry.targetType + entry.actionType
-						? ` (${entry.targetType} ${entry.actionType})`
-						: ""
+					actionName === entry.targetType + entry.actionType
+						? ""
+						: ` (${entry.targetType} ${entry.actionType})`
 				}`,
 			})
 			.setTimestamp(Date.now());
@@ -298,9 +294,9 @@ export default (bot: DiscordBot): void => {
 			const targetString =
 				entry.target && entry.target.toString() !== "[object Object]"
 					? entry.target.toString()
-					: entry.targetType === "User"
+					: (entry.targetType === "User"
 						? `<@${entry.targetId}>`
-						: "";
+						: "");
 			embed.addFields(f(`${entry.targetType} (${entry.targetId})`, targetString));
 		}
 
@@ -355,8 +351,8 @@ export default (bot: DiscordBot): void => {
 										? roles.map(r => `${r.name} (${r.id})`).join(", ")
 										: "none";
 								return change.key === "$add"
-									? `\u001b[1;42m+ Added roles: ${list}\u001b[0m`
-									: `\u001b[1;41m- Removed roles: ${list}\u001b[0m`;
+									? `\u{1B}[1;42m+ Added roles: ${list}\u{1B}[0m`
+									: `\u{1B}[1;41m- Removed roles: ${list}\u{1B}[0m`;
 							}
 
 							const overwriteOld = formatOverwriteValue(change.key, change.old);
@@ -368,9 +364,8 @@ export default (bot: DiscordBot): void => {
 								overwriteNew === undefined &&
 								typeof change.new === "object";
 							const diffList =
-								overwriteOld !== undefined || overwriteNew !== undefined
-									? diffWords(overwriteOld ?? "none", overwriteNew ?? "none")
-									: typeof change.old === "object" &&
+								overwriteOld === undefined && overwriteNew === undefined
+									? (typeof change.old === "object" &&
 										  typeof change.new === "object"
 										? diffJson(
 											JSON.stringify(sanitizeEntity(change.old), null, 2),
@@ -387,15 +382,18 @@ export default (bot: DiscordBot): void => {
 												: (format(sanitizeEntity(change.new), {
 													colors: false,
 												}) ?? "undefined")
-										);
+										))
+									: diffWords(overwriteOld ?? "none", overwriteNew ?? "none");
 							for (const part of diffList) {
-								changef += part.added
-									? `\u001b[1;42m${part.value}\u001b[0m`
-									: part.removed
-										? `\u001b[1;41m${part.value}\u001b[0m`
-										: isObject
-											? "" // skip value printing on object comparison
-											: part.value;
+								if (part.added) {
+									changef += `\u{1B}[1;42m${part.value}\u{1B}[0m`;
+								} else if (part.removed) {
+									changef += `\u{1B}[1;41m${part.value}\u{1B}[0m`;
+								} else if (isObject) {
+									// skip value printing on object comparison
+								} else {
+									changef += part.value;
+								}
 							}
 							return changef;
 						})

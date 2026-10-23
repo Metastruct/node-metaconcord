@@ -1,4 +1,4 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export type LogLine = { t: number; stream: "stdout" | "stderr"; line: string };
 
@@ -40,7 +40,7 @@ class LogBuffer extends EventEmitter<{ line: [LogLine] }> {
 					typeof chunk === "string" ? chunk : Buffer.from(chunk).toString("utf8");
 				const parts = (this.partial[stream] + text).split(/\r?\n/);
 				this.partial[stream] = parts.pop() ?? "";
-				for (const line of parts) if (line.length) this.push(stream, line);
+				for (const line of parts) if (line.length > 0) this.push(stream, line);
 			} catch {
 				// never let capture break the real write
 			}

@@ -1,4 +1,7 @@
 import { WebApp } from "#/app/services/webapp/index.js";
+import { GuildEmoji } from "discord.js";
+
+type EmojiWithUrl = GuildEmoji & { url: string };
 
 export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/discord/guild/emojis", async (_, res) => {
@@ -18,10 +21,9 @@ export default async (webApp: WebApp): Promise<void> => {
 			return;
 		}
 
-		const emojis = JSON.parse(JSON.stringify(guild.emojis.cache));
+		const emojis: EmojiWithUrl[] = structuredClone(guild.emojis.cache.values().toArray());
 		for (const emoji of emojis) {
-			const extension = emoji.animated ? "gif" : "png";
-			emoji.url = `https://cdn.discordapp.com/emojis/${emoji.id}.${extension}?v=1`;
+			emoji.url = `https://cdn.discordapp.com/emojis/${emoji.id}.${emoji.animated ? "gif" : "png"}?v=1`;
 		}
 
 		res.status(200).json(emojis);

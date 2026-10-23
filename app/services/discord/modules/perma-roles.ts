@@ -44,12 +44,12 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const adderId = lastLog.executorId;
 
 		for (const role of addedPermaRoles) {
-			if (!permaRoles[updated.id]) {
+			if (permaRoles[updated.id]) {
+				permaRoles[updated.id].roles[role[0]] = { adderId: adderId, timeStamp: Date.now() };
+			} else {
 				permaRoles[updated.id] = {
 					roles: { [role[0]]: { adderId: adderId, timeStamp: Date.now() } },
 				};
-			} else {
-				permaRoles[updated.id].roles[role[0]] = { adderId: adderId, timeStamp: Date.now() };
 			}
 		}
 
@@ -65,12 +65,14 @@ export default async (bot: DiscordBot): Promise<void> => {
 	});
 
 	bot.discord.on("guildMemberAdd", async member => {
-		if (permaRoles[member.id]) {
-			const { roles } = permaRoles[member.id];
-			member.roles.add(
-				Object.entries(roles).map(entry => entry[0]), // kinda weird but I guess that works?
-				"adding back perma roles"
-			);
+		if (!permaRoles[member.id]) {
+			return;
 		}
+
+		const { roles } = permaRoles[member.id];
+		member.roles.add(
+			Object.entries(roles).map(entry => entry[0]), // kinda weird but I guess that works?
+			"adding back perma roles"
+		);
 	});
 };

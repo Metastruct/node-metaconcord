@@ -18,7 +18,7 @@ const IMAGE_URL = /https?:\/\/\S+/g;
 // and CDN links carry a signed query string (?ex=...&is=...&hm=...) that would otherwise
 // always land after the extension and break a simple $-anchored match
 function collapseImageUrl(url: string): string {
-	const path = url.split(/[?#]/)[0];
+	const path = url.split(/[?#]/, 1)[0];
 	return IMAGE_EXTENSION.test(path) ? `[${path.split("/").pop()}]` : url;
 }
 
@@ -34,16 +34,16 @@ async function formatForMinecraft(msg: Discord.Message | Discord.MessageSnapshot
 }> {
 	let content = msg.content;
 
-	content = content.replace(/<a?:([^\s:<>]*):(\d+)>/g, (_, name) => `:${name}:`);
-	content = content.replace(
+	content = content.replaceAll(/<a?:([^\s:<>]*):(\d+)>/g, (_, name) => `:${name}:`);
+	content = content.replaceAll(
 		/<#(\d+)>/g,
 		(_, id) => `#${msg.guild?.channels.cache.get(id)?.name ?? "(uncached channel)"}`
 	);
-	content = content.replace(
+	content = content.replaceAll(
 		/<@!?(\d+)>/g,
 		(_, id) => `@${msg.guild?.members.cache.get(id)?.displayName ?? "(uncached user)"}`
 	);
-	content = content.replace(
+	content = content.replaceAll(
 		/https?:\/\/tenor\.com\/view\/\S+/g,
 		url => `[${url.split("/").pop()}.gif]`
 	);
@@ -58,27 +58,27 @@ async function formatForMinecraft(msg: Discord.Message | Discord.MessageSnapshot
 		content += (content.length > 0 ? "\n" : "") + `[${sticker.name}]`;
 	}
 
-	content = content.replace(IMAGE_URL, collapseImageUrl);
+	content = content.replaceAll(IMAGE_URL, collapseImageUrl);
 
 	if (content.length === 0) {
 		content =
 			msg.embeds.length > 0
-				? msg.embeds.some(e => e.image ?? e.thumbnail)
+				? (msg.embeds.some(e => e.image ?? e.thumbnail)
 					? "[image.png]"
-					: "[Embed]"
+					: "[Embed]")
 				: "[Something]";
 	}
 
 	const username = msg.author?.username;
 	let nickname = "";
-	let avatar: string | undefined = undefined;
+	let avatar: string | undefined;
 	const color = msg.member?.displayColor ?? 0;
 
 	if (msg.author) {
 		try {
 			const author = await msg.guild?.members.fetch(msg.author.id);
 			if (author?.nickname) nickname = author.nickname;
-		} catch {}
+		} catch { /* empty */ }
 
 		const avatarhash = msg.author.avatar;
 		avatar = avatarhash
@@ -120,7 +120,7 @@ export default class ChatPayload extends Payload {
 
 						mainMsg.content = `-> Forwarded\n${referenceMessage.content}\n${newContent}`;
 					}
-				} catch {}
+				} catch { /* empty */ }
 			}
 
 			const payload: ChatResponse = {
@@ -176,7 +176,7 @@ export default class ChatPayload extends Payload {
 						runner: "Metaconcord",
 					},
 					server
-				).catch(err => log.warn(err, "could not answer a link code in game"));
+				).catch(error => log.warn(error, "could not answer a link code in game"));
 			}
 			return;
 		}
@@ -202,13 +202,13 @@ export default class ChatPayload extends Payload {
 		}
 
 		// the webhook already shows the name, so an italic body reads as "Nick waves"
-		content = emote ? `*${content.substring(0, 1998)}*` : content.substring(0, 2000);
+		content = emote ? `*${content.slice(0, 1998)}*` : content.slice(0, 2000);
 
 		await chatWebhook()
 			.send({
 				content: content,
 				username: player.nick
-					.substring(0, 77)
+					.slice(0, 77)
 					.replaceAll("discord", "discоrd")
 					.replaceAll("Discord", "Discоrd"),
 				avatarURL: avatar,

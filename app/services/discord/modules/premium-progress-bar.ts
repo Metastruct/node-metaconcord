@@ -11,8 +11,8 @@ export default (bot: DiscordBot): void => {
 	const setProgressBar = async () => {
 		const guild = bot.getGuild();
 		const count = guild?.premiumSubscriptionCount;
-		const validPerks = ["ENHANCED_ROLE_COLORS", "GUILD_TAGS"];
-		const addedPerks = guild?.features.filter(f => validPerks.includes(f));
+		const validPerks = new Set(["ENHANCED_ROLE_COLORS", "GUILD_TAGS"]);
+		const addedPerks = guild?.features.filter(f => validPerks.has(f));
 		if (!count) return;
 		const needed = LVL_MAP[guild.premiumTier][1] + (addedPerks?.length ?? 0) * 3;
 		if (count < needed && count / needed >= 0.8) {

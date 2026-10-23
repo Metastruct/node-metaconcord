@@ -44,8 +44,8 @@ export default class UnbanPayload extends Payload {
 
 		const bannedSteamId64 = new SteamID(banned.steamId).getSteamID64();
 		const bannedAvatar = await steam.getUserAvatar(bannedSteamId64);
-		const unixTime = parseInt(banTime);
-		if (!unixTime || isNaN(unixTime))
+		const unixTime = Math.trunc(Number(banTime));
+		if (!unixTime || Number.isNaN(unixTime))
 			throw new Error(`ban time is not a number? Supplied time: ${banTime}`);
 
 		const embed = new Discord.EmbedBuilder();
@@ -65,8 +65,8 @@ export default class UnbanPayload extends Payload {
 
 		if (banned.nick) embed.addFields(f("Nick", banned.nick, true));
 		embed.addFields(f("Expiration", `<t:${unixTime}:R>`, true));
-		embed.addFields(f("Ban Reason", banReason.substring(0, 1900)));
-		embed.addFields(f("Unban Reason", unbanReason.substring(0, 1900)));
+		embed.addFields(f("Ban Reason", banReason.slice(0, 1900)));
+		embed.addFields(f("Unban Reason", unbanReason.slice(0, 1900)));
 		embed.addFields(
 			f(
 				"SteamID",

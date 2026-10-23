@@ -65,7 +65,7 @@ export const SlashSpeechbubbleCommand: SlashCommand = {
 		try {
 			const attachment = image;
 			const buffer = await makeSpeechBubble(
-				link ? link : (attachment?.url ?? ""),
+				link || attachment?.url || "",
 				ctx.options.getInteger("direction") === 1 ? true : false,
 				<string>ctx.options.getString("fill_color"),
 				<string>ctx.options.getString("line_color"),
@@ -74,8 +74,8 @@ export const SlashSpeechbubbleCommand: SlashCommand = {
 			await ctx.followUp({
 				files: [{ attachment: buffer, name: "funny.gif" }],
 			});
-		} catch (err) {
-			await ctx.followUp(EphemeralResponse(`something went wrong! (${err})`));
+		} catch (error) {
+			await ctx.followUp(EphemeralResponse(`something went wrong! (${error})`));
 		}
 	},
 };

@@ -14,7 +14,7 @@ export default class BanPayload extends Payload {
 	static override async handle(payload: BanRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
 
-		const { player, banned, reason, unbanTime, gamemode } = payload.data;
+		const { player, banned, reason, unbanTime, gamemode = "GLOBAL" } = payload.data;
 		const { bridge, discord } = server;
 
 		if (!discord.ready) return;
@@ -46,8 +46,8 @@ export default class BanPayload extends Payload {
 
 		const bannedSteamId64 = new SteamID(banned.steamId).getSteamID64();
 		const bannedAvatar = await steam.getUserAvatar(bannedSteamId64);
-		const unixTime = parseInt(unbanTime);
-		if (!unixTime || isNaN(unixTime))
+		const unixTime = Math.trunc(Number(unbanTime));
+		if (!unixTime || Number.isNaN(unixTime))
 			throw new Error(`Unban time is not a number? Supplied time: ${unbanTime}`);
 
 		const embed = new Discord.EmbedBuilder();
@@ -67,8 +67,8 @@ export default class BanPayload extends Payload {
 
 		if (banned.nick) embed.addFields(f("Nick", banned.nick, true));
 		embed.addFields(f("Expiration", `<t:${unixTime}:R>`, true));
-		embed.addFields(f("Reason", reason.substring(0, 1900)));
-		embed.addFields(f("Gamemode", gamemode ?? "GLOBAL"));
+		embed.addFields(f("Reason", reason.slice(0, 1900)));
+		embed.addFields(f("Gamemode", gamemode));
 		if (pastBans?.numbans) {
 			embed.addFields(f("Past Bans", pastBans.numbans.toString()));
 		}
@@ -80,7 +80,7 @@ export default class BanPayload extends Payload {
 		);
 
 		embed.setThumbnail(bannedAvatar ?? null);
-		embed.setColor(0xc42144);
+		embed.setColor(0xC4_21_44);
 		await (notificationsChannel as Discord.TextChannel).send({ embeds: [embed] });
 		await (guild.channels.cache.get(discord.config.channels.relay) as Discord.TextChannel).send(
 			{

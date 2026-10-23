@@ -13,6 +13,9 @@ const STARBOARD_CONFIG = {
 	DEFAULT_EMOTE: config.defaultEmote,
 } as const;
 
+const filterStarboardId = (btn: Discord.MessageComponentInteraction) =>
+	btn.customId.startsWith("starboard");
+
 export class Starboard extends Service {
 	override name = "Starboard";
 	private pendingMessages = new Set<string>();
@@ -25,16 +28,13 @@ export class Starboard extends Service {
 		const db = this.sql.getLocalDatabase();
 		db.exec("CREATE TABLE IF NOT EXISTS starboard (MessageId INTEGER PRIMARY KEY);");
 
-		const filter = (btn: Discord.MessageComponentInteraction) =>
-			btn.customId.startsWith("starboard");
-
 		this.bot.discord.on("interactionCreate", async interaction => {
 			if (!interaction.isButton()) return;
-			if (!filter(interaction)) return;
+			if (!filterStarboardId(interaction)) return;
 			if (interaction.message.author.username !== interaction.user.username) return;
 
 			const [, originalMsgID, originalChannelID, originalAuthorID] =
-				interaction.customId.split(":");
+				interaction.customId.split(":", 4);
 
 			if (originalAuthorID && originalAuthorID !== interaction.user.id) return;
 
@@ -47,8 +47,8 @@ export class Starboard extends Service {
 							`Highlighted Message in ${interaction.channel} deleted by ${interaction.user} (${interaction.user.id}) -> https://discord.com/channels/${interaction.guildId}/${originalChannelID}/${originalMsgID}`
 						);
 				}
-			} catch (err) {
-				log.error(err, "failed to delete message");
+			} catch (error) {
+				log.error(error, "failed to delete message");
 			}
 		});
 	}
@@ -137,7 +137,7 @@ export class Starboard extends Service {
 			if (
 				count >= needed &&
 				(emojiFilter.size === 0 || emojiFilter.has(emoji.name ?? "")) &&
-				!message.reactions.cache.find(
+				!message.reactions.cache.some( // eslint-disable-line unicorn/no-negated-array-predicate
 					e =>
 						e.emoji.name === "⛔" &&
 						message.author &&
@@ -184,14 +184,14 @@ export class Starboard extends Service {
 					} else if (reference.type === 1) {
 						const snap = msg.messageSnapshots.first();
 						text += `-# [forwarded message]\n${snap?.content}`;
-						snap?.attachments.map(a => files.push(a.url));
+						snap?.attachments.forEach(a => void files.push(a.url));
 					}
 				}
 
 				text += msg.content;
 				text += msg.stickers.size > 0 ? msg.stickers.first()?.url : "";
 
-				msg.attachments.map(a => files.push(a.url));
+				msg.attachments.forEach(a => void files.push(a.url));
 
 				const channel = targetChannel as Discord.TextChannel;
 
@@ -210,16 +210,16 @@ export class Starboard extends Service {
 								.setLabel("Jump to message")
 								.setStyle(Discord.ButtonStyle.Link)
 								.setURL(msg.url),
-							...(!msg.author.bot
-								? [
+							...(msg.author.bot
+								? []
+								: [
 									new Discord.ButtonBuilder()
 										.setLabel("Delete")
 										.setStyle(Discord.ButtonStyle.Danger)
 										.setCustomId(
 											`starboard:${msg.id}:${msg.channelId}:${msg.author.id}`
 										),
-								]
-								: [])
+								])
 						),
 					];
 
@@ -239,8 +239,8 @@ export class Starboard extends Service {
 					}
 				}
 			}
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 		} finally {
 			this.pendingMessages.delete(reaction.message.id);
 		}

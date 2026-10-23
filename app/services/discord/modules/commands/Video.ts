@@ -1,11 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable typescript-eslint/no-explicit-any */
 import * as Discord from "discord.js";
 import { EphemeralResponse, SlashCommand } from "#/extensions/discord.js";
-import { spawn } from "child_process";
-import fs from "fs/promises";
-import { createWriteStream } from "fs";
-import path from "path";
-import os from "os";
+import { spawn } from "node:child_process";
+import fs from "node:fs/promises";
+import { createWriteStream } from "node:fs";
+import path from "node:path";
+import os from "node:os";
 import axios from "axios";
 import { logger } from "#/utils.js";
 
@@ -13,11 +13,12 @@ const log = logger("VideoCommand");
 
 type Method = "repeat" | "reverse" | "ping-pong";
 
-const AllowedVideoTypes = ["video/webm", "video/mp4", "video/quicktime"];
+const AllowedVideoTypes = new Set(["video/webm", "video/mp4", "video/quicktime"]);
 const MAX_FILE_SIZE = 25_000_000;
+const TIMEOUT = 120_000;
 
 const GLITCH: { segment: number; count: number }[] = [
-	{ segment: 1.0, count: 2 }, // 1  mild
+	{ segment: 1, count: 2 }, // 1  mild
 	{ segment: 0.8, count: 3 }, // 2
 	{ segment: 0.6, count: 4 }, // 3
 	{ segment: 0.4, count: 5 }, // 4
@@ -29,11 +30,11 @@ const GLITCH: { segment: number; count: number }[] = [
 	{ segment: 0.05, count: 20 }, // 10 insane
 ];
 
-function runProcess(bin: string, args: string[], timeout = 120_000): Promise<string> {
+function runProcess(bin: string, args: string[]): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const proc = spawn(bin, args, {
 			stdio: ["ignore", "pipe", "pipe"],
-			timeout,
+			timeout: TIMEOUT,
 		});
 		let stdout = "";
 		let stderr = "";
@@ -89,7 +90,7 @@ async function getVideoInfo(input: string): Promise<VideoInfo> {
 	}
 	return {
 		fps,
-		sampleRate: Number(as?.sample_rate) || 48000,
+		sampleRate: Number(as?.sample_rate) || 48_000,
 		channels: Number(as?.channels) || 2,
 		duration: Number(data.format.duration) || 0,
 		hasAudio: !!as,
@@ -128,53 +129,60 @@ function buildStutterFilter(
 	let stutterV = "seg_v";
 	let stutterA: string | null = info.hasAudio ? "seg_a" : null;
 
-	if (method === "repeat") {
-		if (loopCount >= 0) {
-			f.push(`[seg_v]loop=${loopCount}:${frameCount}:0[stutter_v]`);
-			stutterV = "stutter_v";
-			if (info.hasAudio) {
-				f.push(`[seg_a]aloop=${loopCount}:${sampleCount}:0[stutter_a]`);
-				stutterA = "stutter_a";
+	switch (method) {
+		case "repeat": {
+			if (loopCount >= 0) {
+				f.push(`[seg_v]loop=${loopCount}:${frameCount}:0[stutter_v]`);
+				stutterV = "stutter_v";
+				if (info.hasAudio) {
+					f.push(`[seg_a]aloop=${loopCount}:${sampleCount}:0[stutter_a]`);
+					stutterA = "stutter_a";
+				}
 			}
+			break;
 		}
-	} else if (method === "reverse") {
-		f.push("[seg_v]reverse[rev_v]");
-		stutterV = "rev_v";
-		if (info.hasAudio) {
-			f.push("[seg_a]areverse[rev_a]");
-			stutterA = "rev_a";
-		}
-		if (loopCount >= 0) {
-			f.push(`[rev_v]loop=${loopCount}:${frameCount}:0[stutter_v]`);
-			stutterV = "stutter_v";
+		case "reverse": {
+			f.push("[seg_v]reverse[rev_v]");
+			stutterV = "rev_v";
 			if (info.hasAudio) {
-				f.push(`[rev_a]aloop=${loopCount}:${sampleCount}:0[stutter_a]`);
-				stutterA = "stutter_a";
+				f.push("[seg_a]areverse[rev_a]");
+				stutterA = "rev_a";
 			}
+			if (loopCount >= 0) {
+				f.push(`[rev_v]loop=${loopCount}:${frameCount}:0[stutter_v]`);
+				stutterV = "stutter_v";
+				if (info.hasAudio) {
+					f.push(`[rev_a]aloop=${loopCount}:${sampleCount}:0[stutter_a]`);
+					stutterA = "stutter_a";
+				}
+			}
+			break;
 		}
-	} else if (method === "ping-pong") {
-		f.push("[seg_v]split[fw_v][bw_v]");
-		if (info.hasAudio) f.push("[seg_a]asplit[fw_a][bw_a]");
-		f.push("[bw_v]reverse[rev_v]");
-		if (info.hasAudio) f.push("[bw_a]areverse[rev_a]");
+		case "ping-pong": {
+			f.push("[seg_v]split[fw_v][bw_v]");
+			if (info.hasAudio) f.push("[seg_a]asplit[fw_a][bw_a]");
+			f.push("[bw_v]reverse[rev_v]");
+			if (info.hasAudio) f.push("[bw_a]areverse[rev_a]");
 
-		if (info.hasAudio) {
-			f.push("[fw_v][fw_a][rev_v][rev_a]concat=n=2:v=1:a=1[pp_v][pp_a]");
-			stutterV = "pp_v";
-			stutterA = "pp_a";
-		} else {
-			f.push("[fw_v][rev_v]concat=n=2:v=1:a=0[pp_v]");
-			stutterV = "pp_v";
-		}
-		const ppFrameCount = 2 * frameCount;
-		const ppSampleCount = 2 * sampleCount;
-		if (loopCount >= 0) {
-			f.push(`[pp_v]loop=${loopCount}:${ppFrameCount}:0[stutter_v]`);
-			stutterV = "stutter_v";
 			if (info.hasAudio) {
-				f.push(`[pp_a]aloop=${loopCount}:${ppSampleCount}:0[stutter_a]`);
-				stutterA = "stutter_a";
+				f.push("[fw_v][fw_a][rev_v][rev_a]concat=n=2:v=1:a=1[pp_v][pp_a]");
+				stutterV = "pp_v";
+				stutterA = "pp_a";
+			} else {
+				f.push("[fw_v][rev_v]concat=n=2:v=1:a=0[pp_v]");
+				stutterV = "pp_v";
 			}
+			const ppFrameCount = 2 * frameCount;
+			const ppSampleCount = 2 * sampleCount;
+			if (loopCount >= 0) {
+				f.push(`[pp_v]loop=${loopCount}:${ppFrameCount}:0[stutter_v]`);
+				stutterV = "stutter_v";
+				if (info.hasAudio) {
+					f.push(`[pp_a]aloop=${loopCount}:${ppSampleCount}:0[stutter_a]`);
+					stutterA = "stutter_a";
+				}
+			}
+			break;
 		}
 	}
 
@@ -231,8 +239,10 @@ function buildFreezeFilter(
 	}
 
 	const frameDuration = 1 / info.fps;
-	f.push(`[0:v]trim=start=${at}:duration=${frameDuration},setpts=PTS-STARTPTS[freeze_raw]`);
-	f.push(`[freeze_raw]loop=${freezeFrames - 1}:1:0[freeze_v]`);
+	f.push(
+		`[0:v]trim=start=${at}:duration=${frameDuration},setpts=PTS-STARTPTS[freeze_raw]`,
+		`[freeze_raw]loop=${freezeFrames - 1}:1:0[freeze_v]`
+	);
 
 	if (info.hasAudio) {
 		if (silence) {
@@ -365,7 +375,7 @@ async function processVideo(
 		return;
 	}
 
-	if (file && file.contentType && !AllowedVideoTypes.includes(file.contentType)) {
+	if (file && file.contentType && !AllowedVideoTypes.has(file.contentType)) {
 		await ctx.editReply(
 			`${file.contentType} is not a supported video type. Supported: MP4, WebM, QuickTime`
 		);
@@ -431,8 +441,8 @@ async function processVideo(
 		await ctx.followUp({
 			files: [{ attachment: buf, name: `${effectName}.mp4` }],
 		});
-	} catch (err) {
-		log.error({ err, effectName }, "video command failed");
+	} catch (error) {
+		log.error({ err: error, effectName }, "video command failed");
 		await ctx.followUp(EphemeralResponse("Something went wrong processing the video."));
 	} finally {
 		await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});

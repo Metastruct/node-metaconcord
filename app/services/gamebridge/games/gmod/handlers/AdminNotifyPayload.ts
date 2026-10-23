@@ -54,8 +54,8 @@ export default class AdminNotifyPayload extends Payload {
 				});
 
 				await message.edit({ embeds: [newEmbed] });
-			} catch (err) {
-				log.error(err, `Failed to update reporter status for ${steamId64}`);
+			} catch (error) {
+				log.error(error, `Failed to update reporter status for ${steamId64}`);
 			}
 		}
 	}
@@ -98,21 +98,21 @@ export default class AdminNotifyPayload extends Payload {
 					await thread?.send({
 						content: `${ctx.user.mention}, could not kick player: server not connected`,
 					});
-				} else if (res.data.returns[0] !== "false") {
+				} else if (res.data.returns[0] === "false") {
+					await thread?.send({
+						content: `${ctx.user.mention}, could not kick player: not on server`,
+					});
+				} else {
 					const summary = await steam.getUserSummaries(interactionId64);
 					await thread?.send({
 						content: `${ctx.user.mention} kicked player \`${
 							summary ? summary.personaname : "[nickname not found]"
 						}\``,
 					});
-				} else {
-					await thread?.send({
-						content: `${ctx.user.mention}, could not kick player: not on server`,
-					});
 				}
-			} catch (err) {
+			} catch (error) {
 				await thread?.send({
-					content: `${ctx.user.mention}, could not kick player: ${err}`,
+					content: `${ctx.user.mention}, could not kick player: ${error}`,
 				});
 			}
 		});
@@ -150,8 +150,8 @@ export default class AdminNotifyPayload extends Payload {
 					await thread.setLocked(true);
 					await thread.setArchived(true);
 				}
-			} catch (err) {
-				log.error(err, "Failed to lock report thread");
+			} catch (error) {
+				log.error(error, "Failed to lock report thread");
 			}
 
 			try {
@@ -164,8 +164,8 @@ export default class AdminNotifyPayload extends Payload {
 					},
 					server
 				);
-			} catch (err) {
-				log.error(err, "Failed to send resolve notification");
+			} catch (error) {
+				log.error(error, "Failed to send resolve notification");
 			}
 			try {
 				const newResolveBtn = new Discord.ButtonBuilder()
@@ -181,8 +181,8 @@ export default class AdminNotifyPayload extends Payload {
 						),
 					],
 				});
-			} catch (err) {
-				thread?.send({ content: `Failed to resolve report: ${err}` }).catch(() => {});
+			} catch (error) {
+				thread?.send({ content: `Failed to resolve report: ${error}` }).catch(() => {});
 			}
 		});
 	}
@@ -213,7 +213,7 @@ export default class AdminNotifyPayload extends Payload {
 		const reportedAvatar = await steam.getUserAvatar(reportedSteamId64);
 		const selfReport = player.steamId === reported.steamId;
 
-		if (message.trim().length < 1) message = "No message provided..?";
+		if (message.trim().length === 0) message = "No message provided..?";
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
@@ -230,7 +230,7 @@ export default class AdminNotifyPayload extends Payload {
 				)
 			)
 			.setThumbnail(reportedAvatar ?? null)
-			.setColor(0xc4af21);
+			.setColor(0xC4_AF_21);
 
 		if (reportedSteamId64 !== "BOT") {
 			const sql = bridge.container.getService("SQL");

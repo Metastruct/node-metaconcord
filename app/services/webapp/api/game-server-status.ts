@@ -1,9 +1,9 @@
 import { WebApp } from "#/app/services/webapp/index.js";
 import { renderPlayerListImage } from "#/app/services/gamebridge/renderPlayerList.js";
-import path from "path";
+import path from "node:path";
 import pug from "pug";
-import { access, FileHandle, mkdir, readFile, writeFile } from "fs/promises";
-import { constants as fs_constants, PathLike } from "fs";
+import { access, FileHandle, mkdir, readFile, writeFile } from "node:fs/promises";
+import { constants as fs_constants, PathLike } from "node:fs";
 import mime from "mime";
 import { logger } from "#/utils.js";
 
@@ -43,8 +43,8 @@ export default async (webApp: WebApp): Promise<void> => {
 		// #region Map Thumbnail
 		const backgroundImage = server.status.backgroundImage;
 		const workshopMap = server.workshopMap;
-		let thumbFilepath: string | undefined = undefined;
-		if (backgroundImage?.match(/^https?:\/\//) && workshopMap) {
+		let thumbFilepath: string | undefined;
+		if (workshopMap && backgroundImage?.match(/^https?:\/\//)) {
 			await access(cacheFolder, fs_constants.F_OK).catch(() =>
 				mkdir(cacheFolder, { recursive: true })
 			);
@@ -77,7 +77,7 @@ export default async (webApp: WebApp): Promise<void> => {
 						const buffer = new Uint8Array(Buffer.from(arrayBuffer));
 						await writeFile(thumbFilepath, buffer);
 					}
-				} catch {}
+				} catch { /* empty */ }
 			}
 		} else {
 			thumbFilepath = backgroundImage as string;
@@ -105,9 +105,9 @@ export default async (webApp: WebApp): Promise<void> => {
 					"content-length": server.playerListImage.length,
 				});
 				res.send(server.playerListImage);
-			} catch (err) {
-				log.error(err, "image failed");
-				res.send(err);
+			} catch (error) {
+				log.error(error, "image failed");
+				res.send(error);
 			}
 		} else {
 			res.send(html);

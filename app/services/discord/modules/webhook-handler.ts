@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { DiscordBot } from "../index.js";
 import express from "express";
 import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
-import { clamp, errToMessage, logger } from "#/utils.js";
+import { clamp, errToMessage, logger, stripPrefix } from "#/utils.js";
 import { chatWebhook } from "#/app/services/gamebridge/games/gmod/webhooks.js";
 import axios from "axios";
 import webhookConfig from "#/config/webhooks.json" with { type: "json" };
@@ -26,7 +26,7 @@ const COLOR_BASE = 50;
 
 function GetColorFromChanges(added: number, removed: number, modified: number) {
 	return (
-		clamp(COLOR_BASE + COLOR_MOD * removed, COLOR_BASE, 255) * 65536 +
+		clamp(COLOR_BASE + COLOR_MOD * removed, COLOR_BASE, 255) * 65_536 +
 		clamp(COLOR_BASE + COLOR_MOD * added, COLOR_BASE, 255) * 256 +
 		clamp(COLOR_BASE + COLOR_MOD * modified, COLOR_BASE, 255)
 	);
@@ -45,20 +45,20 @@ function diffBudget(...parts: (string | undefined)[]): number {
 	return Math.max(0, COMPONENT_TEXT_LIMIT - used - DIFF_SAFETY_MARGIN);
 }
 
-const MinimalPushUsers = ["MetaAutomator", "github-actions[bot]"];
+const MinimalPushUsers = new Set(["MetaAutomator", "github-actions[bot]"]);
 
 const CHECK_CONCLUSION_COLOR: Record<string, number> = {
-	success: 0x28a745,
-	failure: 0xcb2431,
-	failed: 0xcb2431, // Gitlab pipeline status spelling, as opposed to Github's "failure"
-	timed_out: 0xcb2431,
-	startup_failure: 0xcb2431,
-	action_required: 0xdbab09,
-	cancelled: 0x6a737d,
-	canceled: 0x6a737d, // Gitlab spelling
-	skipped: 0x6a737d,
-	neutral: 0x6a737d,
-	stale: 0x6a737d,
+	success: 0x28_A7_45,
+	failure: 0xCB_24_31,
+	failed: 0xCB_24_31, // Gitlab pipeline status spelling, as opposed to Github's "failure"
+	timed_out: 0xCB_24_31,
+	startup_failure: 0xCB_24_31,
+	action_required: 0xDB_AB_09,
+	cancelled: 0x6A_73_7D,
+	canceled: 0x6A_73_7D, // Gitlab spelling
+	skipped: 0x6A_73_7D,
+	neutral: 0x6A_73_7D,
+	stale: 0x6A_73_7D,
 };
 
 const CHECK_CONCLUSION_EMOJI: Record<string, string> = {
@@ -76,10 +76,10 @@ const CHECK_CONCLUSION_EMOJI: Record<string, string> = {
 	in_progress: "🔁",
 };
 
-function getCheckTarget(pullRequests: { number: number }[], headBranch?: string | null): string {
+function getCheckTarget(pullRequests: { number: number }[], headBranch: string = "unknown branch"): string {
 	return pullRequests.length > 0
 		? `pull request #${pullRequests[0].number}`
-		: (headBranch ?? "unknown branch");
+		: (headBranch);
 }
 
 type MessageComponent =
@@ -204,7 +204,7 @@ function formatDiffText(text: string): string {
 				(_match, from: string, to: string) =>
 					`--- ${from}\n+++ ${to}\nBinary files ${from} and ${to} differ`
 			)
-			.replaceAll("```", "​`​`​`")
+			.replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`")
 	);
 }
 
@@ -254,8 +254,6 @@ function parseGitDiffPaths(line: string): [string | undefined, string | undefine
 	while ((match = re.exec(line.slice("diff --git ".length))) !== null) {
 		tokens.push(match[1] ?? match[2]);
 	}
-	const stripPrefix = (value: string | undefined, prefix: string) =>
-		value !== undefined && value.startsWith(prefix) ? value.slice(prefix.length) : value;
 	return [stripPrefix(tokens[0], "a/"), stripPrefix(tokens[1], "b/")];
 }
 
@@ -271,10 +269,10 @@ function parseDiffFiles(text: string): DiffFile[] {
 
 	const flush = () => {
 		if (
-			header.length === 0 &&
-			body.length === 0 &&
 			gitFrom === undefined &&
-			renameFrom === undefined
+			renameFrom === undefined &&
+			header.length === 0 &&
+			body.length === 0
 		) {
 			return;
 		}
@@ -489,14 +487,14 @@ function clipDiffLines(content: string[]): string[] {
 			else if (!line.startsWith("\\")) break;
 			i++;
 		}
-		for (let p = 0; p < Math.min(removed.length, added.length); p++) {
-			const oldBody = content[removed[p]].slice(1);
-			const newBody = content[added[p]].slice(1);
+		for (const [removedElement, addedElement] of Iterator.zip([removed, added])) {
+			const oldBody = content[removedElement].slice(1);
+			const newBody = content[addedElement].slice(1);
 			if (oldBody.length <= MAX_DIFF_LINE_LENGTH && newBody.length <= MAX_DIFF_LINE_LENGTH)
 				continue;
 			const diff = differingRegions(oldBody, newBody);
-			regions[removed[p]] = diff.map(r => [r.oldStart, r.oldEnd]);
-			regions[added[p]] = diff.map(r => [r.newStart, r.newEnd]);
+			regions[removedElement] = diff.map(r => [r.oldStart, r.oldEnd]);
+			regions[addedElement] = diff.map(r => [r.newStart, r.newEnd]);
 		}
 	}
 	return content.map((line, index) => clipDiffLine(line, regions[index] ?? []));
@@ -550,9 +548,8 @@ function peekHunks(body: string[], budget: number): string[] {
 	const hunks = splitHunks(body);
 	const quotas = hunkQuotas(hunks, budget);
 	const content: string[] = [];
-	for (let h = 0; h < hunks.length; h++) {
+	for (const [h, hunk] of hunks.entries()) {
 		if (quotas[h] === 0) continue;
-		const hunk = hunks[h];
 		let shown = 0;
 		let i = 0;
 		for (; i < hunk.length; i++) {
@@ -616,30 +613,30 @@ function sampleBlock(content: string[], budget: number): string[] {
 	}
 
 	const shown: string[] = [];
-	for (let i = 0; i < hunks.length; i++) {
+	for (const [i, hunk] of hunks.entries()) {
 		if (allocated[i] <= 0) continue;
 		// a hunk that fits is shown in full; one that doesn't keeps its header and
 		// changed lines, dropping context so the budget buys changes, not boilerplate
 		if (whole[i]) {
-			shown.push(...hunks[i]);
+			shown.push(...hunk);
 			continue;
 		}
 		let used = 0;
 		let gap = false;
-		for (const line of hunks[i]) {
+		for (const line of hunk) {
 			if (!isChangedLine(line) && !line.startsWith("@@")) {
 				gap = true;
 				continue;
 			}
 			if (used + line.length + 1 > allocated[i]) break;
 			if (gap) {
-				if (shown[shown.length - 1] !== "…") shown.push("…");
+				if (shown.at(-1) !== "…") shown.push("…");
 				gap = false;
 			}
 			shown.push(line);
 			used += line.length + 1;
 		}
-		if (gap && shown[shown.length - 1] !== "…") shown.push("…");
+		if (gap && shown.at(-1) !== "…") shown.push("…");
 	}
 	return shown;
 }
@@ -654,22 +651,20 @@ function formatDiff(text: string, budget: number, links?: Map<string, string>): 
 
 	// Every file keeps its label; only the diff content is budgeted, so a big
 	// diff never hides the fact that a file changed.
-	const labelCost = (bs: DiffBlock[]) =>
-		bs.reduce(
-			(n, block) => n + diffLabel(block.file, 0, links?.get(block.file.path)).length + 1,
-			0
-		);
+	const labelCost = () => blocks.reduce(
+		(n, block) => n + diffLabel(block.file, 0, links?.get(block.file.path)).length + 1,
+		0);
 
 	// Only shed files if there are so many that even the labels don't fit.
 	let dropped = 0;
-	while (blocks.length > 1 && labelCost(blocks) > budget) {
+	while (blocks.length > 1 && labelCost() > budget) {
 		blocks.pop();
 		dropped++;
 	}
-	if (labelCost(blocks) > budget) return "";
+	if (labelCost() > budget) return "";
 
 	const shown: string[][] = blocks.map(() => []);
-	let remaining = budget - labelCost(blocks);
+	let remaining = budget - labelCost();
 	const pending = blocks.map((_, i) => i).filter(i => blocks[i].content.length > 0);
 
 	// Water-filling: equal share per file, leftovers flow to the bigger ones.
@@ -734,8 +729,8 @@ const getGitHubCommitDiff = async (
 			request: { signal: AbortSignal.timeout(10_000) },
 		});
 		return formatDiffText(res.data as unknown as string);
-	} catch (err) {
-		log.error({ err, owner, repo, ref }, "failed to fetch Github commit diff");
+	} catch (error) {
+		log.error({ err: error, owner, repo, ref }, "failed to fetch Github commit diff");
 		return;
 	}
 };
@@ -755,8 +750,8 @@ const getGitHubPullRequestDiff = async (
 			request: { signal: AbortSignal.timeout(10_000) },
 		});
 		return formatDiffText(res.data as unknown as string);
-	} catch (err) {
-		log.error({ err, owner, repo, pull_number }, "failed to fetch Github PR diff");
+	} catch (error) {
+		log.error({ err: error, owner, repo, pull_number }, "failed to fetch Github PR diff");
 		return;
 	}
 };
@@ -769,8 +764,8 @@ const getPullRequestFiles = async (
 			timeout: 10_000,
 		}); // why this isn't in the payload I have no idea
 		return res.data;
-	} catch (err) {
-		log.error({ err, prApiUrl }, "failed to fetch PR files from Github");
+	} catch (error) {
+		log.error({ err: error, prApiUrl }, "failed to fetch PR files from Github");
 		return;
 	}
 };
@@ -782,8 +777,8 @@ const getGitlabDiff = async (
 ): Promise<CommitDiffSchema[] | undefined> => {
 	try {
 		return await api.Commits.showDiff(id, sha);
-	} catch (err) {
-		log.error({ err, id, sha }, "failed to fetch Gitlab diff");
+	} catch (error) {
+		log.error({ err: error, id, sha }, "failed to fetch Gitlab diff");
 		return;
 	}
 };
@@ -817,7 +812,7 @@ function GetGitlabDiffChanges(
 	return files.map(f => {
 		// leading "-" is escaped: unescaped, Discord renders a line starting with
 		// "- " as a markdown list bullet instead of a literal minus sign
-		const prefix = f.new_file ? "+" : f.deleted_file ? "\\-" : "~";
+		const prefix = f.new_file ? "+" : (f.deleted_file ? "\\-" : "~");
 		const path = f.deleted_file ? f.old_path : f.new_path;
 		return `${prefix} [${path}](https://gitlab.com/${pathWithNamespace}/-/blob/${sha}/${path.replaceAll(" ", "%20")})`;
 	});
@@ -903,7 +898,7 @@ function GetPullRequestChanges(files: components["schemas"]["diff-entry"][]): st
 	return files.map(f => {
 		// leading "-" is escaped: unescaped, Discord renders a line starting with
 		// "- " as a markdown list bullet instead of a literal minus sign
-		const prefix = f.status === "added" ? "+" : f.status === "removed" ? "\\-" : "~";
+		const prefix = f.status === "added" ? "+" : (f.status === "removed" ? "\\-" : "~");
 		return `${prefix} [${f.filename}](${f.blob_url})`;
 	});
 }
@@ -912,7 +907,7 @@ function formatCommitBody(message: string): string {
 	const body = message.split("\n").slice(1).join("\n").trim();
 	if (!body) return "";
 
-	const truncated = body.length > BODY_SIZE ? `${body.substring(0, BODY_SIZE - 3)}...` : body;
+	const truncated = body.length > BODY_SIZE ? `${body.slice(0, Math.max(0, BODY_SIZE - 3))}...` : body;
 	return "\n" + truncated.replaceAll(/^/gm, "> ");
 }
 
@@ -920,7 +915,7 @@ function formatPrBody(body?: string | null): string {
 	const trimmed = body?.trim();
 	if (!trimmed) return "";
 	const truncated =
-		trimmed.length > PR_BODY_SIZE ? `${trimmed.substring(0, PR_BODY_SIZE - 3)}...` : trimmed;
+		trimmed.length > PR_BODY_SIZE ? `${trimmed.slice(0, Math.max(0, PR_BODY_SIZE - 3))}...` : trimmed;
 	return truncated.replaceAll(/^/gm, "> ");
 }
 
@@ -968,8 +963,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const gitlabHandler = eventKind ? gitlabHandlers[eventKind] : undefined;
 		if (!gitlabHandler) return;
 
-		gitlabHandler(req.body).catch(err =>
-			log.error({ err, eventKind }, "Gitlab webhook event handler failed")
+		gitlabHandler(req.body).catch(error =>
+			log.error({ err: error, eventKind }, "Gitlab webhook event handler failed")
 		);
 	});
 
@@ -994,7 +989,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const promise = (async () => {
 			const channel = bot.getTextChannel(channelId);
-			if (!channel) return undefined;
+			if (!channel) return;
 
 			const hooks = await channel.fetchWebhooks();
 			const botHook = hooks.filter(h => h.owner === bot.discord.user).first();
@@ -1022,19 +1017,19 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 	bot.discord.on("clientReady", async () => {
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
-		if (channel) {
-			const hooks = await channel.fetchWebhooks();
-			const botHook = hooks.filter(h => h.owner === bot.discord.user).first();
-			if (!botHook) {
-				webhook = await channel.createWebhook({
-					name: "Public Commits",
-					reason: "Webhook missing?",
-				});
-			} else {
-				webhook = botHook;
-			}
-			webhooksByChannel.set(bot.config.channels.publicCommits, Promise.resolve(webhook));
+		if (!channel) return;
+		
+		const hooks = await channel.fetchWebhooks();
+		const botHook = hooks.filter(h => h.owner === bot.discord.user).first();
+		if (botHook) {
+			webhook = botHook;
+		} else {
+			webhook = await channel.createWebhook({
+				name: "Public Commits",
+				reason: "Webhook missing?",
+			});
 		}
+		webhooksByChannel.set(bot.config.channels.publicCommits, Promise.resolve(webhook));
 	});
 
 	const allowedRoles = new Set([
@@ -1044,14 +1039,14 @@ export default async (bot: DiscordBot): Promise<void> => {
 	]);
 
 	bot.discord.on("interactionCreate", async (ctx: Discord.Interaction<Discord.CacheType>) => {
-		if (!ctx.member || !ctx.isButton() || !bridge) return;
-		const [action, override] = ctx.customId.split("_");
+		if (!bridge || !ctx.member || !ctx.isButton()) return;
+		const [action, override] = ctx.customId.split("_", 2);
 		const where =
-			override !== undefined
-				? bridge.servers.gmod.filter(s =>
+			override === undefined
+				? bridge.servers.gmod.filter(s => !!s)
+				: bridge.servers.gmod.filter(s =>
 					override.split(",").includes(s.config.id.toString())
-				)
-				: bridge.servers.gmod.filter(s => !!s);
+				);
 
 		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(x =>
 			allowedRoles.has(x.id)
@@ -1071,7 +1066,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						.map(s =>
 							s.discord.ready ? `<@${s.discord.user?.id}>` : `#${s.config.id}`
 						)
-						.join()}...`
+						.join(",")}...`
 				);
 				await Promise.all(
 					where.map(async server => {
@@ -1096,15 +1091,15 @@ export default async (bot: DiscordBot): Promise<void> => {
 												? `<@${s.discord.user?.id}>`
 												: `#${s.config.id}`
 										)
-										.join()
+										.join(",")
 							}!`
 						);
 					})
-					.catch(err => {
+					.catch(error => {
 						ctx.editReply(
-							`<@${ctx.user.id}> something went wrong :(\`\`\`\n${err}\`\`\``
+							`<@${ctx.user.id}> something went wrong :(\`\`\`\n${error}\`\`\``
 						);
-						log.error(err);
+						log.error(error);
 					});
 				break;
 			case "everything": {
@@ -1112,7 +1107,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const msg = ctx.message;
 				const url =
 					msg.embeds.length > 0
-						? msg.embeds[msg.embeds.length - 1].url
+						? msg.embeds.at(-1).url
 						: findCommitUrl(msg);
 				if (!url) {
 					await ctx.editReply("url not found for refreshing :( ... aborting");
@@ -1136,13 +1131,13 @@ export default async (bot: DiscordBot): Promise<void> => {
 						}
 						const res = await github.octokit.rest.repos.getCommit({ owner, repo, ref });
 						files = res.data.files?.flatMap(f => f.filename);
-					} catch (err: unknown) {
+					} catch (error: unknown) {
 						await ctx.editReply(
 							"something went wrong fetching the files from github :( ... aborting\n" +
-								`\`${errToMessage(err)}\``
+								`\`${errToMessage(error)}\``
 						);
 						log.error(
-							{ err, context: { url, owner, repo, ref } },
+							{ err: error, context: { url, owner, repo, ref } },
 							"Failed to fetch files from GitHub"
 						);
 						return;
@@ -1161,14 +1156,14 @@ export default async (bot: DiscordBot): Promise<void> => {
 						}
 						const diffs = await getGitlabDiff(gitlab.api, id, sha);
 						files = diffs?.filter(f => !f.deleted_file).flatMap(f => f.new_path);
-					} catch (err: unknown) {
+					} catch (error: unknown) {
 						await ctx.editReply(
 							"something went wrong fetching the files from gitlab :( ... aborting\n" +
-								`\`${errToMessage(err)}\``
+								`\`${errToMessage(error)}\``
 						);
 						log.error(
 							{
-								err,
+								err: error,
 								context: {
 									url,
 									id,
@@ -1191,7 +1186,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 						.map(s =>
 							s.discord.ready ? `<@${s.discord.user?.id}>` : `#${s.config.id}`
 						)
-						.join()}...`
+						.join(",")}...`
 				);
 
 				await Promise.all(
@@ -1236,15 +1231,15 @@ export default async (bot: DiscordBot): Promise<void> => {
 												? `<@${s.discord.user?.id}>`
 												: `#${s.config.id}`
 										)
-										.join()
+										.join(",")
 							} and refreshed files!`
 						);
 					})
-					.catch(err => {
+					.catch(error => {
 						ctx.editReply(
-							`<@${ctx.user.id}> something went wrong :(\`\`\`\n${err}\`\`\``
+							`<@${ctx.user.id}> something went wrong :(\`\`\`\n${error}\`\`\``
 						);
-						log.error(err);
+						log.error(error);
 					});
 				break;
 			}
@@ -1267,8 +1262,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const onDefaultBranch = branch === repo.default_branch;
 		const repoLabel = onDefaultBranch
-			? repo.name.substring(0, 256)
-			: (repo.name + "/" + branch).substring(0, 256);
+			? repo.name.slice(0, 256)
+			: (repo.name + "/" + branch).slice(0, 256);
 		const repoUrl = onDefaultBranch
 			? repo.html_url
 			: `${repo.html_url}/tree/${branch.split("/").map(encodeURIComponent).join("/")}`;
@@ -1277,7 +1272,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			commits.splice(0, commits.length, payload.head_commit);
 
 		if (commits.length > MAX_COMMITS) {
-			const container = new Discord.ContainerBuilder().setAccentColor(0xffd700);
+			const container = new Discord.ContainerBuilder().setAccentColor(0xFF_D7_00);
 
 			addContainerHeader(
 				container,
@@ -1292,7 +1287,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			);
 
 			containers.push(container);
-			commitShas.push(payload.head_commit?.id ?? commits[commits.length - 1]?.id);
+			commitShas.push(payload.head_commit?.id ?? commits.at(-1)?.id);
 		} else {
 			for (const commit of commits) {
 				const changes = GetGithubChanges(
@@ -1303,16 +1298,16 @@ export default async (bot: DiscordBot): Promise<void> => {
 					commit.modified
 				);
 
-				const subject = commit.message.split("\n")[0];
-				const title = subject.length > 256 ? `${subject.substring(0, 250)}. . .` : subject;
+				const subject = commit.message.split("\n", 1)[0];
+				const title = subject.length > 256 ? `${subject.slice(0, 250)}. . .` : subject;
 				const body = formatCommitBody(commit.message);
 
-				const footer = `-# ${commit.id.substring(0, 6)} by ${
+				const footer = `-# ${commit.id.slice(0, 6)} by ${
 					commit.author.username ?? commit.author.name
 				}${
-					commit.author.name !== commit.committer.name
-						? ` via ${commit.committer.username ?? commit.committer.name}`
-						: ""
+					commit.author.name === commit.committer.name
+						? ""
+						: ` via ${commit.committer.username ?? commit.committer.name}`
 				}`;
 
 				const container = new Discord.ContainerBuilder().setAccentColor(
@@ -1323,7 +1318,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 					)
 				);
 
-				if (MinimalPushUsers.includes(payload.sender?.login || payload.pusher.name)) {
+				if (MinimalPushUsers.has(payload.sender?.login || payload.pusher.name)) {
 					addContainerHeader(
 						container,
 						`[${repoLabel}](${repoUrl})`,
@@ -1343,13 +1338,13 @@ export default async (bot: DiscordBot): Promise<void> => {
 					...(commit.removed ?? []),
 				];
 
-				includesLua = allFiles.length > 0 && allFiles.some(str => str.endsWith(".lua"));
+				includesLua = allFiles.some(str => str.endsWith(".lua"));
 
 				const isOnlyOgg =
 					allFiles.length > 0 && allFiles.every(str => str.endsWith(".ogg"));
 
 				const diff =
-					isMergeCommit(commit.message) || isOnlyOgg || !repo.owner || !github
+					isOnlyOgg || !github || !repo.owner || isMergeCommit(commit.message)
 						? undefined
 						: await getGitHubCommitDiff(
 							github.octokit,
@@ -1396,19 +1391,19 @@ export default async (bot: DiscordBot): Promise<void> => {
 			components: [
 				{
 					type: Discord.ComponentType.Button,
-					custom_id: serverOverride ? `update_${serverOverride.join()}` : "update",
+					custom_id: serverOverride ? `update_${serverOverride.join(",")}` : "update",
 					label: serverOverride
-						? `Update Files on ${serverOverride.map(s => `#${s}`).join()}`
+						? `Update Files on ${serverOverride.map(s => `#${s}`).join(",")}`
 						: "Update Files on all Servers",
 					style: 1,
 				},
 				{
 					type: Discord.ComponentType.Button,
 					custom_id: serverOverride
-						? `everything_${serverOverride.join()}`
+						? `everything_${serverOverride.join(",")}`
 						: "everything",
 					label: serverOverride
-						? `Update and Refresh Files on ${serverOverride.map(s => `#${s}`).join()}`
+						? `Update and Refresh Files on ${serverOverride.map(s => `#${s}`).join(",")}`
 						: "Update and Refresh Files on all Servers",
 					style: 1,
 				},
@@ -1421,7 +1416,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				const messageComponents: MessageComponent[] = [];
 				if (i === 0 && forcePushText) messageComponents.push(forcePushText);
 				messageComponents.push(containers[i]);
-				if (i === containers.length - 1 && includesLua) messageComponents.push(actionRow);
+				if (includesLua && i === containers.length - 1) messageComponents.push(actionRow);
 
 				const sha = commitShas[i];
 				webhook
@@ -1458,8 +1453,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 		// behold my newest creation that no one will get on their first read
 		// example path "sound/chatsounds/autoadd/{foldername}/{soundname}"
 		return paths.reduce((map, path) => {
-			const [mainFolder, , , folderName, soundName] = path.split("/");
-			if (mainFolder !== "sound" || !folderName || !soundName) return map;
+			const [soundFolder, _chatsounds, _autoadd, folderName, soundName] = path.split("/", 5);
+			if (soundFolder !== "sound" || !folderName || !soundName) return map;
 			map.set(folderName, [
 				...(map.get(folderName) ?? []),
 				soundName.replace(/\.[^/.]+$/, ""),
@@ -1555,7 +1550,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			}
 			container.addTextDisplayComponents(text =>
 				text.setContent(
-					`-# added by ${commit.author.username ?? commit.author.name} via \`${commit.message.split("\n\n")[0]}\`, approved by ${payload.pusher.username ?? payload.pusher.name}`
+					`-# added by ${commit.author.username ?? commit.author.name} via \`${commit.message.split("\n\n", 1)[0]}\`, approved by ${payload.pusher.username ?? payload.pusher.name}`
 				)
 			);
 		}
@@ -1567,7 +1562,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			flags: Discord.MessageFlags.IsComponentsV2,
 		} as Discord.MessageCreateOptions;
 
-		const sha = payload.head_commit?.id ?? commits[commits.length - 1]?.id;
+		const sha = payload.head_commit?.id ?? commits.at(-1)?.id;
 		webhook
 			.send(message)
 			.then(msg => {
@@ -1590,8 +1585,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 				branch: branchName,
 				commits: payload.commits.map(c => ({
 					author: c.author.username ?? c.author.name,
-					message: c.message.split("\n")[0],
-					hash: c.id.substring(0, 12),
+					message: c.message.split("\n", 1)[0],
+					hash: c.id.slice(0, 12),
 				})),
 			});
 		}
@@ -1619,7 +1614,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const container = new Discord.ContainerBuilder();
 
-		container.setAccentColor(payload.pull_request.state === "open" ? 5763719 : 15277667);
+		container.setAccentColor(payload.pull_request.state === "open" ? 5_763_719 : 15_277_667);
 
 		container.addTextDisplayComponents(text =>
 			text.setContent(
@@ -1674,7 +1669,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				return;
 		}
 
-		const title = pr.title.length > 256 ? `${pr.title.substring(0, 250)}. . .` : pr.title;
+		const title = pr.title.length > 256 ? `${pr.title.slice(0, 250)}. . .` : pr.title;
 
 		const diff = github
 			? await getGitHubPullRequestDiff(github.octokit, repo.owner.login, repo.name, pr.number)
@@ -1686,13 +1681,13 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const container = new Discord.ContainerBuilder().setAccentColor(
 			payload.action === "closed"
-				? pr.merged
-					? 0x8957e5
-					: 0xe74c3c
+				? (pr.merged
+					? 0x89_57_E5
+					: 0xE7_4C_3C)
 				: GetColorFromChanges(pr.additions ?? 0, pr.deletions ?? 0, pr.changed_files ?? 0)
 		);
 
-		const repoLine = `-# [${repo.full_name.substring(0, 256)}](${repo.html_url})`;
+		const repoLine = `-# [${repo.full_name.slice(0, 256)}](${repo.html_url})`;
 		const heading = `### [${title}](${pr.html_url})`;
 		const footerContent = `-# PR #${pr.number} ${action} by ${payload.sender.login ?? "unknown"}`;
 
@@ -1822,7 +1817,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				avatarURL: repo.owner?.avatar_url,
 				embeds: [
 					{
-						color: CHECK_CONCLUSION_COLOR[conclusion] ?? 0x6a737d,
+						color: CHECK_CONCLUSION_COLOR[conclusion] ?? 0x6A_73_7D,
 						title: `${name} ${conclusion} on ${target}`,
 						url: run.html_url,
 					},
@@ -1994,8 +1989,8 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const branch = body.ref.split("/").slice(2).join("/");
 		const onDefaultBranch = branch === project.default_branch;
 		const repoLabel = onDefaultBranch
-			? project.path_with_namespace.substring(0, 256)
-			: (project.path_with_namespace + "/" + branch).substring(0, 256);
+			? project.path_with_namespace.slice(0, 256)
+			: (project.path_with_namespace + "/" + branch).slice(0, 256);
 		const repoUrl = onDefaultBranch
 			? project.web_url
 			: `${project.web_url}/-/tree/${branch.split("/").map(encodeURIComponent).join("/")}`;
@@ -2005,7 +2000,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const commitShas: (string | undefined)[] = [];
 
 		if (commits.length > MAX_COMMITS) {
-			const container = new Discord.ContainerBuilder().setAccentColor(0xffd700);
+			const container = new Discord.ContainerBuilder().setAccentColor(0xFF_D7_00);
 
 			addContainerHeader(
 				container,
@@ -2016,7 +2011,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 			container.addTextDisplayComponents(text => text.setContent(`-# by ${body.user_name}`));
 
 			containers.push(container);
-			commitShas.push(body.checkout_sha || commits[commits.length - 1]?.id);
+			commitShas.push(body.checkout_sha || commits.at(-1)?.id);
 		} else {
 			for (const commit of commits) {
 				const added = commit.added ?? [];
@@ -2030,23 +2025,22 @@ export default async (bot: DiscordBot): Promise<void> => {
 					modified
 				);
 
-				const subject = commit.message.split("\n")[0];
-				const title = subject.length > 256 ? `${subject.substring(0, 250)}. . .` : subject;
+				const subject = commit.message.split("\n", 1)[0];
+				const title = subject.length > 256 ? `${subject.slice(0, 250)}. . .` : subject;
 				const commitBody = formatCommitBody(commit.message);
 
-				const footer = `-# ${commit.id.substring(0, 6)} by ${commit.author.name}`;
+				const footer = `-# ${commit.id.slice(0, 6)} by ${commit.author.name}`;
 
 				const container = new Discord.ContainerBuilder().setAccentColor(
 					GetColorFromChanges(added.length, removed.length, modified.length)
 				);
 
 				const allFiles = [...added, ...modified, ...removed];
-				includesLua =
-					includesLua || (allFiles.length > 0 && allFiles.some(f => f.endsWith(".lua")));
+				includesLua ||= allFiles.some(f => f.endsWith(".lua"));
 				const isOnlyOgg = allFiles.length > 0 && allFiles.every(f => f.endsWith(".ogg"));
 
 				const diffFiles =
-					isMergeCommit(commit.message) || isOnlyOgg || !gitlab
+					isOnlyOgg || !gitlab || isMergeCommit(commit.message)
 						? undefined
 						: await getGitlabDiff(gitlab.api, project.id, commit.id);
 				const diff = diffFiles?.length
@@ -2106,7 +2100,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 		if (containers.length > 1) {
 			for (let i = 0; i < containers.length; i++) {
 				const messageComponents: MessageComponent[] = [containers[i]];
-				if (i === containers.length - 1 && actionRow) messageComponents.push(actionRow);
+				if (actionRow && i === containers.length - 1) messageComponents.push(actionRow);
 
 				const sha = commitShas[i];
 				destWebhook
@@ -2164,10 +2158,10 @@ export default async (bot: DiscordBot): Promise<void> => {
 		const destWebhook = await getGitlabWebhook(mr.target_project_id);
 		if (!destWebhook) return;
 
-		const title = mr.title.length > 256 ? `${mr.title.substring(0, 250)}. . .` : mr.title;
+		const title = mr.title.length > 256 ? `${mr.title.slice(0, 250)}. . .` : mr.title;
 
 		const diffFiles =
-			mr.last_commit && !isMergeCommit(mr.last_commit.message) && gitlab
+			gitlab && mr.last_commit && !isMergeCommit(mr.last_commit.message)
 				? await getGitlabDiff(gitlab.api, mr.target_project_id, mr.last_commit.id)
 				: undefined;
 		const links = diffFiles
@@ -2188,13 +2182,13 @@ export default async (bot: DiscordBot): Promise<void> => {
 
 		const container = new Discord.ContainerBuilder().setAccentColor(
 			mr.action === "close"
-				? 0xe74c3c
-				: mr.action === "merge"
-					? 0x8957e5
-					: GetColorFromChanges(added, removed, modified)
+				? 0xE7_4C_3C
+				: (mr.action === "merge"
+					? 0x89_57_E5
+					: GetColorFromChanges(added, removed, modified))
 		);
 
-		const repoLine = `[${mr.target.path_with_namespace.substring(0, 256)}](${mr.target.web_url})`;
+		const repoLine = `[${mr.target.path_with_namespace.slice(0, 256)}](${mr.target.web_url})`;
 		const heading = `### [${title}](${mr.url})`;
 		const footerContent = `-# MR !${mr.iid} ${action} by ${body.user.username}`;
 
@@ -2263,7 +2257,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 				avatarURL: project.avatar_url ?? undefined,
 				embeds: [
 					{
-						color: CHECK_CONCLUSION_COLOR[status] ?? 0x6a737d,
+						color: CHECK_CONCLUSION_COLOR[status] ?? 0x6A_73_7D,
 						title: `Pipeline ${status} on ${pipe.ref}`,
 						url: pipe.url,
 					},

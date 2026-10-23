@@ -36,7 +36,7 @@ const CDN_PREFIX = `${CDN_BASE}/gh/${HistoryConfig.owner}/${HistoryConfig.repo}@
 /** A source we cannot use. The message is shown to the editor, so keep it readable. */
 export class MirrorError extends Error {}
 
-const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 
 /**
  * The extension has to come from the bytes: several imgur URLs ending in .jpg
@@ -74,12 +74,12 @@ const assertPublicHost = (raw: string): void => {
 	}
 	if (parsed.protocol !== "http:" && parsed.protocol !== "https:")
 		throw new MirrorError("the image URL must be http or https");
-	const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+	const host = parsed.hostname.toLowerCase().replaceAll(/^\[|\]$/g, "");
 	if (
 		host === "localhost" ||
+		host === "::1" ||
 		host.endsWith(".localhost") ||
 		host.endsWith(".internal") ||
-		host === "::1" ||
 		/^127\./.test(host) ||
 		/^10\./.test(host) ||
 		/^192\.168\./.test(host) ||
@@ -108,8 +108,8 @@ const download = async (
 				"user-agent": "metaconcord history mirror (+https://metastruct.net)",
 			},
 		});
-	} catch (err) {
-		const e = err as { response?: { status?: number }; code?: string };
+	} catch (error) {
+		const e = error as { response?: { status?: number }; code?: string };
 		if (e.response?.status) throw new MirrorError(`source returned ${e.response.status}`);
 		if (e.code === "ERR_FR_MAX_CONTENT_LENGTH_EXCEEDED")
 			throw new MirrorError(`image is larger than ${Math.round(MAX_BYTES / 1024 / 1024)} MB`);
@@ -117,14 +117,14 @@ const download = async (
 	}
 
 	const type = String(res.headers["content-type"] || "")
-		.split(";")[0]
+		.split(";", 1)[0]
 		.trim()
 		.toLowerCase();
-	if (!ALLOWED_TYPES.includes(type))
+	if (!ALLOWED_TYPES.has(type))
 		throw new MirrorError(`unsupported content type ${type || "none"}`);
 
 	const bytes = Buffer.from(res.data);
-	if (!bytes.length) throw new MirrorError("source returned an empty body");
+	if (bytes.length === 0) throw new MirrorError("source returned an empty body");
 	if (bytes.length > MAX_BYTES)
 		throw new MirrorError(`image is larger than ${Math.round(MAX_BYTES / 1024 / 1024)} MB`);
 
@@ -165,9 +165,9 @@ const listImages = async (octokit: Octokit): Promise<Set<string>> => {
 		});
 		// TODO: switch to git.getTree({ recursive }) if this ever passes 1000 entries
 		return new Set(Array.isArray(data) ? data.map(entry => entry.name) : []);
-	} catch (err) {
-		if ((err as { status?: number }).status === 404) return new Set();
-		throw err;
+	} catch (error) {
+		if ((error as { status?: number }).status === 404) return new Set();
+		throw error;
 	}
 };
 
@@ -180,7 +180,7 @@ const pinFor = async (octokit: Octokit, path: string): Promise<string> => {
 		path,
 		per_page: 1,
 	});
-	if (!data.length) throw new Error(`no commit found for ${path}`);
+	if (data.length === 0) throw new Error(`no commit found for ${path}`);
 	return data[0].sha;
 };
 
@@ -205,9 +205,9 @@ export const mirrorImage = async (
 	let got: { bytes: Buffer; ext: string; via?: string };
 	try {
 		got = await download(sourceUrl, 15_000);
-	} catch (err) {
+	} catch (error) {
 		const archived = await fromWayback(sourceUrl);
-		if (!archived) throw err;
+		if (!archived) throw error;
 		got = archived;
 	}
 
@@ -236,18 +236,18 @@ export const mirrorImage = async (
 	let sha: string | undefined;
 	try {
 		sha = await commit();
-	} catch (err) {
-		const status = (err as { status?: number }).status;
+	} catch (error) {
+		const status = (error as { status?: number }).status;
 		// 422 means someone committed the same bytes first, 409 means the branch moved
 		if (status === 409) {
 			await sleep(750);
 			try {
 				sha = await commit();
-			} catch (retryErr) {
-				if ((retryErr as { status?: number }).status !== 422) throw retryErr;
+			} catch (error_) {
+				if ((error_ as { status?: number }).status !== 422) throw error_;
 			}
 		} else if (status !== 422) {
-			throw err;
+			throw error;
 		}
 	}
 

@@ -1,5 +1,5 @@
 import { Container, Service, ServiceNotEnabledError } from "#/app/Container.js";
-import { Server as HTTPServer, createServer } from "http";
+import { Server as HTTPServer, createServer } from "node:http";
 import type { Request, Response } from "express";
 import APIs from "./api/index.js";
 import config from "#/config/webapp.json" with { type: "json" };
@@ -43,9 +43,9 @@ export class WebApp extends Service {
 				customLogLevel: (_, res, err): pino.LevelWithSilent =>
 					err || res.statusCode >= 500
 						? "error"
-						: res.statusCode >= 400
+						: (res.statusCode >= 400
 							? "warn"
-							: "debug",
+							: "debug"),
 				autoLogging: { ignore: req => PATH_IGNORE.some(p => req.path.startsWith(p)) },
 			})
 		);

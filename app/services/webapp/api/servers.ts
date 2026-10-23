@@ -1,8 +1,8 @@
 import { GameState } from "#/app/services/gamebridge/games/ss13/topics.js";
 import type { Player } from "#/app/services/gamebridge/GameConnection.js";
 import type { WebApp } from "#/app/services/webapp/index.js";
-import { promises as dns } from "dns";
-import path from "path";
+import { promises as dns } from "node:dns";
+import path from "node:path";
 import ss13Config from "#/config/ss13.json" with { type: "json" };
 import vrchatConfig from "#/config/vrchat.json" with { type: "json" };
 
@@ -124,7 +124,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				extra: server.hostname ? { hostname: server.hostname } : undefined,
 			});
 		}
-		if (gmod.length)
+		if (gmod.length > 0)
 			games.push({ game: "gmod", label: GAME_LABELS.gmod, kind: "server", entries: gmod });
 
 		// minecraft
@@ -149,7 +149,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				extra: lastStatus?.version ? { version: lastStatus.version } : undefined,
 			});
 		}
-		if (minecraft.length) {
+		if (minecraft.length > 0) {
 			games.push({
 				game: "minecraft",
 				label: GAME_LABELS.minecraft,
@@ -173,7 +173,7 @@ export default async (webApp: WebApp): Promise<void> => {
 					key: `ss13-${instanceId}`,
 					name,
 					map: status.mapName,
-					mode: status.gamestate !== undefined ? GameState[status.gamestate] : undefined,
+					mode: status.gamestate === undefined ? undefined : GameState[status.gamestate],
 					thumbnail: thumbnailUrl(baseUrl, backgroundImage),
 					players: players.map(basePlayer),
 					playerCount: players.length,
@@ -182,11 +182,11 @@ export default async (webApp: WebApp): Promise<void> => {
 						? Date.parse(status.launchTime) || undefined
 						: undefined,
 					connect: status.port ? { url: `byond://${host}:${status.port}` } : undefined,
-					extra: Object.keys(extra).length ? extra : undefined,
+					extra: Object.keys(extra).length > 0 ? extra : undefined,
 				});
 			}
 		}
-		if (ss13.length)
+		if (ss13.length > 0)
 			games.push({ game: "ss13", label: GAME_LABELS.ss13, kind: "instance", entries: ss13 });
 
 		// resonite: one instance per active session (a single connection can host several)
@@ -216,7 +216,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				});
 			}
 		}
-		if (resonite.length) {
+		if (resonite.length > 0) {
 			games.push({
 				game: "resonite",
 				label: GAME_LABELS.resonite,
@@ -245,7 +245,7 @@ export default async (webApp: WebApp): Promise<void> => {
 					},
 				});
 			}
-			if (!server.lastInstances.length) {
+			if (server.lastInstances.length === 0) {
 				const group = server.group;
 				vrchat.push({
 					id: vrchatConfig.groupId,
@@ -259,7 +259,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				});
 			}
 		}
-		if (vrchat.length) {
+		if (vrchat.length > 0) {
 			games.push({
 				game: "vrchat",
 				label: GAME_LABELS.vrchat,

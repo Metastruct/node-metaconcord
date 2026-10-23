@@ -3,7 +3,7 @@ import GameConnection, { Player } from "../../GameConnection.js";
 import { WatchdogStatus } from "./tgsClient.js";
 import { TopicStatus } from "./topics.js";
 
-export const SS13_ACCENT = 0x4bb543;
+export const SS13_ACCENT = 0x4B_B5_43;
 
 export type SS13Status = TopicStatus & {
 	watchdogStatus: WatchdogStatus;

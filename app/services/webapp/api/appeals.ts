@@ -35,7 +35,7 @@ const RELAY_RE = /^\*\*(.+?)\*\*: /s;
 // eslint-disable-next-line no-control-regex -- matching control bytes is the point
 const TEXT_CONTROL_RE = new RegExp("[\\u0000-\\u0009\\u000b-\\u001f\\u007f]", "g");
 const cleanText = (value: unknown, max: number): string =>
-	typeof value === "string" ? value.replace(TEXT_CONTROL_RE, "").trim().slice(0, max) : "";
+	typeof value === "string" ? value.replaceAll(TEXT_CONTROL_RE, "").trim().slice(0, max) : "";
 
 type AppealRow = {
 	id: number;
@@ -66,12 +66,12 @@ type SteamSession = { steamId64: string; name: string; avatar: string };
 /** Markdown-significant characters stripped so a persona name cannot fake the relay prefix. */
 const safeName = (session: SteamSession): string =>
 	cleanText(session.name, NAME_MAX)
-		.replace(/[*_~`|\\]/g, "")
+		.replaceAll(/[*_~`|\\]/g, "")
 		.trim() || session.steamId64;
 
 const sanitizeForWeb = (msg: Discord.Message): string => {
 	let content = msg.cleanContent ?? msg.content ?? "";
-	content = content.replace(/<a?:([^\s:<>]*):\d+>/g, (_, name) => `:${name}:`);
+	content = content.replaceAll(/<a?:([^\s:<>]*):\d+>/g, (_, name) => `:${name}:`);
 	for (const [, attachment] of msg.attachments) {
 		content += (content.length > 0 ? "\n" : "") + attachment.url;
 	}
@@ -102,6 +102,43 @@ const toAppealMessage = (msg: Discord.Message, botId?: string): AppealMessage | 
 		content: sanitizeForWeb(msg),
 		createdAt: Math.round(msg.createdTimestamp / 1000),
 	};
+};
+
+// 401 without a session, 403 with one that has no Steam link: the page tells them apart
+const requireSteam = async (req: Request, res: Response): Promise<SteamSession | undefined> => {
+	const session = await getSession(req);
+	if (!session) {
+		res.status(401).json({ error: "not logged in" });
+		return;
+	}
+	const steam = Accounts.verifiedLink(session.account, "steam");
+	if (!steam) {
+		res.status(403).json({ error: "no_steam_link" });
+		return;
+	}
+	return { steamId64: steam.providerId, name: steam.name, avatar: steam.avatar };
+};
+
+/**
+ * "Close Thread" in Discord is just archiving, which the week of inactivity also does on
+ * its own; only a person's archive should refuse. The audit log tells them apart, and
+ * with no access to it a person is assumed.
+ */
+const wasManuallyArchived = async (thread: Discord.ThreadChannel): Promise<boolean> => {
+	try {
+		const logs = await thread.guild.fetchAuditLogs({
+			type: Discord.AuditLogEvent.ThreadUpdate,
+			limit: 10,
+		});
+		return logs.entries.some(
+			entry =>
+				entry.targetId === thread.id &&
+				Date.now() - entry.createdTimestamp < 60_000 &&
+				entry.changes.some(change => change.key === "archived" && change.new === true)
+		);
+	} catch {
+		return true;
+	}
 };
 
 export default (webApp: WebApp): void => {
@@ -152,25 +189,10 @@ export default (webApp: WebApp): void => {
 			`);
 			try {
 				database.exec("ALTER TABLE appeals ADD COLUMN resolution TEXT;");
-			} catch {}
+			} catch { /* empty */ }
 			tableReady = true;
 		}
 		return database;
-	};
-
-	// 401 without a session, 403 with one that has no Steam link: the page tells them apart
-	const requireSteam = async (req: Request, res: Response): Promise<SteamSession | undefined> => {
-		const session = await getSession(req);
-		if (!session) {
-			res.status(401).json({ error: "not logged in" });
-			return;
-		}
-		const steam = Accounts.verifiedLink(session.account, "steam");
-		if (!steam) {
-			res.status(403).json({ error: "no_steam_link" });
-			return;
-		}
-		return { steamId64: steam.providerId, name: steam.name, avatar: steam.avatar };
 	};
 
 	const openAppeal = async (steamId64: string): Promise<AppealRow | undefined> =>
@@ -179,27 +201,26 @@ export default (webApp: WebApp): void => {
 			.get(steamId64);
 
 	const closeAppeals = async (
-		steamId64: string,
-		resolution?: AppealRow["resolution"]
+		steamId64: string
 	): Promise<void> => {
 		(await db())
 			.prepare("UPDATE appeals SET closed_at = ?, resolution = ? WHERE steam_id64 = ? AND closed_at IS NULL;")
 			.run(
 				Math.round(Date.now() / 1000),
-				resolution ?? null,
+				null,
 				steamId64
 			);
 	};
 
 	const closeAppealRow = async (
 		id: number,
-		resolution?: AppealRow["resolution"]
+		resolution: AppealRow["resolution"] = null
 	): Promise<void> => {
 		(await db())
 			.prepare("UPDATE appeals SET closed_at = ?, resolution = ? WHERE id = ? AND closed_at IS NULL;")
 			.run(
 				Math.round(Date.now() / 1000),
-				resolution ?? null,
+				resolution,
 				id
 			);
 	};
@@ -225,9 +246,9 @@ export default (webApp: WebApp): void => {
 			const channel = await guild.channels.fetch(row.thread_id);
 			if (!channel?.isThread()) return "gone";
 			return channel;
-		} catch (err) {
-			if (err instanceof Discord.DiscordAPIError && err.code === 10003) return "gone";
-			log.error(err, `failed fetching appeal thread ${row.thread_id}`);
+		} catch (error) {
+			if (error instanceof Discord.DiscordAPIError && error.code === 10_003) return "gone";
+			log.error(error, `failed fetching appeal thread ${row.thread_id}`);
 			return undefined;
 		}
 	};
@@ -332,12 +353,12 @@ export default (webApp: WebApp): void => {
 		});
 		embed.addFields(f("Nick", entry.name || name, true));
 		embed.addFields(f("Banned by", actorLabel(entry.bannedBy), true));
-		embed.addFields(f("Ban Reason", entry.reason.substring(0, EMBED_FIELD_LIMIT), true));
+		embed.addFields(f("Ban Reason", entry.reason.slice(0, Math.max(0, EMBED_FIELD_LIMIT === undefined ? Infinity : EMBED_FIELD_LIMIT)), true));
 		embed.addFields(
 			f("Ban Expiration", entry.permanent ? "Permanent" : `<t:${entry.unbanAt}:R>`, true)
 		);
 		embed.addFields(
-			f("Appeal", `\`\`\`${message.substring(0, 1000).replaceAll("```", "​`​`​`")}\`\`\``)
+			f("Appeal", `\`\`\`${message.slice(0, 1000).replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`")}\`\`\``)
 		);
 		embed.addFields(
 			f(
@@ -383,8 +404,8 @@ export default (webApp: WebApp): void => {
 					allowedMentions: { users: [discordId] },
 				});
 			}
-		} catch (err) {
-			log.error(err, "failed creating appeal thread");
+		} catch (error) {
+			log.error(error, "failed creating appeal thread");
 			res.status(503).json({ error: "appeals are unavailable right now" });
 			return;
 		}
@@ -411,7 +432,7 @@ export default (webApp: WebApp): void => {
 		session: SteamSession
 	): Promise<AppealRow | undefined> => {
 		const id = Number(req.params.id);
-		const row = Number.isInteger(id) && id > 0 ? await rowById(id) : undefined;
+		const row = Number.isSafeInteger(id) && id > 0 ? await rowById(id) : undefined;
 		if (!row || row.steam_id64 !== session.steamId64) {
 			res.status(404).json({ error: "no such appeal" });
 			return undefined;
@@ -462,8 +483,8 @@ export default (webApp: WebApp): void => {
 			res.status(503).json({ error: "Discord is unavailable right now" });
 			return;
 		}
-		const messages = [...fetched.values()]
-			.sort((a, b) => a.createdTimestamp - b.createdTimestamp)
+		const messages = fetched.values().toArray()
+			.toSorted((a, b) => a.createdTimestamp - b.createdTimestamp)
 			.map(msg => toAppealMessage(msg, botId))
 			.filter((msg): msg is AppealMessage => !!msg);
 
@@ -511,8 +532,8 @@ export default (webApp: WebApp): void => {
 				content: `**${name}**: ${content}`,
 				allowedMentions: { parse: [] },
 			});
-		} catch (err) {
-			log.error(err, `failed relaying appeal message to thread ${row.thread_id}`);
+		} catch (error) {
+			log.error(error, `failed relaying appeal message to thread ${row.thread_id}`);
 			res.status(503).json({ error: "Discord is unavailable right now" });
 			return;
 		}
@@ -547,7 +568,7 @@ export default (webApp: WebApp): void => {
 		msg: Discord.Message,
 		label: string,
 		style: Discord.ButtonStyle
-	): Promise<void> => {
+	): Promise<void> => { // eslint-disable-line unicorn/consistent-function-scoping
 		const settled = new Discord.ButtonBuilder()
 			.setStyle(style)
 			.setCustomId(`${msg.id}_APPEAL_SETTLED`)
@@ -566,8 +587,8 @@ export default (webApp: WebApp): void => {
 		try {
 			await thread.setLocked(true);
 			await thread.setArchived(true);
-		} catch (err) {
-			log.error(err, `failed archiving appeal thread ${thread.id}`);
+		} catch (error) {
+			log.error(error, `failed archiving appeal thread ${thread.id}`);
 		}
 	};
 
@@ -590,8 +611,8 @@ export default (webApp: WebApp): void => {
 			const channel = bot().getTextChannel(bot().config.channels.appeals);
 			if (!channel) return;
 			await settleButtons(await channel.messages.fetch(row.message_id), label, style);
-		} catch (err) {
-			log.error(err, `failed settling appeal message ${row.message_id}`);
+		} catch (error) {
+			log.error(error, `failed settling appeal message ${row.message_id}`);
 		}
 	};
 
@@ -612,28 +633,6 @@ export default (webApp: WebApp): void => {
 			`appeal thread ${row.thread_id} of ${row.steam_id64} was closed on Discord, ` +
 				(refused ? "appeal refused" : "ban no longer active")
 		);
-	};
-
-	/**
-	 * "Close Thread" in Discord is just archiving, which the week of inactivity also does on
-	 * its own; only a person's archive should refuse. The audit log tells them apart, and
-	 * with no access to it a person is assumed.
-	 */
-	const wasManuallyArchived = async (thread: Discord.ThreadChannel): Promise<boolean> => {
-		try {
-			const logs = await thread.guild.fetchAuditLogs({
-				type: Discord.AuditLogEvent.ThreadUpdate,
-				limit: 10,
-			});
-			return logs.entries.some(
-				entry =>
-					entry.targetId === thread.id &&
-					Date.now() - entry.createdTimestamp < 60_000 &&
-					entry.changes.some(change => change.key === "archived" && change.new === true)
-			);
-		} catch {
-			return true;
-		}
 	};
 
 	// deferred so the listeners attach once the container holds every service;
@@ -668,8 +667,8 @@ export default (webApp: WebApp): void => {
 			// and Discord voids the interaction 3 seconds after the click
 			try {
 				await interaction.deferUpdate();
-			} catch (err) {
-				log.warn(err, "could not acknowledge an appeal button in time");
+			} catch (error) {
+				log.warn(error, "could not acknowledge an appeal button in time");
 				return;
 			}
 

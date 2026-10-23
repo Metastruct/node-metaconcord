@@ -282,7 +282,7 @@ export default (bot: DiscordBot): void => {
 				const reply = await channel.send(message ? `(task:step) ${message.id} ${message.url}` : "(task:null)");
 				await trimmer.trim()
 					.then(() => reply.edit(reply.content + " ... OK!"))
-					.catch(err => reply.edit(reply.content + ` ... FAIL: ${err}`));
+					.catch(error => reply.edit(reply.content + ` ... FAIL: ${error}`));
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim peek") {
 			for (const [channel, trimmer] of trimmers) {
@@ -290,10 +290,10 @@ export default (bot: DiscordBot): void => {
 				channel.send(message ? `(task:peek) \`\`\`\n${message.content}\n\`\`\`\nURL: ${message.url}\nAge: ${durationFormatter.format(durationSince(message.createdAt))} ${olderThan(message.createdAt, trimmer.maxAge) ? "🗑️" : "📜"}` : "(task:null)");
 			};
 		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim stats") {
-			const lines = [...trimmers.entries()].map(([channel, trimmer]) => formatStatsLine(channel, trimmer.getStats()));
+			const lines = trimmers.entries().map(([channel, trimmer]) => formatStatsLine(channel, trimmer.getStats())).toArray();
 			await msg.channel.send(lines.length > 0 ? lines.join("\n") : "No trimmers configured.");
 		} else if (msg.channelId === bot.config.channels.log && msg.content.startsWith("!trim set-total ")) {
-			const total = Number.parseInt(msg.content.slice("!trim set-total ".length).trim(), 10);
+			const total = Math.trunc(Number(msg.content.slice("!trim set-total ".length).trim()));
 			if (!Number.isFinite(total) || total < 0) {
 				await msg.channel.send("invalid total");
 				return;

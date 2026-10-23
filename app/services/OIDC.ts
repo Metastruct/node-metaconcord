@@ -18,6 +18,9 @@ import {
 
 const log = logger(import.meta);
 
+const esc = (value: unknown) =>
+	String(value).replaceAll(/[&<>"]/g, ch => `&#${ch.codePointAt(0)};`);
+
 /**
  * An OpenID Connect provider mounted on the WebApp, so other sites can log in
  * with the same metastruct account. The issuer is the site root, so the
@@ -120,13 +123,11 @@ export class OIDC extends Service {
 							preferred_username: account.displayName,
 							roles: account.roles,
 						};
-						if (scope?.includes("email") && this.config.claims?.email !== false) {
-							if (verifiedEmail?.email) {
-								claims.email = verifiedEmail.email;
-								// some clients refuse logins unless this is explicitly true,
-								// absent is not good enough
-								claims.email_verified = true;
-							}
+						if (scope?.includes("email") && this.config.claims?.email !== false && verifiedEmail?.email) {
+							claims.email = verifiedEmail.email;
+							// some clients refuse logins unless this is explicitly true,
+							// absent is not good enough
+							claims.email_verified = true;
 						}
 						return claims;
 					},
@@ -146,8 +147,6 @@ export class OIDC extends Service {
 					`oidc error on ${ctx.path}`
 				);
 				ctx.type = "html";
-				const esc = (value: unknown) =>
-					String(value).replace(/[&<>"]/g, ch => `&#${ch.charCodeAt(0)};`);
 				ctx.body =
 					"<h1>SSO error</h1>" +
 					`<p><code>${esc(out.error)}${out.error_description ? `: ${esc(out.error_description)}` : ""}</code></p>` +
@@ -188,8 +187,8 @@ export class OIDC extends Service {
 				.createHmac("sha1", this.config.cookieKeys)
 				.update(`_session=${value}`)
 				.digest("base64")
-				.replace(/\+/g, "-")
-				.replace(/\//g, "_")
+				.replaceAll("+", "-")
+				.replaceAll("/", "_")
 				.replace(/=+$/, "");
 		const clearCookie = (name: string, domain?: string) =>
 			`${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; httpOnly` +
@@ -201,16 +200,17 @@ export class OIDC extends Service {
 				if (req.method !== "GET") return next();
 				const attempt = Number(req.cookies?.__mcscrub ?? 0);
 				const header = req.headers.cookie ?? "";
-				const values = [...header.matchAll(/(?:^|; *)_session=([^;]*)/g)]
+				const values = header.matchAll(/(?:^|; *)_session=([^;]*)/g)
 					.map(m => m[1])
-					.filter(value => value !== "");
+					.filter(value => value !== "")
+					.toArray();
 				if (values.length === 0) return next();
-				const sigs = [...header.matchAll(/(?:^|; *)_session\.sig=([^;]*)/g)].map(m => m[1]);
+				const sigs = new Set(header.matchAll(/(?:^|; *)_session\.sig=([^;]*)/g).map(m => m[1]));
 				const sessionAdapter = this.provider.Session.adapter;
 				const resolvable = await Promise.all(
 					values.map(
 						async value =>
-							sigs.some(sig => sessionSig(value) === sig) &&
+							sigs.has(sessionSig(value)) &&
 							!!(await sessionAdapter.find(value))
 					)
 				);
@@ -244,8 +244,8 @@ export class OIDC extends Service {
 					path: "/oauth",
 				});
 				res.redirect(req.originalUrl);
-			} catch (err) {
-				log.error(err, "oidc session cookie scrub failed");
+			} catch (error) {
+				log.error(error, "oidc session cookie scrub failed");
 				next();
 			}
 		});
@@ -304,9 +304,9 @@ export class OIDC extends Service {
 				await this.provider.interactionFinished(req, res, result, {
 					mergeWithLastSubmission: true,
 				});
-			} catch (err) {
-				log.error(err, `interaction ${req.params.uid} failed`);
-				throw err;
+			} catch (error) {
+				log.error(error, `interaction ${req.params.uid} failed`);
+				throw error;
 			}
 		});
 

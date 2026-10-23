@@ -12,6 +12,7 @@ import {
 	FluxerApiError,
 	FluxerAttachment,
 	FluxerMessage,
+	FluxerMessageEmbed,
 	FluxerMessageSnapshot,
 	FluxerRest,
 	FluxerThreadChannel,
@@ -100,58 +101,39 @@ export function normalizeEmbeds(embeds: readonly unknown[], content = ""): Disco
 			const author = embed.author as Record<string, unknown> | undefined;
 			const footer = embed.footer as Record<string, unknown> | undefined;
 			return {
-				...(typeof embed.title === "string" ? { title: embed.title } : {}),
-				...(typeof embed.description === "string"
-					? { description: embed.description }
-					: {}),
-				...(typeof embed.url === "string" ? { url: embed.url } : {}),
-				...(typeof embed.color === "number" ? { color: embed.color } : {}),
-				...(typeof embed.timestamp === "string" ? { timestamp: embed.timestamp } : {}),
-				...(author && typeof author.name === "string"
-					? {
-						author: {
-							name: author.name,
-							...(typeof author.url === "string" ? { url: author.url } : {}),
-							...(typeof author.icon_url === "string"
-								? { icon_url: author.icon_url }
-								: {}),
-						},
-					}
-					: {}),
-				...(footer && typeof footer.text === "string"
-					? {
-						footer: {
-							text: footer.text,
-							...(typeof footer.icon_url === "string"
-								? { icon_url: footer.icon_url }
-								: {}),
-						},
-					}
-					: {}),
-				...(image && typeof image.url === "string" ? { image: { url: image.url } } : {}),
-				...(thumbnail && typeof thumbnail.url === "string"
-					? { thumbnail: { url: thumbnail.url } }
-					: {}),
-				...(Array.isArray(embed.fields)
-					? {
-						fields: embed.fields.slice(0, 25).flatMap(field => {
-							const item = field as Record<string, unknown>;
-							return typeof item.name === "string" &&
-									typeof item.value === "string"
-								? [
-									{
-										name: item.name,
-										value:
-													item.value.trim().length === 0
-														? "\u200b"
-														: item.value,
-										inline: item.inline === true,
-									},
-								]
-								: [];
-						}),
-					}
-					: {}),
+				...((typeof embed.title === "string") && { title: embed.title }),
+				...((typeof embed.description === "string") && { description: embed.description }),
+				...((typeof embed.url === "string") && { url: embed.url }),
+				...((typeof embed.color === "number") && { color: embed.color }),
+				...((typeof embed.timestamp === "string") && { timestamp: embed.timestamp }),
+				...(author && typeof author.name === "string" && {
+					author: {
+						name: author.name,
+						...((typeof author.url === "string") && { url: author.url }),
+						...((typeof author.icon_url === "string") && { icon_url: author.icon_url }),
+					},
+				}),
+				...(footer && typeof footer.text === "string" && {
+					footer: {
+						text: footer.text,
+						...((typeof footer.icon_url === "string") && { icon_url: footer.icon_url }),
+					},
+				}),
+				...(image && typeof image.url === "string" && { image: { url: image.url } }),
+				...(thumbnail && typeof thumbnail.url === "string" && { thumbnail: { url: thumbnail.url } }),
+				...(Array.isArray(embed.fields) && {
+					fields: embed.fields
+						.slice(0, 25)
+						.filter((item): item is FluxerMessageEmbed => typeof item.name === "string" && typeof item.value === "string")
+						.map(item => ({
+							name: item.name,
+							value:
+								item.value.trim().length === 0
+									? "\u{200B}"
+									: item.value,
+							inline: item.inline === true,
+						}))
+				}),
 			};
 		});
 	const result: Discord.APIEmbed[] = [];
@@ -211,12 +193,10 @@ export function componentEmbeds(components: readonly unknown[]): Discord.APIEmbe
 		const description = lines.join("\n").trim().slice(0, 4096);
 		if (!description && !thumbnail && !image) continue;
 		embeds.push({
-			...(description ? { description } : {}),
-			...(typeof container.accent_color === "number"
-				? { color: container.accent_color }
-				: {}),
-			...(thumbnail ? { thumbnail: { url: thumbnail } } : {}),
-			...(image ? { image: { url: image } } : {}),
+			...(description && { description }),
+			...((typeof container.accent_color === "number") && { color: container.accent_color }),
+			...(thumbnail && { thumbnail: { url: thumbnail } }),
+			...(image && { image: { url: image } }),
 		});
 	}
 	return embeds;
@@ -255,7 +235,7 @@ export function rewriteEmojiMarkup(
 	lookup: (id: string) => string | undefined,
 	onUnmapped?: (emoji: UnmappedEmoji) => void
 ): string {
-	return content.replace(/<(a?):([^:>]+):(\d+)>/g, (_match, animated, name, id) => {
+	return content.replaceAll(/<(a?):([^:>]+):(\d+)>/g, (_match, animated, name, id) => {
 		const target = lookup(id);
 		if (target) return `<${animated}:${name}:${target}>`;
 		onUnmapped?.({ id, name, animated: animated === "a" });
@@ -345,9 +325,13 @@ export class Fluxer extends Service {
 		);
 		log.info(
 			{
-				relayChannels: [...this.routesByDiscord.values()].filter(
-					route => route.relayEnabled
-				).length,
+				relayChannels: this.routesByDiscord
+					.values()
+					.filter(
+						route => route.relayEnabled
+					)
+					.toArray()
+					.length,
 			},
 			"Fluxer bridge initialized"
 		);
@@ -713,7 +697,7 @@ export class Fluxer extends Service {
 		try {
 			return await this.rest.request<FluxerThreadChannel>("GET", `/channels/${channelId}`);
 		} catch (error) {
-			if (error instanceof FluxerApiError && error.status === 404) return undefined;
+			if (error instanceof FluxerApiError && error.status === 404) return;
 			throw error;
 		}
 	}
@@ -779,7 +763,7 @@ export class Fluxer extends Service {
 				...((archiveDuration === 60 ||
 				archiveDuration === 1440 ||
 				archiveDuration === 4320 ||
-				archiveDuration === 10080
+				archiveDuration === 10_080
 					? { autoArchiveDuration: archiveDuration }
 					: {}) as { autoArchiveDuration?: Discord.ThreadAutoArchiveDuration }),
 			});
@@ -815,10 +799,10 @@ export class Fluxer extends Service {
 				content: payload.content || undefined,
 				username: this.fluxerDisplayName(message).slice(0, 80),
 				avatarURL: this.fluxerAvatarUrl(message),
-				...(embeds.length > 0 ? { embeds } : {}),
+				...((embeds.length > 0) && { embeds }),
 				files,
 				threadName: name,
-				...(appliedTags.length > 0 ? { appliedTags } : {}),
+				...((appliedTags.length > 0) && { appliedTags }),
 				allowedMentions: {
 					parse: [],
 					users: payload.users,
@@ -868,9 +852,7 @@ export class Fluxer extends Service {
 		};
 		if (isForum) {
 			const payload = await this.translateDiscordMessage(message);
-			const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(parentRoute, [
-				...message.attachments.values(),
-			]);
+			const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(parentRoute, message.attachments.values().toArray());
 			payload.content = appendContent(payload.content, fallbackUrls, 4000);
 			const embeds = normalizeEmbeds(
 				message.embeds.map(embed => embed.toJSON()),
@@ -893,14 +875,14 @@ export class Fluxer extends Service {
 					{
 						content: payload.content || null,
 						thread_name: threadChannel.name.slice(0, 100),
-						...(appliedTags.length > 0 ? { applied_tags: appliedTags } : {}),
+						...((appliedTags.length > 0) && { applied_tags: appliedTags }),
 						username: (message.member?.displayName ?? message.author.displayName).slice(
 							0,
 							80
 						),
 						avatar_url: message.author.displayAvatarURL({ size: 128 }),
-						...(embeds.length > 0 ? { embeds } : {}),
-						...(attachments.length > 0 ? { attachments } : {}),
+						...((embeds.length > 0) && { embeds }),
+						...((attachments.length > 0) && { attachments }),
 						allowed_mentions: {
 							parse: [],
 							users: payload.users,
@@ -936,12 +918,8 @@ export class Fluxer extends Service {
 				{
 					name: threadChannel.name.slice(0, 100),
 					type: fluxerType,
-					...(typeof threadChannel.autoArchiveDuration !== "undefined"
-						? { auto_archive_duration: threadChannel.autoArchiveDuration }
-						: {}),
-					...(threadChannel.type === Discord.ChannelType.PrivateThread
-						? { invitable: threadChannel.invitable ?? true }
-						: {}),
+					...(threadChannel.autoArchiveDuration && { auto_archive_duration: threadChannel.autoArchiveDuration }),
+					...((threadChannel.type === Discord.ChannelType.PrivateThread) && { invitable: threadChannel.invitable ?? true }),
 				},
 				true,
 				true
@@ -991,17 +969,17 @@ export class Fluxer extends Service {
 			message.attachments.first()?.waveform
 				? message.attachments.first()
 				: undefined;
-		const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(route, [
-			...message.attachments.values(),
-		]);
+		const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(route, message.attachments.values().toArray());
 		const voiceMessage = voiceAttachment && attachments.length === 1;
-		const stickerIds = [...message.stickers.values()]
+		const stickerIds = message.stickers.values()
 			.map(sticker => this.stickerFluxerByDiscord.get(sticker.id))
 			.filter((id): id is string => Boolean(id))
-			.slice(0, 3);
-		const fallbackStickerUrls = [...message.stickers.values()]
+			.take(3)
+			.toArray();
+		const fallbackStickerUrls = message.stickers.values()
 			.filter(sticker => !this.stickerFluxerByDiscord.has(sticker.id))
-			.map(sticker => sticker.url);
+			.map(sticker => sticker.url)
+			.toArray();
 		payload.content = appendContent(
 			payload.content,
 			fallbackStickerUrls.concat(fallbackUrls),
@@ -1037,29 +1015,27 @@ export class Fluxer extends Service {
 						80
 					),
 					avatar_url: message.author.displayAvatarURL({ size: 128 }),
-					...(embeds.length > 0 ? { embeds } : {}),
+					...((embeds.length > 0) && { embeds }),
 					...(voiceMessage
 						? {
 							flags: Discord.MessageFlags.IsVoiceMessage,
 							attachments: [attachments[0]],
 						}
 						: { attachments }),
-					...(voiceMessage || stickerIds.length === 0 ? {} : { sticker_ids: stickerIds }),
+					...(!(voiceMessage || stickerIds.length === 0) && { sticker_ids: stickerIds }),
 					allowed_mentions: {
 						parse: [],
 						users: payload.users,
 						roles: payload.roles,
 						replied_user: false,
 					},
-					...(reply
-						? {
-							message_reference: {
-								message_id: reply.fluxer_message_id,
-								channel_id: reply.fluxer_channel_id,
-								type: 0,
-							},
-						}
-						: {}),
+					...(reply && {
+						message_reference: {
+							message_id: reply.fluxer_message_id,
+							channel_id: reply.fluxer_channel_id,
+							type: 0,
+						},
+					}),
 				},
 				false,
 				true
@@ -1138,7 +1114,7 @@ export class Fluxer extends Service {
 		} as unknown as Discord.Message);
 		const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(
 			route,
-			snapshot ? [...snapshot.attachments.values()] : []
+			snapshot ? snapshot.attachments.values().toArray() : []
 		);
 		const snapshotStickers = snapshot?.stickers.values() ?? [];
 		const stickerIds = [...snapshotStickers]
@@ -1180,9 +1156,9 @@ export class Fluxer extends Service {
 						80
 					),
 					avatar_url: message.author.displayAvatarURL({ size: 128 }),
-					...(embeds.length > 0 ? { embeds } : {}),
+					...((embeds.length > 0) && { embeds }),
 					attachments,
-					...(stickerIds.length > 0 ? { sticker_ids: stickerIds } : {}),
+					...((stickerIds.length > 0) && { sticker_ids: stickerIds }),
 					allowed_mentions: {
 						parse: [],
 						users: payload.users,
@@ -1232,7 +1208,7 @@ export class Fluxer extends Service {
 				continue;
 			}
 			const messages = await channel.messages.fetch({ limit: 100 });
-			for (const message of [...messages.values()].sort(
+			for (const message of messages.values().toArray().toSorted(
 				(a, b) => a.createdTimestamp - b.createdTimestamp
 			)) {
 				await this.enqueue(`discord:${channelId}`, () => this.relayDiscordCreate(message));
@@ -1252,7 +1228,7 @@ export class Fluxer extends Service {
 		const payload = await this.translateDiscordMessage(message);
 		payload.content = appendContent(
 			payload.content,
-			[...message.stickers.values()].map(sticker => sticker.url),
+			message.stickers.values().map(sticker => sticker.url).toArray(),
 			4000
 		);
 		const components = message.components.map(component => component.toJSON());
@@ -1283,7 +1259,7 @@ export class Fluxer extends Service {
 				this.fluxerWebhookMessagePath(webhook, route, mapping.fluxer_message_id),
 				{
 					content: payload.content || null,
-					...(embeds.length > 0 ? { embeds } : {}),
+					...((embeds.length > 0) && { embeds }),
 					allowed_mentions: {
 						parse: [],
 						users: payload.users,
@@ -1349,23 +1325,36 @@ export class Fluxer extends Service {
 	}
 
 	private async handleFluxerDispatch(event: string, data: unknown) {
-		if (event === "MESSAGE_CREATE") {
-			const message = data as FluxerMessage;
-			if (message.guild_id !== config.guildId) return;
-			if (await this.handleLinkCommand(message)) return;
-			await this.relayFluxerCreate(message);
-		} else if (event === "MESSAGE_UPDATE") {
-			await this.relayFluxerUpdate(data as FluxerMessage);
-		} else if (event === "MESSAGE_DELETE") {
-			const message = data as { id: string; channel_id: string };
-			await this.relayFluxerDelete(message.id);
-		} else if (event === "MESSAGE_DELETE_BULK") {
-			const payload = data as { ids: string[] };
-			for (const id of payload.ids) await this.relayFluxerDelete(id);
-		} else if (event === "THREAD_UPDATE") {
-			await this.relayFluxerThreadUpdate(data as FluxerThreadChannel);
-		} else if (event === "THREAD_DELETE") {
-			await this.relayFluxerThreadDelete(data as { id: string });
+		switch (event) {
+			case "MESSAGE_CREATE": {
+				const message = data as FluxerMessage;
+				if (message.guild_id !== config.guildId) return;
+				if (await this.handleLinkCommand(message)) return;
+				await this.relayFluxerCreate(message);
+				break;
+			}
+			case "MESSAGE_UPDATE": {
+				await this.relayFluxerUpdate(data as FluxerMessage);
+				break;
+			}
+			case "MESSAGE_DELETE": {
+				const message = data as { id: string; channel_id: string };
+				await this.relayFluxerDelete(message.id);
+				break;
+			}
+			case "MESSAGE_DELETE_BULK": {
+				const payload = data as { ids: string[] };
+				for (const id of payload.ids) await this.relayFluxerDelete(id);
+				break;
+			}
+			case "THREAD_UPDATE": {
+				await this.relayFluxerThreadUpdate(data as FluxerThreadChannel);
+				break;
+			}
+			case "THREAD_DELETE": {
+				await this.relayFluxerThreadDelete(data as { id: string });
+				break;
+			}
 		}
 	}
 
@@ -1437,7 +1426,7 @@ export class Fluxer extends Service {
 				content: payload.content || undefined,
 				username: this.fluxerDisplayName(message).slice(0, 80),
 				avatarURL: this.fluxerAvatarUrl(message),
-				...(embeds.length > 0 ? { embeds } : {}),
+				...((embeds.length > 0) && { embeds }),
 				files,
 				allowedMentions: {
 					parse: [],
@@ -1445,7 +1434,7 @@ export class Fluxer extends Service {
 					roles: payload.roles,
 					repliedUser: false,
 				},
-				...(destination.threadId ? { threadId: destination.threadId } : {}),
+				...(destination.threadId && { threadId: destination.threadId }),
 			})
 			.catch(error =>
 				this.relayFailure(
@@ -1491,7 +1480,7 @@ export class Fluxer extends Service {
 				content: appendContent(header, [payload.content, ...fallbackUrls], 2000),
 				username: this.fluxerDisplayName(message).slice(0, 80),
 				avatarURL: this.fluxerAvatarUrl(message),
-				...(embeds.length > 0 ? { embeds } : {}),
+				...((embeds.length > 0) && { embeds }),
 				files,
 				allowedMentions: {
 					parse: [],
@@ -1499,7 +1488,7 @@ export class Fluxer extends Service {
 					roles: payload.roles,
 					repliedUser: false,
 				},
-				...(destination.threadId ? { threadId: destination.threadId } : {}),
+				...(destination.threadId && { threadId: destination.threadId }),
 			})
 			.catch(error =>
 				this.relayFailure(
@@ -1543,7 +1532,7 @@ export class Fluxer extends Service {
 		await destination.webhook
 			.editMessage(mapping.discord_message_id, {
 				content: payload.content || null,
-				...(embeds.length > 0 ? { embeds } : {}),
+				...((embeds.length > 0) && { embeds }),
 				attachments: [],
 				files,
 				allowedMentions: {
@@ -1552,7 +1541,7 @@ export class Fluxer extends Service {
 					roles: payload.roles,
 					repliedUser: false,
 				},
-				...(destination.threadId ? { threadId: destination.threadId } : {}),
+				...(destination.threadId && { threadId: destination.threadId }),
 			})
 			.catch(error =>
 				this.relayFailure(
@@ -1596,7 +1585,7 @@ export class Fluxer extends Service {
 				await channel.messages.delete(mapping.discord_message_id);
 			}
 		} catch (error) {
-			if ((error as { code?: number }).code !== 10008) {
+			if ((error as { code?: number }).code !== 10_008) {
 				this.relayFailure(
 					"fluxer->discord delete",
 					{
@@ -1654,7 +1643,7 @@ export class Fluxer extends Service {
 				}
 			}
 			if (refreshed.size === 0) return content;
-			return content.replace(DISCORD_ATTACHMENT_CDN, match => {
+			return content.replaceAll(DISCORD_ATTACHMENT_CDN, match => {
 				const stripped = match.replace(/[.,;!]+$/, "");
 				const suffix = match.slice(stripped.length);
 				return `${refreshed.get(stripped) ?? stripped}${suffix}`;
@@ -1670,7 +1659,7 @@ export class Fluxer extends Service {
 		const roles = new Set<string>();
 		const emojiFallbackById = new Map<string, UnmappedEmoji>();
 		let content = message.content
-			.replace(/<@&(\d+)>/g, (_match, id) => {
+			.replaceAll(/<@&(\d+)>/g, (_match, id) => {
 				const mapped = this.fluxerRolesByDiscord.get(id);
 				if (mapped) {
 					if (message.mentions.roles.has(id)) roles.add(mapped);
@@ -1678,7 +1667,7 @@ export class Fluxer extends Service {
 				}
 				return `@${message.guild?.roles.cache.get(id)?.name ?? "role"}`;
 			})
-			.replace(/<@!?(\d+)>/g, (_match, id) => {
+			.replaceAll(/<@!?(\d+)>/g, (_match, id) => {
 				const mapped = this.fluxerUsersByDiscord.get(id);
 				if (mapped) {
 					if (message.mentions.users.has(id)) users.add(mapped);
@@ -1686,7 +1675,7 @@ export class Fluxer extends Service {
 				}
 				return `@${message.mentions.users.get(id)?.displayName ?? "user"}`;
 			})
-			.replace(/<#(\d+)>/g, (_match, id) => {
+			.replaceAll(/<#(\d+)>/g, (_match, id) => {
 				const route = this.routesByDiscord.get(id);
 				return route
 					? `<#${route.fluxerChannelId}>`
@@ -1702,13 +1691,13 @@ export class Fluxer extends Service {
 		if (emojiFallbackById.size > 0) {
 			content = appendContent(
 				content,
-				[...emojiFallbackById.values()].map(emoji =>
-					discordEmojiCdnUrl(emoji.id, emoji.animated)
-				),
+				emojiFallbackById.values()
+					.map(emoji => discordEmojiCdnUrl(emoji.id, emoji.animated))
+					.toArray(),
 				4000
 			);
 		}
-		content = content.replace(
+		content = content.replaceAll(
 			/https?:\/\/(?:canary\.|ptb\.)?discord(?:app)?\.com\/channels\/(\d+)\/(\d+)(?:\/(\d+))?/g,
 			(match, _guildId, channelId, messageId) => {
 				if (messageId) return match;
@@ -1725,7 +1714,7 @@ export class Fluxer extends Service {
 		const users = new Set<string>();
 		const roles = new Set<string>();
 		let content = message.content
-			.replace(/<@&(\d+)>/g, (_match, id) => {
+			.replaceAll(/<@&(\d+)>/g, (_match, id) => {
 				const mapped = this.discordRolesByFluxer.get(id);
 				if (mapped) {
 					if (message.mention_roles.includes(id)) roles.add(mapped);
@@ -1733,7 +1722,7 @@ export class Fluxer extends Service {
 				}
 				return "@role";
 			})
-			.replace(/<@!?(\d+)>/g, (_match, id) => {
+			.replaceAll(/<@!?(\d+)>/g, (_match, id) => {
 				const mapped = this.discordUsersByFluxer.get(id);
 				if (mapped) {
 					if (message.mentions.some(user => user.id === id)) users.add(mapped);
@@ -1742,7 +1731,7 @@ export class Fluxer extends Service {
 				const user = message.mentions.find(item => item.id === id);
 				return `@${user?.global_name ?? user?.username ?? "user"}`;
 			})
-			.replace(/<#(\d+)>/g, (_match, id) => {
+			.replaceAll(/<#(\d+)>/g, (_match, id) => {
 				const route = this.routesByFluxer.get(id);
 				return route ? `<#${route.discordChannelId}>` : "#channel";
 			});
@@ -1764,10 +1753,8 @@ export class Fluxer extends Service {
 				type: attachment.contentType ?? "application/octet-stream",
 				data,
 				description: attachment.description,
-				...(typeof attachment.duration !== "undefined"
-					? { duration: Math.round(attachment.duration) }
-					: {}),
-				...(attachment.waveform ? { waveform: attachment.waveform } : {}),
+				...((typeof attachment.duration === "number") && { duration: Math.round(attachment.duration) }),
+				...(attachment.waveform && { waveform: attachment.waveform }),
 			});
 		}
 		try {
@@ -1801,10 +1788,8 @@ export class Fluxer extends Service {
 				attachment: data,
 				name: attachment.filename,
 				description: attachment.description ?? undefined,
-				...(typeof attachment.duration === "number"
-					? { duration: attachment.duration }
-					: {}),
-				...(attachment.waveform ? { waveform: attachment.waveform } : {}),
+				...((typeof attachment.duration === "number") && { duration: attachment.duration }),
+				...(attachment.waveform && { waveform: attachment.waveform }),
 			});
 		}
 		return { files, fallbackUrls };
@@ -1901,7 +1886,7 @@ export class Fluxer extends Service {
 				this.discordBridgeWebhookIds.add(webhook.id);
 				return {
 					webhook,
-					...(isThreadDestination ? { threadId: route.discordChannelId } : {}),
+					...(isThreadDestination && { threadId: route.discordChannelId }),
 				};
 			})();
 			this.discordWebhooks.set(webhookChannelId, pending);
@@ -1910,7 +1895,7 @@ export class Fluxer extends Service {
 		const destination = await pending;
 		return {
 			webhook: destination.webhook,
-			...(isThreadDestination ? { threadId: route.discordChannelId } : {}),
+			...(isThreadDestination && { threadId: route.discordChannelId }),
 		};
 	}
 
@@ -1919,7 +1904,7 @@ export class Fluxer extends Service {
 	}
 
 	private fluxerAvatarUrl(message: FluxerMessage) {
-		if (!message.author.avatar) return undefined;
+		if (!message.author.avatar) return;
 		const extension = message.author.avatar.startsWith("a_") ? "gif" : "png";
 		return `${config.mediaBaseUrl}/avatars/${message.author.id}/${message.author.avatar}.${extension}`;
 	}

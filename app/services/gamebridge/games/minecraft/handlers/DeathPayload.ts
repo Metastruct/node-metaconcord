@@ -23,12 +23,12 @@ export default class DeathPayload extends Payload {
 
 		const embed = new Discord.EmbedBuilder()
 			.setAuthor({
-				name: message.substring(0, 256),
+				name: message.slice(0, 256),
 				iconURL: `https://mc-heads.net/avatar/${player.uuid}`,
 				url: `https://namemc.com/profile/${player.uuid}`,
 			})
 			// grey, so it stays distinct from JoinLeavePayload's green/red pair
-			.setColor(0x808080);
+			.setColor(0x80_80_80);
 		await (relayChannel as Discord.TextChannel).send({ embeds: [embed] });
 	}
 }

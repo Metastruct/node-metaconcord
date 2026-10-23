@@ -6,7 +6,7 @@ import WebAppProvider, { WebApp } from "#/app/services/webapp/index.js";
 import { encrypt } from "#/app/services/webapp/secretBox.js";
 import WebAppConfig from "#/config/webapp.json" with { type: "json" };
 import OIDCConfig from "#/config/oidc.json" with { type: "json" };
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 /**
  * Local integration test for the OIDC provider. Boots ONLY the services it
@@ -118,11 +118,11 @@ async function getWithCookies(url: URL | string, cookie?: string): Promise<Respo
 	for (let hops = 0; hops < 10; hops++) {
 		const res = await fetch(current, {
 			redirect: "manual",
-			headers: { cookie: [...jar.values()].join("; ") },
+			headers: { cookie: jar.values().toArray().join("; ") },
 		});
 		for (const set of res.headers.getSetCookie()) {
-			const [pair] = set.split(";");
-			const [name, value] = pair.split("=");
+			const [pair] = set.split(";", 1);
+			const [name, value] = pair.split("=", 2);
 			// like a browser: a Set-Cookie with an empty value expires the cookie
 			if (value === "") jar.delete(name);
 			else jar.set(name, `${name}=${value}`);
@@ -144,12 +144,12 @@ async function followToCode(authUrl: URL, cookie?: string): Promise<URL> {
 	for (let hops = 0; hops < 10; hops++) {
 		const res = await fetch(url, {
 			redirect: "manual",
-			headers: { cookie: [...jar.values()].join("; ") },
+			headers: { cookie: jar.values().toArray().join("; ") },
 		});
 		// carry oidc-provider's interaction cookies through the hops
 		for (const set of res.headers.getSetCookie()) {
-			const [pair] = set.split(";");
-			const [name, value] = pair.split("=");
+			const [pair] = set.split(";", 1);
+			const [name, value] = pair.split("=", 2);
 			// like a browser: a Set-Cookie with an empty value expires the cookie
 			if (value === "") jar.delete(name);
 			else jar.set(name, `${name}=${value}`);
@@ -200,7 +200,7 @@ async function main(): Promise<void> {
 		authUrl.searchParams.set("nonce", "no456");
 		const loggedOut = await getWithCookies(authUrl);
 		const pickerHtml = await loggedOut.text();
-		const pickerLinks = [...pickerHtml.matchAll(/href="([^"]+)"/g)].map(m => m[1]);
+		const pickerLinks = pickerHtml.matchAll(/href="([^"]+)"/g).map(m => m[1]).toArray();
 		check(
 			"no session shows provider picker",
 			(loggedOut.headers.get("content-type") ?? "").includes("text/html") &&
@@ -211,8 +211,8 @@ async function main(): Promise<void> {
 							href.includes("target=self")
 					)
 				) &&
-				!["steam", "gitlab"].some(provider =>
-					pickerLinks.some(href => href.includes(`/auth/${provider}?`))
+				["steam", "gitlab"].every(provider =>
+					pickerLinks.every(href => !href.includes(`/auth/${provider}?`))
 				)
 		);
 
@@ -240,7 +240,7 @@ async function main(): Promise<void> {
 			error?: string;
 		};
 		const idClaims = tokens.id_token
-			? (JSON.parse(Buffer.from(tokens.id_token.split(".")[1], "base64url").toString()) as {
+			? (JSON.parse(Buffer.from(tokens.id_token.split(".", 2)[1], "base64url").toString()) as {
 				sub: string;
 			})
 			: undefined;
@@ -321,7 +321,7 @@ async function main(): Promise<void> {
 		]);
 		const staleRes = await fetch(authUrl, {
 			redirect: "manual",
-			headers: { cookie: [...staleCookies.values()].join("; ") },
+			headers: { cookie: staleCookies.values().toArray().join("; ") },
 		});
 		const staleLocation = new URL(staleRes.headers.get("location") ?? "", authUrl);
 		check(
@@ -371,7 +371,4 @@ async function main(): Promise<void> {
 	}
 }
 
-main().catch(err => {
-	console.error(err);
-	process.exitCode = 1;
-});
+await main();

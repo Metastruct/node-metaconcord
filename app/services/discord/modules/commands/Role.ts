@@ -53,21 +53,21 @@ const setRoleColorSpecial = async (
 			reason = "Removed gradient via command";
 		} else {
 			const primary = ctx.options.getString("primary_color");
-			const secondary = !options?.holographic
-				? ctx.options.getString("secondary_color", true)
-				: null;
+			const secondary = options?.holographic
+				? null
+				: ctx.options.getString("secondary_color", true);
 
 			let primaryColor = primary
-				? parseInt(primary.replace(/^#+/, ""), 16)
+				? Number.parseInt(primary.replace(/^#+/, ""), 16)
 				: role.colors.primaryColor;
-			let secondaryColor = secondary ? parseInt(secondary.replace(/^#+/, ""), 16) : undefined;
-			let tertiaryColor: number | undefined = undefined;
+			let secondaryColor = secondary ? Number.parseInt(secondary.replace(/^#+/, ""), 16) : undefined;
+			let tertiaryColor: number | undefined;
 
 			if (options?.holographic) {
 				// for some reason only this one has a third colour option and it's static
-				primaryColor = 11127295;
-				secondaryColor = 16759788;
-				tertiaryColor = 16761760;
+				primaryColor = 11_127_295;
+				secondaryColor = 16_759_788;
+				tertiaryColor = 16_761_760;
 			}
 			colors = {
 				primaryColor,
@@ -84,8 +84,8 @@ const setRoleColorSpecial = async (
 				`👍\nhere is your old role color if you want to change back: Primary: \`${role.hexColor}\`${role.colors.secondaryColor ? ` Secondary: ${`#${role.colors.secondaryColor.toString(16).padStart(6, "0")}`}` : ""}${role.colors.tertiaryColor ? ` Tertiary: ${`#${role.colors.tertiaryColor.toString(16).padStart(6, "0")}`}` : ""}`
 			)
 		);
-	} catch (err) {
-		log.error(err);
+	} catch (error) {
+		log.error(error);
 		await ctx.followUp(EphemeralResponse("Something went wrong trying to add the gradient :("));
 	}
 };
@@ -114,9 +114,9 @@ const uploadIcon = async (ctx: Discord.ChatInputCommandInteraction, role: Discor
 	const url = ctx.options.getString("image_url");
 	const reqURL = attachment
 		? attachment.url
-		: url
+		: (url
 			? url.match(/(https?:\/\/.*\.(?:png|jpg))/)?.[0]
-			: undefined;
+			: undefined);
 
 	if (reqURL) {
 		try {
@@ -156,7 +156,7 @@ const setEmoji = async (
 	role: Discord.Role
 ): Promise<void> => {
 	const unicode = emoji.match(
-		/^(?:\p{RI}\p{RI}|\p{Extended_Pictographic}(?:\uFE0F)?|\p{Emoji_Modifier_Base}\p{Emoji_Modifier})(?:\u200d(?:\p{RI}\p{RI}|\p{Extended_Pictographic}(?:\uFE0F)?|\p{Emoji_Modifier_Base}\p{Emoji_Modifier}))*$/u
+		/^(?:\p{RI}\p{RI}|\p{Extended_Pictographic}(?:\u{FE0F})?|\p{Emoji_Modifier_Base}\p{Emoji_Modifier})(?:\u{200D}(?:\p{RI}\p{RI}|\p{Extended_Pictographic}(?:\u{FE0F})?|\p{Emoji_Modifier_Base}\p{Emoji_Modifier}))*$/u
 	);
 	const custom = emoji.match(/<?(a)?:?(\w{2,32}):(\d{17,19})>?$/);
 
@@ -208,7 +208,7 @@ const removeRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<voi
 
 const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<void> => {
 	let roleName = ctx.options.getString("name")?.trim() ?? ctx.user.displayName;
-	roleName = roleName.substring(0, 1) + ROLE_IDENTIFIER + roleName.substring(1);
+	roleName = roleName.at(0) + ROLE_IDENTIFIER + roleName.slice(1);
 	const hex = ctx.options.getString("hex")?.trim();
 
 	const guild = ctx.guild;
@@ -223,13 +223,26 @@ const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<void> 
 
 	// if a colour is defined replace it. Otherwise fall back to the existing one (to change the name only) or get a random one
 	const roleColor: Discord.ColorResolvable = hex
-		? parseInt(hex.replace(/^#+/, ""), 16)
-		: customRole
+		? Number.parseInt(hex.replace(/^#+/, ""), 16)
+		: (customRole
 			? customRole.colors.primaryColor
-			: "Random";
+			: "Random");
 
 	let targetRole = roles.cache.find((r: { name: string }) => r.name === roleName);
-	if (!targetRole) {
+	if (targetRole) {
+		try {
+			await targetRole.setColors(
+				{ primaryColor: roleColor },
+				"Updated role color via command"
+			);
+		} catch (error) {
+			log.error(error);
+			await ctx.followUp(
+				EphemeralResponse("Something went wrong changing the color of the role :(")
+			);
+			return;
+		}
+	} else {
 		// if we have an another existing role, remove it instead of renaming to prevent hijacking
 		if (customRole) {
 			await member.roles.remove(customRole);
@@ -246,19 +259,6 @@ const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<void> 
 			colors: { primaryColor: roleColor },
 			position: boosterRole ? boosterRole?.position + 1 : 2,
 		});
-	} else {
-		try {
-			await targetRole.setColors(
-				{ primaryColor: roleColor },
-				"Updated role color via command"
-			);
-		} catch (err) {
-			log.error(err);
-			await ctx.followUp(
-				EphemeralResponse("Something went wrong changing the color of the role :(")
-			);
-			return;
-		}
 	}
 
 	await member.roles.add(targetRole);
@@ -402,10 +402,10 @@ export const SlashRoleCommand: SlashCommand = {
 					await removeRoleIcon(ctx);
 					break;
 			}
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 			await ctx.followUp(
-				EphemeralResponse("Something went wrong adding your role :(\n" + err)
+				EphemeralResponse("Something went wrong adding your role :(\n" + error)
 			);
 		}
 	},

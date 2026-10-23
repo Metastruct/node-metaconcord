@@ -1,5 +1,5 @@
 import { TTLCache } from "./cache.js";
-import type { GitHost } from "./types.js";
+import type { AddonSource, GitHost } from "./types.js";
 import { logger } from "#/utils.js";
 import apikeys from "#/config/apikeys.json" with { type: "json" };
 import axios from "axios";
@@ -63,9 +63,9 @@ export function parseGitRemote(remote: string): GitRemote | undefined {
 
 	const host: GitHost = hostname.endsWith("github.com")
 		? "github"
-		: hostname.includes("gitlab")
+		: (hostname.includes("gitlab")
 			? "gitlab"
-			: "other";
+			: "other");
 
 	return { host, hostname, path, webUrl: `https://${hostname}/${path}` };
 }
@@ -142,7 +142,7 @@ async function resolveGitUncached(
 			const res = await axios.head(remote.webUrl, {
 				maxRedirects: 0,
 				validateStatus: () => true,
-				timeout: 10000,
+				timeout: 10_000,
 				headers: { "User-Agent": USER_AGENT },
 			});
 			result = {
@@ -154,8 +154,8 @@ async function resolveGitUncached(
 				transient: res.status >= 500,
 			};
 		}
-	} catch (err) {
-		log.warn({ err: errInfo(err), remote: remote.webUrl }, "git resolution failed");
+	} catch (error) {
+		log.warn({ err: errInfo(error), remote: remote.webUrl }, "git resolution failed");
 		result = { public: false, transient: true };
 	}
 	if (result.transient) {
@@ -174,12 +174,12 @@ async function fetchGithubRepo(
 		try {
 			const res = await github.rest.repos.get({ owner, repo });
 			return { status: res.status, data: res.data };
-		} catch (err) {
-			const status = (err as { status?: number }).status ?? 0;
+		} catch (error) {
+			const status = (error as { status?: number }).status ?? 0;
 			// 404 is a definitive answer; auth problems fall through to the anonymous path
 			if (status === 404 || status >= 500) return { status };
 			log.warn(
-				{ err: errInfo(err), owner, repo },
+				{ err: errInfo(error), owner, repo },
 				"authenticated github lookup failed, retrying anonymously"
 			);
 		}
@@ -187,7 +187,7 @@ async function fetchGithubRepo(
 
 	const res = await axios.get<GithubRepo>(`https://api.github.com/repos/${owner}/${repo}`, {
 		validateStatus: () => true,
-		timeout: 10000,
+		timeout: 10_000,
 		headers: { "User-Agent": USER_AGENT, Accept: "application/vnd.github+json" },
 	});
 	if (res.status === 403 && res.headers["x-ratelimit-remaining"] === "0") {
@@ -200,12 +200,12 @@ async function fetchGithubRepo(
 const gitlabToken = (apikeys as { gitlab?: string }).gitlab;
 const gitlabHeaders = () => ({
 	"User-Agent": USER_AGENT,
-	...(gitlabToken ? { "PRIVATE-TOKEN": gitlabToken } : {}),
+	...(gitlabToken && { "PRIVATE-TOKEN": gitlabToken }),
 });
 
 /** "https://host/group/repo/-/blob/master/docs/README.rst" -> "docs/README.rst" */
 const readmeUrlPath = (url: string | null, branch: string | null): string | undefined => {
-	const after = url?.split("/-/blob/")[1];
+	const after = url?.split("/-/blob/", 2)[1];
 	if (!after) return;
 	const path = decodeURIComponent(after);
 	// the branch can hold slashes of its own, so trim the known one rather than a segment
@@ -214,7 +214,7 @@ const readmeUrlPath = (url: string | null, branch: string | null): string | unde
 };
 
 async function resolveGithub(remote: GitRemote, github?: GithubClient): Promise<GitResolution> {
-	const [owner, repo] = remote.path.split("/");
+	const [owner, repo] = remote.path.split("/", 2);
 	if (!owner || !repo) return { public: false };
 
 	const res = await fetchGithubRepo(owner, repo, github);
@@ -275,7 +275,7 @@ async function resolveGitlab(remote: GitRemote): Promise<GitResolution> {
 		namespace?: { avatar_url: string | null };
 	}>(`https://${remote.hostname}/api/v4/projects/${encodeURIComponent(remote.path)}`, {
 		validateStatus: () => true,
-		timeout: 10000,
+		timeout: 10_000,
 		headers: gitlabHeaders(),
 	});
 	if (res.status !== 200) return { public: false, transient: res.status >= 500 };
@@ -299,7 +299,7 @@ async function resolveGitlab(remote: GitRemote): Promise<GitResolution> {
 		{
 			params: { per_page: 1 },
 			validateStatus: () => true,
-			timeout: 10000,
+			timeout: 10_000,
 			headers: { "User-Agent": USER_AGENT },
 		}
 	);
@@ -325,7 +325,7 @@ export async function resolveReadme(
 	rootPath: string | undefined,
 	github?: GithubClient
 ): Promise<string | undefined> {
-	const key = `${remote.webUrl}\u0000${subpath ?? ""}\u0000${ref ?? ""}`;
+	const key = `${remote.webUrl}\0${subpath ?? ""}\0${ref ?? ""}`;
 	const cached = readmeCache.get(key);
 	if (cached !== undefined) return cached ?? undefined;
 
@@ -339,9 +339,9 @@ export async function resolveReadme(
 			readmeCache.set(key, summary ?? null);
 			return summary;
 		})
-		.catch(err => {
-			log.warn({ err: errInfo(err), remote: remote.webUrl, subpath }, "readme lookup failed");
-			return undefined;
+		.catch((error): undefined => {
+			log.warn({ err: errInfo(error), remote: remote.webUrl, subpath }, "readme lookup failed");
+			return;
 		})
 		.finally(() => readmeInflight.delete(key));
 	readmeInflight.set(key, promise);
@@ -356,7 +356,7 @@ async function fetchReadme(
 	github?: GithubClient
 ): Promise<string | undefined> {
 	if (remote.host === "github") {
-		const [owner, repo] = remote.path.split("/");
+		const [owner, repo] = remote.path.split("/", 2);
 		if (!owner || !repo) return;
 		// The github endpoint finds whatever the readme is called, in a directory too.
 		if (github) {
@@ -374,7 +374,7 @@ async function fetchReadme(
 		const res = await axios.get<string>(url, {
 			params: ref ? { ref } : undefined,
 			validateStatus: () => true,
-			timeout: 10000,
+			timeout: 10_000,
 			headers: { "User-Agent": USER_AGENT, Accept: "application/vnd.github.raw" },
 		});
 		return res.status === 200 && typeof res.data === "string" ? res.data : undefined;
@@ -388,7 +388,7 @@ async function fetchReadme(
 			{
 				params: { ref: ref ?? "HEAD" },
 				validateStatus: () => true,
-				timeout: 10000,
+				timeout: 10_000,
 				headers: gitlabHeaders(),
 				// a README is text, but axios guesses JSON from the content type
 				responseType: "text",
@@ -406,14 +406,14 @@ async function fetchReadme(
  */
 export function readmeSummary(markdown: string): string | undefined {
 	const body = markdown
-		.replace(/\r\n/g, "\n")
-		.replace(/<!--[\s\S]*?-->/g, "")
+		.replaceAll("\r\n", "\n")
+		.replaceAll(/<!--[\s\S]*?-->/g, "")
 		.replace(/^---\n[\s\S]*?\n---\n/, "") // front matter
-		.replace(/```[\s\S]*?```/g, "")
+		.replaceAll(/```[\s\S]*?```/g, "")
 		// an html title becomes a markdown one so a single rule handles both
-		.replace(
+		.replaceAll(
 			/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/gi,
-			(_, text: string) => `\n\n# ${text.replace(/<[^>]+>/g, " ").trim()}\n\n`
+			(_, text: string) => `\n\n# ${text.replaceAll(/<[^>]+>/g, " ").trim()}\n\n`
 		);
 
 	const out: string[] = [];
@@ -421,10 +421,10 @@ export function readmeSummary(markdown: string): string | undefined {
 		// A title often sits on the line above its own paragraph, so drop the title
 		// rather than the block, and stop once a later section starts.
 		const { heading, rest } = stripHeadings(block);
-		if (heading && out.length) break;
+		if (heading && out.length > 0) break;
 		if (!rest || isDecoration(rest)) continue;
 		if (isTable(rest)) {
-			if (out.length) break;
+			if (out.length > 0) break;
 			continue;
 		}
 		const text = flattenMarkdown(rest);
@@ -469,12 +469,12 @@ const isProse = (text: string) => text.split(/\s+/).filter(Boolean).length >= 3;
  */
 function isDecoration(block: string): boolean {
 	const withoutLinks = block
-		.replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-		.replace(/\[[^\]]*\]\([^)]*\)/g, "")
-		.replace(/\[[^\]]*\]\[[^\]]*\]/g, "")
-		.replace(/https?:\/\/\S+/g, "") // a bare link on its own line
-		.replace(/<[^>]+>/g, "")
-		.replace(/^\s*(?:[-*+]|\d+[.)])\s+/gm, "");
+		.replaceAll(/!\[[^\]]*\]\([^)]*\)/g, "")
+		.replaceAll(/\[[^\]]*\]\([^)]*\)/g, "")
+		.replaceAll(/\[[^\]]*\]\[[^\]]*\]/g, "")
+		.replaceAll(/https?:\/\/\S+/g, "") // a bare link on its own line
+		.replaceAll(/<[^>]+>/g, "")
+		.replaceAll(/^\s*(?:[-*+]|\d+[.)])\s+/gm, "");
 	return !/[a-z0-9]/i.test(withoutLinks);
 }
 
@@ -482,7 +482,7 @@ function isDecoration(block: string): boolean {
 function isTable(block: string): boolean {
 	const lines = block.trim().split("\n");
 	return (
-		lines.length > 1 && lines.filter(l => l.trim().startsWith("|")).length >= lines.length / 2
+		lines.length > 1 && lines.filter(l => l.trimStart().startsWith("|")).length >= lines.length / 2
 	);
 }
 
@@ -491,11 +491,11 @@ const BULLET = /^\s*(?:[-*+]|\d+[.)])\s+/m;
 /** One markdown block to plain text; empty when the block was only decoration. */
 function flattenMarkdown(block: string): string {
 	const cleaned = block
-		.replace(/!\[[^\]]*\]\([^)]*\)/g, "") // images
-		.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1") // links keep their text
-		.replace(/\[([^\]]*)\]\[[^\]]*\]/g, "$1") // reference links
-		.replace(/<[^>]+>/g, "") // inline html and badge markup
-		.replace(/^\s*>\s?/gm, ""); // quotes
+		.replaceAll(/!\[[^\]]*\]\([^)]*\)/g, "") // images
+		.replaceAll(/\[([^\]]*)\]\([^)]*\)/g, "$1") // links keep their text
+		.replaceAll(/\[([^\]]*)\]\[[^\]]*\]/g, "$1") // reference links
+		.replaceAll(/<[^>]+>/g, "") // inline html and badge markup
+		.replaceAll(/^\s*>\s?/gm, ""); // quotes
 
 	// list items read as a sentence rather than running into each other
 	const parts = BULLET.test(cleaned) ? cleaned.split(/\n(?=\s*(?:[-*+]|\d+[.)])\s+)/) : [cleaned];
@@ -503,8 +503,8 @@ function flattenMarkdown(block: string): string {
 		.map(part =>
 			part
 				.replace(BULLET, "")
-				.replace(/[*_~`]/g, "")
-				.replace(/\s+/g, " ")
+				.replaceAll(/[*_~`]/g, "")
+				.replaceAll(/\s+/g, " ")
 				.trim()
 		)
 		.filter(Boolean)
@@ -539,24 +539,24 @@ export async function resolveModrinth(hashes: string[]): Promise<Map<string, Mod
 		if (cached === undefined) missing.push(hash);
 		else if (cached) out.set(hash, cached);
 	}
-	if (!missing.length) return out;
+	if (missing.length === 0) return out;
 
 	try {
 		const versions = (
 			await axios.post<Record<string, ModrinthVersion>>(
 				"https://api.modrinth.com/v2/version_files",
 				{ hashes: missing, algorithm: "sha512" },
-				{ headers: { "User-Agent": USER_AGENT }, timeout: 15000 }
+				{ headers: { "User-Agent": USER_AGENT }, timeout: 15_000 }
 			)
 		).data;
 
 		const projectIds = [...new Set(Object.values(versions).map(v => v.project_id))];
-		const projects = projectIds.length
+		const projects = projectIds.length > 0
 			? (
 				await axios.get<ModrinthProject[]>("https://api.modrinth.com/v2/projects", {
 					params: { ids: JSON.stringify(projectIds) },
 					headers: { "User-Agent": USER_AGENT },
-					timeout: 15000,
+					timeout: 15_000,
 				})
 			).data
 			: [];
@@ -578,8 +578,8 @@ export async function resolveModrinth(hashes: string[]): Promise<Map<string, Mod
 			modrinthCache.set(hash, match);
 			out.set(hash, match);
 		}
-	} catch (err) {
-		log.warn({ err: errInfo(err) }, "modrinth resolution failed");
+	} catch (error) {
+		log.warn({ err: errInfo(error) }, "modrinth resolution failed");
 	}
 	return out;
 }
@@ -603,7 +603,7 @@ export async function resolveCurseforge(
 		if (cached === undefined) missing.push(fp);
 		else if (cached) out.set(fp, cached);
 	}
-	if (!missing.length) return out;
+	if (missing.length === 0) return out;
 
 	const headers = { "x-api-key": curseforgeKey, "User-Agent": USER_AGENT };
 	try {
@@ -619,7 +619,7 @@ export async function resolveCurseforge(
 			}>(
 				"https://api.curseforge.com/v1/fingerprints",
 				{ fingerprints: missing },
-				{ headers, timeout: 15000 }
+				{ headers, timeout: 15_000 }
 			)
 		).data.data.exactMatches;
 
@@ -627,7 +627,7 @@ export async function resolveCurseforge(
 		for (const m of matches) fpToMod.set(Number(m.file.fileFingerprint), Number(m.file.modId));
 
 		const modIds = [...new Set(fpToMod.values())];
-		const mods = modIds.length
+		const mods = modIds.length > 0
 			? (
 				await axios.post<{
 					data: {
@@ -640,7 +640,7 @@ export async function resolveCurseforge(
 				}>(
 					"https://api.curseforge.com/v1/mods",
 					{ modIds },
-					{ headers, timeout: 15000 }
+					{ headers, timeout: 15_000 }
 				)
 			).data.data
 			: [];
@@ -648,7 +648,7 @@ export async function resolveCurseforge(
 
 		for (const fp of missing) {
 			const modId = fpToMod.get(fp);
-			const mod = modId !== undefined ? byId.get(modId) : undefined;
+			const mod = typeof modId === "number" ? byId.get(modId) : undefined;
 			if (!mod) {
 				curseforgeCache.set(String(fp), null);
 				continue;
@@ -663,8 +663,8 @@ export async function resolveCurseforge(
 			curseforgeCache.set(String(fp), match);
 			out.set(fp, match);
 		}
-	} catch (err) {
-		log.warn({ err: errInfo(err) }, "curseforge resolution failed");
+	} catch (error) {
+		log.warn({ err: errInfo(error) }, "curseforge resolution failed");
 	}
 	return out;
 }
@@ -682,19 +682,36 @@ export type PlatformMatch =
 	| { platform: "modrinth"; projectId: string; meta: ResolvedMeta }
 	| { platform: "curseforge"; projectId: number; meta: ResolvedMeta };
 
+export function platformMatchToAddonSource(input: PlatformMatch): AddonSource {
+	switch (input.platform) {
+		case "modrinth":
+			return {
+				kind: input.platform,
+				projectId: input.projectId,
+				url: input.meta.url
+			};
+		case "curseforge":
+			return {
+				kind: input.platform,
+				projectId: input.projectId,
+				url: input.meta.url
+			};
+	}
+}
+
 const nameCache = new TTLCache<PlatformMatch | null>(DAY);
-const compact = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+const compact = (s: string) => s.toLowerCase().replaceAll(/[^a-z0-9]/g, "");
 
 const slugCandidates = (modId: string, displayName: string): string[] => {
 	const out = new Set<string>();
 	for (const raw of [modId, displayName]) {
 		const base = (raw ?? "")
 			.toLowerCase()
-			.replace(/[^a-z0-9]+/g, "-")
-			.replace(/^-|-$/g, "");
+			.replaceAll(/[^a-z0-9]+/g, "-")
+			.replaceAll(/^-|-$/g, "");
 		if (!base) continue;
 		out.add(base);
-		out.add(base.replace(/-/g, ""));
+		out.add(base.replaceAll("-", ""));
 	}
 	return [...out];
 };
@@ -718,7 +735,7 @@ export async function resolveByName(
 	const wanted = new Set([compact(modId ?? ""), compact(displayName ?? "")]);
 	wanted.delete("");
 	const candidates = slugCandidates(modId, displayName);
-	if (!wanted.size || !candidates.length) return;
+	if (wanted.size === 0 || candidates.length === 0) return;
 
 	for (const slug of candidates) {
 		try {
@@ -726,7 +743,7 @@ export async function resolveByName(
 				`https://api.modrinth.com/v2/project/${encodeURIComponent(slug)}`,
 				{
 					validateStatus: () => true,
-					timeout: 10000,
+					timeout: 10_000,
 					headers: { "User-Agent": USER_AGENT },
 				}
 			);
@@ -743,8 +760,8 @@ export async function resolveByName(
 					url: `https://modrinth.com/mod/${res.data.slug}`,
 				},
 			}) as PlatformMatch;
-		} catch (err) {
-			log.warn({ err: errInfo(err), slug }, "modrinth slug lookup failed");
+		} catch (error) {
+			log.warn({ err: errInfo(error), slug }, "modrinth slug lookup failed");
 		}
 	}
 
@@ -758,7 +775,7 @@ export async function resolveByName(
 						params: { gameId: 432, classId: 6, slug, pageSize: 5 },
 						headers: { "x-api-key": curseforgeKey, "User-Agent": USER_AGENT },
 						validateStatus: () => true,
-						timeout: 10000,
+						timeout: 10_000,
 					}
 				);
 				if (res.status !== 200) continue;
@@ -774,8 +791,8 @@ export async function resolveByName(
 						url: mod.links.websiteUrl,
 					},
 				}) as PlatformMatch;
-			} catch (err) {
-				log.warn({ err: errInfo(err), slug }, "curseforge slug lookup failed");
+			} catch (error) {
+				log.warn({ err: errInfo(error), slug }, "curseforge slug lookup failed");
 			}
 		}
 	}

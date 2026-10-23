@@ -40,8 +40,8 @@ const slugify = (s: string): string =>
 	s
 		.toLowerCase()
 		.normalize("NFKD")
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-+|-+$/g, "")
+		.replaceAll(/[^a-z0-9]+/g, "-")
+		.replaceAll(/^-+|-+$/g, "")
 		.slice(0, 48) || "event";
 
 const validate = (input: unknown): HistoryEvent | string => {
@@ -67,8 +67,7 @@ const validate = (input: unknown): HistoryEvent | string => {
 	return out;
 };
 
-const sortEvents = (events: HistoryEvent[]): HistoryEvent[] =>
-	events.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+const eventCompareFn = (a: HistoryEvent, b: HistoryEvent) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id);
 
 const uniqueId = (events: HistoryEvent[], ev: HistoryEvent): string => {
 	const base = `${ev.date}-${slugify(ev.name)}`;
@@ -99,15 +98,15 @@ const readPublic = async (appOctokit: Octokit): Promise<HistoryEvent[]> => {
 			Buffer.from(data.content, "base64").toString("utf8")
 		) as HistoryEvent[];
 		publicCache = { events, etag: headers.etag, checkedAt: Date.now() };
-	} catch (err) {
-		const status = (err as { status?: number }).status;
+	} catch (error) {
+		const status = (error as { status?: number }).status;
 		if (status === 304 && publicCache) {
 			publicCache.checkedAt = Date.now();
 		} else if (publicCache) {
-			log.warn(err, "history revalidation failed, serving the cached copy");
+			log.warn(error, "history revalidation failed, serving the cached copy");
 			publicCache.checkedAt = Date.now();
 		} else {
-			throw err;
+			throw error;
 		}
 	}
 	return publicCache.events;
@@ -118,7 +117,7 @@ const readFile = async (octokit: Octokit) => {
 	if (Array.isArray(data) || data.type !== "file") throw new Error("history path is not a file");
 	const content = Buffer.from(data.content, "base64").toString("utf8");
 	const events = (content.trim() ? JSON.parse(content) : []) as HistoryEvent[];
-	if (!Array.isArray(events)) throw new Error("history file is not an array");
+	if (!Array.isArray(events)) throw new TypeError("history file is not an array");
 	return { events, sha: data.sha };
 };
 
@@ -128,7 +127,7 @@ const writeFile = async (
 	sha: string,
 	message: string
 ) => {
-	const content = JSON.stringify(sortEvents(events), null, 2) + "\n";
+	const content = JSON.stringify(events, null, 2) + "\n";
 	const { data } = await octokit.repos.createOrUpdateFileContents({
 		...FILE,
 		branch: HistoryConfig.branch,
@@ -141,7 +140,7 @@ const writeFile = async (
 
 type Mutation = (
 	events: HistoryEvent[]
-) => { events: HistoryEvent[]; event: HistoryEvent; message: string; mirror?: boolean } | string;
+) => string | { events: HistoryEvent[]; event: HistoryEvent; message: string; mirror?: boolean };
 
 /**
  * Sends 401 and returns undefined unless the staff session carries a usable GitHub token.
@@ -169,12 +168,14 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 	const octokit = new Octokit({ auth: session.token });
 
 	try {
-		const { events, sha } = await readFile(octokit);
-		const result = fn(events);
+		const old = await readFile(octokit);
+		const result = fn(old.events);
+		
 		if (typeof result === "string") {
 			res.status(400).json({ error: result });
 			return;
 		}
+
 		// the image lands first, because its URL names the commit that holds it
 		if (result.mirror && result.event.imageUrl)
 			result.event.imageUrl = await mirrorImage(
@@ -183,18 +184,19 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 				result.event.name
 			);
 
-		const commitUrl = await writeFile(octokit, result.events, sha, result.message);
+		result.events.sort(eventCompareFn);
+		const commitUrl = await writeFile(octokit, result.events, old.sha, result.message);
 		log.info(`${session.login}: ${result.message}`);
 		publicCache = { events: result.events, etag: undefined, checkedAt: Date.now() };
 		res.json({ event: result.event, events: result.events, commitUrl });
-	} catch (err) {
+	} catch (error) {
 		// a source we cannot copy is the editor's to fix, so refuse rather than
 		// store a link that will rot
-		if (err instanceof MirrorError) {
-			res.status(400).json({ error: `could not copy the image: ${err.message}` });
+		if (error instanceof MirrorError) {
+			res.status(400).json({ error: `could not copy the image: ${error.message}` });
 			return;
 		}
-		const status = (err as { status?: number }).status;
+		const status = (error as { status?: number }).status;
 		if (status === 409) {
 			res.status(409).json({ error: "history changed concurrently, retry" });
 			return;
@@ -203,7 +205,7 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 			res.status(403).json({ error: "your GitHub token cannot write the history repo" });
 			return;
 		}
-		log.error(err, "history mutation failed");
+		log.error(error, "history mutation failed");
 		res.status(500).json({ error: "history update failed" });
 	}
 };
@@ -222,8 +224,8 @@ export default (webApp: WebApp): void => {
 			const events = await readPublic(github.octokit);
 			res.set("Cache-Control", "public, max-age=15");
 			res.json({ events });
-		} catch (err) {
-			log.error(err, "failed reading history");
+		} catch (error) {
+			log.error(error, "failed reading history");
 			res.status(502).json({ error: "history unavailable" });
 		}
 	});

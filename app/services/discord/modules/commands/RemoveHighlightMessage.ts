@@ -72,8 +72,8 @@ export const MenuRemoveHighlightMessageCommand: MenuCommand = {
 					)
 				);
 			}
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 			await ctx.reply(
 				EphemeralResponse(
 					"something went wrong with deleting your message :( ping @techbot if you want it removed"

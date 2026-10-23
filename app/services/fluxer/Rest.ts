@@ -22,6 +22,12 @@ export type FluxerAttachment = {
 	waveform?: string | null;
 };
 
+export type FluxerMessageEmbed = {
+	name: string;
+	value: string;
+	inline?: boolean;
+};
+
 export type FluxerMessage = {
 	id: string;
 	channel_id: string;
@@ -32,7 +38,7 @@ export type FluxerMessage = {
 	content: string;
 	type: number;
 	attachments?: FluxerAttachment[] | null;
-	embeds?: unknown[] | null;
+	embeds?: FluxerMessageEmbed[];
 	stickers?: { id: string; name: string }[] | null;
 	mentions: FluxerUser[];
 	mention_roles: string[];
@@ -143,10 +149,10 @@ export class FluxerRest {
 				const response = await fetch(`${this.apiBaseUrl}${path}`, {
 					method,
 					headers: {
-						...(authenticated ? { Authorization: `Bot ${this.botToken}` } : {}),
-						...(body ? { "Content-Type": "application/json" } : {}),
+						...(authenticated && { Authorization: `Bot ${this.botToken}` }),
+						...(body && { "Content-Type": "application/json" }),
 					},
-					...(body ? { body: JSON.stringify(body) } : {}),
+					...(body && { body: JSON.stringify(body) }),
 					signal: AbortSignal.timeout(30_000),
 				});
 				if (response.status === 429 && rateLimitAttempts < 8) {
@@ -160,7 +166,7 @@ export class FluxerRest {
 					await sleep(Math.max(retryAfter, 250));
 					continue;
 				}
-				if (response.status >= 500 && canRetryTransientFailure && transientAttempts < 4) {
+				if (canRetryTransientFailure && response.status >= 500 && transientAttempts < 4) {
 					await sleep(500 * 2 ** transientAttempts++);
 					continue;
 				}
@@ -175,8 +181,8 @@ export class FluxerRest {
 				return (await response.json()) as T;
 			} catch (error) {
 				if (
-					error instanceof FluxerApiError ||
 					!canRetryTransientFailure ||
+					error instanceof FluxerApiError ||
 					transientAttempts >= 4
 				)
 					throw error;
@@ -201,9 +207,9 @@ export class FluxerRest {
 					filename: file.name,
 					file_size: file.data.byteLength,
 					content_type: file.type,
-					...(file.description ? { description: file.description } : {}),
-					...(file.duration ? { duration: Math.round(file.duration) } : {}),
-					...(file.waveform ? { waveform: file.waveform } : {}),
+					...(file.description && { description: file.description }),
+					...(file.duration && { duration: Math.round(file.duration) }),
+					...(file.waveform && { waveform: file.waveform }),
 				})),
 			}
 		);

@@ -39,7 +39,7 @@ type ImgurResponse = {
 	status: number;
 };
 
-const filter = [
+const filter = new Set([
 	"again",
 	"also",
 	"an",
@@ -83,7 +83,7 @@ const filter = [
 	"while",
 	"with",
 	"yet",
-];
+]);
 
 export class Motd extends Service {
 	override name = "Motd";
@@ -114,17 +114,17 @@ export class Motd extends Service {
 		if (msg.length < 5) return false;
 		if (msg.search("^[!\\.\\\\/]") === 0) return false;
 		if (msg.search("[a-zA-Z]") === -1) return false;
-		if (msg.indexOf("http://") >= 0) return false;
-		if (msg.indexOf("https://") >= 0) return false;
-		if (msg.indexOf(" ") === -1) return false;
+		if (msg.includes("http://")) return false;
+		if (msg.includes("https://")) return false;
+		if (!msg.includes(" ")) return false;
 
 		return true;
 	}
 
 	async executeMessageJob(): Promise<string | undefined> {
-		if (this.messages.length <= 0) return;
+		if (this.messages.length === 0) return;
 
-		const msg: string = this.messages[(Math.random() * this.messages.length) | 0];
+		const msg: string = this.messages[Math.trunc(Math.random() * this.messages.length)];
 		this.messages = [];
 		if (!msg) return;
 		const data = this.container.getService("Data");
@@ -160,16 +160,16 @@ export class Motd extends Service {
 			if (res.data.status === 200) {
 				return res.data.data;
 			}
-		} catch {}
+		} catch { /* empty */ }
 	}
 
 	async setNicknameFromSentence(motd: string): Promise<boolean | undefined> {
 		if (motd.length === 0) return;
 		const wordList = motd
 			.split(" ")
-			.filter(w => w.length <= 22 && !filter.includes(w.toLowerCase()));
+			.filter(w => w.length <= 22 && !filter.has(w.toLowerCase()));
 		if (wordList.length === 0) return;
-		const word = wordList[(Math.random() * wordList?.length) | 0];
+		const word = wordList[Math.trunc(Math.random() * wordList?.length)];
 		const nick = word.charAt(0).toUpperCase() + word.slice(1);
 		return await this.bot.setNickname(nick, "Random Motd name");
 	}

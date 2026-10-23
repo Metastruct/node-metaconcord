@@ -84,10 +84,10 @@ export const consoleHub = {
 	start(game: ConsoleGame, server: WsGameConnection): void {
 		// an empty backlog means metaconcord has never seen this server stream,
 		// so there is nothing to mark a reconnect against
-		if (consoleFor(game, server.config.id).backlog.length) {
+		if (consoleFor(game, server.config.id).backlog.length > 0) {
 			consoleHub.mark(game, server.config.id, "connected");
 		}
-		sendAction(game, server, "subscribe").catch(err => log.warn(err));
+		sendAction(game, server, "subscribe").catch(error => log.warn(error));
 	},
 
 	/** Adds a viewer and hands back the backlog for it to paint first. */
@@ -134,7 +134,7 @@ export const consoleHub = {
 		if (event.type === "lines") {
 			// the game keeps a replay ring of its own, which is only useful to
 			// seed an empty backlog; past that it repeats what we already hold
-			if (event.replay && state.backlog.length) return;
+			if (event.replay && state.backlog.length > 0) return;
 			state.backlog.push(...event.lines);
 			if (state.backlog.length > BACKLOG) {
 				state.backlog.splice(0, state.backlog.length - BACKLOG);
@@ -143,8 +143,8 @@ export const consoleHub = {
 		for (const listener of state.listeners) {
 			try {
 				listener(event);
-			} catch (err) {
-				log.warn(err, "console listener failed");
+			} catch (error) {
+				log.warn(error, "console listener failed");
 			}
 		}
 	},

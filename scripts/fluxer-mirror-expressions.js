@@ -13,6 +13,8 @@ const dryRun = args.has("--dry-run");
 const assumeYes = args.has("--yes");
 const prune = args.has("--prune");
 
+const retries = 5;
+
 async function readConfig(name) {
 	const candidates = [resolve(root, "config", name), resolve(root, "dist/config", name)];
 	for (const path of candidates) {
@@ -35,7 +37,7 @@ const FLUXER_GUILD = fluxerConfig.guildId;
 
 // Fluxer create rate limits from the documentation, with a safety margin.
 const BULK_CREATE_INTERVAL_MS = 12_000; // 6 per minute
-const ITEM_CREATE_INTERVAL_MS = 4_000; // 10 per 30 seconds
+const ITEM_CREATE_INTERVAL_MS = 4000; // 10 per 30 seconds
 const BULK_CHUNK_SIZE = 50;
 const MAX_EXPRESSION_BYTES = 524_288; // resolved emoji_max_size / sticker_max_size default
 
@@ -49,15 +51,15 @@ async function discordApi(path) {
 	return res.json();
 }
 
-async function fluxerApi(method, path, body, { retries = 5 } = {}) {
+async function fluxerApi(method, path, body) {
 	for (let attempt = 0; ; attempt++) {
 		const res = await fetch(`${FLUXER_API}${path}`, {
 			method,
 			headers: {
 				Authorization: `Bot ${fluxerConfig.botToken}`,
-				...(body ? { "Content-Type": "application/json" } : {}),
+				...(body && { "Content-Type": "application/json" }),
 			},
-			...(body ? { body: JSON.stringify(body) } : {}),
+			...(body && { body: JSON.stringify(body) }),
 		});
 		if (res.status === 429 && attempt < retries) {
 			const retryAfter = Number(res.headers.get("Retry-After") ?? 1) * 1000;
@@ -171,9 +173,9 @@ async function bulkCreate(collection, items, basePath) {
 		chunks.push(items.slice(i, i + BULK_CHUNK_SIZE));
 	}
 	const results = [];
-	for (let i = 0; i < chunks.length; i++) {
+	for (const [i, chunk] of chunks.entries()) {
 		if (i > 0) await sleep(BULK_CREATE_INTERVAL_MS);
-		const body = { [collection]: chunks[i].map(({ _source, ...item }) => item) };
+		const body = { [collection]: chunk.map(({ _source, ...item }) => item) };
 		try {
 			const response = await fluxerApi("POST", `${basePath}/bulk`, body);
 			results.push(...(response.success ?? []));
@@ -182,7 +184,7 @@ async function bulkCreate(collection, items, basePath) {
 			}
 		} catch (error) {
 			warn(`bulk create failed (${error.message}); falling back per item`);
-			for (const item of chunks[i]) {
+			for (const item of chunk) {
 				try {
 					const { _source, ...body } = item;
 					const created = await fluxerApi("POST", basePath, body);
@@ -264,16 +266,14 @@ for (const sticker of discordStickers) {
 	if (!image) continue;
 	stickersToCreate.push({
 		name: sticker.name,
-		...(sticker.description ? { description: sticker.description } : {}),
-		...(typeof sticker.tags === "string" && sticker.tags.length > 0
-			? {
-				tags: sticker.tags
-					.split(",")
-					.map(tag => tag.trim())
-					.filter(Boolean)
-					.slice(0, 10),
-			}
-			: {}),
+		...(sticker.description && { description: sticker.description }),
+		...(typeof sticker.tags === "string" && sticker.tags.length > 0 && {
+			tags: sticker.tags
+				.split(",")
+				.map(tag => tag.trim())
+				.filter(Boolean)
+				.slice(0, 10),
+		}),
 		image,
 		_source: sticker,
 	});
@@ -322,23 +322,22 @@ phase("Persisting bridge mappings");
 const emojiMappingsByFluxer = new Map(
 	emojiMappings.map(mapping => [mapping.fluxerEmojiId, mapping])
 );
-for (const dropped of emojiMappings.filter(
-	mapping => emojiMappingsByFluxer.get(mapping.fluxerEmojiId) !== mapping
-)) {
-	warn(
+emojiMappings
+	.filter(mapping => emojiMappingsByFluxer.get(mapping.fluxerEmojiId) !== mapping)
+	.forEach(dropped => warn(
 		`dropping duplicate mapping for Fluxer emoji "${dropped.name}" (${dropped.fluxerEmojiId})`
-	);
-}
+	));
+
 const stickerMappingsByFluxer = new Map(
 	stickerMappings.map(mapping => [mapping.fluxerStickerId, mapping])
 );
-for (const dropped of stickerMappings.filter(
-	mapping => stickerMappingsByFluxer.get(mapping.fluxerStickerId) !== mapping
-)) {
-	warn(
+
+stickerMappings
+	.filter(mapping => stickerMappingsByFluxer.get(mapping.fluxerStickerId) !== mapping)
+	.forEach(dropped => warn(
 		`dropping duplicate mapping for Fluxer sticker "${dropped.name}" (${dropped.fluxerStickerId})`
-	);
-}
+	));
+
 const database = new BetterSqlite3(
 	process.env.METACONCORD_DB_PATH ?? resolve(root, "metaconcord.db")
 );

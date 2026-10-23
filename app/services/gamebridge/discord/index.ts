@@ -1,3 +1,1 @@
-import DiscordClient from "./DiscordClient.js";
-
-export { DiscordClient };
+export {default as DiscordClient} from "./DiscordClient.js";

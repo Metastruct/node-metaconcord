@@ -8,5 +8,6 @@ connection.prototype.drop = function(reasonCode, ...args) {
 		return;
 	}
 
-	drop.apply(this, [reasonCode, ...args]);
+	// eslint-disable-next-line unicorn/no-this-outside-of-class
+	Reflect.apply(drop, this, [reasonCode, ...args]);
 };

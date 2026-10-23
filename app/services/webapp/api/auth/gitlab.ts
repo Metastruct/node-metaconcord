@@ -10,7 +10,7 @@ import {
 	takeRedirect,
 } from "./session.js";
 import GitlabConfig from "#/config/gitlab.json" with { type: "json" };
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
@@ -35,7 +35,7 @@ export default (webApp: WebApp): void => {
 		url.searchParams.set("response_type", "code");
 		url.searchParams.set("state", state);
 		url.searchParams.set("scope", "read_user");
-		res.redirect(url.toString());
+		res.redirect(url.href);
 	});
 
 	webApp.app.get("/auth/gitlab/callback", limiter, async (req, res) => {
@@ -59,9 +59,9 @@ export default (webApp: WebApp): void => {
 				grant_type: "authorization_code",
 				redirect_uri: callbackUrl,
 			}),
-		}).catch(err => {
-			log.error(err, "gitlab token exchange failed");
-			return undefined;
+		}).catch(error => {
+			log.error(error, "gitlab token exchange failed");
+			return;
 		});
 		const rawTokens = tokenRes ? await tokenRes.text() : "";
 		let tokens: { access_token?: string; error?: string; error_description?: string } = {};
@@ -73,7 +73,7 @@ export default (webApp: WebApp): void => {
 		if (!tokens.access_token) {
 			log.warn(
 				{
-					status: tokenRes?.status,
+					status: tokenRes && tokenRes.status || undefined,
 					error: tokens.error,
 					description: tokens.error_description,
 					body: tokens.error ? undefined : rawTokens.slice(0, 500),
@@ -82,7 +82,7 @@ export default (webApp: WebApp): void => {
 			);
 			// a grant GitLab rejected (expired/reused code) is the user's to retry;
 			// a network failure or 5xx is on GitLab and stays a 502
-			const status = tokenRes?.status ?? 0;
+			const status = tokenRes && tokenRes.status || 0;
 			res.status(status >= 400 && status < 500 ? 400 : 502).send(
 				"gitlab login failed, please try again"
 			);
@@ -91,8 +91,8 @@ export default (webApp: WebApp): void => {
 
 		const userRes = await fetch(`${GITLAB_URL}/api/v4/user`, {
 			headers: { Authorization: `Bearer ${tokens.access_token}` },
-		}).catch(err => {
-			log.error(err, "failed fetching gitlab user");
+		}).catch(error => {
+			log.error(error, "failed fetching gitlab user");
 		});
 
 		const user = userRes && userRes.ok
@@ -116,12 +116,12 @@ export default (webApp: WebApp): void => {
 			setSessionCookie(res, account);
 			log.info(`gitlab login for ${user.username} (account ${account.id})`);
 			res.redirect(redirect);
-		} catch (err) {
-			if (err instanceof LinkConflictError) {
+		} catch (error) {
+			if (error instanceof LinkConflictError) {
 				res.redirect(`${webApp.config.siteUrl}/profile?error=conflict&provider=gitlab`);
 				return;
 			}
-			throw err;
+			throw error;
 		}
 	});
 };

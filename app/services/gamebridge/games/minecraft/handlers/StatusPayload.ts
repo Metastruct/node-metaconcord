@@ -4,7 +4,7 @@ import MinecraftConnection, { MinecraftStatus } from "../MinecraftConnection.js"
 import Payload from "./Payload.js";
 import { renderPlayerListImage } from "../../../renderPlayerList.js";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
-import { logger } from "#/utils.js";
+import { localeCompare, logger } from "#/utils.js";
 
 const log = logger(import.meta);
 
@@ -23,7 +23,7 @@ function buildSignature(
 		hostname: status.hostname,
 		version: status.version,
 		maxPlayers: status.maxPlayers,
-		players: players.map(p => p.steamId64).sort(),
+		players: players.map(p => p.steamId64).toSorted(localeCompare),
 	};
 }
 
@@ -36,7 +36,7 @@ function buildStatusContainer(
 ): Discord.ContainerBuilder {
 	const container = new Discord.ContainerBuilder();
 
-	container.setAccentColor(disconnected ? 0xb54343 : 0x4bb543);
+	container.setAccentColor(disconnected ? 0xB5_43_43 : 0x4B_B5_43);
 
 	let desc =
 		`### ${status.hostname}\n` +
@@ -106,7 +106,7 @@ export default class StatusPayload extends Payload {
 			hostname,
 			version,
 			maxPlayers,
-			upSince: ((Date.now() / 1000) | 0) - uptime,
+			upSince: Math.trunc(Date.now() / 1000) - uptime,
 		};
 
 		const files: Discord.AttachmentBuilder[] = [];
@@ -119,8 +119,8 @@ export default class StatusPayload extends Payload {
 				files.push(
 					new Discord.AttachmentBuilder(server.playerListImage).setName("players.png")
 				);
-			} catch (err) {
-				log.warn(err, "failed to render minecraft player list");
+			} catch (error) {
+				log.warn(error, "failed to render minecraft player list");
 			}
 		}
 

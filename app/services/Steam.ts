@@ -114,7 +114,7 @@ export class Steam extends Service {
 							`https://steamcommunity.com/profiles/${steamId64}?xml=1`
 						);
 						const results = avatarRegExp.exec(data);
-						if (results && results[1].trim().length) {
+						if (results && results[1].trim().length > 0) {
 							summary.avatarfull = results[1];
 						}
 					}
@@ -170,8 +170,8 @@ export class Steam extends Service {
 					for (const summary of data.response.players ?? []) {
 						out[summary.steamid] = summary;
 					}
-				} catch (err) {
-					log.warn(err, "bulk steam summaries request failed");
+				} catch (error) {
+					log.warn(error, "bulk steam summaries request failed");
 				}
 			})
 		);

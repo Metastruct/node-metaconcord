@@ -55,7 +55,7 @@ export const SlashWhyBanCommand: SlashCommand = {
 
 		const bannedAvatar = banned?.avatarfull;
 		const bannedName = `${ban.name}${
-			ban.name !== banned?.personaname ? ` (${banned?.personaname})` : ""
+			ban.name === banned?.personaname ? "" : ` (${banned?.personaname})`
 		}`;
 
 		if (bannedAvatar) {
@@ -82,11 +82,11 @@ export const SlashWhyBanCommand: SlashCommand = {
 			},
 			{
 				name: "Reason",
-				value: ban.banreason.replaceAll("```", "​`​`​`"),
+				value: ban.banreason.replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`"),
 			},
 			{
 				name: "Gamemode",
-				value: ban.gamemode ? ban.gamemode : "GLOBAL",
+				value: ban.gamemode || "GLOBAL",
 			},
 			{
 				name: "SteamID",
@@ -153,7 +153,7 @@ export const SlashWhyBanCommand: SlashCommand = {
 				})
 				.slice(0, 25)
 				.map(ban => {
-					const namefix = ban.name.replace(/(\u180C|\u0020)/g, ""); // that one ban I swear on me mum is driving me insane
+					const namefix = ban.name.replaceAll(/(\u{180C}|\u{20})/gu, ""); // that one ban I swear on me mum is driving me insane
 					return {
 						name: `${ban.sid} (${namefix.length > 0 ? namefix : "invalid name"})`,
 						value: ban.sid,

@@ -7,10 +7,10 @@
 // the CLI once per type -- that was the bulk of the old schema_gen.sh's runtime.
 import { createGenerator, DEFAULT_CONFIG } from "ts-json-schema-generator";
 import stringify from "safe-stable-stringify";
-import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "fs";
-import { tmpdir } from "os";
-import path from "path";
-import { fileURLToPath } from "url";
+import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 

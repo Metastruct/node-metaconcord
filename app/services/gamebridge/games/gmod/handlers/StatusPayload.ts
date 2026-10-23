@@ -6,7 +6,7 @@ import ReportChatPayload from "./ReportChatPayload.js";
 import AdminNotifyPayload from "./AdminNotifyPayload.js";
 import dayjs from "dayjs";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
-import path from "path";
+import path from "node:path";
 import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
@@ -20,7 +20,7 @@ const GamemodeExtras = {
 	jazztronauts: {
 		activities: ["stealing props", "collecting shards"],
 		icon: "https://github.com/Foohy/jazztronauts/blob/master/gamemodes/jazztronauts/icon24.png?raw=true",
-		color: 0x320032,
+		color: 0x32_00_32,
 		seagull: undefined,
 	},
 	metastruct: {
@@ -35,14 +35,14 @@ const GamemodeExtras = {
 			"crashing the server",
 		],
 		icon: "https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
-		color: 0x4bf5ca,
+		color: 0x4B_F5_CA,
 		seagull:
 			"https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull.png?inline=false",
 	},
 	mta: {
 		activities: ["shooting combines", "drilling vaults", "upgrading skills"],
 		icon: "https://github.com/Metastruct/MTA-Gamemode/blob/master/gamemodes/mta/icon24.png?raw=true",
-		color: 0xf48702,
+		color: 0xF4_87_02,
 		seagull: undefined,
 	},
 	ttt2: {
@@ -56,7 +56,7 @@ const GamemodeExtras = {
 			"swapping",
 		],
 		icon: "https://github.com/Metastruct/TTT2/blob/master/gamemodes/terrortown/logo.png?raw=true",
-		color: 0xdcb400,
+		color: 0xDC_B4_00,
 		seagull:
 			"https://gitlab.com/metastruct/branding/-/raw/master/icons/seagull_ttt.png?inline=false",
 	},
@@ -68,7 +68,7 @@ const GamemodeExtras = {
 const getRandomActivity = (gamemode: string) => {
 	const activities = GamemodeExtras[gamemode as keyof typeof GamemodeExtras]?.activities;
 	if (!activities) return;
-	return activities[(Math.random() * activities.length) | 0];
+	return activities[Math.trunc(Math.random() * activities.length)];
 };
 
 const DEFAULT_BACKGROUND = path.join(process.cwd(), "resources/map-thumbnails/gm_construct_m.png");
@@ -91,7 +91,7 @@ function buildSignature(input: {
 		...input,
 		players: input.players
 			.map(p => ({ steamId64: p.steamId64, nick: p.nick, isAfk: p.isAfk }))
-			.sort((a, b) => a.steamId64.localeCompare(b.steamId64)),
+			.toSorted((a, b) => a.steamId64.localeCompare(b.steamId64)),
 	};
 }
 export default class StatusPayload extends Payload {
@@ -155,8 +155,8 @@ export default class StatusPayload extends Payload {
 			}
 			current_players.sort(function(a, b) {
 				let i = 0;
-				if (!a.isAdmin && b.isAdmin) i = i + 2;
-				if (a.isAdmin && !b.isAdmin) i = i - 2;
+				if (!a.isAdmin && b.isAdmin) i += 2;
+				if (a.isAdmin && !b.isAdmin) i -= 2;
 				if (a.nick.toLowerCase() > b.nick.toLowerCase()) i++;
 				if (a.nick.toLowerCase() < b.nick.toLowerCase()) i--;
 				return i;
@@ -164,7 +164,7 @@ export default class StatusPayload extends Payload {
 
 			// Presence
 			const status: Discord.PresenceStatusData =
-				current_defcon === 1 || current_countdown ? "dnd" : count > 0 ? "online" : "idle";
+				current_defcon === 1 || current_countdown ? "dnd" : (count > 0 ? "online" : "idle");
 
 			if (current_defcon !== 5) {
 				server.setPresence(status, { afk: count === 0, state: "DEFCON " + current_defcon });
@@ -178,7 +178,7 @@ export default class StatusPayload extends Payload {
 			} else if (count > 0) {
 				server.setPresence(status, {
 					activity: {
-						name: `${count === 1 ? "a" : count} player${count !== 1 ? "s" : ""} ${
+						name: `${count === 1 ? "a" : count} player${count === 1 ? "" : "s"} ${
 							getRandomActivity(gamemodeName) ?? ""
 						}`,
 						state: `on ${current_map}`,
@@ -198,7 +198,7 @@ export default class StatusPayload extends Payload {
 
 			// Player count text
 			desc += `\n:busts_in_silhouette: Player${
-				count > 1 || count === 0 ? "s" : ""
+				count === 0 || count > 1 ? "s" : ""
 			}: **Active: ${countPresent} • Connected: ${count}**`;
 
 			// Server Uptime
@@ -250,10 +250,10 @@ export default class StatusPayload extends Payload {
 
 			container.setAccentColor(
 				current_defcon === 1 || current_countdown
-					? 0xff0000
-					: current_gamemode
+					? 0xFF_00_00
+					: (current_gamemode
 						? (gamemodeExtras?.color ?? null)
-						: undefined
+						: undefined)
 			);
 
 			container.addSectionComponents(section =>
@@ -303,8 +303,7 @@ export default class StatusPayload extends Payload {
 			}
 
 			if (
-				gamemodeIcon &&
-				(!server.discordIcon || gamemodeIcon !== server.discordIcon || mapChanged)
+				gamemodeIcon && (mapChanged || !server.discordIcon || gamemodeIcon !== server.discordIcon)
 			) {
 				server.changeIcon(gamemodeIcon);
 			}
@@ -327,14 +326,14 @@ export default class StatusPayload extends Payload {
 
 			try {
 				await ReportChatPayload.drainQueuedMessages(server);
-			} catch (err) {
-				log.error(err);
+			} catch (error) {
+				log.error(error);
 			}
 
 			try {
 				await AdminNotifyPayload.updateReporterStatus(server);
-			} catch (err) {
-				log.error(err);
+			} catch (error) {
+				log.error(error);
 			}
 
 			const attachments = [
@@ -364,8 +363,8 @@ export default class StatusPayload extends Payload {
 		if (discord.ready) {
 			try {
 				await updateStatus();
-			} catch (err) {
-				log.error(err);
+			} catch (error) {
+				log.error(error);
 			}
 		}
 	}

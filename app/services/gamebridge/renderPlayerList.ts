@@ -8,7 +8,7 @@ import { logger } from "#/utils.js";
 const log = logger(import.meta);
 
 const escapeXml = (s: string) =>
-	s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+	s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 
 const FONT_PATH = path.join(process.cwd(), "resources/fonts/NotoSans-Regular.ttf");
 const FONT_FAMILY = "PlayerListFont";
@@ -72,8 +72,8 @@ export async function toRenderableImage(
 		const canvas = createCanvas(img.width, img.height);
 		canvas.getContext("2d").drawImage(img, 0, 0);
 		return { buf: await canvas.encode("png"), mime: "image/png" };
-	} catch (err) {
-		log.warn(err, `failed to convert ${mime} image for rendering`);
+	} catch (error) {
+		log.warn(error, `failed to convert ${mime} image for rendering`);
 		return { buf, mime };
 	}
 }
@@ -125,8 +125,8 @@ async function toDataUri(src?: string, playerKey?: string): Promise<string | und
 					Accept: "image/*",
 				},
 			});
-		} catch (err) {
-			log.warn({ err, playerKey }, `failed to fetch avatar/image from ${src}`);
+		} catch (error) {
+			log.warn({ err: error, playerKey }, `failed to fetch avatar/image from ${src}`);
 			failedFetchCache.set(src, Date.now());
 			return playerKey ? lastGoodByPlayerCache.get(playerKey) : undefined;
 		}
@@ -137,7 +137,7 @@ async function toDataUri(src?: string, playerKey?: string): Promise<string | und
 		}
 		failedFetchCache.delete(src);
 		buf = Buffer.from(await res.arrayBuffer());
-		mime = res.headers.get("content-type")?.split(";")[0] || extMime;
+		mime = res.headers.get("content-type")?.split(";", 1)[0] || extMime;
 	} else {
 		const ext = src.includes(".") ? (src.split(".").pop() ?? "png") : "png";
 		buf = Buffer.from(await readFile(src));
@@ -214,7 +214,7 @@ export async function renderPlayerListImage(
 		const isJoining = p.nick.endsWith(JOINING);
 		const nick = isJoining ? p.nick.slice(0, -JOINING.length) : p.nick;
 
-		const color = p.isBanned ? "#FF0000" : p.isAdmin ? "#933f93" : "#2a77be";
+		const color = p.isBanned ? "#FF0000" : (p.isAdmin ? "#933f93" : "#2a77be");
 		const opacity = p.isAfk ? 0.5 : 1;
 		const avatarDataUri = avatarDataUris[i];
 		const nickX = x + avatarSize + gap;

@@ -138,7 +138,7 @@ export async function getPlayerList(
 	);
 	const data = JSON.parse(raw) as unknown;
 	if (!Array.isArray(data)) {
-		throw new Error(`playerlist topic returned an error: ${raw}`);
+		throw new TypeError(`playerlist topic returned an error: ${raw}`);
 	}
 	return (data as Record<string, unknown>[]).map(entry => ({
 		name: typeof entry.name === "string" ? entry.name : "Unknown",

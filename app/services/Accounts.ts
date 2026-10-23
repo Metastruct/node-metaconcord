@@ -4,7 +4,7 @@ import { decrypt, encrypt } from "./webapp/secretBox.js";
 import { Octokit } from "@octokit/rest";
 import AccountsConfig from "#/config/accounts.json" with { type: "json" };
 import GithubConfig from "#/config/github.json" with { type: "json" };
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { isSteamGroupMember, logger } from "#/utils.js";
 
 const log = logger(import.meta);
@@ -207,7 +207,7 @@ export class Accounts extends Service {
 		`);
 		await this.migrateDiscordTokens();
 
-		const sweep = () => this.sweepRoles().catch(err => log.error(err, "role sweep failed"));
+		const sweep = () => this.sweepRoles().catch(error => log.error(error, "role sweep failed"));
 		setTimeout(sweep, 30 * 1000);
 		setInterval(sweep, SWEEP_INTERVAL).unref();
 	}
@@ -390,7 +390,7 @@ export class Accounts extends Service {
 		const remaining = account.links.filter(
 			l => l.provider !== provider && LOGIN_PROVIDERS.includes(l.provider)
 		);
-		if (!remaining.length) throw new LastLoginError();
+		if (remaining.length === 0) throw new LastLoginError();
 
 		await this.sql.queryPool(
 			"DELETE FROM account_links WHERE account_id = $1 AND provider = $2",
@@ -428,7 +428,7 @@ export class Accounts extends Service {
 					"DELETE FROM account_links WHERE account_id = $1 AND source = 'import' RETURNING provider",
 					[existing.id]
 				);
-				if (dropped.length) {
+				if (dropped.length > 0) {
 					log.info(
 						`account ${existing.id} claimed through ${link.provider}, dropped imported ${dropped.map(r => r.provider).join(", ")}`
 					);
@@ -478,9 +478,9 @@ export class Accounts extends Service {
 		const account = await this.get(accountId);
 		if (!account) throw new Error("no such account");
 
-		const roles = await this.computeRoles(account).catch(err => {
-			log.error(err, `role computation failed for account ${accountId}`);
-			return undefined;
+		const roles = await this.computeRoles(account).catch(error => {
+			log.error(error, `role computation failed for account ${accountId}`);
+			return;
 		});
 		// a failed lookup keeps the previous roles rather than silently demoting anyone,
 		// and is retried after a short while instead of on every request
@@ -503,7 +503,7 @@ export class Accounts extends Service {
 		);
 		this.invalidate(account.id);
 		const fresh = (await this.get(account.id)) as AccountWithLinks;
-		if (roles.join() !== account.roles.join()) {
+		if (roles.join(",") !== account.roles.join(",")) {
 			log.info(
 				`account ${account.id} (${account.displayName}) roles: ${roles.join(", ") || "none"}`
 			);
@@ -535,7 +535,7 @@ export class Accounts extends Service {
 				const account = await this.get(Number(row.account_id));
 				if (!account) continue;
 				const roles = await this.computeRoles(account, members);
-				if (roles.join() !== account.roles.join()) changed++;
+				if (roles.join(",") !== account.roles.join(",")) changed++;
 				await this.storeRoles(account, roles);
 			}
 			log.info(`role sweep: ${rows.length} accounts checked, ${changed} changed`);
@@ -571,7 +571,7 @@ export class Accounts extends Service {
 		await this.container
 			.getService("DiscordMetadata")
 			.update(discord.providerId)
-			.catch(err => log.warn(err, `linked roles push failed for account ${account.id}`));
+			.catch(error => log.warn(error, `linked roles push failed for account ${account.id}`));
 	}
 
 	/**
@@ -587,7 +587,7 @@ export class Accounts extends Service {
 		const github = Accounts.verifiedLink(account, "github");
 		if (github) {
 			const teams = members
-				? [...members.entries()]
+				? members.entries()
 					.filter(([, logins]) => logins.has(github.name.toLowerCase()))
 					.map(([team]) => team)
 				: await this.githubTeams(github, account);
@@ -643,10 +643,10 @@ export class Accounts extends Service {
 				username: login,
 			});
 			return data.state === "active";
-		} catch (err) {
-			const status = (err as { status?: number }).status;
+		} catch (error) {
+			const status = (error as { status?: number }).status;
 			if (status === 404) return false;
-			log.warn(err, `team membership check failed for ${login} in ${team}`);
+			log.warn(error, `team membership check failed for ${login} in ${team}`);
 			return undefined;
 		}
 	}
@@ -667,8 +667,8 @@ export class Accounts extends Service {
 				grant_type: "refresh_token",
 				refresh_token: token.refreshToken,
 			}),
-		}).catch(err => {
-			log.error(err, "github token refresh failed");
+		}).catch(error => {
+			log.error(error, "github token refresh failed");
 		});
 		const body = res && res.ok
 			? ((await res.json()) as {
@@ -763,9 +763,9 @@ export class Accounts extends Service {
 			});
 			log.info(`account ${accountId} linked ${provider} ${providerId} (${name}) from game`);
 			return { account };
-		} catch (err) {
-			if (err instanceof LinkConflictError) return { error: err.message };
-			throw err;
+		} catch (error) {
+			if (error instanceof LinkConflictError) return { error: error.message };
+			throw error;
 		}
 	}
 

@@ -6,7 +6,7 @@ const makeFile = (content: unknown) => {
 	return <Discord.BaseMessageOptions>{
 		files: [
 			{
-				attachment: Buffer.from(JSON.stringify(content, null, 2), "utf-8"),
+				attachment: Buffer.from(JSON.stringify(content, null, 2), "utf8"),
 				name: "sql_result.json",
 			},
 		],
@@ -70,7 +70,7 @@ export const SlashSQLCommand: SlashCommand = {
 					await ctx.followUp(file);
 					break;
 				}
-				case "metastruct":
+				
 				default: {
 					await ctx.deferReply();
 					const res = await sql.queryPool(query);
@@ -80,11 +80,11 @@ export const SlashSQLCommand: SlashCommand = {
 					break;
 				}
 			}
-		} catch (err: unknown) {
+		} catch (error: unknown) {
 			if (ctx.deferred) {
-				await ctx.followUp(errToMessage(err));
+				await ctx.followUp(errToMessage(error));
 			} else {
-				await ctx.reply(EphemeralResponse(errToMessage(err)));
+				await ctx.reply(EphemeralResponse(errToMessage(error)));
 			}
 		}
 	},

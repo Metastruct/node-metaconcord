@@ -13,7 +13,7 @@ const REDIRECTS: Record<string, string> = {
 };
 
 const DEFAULT_PASSWORD = "metawebsite";
-const DEFAULT_PORT = 27015;
+const DEFAULT_PORT = 27_015;
 
 export default (webApp: WebApp): void => {
 	for (const [path, target] of Object.entries(REDIRECTS)) {
@@ -41,7 +41,7 @@ export default (webApp: WebApp): void => {
 		}
 
 		const rawPwd = req.query.pwd ?? req.params.pwd ?? DEFAULT_PASSWORD;
-		const pwd = String(rawPwd).replace(/[^a-zA-Z*0-9:+\-\s]+/g, "");
+		const pwd = String(rawPwd).replaceAll(/[^a-zA-Z*0-9:+\-\s]+/g, "");
 		res.redirect(`steam://connect/${ip}:${config.port ?? DEFAULT_PORT}/${pwd}`);
 	});
 };

@@ -29,12 +29,12 @@ export default class ErrorPayload extends Payload {
 		const gpath = matchGmodPath(path);
 		const file = gpath.addon
 			? await getOrFetchGmodFile(path + ":" + linenr)
-			: await getOrFetchGmodFile(lines.find(l => matchGmodPath(l.split(":")[0]).addon));
+			: await getOrFetchGmodFile(lines.find(l => matchGmodPath(l.split(":", 1)[0]).addon));
 		const stack = lines.splice(2).map((l, i) => `${i + 1}. ${l}`);
 		const embeds: APIEmbed[] = [];
 		const embed = {
 			title: hook_error.name,
-			description: stack.join("\n").replaceAll("```", "​`​`​`"),
+			description: stack.join("\n").replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`"),
 			footer: {
 				text: `${
 					server.gamemode
@@ -48,16 +48,12 @@ export default class ErrorPayload extends Payload {
 					value: `<t:${dayjs().subtract(server.mapUptime, "s").unix()}:R>`,
 				},
 			],
-			color: 0x03a9f4,
+			color: 0x03_A9_F4,
 		};
 
 		if (file) {
 			embed.title = "";
-			embeds.push(embed);
-			embeds.push({
-				title: hook_error.name,
-				description: `\`\`\`lua\n${file}\`\`\``,
-			});
+			embeds.push(embed, { title: hook_error.name, description: `\`\`\`lua\n${file}\`\`\`` });
 		} else {
 			embeds.push(embed);
 		}

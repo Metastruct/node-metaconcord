@@ -3,6 +3,8 @@ import { logger } from "#/utils.js";
 import { Container, Service } from "../Container.js";
 import type { LocalDatabase } from "./SQL.js";
 
+/* eslint-disable unicorn/no-for-loop */
+
 const log = logger(import.meta);
 
 function levenshtein(a: string, b: string): number {
@@ -121,7 +123,6 @@ abstract class MarkovChainBase {
 			}
 		}
 
-		let lastChain: string[];
 		const startCount = out.length;
 
 		while (out.length < maxLength) {
@@ -133,22 +134,23 @@ abstract class MarkovChainBase {
 
 			words = this.getWords(data);
 
-			lastChain = chain;
+			let lastChainLength = chain.length;
 			chain = this.matchCurrentChain(words, chain, depth);
 
-			if (chain.length - lastChain.length <= 0 && chain.length < depth) {
+			if (chain.length <= lastChainLength && chain.length < depth) {
 				break;
-			} else if (lastChain.length < depth) {
-				for (let i = lastChain.length; i < chain.length; i++) {
+			}
+			if (lastChainLength < depth) {
+				for (let i = lastChainLength; i < chain.length; i++) {
 					out.push(chain[i]);
 					if (callback) {
 						callback(chain[i]);
 					}
 				}
 			} else {
-				out.push(chain[chain.length - 1]);
+				out.push(chain.at(-1));
 				if (callback) {
-					callback(chain[chain.length - 1]);
+					callback(chain.at(-1));
 				}
 			}
 		}
@@ -170,7 +172,7 @@ class MarkovChain extends MarkovChainBase {
 	}
 
 	async learn(data: string): Promise<void> {
-		data = data.trim().replace(/\s+/g, " ");
+		data = data.trim().replaceAll(/\s+/g, " ");
 		this.db.prepare("INSERT INTO markov VALUES (?)").run(data);
 	}
 
@@ -244,8 +246,8 @@ export class Markov extends Service {
 			return await (
 				await this.getMarkov()
 			).generate(options?.depth, options?.length, sentence, options?.continuation);
-		} catch (err) {
-			log.error(err);
+		} catch (error) {
+			log.error(error);
 			return;
 		}
 	}
