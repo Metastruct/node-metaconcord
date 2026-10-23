@@ -1,5 +1,6 @@
-import assert from "node:assert";
 import { DiscordBot } from "../index.js";
+import { hash } from "node:crypto";
+import { ok as assert } from "node:assert";
 import { Shat } from "./shitposting.js";
 
 const MESSAGE_COMBO_BREAKER = "C-C-C-COMBO BREAKER!!";
@@ -9,13 +10,17 @@ const THRESHOLD_COMBO = 3;
 const THRESHOLD_REACT_TO_DOUBLE_POST = 3;
 const THRESHOLD_BREAK_THE_COMBO = 4;
 
-assert.ok(THRESHOLD_REACT_TO_DOUBLE_POST >= THRESHOLD_COMBO);
-assert.ok(THRESHOLD_BREAK_THE_COMBO >= THRESHOLD_COMBO);
+assert(THRESHOLD_REACT_TO_DOUBLE_POST >= THRESHOLD_COMBO);
+assert(THRESHOLD_BREAK_THE_COMBO >= THRESHOLD_COMBO);
 
 enum ComboMessageEffect {
+	/** Nothing happened (no active combo). */
 	NONE,
+	/** Combo upheld and increased in power level. */
 	INCREMENTED,
+	/** Combo upheld, but this was a double-post by a previous participant. */
 	DOUBLE_POSTED,
+	/** Combo was broken by this message. */
 	BROKEN
 }
 
@@ -30,8 +35,8 @@ class Combo {
 		this.#channelId = channelId;
 	}
 
-	private computeMessageHash(message: string) {
-		return message; // TODO: Implement this.
+	private computeMessageHash(message: string): string {
+		return hash("md5", message);
 	}
 
 	private reset() {
@@ -98,11 +103,11 @@ class ComboManager {
 	#combos = new Map<string, Combo>();
 
 	/**
-	 * Updates the combo state with the given message.
+	 * Updates the channel's combo state with the given message.
 	 * @param channelId The ID of the channel.
 	 * @param userId The ID of the message's author.
 	 * @param message The message contents.
-	 * @returns What this message did to the combo.
+	 * @returns The combo and what this message did to the combo.
 	 */
 	public onMessage(channelId: string, userId: string, message: string): {combo: Combo, effect: ComboMessageEffect} {
 		const combo = this.#combos.getOrInsert(channelId, new Combo(channelId));
@@ -121,22 +126,12 @@ export default (bot: DiscordBot): void => {
 	const comboManager = new ComboManager();
 
 	bot.discord.on("messageCreate", async msg => {
-		// DEV TEST
-		if (msg.channelId !== "731829433425461249")
-			return;
-
 		if (msg.author.id === bot.discord.user.id)
 			return;
 
-		const match = msg.content.match(/^(?<authorId>[^\s]+)\s+(?<content>.*)$/);
-		if (!match)
-			return;
+		const {combo, effect} = comboManager.onMessage(msg.channelId, msg.author.id, msg.content);
 
-		const { authorId, content } = match.groups;
-
-		const {combo, effect} = comboManager.onMessage(msg.channelId, authorId, content);
-
-		msg.channel.send(combo.toString());
+		//msg.channel.send(combo.toString());
 
 		switch (effect) {
 			case ComboMessageEffect.INCREMENTED:
