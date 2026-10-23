@@ -4,7 +4,7 @@
 // Reads config/discord.json (Discord side) + config/fluxer.json (Fluxer side).
 // Usage: node scripts/fluxer-mirror.js [--dry-run] [--yes]
 
-/* eslint eqeqeq: off */
+/* eslint-disable eqeqeq, no-useless-assignment */
 
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
