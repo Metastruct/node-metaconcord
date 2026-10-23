@@ -4,7 +4,7 @@ import { ok as assert } from "node:assert";
 import { Shat } from "./shitposting.js";
 
 const MESSAGE_COMBO_BREAKER = "C-C-C-COMBO BREAKER!!";
-const REACTION_DOUBLE_POSTER = "🤔";
+const REACTIONS_DOUBLE_POSTER = ["👎","🤔","🤨","😑","😔","😠","🙄"] as const;
 
 const THRESHOLD_COMBO = 3;
 const THRESHOLD_REACT_TO_DOUBLE_POST = 3;
@@ -12,6 +12,10 @@ const THRESHOLD_BREAK_THE_COMBO = 4;
 
 assert(THRESHOLD_REACT_TO_DOUBLE_POST >= THRESHOLD_COMBO);
 assert(THRESHOLD_BREAK_THE_COMBO >= THRESHOLD_COMBO);
+
+function randomDoublePostReaction() {
+	return REACTIONS_DOUBLE_POSTER[Math.random() * REACTIONS_DOUBLE_POSTER.length];
+}
 
 enum ComboMessageEffect {
 	/** Nothing happened (no active combo). */
@@ -143,7 +147,7 @@ export default (bot: DiscordBot): void => {
 				break;
 			case ComboMessageEffect.DOUBLE_POSTED:
 				if (combo.length >= THRESHOLD_REACT_TO_DOUBLE_POST)
-					msg.react(REACTION_DOUBLE_POSTER);
+					msg.react(randomDoublePostReaction());
 				break;
 			case ComboMessageEffect.BROKEN:
 				msg.reply(MESSAGE_COMBO_BREAKER);
