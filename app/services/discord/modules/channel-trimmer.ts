@@ -119,8 +119,8 @@ class ChannelTrimmer {
 }
 
 const formatStatsLine = (trimmer: ChannelTrimmer) =>
-	`Fetch window: ${new Date(trimmer.state.fetchTimestamp).toISOString().split("T", 1)[0]}\n` +
 	`Max Age / Cut-off: ${durationFormatter.format(trimmer.maxAge)} -> ${formatDiscordAbsoluteTimestamp(Temporal.Now.instant().subtract(trimmer.maxAge))}\n` +
+	`Fetch snowflake: ${trimmer.state.fetchTimestamp}\n` +
 	`Peek: ${trimmer.state.peekMessage()}`;
 
 export default (bot: DiscordBot): void => {
