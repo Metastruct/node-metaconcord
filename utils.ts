@@ -84,8 +84,24 @@ export const parseDuration = (input: string): number => {
 	return len;
 };
 
+type DateTimeIsh = Date | Temporal.Instant;
+
+const dateTimeIshToEpochSeconds = (date: DateTimeIsh) =>
+	Math.trunc((date instanceof Date ? date.getTime() : date.epochMilliseconds) / 1000);
+
 export const formatDiscordRelativeTimestampSeconds = (seconds: number) => `<t:${Math.trunc(seconds)}:R>`;
-export const formatDiscordRelativeTimestamp = (date: Date) => `<t:${Math.trunc(date.getTime() / 1000)}:R>`;
+
+export function formatDiscordRelativeTimestamp(date: Temporal.Instant): string;
+export function formatDiscordRelativeTimestamp(date: Date): string;
+export function formatDiscordRelativeTimestamp(date: DateTimeIsh): string {
+	return `<t:${dateTimeIshToEpochSeconds(date)}:R>`;
+}
+
+export function formatDiscordAbsoluteTimestamp(date: Temporal.Instant): string;
+export function formatDiscordAbsoluteTimestamp(date: Date): string;
+export function formatDiscordAbsoluteTimestamp(date: DateTimeIsh): string {
+	return `<t:${dateTimeIshToEpochSeconds(date)}>`;
+}
 
 export const f = (
 	name: string,
