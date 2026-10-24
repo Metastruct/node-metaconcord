@@ -1,7 +1,7 @@
 import { WebApp } from "#/app/services/webapp/index.js";
 import { GuildEmoji } from "discord.js";
 
-type EmojiWithUrl = GuildEmoji & { url: string };
+type EmojiWithUrl = GuildEmoji & { url?: string };
 
 export default async (webApp: WebApp): Promise<void> => {
 	webApp.app.get("/discord/guild/emojis", async (_, res) => {
@@ -21,7 +21,9 @@ export default async (webApp: WebApp): Promise<void> => {
 			return;
 		}
 
-		const emojis: EmojiWithUrl[] = structuredClone(guild.emojis.cache.values().toArray());
+		// This probably really is the simplest way to clone this structure in particular.
+		// eslint-disable-next-line unicorn/prefer-structured-clone
+		const emojis: EmojiWithUrl[] = JSON.parse(JSON.stringify(guild.emojis.cache));
 		for (const emoji of emojis) {
 			emoji.url = `https://cdn.discordapp.com/emojis/${emoji.id}.${emoji.animated ? "gif" : "png"}?v=1`;
 		}
