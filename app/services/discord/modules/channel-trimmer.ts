@@ -16,7 +16,8 @@ const durationSince = (time: DateTimeIsh) => dateTimeNow().since(dateTimeIshToZo
 const isOlderThan = (instant: DateTimeIsh, duration: Temporal.Duration) =>
 	Temporal.Duration.compare(durationSince(instant), duration, { relativeTo: Temporal.Now.plainDateISO() }) > 0;
 
-const durationFormatter = new Intl.DurationFormat("en", { style: "long", hours: "2-digit", fractionalDigits: 0 });
+const durationFormatter = new Intl.DurationFormat("en", { style: "long", fractionalDigits: 0 });
+const roundToDays = (duration: Temporal.Duration) => duration.round({ smallestUnit: "days", largestUnit: "years", relativeTo: Temporal.Now.plainDateISO() });
 const messageDateComparator = (a: Message, b: Message) => a.createdAt.getTime() - b.createdAt.getTime();
 
 class ChannelTrimmingState {
@@ -116,9 +117,10 @@ class ChannelTrimmer {
 }
 
 const formatStatsLine = (trimmer: ChannelTrimmer) =>
-	`Max Age / Cut-off: ${durationFormatter.format(trimmer.maxAge)} -> ${formatDiscordAbsoluteTimestamp(dateTimeNow().subtract(trimmer.maxAge))}\n` +
+	`Max Age: ${durationFormatter.format(roundToDays(trimmer.maxAge))}\n` +
+	`Cut-off: ${formatDiscordAbsoluteTimestamp(dateTimeNow().subtract(trimmer.maxAge))}\n` +
 	`Fetch snowflake: ${trimmer.state.fetchTimestamp}\n` +
-	`Peek: ${trimmer.state.peekMessage()}`;
+	`Peek: ${trimmer.state.peekMessage().url}`;
 
 export default (bot: DiscordBot): void => {
 	const trimmers = new Map<TextChannel, ChannelTrimmer>();
