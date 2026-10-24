@@ -49,6 +49,9 @@ export default defineConfig([
 			
 			// Base ESLint rules not in eslintJs/recommended that we add into the mix
 			"radix": "error",
+
+			// Base ESLint rules that conflict or should not be used in general.
+			"no-redeclare": "off",
 			
 			// Disabled for aesthetic reasons:
 			"unicorn/import-style": "off",
