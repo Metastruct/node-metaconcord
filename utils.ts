@@ -84,24 +84,35 @@ export const parseDuration = (input: string): number => {
 	return len;
 };
 
-type DateTimeIsh = Date | Temporal.Instant;
+export type DateTimeIsh = Date | Temporal.Instant | Temporal.ZonedDateTime;
+
+const dateToZonedDateTime = (date: Date, timeZone: string) =>
+	Temporal.Instant
+		.fromEpochMilliseconds(date.getTime())
+		.toZonedDateTimeISO(timeZone);
+
+export const dateTimeIshToZonedDateTime = (time: DateTimeIsh, timeZone = Temporal.Now.timeZoneId()): Temporal.ZonedDateTime => {
+	if (time instanceof Date) return dateToZonedDateTime(time, timeZone);
+	if (time instanceof Temporal.Instant) return time.toZonedDateTimeISO(Temporal.Now.timeZoneId());
+	return time;
+};
+
+export const dateTimeNow = () => Temporal.Now.zonedDateTimeISO();
+
+export const normalizeDuration = (duration: Temporal.Duration): Temporal.Duration =>
+	duration.round({ largestUnit: "year", relativeTo: Temporal.Now.plainDateISO() });
 
 const dateTimeIshToEpochSeconds = (date: DateTimeIsh) =>
 	Math.trunc((date instanceof Date ? date.getTime() : date.epochMilliseconds) / 1000);
 
 export const formatDiscordRelativeTimestampSeconds = (seconds: number) => `<t:${Math.trunc(seconds)}:R>`;
 
-export function formatDiscordRelativeTimestamp(date: Temporal.Instant): string;
-export function formatDiscordRelativeTimestamp(date: Date): string;
-export function formatDiscordRelativeTimestamp(date: DateTimeIsh): string {
-	return `<t:${dateTimeIshToEpochSeconds(date)}:R>`;
-}
+export const formatDiscordRelativeTimestamp = (date: DateTimeIsh): string =>
+	`<t:${dateTimeIshToEpochSeconds(date)}:R>`;
 
-export function formatDiscordAbsoluteTimestamp(date: Temporal.Instant): string;
-export function formatDiscordAbsoluteTimestamp(date: Date): string;
-export function formatDiscordAbsoluteTimestamp(date: DateTimeIsh): string {
-	return `<t:${dateTimeIshToEpochSeconds(date)}>`;
-}
+
+export const formatDiscordAbsoluteTimestamp = (date: DateTimeIsh): string =>
+	`<t:${dateTimeIshToEpochSeconds(date)}>`;
 
 export const f = (
 	name: string,

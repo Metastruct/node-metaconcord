@@ -1,7 +1,7 @@
 import { TextChannel, Message } from "discord.js";
 import { DiscordBot } from "../index.js";
 import { MinHeap } from "mnemonist";
-import { formatDiscordAbsoluteTimestamp, logger } from "#/utils.js";
+import { DateTimeIsh, dateTimeIshToZonedDateTime, dateTimeNow, formatDiscordAbsoluteTimestamp, logger, normalizeDuration } from "#/utils.js";
 
 const log = logger(import.meta);
 
@@ -9,14 +9,11 @@ const INTERVAL = 1e3;
 const DELAY = 30e3; // wait 30s before starting
 const PIN_EDIT_INTERVAL = 5*60*1000;
 
-type Timestamp = Date | Temporal.Instant;
 type MessageFetchResult = Awaited<ReturnType<TextChannel["messages"]["fetch"]>>;
 
-const Instant = (timestamp: Timestamp) => timestamp instanceof Date ? timestamp.toTemporalInstant() : timestamp;
+const durationSince = (time: DateTimeIsh) => dateTimeNow().since(dateTimeIshToZonedDateTime(time));
 
-const durationSince = (time: Timestamp) => Temporal.Now.instant().since(Instant(time))
-	.round({ largestUnit: "year", relativeTo: Temporal.Now.plainDateISO() });
-const olderThan = (instant: Timestamp, duration: Temporal.Duration) =>
+const isOlderThan = (instant: DateTimeIsh, duration: Temporal.Duration) =>
 	Temporal.Duration.compare(durationSince(instant), duration, { relativeTo: Temporal.Now.plainDateISO() }) > 0;
 
 const durationFormatter = new Intl.DurationFormat("en", { style: "long", hours: "2-digit", fractionalDigits: 0 });
@@ -47,7 +44,7 @@ class ChannelTrimmingState {
 	
 	public popOldMessage() {
 		const top = this.#cache.peek();
-		if (top && olderThan(top.createdAt, this.#maxAge)) {
+		if (top && isOlderThan(top.createdAt, this.#maxAge)) {
 			this.#fetchTimestamp = top.id;
 			return this.#cache.pop();
 		}
@@ -119,7 +116,7 @@ class ChannelTrimmer {
 }
 
 const formatStatsLine = (trimmer: ChannelTrimmer) =>
-	`Max Age / Cut-off: ${durationFormatter.format(trimmer.maxAge)} -> ${formatDiscordAbsoluteTimestamp(Temporal.Now.instant().subtract(trimmer.maxAge))}\n` +
+	`Max Age / Cut-off: ${durationFormatter.format(trimmer.maxAge)} -> ${formatDiscordAbsoluteTimestamp(dateTimeNow().subtract(trimmer.maxAge))}\n` +
 	`Fetch snowflake: ${trimmer.state.fetchTimestamp}\n` +
 	`Peek: ${trimmer.state.peekMessage()}`;
 
@@ -156,7 +153,7 @@ export default (bot: DiscordBot): void => {
 
 	bot.discord.once("clientReady", () => {
 		Object.entries(bot.config["trim-channels"])
-			.map(([channelId, durationString]) => [bot.getTextChannel(channelId), Temporal.Duration.from(durationString)] as const)
+			.map(([channelId, durationString]) => [bot.getTextChannel(channelId), normalizeDuration(Temporal.Duration.from(durationString))] as const)
 			.filter(([channel]) => !!channel)
 			.forEach(([channel, duration]) => {
 				trimmers.set(channel, new ChannelTrimmer(channel, duration));
