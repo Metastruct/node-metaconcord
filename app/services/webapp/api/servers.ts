@@ -225,19 +225,27 @@ export default async (webApp: WebApp): Promise<void> => {
 			});
 		}
 
-		// vrchat: one entry per open group instance (VRChat exposes no player roster),
-		// or the group itself when nothing is open, as long as the poll succeeded.
+		// vrchat: one entry per open group instance, or the group itself when nothing
+		// is open, as long as the poll succeeded. VRChat exposes no full roster, so
+		// `players` holds only the bot's friends seen in the instance; `playerCount`
+		// stays the instance's real member count.
 		const vrchat: ServerEntry[] = [];
 		for (const server of Object.values(bridge.servers.vrchat)) {
 			if (!server || server.disconnected || !server.lastInstances) continue;
 			for (const instance of server.lastInstances) {
+				const players = server.rosters.get(instance.location)?.players ?? [];
 				vrchat.push({
 					id: instance.instanceId,
 					key: `vrchat-${instance.world.id}-${instance.instanceId}`,
 					name: instance.world.name,
 					thumbnail:
 						instance.world.thumbnailImageUrl || instance.world.imageUrl || undefined,
-					players: [],
+					players: players.map(p => ({
+						...basePlayer(p),
+						profileUrl: p.steamId64
+							? `https://vrchat.com/home/user/${p.steamId64}`
+							: undefined,
+					})),
 					playerCount: instance.memberCount,
 					maxPlayers: instance.world.capacity || undefined,
 					connect: {
