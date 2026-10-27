@@ -1,18 +1,18 @@
 {
-	"type": "module",
 	"name": "metaconcord",
 	"version": "0.0.1",
+	"private": true,
 	"description": "metaluvit but typescript",
-	"exports": null,
-	"engines": {
-		"node": ">=26.0.0"
-	},
+	"license": "MIT",
 	"repository": "git@github.com:metastruct/metaconcord",
 	"author": "marceau-maubert <marceau.maubert2@gmail.com>",
-	"license": "MIT",
-	"private": true,
+	"type": "module",
+	"exports": null,
 	"imports": {
 		"#/*": "./*"
+	},
+	"engines": {
+		"node": ">=26.0.0"
 	},
 	"scripts": {
 		"build:scss": "sass resources/ --no-source-map",

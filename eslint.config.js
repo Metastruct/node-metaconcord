@@ -4,7 +4,7 @@ import stylistic from "@stylistic/eslint-plugin";
 import eslintJs from "@eslint/js";
 import { defineConfig } from "eslint/config";
 import { parser as tsParser, plugin as tsPlugin, configs as tsConfigs } from "typescript-eslint";
-import packageJson from 'eslint-package-json';
+import packageJson from "eslint-package-json";
 
 export default defineConfig([
 	{
