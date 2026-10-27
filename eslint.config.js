@@ -3,7 +3,7 @@ import unicorn from "eslint-plugin-unicorn";
 import stylistic from "@stylistic/eslint-plugin";
 import eslintJs from "@eslint/js";
 import { defineConfig } from "eslint/config";
-import { parser as tsParser, plugin as tsPlugin } from "typescript-eslint";
+import { parser as tsParser, plugin as tsPlugin, configs as tsConfigs } from "typescript-eslint";
 
 export default defineConfig([
 	{
@@ -25,6 +25,9 @@ export default defineConfig([
 		files: ["**/*.?(c|m)@(ts|js)"],
 		languageOptions: {
 			parser: tsParser,
+			parserOptions: {
+				projectService: true,
+			},
 		},
 		plugins: {
 			unicorn,
@@ -204,6 +207,13 @@ export default defineConfig([
 				"never",
 			],
 		},
+	},
+	{
+		// Disable type-checked linting for non-TypeScript files.
+		// Otherwise, we would need to either add them to tsconfig or enable allowJs or checkJs.
+		// Alternatively, they could be added as out-of-project files to allowDefaultProject in parserOptions, but this can be slow.
+		files: ["**/*.?(c|m)js"],
+		extends: [tsConfigs.disableTypeChecked],
 	},
 	{
 		files: ["test/**"],
