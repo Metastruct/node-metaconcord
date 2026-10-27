@@ -27,6 +27,12 @@ process.on("unhandledRejection", err => {
 	logger("App").error(err as Error, "Unhandled rejection, continuing...");
 });
 
+// This is sadly required because `vrchat` thinks it's a good idea to register a SIGINT handler:
+//     process.on("SIGINT", () => this.close());
+// Quote from the Node.js docs: "If one of these signals has a listener installed, its default behavior will be removed. "
+// tl;dr: vrchat breaks Ctrl-c at least on windows.
+process.on("SIGINT", () => process.exit(1));
+
 const MetaConcord = new App();
 globalThis.MetaConcord = MetaConcord;
 await MetaConcord.init();
