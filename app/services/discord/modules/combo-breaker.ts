@@ -2,6 +2,7 @@ import { DiscordBot } from "../index.js";
 import { hash } from "node:crypto";
 import { ok as assert } from "node:assert";
 import { Shat } from "./shitposting.js";
+import { Message } from "discord.js";
 
 const MESSAGE_COMBO_BREAKER = "C-C-C-COMBO BREAKER!!";
 const REACTIONS_DOUBLE_POSTER = ["👎","🤔","🤨","😑","😔","😠","🙄"] as const;
@@ -39,47 +40,57 @@ class Combo {
 		this.#channelId = channelId;
 	}
 
-	private computeMessageHash(message: string): string {
-		return hash("md5", message);
+	static #computeMessageHash(message: Message): string {
+		return hash("md5", JSON.stringify([
+			message.content,
+			message.attachments.map(attachment => [
+				attachment.name,
+				attachment.size,
+				attachment.width,
+				attachment.height,
+				attachment.duration
+			]),
+			message.stickers.map(sticker => sticker.id)
+		]));
 	}
 
-	private reset() {
+	#reset() {
 		this.#participants.clear();
 		this.#doublePosters.clear();
 	}
 
-	private isActive() {
+	#isActive() {
 		return this.length >= THRESHOLD_COMBO;
 	}
 
 	/**
 	 * Updates the combo state with the given message.
-	 * @param userId The ID of the message's author.
-	 * @param message The message contents.
+	 * @param message The message.
 	 * @returns What this message did to the combo.
 	 */
-	public onMessage(userId: string, message: string): ComboMessageEffect {
-		const wasActive = this.isActive();
-		const newHash = this.computeMessageHash(message);
+	public onMessage(message: Message): ComboMessageEffect {
+		const authorId = message.author.id;
+		const wasActive = this.#isActive();
+		const newHash = Combo.#computeMessageHash(message);
 
 		if (newHash !== this.#messageHash) {
-			this.reset();
+			this.#reset();
 			this.#messageHash = newHash;
-			this.#participants.add(userId);
+			this.#participants.add(authorId);
 			return wasActive ? ComboMessageEffect.BROKEN : ComboMessageEffect.NONE;
 		}
 
-		if (this.#participants.has(userId)) {
-			this.#doublePosters.add(userId);
+		if (this.#participants.has(authorId)) {
+			this.#doublePosters.add(authorId);
 			return wasActive ? ComboMessageEffect.DOUBLE_POSTED : ComboMessageEffect.NONE;
 		}
 		
-		this.#participants.add(userId);
+		this.#participants.add(authorId);
 		return wasActive ? ComboMessageEffect.INCREMENTED : ComboMessageEffect.NONE;
 	}
 
 	public break() {
-		this.reset();
+		this.#reset();
 		this.#messageHash = "";
 	}
 	
@@ -95,7 +106,7 @@ class Combo {
 		const view = {
 			channelId: this.#channelId,
 			messageHash: this.#messageHash,
-			isActive: this.isActive(),
+			isActive: this.#isActive(),
 			participants: Array.from(this.#participants),
 			doublePosters: Array.from(this.#doublePosters)
 		};
@@ -108,14 +119,13 @@ class ComboManager {
 
 	/**
 	 * Updates the channel's combo state with the given message.
-	 * @param channelId The ID of the channel.
-	 * @param userId The ID of the message's author.
-	 * @param message The message contents.
+	 * @param message The message.
 	 * @returns The combo and what this message did to the combo.
 	 */
-	public onMessage(channelId: string, userId: string, message: string): {combo: Combo, effect: ComboMessageEffect} {
+	public onMessage(message: Message): {combo: Combo, effect: ComboMessageEffect} {
+		const channelId = message.channelId;
 		const combo = this.#combos.getOrInsertComputed(channelId, () => new Combo(channelId));
-		return { combo, effect: combo.onMessage(userId, message) };
+		return { combo, effect: combo.onMessage(message) };
 	}
 
 	public toString() {
@@ -133,7 +143,7 @@ export default (bot: DiscordBot): void => {
 		if (msg.author.id === bot.discord.user.id)
 			return;
 
-		const {combo, effect} = comboManager.onMessage(msg.channelId, msg.author.id, msg.content);
+		const {combo, effect} = comboManager.onMessage(msg);
 
 		//msg.channel.send(combo.toString());
 
