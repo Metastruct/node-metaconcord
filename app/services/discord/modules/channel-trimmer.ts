@@ -166,13 +166,7 @@ export default (bot: DiscordBot): void => {
 
 	bot.discord.on("messageCreate", async msg => {
 		msg = await bot.fetchPartial(msg);
-		if (msg.channelId === bot.config.channels.log && msg.content === "!trim fetch") {
-			const reply = await msg.channel.send("fetching...");
-			for (const [_, trimmer] of trimmers) {
-				await trimmer.fetch();
-				reply.edit("fetching... OK!");
-			};
-		} else if (msg.channelId === bot.config.channels.log && msg.content === "!trim") {
+		if (msg.channelId === bot.config.channels.log && msg.content === "!trim") {
 			for (const [channel, trimmer] of trimmers) {
 				channel.send(`(task:info) ${trimmer} TIMER=${timerEnabled}`);
 			};
