@@ -41,9 +41,6 @@ export default defineConfig([
 			"unicorn/recommended",
 		],
 		rules: {
-			// Disabled temporarily until fixed.
-			"unicorn/prefer-module": "off",
-
 			// Disabled for now, maybe they can be enabled some time?
 			"unicorn/filename-case": "off", // Will change a lot of paths, fix everything else first for simpler merging.
 			"unicorn/no-anonymous-default-export": "off", // Recommended to look into `unicorn/filename-case` first.
