@@ -33,7 +33,7 @@ export default defineConfig([
 			unicorn,
 			stylistic,
 			eslintJs,
-			"typescript-eslint": tsPlugin,
+			"@typescript-eslint": tsPlugin,
 		},
 		extends: [
 			"eslintJs/recommended",
@@ -108,7 +108,7 @@ export default defineConfig([
 			 */
 
 			"no-unused-vars": "off",
-			"typescript-eslint/no-unused-vars": [
+			"@typescript-eslint/no-unused-vars": [
 				"warn",
 				{
 					args: "all",
@@ -126,7 +126,7 @@ export default defineConfig([
 				"always",
 			],
 
-			"typescript-eslint/no-explicit-any": "warn",
+			"@typescript-eslint/no-explicit-any": "warn",
 
 			"unicorn/prefer-early-return": [
 				"error",
