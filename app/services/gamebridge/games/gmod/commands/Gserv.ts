@@ -121,7 +121,7 @@ export const SlashGservCommand: SlashCommand = {
 							files: [{ attachment: Buffer.from(buffer), name: fileName }],
 						};
 
-						if (showOutput || success === false) {
+						if (showOutput || !success) {
 							if (message) {
 								message.reply(response);
 							} else {

@@ -624,7 +624,7 @@ export async function resolveCurseforge(
 		).data.data.exactMatches;
 
 		const fpToMod = new Map<number, number>();
-		for (const m of matches) fpToMod.set(Number(m.file.fileFingerprint), Number(m.file.modId));
+		for (const m of matches) fpToMod.set(m.file.fileFingerprint, Number(m.file.modId));
 
 		const modIds = [...new Set(fpToMod.values())];
 		const mods = modIds.length > 0

@@ -255,7 +255,7 @@ const setRole = async (ctx: Discord.ChatInputCommandInteraction): Promise<void> 
 
 		targetRole = await roles.create({
 			reason: "Added role via command",
-			name: roleName.toString(),
+			name: roleName,
 			colors: { primaryColor: roleColor },
 			position: boosterRole ? boosterRole?.position + 1 : 2,
 		});

@@ -202,7 +202,7 @@ export default (bot: DiscordBot): void => {
 			.setFooter({ text: "Message Edited" })
 			.setTimestamp(newMsg.editedTimestamp);
 
-		if (!(embeds[0] === false && embeds[1] === false)) {
+		if (embeds[0] || embeds[1]) {
 			embed.addFields(
 				f(
 					"Embeds",

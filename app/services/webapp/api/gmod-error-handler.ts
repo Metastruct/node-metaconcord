@@ -78,7 +78,7 @@ const formatFrame = (groups: StackMatchGroups): string => {
 		return path;
 	}
 
-	return `${groups.engine}`;
+	return groups.engine;
 };
 
 export const SuperReplacer = (_match: string, ...args: unknown[]): string => {

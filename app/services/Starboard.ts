@@ -130,14 +130,14 @@ export class Starboard extends Service {
 				count = allUsers.size;
 			} else {
 				const users = await reaction.users.fetch();
-				const ego = message.author ? users.has(message.author.id) : false;
+				const ego = users.has(message.author.id);
 				count = ego ? reaction.count - 1 : reaction.count;
 			}
 
 			if (
 				count >= needed &&
 				(emojiFilter.size === 0 || emojiFilter.has(emoji.name ?? "")) &&
-				!message.reactions.cache.some( // eslint-disable-line unicorn/no-negated-array-predicate
+				!message.reactions.cache.some(
 					e =>
 						e.emoji.name === "⛔" &&
 						message.author &&
@@ -178,9 +178,9 @@ export class Starboard extends Service {
 							client.channels.cache.get(reference.channelId) as Discord.TextChannel
 						).messages.fetch(reference.messageId);
 
-						text += `${`-# [replying to ${
+						text += `-# [replying to ${
 							refMsg.system ? "System Message" : refMsg.author.username
-						}](${refMsg.url})\n`}`;
+						}](${refMsg.url})\n`;
 					} else if (reference.type === 1) {
 						const snap = msg.messageSnapshots.first();
 						text += `-# [forwarded message]\n${snap?.content}`;

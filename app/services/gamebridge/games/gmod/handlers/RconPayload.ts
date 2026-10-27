@@ -41,7 +41,7 @@ export default class RconPayload extends Payload {
 			realm: realm,
 			command: "",
 			runner: runner,
-			identifier: identifier.toString(),
+			identifier: identifier,
 		};
 
 		const resultPromise = new Promise<RconRequest>((resolve, reject) => {

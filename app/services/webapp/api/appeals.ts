@@ -134,7 +134,7 @@ const wasManuallyArchived = async (thread: Discord.ThreadChannel): Promise<boole
 			entry =>
 				entry.targetId === thread.id &&
 				Date.now() - entry.createdTimestamp < 60_000 &&
-				entry.changes.some(change => change.key === "archived" && change.new === true)
+				entry.changes.some(change => change.key === "archived" && change.new)
 		);
 	} catch {
 		return true;

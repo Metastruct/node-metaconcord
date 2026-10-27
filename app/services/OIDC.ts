@@ -123,7 +123,7 @@ export class OIDC extends Service {
 							preferred_username: account.displayName,
 							roles: account.roles,
 						};
-						if (scope?.includes("email") && this.config.claims?.email !== false && verifiedEmail?.email) {
+						if (scope?.includes("email") && this.config.claims?.email && verifiedEmail?.email) {
 							claims.email = verifiedEmail.email;
 							// some clients refuse logins unless this is explicitly true,
 							// absent is not good enough

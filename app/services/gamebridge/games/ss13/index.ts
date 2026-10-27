@@ -196,7 +196,7 @@ async function pollInstance(
 	}
 
 	let players: Player[] = [];
-	if (instanceConfig.commsKey && instanceConfig.hasPlayerList !== false) {
+	if (instanceConfig.commsKey && instanceConfig.hasPlayerList) {
 		try {
 			const roster = await getPlayerList(host, status.port, instanceConfig.commsKey);
 			players = roster.map((p): Player => ({

@@ -12,7 +12,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.sendStatus(403);
 			return;
 		}
-		const isOkIp = servers.find(srv => {
+		const isOkIp = servers.some(srv => {
 			const ips = srv.ip ? (Array.isArray(srv.ip) ? srv.ip : [srv.ip]) : [];
 			return ips.includes(ip);
 		});

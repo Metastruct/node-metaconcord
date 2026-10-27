@@ -131,7 +131,7 @@ export function normalizeEmbeds(embeds: readonly unknown[], content = ""): Disco
 								item.value.trim().length === 0
 									? "\u{200B}"
 									: item.value,
-							inline: item.inline === true,
+							inline: item.inline,
 						})),
 				}),
 			};
@@ -566,7 +566,7 @@ export class Fluxer extends Service {
 		const link = this.threadLinksByDiscord.get(thread.id);
 		if (!link) return;
 		const body: Record<string, unknown> = { name: thread.name.slice(0, 100) };
-		if (thread.archived === true) body.archived = true;
+		if (thread.archived) body.archived = true;
 		await this.rest.request("PATCH", `/channels/${link.fluxer_thread_id}`, body).catch(error =>
 			log.warn(
 				{
@@ -1368,7 +1368,7 @@ export class Fluxer extends Service {
 		if (thread.name && channel.name !== thread.name) {
 			await channel.setName(thread.name.slice(0, 100)).catch(() => undefined);
 		}
-		if (thread.thread_metadata?.archived === true && !channel.archived) {
+		if (thread.thread_metadata?.archived && !channel.archived) {
 			await channel.setArchived(true).catch(() => undefined);
 		}
 	}

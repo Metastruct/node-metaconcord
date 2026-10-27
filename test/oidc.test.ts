@@ -270,7 +270,7 @@ async function main(): Promise<void> {
 				userinfo.preferred_username === "Test User 1" &&
 				// verified Discord email wins over the GitHub noreply fallback
 				userinfo.email === "user1@example.com" &&
-				userinfo.email_verified === true &&
+				userinfo.email_verified &&
 				!!userinfo.roles?.length,
 			JSON.stringify(userinfo)
 		);

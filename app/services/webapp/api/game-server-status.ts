@@ -49,7 +49,7 @@ export default async (webApp: WebApp): Promise<void> => {
 				mkdir(cacheFolder, { recursive: true })
 			);
 
-			const _thumbFilepath = path.join(cacheFolder, `${workshopMap.id}`);
+			const _thumbFilepath = path.join(cacheFolder, workshopMap.id);
 			let hasFile = true;
 			// have to assume these are the only extensions we expect...
 			for (const ext of [".webp", ".jpg", ".jpeg", ".png", ".gif"]) {
