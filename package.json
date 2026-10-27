@@ -99,6 +99,7 @@
 		"@types/websocket": "^1.0.10",
 		"cross-env": "^10.1.0",
 		"eslint": "10.13.0",
+		"eslint-package-json": "^3.0.0",
 		"eslint-plugin-unicorn": "^79.0.0",
 		"globals": "^17.13.0",
 		"rimraf": "^6.1.3",

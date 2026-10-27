@@ -4,6 +4,7 @@ import stylistic from "@stylistic/eslint-plugin";
 import eslintJs from "@eslint/js";
 import { defineConfig } from "eslint/config";
 import { parser as tsParser, plugin as tsPlugin, configs as tsConfigs } from "typescript-eslint";
+import packageJson from 'eslint-package-json';
 
 export default defineConfig([
 	{
@@ -219,6 +220,22 @@ export default defineConfig([
 		files: ["test/**"],
 		rules: {
 			"unicorn/consistent-function-scoping": "off",
+		},
+	},
+	{
+		files: ["**/package.json"],
+		plugins: {
+			"package-json": packageJson,
+		},
+		extends: [
+			"package-json/recommended",
+		],
+		rules: {
+			"package-json/consistent-name-casing": "error",
+			"package-json/require-private": "error",
+			"package-json/restrict-fields-when-private": "error",
+			"package-json/sort-scripts": "error",
+			"package-json/types-in-dev-dependencies": "error",
 		},
 	},
 ]);
