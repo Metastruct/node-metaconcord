@@ -26,7 +26,7 @@ enum ComboMessageEffect {
 	/** Combo upheld, but this was a double-post by a previous participant. */
 	DOUBLE_POSTED,
 	/** Combo was broken by this message. */
-	BROKEN
+	BROKEN,
 }
 
 class Combo {
@@ -48,9 +48,9 @@ class Combo {
 				attachment.size,
 				attachment.width,
 				attachment.height,
-				attachment.duration
+				attachment.duration,
 			]),
-			message.stickers.map(sticker => sticker.id)
+			message.stickers.map(sticker => sticker.id),
 		]));
 	}
 
@@ -108,7 +108,7 @@ class Combo {
 			messageHash: this.#messageHash,
 			isActive: this.#isActive(),
 			participants: Array.from(this.#participants),
-			doublePosters: Array.from(this.#doublePosters)
+			doublePosters: Array.from(this.#doublePosters),
 		};
 		return `Combo${JSON.stringify(view)}`;
 	}
@@ -130,7 +130,7 @@ class ComboManager {
 
 	public toString() {
 		const view = {
-			combos: this.#combos.values().map(combo => combo.toString()).toArray()
+			combos: this.#combos.values().map(combo => combo.toString()).toArray(),
 		};
 		return `ComboManager${JSON.stringify(view)}`;
 	}

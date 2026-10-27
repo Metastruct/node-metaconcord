@@ -30,7 +30,7 @@ export default defineConfig([
 			unicorn,
 			stylistic,
 			eslintJs,
-			"typescript-eslint": tsPlugin
+			"typescript-eslint": tsPlugin,
 		},
 		extends: [
 			"eslintJs/recommended",
@@ -114,13 +114,13 @@ export default defineConfig([
 					caughtErrorsIgnorePattern: "^_",
 					destructuredArrayIgnorePattern: "^_",
 					varsIgnorePattern: "^_",
-					ignoreRestSiblings: true
-				}
+					ignoreRestSiblings: true,
+				},
 			],
 			
 			"eqeqeq": [
 				"error",
-				"always"
+				"always",
 			],
 
 			"typescript-eslint/no-explicit-any": "warn",
@@ -128,22 +128,22 @@ export default defineConfig([
 			"unicorn/prefer-early-return": [
 				"error",
 				{
-					"maximumStatements": 3 // seems like a good trade-off
-				}
+					"maximumStatements": 3, // seems like a good trade-off
+				},
 			],
 			"unicorn/prefer-https": [
 				"error",
 				{
 					ignore: [
-						/^http:\/\/specs\.openid\.net\//
+						/^http:\/\/specs\.openid\.net\//,
 					],
 				},
 			],
 			"unicorn/no-useless-undefined": [
 				"error",
 				{
-					"checkArrowFunctionBody": false
-				}
+					"checkArrowFunctionBody": false,
+				},
 			],
 
 			/**
@@ -154,26 +154,41 @@ export default defineConfig([
 				"error",
 				"tab",
 				{
-					"flatTernaryExpressions": true
-				}
+					"flatTernaryExpressions": true,
+				},
 			],
 			"stylistic/eol-last": [
-				"error"
+				"error",
 			],
 			"stylistic/linebreak-style": [
 				"error",
-				"unix"
+				"unix",
 			],
 			"stylistic/quotes": [
 				"error",
 				"double",
 				{
-					"avoidEscape": true
-				}
+					"avoidEscape": true,
+				},
 			],
 			"stylistic/semi": [
 				"error",
-				"always"
+				"always",
+			],
+			"stylistic/comma-dangle": [
+				"error",
+				{
+					"arrays": "always-multiline",
+					"objects": "always-multiline",
+					"imports": "always-multiline",
+					"exports": "always-multiline",
+					"functions": "only-multiline", // Allow but don't require.
+					"importAttributes": "always-multiline",
+					"dynamicImports": "always-multiline",
+					"enums": "always-multiline",
+					"generics": "always-multiline",
+					"tuples": "always-multiline",
+				},
 			],
 			"stylistic/space-before-function-paren": [
 				"error",
@@ -181,13 +196,13 @@ export default defineConfig([
 					anonymous: "never",
 					named: "never",
 					asyncArrow: "always",
-					catch: "always"
-				}
+					catch: "always",
+				},
 			],
 			"stylistic/function-call-spacing": [
 				"error",
-				"never"
-			]
+				"never",
+			],
 		},
 	},
 	{

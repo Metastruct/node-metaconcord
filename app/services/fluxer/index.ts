@@ -132,7 +132,7 @@ export function normalizeEmbeds(embeds: readonly unknown[], content = ""): Disco
 									? "\u{200B}"
 									: item.value,
 							inline: item.inline === true,
-						}))
+						})),
 				}),
 			};
 		});

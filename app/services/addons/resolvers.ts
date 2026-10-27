@@ -688,13 +688,13 @@ export function platformMatchToAddonSource(input: PlatformMatch): AddonSource {
 			return {
 				kind: input.platform,
 				projectId: input.projectId,
-				url: input.meta.url
+				url: input.meta.url,
 			};
 		case "curseforge":
 			return {
 				kind: input.platform,
 				projectId: input.projectId,
-				url: input.meta.url
+				url: input.meta.url,
 			};
 	}
 }

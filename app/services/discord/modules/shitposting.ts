@@ -220,7 +220,7 @@ export default async (bot: DiscordBot) => {
 						await options.msg.reply({
 							...shat,
 							allowedMentions: ({
-								repliedUser: options.ping ? true : false
+								repliedUser: options.ping ? true : false,
 							}),
 						});
 					} else {
