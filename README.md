@@ -39,7 +39,7 @@ $ npm run dev
 
 # OPTIONAL: Install git pre-commit hooks
 # for automatically checking for issues before committing
-$ npm run dev:setup-git-hooks
+$ npm run dev:enable-git-hooks
 ```
 
 ## Accounts and website auth (metastruct.net)
