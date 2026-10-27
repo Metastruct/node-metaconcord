@@ -477,5 +477,7 @@ $("#restart").addEventListener("click", async () => {
 
 // #endregion
 
-connect();
-loadConfigs();
+await Promise.all([
+	connect(),
+	loadConfigs(),
+]);
