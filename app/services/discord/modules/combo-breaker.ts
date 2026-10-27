@@ -15,7 +15,7 @@ assert(THRESHOLD_REACT_TO_DOUBLE_POST >= THRESHOLD_COMBO);
 assert(THRESHOLD_BREAK_THE_COMBO >= THRESHOLD_COMBO);
 
 function randomDoublePostReaction() {
-	return REACTIONS_DOUBLE_POSTER[Math.random() * REACTIONS_DOUBLE_POSTER.length];
+	return REACTIONS_DOUBLE_POSTER[Math.trunc(Math.random() * REACTIONS_DOUBLE_POSTER.length)];
 }
 
 enum ComboMessageEffect {
