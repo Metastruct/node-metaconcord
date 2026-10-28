@@ -170,7 +170,7 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 	try {
 		const old = await readFile(octokit);
 		const result = fn(old.events);
-		
+
 		if (typeof result === "string") {
 			res.status(400).json({ error: result });
 			return;

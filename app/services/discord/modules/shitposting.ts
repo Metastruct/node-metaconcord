@@ -376,7 +376,7 @@ export default async (bot: DiscordBot) => {
 			lastReactedUsers.has(user.id) ||
 			Math.random() > (reaction.emoji.name === "h_" ? 0.01 : MSG_REPLY_REACTION_PROB)
 		) return;
-		
+
 		const theFunny = await mk.generate(reaction.emoji.toString());
 		if (theFunny) {
 			await (message.channel as Discord.TextChannel)

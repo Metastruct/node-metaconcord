@@ -47,13 +47,13 @@ export default defineConfig([
 			"unicorn/consistent-class-member-order": "off", // Could be a good idea, but it's a bit of work.
 			"unicorn/consistent-boolean-name": "off", // Generally cool, but could be some work to figure out if the changes would be visible externally (via APIs?)
 			"unicorn/name-replacements": "off", // Good idea, needs some configuring work. Also see above.
-			
+
 			// Base ESLint rules not in eslintJs/recommended that we add into the mix
 			"radix": "error",
 
 			// Base ESLint rules that conflict or should not be used in general.
 			"no-redeclare": "off",
-			
+
 			// Disabled for aesthetic reasons:
 			"unicorn/import-style": "off",
 			"unicorn/no-array-reduce": "off",
@@ -70,7 +70,7 @@ export default defineConfig([
 			"unicorn/prefer-ternary": "off",
 			"unicorn/single-line-block-comment-style": "off",
 			"unicorn/switch-case-braces": "off",
-			
+
 			// Disabled: Heavy refactoring work would be required:
 			"unicorn/no-declarations-before-early-exit": "off",
 			"unicorn/no-null": "off",
@@ -78,7 +78,7 @@ export default defineConfig([
 			"unicorn/no-top-level-side-effects": "off",
 			"unicorn/prefer-await": "off",
 			"unicorn/prefer-event-target": "off",
-			
+
 			// Disabled: Necessary evil in order to keep this code relatively fun to work with, without requiring seminars:
 			"unicorn/max-nested-calls": "off",
 			"unicorn/no-array-callback-reference": "off",
@@ -87,7 +87,7 @@ export default defineConfig([
 			"unicorn/no-new-array": "off",
 			"unicorn/no-unsafe-string-replacement": "off",
 			"unicorn/prefer-regexp-test": "off",
-			
+
 			// Demoted to warning: Sometimes violating these makes sense for aesthetic reasons:
 			"unicorn/prefer-simple-condition-first": "warn",
 
@@ -118,7 +118,7 @@ export default defineConfig([
 					ignoreRestSiblings: true,
 				},
 			],
-			
+
 			"eqeqeq": [
 				"error",
 				"always",
@@ -156,7 +156,7 @@ export default defineConfig([
 			/**
 			 * Stylistic rules (only used for aesthetics and formatting)
 			 */
-			
+
 			"stylistic/indent": [
 				"error",
 				"tab",
@@ -210,6 +210,7 @@ export default defineConfig([
 				"error",
 				"never",
 			],
+			"stylistic/no-trailing-spaces": "error",
 		},
 	},
 	{

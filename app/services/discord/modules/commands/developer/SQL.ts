@@ -70,7 +70,7 @@ export const SlashSQLCommand: SlashCommand = {
 					await ctx.followUp(file);
 					break;
 				}
-				
+
 				default: {
 					await ctx.deferReply();
 					const res = await sql.queryPool(query);

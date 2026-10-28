@@ -298,8 +298,6 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 			gpath.linenoe ? Number(gpath.linenoe) : undefined
 		);
 	return filecontent;
-		
-	
 };
 
 export const makeSpeechBubble = async (

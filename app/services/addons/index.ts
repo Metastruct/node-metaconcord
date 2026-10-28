@@ -282,7 +282,7 @@ export class Addons extends Service {
 		const branch = this.interestingBranch(rawBranch, git);
 		const treeSegment = parsed?.host === "gitlab" ? "/-/tree/" : "/tree/";
 		const ref = branch ?? "HEAD";
-		
+
 		let repoUrl: string | undefined;
 		if (baseUrl) {
 			if (subpath) {

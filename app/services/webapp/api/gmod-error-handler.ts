@@ -129,7 +129,7 @@ export default async (webApp: WebApp): Promise<void> => {
 		let player: Player | undefined;
 		if (server) {
 			// ip matched so it HAS to exist
-			gameserver = gameBridge.servers.gmod.find(s => 
+			gameserver = gameBridge.servers.gmod.find(s =>
 				Array.isArray(s.config.ip) ? s.config.ip.includes(ip) : s.config.ip === ip
 			);
 		} else {
@@ -207,7 +207,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			color: server ? 0x03_A9_F4 : 0xDE_A9_09,
 			fields: [],
 		};
-		
+
 		if (player) {
 			if (player.isPirate) {
 				return;

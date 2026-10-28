@@ -30,7 +30,7 @@ class ChannelTrimmingState {
 		this.#cache = new MinHeap<Message>(messageDateComparator);
 		this.#fetchTimestamp = "0";
 	}
-	
+
 	public get maxAge() {
 		return this.#maxAge;
 	}
@@ -42,7 +42,7 @@ class ChannelTrimmingState {
 	public get fetchTimestamp() {
 		return this.#fetchTimestamp;
 	}
-	
+
 	public popOldMessage() {
 		const top = this.#cache.peek();
 		if (top && isOlderThan(top.createdAt, this.#maxAge)) {

@@ -84,7 +84,7 @@ class Combo {
 			this.#doublePosters.add(authorId);
 			return wasActive ? ComboMessageEffect.DOUBLE_POSTED : ComboMessageEffect.NONE;
 		}
-		
+
 		this.#participants.add(authorId);
 		return wasActive ? ComboMessageEffect.INCREMENTED : ComboMessageEffect.NONE;
 	}
@@ -93,11 +93,11 @@ class Combo {
 		this.#reset();
 		this.#messageHash = "";
 	}
-	
+
 	public get channelId() {
 		return this.#channelId;
 	}
-	
+
 	public get length() {
 		return this.#participants.size;
 	}

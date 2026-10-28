@@ -50,7 +50,7 @@ export default class VoteKickPayload extends Payload {
 		if (result) {
 			const success = result.success;
 			const reason = result.reason;
-			
+
 			if (success) {
 				if (relayChannel) {
 					await this.getLastReport(payload.data, relayChannel as Discord.TextChannel)

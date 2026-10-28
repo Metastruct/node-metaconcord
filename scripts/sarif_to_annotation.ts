@@ -7,7 +7,7 @@ const rawLog = readFileSync("eslint-results.sarif", "utf8");
 const log: SarifLog = JSON.parse(rawLog);
 
 abstract class Line {
-	abstract toString(): string;   
+	abstract toString(): string;
 }
 
 class DebugLine extends Line {
@@ -25,13 +25,13 @@ class DebugLine extends Line {
 
 abstract class FileInfoLine extends Line {
 	protected abstract readonly type: string;
-	
+
 	readonly #name: string;
 	readonly #line: number;
 	readonly #endLine: number;
 	readonly #title: string;
 	readonly #message: string;
-	
+
 
 	constructor(name: string, line: number, endLine: number, title: string, message: string) {
 		super();
@@ -66,7 +66,7 @@ class Error   extends FileInfoLine { protected override type = "error";   }
 // 			...this.#lines,
 // 			"::endgroup::",
 // 		].join("\n");
-// 	}	
+// 	}
 // }
 
 const results = log.runs[0].results;

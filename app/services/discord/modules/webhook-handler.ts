@@ -1018,7 +1018,7 @@ export default async (bot: DiscordBot): Promise<void> => {
 	bot.discord.on("clientReady", async () => {
 		const channel = bot.getTextChannel(bot.config.channels.publicCommits);
 		if (!channel) return;
-		
+
 		const hooks = await channel.fetchWebhooks();
 		const botHook = hooks.filter(h => h.owner === bot.discord.user).first();
 		if (botHook) {
