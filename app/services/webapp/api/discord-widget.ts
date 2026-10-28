@@ -20,7 +20,7 @@ let refreshing: Promise<void> | undefined;
 let lastAttempt = 0;
 
 /** Discord guild widget, fetched server-side so browsers don't have to reach discord.com. */
-export default (webApp: WebApp): void => {
+export default function discordWidgetAPI(webApp: WebApp): void {
 	webApp.app.get("/discord/guild/widget", async (_, res) => {
 		const bot = webApp.container.getService("DiscordBot");
 		const guild = bot.getGuild();
@@ -59,4 +59,4 @@ export default (webApp: WebApp): void => {
 		res.set("Cache-Control", CACHE_CONTROL);
 		res.json(cached.data);
 	});
-};
+}

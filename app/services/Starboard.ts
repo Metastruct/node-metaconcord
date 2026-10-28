@@ -247,6 +247,6 @@ export class Starboard extends Service {
 	}
 }
 
-export default (container: Container): Service => {
+export default function StarboardProvider(container: Container): Service {
 	return new Starboard(container);
-};
+}

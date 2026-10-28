@@ -3,7 +3,7 @@ import { GuildEmoji } from "discord.js";
 
 type EmojiWithUrl = GuildEmoji & { url?: string };
 
-export default async (webApp: WebApp): Promise<void> => {
+export default async function addEmojiAPI(webApp: WebApp): Promise<void> {
 	webApp.app.get("/discord/guild/emojis", async (_, res) => {
 		const bot = webApp.container.getService("DiscordBot");
 		if (!bot.discord.readyAt) {
@@ -30,4 +30,4 @@ export default async (webApp: WebApp): Promise<void> => {
 
 		res.status(200).json(emojis);
 	});
-};
+}

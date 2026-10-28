@@ -136,7 +136,7 @@ class ComboManager {
 	}
 }
 
-export default (bot: DiscordBot): void => {
+export default function ComboBreakerLoader(bot: DiscordBot): void {
 	const comboManager = new ComboManager();
 
 	bot.discord.on("messageCreate", async msg => {
@@ -166,4 +166,4 @@ export default (bot: DiscordBot): void => {
 				// Do Nothing.
 		}
 	});
-};
+}

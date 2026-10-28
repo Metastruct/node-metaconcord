@@ -1,7 +1,7 @@
 import { WebApp } from "#/app/services/webapp/index.js";
 
 /** Nothing here is worth indexing, tell the clankers to go away. */
-export default (webApp: WebApp): void => {
+export default function robots(webApp: WebApp): void {
 	webApp.app.get("/robots.txt", (_, res) => {
 		res.type("text/plain").send("User-agent: *\nDisallow: /\n");
 	});
@@ -14,4 +14,4 @@ export default (webApp: WebApp): void => {
 				'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>\n'
 		);
 	});
-};
+}

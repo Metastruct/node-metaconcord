@@ -19,7 +19,7 @@ const STATE_COOKIE = "glState";
 const GITLAB_URL = "https://gitlab.com";
 
 /** GitLab login and linking, identity only. The app needs the read_user scope. */
-export default (webApp: WebApp): void => {
+export default function gitlabAuth(webApp: WebApp): void {
 	const limiter = rateLimit({ keyGenerator: rateLimitKeyGenerator, windowMs: 60_000, limit: 30 });
 	const callbackUrl = `${webApp.config.url}/auth/gitlab/callback`;
 	const oauth = GitlabConfig.oauth;
@@ -124,4 +124,4 @@ export default (webApp: WebApp): void => {
 			throw error;
 		}
 	});
-};
+}

@@ -224,7 +224,7 @@ const validateBan = (body: unknown, server?: GmodConnection): BanInput | string 
 	};
 };
 
-export default (webApp: WebApp): void => {
+export default function bansAPI(webApp: WebApp): void {
 	const limiter = rateLimit({ keyGenerator: rateLimitKeyGenerator, windowMs: 60_000, limit: 10 });
 	const json = express.json({ limit: "8kb" });
 
@@ -439,7 +439,7 @@ export default (webApp: WebApp): void => {
 			unbannedBy: parseBanActor(websiteActor(session)),
 		}));
 	});
-};
+}
 
 /**
  * Force refreshes the cache so the writer immediately sees their own change, then answers with

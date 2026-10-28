@@ -58,7 +58,7 @@ export const menuCommands = [
 	MenuWhyRoleCommand,
 ];
 
-export default (bot: DiscordBot): void => {
+export default function CommandsLoader(bot: DiscordBot): void {
 	bot.discord.slashCommands = new Discord.Collection();
 	bot.discord.menuCommands = new Discord.Collection();
 
@@ -121,4 +121,4 @@ export default (bot: DiscordBot): void => {
 			}
 		}
 	});
-};
+}

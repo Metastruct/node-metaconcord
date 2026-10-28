@@ -141,7 +141,7 @@ const wasManuallyArchived = async (thread: Discord.ThreadChannel): Promise<boole
 	}
 };
 
-export default (webApp: WebApp): void => {
+export default function appealsAPI(webApp: WebApp): void {
 	// both are soft: endpoints below 503 when either is missing (see requireServices)
 	const sql = webApp.container.tryService("SQL");
 	const json = express.json({ limit: "8kb" });
@@ -741,4 +741,4 @@ export default (webApp: WebApp): void => {
 			log.info(`${interaction.user.username} accepted the appeal of ${steamId64}, unbanned`);
 		});
 	});
-};
+}

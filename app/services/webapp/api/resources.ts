@@ -2,7 +2,7 @@ import { WebApp } from "#/app/services/webapp/index.js";
 import express from "express";
 import path from "node:path";
 
-export default (webApp: WebApp): void => {
+export default function addMapThumbnails(webApp: WebApp): void {
 	webApp.app.use(
 		"/map-thumbnails/",
 		express.static(path.join(process.cwd(), "resources/map-thumbnails"))
@@ -12,4 +12,4 @@ export default (webApp: WebApp): void => {
 		"/favicon.ico",
 		express.static(path.join(process.cwd(), "resources/favicon.ico"))
 	);
-};
+}

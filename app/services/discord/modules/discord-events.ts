@@ -32,7 +32,7 @@ export const endEvent = async (
 	await bot.setNickname(undefined, reason);
 };
 
-export default async (bot: DiscordBot): Promise<void> => {
+export default async function DiscordEventsLoader(bot: DiscordBot): Promise<void> {
 	const events = [
 		{
 			icon: "jackbox",
@@ -147,4 +147,4 @@ export default async (bot: DiscordBot): Promise<void> => {
 			}
 		}
 	});
-};
+}

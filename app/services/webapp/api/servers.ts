@@ -88,7 +88,7 @@ function basePlayer(player: Player): ServerPlayer {
 	};
 }
 
-export default async (webApp: WebApp): Promise<void> => {
+export default async function serversAPI(webApp: WebApp): Promise<void> {
 	webApp.app.get("/servers", async (_, res) => {
 		const bridge = webApp.container.getService("GameBridge");
 		const baseUrl = webApp.config.url;
@@ -279,4 +279,4 @@ export default async (webApp: WebApp): Promise<void> => {
 		res.set("Cache-Control", "public, max-age=5");
 		res.json({ games });
 	});
-};
+}

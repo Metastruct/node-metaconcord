@@ -534,6 +534,6 @@ export class Addons extends Service {
 	}
 }
 
-export default (container: Container): Service => {
+export default function AddonsProvider(container: Container): Service {
 	return new Addons(container);
-};
+}

@@ -19,7 +19,7 @@ const viewer = async (req: Request, res: Response): Promise<boolean> => {
  * Public, except that Metastruct team members also get the sources of the private
  * repos; that response must never be cached by anything but the browser.
  */
-export default async (webApp: WebApp): Promise<void> => {
+export default async function addAddonsAPI(webApp: WebApp): Promise<void> {
 	webApp.app.get("/addons", async (req, res) => {
 		const authorized = await viewer(req, res);
 		const addons = webApp.container.getService("Addons");
@@ -41,4 +41,4 @@ export default async (webApp: WebApp): Promise<void> => {
 		}
 		res.json(Addons.forViewer(entry, await viewer(req, res)));
 	});
-};
+}

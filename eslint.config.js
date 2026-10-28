@@ -43,7 +43,6 @@ export default defineConfig([
 		rules: {
 			// Disabled for now, maybe they can be enabled some time?
 			"unicorn/filename-case": "off", // Will change a lot of paths, fix everything else first for simpler merging.
-			"unicorn/no-anonymous-default-export": "off", // Recommended to look into `unicorn/filename-case` first.
 			"unicorn/consistent-class-member-order": "off", // Could be a good idea, but it's a bit of work.
 			"unicorn/consistent-boolean-name": "off", // Generally cool, but could be some work to figure out if the changes would be visible externally (via APIs?)
 			"unicorn/name-replacements": "off", // Good idea, needs some configuring work. Also see above.

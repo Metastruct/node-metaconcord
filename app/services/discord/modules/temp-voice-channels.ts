@@ -1,6 +1,6 @@
 import { DiscordBot } from "../index.js";
 
-export default async (bot: DiscordBot): Promise<void> => {
+export default async function TempVoiceChannelsLoader(bot: DiscordBot): Promise<void> {
 	const data = bot.container.getService("Data");
 	const channels = data.tempVoiceChannels;
 
@@ -35,4 +35,4 @@ export default async (bot: DiscordBot): Promise<void> => {
 			if (changes) data.save();
 		}
 	});
-};
+}

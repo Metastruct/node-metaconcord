@@ -174,6 +174,6 @@ export class Motd extends Service {
 		return await this.bot.setNickname(nick, "Random Motd name");
 	}
 }
-export default (container: Container): Service => {
+export default function MotdProvider(container: Container): Service {
 	return new Motd(container);
-};
+}

@@ -938,7 +938,7 @@ function addContainerHeader(
 	return container;
 }
 
-export default async (bot: DiscordBot): Promise<void> => {
+export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<void> {
 	const webapp = bot.container.getService("WebApp");
 
 	const middleware = createNodeMiddleware(GitHub(), { path: "/" });
@@ -2271,4 +2271,4 @@ export default async (bot: DiscordBot): Promise<void> => {
 		merge_request: body => GitlabMergeRequestHandler(body as WebhookMergeRequestEventSchema),
 		pipeline: body => GitlabPipelineHandler(body as WebhookPipelineEventSchema),
 	};
-};
+}

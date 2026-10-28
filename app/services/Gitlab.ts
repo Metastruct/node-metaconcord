@@ -8,6 +8,6 @@ export class Gitlab extends Service {
 	api = new Gl({ token: config.gitlab });
 }
 
-export default (container: Container): Service => {
+export default function GitlabProvider(container: Container): Service {
 	return new Gitlab(container);
-};
+}

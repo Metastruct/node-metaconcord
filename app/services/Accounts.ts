@@ -805,6 +805,6 @@ export class Accounts extends Service {
 	}
 }
 
-export default (container: Container): Service => {
+export default function AccountsProvider(container: Container): Service {
 	return new Accounts(container);
-};
+}

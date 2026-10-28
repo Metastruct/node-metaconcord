@@ -147,7 +147,7 @@ const lastMsgs: Discord.Message<boolean>[] = [];
 const lastReactedMessages = new Set<string>();
 const lastReactedUsers = new Set<string>();
 
-export default async (bot: DiscordBot) => {
+export default async function ShitpostLoader(bot: DiscordBot) {
 	const data = bot.container.getService("Data");
 	const mk = bot.container.getService("Markov");
 	const db = bot.container.getService("SQL").getLocalDatabase();
@@ -486,4 +486,4 @@ export default async (bot: DiscordBot) => {
 				});
 		}
 	});
-};
+}

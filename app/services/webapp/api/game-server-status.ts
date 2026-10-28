@@ -19,7 +19,7 @@ const imageToDataURL = async (filePath: PathLike | FileHandle) => {
 	return `data:${mimeType};base64,${base64}`;
 };
 
-export default async (webApp: WebApp): Promise<void> => {
+export default async function addGameServerStatusAPI(webApp: WebApp): Promise<void> {
 	webApp.app.get("/server-status/:id{/:bruh}", async (req, res) => {
 		const gameBridge = webApp.container.getService("GameBridge");
 		const server = gameBridge.servers.gmod[Number(req.params.id)];
@@ -113,4 +113,4 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.send(html);
 		}
 	});
-};
+}

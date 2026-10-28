@@ -11,7 +11,7 @@ function isEmpty(obj: { [roleId: string]: { adderId: string; timeStamp: number }
 	return true;
 }
 
-export default async (bot: DiscordBot): Promise<void> => {
+export default async function PermaRolesLoader(bot: DiscordBot): Promise<void> {
 	const data = bot.container.getService("Data");
 	const permaRoles = data.permaRoles;
 	const permaPrefix = "#";
@@ -75,4 +75,4 @@ export default async (bot: DiscordBot): Promise<void> => {
 			"adding back perma roles"
 		);
 	});
-};
+}

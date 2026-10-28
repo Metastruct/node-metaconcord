@@ -22,7 +22,7 @@ const STATE_COOKIE = "ghState";
  * GitHub login and linking. The user token is kept on the link because the history
  * editor commits in the user's name; roles come from team membership (see Accounts).
  */
-export default (webApp: WebApp): void => {
+export default function githubAuth(webApp: WebApp): void {
 	const limiter = rateLimit({ keyGenerator: rateLimitKeyGenerator, windowMs: 60_000, limit: 30 });
 	const callbackUrl = `${webApp.config.url}/auth/github/callback`;
 	const oauth = GithubConfig.oauth;
@@ -130,4 +130,4 @@ export default (webApp: WebApp): void => {
 			throw error;
 		}
 	});
-};
+}

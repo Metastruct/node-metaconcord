@@ -122,7 +122,7 @@ const formatStatsLine = (trimmer: ChannelTrimmer) =>
 	`Fetch snowflake: ${trimmer.state.fetchTimestamp}\n` +
 	`Peek: ${trimmer.state.peekMessage().url}`;
 
-export default (bot: DiscordBot): void => {
+export default function ChannelTrimmerLoader(bot: DiscordBot): void {
 	const trimmers = new Map<TextChannel, ChannelTrimmer>();
 
 	let timerEnabled = true;
@@ -178,4 +178,4 @@ export default (bot: DiscordBot): void => {
 			await msg.channel.send("stopped");
 		}
 	});
-};
+}

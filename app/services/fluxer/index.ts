@@ -2034,4 +2034,6 @@ export class Fluxer extends Service {
 	}
 }
 
-export default (container: Container): Service => new Fluxer(container);
+export default function FluxerProvider(container: Container): Service {
+	return new Fluxer(container);
+}

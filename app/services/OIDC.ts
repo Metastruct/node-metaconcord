@@ -6,10 +6,9 @@ import { logger } from "#/utils.js";
 import OIDCConfig from "#/config/oidc.json" with { type: "json" };
 import crypto from "node:crypto";
 import {
-	Provider as OIDCProvider,
+	Provider,
 	type Account,
 	type AccountClaims,
-	type Grant as OIDCGrant,
 	type Adapter,
 	type AdapterPayload,
 	errors,
@@ -49,7 +48,7 @@ export class OIDC extends Service {
 		claims?: { displayName?: boolean; roles?: boolean; email?: boolean };
 	};
 
-	provider!: OIDCProvider;
+	provider!: Provider;
 
 	override async init(): Promise<void> {
 		const webApp = this.container.getService("WebApp");
@@ -58,7 +57,7 @@ export class OIDC extends Service {
 
 		await this.ensureTables(sql);
 
-		this.provider = new OIDCProvider(this.config.issuer, {
+		this.provider = new Provider(this.config.issuer, {
 			adapter: makeAdapter(sql),
 			clients: this.config.clients.map(client => ({
 				...client,
@@ -285,8 +284,7 @@ export class OIDC extends Service {
 				if (prompt.details.missingOIDCScope) {
 					// the Grant class is instantiated per provider, only reachable off
 					// the instance
-					const Grant = this.provider.Grant as unknown as typeof OIDCGrant;
-					const grant = new Grant({
+					const grant = new this.provider.Grant({
 						accountId: String(accountId),
 						clientId: params.client_id,
 					});
@@ -501,6 +499,6 @@ function makeAdapter(sql: SQL): new (name: string) => Adapter {
 	};
 }
 
-export default (container: Container): Service => {
+export default function OIDCProvider(container: Container): Service {
 	return new OIDC(container);
-};
+}

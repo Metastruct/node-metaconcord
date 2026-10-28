@@ -48,7 +48,7 @@ const verifySteamOpenId = async (
 	return ident.match(/^https:\/\/steamcommunity\.com\/openid\/id\/(\d+)$/)?.[1];
 };
 
-export default (webApp: WebApp): void => {
+export default function steamAuth(webApp: WebApp): void {
 	const limiter = rateLimit({ keyGenerator: rateLimitKeyGenerator, windowMs: 60_000, limit: 30 });
 	const callbackUrl = `${webApp.config.url}/auth/steam/callback`;
 
@@ -93,4 +93,4 @@ export default (webApp: WebApp): void => {
 			throw error;
 		}
 	});
-};
+}

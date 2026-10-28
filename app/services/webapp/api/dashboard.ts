@@ -227,7 +227,7 @@ const requireAdmin = async (req: Request, res: Response, next: NextFunction): Pr
 	}
 };
 
-export default (webApp: WebApp): void => {
+export default function dashboard(webApp: WebApp): void {
 	const limiter = rateLimit({ keyGenerator: rateLimitKeyGenerator, windowMs: 60_000, limit: 60 });
 	const view = path.join(VIEW_DIR, "view.pug");
 	const login = path.join(VIEW_DIR, "login.pug");
@@ -330,4 +330,4 @@ export default (webApp: WebApp): void => {
 		log.info(`dashboard ws opened by ${session.login}`);
 		new DashboardSession(conn, session);
 	});
-};
+}

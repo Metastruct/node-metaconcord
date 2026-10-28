@@ -1,7 +1,7 @@
 import { DiscordBot } from "../index.js";
 import { MessageReaction } from "discord.js";
 
-export default (bot: DiscordBot): void => {
+export default function StarboardLoader(bot: DiscordBot): void {
 	bot.discord.on("messageReactionAdd", async reaction => {
 		if (reaction.partial) {
 			try {
@@ -14,4 +14,4 @@ export default (bot: DiscordBot): void => {
 			.getService("Starboard")
 			.handleReactionAdded(reaction as MessageReaction);
 	});
-};
+}

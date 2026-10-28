@@ -82,7 +82,7 @@ const formatOverwriteValue = (key: string, value: unknown): string | undefined =
 	return undefined;
 };
 
-export default (bot: DiscordBot): void => {
+export default function LoggingLoader(bot: DiscordBot): void {
 	let logChannel: Discord.TextChannel | undefined;
 
 	bot.discord.once("clientReady", () => {
@@ -411,4 +411,4 @@ export default (bot: DiscordBot): void => {
 
 		await logChannel.send({ embeds: [embed] }).catch(() => {});
 	});
-};
+}

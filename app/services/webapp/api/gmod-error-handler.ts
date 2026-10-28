@@ -96,7 +96,7 @@ const ignoreRegex = [
 ];
 //const fileIgnore = [];
 
-export default async (webApp: WebApp): Promise<void> => {
+export default async function gmodErrorHandlerAPI(webApp: WebApp): Promise<void> {
 	let webhook: Discord.WebhookClient | undefined;
 	const getWebhook = (): Discord.WebhookClient =>
 		(webhook ??= new Discord.WebhookClient({ url: config.webhookUrl }));
@@ -279,4 +279,4 @@ export default async (webApp: WebApp): Promise<void> => {
 			getWebhook().send(payload).catch(log.error.bind(log));
 		}
 	});
-};
+}

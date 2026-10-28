@@ -103,6 +103,6 @@ export class Data extends Service {
 	}
 }
 
-export default (container: Container): Service => {
+export default function DataProvider(container: Container): Service {
 	return new Data(container);
-};
+}

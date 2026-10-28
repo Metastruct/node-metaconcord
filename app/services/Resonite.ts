@@ -218,6 +218,6 @@ export class Resonite extends Service {
 		this.LastTokenTime = lastTokenTime;
 	}
 }
-export default (container: Container): Service => {
+export default function ResoniteProvider(container: Container): Service {
 	return new Resonite(container);
-};
+}

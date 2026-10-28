@@ -210,7 +210,7 @@ const mutate = async (req: Request, res: Response, fn: Mutation): Promise<void> 
 	}
 };
 
-export default (webApp: WebApp): void => {
+export default function historyAPI(webApp: WebApp): void {
 	const limiter = rateLimit({ keyGenerator: rateLimitKeyGenerator, windowMs: 60_000, limit: 30 });
 	const json = express.json({ limit: "64kb" });
 
@@ -268,4 +268,4 @@ export default (webApp: WebApp): void => {
 			};
 		})
 	);
-};
+}

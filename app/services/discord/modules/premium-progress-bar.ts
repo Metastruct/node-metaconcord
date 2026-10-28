@@ -7,7 +7,7 @@ const LVL_MAP = [
 	[3, 14],
 ];
 
-export default (bot: DiscordBot): void => {
+export default function ProgressBarLoader(bot: DiscordBot): void {
 	const setProgressBar = async () => {
 		const guild = bot.getGuild();
 		const count = guild?.premiumSubscriptionCount;
@@ -34,4 +34,4 @@ export default (bot: DiscordBot): void => {
 		if (updatedMember.premiumSinceTimestamp && Date.now() - updatedMember.premiumSinceTimestamp < 1000 * 60)
 			setProgressBar();
 	});
-};
+}

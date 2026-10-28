@@ -92,6 +92,6 @@ export class WebApp extends Service {
 	}
 }
 
-export default (container: Container): Service => {
+export default function WebAppProvider(container: Container): Service {
 	return new WebApp(container);
 };

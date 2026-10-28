@@ -105,7 +105,7 @@ async function upcoming(guild: Discord.Guild): Promise<UpcomingEvent[]> {
 }
 
 /** Upcoming scheduled events of the Discord guild, recurring ones expanded. */
-export default (webApp: WebApp): void => {
+export default function discordEventsAPI(webApp: WebApp): void {
 	webApp.app.get("/discord/guild/events", async (req, res) => {
 		const guild = webApp.container.getService("DiscordBot").getGuild();
 		if (!guild) {
@@ -143,4 +143,4 @@ export default (webApp: WebApp): void => {
 		res.set("Cache-Control", CACHE_CONTROL);
 		res.json({ events: cached.events.slice(0, limit) });
 	});
-};
+}

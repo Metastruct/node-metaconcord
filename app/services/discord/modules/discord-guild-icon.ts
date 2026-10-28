@@ -86,7 +86,7 @@ export const getEventIcon = async () => {
 	return { filePath, eventName };
 };
 
-export default async (bot: DiscordBot): Promise<void> => {
+export default async function DiscordGuildIconLoader(bot: DiscordBot): Promise<void> {
 	bot.discord.on("clientReady", async () => {
 		const guild = bot.getGuild();
 		if (!guild) return;
@@ -123,4 +123,4 @@ export default async (bot: DiscordBot): Promise<void> => {
 		scheduleJob("0 0 * * *", doIt);
 		doIt();
 	});
-};
+}

@@ -179,7 +179,7 @@ export const takeRedirect = (
 const isProvider = (value: unknown): value is Provider =>
 	typeof value === "string" && (LOGIN_PROVIDERS as string[]).concat("minecraft").includes(value);
 
-export default (webApp: WebApp): void => {
+export default function session(webApp: WebApp): void {
 	const limiter = rateLimit({ keyGenerator: rateLimitKeyGenerator, windowMs: 60_000, limit: 30 });
 
 	webApp.app.get("/auth/me", async (req, res) => {
@@ -248,4 +248,4 @@ export default (webApp: WebApp): void => {
 			res.json(await accounts().createLinkCode(session.account.id, provider));
 		}
 	);
-};
+}

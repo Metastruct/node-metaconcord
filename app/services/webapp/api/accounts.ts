@@ -40,7 +40,7 @@ const requireServerToken = (req: Request, res: Response, next: NextFunction): vo
 	next();
 };
 
-export default (webApp: WebApp): void => {
+export default function accountsAPI(webApp: WebApp): void {
 	const limiter = rateLimit({
 		keyGenerator: rateLimitKeyGenerator,
 		windowMs: 60_000,
@@ -95,4 +95,4 @@ export default (webApp: WebApp): void => {
 				.map(l => ({ provider: l.provider, name: l.name })),
 		});
 	});
-};
+}

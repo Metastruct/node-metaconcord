@@ -4,7 +4,7 @@ import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 
-export default async (webApp: WebApp): Promise<void> => {
+export default async function changeGamemodeAPI(webApp: WebApp): Promise<void> {
 	webApp.app.get("/gamemode/:id", async (req, res) => {
 		const bot = webApp.container.getService("DiscordBot");
 		const ip = req.header("cf-connecting-ip") ?? req.header("x-forwarded-for")?.split(",", 1)[0];
@@ -54,4 +54,4 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.status(500).contentType("text/plain").send(String(error));
 		}
 	});
-};
+}

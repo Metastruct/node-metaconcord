@@ -16,6 +16,6 @@ export class Github extends Service {
 	});
 }
 
-export default (container: Container): Service => {
+export default function GithubProvider(container: Container): Service {
 	return new Github(container);
-};
+}

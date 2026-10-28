@@ -283,6 +283,6 @@ export class Markov extends Service {
 	}
 }
 
-export default (container: Container): Service => {
+export default function MarkovProvider(container: Container): Service {
 	return new Markov(container);
-};
+}

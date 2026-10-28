@@ -108,7 +108,7 @@ const avatarUrl = (user: Discord.APIUser): string | undefined =>
 		? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${user.avatar.startsWith("a_") ? "gif" : "png"}?size=256`
 		: undefined;
 
-export default async (webApp: WebApp): Promise<void> => {
+export default async function discordOAuth(webApp: WebApp): Promise<void> {
 	const sql = webApp.container.getService("SQL");
 	const metadata = () => webApp.container.getService("DiscordMetadata");
 	const secretLimiter = rateLimit({ keyGenerator: rateLimitKeyGenerator });
@@ -323,4 +323,4 @@ export default async (webApp: WebApp): Promise<void> => {
 			res.sendStatus(500);
 		}
 	});
-};
+}

@@ -222,7 +222,7 @@ const hostedServers = (): HostedServer[] => [
 	})),
 ];
 
-export default (webApp: WebApp): void => {
+export default function consoleAPI(webApp: WebApp): void {
 	const bridge = () => webApp.container.getService("GameBridge");
 
 	const liveConnection = (server: HostedServer) =>
@@ -311,4 +311,4 @@ export default (webApp: WebApp): void => {
 		const conn = req.accept(undefined, req.origin);
 		new BridgeConsoleSession(conn, session, server, bridge()).start();
 	});
-};
+}

@@ -7,7 +7,7 @@ const FORBIDDEN = 403;
 const SUCCESS = 200;
 const ERROR = 500;
 
-export default (webApp: WebApp): void => {
+export default function ciAPI(webApp: WebApp): void {
 	webApp.app.get("/ci/reload", async (req, res) => {
 		const bearer = req.headers["authorization"];
 		if (!bearer || bearer.length === 0) {
@@ -33,4 +33,4 @@ export default (webApp: WebApp): void => {
 			return;
 		}
 	});
-};
+}
