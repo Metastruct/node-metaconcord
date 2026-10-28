@@ -20,7 +20,7 @@
 		"check": "run-s check:typescript check:eslint",
 		"check:eslint": "eslint",
 		"check:typescript": "tsc --noEmit",
-		"ci:lint": "eslint --format @microsoft/eslint-formatter-sarif --output-file eslint-results.sarif",
+		"ci:lint": "cross-env SARIF_ESLINT_IGNORE_SUPPRESSED=true eslint --format @microsoft/eslint-formatter-sarif --output-file eslint-results.sarif",
 		"clean": "rimraf ./dist",
 		"compile": "tsc",
 		"dev": "cross-env NODE_ENV=development DEBUG=express:*,router,router:* node dist",
