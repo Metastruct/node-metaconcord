@@ -20,6 +20,7 @@
 		"check": "run-s check:typescript check:eslint",
 		"check:eslint": "eslint",
 		"check:typescript": "tsc --noEmit",
+		"ci:lint": "eslint --format @microsoft/eslint-formatter-sarif --output-file eslint-results.sarif",
 		"clean": "rimraf ./dist",
 		"compile": "tsc",
 		"dev": "cross-env NODE_ENV=development DEBUG=express:*,router,router:* node dist",
@@ -82,6 +83,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
+		"@microsoft/eslint-formatter-sarif": "^3.1.0",
 		"@stylistic/eslint-plugin": "^5.10.0",
 		"@tsconfig/node26": "^26.0.1",
 		"@tsconfig/strictest": "^2.0.8",

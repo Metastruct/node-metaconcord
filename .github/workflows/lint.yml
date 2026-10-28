@@ -22,7 +22,7 @@ jobs:
                   node-version: 26
                   cache: npm
             - run: npm ci
-            - run: npm run lint
+            - run: npm run ci:lint
             - run: npm run test:fluxer
             - run: npm run schema:gen
             - name: Check generated schemas are up to date
@@ -31,3 +31,7 @@ jobs:
                     echo "::error::Generated JSON schemas are out of date - run 'npm run schema:gen' and commit the result."
                     exit 1
                   }
+            - name: Upload lint results to GitHub
+              uses: github/codeql-action/upload-sarif@v4
+              with:
+                sarif_file: eslint-results.sarif

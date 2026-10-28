@@ -8,6 +8,7 @@ build
 resources/game-server-status/style.css
 resources/dashboard/style.css
 cache
+*.sarif
 
 # Our files
 .env
