@@ -258,6 +258,8 @@ inputEl.addEventListener("keydown", ev => {
 
 // #region config editor
 
+const OPEN_CONFIG_KEY = "dashboard.openConfig";
+
 const typeOf = v => (v === null ? "null" : (Array.isArray(v) ? "array" : typeof v));
 
 /** Scalars are edited bare in an input, objects/arrays as JSON in a textarea. */
@@ -297,6 +299,7 @@ const parseField = field => {
 
 const renderConfig = ({ name, content, error }, open) => {
 	const details = el("details");
+	details.name = "config-panels";
 	if (open) details.open = true;
 	const summary = el("summary");
 	summary.appendChild(el("span", "", name));
@@ -306,6 +309,16 @@ const renderConfig = ({ name, content, error }, open) => {
 	details.appendChild(summary);
 	const body = el("div", "body");
 	details.appendChild(body);
+
+	// Persist open state to sessionStorage to survive reloads.
+	details.addEventListener("toggle", () => {
+		try {
+			if (details.open) sessionStorage.setItem(OPEN_CONFIG_KEY, name);
+			else if (sessionStorage.getItem(OPEN_CONFIG_KEY) === name) {
+				sessionStorage.removeItem(OPEN_CONFIG_KEY);
+			}
+		} catch { /* sessionStorage fail? */ }
+	});
 
 	const isArray = Array.isArray(content);
 	// items of an array root are keyed by an opaque token, so removing one does not
@@ -422,14 +435,18 @@ const loadConfigs = async () => {
 		configsEl.textContent = "failed to load configs: " + res.status;
 		return;
 	}
-	const openNames = new Set(
-		[...configsEl.querySelectorAll("details[open] summary > span:first-child")].map(
-			s => s.textContent
-		)
-	);
+	const configs = await res.json();
+	let openName = null;
+	try {
+		openName = sessionStorage.getItem(OPEN_CONFIG_KEY);
+		if (openName && configs.every(cfg => cfg.name !== openName)) {
+			sessionStorage.removeItem(OPEN_CONFIG_KEY);
+			openName = null;
+		}
+	} catch { /* sessionStorage fail? */ }
 	configsEl.textContent = "";
-	for (const cfg of await res.json()) {
-		configsEl.appendChild(renderConfig(cfg, openNames.has(cfg.name)));
+	for (const cfg of configs) {
+		configsEl.appendChild(renderConfig(cfg, cfg.name === openName));
 	}
 };
 
