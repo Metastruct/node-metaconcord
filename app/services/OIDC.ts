@@ -55,8 +55,6 @@ export class OIDC extends Service {
 		const sql = this.container.getService("SQL");
 		const accounts = this.container.getService("Accounts");
 
-		await this.ensureTables(sql);
-
 		this.provider = new Provider(this.config.issuer, {
 			adapter: makeAdapter(sql),
 			clients: this.config.clients.map(client => ({
@@ -314,20 +312,6 @@ export class OIDC extends Service {
 	override async start(): Promise<void> {
 		const webApp = this.container.getService("WebApp");
 		webApp.app.use(this.provider.callback());
-	}
-
-	async ensureTables(sql: SQL): Promise<void> {
-		sql.database.exec(`
-			CREATE TABLE IF NOT EXISTS oidc_tokens (
-				id TEXT PRIMARY KEY,
-				grant_id TEXT,
-				payload TEXT NOT NULL
-			);
-			CREATE TABLE IF NOT EXISTS oidc_uid_index (
-				uid TEXT PRIMARY KEY,
-				id TEXT NOT NULL
-			);
-		`);
 	}
 }
 
