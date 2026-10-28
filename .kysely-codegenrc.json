@@ -1,0 +1,5 @@
+{
+    "$schema": "schemas/kysely-codegenrc.schema.json",
+    "url": "metaconcord.db",
+    "outFile": "generated/LocalDBTypes.ts"
+}

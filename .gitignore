@@ -5,6 +5,7 @@ node_modules
 dist
 data
 build
+generated
 resources/game-server-status/style.css
 resources/dashboard/style.css
 cache

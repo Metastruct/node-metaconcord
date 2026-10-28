@@ -8,7 +8,7 @@ import packageJson from "eslint-package-json";
 
 export default defineConfig([
 	{
-		ignores: ["dist/"],
+		ignores: ["dist/", "generated/"],
 	},
 	{
 		files: ["!resources/**"],
