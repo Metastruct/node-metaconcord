@@ -5,6 +5,13 @@ type NamedUpgradeFunction = [string, UpgradeFunction];
 type NamedUpgradeFunctions = NamedUpgradeFunction[];
 
 const preexistingTableDefinitions: Record<string, NamedUpgradeFunctions> = {
+	starboard: [
+		["starboard", async db => await db.schema
+			.createTable("starboard")
+			.ifNotExists()
+			.addColumn("MessageId", "integer", col => col.primaryKey())
+			.execute()],
+	],
 	oidc: [
 		["oidc_tokens", async db => await db.schema
 			.createTable("oidc_tokens")

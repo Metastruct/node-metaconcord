@@ -25,8 +25,6 @@ export class Starboard extends Service {
 	override async init(): Promise<void> {
 		this.sql = this.container.getService("SQL");
 		this.bot = this.container.getService("DiscordBot");
-		const db = this.sql.getLocalDatabase();
-		db.exec("CREATE TABLE IF NOT EXISTS starboard (MessageId INTEGER PRIMARY KEY);");
 
 		this.bot.discord.on("interactionCreate", async interaction => {
 			if (!interaction.isButton()) return;
