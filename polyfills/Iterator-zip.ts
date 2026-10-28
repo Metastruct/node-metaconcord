@@ -1,3 +1,5 @@
+// TODO [engine:node@>=27]: Is Iterator.zip finally available now? Remove the polyfill if it is.
+
 declare global {
 	interface IteratorConstructor {
 		/**

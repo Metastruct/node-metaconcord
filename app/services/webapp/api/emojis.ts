@@ -21,7 +21,7 @@ export default async (webApp: WebApp): Promise<void> => {
 			return;
 		}
 
-		// This probably really is the simplest way to clone this structure in particular.
+		// TODO: `guild.emojis.cache` has a `toJSON` method that could maybe be used to structuredClone this in a better way.
 		// eslint-disable-next-line unicorn/prefer-structured-clone, unicorn/no-unsafe-json-serialization
 		const emojis: EmojiWithUrl[] = JSON.parse(JSON.stringify(guild.emojis.cache));
 		for (const emoji of emojis) {

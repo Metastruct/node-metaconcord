@@ -163,7 +163,7 @@ const listImages = async (octokit: Octokit): Promise<Set<string>> => {
 			path: IMAGE_DIR,
 			ref: HistoryConfig.branch,
 		});
-		// TODO: switch to git.getTree({ recursive }) if this ever passes 1000 entries
+		// switch to git.getTree({ recursive }) if this ever passes 1000 entries
 		return new Set(Array.isArray(data) ? data.map(entry => entry.name) : []);
 	} catch (error) {
 		if ((error as { status?: number }).status === 404) return new Set();

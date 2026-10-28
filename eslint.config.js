@@ -126,6 +126,12 @@ export default defineConfig([
 
 			"@typescript-eslint/no-explicit-any": "warn",
 
+			"unicorn/expiring-todo-comments": [
+				"warn",
+				{
+					"allowWarningComments": false,
+				},
+			],
 			"unicorn/prefer-early-return": [
 				"error",
 				{
