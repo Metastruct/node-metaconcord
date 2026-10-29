@@ -1,16 +1,8 @@
-import config from "#/config/psql.json" with { type: "json" };
-import { Pool } from "pg";
 import SQLite from "better-sqlite3";
-import { Container, Service } from "../Container.js";
+import { Container, Service } from "../../Container.js";
 import { Kysely, SqliteDialect } from "kysely";
 import { DB } from "#/generated/LocalDBTypes.js";
-
-const pool = new Pool({
-	user: config.user,
-	host: config.host,
-	database: config.database,
-	password: config.password,
-});
+import { DBService } from "#/app/services/sql/DBService.js";
 
 let sqlite: SQLite.Database;
 
@@ -45,8 +37,8 @@ function getSQLiteKysely() {
 }
 
 
-export class SQL extends Service {
-	override name = "SQL";
+export class LocalDB extends DBService<DB> {
+	override name = "LocalDB";
 	#sqliteDatabase: SQLite.Database;
 	#localDB: Kysely<DB>;
 
@@ -55,6 +47,7 @@ export class SQL extends Service {
 		this.#localDB = getSQLiteKysely();
 	}
 
+	/** @deprecated Do not rely on this anymore, access the database using Kysely via the `.db` property. */
 	getLocalDatabase() {
 		return this.#sqliteDatabase;
 	}
@@ -67,15 +60,11 @@ export class SQL extends Service {
 		return Boolean(result);
 	}
 
-	public async queryPool(query: string, values?: unknown[]) {
-		return (await pool.query(query, values)).rows;
-	}
-
-	public get localDB(): LocalDatabase {
+	public get db() {
 		return this.#localDB;
 	}
 }
 
-export default function SQLProvider(container: Container): Service {
-	return new SQL(container);
+export default function LocalDBProvider(container: Container): Service {
+	return new LocalDB(container);
 }

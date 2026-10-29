@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { randomBytes } from "node:crypto";
 import { Container, Service } from "#/app/Container.js";
 import type { DiscordBot } from "#/app/services/discord/index.js";
-import type { SQL } from "#/app/services/SQL.js";
+import type { LocalDB } from "../sql/LocalDB.js";
 import config from "#/config/fluxer.json" with { type: "json" };
 import mappingSeed from "./mappings.json" with { type: "json" };
 import { logger } from "#/utils.js";
@@ -274,7 +274,7 @@ export function fluxerSnapshotMentions(snapshot: FluxerMessageSnapshot): FluxerU
 
 export class Fluxer extends Service {
 	override name = "Fluxer";
-	private sql!: SQL;
+	private localDB!: LocalDB;
 	private discordBot!: DiscordBot;
 	private rest!: FluxerRest;
 	private gateway?: FluxerGateway;
@@ -302,7 +302,7 @@ export class Fluxer extends Service {
 	}
 
 	override async init() {
-		this.sql = this.container.getService("SQL");
+		this.localDB = this.container.getService("LocalDB");
 		this.discordBot = this.container.getService("DiscordBot");
 		this.rest = new FluxerRest(config.apiBaseUrl, config.botToken);
 		await this.initializeSchema();
@@ -339,7 +339,7 @@ export class Fluxer extends Service {
 
 	async createLinkCode(discordUserId: string) {
 		if (!config.enabled) throw new Error("Fluxer bridge is disabled");
-		const database = this.sql.getLocalDatabase();
+		const database = this.localDB.getLocalDatabase();
 		const code = randomBytes(4).toString("hex").toUpperCase();
 		const expiresAt = Date.now() + 10 * 60 * 1000;
 		database
@@ -352,7 +352,7 @@ export class Fluxer extends Service {
 	}
 
 	private async initializeSchema() {
-		this.sql.getLocalDatabase().exec(`
+		this.localDB.getLocalDatabase().exec(`
 			CREATE TABLE IF NOT EXISTS fluxer_channel_mappings (
 				discord_channel_id TEXT PRIMARY KEY,
 				fluxer_channel_id TEXT NOT NULL UNIQUE,
@@ -412,7 +412,7 @@ export class Fluxer extends Service {
 	}
 
 	private async loadMappings() {
-		const database = this.sql.getLocalDatabase();
+		const database = this.localDB.getLocalDatabase();
 		const channelRows = database.prepare<[], {
 			discord_channel_id: string;
 			fluxer_channel_id: string;
@@ -466,7 +466,7 @@ export class Fluxer extends Service {
 	}
 
 	private async seedMappings() {
-		const database = this.sql.getLocalDatabase();
+		const database = this.localDB.getLocalDatabase();
 		database.exec("BEGIN IMMEDIATE");
 		try {
 			const updatedAt = Date.now();
@@ -659,7 +659,7 @@ export class Fluxer extends Service {
 	private async saveThreadLink(link: ThreadLink) {
 		this.threadLinksByDiscord.set(link.discord_thread_id, link);
 		this.threadLinksByFluxer.set(link.fluxer_thread_id, link);
-		this.sql
+		this.localDB
 			.getLocalDatabase()
 			.prepare(
 				`INSERT INTO fluxer_thread_links
@@ -687,7 +687,7 @@ export class Fluxer extends Service {
 	private async deleteThreadLink(link: ThreadLink) {
 		this.threadLinksByDiscord.delete(link.discord_thread_id);
 		this.threadLinksByFluxer.delete(link.fluxer_thread_id);
-		this.sql
+		this.localDB
 			.getLocalDatabase()
 			.prepare("DELETE FROM fluxer_thread_links WHERE discord_thread_id = ?")
 			.run(link.discord_thread_id);
@@ -1940,7 +1940,7 @@ export class Fluxer extends Service {
 		const route = this.routesByFluxer.get(message.channel_id);
 		if (!match || message.author.bot || message.webhook_id || !route?.relayEnabled)
 			return false;
-		const database = this.sql.getLocalDatabase();
+		const database = this.localDB.getLocalDatabase();
 		let response = "That link code is invalid or expired.";
 		let code: { discord_user_id: string } | undefined;
 		let previousFluxerUser: string | undefined;
@@ -1985,14 +1985,14 @@ export class Fluxer extends Service {
 	}
 
 	private async mappingByDiscordMessage(id: string) {
-		return this.sql
+		return this.localDB
 			.getLocalDatabase()
 			.prepare<[string], MessageMapping>("SELECT * FROM fluxer_message_mappings WHERE discord_message_id = ?")
 			.get(id);
 	}
 
 	private async mappingByFluxerMessage(id: string) {
-		return this.sql
+		return this.localDB
 			.getLocalDatabase()
 			.prepare<[string], MessageMapping>("SELECT * FROM fluxer_message_mappings WHERE fluxer_message_id = ?")
 			.get(id);
@@ -2004,7 +2004,7 @@ export class Fluxer extends Service {
 		route: ChannelRoute,
 		origin: "discord" | "fluxer"
 	) {
-		this.sql
+		this.localDB
 			.getLocalDatabase()
 			.prepare(
 				`INSERT OR IGNORE INTO fluxer_message_mappings
@@ -2022,7 +2022,7 @@ export class Fluxer extends Service {
 	}
 
 	private async deleteMessageMapping(mapping: MessageMapping) {
-		this.sql
+		this.localDB
 			.getLocalDatabase()
 			.prepare("DELETE FROM fluxer_message_mappings WHERE discord_message_id = ?")
 			.run(mapping.discord_message_id);

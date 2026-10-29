@@ -2,7 +2,7 @@ import { FileMigrationProvider, Migrator } from "kysely/migration";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import type { LocalDatabase } from "#/app/services/SQL.js";
+import type { LocalDatabase } from "#/app/services/sql/LocalDB.js";
 
 export async function migrateToLatest(db: LocalDatabase) {
 	const migrationFolder = path.join(path.dirname(path.dirname(fileURLToPath(import.meta.url))), "migrations");

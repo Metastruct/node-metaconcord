@@ -1,6 +1,5 @@
 import { Container, Service } from "../Container.js";
 import { getSessionAccountId } from "./webapp/api/auth/session.js";
-import { SQL } from "./SQL.js";
 import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.js";
 import { logger } from "#/utils.js";
 import OIDCConfig from "#/config/oidc.json" with { type: "json" };
@@ -14,6 +13,7 @@ import {
 	errors,
 	Session,
 } from "oidc-provider";
+import { LocalDB } from "./sql/LocalDB.js";
 
 const log = logger(import.meta);
 
@@ -52,11 +52,11 @@ export class OIDC extends Service {
 
 	override async init(): Promise<void> {
 		const webApp = this.container.getService("WebApp");
-		const sql = this.container.getService("SQL");
+		const localDB = this.container.getService("LocalDB");
 		const accounts = this.container.getService("Accounts");
 
 		this.provider = new Provider(this.config.issuer, {
-			adapter: makeAdapter(sql),
+			adapter: makeAdapter(localDB),
 			clients: this.config.clients.map(client => ({
 				...client,
 				response_types: client.response_types as
@@ -410,13 +410,13 @@ function loginPickerPage(uid: string, fresh = true): string {
  * grant, session and interaction payloads are opaque JSON blobs; the provider
  * handles expiry and consumption itself inside those payloads.
  */
-function makeAdapter(sql: SQL): new (name: string) => Adapter {
+function makeAdapter(localDB: LocalDB): new (name: string) => Adapter {
 	return class SQLiteAdapter implements Adapter {
 		constructor(public name: string) {}
 
 		async upsert(id: string, payload: AdapterPayload, expiresIn: number): Promise<void> {
 			const expiresAt = expiresIn ? Date.now() + expiresIn * 1000 : undefined;
-			await sql.localDB
+			await localDB.db
 				.insertInto("oidc_tokens")
 				.values({
 					id,
@@ -433,7 +433,7 @@ function makeAdapter(sql: SQL): new (name: string) => Adapter {
 				.execute();
 			// sessions carry a uid that interactions and tokens resolve back through
 			if (typeof payload.uid === "string") {
-				await sql.localDB
+				await localDB.db
 					.insertInto("oidc_uid_index")
 					.values({
 						id,
@@ -450,7 +450,7 @@ function makeAdapter(sql: SQL): new (name: string) => Adapter {
 		}
 
 		async find(id: string): Promise<AdapterPayload | undefined> {
-			const row = await sql.localDB.selectFrom("oidc_tokens").select("payload").where("id", "=", id).executeTakeFirst();
+			const row = await localDB.db.selectFrom("oidc_tokens").select("payload").where("id", "=", id).executeTakeFirst();
 			if (!row) return undefined;
 			const { payload, expiresAt } = JSON.parse(row.payload) as {
 				payload: AdapterPayload;
@@ -461,28 +461,28 @@ function makeAdapter(sql: SQL): new (name: string) => Adapter {
 		}
 
 		async destroy(id: string): Promise<void> {
-			await sql.localDB.deleteFrom("oidc_uid_index").where("id", "=", id).execute();
-			await sql.localDB.deleteFrom("oidc_tokens").where("id", "=", id).execute();
+			await localDB.db.deleteFrom("oidc_uid_index").where("id", "=", id).execute();
+			await localDB.db.deleteFrom("oidc_tokens").where("id", "=", id).execute();
 		}
 
 		async consume(id: string): Promise<void> {
-			const row = await sql.localDB.selectFrom("oidc_tokens").select("payload").where("id", "=", id).limit(1).executeTakeFirst();
+			const row = await localDB.db.selectFrom("oidc_tokens").select("payload").where("id", "=", id).limit(1).executeTakeFirst();
 			if (!row) return;
 			const stored = JSON.parse(row.payload) as {
 				payload: AdapterPayload;
 				expiresAt?: number;
 			};
 			stored.payload.consumed = Math.floor(Date.now() / 1000);
-			await sql.localDB.updateTable("oidc_tokens").set("payload", JSON.stringify(stored)).where("id", "=", id).execute();
+			await localDB.db.updateTable("oidc_tokens").set("payload", JSON.stringify(stored)).where("id", "=", id).execute();
 		}
 
 		async findByUid(uid: string): Promise<AdapterPayload | undefined> {
-			const row = await sql.localDB.selectFrom("oidc_uid_index").select("id").where("uid", "=", uid).limit(1).executeTakeFirst();
+			const row = await localDB.db.selectFrom("oidc_uid_index").select("id").where("uid", "=", uid).limit(1).executeTakeFirst();
 			return row ? this.find(row.id) : undefined;
 		}
 
 		async revokeByGrantId(grantId: string): Promise<void> {
-			await sql.localDB.deleteFrom("oidc_tokens").where("grant_id", "=", grantId).execute();
+			await localDB.db.deleteFrom("oidc_tokens").where("grant_id", "=", grantId).execute();
 		}
 
 		async findByUserCode(): Promise<AdapterPayload | undefined> {

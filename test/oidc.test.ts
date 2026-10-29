@@ -1,7 +1,7 @@
 import { Container, Service } from "#/app/Container.js";
 import type { App } from "#/app/index.js";
 import OIDCProvider from "#/app/services/OIDC.js";
-import SQLProvider from "#/app/services/SQL.js";
+import LocalDBProvider from "#/app/services/sql/LocalDB.js";
 import WebAppProvider, { WebApp } from "#/app/services/webapp/index.js";
 import { encrypt } from "#/app/services/webapp/secretBox.js";
 import WebAppConfig from "#/config/webapp.json" with { type: "json" };
@@ -61,7 +61,7 @@ class FakeAccounts extends Service {
 }
 
 const container = new Container({} as App, [
-	SQLProvider,
+	LocalDBProvider,
 	WebAppProvider,
 	(container: Container) => new FakeAccounts(container),
 	OIDCProvider,
@@ -78,7 +78,7 @@ const sessionCookie = (accountId: number): string => {
 	return `${SESSION_COOKIE}=${value}`;
 };
 
-const localDB = container.getService("SQL").localDB;
+const localDB = container.getService("LocalDB").db;
 
 /** Forges a provider session naming a (possibly deleted) account. */
 const providerSession = async (accountId: number, value: string): Promise<void> => {

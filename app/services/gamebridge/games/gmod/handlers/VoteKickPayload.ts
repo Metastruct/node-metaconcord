@@ -108,9 +108,9 @@ export default class VoteKickPayload extends Payload {
 			.setColor(0xC4_AF_21);
 
 		if (offenderSteamId64 !== "BOT") {
-			const sql = bridge.container.getService("SQL");
+			const remoteDB = bridge.container.getService("RemoteDB");
 			if (!this.votekickCache[offenderSteamId64]) {
-				const res = await sql.queryPool(
+				const res = await remoteDB.query(
 					`SELECT votekick_amount FROM playerstats WHERE accountid = ${
 						new SteamID(offender.steamID).accountid
 					}`

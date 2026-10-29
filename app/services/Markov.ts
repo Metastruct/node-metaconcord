@@ -2,7 +2,7 @@
 import { logger } from "#/utils.js";
 import { sql } from "kysely";
 import { Container, Service } from "../Container.js";
-import type { LocalDatabase } from "./SQL.js";
+import type { LocalDatabase } from "./sql/LocalDB.js";
 
 /* eslint-disable unicorn/no-for-loop */
 
@@ -237,8 +237,8 @@ export class Markov extends Service {
 
 	private async getMarkov(): Promise<MarkovChain> {
 		if (!this._markov) {
-			const sql = this.container.getService("SQL");
-			this._markov = new MarkovChain(sql.localDB);
+			const localDB = this.container.getService("LocalDB");
+			this._markov = new MarkovChain(localDB.db);
 		}
 		return this._markov;
 	}

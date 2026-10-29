@@ -233,9 +233,9 @@ export default class AdminNotifyPayload extends Payload {
 			.setColor(0xC4_AF_21);
 
 		if (reportedSteamId64 !== "BOT") {
-			const sql = bridge.container.getService("SQL");
+			const remoteDB = bridge.container.getService("RemoteDB");
 			if (!this.reportCache[reportedSteamId64]) {
-				const res = await sql.queryPool(
+				const res = await remoteDB.query(
 					`SELECT report_amount FROM playerstats WHERE accountid = ${
 						new SteamID(reported.steamId).accountid
 					}`

@@ -14,7 +14,8 @@ import MarkovProvider, { Markov } from "./Markov.js";
 import MotdProvider, { Motd } from "./Motd.js";
 import OIDCProvider, { OIDC } from "./OIDC.js";
 import ResoniteProvider, { Resonite } from "./Resonite.js";
-import SQLProvider, { SQL } from "./SQL.js";
+import LocalDBProvider, { LocalDB } from "./sql/LocalDB.js";
+import RemoteDBProvider, { RemoteDB } from "./sql/RemoteDB.js";
 import StarboardProvider, { Starboard } from "./Starboard.js";
 import SteamProvider, { Steam } from "./Steam.js";
 import WebAppProvider, { WebApp } from "./webapp/index.js";
@@ -29,7 +30,12 @@ const svc = (name: string, provider: Provider): Entry => ({ name, provider });
  * A run enables a subset of these (see selectServices) and production uses all.
  */
 export const SERVICE_GROUPS = {
-	infra: [svc("SQL", SQLProvider), svc("Data", DataProvider), svc("Bans", BanProvider)],
+	infra: [
+		svc("LocalDB", LocalDBProvider),
+		svc("RemoteDB", RemoteDBProvider),
+		svc("Data", DataProvider),
+		svc("Bans", BanProvider),
+	],
 	web: [
 		svc("WebApp", WebAppProvider),
 		svc("Accounts", AccountsProvider),
@@ -99,7 +105,8 @@ export type ServiceMap = {
 	Motd: Motd;
 	OIDC: OIDC;
 	Resonite: Resonite;
-	SQL: SQL;
+	LocalDB: LocalDB;
+	RemoteDB: RemoteDB;
 	Starboard: Starboard;
 	Steam: Steam;
 	WebApp: WebApp;
@@ -120,6 +127,7 @@ export {Markov} from "./Markov.js";
 export {Motd} from "./Motd.js";
 export {OIDC} from "./OIDC.js";
 export {Resonite} from "./Resonite.js";
-export {SQL} from "./SQL.js";
+export {LocalDB} from "./sql/LocalDB.js";
+export {RemoteDB} from "./sql/RemoteDB.js";
 export {Steam} from "./Steam.js";
 export {WebApp} from "./webapp/index.js";

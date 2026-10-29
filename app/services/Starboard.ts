@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { Container, Service } from "../Container.js";
-import { DiscordBot, SQL } from "./index.js";
+import { DiscordBot, LocalDB } from "./index.js";
 import config from "#/config/starboard.json" with { type: "json" };
 import discordConfig from "#/config/discord.json" with { type: "json" };
 import { logger } from "#/utils.js";
@@ -19,11 +19,11 @@ const filterStarboardId = (btn: Discord.MessageComponentInteraction) =>
 export class Starboard extends Service {
 	override name = "Starboard";
 	private pendingMessages = new Set<string>();
-	private sql!: SQL;
+	private localDB!: LocalDB;
 	private bot!: DiscordBot;
 
 	override async init(): Promise<void> {
-		this.sql = this.container.getService("SQL");
+		this.localDB = this.container.getService("LocalDB");
 		this.bot = this.container.getService("DiscordBot");
 
 		this.bot.discord.on("interactionCreate", async interaction => {
@@ -52,7 +52,7 @@ export class Starboard extends Service {
 	}
 
 	async isMsgStarred(msgId: string): Promise<boolean> {
-		const res = await this.sql.localDB.selectNoFrom(
+		const res = await this.localDB.db.selectNoFrom(
 			eb => eb.exists(
 				eb => eb.selectFrom("starboard").selectAll().where("MessageId", "=", BigInt(msgId))
 			).as("exists")
@@ -61,7 +61,7 @@ export class Starboard extends Service {
 	}
 
 	private async starMsg(msgId: string): Promise<void> {
-		const db = this.sql.getLocalDatabase();
+		const db = this.localDB.getLocalDatabase();
 		db.prepare("INSERT OR IGNORE INTO starboard(MessageId) VALUES(?)").run(msgId);
 	}
 
