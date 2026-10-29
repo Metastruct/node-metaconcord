@@ -58,7 +58,7 @@ export class Service {
 export class Container {
 	readonly app: App;
 	private providers: ProviderFactory;
-	private services: ServiceMap;
+	private services = {} as ServiceMap;
 
 	constructor(app: App, providers: ProviderFactory) {
 		this.app = app;
