@@ -2,13 +2,20 @@ import * as path from "node:path";
 import { promises as fs } from "node:fs";
 import { FileMigrationProvider, Migrator } from "kysely/migration";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { db } from "#/lib/db.js";
+import { SQL } from "../app/services/SQL.js";
+import { Container } from "../app/Container.js";
+
+const localDB = (()=>{
+	const sql = new SQL({} as Container);
+	sql.init();
+	return sql.localDB;
+})();
 
 async function migrateToLatest() {
 	const migrationFolder = path.join(path.dirname(path.dirname(fileURLToPath(import.meta.url))), "migrations");
 
 	const migrator = new Migrator({
-		db,
+		db: localDB,
 		provider: new FileMigrationProvider({
 			fs,
 			path,
@@ -27,14 +34,15 @@ async function migrateToLatest() {
 		}
 	});
 
-	if (error) {
-		console.error("failed to migrate");
-		console.error(error);
-		// eslint-disable-next-line unicorn/no-process-exit
-		process.exit(1);
+	if (!error) {
+		return;
 	}
 
-	await db.destroy();
+	console.error("failed to migrate");
+	console.error(error);
+	await localDB.destroy();
+	// eslint-disable-next-line unicorn/no-process-exit
+	process.exit(1);
 }
 
 await migrateToLatest();

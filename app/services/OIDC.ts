@@ -416,27 +416,41 @@ function makeAdapter(sql: SQL): new (name: string) => Adapter {
 
 		async upsert(id: string, payload: AdapterPayload, expiresIn: number): Promise<void> {
 			const expiresAt = expiresIn ? Date.now() + expiresIn * 1000 : undefined;
-			sql.database
-				.prepare(
-					`INSERT INTO oidc_tokens (id, grant_id, payload) VALUES (?, ?, ?)
-					 ON CONFLICT(id) DO UPDATE SET grant_id=excluded.grant_id, payload=excluded.payload;`
+			await sql.localDB
+				.insertInto("oidc_tokens")
+				.values({
+					id,
+					grant_id: payload.grantId ?? null,
+					payload: JSON.stringify({ payload, expiresAt }),
+				})
+				.onConflict(oc => oc
+					.column("id")
+					.doUpdateSet({
+						grant_id: eb => eb.ref("excluded.grant_id"),
+						payload: eb => eb.ref("excluded.payload"),
+					})
 				)
-				.run(id, payload.grantId ?? null, JSON.stringify({ payload, expiresAt }));
+				.execute();
 			// sessions carry a uid that interactions and tokens resolve back through
 			if (typeof payload.uid === "string") {
-				sql.database
-					.prepare(
-						`INSERT INTO oidc_uid_index (uid, id) VALUES (?, ?)
-						 ON CONFLICT(uid) DO UPDATE SET id=excluded.id;`
+				await sql.localDB
+					.insertInto("oidc_uid_index")
+					.values({
+						id,
+						uid: payload.uid,
+					})
+					.onConflict(oc => oc
+						.column("uid")
+						.doUpdateSet({
+							id: eb => eb.ref("excluded.id"),
+						})
 					)
-					.run(payload.uid, id);
+					.execute();
 			}
 		}
 
 		async find(id: string): Promise<AdapterPayload | undefined> {
-			const row = sql.database
-				.prepare<[string], { payload: string }>("SELECT payload FROM oidc_tokens WHERE id = ?;")
-				.get(id);
+			const row = await sql.localDB.selectFrom("oidc_tokens").select("payload").where("id", "=", id).executeTakeFirst();
 			if (!row) return undefined;
 			const { payload, expiresAt } = JSON.parse(row.payload) as {
 				payload: AdapterPayload;
@@ -447,34 +461,28 @@ function makeAdapter(sql: SQL): new (name: string) => Adapter {
 		}
 
 		async destroy(id: string): Promise<void> {
-			sql.database.prepare("DELETE FROM oidc_uid_index WHERE id = ?;").run(id);
-			sql.database.prepare("DELETE FROM oidc_tokens WHERE id = ?;").run(id);
+			await sql.localDB.deleteFrom("oidc_uid_index").where("id", "=", id).execute();
+			await sql.localDB.deleteFrom("oidc_tokens").where("id", "=", id).execute();
 		}
 
 		async consume(id: string): Promise<void> {
-			const row = sql.database
-				.prepare<[string], { payload: string }>("SELECT payload FROM oidc_tokens WHERE id = ?;")
-				.get(id);
+			const row = await sql.localDB.selectFrom("oidc_tokens").select("payload").where("id", "=", id).limit(1).executeTakeFirst();
 			if (!row) return;
 			const stored = JSON.parse(row.payload) as {
 				payload: AdapterPayload;
 				expiresAt?: number;
 			};
 			stored.payload.consumed = Math.floor(Date.now() / 1000);
-			sql.database
-				.prepare("UPDATE oidc_tokens SET payload = ? WHERE id = ?;")
-				.run(JSON.stringify(stored), id);
+			await sql.localDB.updateTable("oidc_tokens").set("payload", JSON.stringify(stored)).where("id", "=", id).execute();
 		}
 
 		async findByUid(uid: string): Promise<AdapterPayload | undefined> {
-			const row = sql.database
-				.prepare<[string], { id: string }>("SELECT id FROM oidc_uid_index WHERE uid = ?;")
-				.get(uid);
+			const row = await sql.localDB.selectFrom("oidc_uid_index").select("id").where("uid", "=", uid).limit(1).executeTakeFirst();
 			return row ? this.find(row.id) : undefined;
 		}
 
 		async revokeByGrantId(grantId: string): Promise<void> {
-			sql.database.prepare("DELETE FROM oidc_tokens WHERE grant_id = ?;").run(grantId);
+			await sql.localDB.deleteFrom("oidc_tokens").where("grant_id", "=", grantId).execute();
 		}
 
 		async findByUserCode(): Promise<AdapterPayload | undefined> {

@@ -52,9 +52,12 @@ export class Starboard extends Service {
 	}
 
 	async isMsgStarred(msgId: string): Promise<boolean> {
-		const db = this.sql.getLocalDatabase();
-		const res = db.prepare("SELECT 1 FROM starboard WHERE MessageId = ? LIMIT 1;").get(msgId);
-		return !!res;
+		const res = await this.sql.localDB.selectNoFrom(
+			eb => eb.exists(
+				eb => eb.selectFrom("starboard").selectAll().where("MessageId", "=", msgId as any) // TODO: fix this bigint typing
+			).as("exists")
+		).limit(1).executeTakeFirst();
+		return Boolean(res?.exists);
 	}
 
 	private async starMsg(msgId: string): Promise<void> {

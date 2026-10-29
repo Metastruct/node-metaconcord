@@ -12,6 +12,13 @@ const preexistingTableDefinitions: Record<string, NamedUpgradeFunctions> = {
 			.addColumn("MessageId", "integer", col => col.primaryKey())
 			.execute()],
 	],
+	markov: [
+		["markov", async db => await db.schema
+			.createTable("markov")
+			.ifNotExists()
+			.addColumn("message", "varchar(255)")
+			.execute()],
+	],
 	oidc: [
 		["oidc_tokens", async db => await db.schema
 			.createTable("oidc_tokens")

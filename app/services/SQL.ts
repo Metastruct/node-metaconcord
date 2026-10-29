@@ -1,7 +1,9 @@
-import { Container, Service } from "../Container.js";
-import BetterSqlite3 from "better-sqlite3";
-import { Pool } from "pg";
 import config from "#/config/psql.json" with { type: "json" };
+import { Pool } from "pg";
+import SQLite from "better-sqlite3";
+import { Container, Service } from "../Container.js";
+import { Kysely, SqliteDialect } from "kysely";
+import { DB } from "#/generated/LocalDBTypes.js";
 
 const pool = new Pool({
 	user: config.user,
@@ -10,50 +12,66 @@ const pool = new Pool({
 	password: config.password,
 });
 
-export type LocalDatabase = BetterSqlite3.Database;
-export type LocalBindParameters = unknown[];
-export type LocalRow = BetterSqlite3.RunResult;
+let sqlite: SQLite.Database;
+
+/** Gets the _one_ SQLite instance. */
+function getSQLite() {
+	if (sqlite)
+		return sqlite;
+	sqlite = new SQLite(process.env.METACONCORD_DB_PATH ?? "metaconcord.db");
+	sqlite.pragma("journal_mode = WAL");
+	sqlite.pragma("busy_timeout = 5000");
+	return sqlite;
+}
+
+export type LocalDatabase = Kysely<DB>;
+let sqliteKysely: Kysely<DB>;
+
+/** Gets the _one_ Kysely object. */
+function getSQLiteKysely() {
+	if (sqliteKysely)
+		return sqliteKysely;
+
+	const dialect = new SqliteDialect({
+		database: getSQLite(),
+	});
+
+	sqliteKysely = new Kysely<DB>({
+		dialect,
+	});
+
+	return sqliteKysely;
+}
+
 
 export class SQL extends Service {
 	override name = "SQL";
-	database!: LocalDatabase;
+	#sqliteDatabase: SQLite.Database;
+	#localDB: Kysely<DB>;
 
 	override async init(): Promise<void> {
-		this.database = new BetterSqlite3(process.env.METACONCORD_DB_PATH ?? "metaconcord.db");
-		this.database.pragma("journal_mode = WAL");
-		this.database.pragma("busy_timeout = 5000");
+		this.#sqliteDatabase = getSQLite();
+		this.#localDB = getSQLiteKysely();
 	}
 
-	getLocalDatabase(): LocalDatabase {
-		return this.database;
+	getLocalDatabase() {
+		return this.#sqliteDatabase;
 	}
 
-	execLocal(sql: string): void {
-		this.database.exec(sql);
-	}
+	public tableExists(tableName: string): boolean {
+		const result = this.#sqliteDatabase
+			.prepare<string, { name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name=? LIMIT 1;")
+			.get(tableName);
 
-	getLocal<T>(query: string, ...params: LocalBindParameters): T | undefined {
-		return this.database.prepare(query).get(...params) as T | undefined;
-	}
-
-	allLocal<T>(query: string, ...params: LocalBindParameters): T[] {
-		return this.database.prepare(query).all(...params) as T[];
-	}
-
-	runLocal(query: string, ...params: LocalBindParameters): LocalRow {
-		return this.database.prepare(query).run(...params);
+		return Boolean(result);
 	}
 
 	public async queryPool(query: string, values?: unknown[]) {
 		return (await pool.query(query, values)).rows;
 	}
 
-	public tableExists(tableName: string): boolean {
-		const result = this.getLocal<{ name: string }>(
-			"SELECT name FROM sqlite_master WHERE type='table' AND name=?;",
-			tableName
-		);
-		return !!result;
+	public get localDB(): LocalDatabase {
+		return this.#localDB;
 	}
 }
 

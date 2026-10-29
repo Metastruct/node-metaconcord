@@ -1,7 +1,7 @@
 import { Container, Service } from "#/app/Container.js";
 import type { App } from "#/app/index.js";
 import OIDCProvider from "#/app/services/OIDC.js";
-import SQLProvider, { SQL } from "#/app/services/SQL.js";
+import SQLProvider from "#/app/services/SQL.js";
 import WebAppProvider, { WebApp } from "#/app/services/webapp/index.js";
 import { encrypt } from "#/app/services/webapp/secretBox.js";
 import WebAppConfig from "#/config/webapp.json" with { type: "json" };
@@ -78,15 +78,16 @@ const sessionCookie = (accountId: number): string => {
 	return `${SESSION_COOKIE}=${value}`;
 };
 
+const localDB = container.getService("SQL").localDB;
+
 /** Forges a provider session naming a (possibly deleted) account. */
 const providerSession = async (accountId: number, value: string): Promise<void> => {
-	const sql = container.getService("SQL") as SQL;
-	sql.database
-		.prepare("INSERT INTO oidc_tokens (id, grant_id, payload) VALUES (?, ?, ?)")
-		.run(
-			value,
-			null,
-			JSON.stringify({
+	await localDB
+		.insertInto("oidc_tokens")
+		.values({
+			id: value,
+			grant_id: null,
+			payload: JSON.stringify({
 				payload: {
 					// jti must match the row id, like a provider-saved session: without
 					// it the model fabricates a new id and the reset lands on another row
@@ -97,8 +98,9 @@ const providerSession = async (accountId: number, value: string): Promise<void> 
 					accountId: String(accountId),
 					uid: `uid-${accountId}`,
 				},
-			})
-		);
+			}),
+		})
+		.execute();
 };
 
 const client = { ...OIDCConfig.clients[0] };
@@ -168,7 +170,6 @@ async function main(): Promise<void> {
 		container.addService(provider(container));
 	}
 	await container.initServices();
-	const sql = container.getService("SQL") as SQL;
 
 	let failures = 0;
 	const check = (name: string, ok: boolean, detail = "") => {
@@ -293,7 +294,8 @@ async function main(): Promise<void> {
 		check("code replay rejected", replay.error === "invalid_grant", JSON.stringify(replay));
 
 		// 5. adapter round trip: the interaction and grant landed in sqlite
-		const rows = sql.database.prepare("SELECT id FROM oidc_tokens;").all() as { id: string }[];
+		const rows = await localDB.selectFrom("oidc_tokens").select("id").execute();
+
 		check("adapter persisted state", rows.length >= 2, `${rows.length} rows`);
 
 		// 6. an account without a verified email gets the "needs email" picker
@@ -359,7 +361,7 @@ async function main(): Promise<void> {
 			`status ${shadowed.status}: ${shadowedLocation}`
 		);
 	} finally {
-		sql.database.close();
+		await localDB.destroy();
 		(container.getService("WebApp") as WebApp).http.close();
 	}
 

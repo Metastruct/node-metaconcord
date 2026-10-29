@@ -226,6 +226,12 @@ export default defineConfig([
 		},
 	},
 	{
+		files: ["migrations/**"],
+		rules: {
+			"@typescript-eslint/no-explicit-any": "off",
+		},
+	},
+	{
 		files: ["**/package.json"],
 		plugins: {
 			"package-json": packageJson,
