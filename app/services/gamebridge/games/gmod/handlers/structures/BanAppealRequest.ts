@@ -1,4 +1,4 @@
-import PayloadRequest from "./PayloadRequest.js";
+import type PayloadRequest from "./PayloadRequest.js";
 export default interface BanAppealRequest extends PayloadRequest {
 	name: "BanAppealPayload";
 	data: {

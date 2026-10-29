@@ -1,6 +1,7 @@
-import { WebApp } from "#/app/services/webapp/index.js";
-import servers from "#/config/gmod.servers.json" with { type: "json" };
-import { logger } from "#/utils.js";
+import { logger } from "#utils";
+import { type WebApp } from "#/app/services/webapp/index.js";
+
+import servers from "#config/gmod.servers.json" with { type: "json" };
 
 const log = logger(import.meta);
 

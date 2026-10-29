@@ -1,11 +1,13 @@
-import { Container, Service } from "../Container.js";
-import { decrypt, encrypt } from "./webapp/secretBox.js";
-import { Octokit } from "@octokit/rest";
-import AccountsConfig from "#/config/accounts.json" with { type: "json" };
-import GithubConfig from "#/config/github.json" with { type: "json" };
 import crypto from "node:crypto";
-import { isSteamGroupMember, logger } from "#/utils.js";
-import { RemoteDB } from "./sql/RemoteDB.js";
+import { Octokit } from "@octokit/rest";
+
+import { isSteamGroupMember, logger } from "#utils";
+import { type Container, Service } from "../Container.js";
+import { type RemoteDB } from "./sql/RemoteDB.js";
+import { decrypt, encrypt } from "./webapp/secretBox.js";
+
+import AccountsConfig from "#config/accounts.json" with { type: "json" };
+import GithubConfig from "#config/github.json" with { type: "json" };
 
 const log = logger(import.meta);
 

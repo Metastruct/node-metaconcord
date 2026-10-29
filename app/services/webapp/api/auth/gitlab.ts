@@ -1,7 +1,10 @@
-import { WebApp } from "#/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
+import crypto from "node:crypto";
 import { rateLimit } from "express-rate-limit";
+
+import { logger } from "#utils";
 import { LinkConflictError } from "#/app/services/Accounts.js";
+import { type WebApp } from "#/app/services/webapp/index.js";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import {
 	cookieOptions,
 	getSessionAccountId,
@@ -9,9 +12,8 @@ import {
 	storeRedirect,
 	takeRedirect,
 } from "./session.js";
-import GitlabConfig from "#/config/gitlab.json" with { type: "json" };
-import crypto from "node:crypto";
-import { logger } from "#/utils.js";
+
+import GitlabConfig from "#config/gitlab.json" with { type: "json" };
 
 const log = logger(import.meta);
 

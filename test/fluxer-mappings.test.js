@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+
 import mappings from "../app/services/fluxer/mappings.json" with { type: "json" };
 
 const CHANNEL_KINDS = new Set([

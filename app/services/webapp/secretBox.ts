@@ -1,5 +1,6 @@
-import WebAppConfig from "#/config/webapp.json" with { type: "json" };
 import crypto from "node:crypto";
+
+import WebAppConfig from "#config/webapp.json" with { type: "json" };
 
 /** AES-GCM with a key derived from cookieSecret: session cookies and stored provider tokens. */
 

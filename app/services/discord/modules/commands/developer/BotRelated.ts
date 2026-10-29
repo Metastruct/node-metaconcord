@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
-import { EphemeralResponse, MenuCommand, SlashCommand } from "#/extensions/discord.js";
+
+import { EphemeralResponse, type MenuCommand, type SlashCommand } from "#extensions/discord.js";
 
 export const SlashManageMediaLinks: SlashCommand = {
 	options: {

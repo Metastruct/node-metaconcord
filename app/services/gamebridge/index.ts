@@ -1,6 +1,5 @@
+import { type Container, type Service } from "#/app/Container.js";
 import GameBridge from "./GameBridge.js";
-
-import { Container, Service } from "#/app/Container.js";
 export default function GameBridgeProvider(container: Container): Service {
 	return new GameBridge(container);
 }

@@ -1,15 +1,17 @@
-import * as Discord from "discord.js";
-import GameBridge from "../../GameBridge.js";
-import { Player } from "../../GameConnection.js";
-import { renderPlayerListImage } from "../../renderPlayerList.js";
-import SS13Connection, { SS13_ACCENT, SS13InstanceState, SS13Status } from "./SS13Connection.js";
-import { WatchdogStatus, getDreamDaemonStatus, getInstance } from "./tgsClient.js";
-import { getServerStatus, getPlayerList } from "./topics.js";
-import { queryTopic } from "./byondTopic.js";
-import config from "#/config/ss13.json" with { type: "json" };
-import { formatDiscordRelativeTimestamp, formatDiscordRelativeTimestampSeconds, logger } from "#/utils.js";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration.js";
+import * as Discord from "discord.js";
+
+import { formatDiscordRelativeTimestamp, formatDiscordRelativeTimestampSeconds, logger } from "#utils";
+import type GameBridge from "../../GameBridge.js";
+import { type Player } from "../../GameConnection.js";
+import { renderPlayerListImage } from "../../renderPlayerList.js";
+import { queryTopic } from "./byondTopic.js";
+import SS13Connection, { SS13_ACCENT, type SS13InstanceState, type SS13Status } from "./SS13Connection.js";
+import { getDreamDaemonStatus, getInstance,WatchdogStatus } from "./tgsClient.js";
+import { getPlayerList,getServerStatus } from "./topics.js";
+
+import config from "#config/ss13.json" with { type: "json" };
 
 dayjs.extend(duration);
 

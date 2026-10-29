@@ -1,7 +1,9 @@
-import config from "#/config/psql.json" with {type: "json"};
 import { Pool } from "pg";
-import { Container, Service } from "../../Container.js";
+
 import { DBService } from "#/app/services/sql/DBService.js";
+import { type Container, type Service } from "../../Container.js";
+
+import config from "#config/psql.json" with {type: "json"};
 
 let pool: Pool;
 

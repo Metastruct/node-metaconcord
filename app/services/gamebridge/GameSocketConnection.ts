@@ -1,11 +1,12 @@
 import {
-	Message,
-	connection as WebSocketConnection,
-	request as WebSocketRequest,
+	type connection as WebSocketConnection,
+	type Message,
+	type request as WebSocketRequest,
 } from "websocket";
-import GameBridge from "./GameBridge.js";
-import GameConnection, { GameConnectionConfig } from "./GameConnection.js";
-import { logger } from "#/utils.js";
+
+import { logger } from "#utils";
+import type GameBridge from "./GameBridge.js";
+import GameConnection, { type GameConnectionConfig } from "./GameConnection.js";
 
 const log = logger(import.meta);
 

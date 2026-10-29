@@ -1,8 +1,10 @@
 import * as Discord from "discord.js";
-import { revokeBan } from "../banActions.js";
-import { SlashCommand } from "#/extensions/discord.js";
 import SteamID from "steamid";
-import servers from "#/config/gmod.servers.json" with { type: "json" };
+
+import { type SlashCommand } from "#extensions/discord.js";
+import { revokeBan } from "../banActions.js";
+
+import servers from "#config/gmod.servers.json" with { type: "json" };
 
 export const SlashUnBanCommand: SlashCommand = {
 	options: {

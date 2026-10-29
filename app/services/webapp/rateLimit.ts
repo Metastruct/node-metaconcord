@@ -1,4 +1,4 @@
-import { ipKeyGenerator, ValueDeterminingMiddleware } from "express-rate-limit";
+import { ipKeyGenerator, type ValueDeterminingMiddleware } from "express-rate-limit";
 
 export const rateLimitKeyGenerator: ValueDeterminingMiddleware<string> = req => {
 	const cfConnectingIp = req.headers["cf-connecting-ip"];

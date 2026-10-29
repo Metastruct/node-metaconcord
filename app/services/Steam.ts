@@ -1,9 +1,11 @@
-import { Container, Service } from "../Container.js";
-import { logger } from "#/utils.js";
-import SteamID from "steamid";
-import apikeys from "#/config/apikeys.json" with { type: "json" };
 import axios from "axios";
 import qs from "qs";
+import SteamID from "steamid";
+
+import { logger } from "#utils";
+import { type Container, Service } from "../Container.js";
+
+import apikeys from "#config/apikeys.json" with { type: "json" };
 
 const log = logger(import.meta);
 

@@ -1,6 +1,7 @@
-import { AddonGame, Addons } from "#/app/services/addons/index.js";
-import { Request, Response } from "express";
-import { WebApp } from "#/app/services/webapp/index.js";
+import { type Request, type Response } from "express";
+
+import { type AddonGame, Addons } from "#/app/services/addons/index.js";
+import { type WebApp } from "#/app/services/webapp/index.js";
 import { getSession, isStaff } from "./auth/session.js";
 
 const CACHE_CONTROL = "public, max-age=300, stale-while-revalidate=3600";

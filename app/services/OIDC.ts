@@ -1,19 +1,21 @@
-import { Container, Service } from "../Container.js";
-import { getSessionAccountId } from "./webapp/api/auth/session.js";
-import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.js";
-import { logger } from "#/utils.js";
-import OIDCConfig from "#/config/oidc.json" with { type: "json" };
 import crypto from "node:crypto";
 import {
-	Provider,
 	type Account,
 	type AccountClaims,
 	type Adapter,
 	type AdapterPayload,
 	errors,
-	Session,
+	Provider,
+	type Session,
 } from "oidc-provider";
-import { LocalDB } from "./sql/LocalDB.js";
+
+import { logger } from "#utils";
+import { type Container, Service } from "../Container.js";
+import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.js";
+import { type LocalDB } from "./sql/LocalDB.js";
+import { getSessionAccountId } from "./webapp/api/auth/session.js";
+
+import OIDCConfig from "#config/oidc.json" with { type: "json" };
 
 const log = logger(import.meta);
 

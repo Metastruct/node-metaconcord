@@ -1,3 +1,4 @@
+import type GmodConnection from "../GmodConnection.js";
 import AddonsPayload from "./AddonsPayload.js";
 import AdminNotifyPayload from "./AdminNotifyPayload.js";
 import BanAppealPayload from "./BanAppealPayload.js";
@@ -5,11 +6,10 @@ import BanPayload from "./BanPayload.js";
 import ChatPayload from "./ChatPayload.js";
 import ConsolePayload from "./ConsolePayload.js";
 import ErrorPayload from "./ErrorPayload.js";
-import GmodConnection from "../GmodConnection.js";
 import GservPayload from "./GservPayload.js";
 import JoinLeavePayload from "./JoinLeavePayload.js";
 import NotificationPayload from "./NotificationPayload.js";
-import Payload from "./Payload.js";
+import type Payload from "./Payload.js";
 import RconPayload from "./RconPayload.js";
 import ReportChatPayload from "./ReportChatPayload.js";
 import StatsPayload from "./StatsPayload.js";

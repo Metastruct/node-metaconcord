@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
-import config from "#/config/minecraft.json" with { type: "json" };
+
+import config from "#config/minecraft.json" with { type: "json" };
 
 let chat: Discord.WebhookClient | undefined;
 

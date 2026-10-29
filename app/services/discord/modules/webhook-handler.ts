@@ -1,13 +1,3 @@
-import * as Discord from "discord.js";
-import { DiscordBot } from "../index.js";
-import express from "express";
-import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
-import { clamp, errToMessage, logger, stripPrefix } from "#/utils.js";
-import { chatWebhook } from "#/app/services/gamebridge/games/gmod/webhooks.js";
-import axios from "axios";
-import webhookConfig from "#/config/webhooks.json" with { type: "json" };
-import { EmitterWebhookEvent } from "@octokit/webhooks/types";
-import { components } from "@octokit/openapi-types";
 import type {
 	CommitDiffSchema,
 	Gitlab as GitlabClient,
@@ -15,9 +5,21 @@ import type {
 	WebhookPipelineEventSchema,
 	WebhookPushEventSchema,
 } from "@gitbeaker/rest";
+import { type components } from "@octokit/openapi-types";
 import type { Octokit } from "@octokit/rest";
-import gitlabConfig from "#/config/gitlab.json" with { type: "json" };
+import { createNodeMiddleware,Webhooks } from "@octokit/webhooks";
+import { type EmitterWebhookEvent } from "@octokit/webhooks/types";
+import axios from "axios";
 import { diffChars } from "diff";
+import * as Discord from "discord.js";
+import express from "express";
+
+import { clamp, errToMessage, logger, stripPrefix } from "#utils";
+import { chatWebhook } from "#/app/services/gamebridge/games/gmod/webhooks.js";
+import { type DiscordBot } from "../index.js";
+
+import gitlabConfig from "#config/gitlab.json" with { type: "json" };
+import webhookConfig from "#config/webhooks.json" with { type: "json" };
 
 const log = logger(import.meta);
 

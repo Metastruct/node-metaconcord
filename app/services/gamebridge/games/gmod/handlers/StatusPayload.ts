@@ -1,13 +1,14 @@
+import path from "node:path";
+import dayjs from "dayjs";
 import * as Discord from "discord.js";
-import { StatusRequest } from "./structures/index.js";
-import GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
+
+import { logger } from "#utils";
+import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
+import AdminNotifyPayload from "./AdminNotifyPayload.js";
 import Payload from "./Payload.js";
 import ReportChatPayload from "./ReportChatPayload.js";
-import AdminNotifyPayload from "./AdminNotifyPayload.js";
-import dayjs from "dayjs";
+import { type StatusRequest } from "./structures/index.js";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
-import path from "node:path";
-import { logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

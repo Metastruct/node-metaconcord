@@ -1,7 +1,8 @@
 // thank u mr swadical https://github.com/SwadicalRag/node-markov-lite
-import { logger } from "#/utils.js";
 import { sql } from "kysely";
-import { Container, Service } from "../Container.js";
+
+import { logger } from "#utils";
+import { type Container, Service } from "../Container.js";
 import type { LocalDatabase } from "./sql/LocalDB.js";
 
 /* eslint-disable unicorn/no-for-loop */

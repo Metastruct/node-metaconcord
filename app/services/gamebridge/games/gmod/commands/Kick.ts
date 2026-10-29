@@ -1,6 +1,8 @@
 import * as Discord from "discord.js";
-import { SlashCommand } from "#/extensions/discord.js";
-import servers from "#/config/gmod.servers.json" with { type: "json" };
+
+import { type SlashCommand } from "#extensions/discord.js";
+
+import servers from "#config/gmod.servers.json" with { type: "json" };
 
 export const SlashKickCommand: SlashCommand = {
 	options: {

@@ -1,8 +1,9 @@
-import { DiscordBot } from "../index.js";
-import { hash } from "node:crypto";
 import { ok as assert } from "node:assert";
+import { hash } from "node:crypto";
+import { type Message } from "discord.js";
+
+import { type DiscordBot } from "../index.js";
 import { Shat } from "./shitposting.js";
-import { Message } from "discord.js";
 
 const MESSAGE_COMBO_BREAKER = "C-C-C-COMBO BREAKER!!";
 const REACTIONS_DOUBLE_POSTER = ["👎","🤔","🤨","😑","😔","😠","🙄"] as const;

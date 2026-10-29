@@ -1,9 +1,9 @@
-import { ConsoleRequest } from "./structures/index.js";
-import GmodConnection from "../GmodConnection.js";
-import Payload from "./Payload.js";
 import { consoleHub } from "../../../consoleHub.js";
+import type GmodConnection from "../GmodConnection.js";
+import Payload from "./Payload.js";
 import requestSchema from "./structures/ConsoleRequest.json" with { type: "json" };
 import responseSchema from "./structures/ConsoleResponse.json" with { type: "json" };
+import { type ConsoleRequest } from "./structures/index.js";
 
 /**
  * The addon's console stream for the website's rocket page, and the

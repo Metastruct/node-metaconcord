@@ -1,7 +1,8 @@
-import { Octokit } from "@octokit/rest";
 import { createHash } from "node:crypto";
-import HistoryConfig from "#/config/history.json" with { type: "json" };
+import { type Octokit } from "@octokit/rest";
 import axios from "axios";
+
+import HistoryConfig from "#config/history.json" with { type: "json" };
 
 /**
  * Copies history images into the history repo so the timeline stops depending on

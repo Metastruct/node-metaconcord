@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
-import { EphemeralResponse, SlashCommand } from "#/extensions/discord.js";
-import { errToMessage } from "#/utils.js";
+
+import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
+import { errToMessage } from "#utils";
 
 const makeFile = (content: unknown) => {
 	return <Discord.BaseMessageOptions>{

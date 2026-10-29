@@ -1,10 +1,11 @@
-import { DiscordBot } from "../index.js";
-import { PathLike } from "node:fs";
-import { join } from "node:path";
-import { scheduleJob } from "node-schedule";
+import { type PathLike } from "node:fs";
 import { stat } from "node:fs/promises";
+import { join } from "node:path";
 import dayjs from "dayjs";
-import { logger } from "#/utils.js";
+import { scheduleJob } from "node-schedule";
+
+import { logger } from "#utils";
+import { type DiscordBot } from "../index.js";
 
 const log = logger(import.meta);
 

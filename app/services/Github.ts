@@ -1,7 +1,9 @@
-import { Container, Service } from "../Container.js";
+import { createAppAuth, type StrategyOptions } from "@octokit/auth-app";
 import { Octokit } from "@octokit/rest";
-import { createAppAuth, StrategyOptions } from "@octokit/auth-app";
-import config from "#/config/github.json" with { type: "json" };
+
+import { type Container, Service } from "../Container.js";
+
+import config from "#config/github.json" with { type: "json" };
 
 export class Github extends Service {
 	override name = "Github";

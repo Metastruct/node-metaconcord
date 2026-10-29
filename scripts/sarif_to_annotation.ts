@@ -1,7 +1,7 @@
-import type { SarifLog } from "@microsoft/sarif";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import type { SarifLog } from "@microsoft/sarif";
 
 const rawLog = readFileSync("eslint-results.sarif", "utf8");
 const log: SarifLog = JSON.parse(rawLog);

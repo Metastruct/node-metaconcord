@@ -8,8 +8,14 @@
 	"author": "marceau-maubert <marceau.maubert2@gmail.com>",
 	"type": "module",
 	"imports": {
-		"#/*": "./*",
-		"#kysely-migration": "./lib/kysely-migration.ts"
+		"#config/*": "./config/*",
+		"#utils": "./utils.js",
+		"#polyfills/*": "./polyfills/*",
+		"#/app/*": "./app/*",
+		"#/generated/*": "./generated/*",
+		"#/lib/*": "./lib/*",
+		"#extensions/*": "./extensions/*",
+		"#ts/*.js": "./*.ts"
 	},
 	"sideEffects": true,
 	"engines": {
@@ -110,6 +116,7 @@
 		"cross-env": "^10.1.0",
 		"eslint": "^10.13.0",
 		"eslint-package-json": "^3.0.0",
+		"eslint-plugin-simple-import-sort": "^14.0.0",
 		"eslint-plugin-unicorn": "^79.0.0",
 		"globals": "^17.13.0",
 		"kysely-typegen": "^2.1.0",

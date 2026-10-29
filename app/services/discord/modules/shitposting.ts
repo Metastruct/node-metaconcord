@@ -1,10 +1,12 @@
-import * as Discord from "discord.js";
-import { DiscordBot } from "../index.js";
-import { Markov } from "#/app/services/Markov.js";
-import { logger, makeSpeechBubble } from "#/utils.js";
-import DiscordConfig from "#/config/discord.json" with { type: "json" };
+import type * as Discord from "discord.js";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json" with { type: "json" };
+
+import { logger, makeSpeechBubble } from "#utils";
+import { type Markov } from "#/app/services/Markov.js";
+import { type DiscordBot } from "../index.js";
 import { events } from "./discord-guild-icon.js";
+
+import DiscordConfig from "#config/discord.json" with { type: "json" };
 
 const log = logger(import.meta);
 

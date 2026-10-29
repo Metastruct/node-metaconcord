@@ -1,15 +1,20 @@
-import apikeys from "#/config/apikeys.json" with { type: "json" };
-import webappconfig from "#/config/webapp.json" with { type: "json" };
-import { createCanvas, loadImage } from "@napi-rs/canvas";
-import axios from "axios";
-import { PathLike, promises as fs } from "node:fs";
-import request, { gql } from "graphql-request";
+import { type PathLike, promises as fs } from "node:fs";
 import path from "node:path";
-import pino from "pino";
-import type { GraphQlQueryResponseData } from "@octokit/graphql";
 import { fileURLToPath } from "node:url";
+import { createCanvas, loadImage } from "@napi-rs/canvas";
+import type { GraphQlQueryResponseData } from "@octokit/graphql";
+import axios from "axios";
+import request, { gql } from "graphql-request";
+import pino from "pino";
+
+import pkg from "./package.json" with { type: "json" };
+
+import apikeys from "#config/apikeys.json" with { type: "json" };
+import webappconfig from "#config/webapp.json" with { type: "json" };
 
 export const PROJECT_ROOT_PATH = path.dirname(fileURLToPath(import.meta.url));
+
+export const { name: APP_NAME, version: APP_VERSION } = pkg;
 
 // debug so access logs reach the dashboard buffer, its UI defaults to info+
 const baseLogger = pino({ level: process.env.LOG_LEVEL || "debug" });

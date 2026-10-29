@@ -1,8 +1,10 @@
-import { Container, Service } from "../Container.js";
-import { DiscordBot } from "./index.js";
+import axios, { type AxiosResponse } from "axios";
 import { scheduleJob } from "node-schedule";
-import axios, { AxiosResponse } from "axios";
-import config from "#/config/motd.json" with { type: "json" };
+
+import { type Container, Service } from "../Container.js";
+import { type DiscordBot } from "./index.js";
+
+import config from "#config/motd.json" with { type: "json" };
 
 type ImgurImage = {
 	id: string;

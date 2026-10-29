@@ -1,6 +1,6 @@
-import { RconRequest, RconResponse } from "./structures/index.js";
-import GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
+import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
+import { type RconRequest, type RconResponse } from "./structures/index.js";
 import requestSchema from "./structures/RconRequest.json" with { type: "json" };
 import responseSchema from "./structures/RconResponse.json" with { type: "json" };
 

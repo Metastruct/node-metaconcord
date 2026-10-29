@@ -1,9 +1,10 @@
-import { Resvg } from "@resvg/resvg-js";
-import { GlobalFonts, createCanvas, loadImage } from "@napi-rs/canvas";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { Player } from "./GameConnection.js";
-import { logger } from "#/utils.js";
+import { createCanvas, GlobalFonts, loadImage } from "@napi-rs/canvas";
+import { Resvg } from "@resvg/resvg-js";
+
+import { logger } from "#utils";
+import { type Player } from "./GameConnection.js";
 
 const log = logger(import.meta);
 

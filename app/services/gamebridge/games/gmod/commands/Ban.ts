@@ -1,9 +1,11 @@
 import * as Discord from "discord.js";
-import { DiscordBot } from "#/app/services/discord/index.js";
+
+import { type SlashCommand } from "#extensions/discord.js";
+import { parseDuration } from "#utils";
+import { type DiscordBot } from "#/app/services/discord/index.js";
 import { issueBan } from "../banActions.js";
-import { parseDuration } from "#/utils.js";
-import { SlashCommand } from "#/extensions/discord.js";
-import servers from "#/config/gmod.servers.json" with { type: "json" };
+
+import servers from "#config/gmod.servers.json" with { type: "json" };
 
 const DEFAULT_BAN_LENGTHS = ["1d", "1w", "4w", "6mo", "1y"];
 const DEFAULT_BAN_REASONS = ["Mingebag", "Prop Spam", "Harassment"];

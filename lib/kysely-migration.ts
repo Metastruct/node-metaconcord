@@ -1,9 +1,10 @@
-import { FileMigrationProvider, Migrator } from "kysely/migration";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import type { LocalDatabase } from "#/app/services/sql/LocalDB.js";
+import { FileMigrationProvider, Migrator } from "kysely/migration";
 import pino from "pino";
+
+import type { LocalDatabase } from "#/app/services/sql/LocalDB.js";
 
 const log = pino({ level: "debug" }).child({file: path.basename(import.meta.filename)});
 

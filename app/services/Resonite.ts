@@ -1,8 +1,10 @@
-import { Container, Service } from "../Container.js";
 import { createHash, randomUUID } from "node:crypto";
 import axios from "axios";
-import config from "#/config/resonite.json" with { type: "json" };
-import { logger } from "#/utils.js";
+
+import { logger } from "#utils";
+import { type Container, Service } from "../Container.js";
+
+import config from "#config/resonite.json" with { type: "json" };
 
 const log = logger(import.meta);
 

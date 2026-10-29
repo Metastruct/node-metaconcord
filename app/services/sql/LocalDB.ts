@@ -1,9 +1,10 @@
 import SQLite from "better-sqlite3";
-import { Container, Service } from "../../Container.js";
 import { Kysely, SqliteDialect } from "kysely";
-import { DB } from "#/generated/LocalDBTypes.js";
+
 import { DBService } from "#/app/services/sql/DBService.js";
+import { type DB } from "#/generated/LocalDBTypes.js";
 import { migrateToLatest } from "#/lib/kysely-migration.js";
+import { type Container, type Service } from "../../Container.js";
 
 let sqlite: SQLite.Database;
 

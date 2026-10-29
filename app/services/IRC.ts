@@ -1,8 +1,10 @@
 import * as Discord from "discord.js";
-import { Container, Service } from "../Container.js";
-import config from "#/config/irc.json" with { type: "json" };
 import nIRC from "irc-upd";
-import { logger } from "#/utils.js";
+
+import { logger } from "#utils";
+import { type Container, Service } from "../Container.js";
+
+import config from "#config/irc.json" with { type: "json" };
 
 const log = logger(import.meta);
 

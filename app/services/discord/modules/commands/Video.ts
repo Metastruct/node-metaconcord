@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as Discord from "discord.js";
-import { EphemeralResponse, SlashCommand } from "#/extensions/discord.js";
 import { spawn } from "node:child_process";
-import fs from "node:fs/promises";
 import { createWriteStream } from "node:fs";
-import path from "node:path";
+import fs from "node:fs/promises";
 import os from "node:os";
+import path from "node:path";
 import axios from "axios";
-import { logger } from "#/utils.js";
+import * as Discord from "discord.js";
+
+import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
+import { logger } from "#utils";
 
 const log = logger("VideoCommand");
 

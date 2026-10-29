@@ -1,7 +1,8 @@
 import * as Discord from "discord.js";
-import { JoinLeaveRequest } from "./structures/index.js";
-import GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
+
+import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import Payload from "./Payload.js";
+import { type JoinLeaveRequest } from "./structures/index.js";
 import requestSchema from "./structures/JoinLeaveRequest.json" with { type: "json" };
 
 export default class JoinLeavePayload extends Payload {

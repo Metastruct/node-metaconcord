@@ -1,24 +1,26 @@
-import * as Discord from "discord.js";
 import { randomBytes } from "node:crypto";
-import { Container, Service } from "#/app/Container.js";
+import * as Discord from "discord.js";
+
+import { logger } from "#utils";
+import { type Container, Service } from "#/app/Container.js";
 import type { DiscordBot } from "#/app/services/discord/index.js";
 import type { LocalDB } from "../sql/LocalDB.js";
-import config from "#/config/fluxer.json" with { type: "json" };
-import mappingSeed from "./mappings.json" with { type: "json" };
-import { logger } from "#/utils.js";
 import { FluxerGateway } from "./Gateway.js";
+import mappingSeed from "./mappings.json" with { type: "json" };
 import {
-	BridgeFile,
+	type BridgeFile,
 	FluxerApiError,
-	FluxerAttachment,
-	FluxerMessage,
-	FluxerMessageEmbed,
-	FluxerMessageSnapshot,
+	type FluxerAttachment,
+	type FluxerMessage,
+	type FluxerMessageEmbed,
+	type FluxerMessageSnapshot,
 	FluxerRest,
-	FluxerThreadChannel,
-	FluxerUser,
-	FluxerWebhook,
+	type FluxerThreadChannel,
+	type FluxerUser,
+	type FluxerWebhook,
 } from "./Rest.js";
+
+import config from "#config/fluxer.json" with { type: "json" };
 
 const log = logger(import.meta);
 const LINK_COMMAND = /^METACONCORD_LINK\s+([A-Z0-9]{8})$/i;

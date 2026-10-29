@@ -4,15 +4,11 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 
-import "#/polyfills/Iterator-zip.js";
-
-// console.log(process.version);
-
 // Capture process output for the dashboard before anything logs
 import "./app/services/webapp/dashboard/LogBuffer.js";
-
-// Load module extensions
-import "./extensions/index.js";
+// Other polyfills, prototype extensions etc.
+import "#polyfills/Iterator-zip.js";
+import "#extensions/index.js";
 
 // Main
 import { App } from "./app/index.js";

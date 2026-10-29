@@ -1,7 +1,9 @@
-import { WebApp } from "#/app/services/webapp/index.js";
 import { spawn } from "node:child_process";
-import config from "#/config/ci.json" with { type: "json" };
-import { errToMessage } from "#/utils.js";
+
+import { errToMessage } from "#utils";
+import { type WebApp } from "#/app/services/webapp/index.js";
+
+import config from "#config/ci.json" with { type: "json" };
 
 const FORBIDDEN = 403;
 const SUCCESS = 200;

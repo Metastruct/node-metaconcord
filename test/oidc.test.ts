@@ -1,12 +1,14 @@
+import crypto from "node:crypto";
+
 import { Container, Service } from "#/app/Container.js";
 import type { App } from "#/app/index.js";
 import OIDCProvider from "#/app/services/OIDC.js";
 import LocalDBProvider from "#/app/services/sql/LocalDB.js";
-import WebAppProvider, { WebApp } from "#/app/services/webapp/index.js";
+import WebAppProvider, { type WebApp } from "#/app/services/webapp/index.js";
 import { encrypt } from "#/app/services/webapp/secretBox.js";
-import WebAppConfig from "#/config/webapp.json" with { type: "json" };
-import OIDCConfig from "#/config/oidc.json" with { type: "json" };
-import crypto from "node:crypto";
+
+import OIDCConfig from "#config/oidc.json" with { type: "json" };
+import WebAppConfig from "#config/webapp.json" with { type: "json" };
 
 /**
  * Local integration test for the OIDC provider. Boots ONLY the services it

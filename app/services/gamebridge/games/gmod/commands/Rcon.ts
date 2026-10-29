@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
-import { EphemeralResponse, SlashCommand } from "#/extensions/discord.js";
+
+import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
 
 export const SlashRconCommand: SlashCommand = {
 	options: {

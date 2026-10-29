@@ -1,10 +1,11 @@
-import globals from "globals";
-import unicorn from "eslint-plugin-unicorn";
-import stylistic from "@stylistic/eslint-plugin";
 import eslintJs from "@eslint/js";
+import stylistic from "@stylistic/eslint-plugin";
 import { defineConfig } from "eslint/config";
-import { parser as tsParser, plugin as tsPlugin, configs as tsConfigs } from "typescript-eslint";
 import packageJson from "eslint-package-json";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
+import unicorn from "eslint-plugin-unicorn";
+import globals from "globals";
+import { configs as tsConfigs,parser as tsParser, plugin as tsPlugin } from "typescript-eslint";
 
 export default defineConfig([
 	{
@@ -35,6 +36,7 @@ export default defineConfig([
 			stylistic,
 			eslintJs,
 			"@typescript-eslint": tsPlugin,
+			"simple-import-sort": simpleImportSort,
 		},
 		extends: [
 			"eslintJs/recommended",
@@ -124,6 +126,41 @@ export default defineConfig([
 			],
 
 			"@typescript-eslint/no-explicit-any": "warn",
+			"@typescript-eslint/consistent-type-imports": [
+				"error",
+				{
+					"fixStyle": "inline-type-imports",
+				},
+			],
+
+			"simple-import-sort/imports": [
+				"error",
+				{
+					"groups": [[
+						// Side effect imports.
+						"^\\u0000",
+						// Node.js builtins prefixed with `node:`.
+						"^node:",
+						// Packages.
+						// Things that start with a letter (or digit or underscore), or `@`/`#` followed by a letter.
+						"^@?\\w",
+					],
+					[
+						// Absolute imports.
+						"^#",
+						"^#/",
+						// All other imports; Anything not matched in another group.
+						"^",
+						// Relative imports.
+						// Anything that starts with a dot.
+						"^\\.",
+					],
+					[
+						// Config imports.
+						"^#config",
+					],
+					]},
+			],
 
 			"unicorn/expiring-todo-comments": [
 				"warn",

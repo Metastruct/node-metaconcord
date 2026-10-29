@@ -1,10 +1,12 @@
 import * as Discord from "discord.js";
-import { StatusRequest } from "./structures/index.js";
-import MinecraftConnection, { MinecraftStatus } from "../MinecraftConnection.js";
-import Payload from "./Payload.js";
+
+import { localeCompare, logger } from "#utils";
 import { renderPlayerListImage } from "../../../renderPlayerList.js";
+import type MinecraftConnection from "../MinecraftConnection.js";
+import {type MinecraftStatus} from "../MinecraftConnection.js";
+import Payload from "./Payload.js";
+import { type StatusRequest } from "./structures/index.js";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
-import { localeCompare, logger } from "#/utils.js";
 
 const log = logger(import.meta);
 

@@ -1,6 +1,6 @@
-import { StatsRequest } from "./structures/index.js";
-import MinecraftConnection from "../MinecraftConnection.js";
+import type MinecraftConnection from "../MinecraftConnection.js";
 import Payload from "./Payload.js";
+import { type StatsRequest } from "./structures/index.js";
 import requestSchema from "./structures/StatsRequest.json" with { type: "json" };
 
 export default class StatsPayload extends Payload {

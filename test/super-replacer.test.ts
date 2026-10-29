@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { AddonURIS } from "#/utils.js";
+import { AddonURIS } from "#utils";
 import { megaRex, SuperReplacer } from "#/app/services/webapp/api/gmod-error-handler.js";
 
 // -----------------------------------------------------------------------------

@@ -1,8 +1,9 @@
 import * as Discord from "discord.js";
-import { AdvancementRequest } from "./structures/index.js";
-import MinecraftConnection from "../MinecraftConnection.js";
+
+import type MinecraftConnection from "../MinecraftConnection.js";
 import Payload from "./Payload.js";
 import requestSchema from "./structures/AdvancementRequest.json" with { type: "json" };
+import { type AdvancementRequest } from "./structures/index.js";
 
 // wording and colors of the vanilla chat announcement per frame type.
 // keyed loosely: an unknown frame from a modded advancement falls back to task.

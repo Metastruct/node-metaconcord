@@ -1,4 +1,4 @@
-import * as Discord from "discord.js";
+import type * as Discord from "discord.js";
 
 const MEDIA_URL = /https?:\/\/(?:media|cdn)\.discordapp\.(?:net|com)\/attachments\/\d+\/\d+\/\S+/;
 

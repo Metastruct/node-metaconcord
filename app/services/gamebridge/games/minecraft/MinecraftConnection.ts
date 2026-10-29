@@ -1,6 +1,8 @@
-import { request as WebSocketRequest } from "websocket";
-import GameBridge from "../../GameBridge.js";
-import GameConnection, { GameConnectionConfig } from "../../GameConnection.js";
+import { type request as WebSocketRequest } from "websocket";
+
+import type GameBridge from "../../GameBridge.js";
+import type GameConnection from "../../GameConnection.js";
+import {type GameConnectionConfig} from "../../GameConnection.js";
 import GameSocketConnection from "../../GameSocketConnection.js";
 import { attachHandlers } from "./handlers/index.js";
 

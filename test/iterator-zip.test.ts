@@ -1,7 +1,6 @@
+import "#polyfills/Iterator-zip.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-
-import "#/polyfills/Iterator-zip.js";
 
 test("Iterator.zip pairs values from two arrays in order", () => {
 	assert.deepEqual(

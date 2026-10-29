@@ -1,5 +1,6 @@
-import { WebApp } from "#/app/services/webapp/index.js";
-import { GuildEmoji } from "discord.js";
+import { type GuildEmoji } from "discord.js";
+
+import { type WebApp } from "#/app/services/webapp/index.js";
 
 type EmojiWithUrl = GuildEmoji & { url?: string };
 

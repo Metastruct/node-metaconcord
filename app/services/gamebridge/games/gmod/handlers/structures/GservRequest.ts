@@ -1,4 +1,4 @@
-import PayloadRequest from "./PayloadRequest.js";
+import type PayloadRequest from "./PayloadRequest.js";
 /** One line of gserv output, or the run finishing. */
 export default interface GservRequest extends PayloadRequest {
 	name: "GservPayload";

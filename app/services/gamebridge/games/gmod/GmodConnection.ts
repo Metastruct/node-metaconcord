@@ -1,12 +1,14 @@
-import { request as WebSocketRequest } from "websocket";
-import { RconResponse } from "./handlers/structures/index.js";
-import ErrorPayload from "./handlers/ErrorPayload.js";
-import GservPayload, { GservResult } from "./handlers/GservPayload.js";
-import GameBridge from "../../GameBridge.js";
-import GameConnection, { GameConnectionConfig } from "../../GameConnection.js";
+import { type request as WebSocketRequest } from "websocket";
+
+import type GameBridge from "../../GameBridge.js";
+import type GameConnection from "../../GameConnection.js";
+import {type GameConnectionConfig} from "../../GameConnection.js";
 import GameSocketConnection from "../../GameSocketConnection.js";
-import RconPayload from "./handlers/RconPayload.js";
+import ErrorPayload from "./handlers/ErrorPayload.js";
+import GservPayload, { type GservResult } from "./handlers/GservPayload.js";
 import { attachHandlers } from "./handlers/index.js";
+import RconPayload from "./handlers/RconPayload.js";
+import { type RconResponse } from "./handlers/structures/index.js";
 
 export type GmodConnectionConfig = GameConnectionConfig & {
 	defaultGamemode?: string;

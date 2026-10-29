@@ -1,4 +1,4 @@
-import { logger, sleep } from "#/utils.js";
+import { logger, sleep } from "#utils";
 
 const log = logger(import.meta);
 

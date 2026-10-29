@@ -1,16 +1,17 @@
-import { Container, Service } from "#/app/Container.js";
-import { WebApp } from "#/app/services/webapp/index.js";
-import { attachGmod } from "./games/gmod/index.js";
-import GmodConnection from "./games/gmod/GmodConnection.js";
-import { attachMinecraft } from "./games/minecraft/index.js";
-import MinecraftConnection from "./games/minecraft/MinecraftConnection.js";
-import { attachResonite } from "./games/resonite/index.js";
-import ResoniteConnection from "./games/resonite/ResoniteConnection.js";
-import { attachSS13 } from "./games/ss13/index.js";
-import SS13Connection from "./games/ss13/SS13Connection.js";
-import { attachVRChat } from "./games/vrchat/index.js";
-import VRChatConnection from "./games/vrchat/VRChatConnection.js";
 import { EventEmitter } from "node:events";
+
+import { type Container, Service } from "#/app/Container.js";
+import { type WebApp } from "#/app/services/webapp/index.js";
+import type GmodConnection from "./games/gmod/GmodConnection.js";
+import { attachGmod } from "./games/gmod/index.js";
+import { attachMinecraft } from "./games/minecraft/index.js";
+import type MinecraftConnection from "./games/minecraft/MinecraftConnection.js";
+import { attachResonite } from "./games/resonite/index.js";
+import type ResoniteConnection from "./games/resonite/ResoniteConnection.js";
+import { attachSS13 } from "./games/ss13/index.js";
+import type SS13Connection from "./games/ss13/SS13Connection.js";
+import { attachVRChat } from "./games/vrchat/index.js";
+import type VRChatConnection from "./games/vrchat/VRChatConnection.js";
 import StatsHistory from "./StatsHistory.js";
 
 export type GitHubPushPayload = {

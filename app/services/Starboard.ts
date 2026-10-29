@@ -1,9 +1,11 @@
 import * as Discord from "discord.js";
-import { Container, Service } from "../Container.js";
-import { DiscordBot, LocalDB } from "./index.js";
-import config from "#/config/starboard.json" with { type: "json" };
-import discordConfig from "#/config/discord.json" with { type: "json" };
-import { logger } from "#/utils.js";
+
+import { logger } from "#utils";
+import { type Container, Service } from "../Container.js";
+import { type DiscordBot, type LocalDB } from "./index.js";
+
+import discordConfig from "#config/discord.json" with { type: "json" };
+import config from "#config/starboard.json" with { type: "json" };
 
 const log = logger(import.meta);
 

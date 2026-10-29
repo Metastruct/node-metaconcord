@@ -1,6 +1,6 @@
-import { StatsRequest } from "./structures/index.js";
-import GmodConnection from "../GmodConnection.js";
+import type GmodConnection from "../GmodConnection.js";
 import Payload from "./Payload.js";
+import { type StatsRequest } from "./structures/index.js";
 import requestSchema from "./structures/StatsRequest.json" with { type: "json" };
 
 /**

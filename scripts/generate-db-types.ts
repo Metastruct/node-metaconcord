@@ -1,10 +1,11 @@
-import { KyselyTypegenSQLiteDialect } from "kysely-typegen/sqlite";
-import { mkdirSync, writeFileSync, existsSync } from "node:fs";
+import { existsSync,mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import SQLite from "better-sqlite3";
 import { Kysely, SqliteDialect } from "kysely";
-import { fileURLToPath } from "node:url";
-import { migrateToLatest } from "#kysely-migration";
+import { KyselyTypegenSQLiteDialect } from "kysely-typegen/sqlite";
+
+import { migrateToLatest } from "#ts/lib/kysely-migration.js";
 
 // Create an in-memory SQLite db.
 

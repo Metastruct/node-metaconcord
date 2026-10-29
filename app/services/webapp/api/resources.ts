@@ -1,6 +1,7 @@
-import { WebApp } from "#/app/services/webapp/index.js";
-import express from "express";
 import path from "node:path";
+import express from "express";
+
+import { type WebApp } from "#/app/services/webapp/index.js";
 
 export default function addMapThumbnails(webApp: WebApp): void {
 	webApp.app.use(

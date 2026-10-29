@@ -1,13 +1,14 @@
-import * as Discord from "discord.js";
-import { ChatRequest, ChatResponse } from "./structures/index.js";
-import MinecraftConnection from "../MinecraftConnection.js";
-import Payload from "./Payload.js";
-import ConsolePayload from "./ConsolePayload.js";
-import { chatWebhook } from "../webhooks.js";
+import type * as Discord from "discord.js";
+
+import { logger } from "#utils";
 import { matchLinkCode, redeemLinkFromChat } from "../../../linkChat.js";
+import type MinecraftConnection from "../MinecraftConnection.js";
+import { chatWebhook } from "../webhooks.js";
+import ConsolePayload from "./ConsolePayload.js";
+import Payload from "./Payload.js";
 import requestSchema from "./structures/ChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ChatResponse.json" with { type: "json" };
-import { logger } from "#/utils.js";
+import { type ChatRequest, type ChatResponse } from "./structures/index.js";
 
 const log = logger(import.meta);
 

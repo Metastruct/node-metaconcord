@@ -1,29 +1,30 @@
 import * as Discord from "discord.js";
-import { DiscordBot } from "#/app/services/discord/index.js";
+
+import { logger } from "#utils";
+import { type DiscordBot } from "#/app/services/discord/index.js";
+import { gmodSlashCommands } from "#/app/services/gamebridge/games/gmod/commands/index.js";
 import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL.js";
-import { MenuGetStickerUrlCommand } from "./GetStickerUrl.js";
-import { MenuGetVoiceMessageUrlCommand } from "./GetVoiceMessageUrl.js";
 import {
 	MenuManageMediaLinksCommand,
 	SlashForceMotd,
 	SlashManageMediaLinks,
 } from "./developer/BotRelated.js";
-import { MenuRemoveHighlightMessageCommand } from "./RemoveHighlightMessage.js";
-import { MenuWhyRoleCommand } from "./WhyRole.js";
 import { SlashEndEvent } from "./developer/Events.js";
 import { SlashFileCommand } from "./developer/File.js";
-import { SlashFluxerLinkCommand } from "./FluxerLink.js";
-import { SlashMarkovCommand } from "./Markov.js";
-import { SlashRandomImageCommand } from "./Shitposting.js";
-import { SlashRoleCommand } from "./Role.js";
 import { SlashRuleCommand } from "./developer/Rules.js";
-import { SlashSpeechbubbleCommand } from "./Speechbubble.js";
 import { SlashSQLCommand } from "./developer/SQL.js";
-import { SlashVideoCommand } from "./Video.js";
+import { SlashFluxerLinkCommand } from "./FluxerLink.js";
+import { MenuGetStickerUrlCommand } from "./GetStickerUrl.js";
+import { MenuGetVoiceMessageUrlCommand } from "./GetVoiceMessageUrl.js";
+import { SlashMarkovCommand } from "./Markov.js";
+import { MenuRemoveHighlightMessageCommand } from "./RemoveHighlightMessage.js";
+import { SlashRoleCommand } from "./Role.js";
+import { SlashRandomImageCommand } from "./Shitposting.js";
+import { SlashSpeechbubbleCommand } from "./Speechbubble.js";
 import { SlashVoiceCommand } from "./TempVoiceChannel.js";
+import { SlashVideoCommand } from "./Video.js";
 import { SlashWhyBanCommand } from "./WhyBan.js";
-import { gmodSlashCommands } from "#/app/services/gamebridge/games/gmod/commands/index.js";
-import { logger } from "#/utils.js";
+import { MenuWhyRoleCommand } from "./WhyRole.js";
 
 const log = logger("Commands");
 

@@ -1,12 +1,14 @@
-import * as Discord from "discord.js";
 import * as signalR from "@microsoft/signalr";
-import GameBridge from "../../GameBridge.js";
-import ResoniteConnection, { RESONITE_ACCENT, ResoniteSessionState } from "./ResoniteConnection.js";
-import { Player } from "../../GameConnection.js";
-import { Resonite, ResoniteSession } from "#/app/services/Resonite.js";
-import resoniteConfig from "#/config/resonite.json" with { type: "json" };
+import * as Discord from "discord.js";
+
+import { formatDiscordRelativeTimestamp, localeCompare, logger } from "#utils";
+import { type Resonite, type ResoniteSession } from "#/app/services/Resonite.js";
+import type GameBridge from "../../GameBridge.js";
+import { type Player } from "../../GameConnection.js";
 import { renderPlayerListImage } from "../../renderPlayerList.js";
-import { formatDiscordRelativeTimestamp, localeCompare, logger } from "#/utils.js";
+import ResoniteConnection, { RESONITE_ACCENT, type ResoniteSessionState } from "./ResoniteConnection.js";
+
+import resoniteConfig from "#config/resonite.json" with { type: "json" };
 
 const log = logger(import.meta);
 

@@ -1,8 +1,8 @@
-import { GservRequest, GservResponse } from "./structures/index.js";
-import GmodConnection from "../GmodConnection.js";
+import type GmodConnection from "../GmodConnection.js";
 import Payload from "./Payload.js";
 import requestSchema from "./structures/GservRequest.json" with { type: "json" };
 import responseSchema from "./structures/GservResponse.json" with { type: "json" };
+import { type GservRequest, type GservResponse } from "./structures/index.js";
 
 /** How long a run may stay silent before it is given up on. */
 const TIMEOUT = 15 * 60 * 1000;

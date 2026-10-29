@@ -5,12 +5,12 @@
 // One TypeScript program is built per directory (via ts-json-schema-generator's
 // programmatic API) and reused for every type in it, instead of shelling out to
 // the CLI once per type -- that was the bulk of the old schema_gen.sh's runtime.
-import { createGenerator, DEFAULT_CONFIG } from "ts-json-schema-generator";
-import stringify from "safe-stable-stringify";
 import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import stringify from "safe-stable-stringify";
+import { createGenerator, DEFAULT_CONFIG } from "ts-json-schema-generator";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 

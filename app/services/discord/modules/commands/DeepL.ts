@@ -1,6 +1,8 @@
 import * as Discord from "discord.js";
-import { EphemeralResponse, MenuCommand, SlashCommand } from "#/extensions/discord.js";
-import config from "#/config/deepl.json" with { type: "json" };
+
+import { EphemeralResponse, type MenuCommand, type SlashCommand } from "#extensions/discord.js";
+
+import config from "#config/deepl.json" with { type: "json" };
 
 const SourceLanguages = [
 	{ language: "AF", name: "Afrikaans" },

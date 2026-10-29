@@ -1,13 +1,15 @@
-import * as Discord from "discord.js";
-import { AddonURIS, getOrFetchGmodFile, logger } from "#/utils.js";
-import { WebApp } from "#/app/services/webapp/index.js";
-import { Player } from "#/app/services/gamebridge/GameConnection.js";
-import GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
-import SteamID from "steamid";
-import config from "#/config/webapp.json" with { type: "json" };
 import dayjs from "dayjs";
+import * as Discord from "discord.js";
 import express from "express";
-import servers from "#/config/gmod.servers.json" with { type: "json" };
+import SteamID from "steamid";
+
+import { AddonURIS, getOrFetchGmodFile, logger } from "#utils";
+import { type Player } from "#/app/services/gamebridge/GameConnection.js";
+import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
+import { type WebApp } from "#/app/services/webapp/index.js";
+
+import servers from "#config/gmod.servers.json" with { type: "json" };
+import config from "#config/webapp.json" with { type: "json" };
 
 const log = logger(import.meta);
 

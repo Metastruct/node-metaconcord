@@ -1,8 +1,9 @@
 import * as Discord from "discord.js";
-import { DeathRequest } from "./structures/index.js";
-import MinecraftConnection from "../MinecraftConnection.js";
+
+import type MinecraftConnection from "../MinecraftConnection.js";
 import Payload from "./Payload.js";
 import requestSchema from "./structures/DeathRequest.json" with { type: "json" };
+import { type DeathRequest } from "./structures/index.js";
 
 export default class DeathPayload extends Payload {
 	protected static override requestSchema = requestSchema;

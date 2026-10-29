@@ -1,4 +1,5 @@
-import { Kysely } from "kysely";
+import { type Kysely } from "kysely";
+
 import { Service } from "../../Container.js";
 
 /**

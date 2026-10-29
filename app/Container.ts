@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
-import { App } from "./index.js";
-import { ServiceMap, ServiceName } from "./services/index.js";
+
+import { type App } from "./index.js";
+import { type ServiceMap, type ServiceName } from "./services/index.js";
 
 type ProviderFactory = { (container: Container): Service }[];
 

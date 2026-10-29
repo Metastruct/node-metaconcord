@@ -1,7 +1,8 @@
-import { TextChannel, Message } from "discord.js";
-import { DiscordBot } from "../index.js";
+import { type Message,type TextChannel } from "discord.js";
 import { MinHeap } from "mnemonist";
-import { DateTimeIsh, dateTimeIshToZonedDateTime, dateTimeNow, formatDiscordAbsoluteTimestamp, logger, normalizeDuration } from "#/utils.js";
+
+import { type DateTimeIsh, dateTimeIshToZonedDateTime, dateTimeNow, formatDiscordAbsoluteTimestamp, logger, normalizeDuration } from "#utils";
+import { type DiscordBot } from "../index.js";
 
 const log = logger(import.meta);
 

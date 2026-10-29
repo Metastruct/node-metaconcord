@@ -1,6 +1,6 @@
-import GameBridge from "./GameBridge.js";
-import { WsGameConnection } from "./Payload.js";
-import { logger } from "#/utils.js";
+import { logger } from "#utils";
+import type GameBridge from "./GameBridge.js";
+import { type WsGameConnection } from "./Payload.js";
 
 const log = logger(import.meta);
 

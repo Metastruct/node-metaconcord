@@ -1,13 +1,14 @@
 import * as Discord from "discord.js";
-import { VRChat } from "vrchat";
 import type { Group, GroupInstance, LimitedUserFriend } from "vrchat";
-import GameBridge from "../../GameBridge.js";
-import { Player } from "../../GameConnection.js";
-import VRChatConnection, { VRCHAT_ACCENT, VRChatRoster } from "./VRChatConnection.js";
+import { VRChat } from "vrchat";
+
+import { APP_NAME, APP_VERSION, localeCompare, logger } from "#utils";
+import type GameBridge from "../../GameBridge.js";
+import { type Player } from "../../GameConnection.js";
 import { renderPlayerListImage } from "../../renderPlayerList.js";
-import config from "#/config/vrchat.json" with { type: "json" };
-import pkg from "#/package.json" with { type: "json" };
-import { localeCompare, logger } from "#/utils.js";
+import VRChatConnection, { VRCHAT_ACCENT, type VRChatRoster } from "./VRChatConnection.js";
+
+import config from "#config/vrchat.json" with { type: "json" };
 
 const log = logger(import.meta);
 
@@ -202,8 +203,8 @@ async function updateRosters(
 export function attachVRChat(bridge: GameBridge): void {
 	const vrchat = new VRChat({
 		application: {
-			name: pkg.name,
-			version: pkg.version,
+			name: APP_NAME,
+			version: APP_VERSION,
 			contact: "https://metastruct.net",
 		},
 		authentication: {

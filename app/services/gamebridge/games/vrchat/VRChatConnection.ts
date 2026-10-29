@@ -1,7 +1,9 @@
 import * as Discord from "discord.js";
-import GameConnection, { Player } from "../../GameConnection.js";
 import type { Group, GroupInstance } from "vrchat";
-import config from "#/config/vrchat.json" with { type: "json" };
+
+import GameConnection, { type Player } from "../../GameConnection.js";
+
+import config from "#config/vrchat.json" with { type: "json" };
 
 export const VRCHAT_ACCENT = 0x17_78_E9;
 

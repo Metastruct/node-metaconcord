@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
-import { ResoniteSession } from "#/app/services/Resonite.js";
-import GameConnection, { Player } from "../../GameConnection.js";
+
+import { type ResoniteSession } from "#/app/services/Resonite.js";
+import GameConnection, { type Player } from "../../GameConnection.js";
 
 export const RESONITE_ACCENT = 4_796_260;
 

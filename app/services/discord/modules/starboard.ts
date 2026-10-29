@@ -1,5 +1,6 @@
-import { DiscordBot } from "../index.js";
-import { MessageReaction } from "discord.js";
+import { type MessageReaction } from "discord.js";
+
+import { type DiscordBot } from "../index.js";
 
 export default function StarboardLoader(bot: DiscordBot): void {
 	bot.discord.on("messageReactionAdd", async reaction => {

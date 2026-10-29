@@ -1,9 +1,10 @@
-import { logger } from "#/utils.js";
-import { Container, Service } from "../Container.js";
-import { Rule } from "./discord/index.js";
-import { AddonsStore } from "./addons/types.js";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+
+import { logger } from "#utils";
+import { type Container, Service } from "../Container.js";
+import { type AddonsStore } from "./addons/types.js";
+import { type Rule } from "./discord/index.js";
 
 const log = logger(import.meta);
 

@@ -1,10 +1,12 @@
-import { request as WebSocketRequest } from "websocket";
-import GameBridge from "./GameBridge.js";
-import { GameConnectionConfig } from "./GameConnection.js";
-import GameSocketConnection from "./GameSocketConnection.js";
-import { WsRouter } from "#/app/services/webapp/WsRouter.js";
-import config from "#/config/gamebridge.json" with { type: "json" };
-import { logger } from "#/utils.js";
+import { type request as WebSocketRequest } from "websocket";
+
+import { logger } from "#utils";
+import { type WsRouter } from "#/app/services/webapp/WsRouter.js";
+import type GameBridge from "./GameBridge.js";
+import { type GameConnectionConfig } from "./GameConnection.js";
+import type GameSocketConnection from "./GameSocketConnection.js";
+
+import config from "#config/gamebridge.json" with { type: "json" };
 
 const log = logger(import.meta);
 

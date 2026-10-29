@@ -1,13 +1,14 @@
-import * as Discord from "discord.js";
-import { ChatRequest, ChatResponse } from "./structures/index.js";
-import GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
-import Payload from "./Payload.js";
-import { chatWebhook } from "../webhooks.js";
+import type * as Discord from "discord.js";
+
+import { logger } from "#utils";
+import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import { formatDiscordMessage } from "../../../discord/formatDiscordMessage.js";
 import { matchLinkCode, redeemLinkFromChat } from "../../../linkChat.js";
+import { chatWebhook } from "../webhooks.js";
+import Payload from "./Payload.js";
 import requestSchema from "./structures/ChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ChatResponse.json" with { type: "json" };
-import { logger } from "#/utils.js";
+import { type ChatRequest, type ChatResponse } from "./structures/index.js";
 
 const log = logger(import.meta);
 

@@ -1,31 +1,31 @@
-import { Container, Service } from "#/app/Container.js";
+import { logger } from "#utils";
+import { type Container, Service } from "#/app/Container.js";
+import type GmodConnection from "../gamebridge/games/gmod/GmodConnection.js";
+import type MinecraftConnection from "../gamebridge/games/minecraft/MinecraftConnection.js";
+import { TTLCache } from "./cache.js";
 import {
-	Addon,
-	AddonGame,
-	AddonSource,
-	MountedGame,
-	ReportedMod,
-	RuntimeComponent,
-	ServerAddons,
-} from "./types.js";
-import {
-	GithubClient,
-	GitResolution,
-	ResolvedMeta,
+	type GithubClient,
+	type GitResolution,
 	parseGitRemote,
+	platformMatchToAddonSource,
 	resolveByName,
 	resolveCurseforge,
+	type ResolvedMeta,
 	resolveGit,
 	resolveModrinth,
 	resolveReadme,
 	SUMMARY_LIMIT,
 	workshopUrl,
-	platformMatchToAddonSource,
 } from "./resolvers.js";
-import { TTLCache } from "./cache.js";
-import GmodConnection from "../gamebridge/games/gmod/GmodConnection.js";
-import MinecraftConnection from "../gamebridge/games/minecraft/MinecraftConnection.js";
-import { logger } from "#/utils.js";
+import {
+	type Addon,
+	type AddonGame,
+	type AddonSource,
+	type MountedGame,
+	type ReportedMod,
+	type RuntimeComponent,
+	type ServerAddons,
+} from "./types.js";
 
 export * from "./types.js";
 

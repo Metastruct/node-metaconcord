@@ -1,8 +1,10 @@
-import * as Discord from "discord.js";
-import { EphemeralResponse, SlashCommand } from "#/extensions/discord.js";
-import DiscordConfig from "#/config/discord.json" with { type: "json" };
 import axios from "axios";
-import { logger } from "#/utils.js";
+import * as Discord from "discord.js";
+
+import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
+import { logger } from "#utils";
+
+import DiscordConfig from "#config/discord.json" with { type: "json" };
 
 const log = logger(import.meta);
 
