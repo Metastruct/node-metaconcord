@@ -54,7 +54,7 @@ export class Starboard extends Service {
 	async isMsgStarred(msgId: string): Promise<boolean> {
 		const res = await this.sql.localDB.selectNoFrom(
 			eb => eb.exists(
-				eb => eb.selectFrom("starboard").selectAll().where("MessageId", "=", msgId as any) // TODO: fix this bigint typing
+				eb => eb.selectFrom("starboard").selectAll().where("MessageId", "=", BigInt(msgId))
 			).as("exists")
 		).limit(1).executeTakeFirst();
 		return Boolean(res?.exists);

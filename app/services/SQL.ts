@@ -19,6 +19,7 @@ function getSQLite() {
 	if (sqlite)
 		return sqlite;
 	sqlite = new SQLite(process.env.METACONCORD_DB_PATH ?? "metaconcord.db");
+	sqlite.defaultSafeIntegers();
 	sqlite.pragma("journal_mode = WAL");
 	sqlite.pragma("busy_timeout = 5000");
 	return sqlite;
