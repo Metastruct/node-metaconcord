@@ -17,21 +17,21 @@ type ProviderFactory = { (container: Container): Service }[];
 export type Requirements = { hard?: string[]; soft?: string[] };
 
 export const REQUIREMENTS: Record<string, Requirements> = {
-	Accounts: { hard: ["SQL"], soft: ["Github"] },
+	Accounts: { hard: ["LocalDB", "RemoteDB"], soft: ["Github"] },
 	Addons: { hard: ["Data"] },
 	DiscordBot: {
 		hard: ["Data"],
 		soft: ["GameBridge", "Motd", "Markov", "Github", "Gitlab", "Fluxer", "Bans", "Steam"],
 	},
-	DiscordMetadata: { hard: ["SQL", "DiscordBot", "Bans", "Accounts"] },
-	Fluxer: { hard: ["SQL", "DiscordBot"] },
+	DiscordMetadata: { hard: ["LocalDB", "RemoteDB", "DiscordBot", "Bans", "Accounts"] },
+	Fluxer: { hard: ["LocalDB", "DiscordBot"] },
 	GameBridge: { hard: ["WebApp"] },
 	IRC: { hard: ["DiscordBot"] },
 	Motd: { hard: ["DiscordBot"], soft: ["Data"] },
-	OIDC: { hard: ["WebApp", "SQL", "Accounts"] },
+	OIDC: { hard: ["WebApp", "LocalDB", "Accounts"] },
 	Resonite: { hard: ["Data"] },
-	Starboard: { hard: ["SQL", "DiscordBot"] },
-	WebApp: { soft: ["SQL", "Accounts"] },
+	Starboard: { hard: ["LocalDB", "DiscordBot"] },
+	WebApp: { soft: ["LocalDB", "Accounts"] },
 };
 
 /** Thrown by getService for a service the current run doesn't include. */
