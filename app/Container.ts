@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { App } from "./index.js";
-import { ServiceMap } from "./services/index.js";
+import { ServiceMap, ServiceName } from "./services/index.js";
 
 type ProviderFactory = { (container: Container): Service }[];
 
@@ -14,9 +14,9 @@ type ProviderFactory = { (container: Container): Service }[];
  *   service still runs without it; the features using it degrade (503 or
  *   no-op). Services must read these with container.tryService().
  */
-export type Requirements = { hard?: string[]; soft?: string[] };
+export type Requirements = { hard?: ServiceName[]; soft?: ServiceName[] };
 
-export const REQUIREMENTS: Record<string, Requirements> = {
+export const REQUIREMENTS: Partial<Record<ServiceName, Requirements>> = {
 	Accounts: { hard: ["SQL"], soft: ["Github"] },
 	Addons: { hard: ["Data"] },
 	DiscordBot: {
@@ -42,7 +42,7 @@ export class ServiceNotEnabledError extends Error {
 }
 
 export class Service {
-	readonly name!: string;
+	readonly name: string;
 	container: Container;
 
 	constructor(container: Container) {
@@ -58,7 +58,7 @@ export class Service {
 export class Container {
 	readonly app: App;
 	private providers: ProviderFactory;
-	private services = {} as ServiceMap;
+	private services: ServiceMap;
 
 	constructor(app: App, providers: ProviderFactory) {
 		this.app = app;
@@ -110,26 +110,24 @@ export class Container {
 	}
 
 	/** Throws when the service isn't part of this run; use tryService to check. */
-	getService<ServiceName extends string>(service: ServiceName): ServiceMap[ServiceName] {
+	getService<ServiceName extends keyof ServiceMap>(service: ServiceName): ServiceMap[ServiceName] {
 		const found = this.services[service];
 		if (!found) throw new ServiceNotEnabledError(service);
 		return found;
 	}
 
 	/** Like getService, but undefined when the service isn't enabled. */
-	tryService<ServiceName extends string>(
-		service: ServiceName
-	): ServiceMap[ServiceName] | undefined {
+	tryService<ServiceName extends keyof ServiceMap>(service: ServiceName): ServiceMap[ServiceName] | undefined {
 		return this.services[service];
 	}
 
 	/** True when the service is enabled (not necessarily ready). */
-	has(name: string): boolean {
+	has(name: ServiceName): boolean {
 		return !!this.services[name];
 	}
 
 	/** Express middleware: 503 unless every named service is enabled. */
-	requireServices(...names: string[]) {
+	requireServices(...names: ServiceName[]) {
 		return (_req: Request, res: Response, next: NextFunction): void => {
 			const missing = names.filter(name => !this.has(name));
 			if (missing.length > 0) {

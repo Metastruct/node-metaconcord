@@ -81,9 +81,7 @@ export const selectServices = (spec: string | undefined): Provider[] => {
 };
 
 
-
 export type ServiceMap = {
-	[key: string]: Service;
 	Accounts: Accounts;
 	Addons: Addons;
 	Bans: Bans;
@@ -104,6 +102,8 @@ export type ServiceMap = {
 	Steam: Steam;
 	WebApp: WebApp;
 };
+
+export type ServiceName = keyof ServiceMap;
 
 export {Accounts} from "./Accounts.js";
 export {Addons} from "./addons/index.js";
