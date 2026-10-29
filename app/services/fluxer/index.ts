@@ -305,7 +305,6 @@ export class Fluxer extends Service {
 		this.localDB = this.container.getService("LocalDB");
 		this.discordBot = this.container.getService("DiscordBot");
 		this.rest = new FluxerRest(config.apiBaseUrl, config.botToken);
-		await this.initializeSchema();
 		await this.seedMappings();
 		await this.loadMappings();
 		if (!config.enabled) {
@@ -349,66 +348,6 @@ export class Fluxer extends Service {
 			.prepare("INSERT INTO fluxer_link_codes (code, discord_user_id, expires_at_ms) VALUES (?, ?, ?)")
 			.run(code, discordUserId, expiresAt);
 		return { code, expiresAt };
-	}
-
-	private async initializeSchema() {
-		this.localDB.getLocalDatabase().exec(`
-			CREATE TABLE IF NOT EXISTS fluxer_channel_mappings (
-				discord_channel_id TEXT PRIMARY KEY,
-				fluxer_channel_id TEXT NOT NULL UNIQUE,
-				discord_parent_id TEXT,
-				channel_kind TEXT NOT NULL,
-				relay_enabled INTEGER NOT NULL DEFAULT 0 CHECK (relay_enabled IN (0, 1)),
-				updated_at_ms INTEGER NOT NULL
-			);
-			CREATE TABLE IF NOT EXISTS fluxer_role_mappings (
-				discord_role_id TEXT PRIMARY KEY,
-				fluxer_role_id TEXT NOT NULL UNIQUE,
-				updated_at_ms INTEGER NOT NULL
-			);
-			CREATE TABLE IF NOT EXISTS fluxer_message_mappings (
-				discord_message_id TEXT PRIMARY KEY,
-				fluxer_message_id TEXT NOT NULL UNIQUE,
-				discord_channel_id TEXT NOT NULL,
-				fluxer_channel_id TEXT NOT NULL,
-				origin TEXT NOT NULL CHECK (origin IN ('discord', 'fluxer')),
-				created_at_ms INTEGER NOT NULL
-			);
-			CREATE INDEX IF NOT EXISTS fluxer_message_mappings_created
-				ON fluxer_message_mappings(created_at_ms);
-			CREATE TABLE IF NOT EXISTS fluxer_user_links (
-				discord_user_id TEXT PRIMARY KEY,
-				fluxer_user_id TEXT NOT NULL UNIQUE,
-				created_at_ms INTEGER NOT NULL
-			);
-			CREATE TABLE IF NOT EXISTS fluxer_link_codes (
-				code TEXT PRIMARY KEY,
-				discord_user_id TEXT NOT NULL UNIQUE,
-				expires_at_ms INTEGER NOT NULL
-			);
-			CREATE TABLE IF NOT EXISTS fluxer_emoji_mappings (
-				discord_emoji_id TEXT PRIMARY KEY,
-				fluxer_emoji_id TEXT NOT NULL UNIQUE,
-				name TEXT NOT NULL,
-				animated INTEGER NOT NULL CHECK (animated IN (0, 1)),
-				updated_at_ms INTEGER NOT NULL
-			);
-			CREATE TABLE IF NOT EXISTS fluxer_sticker_mappings (
-				discord_sticker_id TEXT PRIMARY KEY,
-				fluxer_sticker_id TEXT NOT NULL UNIQUE,
-				name TEXT NOT NULL,
-				updated_at_ms INTEGER NOT NULL
-			);
-			CREATE TABLE IF NOT EXISTS fluxer_thread_links (
-				discord_thread_id TEXT PRIMARY KEY,
-				fluxer_thread_id TEXT NOT NULL UNIQUE,
-				discord_parent_id TEXT NOT NULL,
-				fluxer_parent_id TEXT NOT NULL,
-				channel_kind TEXT NOT NULL,
-				relay_enabled INTEGER NOT NULL DEFAULT 1 CHECK (relay_enabled IN (0, 1)),
-				updated_at_ms INTEGER NOT NULL
-			);
-		`);
 	}
 
 	private async loadMappings() {

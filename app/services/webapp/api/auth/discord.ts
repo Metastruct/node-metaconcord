@@ -298,9 +298,6 @@ export default async function discordOAuth(webApp: WebApp): Promise<void> {
 			setSessionCookie(res, account);
 
 			const db = sql.getLocalDatabase();
-			db.exec(
-				"CREATE TABLE IF NOT EXISTS discord_tokens (user_id VARCHAR(255) PRIMARY KEY, steam_id VARCHAR(255), access_token VARCHAR(255), refresh_token VARCHAR(255), expires_at DATETIME)"
-			);
 			db.prepare(
 				"INSERT INTO discord_tokens (user_id, access_token, refresh_token, expires_at) VALUES($user_id, $access_token, $refresh_token, $expires_at) ON CONFLICT (user_id) DO UPDATE SET access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at"
 			).run({
