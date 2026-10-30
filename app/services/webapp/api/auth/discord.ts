@@ -1,5 +1,4 @@
 import * as Discord from "discord.js";
-import { SQL } from "#/app/services/SQL.js";
 import { WebApp } from "#/app/services/webapp/index.js";
 import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
 import { rateLimit } from "express-rate-limit";
@@ -82,7 +81,7 @@ export const getOAuthTokens = async (code: string) => {
 };
 
 export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
-	const sql: SQL = globalThis.MetaConcord.container.getService("SQL");
+	const sql = globalThis.MetaConcord.container.getService("LocalDB");
 
 	if (!localOnly) {
 		const res = await fetch("https://discord.com/api/v10/oauth2/token/revoke", {
@@ -109,7 +108,7 @@ const avatarUrl = (user: Discord.APIUser): string | undefined =>
 		: undefined;
 
 export default async function discordOAuth(webApp: WebApp): Promise<void> {
-	const sql = webApp.container.getService("SQL");
+	const sql = webApp.container.getService("LocalDB");
 	const metadata = () => webApp.container.getService("DiscordMetadata");
 	const secretLimiter = rateLimit({ keyGenerator: rateLimitKeyGenerator });
 
@@ -299,9 +298,6 @@ export default async function discordOAuth(webApp: WebApp): Promise<void> {
 			setSessionCookie(res, account);
 
 			const db = sql.getLocalDatabase();
-			db.exec(
-				"CREATE TABLE IF NOT EXISTS discord_tokens (user_id VARCHAR(255) PRIMARY KEY, steam_id VARCHAR(255), access_token VARCHAR(255), refresh_token VARCHAR(255), expires_at DATETIME)"
-			);
 			db.prepare(
 				"INSERT INTO discord_tokens (user_id, access_token, refresh_token, expires_at) VALUES($user_id, $access_token, $refresh_token, $expires_at) ON CONFLICT (user_id) DO UPDATE SET access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at"
 			).run({

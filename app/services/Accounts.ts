@@ -1,11 +1,11 @@
 import { Container, Service } from "../Container.js";
-import { SQL } from "./SQL.js";
 import { decrypt, encrypt } from "./webapp/secretBox.js";
 import { Octokit } from "@octokit/rest";
 import AccountsConfig from "#/config/accounts.json" with { type: "json" };
 import GithubConfig from "#/config/github.json" with { type: "json" };
 import crypto from "node:crypto";
 import { isSteamGroupMember, logger } from "#/utils.js";
+import { RemoteDB } from "./sql/RemoteDB.js";
 
 const log = logger(import.meta);
 
@@ -166,12 +166,12 @@ const toLink = (row: LinkRow): AccountLink => ({
 
 export class Accounts extends Service {
 	override name = "Accounts";
-	private sql!: SQL;
+	private remoteDB!: RemoteDB;
 	private cache = new Map<number, { account: AccountWithLinks; at: number }>();
 
 	override async init(): Promise<void> {
-		this.sql = this.container.getService("SQL");
-		await this.sql.queryPool(`
+		this.remoteDB = this.container.getService("RemoteDB");
+		await this.remoteDB.query(`
 			CREATE TABLE IF NOT EXISTS accounts (
 				id BIGSERIAL PRIMARY KEY,
 				display_name TEXT NOT NULL,
@@ -218,11 +218,11 @@ export class Accounts extends Service {
 		const cached = this.cache.get(id);
 		if (cached && Date.now() - cached.at < SESSION_CACHE_TTL) return cached.account;
 
-		const rows = (await this.sql.queryPool("SELECT * FROM accounts WHERE id = $1", [
+		const rows = (await this.remoteDB.query("SELECT * FROM accounts WHERE id = $1", [
 			id,
 		])) as AccountRow[];
 		if (!rows[0]) return;
-		const links = (await this.sql.queryPool(
+		const links = (await this.remoteDB.query(
 			"SELECT * FROM account_links WHERE account_id = $1 ORDER BY linked_at",
 			[id]
 		)) as LinkRow[];
@@ -235,7 +235,7 @@ export class Accounts extends Service {
 		provider: Provider,
 		providerId: string
 	): Promise<AccountWithLinks | undefined> {
-		const rows = (await this.sql.queryPool(
+		const rows = (await this.remoteDB.query(
 			"SELECT account_id FROM account_links WHERE provider = $1 AND provider_id = $2",
 			[provider, providerId]
 		)) as Pick<LinkRow, "account_id">[];
@@ -247,7 +247,7 @@ export class Accounts extends Service {
 		provider: Provider,
 		providerId: string
 	): Promise<(AccountLink & { accountId: number }) | undefined> {
-		const rows = (await this.sql.queryPool(
+		const rows = (await this.remoteDB.query(
 			"SELECT * FROM account_links WHERE provider = $1 AND provider_id = $2",
 			[provider, providerId]
 		)) as LinkRow[];
@@ -263,7 +263,7 @@ export class Accounts extends Service {
 	async staff(
 		provider: Provider
 	): Promise<{ providerId: string; name: string; roles: Role[] }[]> {
-		const rows = (await this.sql.queryPool(
+		const rows = (await this.remoteDB.query(
 			`SELECT a.roles, l.provider_id, l.name
 			 FROM accounts a JOIN account_links l ON l.account_id = a.id
 			 WHERE l.provider = $2 AND l.source <> 'import' AND a.roles ?| $1::text[]
@@ -294,7 +294,7 @@ export class Accounts extends Service {
 	}
 
 	async create(link: LinkInput): Promise<AccountWithLinks> {
-		const rows = (await this.sql.queryPool(
+		const rows = (await this.remoteDB.query(
 			"INSERT INTO accounts (display_name, avatar) VALUES ($1, $2) RETURNING *",
 			[link.name, link.avatar ?? ""]
 		)) as AccountRow[];
@@ -305,7 +305,7 @@ export class Accounts extends Service {
 	}
 
 	private async upsertLink(accountId: number, link: LinkInput): Promise<void> {
-		await this.sql.queryPool(
+		await this.remoteDB.query(
 			`INSERT INTO account_links (account_id, provider, provider_id, name, avatar, source, token, email, email_verified)
 			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			 ON CONFLICT (account_id, provider) DO UPDATE SET
@@ -370,13 +370,13 @@ export class Accounts extends Service {
 		const moved: string[] = [];
 		for (const link of other.links) {
 			if (taken.has(link.provider)) continue;
-			await this.sql.queryPool(
+			await this.remoteDB.query(
 				"UPDATE account_links SET account_id = $1 WHERE account_id = $2 AND provider = $3",
 				[intoId, other.id, link.provider]
 			);
 			moved.push(link.provider);
 		}
-		await this.sql.queryPool("DELETE FROM accounts WHERE id = $1", [other.id]);
+		await this.remoteDB.query("DELETE FROM accounts WHERE id = $1", [other.id]);
 		this.invalidate(other.id);
 		this.invalidate(intoId);
 		log.info(
@@ -392,7 +392,7 @@ export class Accounts extends Service {
 		);
 		if (remaining.length === 0) throw new LastLoginError();
 
-		await this.sql.queryPool(
+		await this.remoteDB.query(
 			"DELETE FROM account_links WHERE account_id = $1 AND provider = $2",
 			[accountId, provider]
 		);
@@ -417,14 +417,14 @@ export class Accounts extends Service {
 			const matched = existing.links.find(l => l.provider === link.provider);
 			await this.upsertLink(existing.id, link);
 			// the platform someone logs in with is the face of the account
-			await this.sql.queryPool(
+			await this.remoteDB.query(
 				"UPDATE accounts SET display_name = $1, avatar = $2 WHERE id = $3",
 				[link.name, link.avatar ?? "", existing.id]
 			);
 			// the first proven login claims an imported account; the other imported links
 			// were never proven to belong to the same person, so they go back to being unlinked
 			if (matched?.source === "import") {
-				const dropped = await this.sql.queryPool(
+				const dropped = await this.remoteDB.query(
 					"DELETE FROM account_links WHERE account_id = $1 AND source = 'import' RETURNING provider",
 					[existing.id]
 				);
@@ -442,7 +442,7 @@ export class Accounts extends Service {
 
 	/** Invalidates every session cookie of the account. */
 	async bumpSessionVersion(accountId: number): Promise<number> {
-		const rows = (await this.sql.queryPool(
+		const rows = (await this.remoteDB.query(
 			"UPDATE accounts SET session_version = session_version + 1 WHERE id = $1 RETURNING session_version",
 			[accountId]
 		)) as { session_version: number }[];
@@ -451,7 +451,7 @@ export class Accounts extends Service {
 	}
 
 	async setGithubToken(accountId: number, token: GithubToken): Promise<void> {
-		await this.sql.queryPool(
+		await this.remoteDB.query(
 			"UPDATE account_links SET token = $1 WHERE account_id = $2 AND provider = 'github'",
 			[encrypt(token), accountId]
 		);
@@ -485,7 +485,7 @@ export class Accounts extends Service {
 		// a failed lookup keeps the previous roles rather than silently demoting anyone,
 		// and is retried after a short while instead of on every request
 		if (!roles) {
-			await this.sql.queryPool(
+			await this.remoteDB.query(
 				"UPDATE accounts SET roles_checked_at = now() - ($1 || ' milliseconds')::interval WHERE id = $2",
 				[String(ROLES_TTL - ROLES_RETRY), accountId]
 			);
@@ -497,7 +497,7 @@ export class Accounts extends Service {
 
 	/** Writes the roles, and pushes Linked Roles metadata when the set changed. */
 	private async storeRoles(account: AccountWithLinks, roles: Role[]): Promise<AccountWithLinks> {
-		await this.sql.queryPool(
+		await this.remoteDB.query(
 			"UPDATE accounts SET roles = $1::jsonb, roles_checked_at = now() WHERE id = $2",
 			[JSON.stringify(roles), account.id]
 		);
@@ -525,7 +525,7 @@ export class Accounts extends Service {
 		this.sweeping = true;
 		try {
 			const members = await this.teamMembers();
-			const rows = (await this.sql.queryPool(
+			const rows = (await this.remoteDB.query(
 				"SELECT DISTINCT account_id FROM account_links WHERE provider IN ('github', 'steam') AND source <> 'import'"
 			)) as { account_id: string }[];
 
@@ -722,11 +722,11 @@ export class Accounts extends Service {
 		const expiresAt = Date.now() + CODE_TTL;
 
 		// one open code per account and provider, and expired ones do not pile up
-		await this.sql.queryPool(
+		await this.remoteDB.query(
 			"DELETE FROM link_codes WHERE (account_id = $1 AND provider = $2) OR expires_at < now()",
 			[accountId, provider]
 		);
-		await this.sql.queryPool(
+		await this.remoteDB.query(
 			"INSERT INTO link_codes (code, account_id, provider, expires_at) VALUES ($1, $2, $3, $4)",
 			[code, accountId, provider, new Date(expiresAt)]
 		);
@@ -744,7 +744,7 @@ export class Accounts extends Service {
 		name: string,
 		avatar?: string
 	): Promise<{ account: AccountWithLinks } | { error: string }> {
-		const rows = (await this.sql.queryPool(
+		const rows = (await this.remoteDB.query(
 			`UPDATE link_codes SET used_at = now()
 			 WHERE code = $1 AND provider = $2 AND used_at IS NULL AND expires_at > now()
 			 RETURNING account_id`,
@@ -777,8 +777,9 @@ export class Accounts extends Service {
 	 * skipped, so this is safe to run on every start.
 	 */
 	private async migrateDiscordTokens(): Promise<void> {
-		const db = this.sql.getLocalDatabase();
-		if (!(await this.sql.tableExists("discord_tokens"))) return;
+		const localDB = this.container.getService("LocalDB");
+		const db = localDB.getLocalDatabase();
+		if (!(await localDB.tableExists("discord_tokens"))) return;
 		const rows = db
 			.prepare<[], { user_id: string; steam_id: string | null }>("SELECT user_id, steam_id FROM discord_tokens")
 			.all();

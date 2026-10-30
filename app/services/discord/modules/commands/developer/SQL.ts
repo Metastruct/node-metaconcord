@@ -45,7 +45,6 @@ export const SlashSQLCommand: SlashCommand = {
 	execute: async (ctx, bot) => {
 		const target = ctx.options.getString("target");
 		const query = ctx.options.getString("query", true);
-		const sql = bot.container.getService("SQL");
 		if (!ctx.member) {
 			await ctx.reply(EphemeralResponse("if this happens ping @techbot"));
 			return;
@@ -64,7 +63,7 @@ export const SlashSQLCommand: SlashCommand = {
 							)
 						);
 					await ctx.deferReply();
-					const db = sql?.getLocalDatabase();
+					const db = bot.container.getService("LocalDB")?.getLocalDatabase();
 					const res = db?.prepare(query).all();
 					const file = makeFile(res);
 					await ctx.followUp(file);
@@ -73,7 +72,7 @@ export const SlashSQLCommand: SlashCommand = {
 
 				default: {
 					await ctx.deferReply();
-					const res = await sql.queryPool(query);
+					const res = await bot.container.getService("RemoteDB").query(query);
 					const file = makeFile(res);
 					await ctx.followUp(file);
 

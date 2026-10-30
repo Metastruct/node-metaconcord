@@ -1,4 +1,4 @@
-import { Accounts, Bans, DiscordBot, SQL } from "./index.js";
+import { Accounts, Bans, DiscordBot, LocalDB, RemoteDB } from "./index.js";
 import { Container, Service } from "../Container.js";
 import { Role } from "./Accounts.js";
 import { logger } from "#/utils.js";
@@ -102,7 +102,8 @@ type RevokeDBEntry = Pick<LocalDatabaseEntry, "user_id" | "access_token" | "refr
 export class DiscordMetadata extends Service {
 	override name = "DiscordMetadata";
 	private ARCOCache: Record<string, ApplicationRoleConnectionObject> = {};
-	private sql!: SQL;
+	private localDB!: LocalDB;
+	private remoteDB!: RemoteDB;
 	private bot!: DiscordBot;
 	private bans!: Bans;
 	private accounts!: Accounts;
@@ -112,7 +113,8 @@ export class DiscordMetadata extends Service {
 	}
 
 	override async init() {
-		this.sql = this.container.getService("SQL");
+		this.localDB = this.container.getService("LocalDB");
+		this.remoteDB = this.container.getService("RemoteDB");
 		this.bot = this.container.getService("DiscordBot");
 		this.bans = this.container.getService("Bans");
 		this.accounts = this.container.getService("Accounts");
@@ -197,7 +199,7 @@ export class DiscordMetadata extends Service {
 		}
 
 		const token: AccessTokenResponse = await res.json();
-		const db = this.sql.getLocalDatabase();
+		const db = this.localDB.getLocalDatabase();
 		db.prepare("UPDATE discord_tokens SET access_token = ?, refresh_token = ?, expires_at = ? WHERE user_id = ?").run(
 			token.access_token,
 			token.refresh_token,
@@ -211,7 +213,7 @@ export class DiscordMetadata extends Service {
 		if (this.ARCOCache[userId]) return this.ARCOCache[userId];
 
 		const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.bot.applicationId}/role-connection`;
-		const db = this.sql.getLocalDatabase();
+		const db = this.localDB.getLocalDatabase();
 		const data = db
 			.prepare<[string], LocalDatabaseEntry>("SELECT * FROM discord_tokens where user_id = ?;")
 			.get(userId);
@@ -234,7 +236,7 @@ export class DiscordMetadata extends Service {
 	}
 
 	async update(userId: string) {
-		const db = this.sql.getLocalDatabase();
+		const db = this.localDB.getLocalDatabase();
 
 		const data = db
 			.prepare<[string], LocalDatabaseEntry>("SELECT * FROM discord_tokens WHERE user_id = ?;")
@@ -247,14 +249,14 @@ export class DiscordMetadata extends Service {
 		if (!account || !steamId) return false;
 		const accountId = new SteamID(steamId).accountid;
 
-		const query1 = await this.sql.queryPool("SELECT coins FROM coins WHERE accountid = $1;", [
+		const query1 = await this.remoteDB.query("SELECT coins FROM coins WHERE accountid = $1;", [
 			accountId,
 		]);
-		const query2 = await this.sql.queryPool(
+		const query2 = await this.remoteDB.query(
 			"SELECT SUM(totaltime) from playingtime WHERE accountid = $1;",
 			[accountId]
 		);
-		const query3 = await this.sql.queryPool(
+		const query3 = await this.remoteDB.query(
 			"SELECT value from kv WHERE key = $1 AND scope = 'meta_name'",
 			[steamId]
 		);
@@ -341,7 +343,7 @@ export class DiscordMetadata extends Service {
 	}
 
 	private async revokeRoleConnection(userId: string): Promise<boolean> {
-		const db = this.sql.getLocalDatabase();
+		const db = this.localDB.getLocalDatabase();
 		const data = db
 			.prepare<[string], LocalDatabaseEntry>("SELECT * FROM discord_tokens WHERE user_id = ?;")
 			.get(userId);
@@ -378,7 +380,7 @@ export class DiscordMetadata extends Service {
 	async revoke(userId: string): Promise<boolean> {
 		await this.revokeRoleConnection(userId).catch(() => {});
 
-		const db = this.sql.getLocalDatabase();
+		const db = this.localDB.getLocalDatabase();
 		const data = db
 			.prepare<[string], RevokeDBEntry>("SELECT user_id, access_token, refresh_token FROM discord_tokens WHERE user_id = ?;")
 			.get(userId);

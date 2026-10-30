@@ -1,6 +1,5 @@
 import { Container, Service } from "../Container.js";
 import { getSessionAccountId } from "./webapp/api/auth/session.js";
-import { SQL } from "./SQL.js";
 import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.js";
 import { logger } from "#/utils.js";
 import OIDCConfig from "#/config/oidc.json" with { type: "json" };
@@ -14,6 +13,7 @@ import {
 	errors,
 	Session,
 } from "oidc-provider";
+import { LocalDB } from "./sql/LocalDB.js";
 
 const log = logger(import.meta);
 
@@ -52,13 +52,11 @@ export class OIDC extends Service {
 
 	override async init(): Promise<void> {
 		const webApp = this.container.getService("WebApp");
-		const sql = this.container.getService("SQL");
+		const localDB = this.container.getService("LocalDB");
 		const accounts = this.container.getService("Accounts");
 
-		await this.ensureTables(sql);
-
 		this.provider = new Provider(this.config.issuer, {
-			adapter: makeAdapter(sql),
+			adapter: makeAdapter(localDB),
 			clients: this.config.clients.map(client => ({
 				...client,
 				response_types: client.response_types as
@@ -315,20 +313,6 @@ export class OIDC extends Service {
 		const webApp = this.container.getService("WebApp");
 		webApp.app.use(this.provider.callback());
 	}
-
-	async ensureTables(sql: SQL): Promise<void> {
-		sql.database.exec(`
-			CREATE TABLE IF NOT EXISTS oidc_tokens (
-				id TEXT PRIMARY KEY,
-				grant_id TEXT,
-				payload TEXT NOT NULL
-			);
-			CREATE TABLE IF NOT EXISTS oidc_uid_index (
-				uid TEXT PRIMARY KEY,
-				id TEXT NOT NULL
-			);
-		`);
-	}
 }
 
 const LOGIN_PICKER_LABELS: Record<string, string> = {
@@ -426,33 +410,47 @@ function loginPickerPage(uid: string, fresh = true): string {
  * grant, session and interaction payloads are opaque JSON blobs; the provider
  * handles expiry and consumption itself inside those payloads.
  */
-function makeAdapter(sql: SQL): new (name: string) => Adapter {
+function makeAdapter(localDB: LocalDB): new (name: string) => Adapter {
 	return class SQLiteAdapter implements Adapter {
 		constructor(public name: string) {}
 
 		async upsert(id: string, payload: AdapterPayload, expiresIn: number): Promise<void> {
 			const expiresAt = expiresIn ? Date.now() + expiresIn * 1000 : undefined;
-			sql.database
-				.prepare(
-					`INSERT INTO oidc_tokens (id, grant_id, payload) VALUES (?, ?, ?)
-					 ON CONFLICT(id) DO UPDATE SET grant_id=excluded.grant_id, payload=excluded.payload;`
+			await localDB.db
+				.insertInto("oidc_tokens")
+				.values({
+					id,
+					grant_id: payload.grantId ?? null,
+					payload: JSON.stringify({ payload, expiresAt }),
+				})
+				.onConflict(oc => oc
+					.column("id")
+					.doUpdateSet({
+						grant_id: eb => eb.ref("excluded.grant_id"),
+						payload: eb => eb.ref("excluded.payload"),
+					})
 				)
-				.run(id, payload.grantId ?? null, JSON.stringify({ payload, expiresAt }));
+				.execute();
 			// sessions carry a uid that interactions and tokens resolve back through
 			if (typeof payload.uid === "string") {
-				sql.database
-					.prepare(
-						`INSERT INTO oidc_uid_index (uid, id) VALUES (?, ?)
-						 ON CONFLICT(uid) DO UPDATE SET id=excluded.id;`
+				await localDB.db
+					.insertInto("oidc_uid_index")
+					.values({
+						id,
+						uid: payload.uid,
+					})
+					.onConflict(oc => oc
+						.column("uid")
+						.doUpdateSet({
+							id: eb => eb.ref("excluded.id"),
+						})
 					)
-					.run(payload.uid, id);
+					.execute();
 			}
 		}
 
 		async find(id: string): Promise<AdapterPayload | undefined> {
-			const row = sql.database
-				.prepare<[string], { payload: string }>("SELECT payload FROM oidc_tokens WHERE id = ?;")
-				.get(id);
+			const row = await localDB.db.selectFrom("oidc_tokens").select("payload").where("id", "=", id).executeTakeFirst();
 			if (!row) return undefined;
 			const { payload, expiresAt } = JSON.parse(row.payload) as {
 				payload: AdapterPayload;
@@ -463,34 +461,28 @@ function makeAdapter(sql: SQL): new (name: string) => Adapter {
 		}
 
 		async destroy(id: string): Promise<void> {
-			sql.database.prepare("DELETE FROM oidc_uid_index WHERE id = ?;").run(id);
-			sql.database.prepare("DELETE FROM oidc_tokens WHERE id = ?;").run(id);
+			await localDB.db.deleteFrom("oidc_uid_index").where("id", "=", id).execute();
+			await localDB.db.deleteFrom("oidc_tokens").where("id", "=", id).execute();
 		}
 
 		async consume(id: string): Promise<void> {
-			const row = sql.database
-				.prepare<[string], { payload: string }>("SELECT payload FROM oidc_tokens WHERE id = ?;")
-				.get(id);
+			const row = await localDB.db.selectFrom("oidc_tokens").select("payload").where("id", "=", id).limit(1).executeTakeFirst();
 			if (!row) return;
 			const stored = JSON.parse(row.payload) as {
 				payload: AdapterPayload;
 				expiresAt?: number;
 			};
 			stored.payload.consumed = Math.floor(Date.now() / 1000);
-			sql.database
-				.prepare("UPDATE oidc_tokens SET payload = ? WHERE id = ?;")
-				.run(JSON.stringify(stored), id);
+			await localDB.db.updateTable("oidc_tokens").set("payload", JSON.stringify(stored)).where("id", "=", id).execute();
 		}
 
 		async findByUid(uid: string): Promise<AdapterPayload | undefined> {
-			const row = sql.database
-				.prepare<[string], { id: string }>("SELECT id FROM oidc_uid_index WHERE uid = ?;")
-				.get(uid);
+			const row = await localDB.db.selectFrom("oidc_uid_index").select("id").where("uid", "=", uid).limit(1).executeTakeFirst();
 			return row ? this.find(row.id) : undefined;
 		}
 
 		async revokeByGrantId(grantId: string): Promise<void> {
-			sql.database.prepare("DELETE FROM oidc_tokens WHERE grant_id = ?;").run(grantId);
+			await localDB.db.deleteFrom("oidc_tokens").where("grant_id", "=", grantId).execute();
 		}
 
 		async findByUserCode(): Promise<AdapterPayload | undefined> {

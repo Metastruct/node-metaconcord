@@ -8,7 +8,7 @@ import packageJson from "eslint-package-json";
 
 export default defineConfig([
 	{
-		ignores: ["dist/"],
+		ignores: ["dist/", "generated/"],
 	},
 	{
 		files: ["!resources/**"],
@@ -223,6 +223,12 @@ export default defineConfig([
 		files: ["test/**"],
 		rules: {
 			"unicorn/consistent-function-scoping": "off",
+		},
+	},
+	{
+		files: ["migrations/**"],
+		rules: {
+			"@typescript-eslint/no-explicit-any": "off",
 		},
 	},
 	{

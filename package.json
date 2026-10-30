@@ -8,15 +8,15 @@
 	"author": "marceau-maubert <marceau.maubert2@gmail.com>",
 	"type": "module",
 	"imports": {
-		"#/*": "./*"
+		"#/*": "./*",
+		"#kysely-migration": "./lib/kysely-migration.ts"
 	},
 	"sideEffects": true,
 	"engines": {
 		"node": ">=26.0.0"
 	},
 	"scripts": {
-		"build": "run-s clean build:* compile",
-		"build:scss": "sass resources/ --no-source-map",
+		"build": "run-s compile",
 		"check": "run-s check:typescript check:eslint",
 		"check:eslint": "eslint",
 		"check:typescript": "tsc --noEmit",
@@ -29,8 +29,14 @@
 		"dev:web": "cross-env METACONCORD_SERVICES=infra,web NODE_ENV=development DEBUG=express:*,router,router:* node dist",
 		"fluxer:mirror": "node scripts/fluxer-mirror.js",
 		"fluxer:mirror-expressions": "node scripts/fluxer-mirror-expressions.js",
+		"generate": "run-p generate:*",
+		"generate:db-types": "node scripts/generate-db-types.ts",
+		"generate:scss": "sass resources/ --no-source-map",
 		"lint": "eslint",
 		"lint:fix": "eslint --fix",
+		"prebuild": "run-s clean",
+		"precheck": "run-s generate:db-types",
+		"precompile": "run-s generate",
 		"schema:gen": "node schema_gen.js",
 		"scss-watch": "sass --watch resources/ --no-source-map",
 		"start": "node dist",
@@ -66,6 +72,7 @@
 		"graphql-request": "^7.4.0",
 		"irc-upd": "^0.11.0",
 		"jsonwebtoken": "^9.0.3",
+		"kysely": "^0.29.7",
 		"mime": "^4.1.1",
 		"mnemonist": "^0.40.6",
 		"node-schedule": "^2.1.1",
@@ -105,6 +112,7 @@
 		"eslint-package-json": "^3.0.0",
 		"eslint-plugin-unicorn": "^79.0.0",
 		"globals": "^17.13.0",
+		"kysely-typegen": "^2.1.0",
 		"rimraf": "^6.1.3",
 		"safe-stable-stringify": "^3.0.0",
 		"sass": "^1.106.1",

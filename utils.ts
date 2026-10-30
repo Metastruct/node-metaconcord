@@ -7,6 +7,9 @@ import request, { gql } from "graphql-request";
 import path from "node:path";
 import pino from "pino";
 import type { GraphQlQueryResponseData } from "@octokit/graphql";
+import { fileURLToPath } from "node:url";
+
+export const PROJECT_ROOT_PATH = path.dirname(fileURLToPath(import.meta.url));
 
 // debug so access logs reach the dashboard buffer, its UI defaults to info+
 const baseLogger = pino({ level: process.env.LOG_LEVEL || "debug" });

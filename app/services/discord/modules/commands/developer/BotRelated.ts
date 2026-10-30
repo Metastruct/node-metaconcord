@@ -28,7 +28,7 @@ export const SlashManageMediaLinks: SlashCommand = {
 			case "remove": {
 				const url = ctx.options.getString("url", true);
 				await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
-				const db = bot.container.getService("SQL").getLocalDatabase();
+				const db = bot.container.getService("LocalDB").getLocalDatabase();
 				if (!db) {
 					ctx.followUp(EphemeralResponse("Could not get the DB :("));
 					return;
@@ -89,7 +89,7 @@ export const MenuManageMediaLinksCommand: MenuCommand = {
 			return;
 		}
 		await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
-		const db = bot.container.getService("SQL").getLocalDatabase();
+		const db = bot.container.getService("LocalDB").getLocalDatabase();
 		if (!db) {
 			ctx.followUp(EphemeralResponse("Could not get the DB :("));
 			return;

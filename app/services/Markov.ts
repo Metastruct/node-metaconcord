@@ -1,7 +1,8 @@
 // thank u mr swadical https://github.com/SwadicalRag/node-markov-lite
 import { logger } from "#/utils.js";
+import { sql } from "kysely";
 import { Container, Service } from "../Container.js";
-import type { LocalDatabase } from "./SQL.js";
+import type { LocalDatabase } from "./sql/LocalDB.js";
 
 /* eslint-disable unicorn/no-for-loop */
 
@@ -160,30 +161,27 @@ abstract class MarkovChainBase {
 }
 
 class MarkovChain extends MarkovChainBase {
-	private db: LocalDatabase;
+	#db: LocalDatabase;
 
 	constructor(db: LocalDatabase) {
 		super();
-		this.db = db;
-	}
-
-	async ready(): Promise<void> {
-		this.db.exec("CREATE TABLE IF NOT EXISTS markov (`message` VARCHAR(255));");
+		this.#db = db;
 	}
 
 	async learn(data: string): Promise<void> {
-		data = data.trim().replaceAll(/\s+/g, " ");
-		this.db.prepare("INSERT INTO markov VALUES (?)").run(data);
+		const message = data.trim().replaceAll(/\s+/g, " ");
+		await this.#db.insertInto("markov").values({ message }).execute();
 	}
 
 	async sampleWords(limit = 5000): Promise<Map<number, string[]>> {
-		const rows = this.db
-			.prepare<[number], { message: string }>(
-				`SELECT message FROM markov WHERE rowid >= (
-			    SELECT ABS(RANDOM()) % MAX(rowid) + 1 FROM markov
-			  ) LIMIT ?`
+		const rows = await this.#db
+			.selectFrom("markov")
+			.select("message")
+			.where(sql`rowid`, ">=", (eb) => eb.selectFrom("markov")
+				.select(sql`ABS(RANDOM()) % MAX(rowid) + 1`.as("val"))
 			)
-			.all(limit);
+			.limit(limit)
+			.execute();
 		const wordsByLength = new Map<number, string[]>();
 		for (const row of rows) {
 			for (const w of row.message.toLowerCase().split(/\s+/)) {
@@ -203,22 +201,32 @@ class MarkovChain extends MarkovChainBase {
 		const sentence = chain.join(" ");
 
 		if (sentence.trim() === "") {
-			const res = this.db
-				.prepare<[], { message: string }>("SELECT * FROM markov ORDER BY RANDOM() LIMIT 1")
-				.get();
+			const res = await this.#db
+				.selectFrom("markov")
+				.selectAll()
+				.orderBy(eb => eb.fn("random"))
+				.limit(1)
+				.executeTakeFirst();
 			return res?.message ?? null;
 		}
 
-		const resArr = this.db
-			.prepare<[string, string], { message: string }>(
-				"SELECT * FROM markov WHERE (message LIKE ? OR message LIKE ?) ORDER BY RANDOM() LIMIT 1"
+		const res = await this.#db
+			.selectFrom("markov")
+			.selectAll()
+			.where(eb =>
+				eb.or([
+					eb("message", "like", `_% ${sentence} %_`),
+					eb("message", "like", `${sentence} %_`),
+				]),
 			)
-			.all(`_% ${sentence} %_`, `${sentence} %_`);
-		for (const res of resArr) {
-			if (!res.message.endsWith(sentence)) {
-				return res.message;
-			}
+			.orderBy(eb => eb.fn("random"))
+			.limit(1)
+			.executeTakeFirst();
+
+		if (!res.message.endsWith(sentence)) {
+			return res.message;
 		}
+
 		return null;
 	}
 }
@@ -229,10 +237,8 @@ export class Markov extends Service {
 
 	private async getMarkov(): Promise<MarkovChain> {
 		if (!this._markov) {
-			const sql = this.container.getService("SQL");
-			const db = sql.getLocalDatabase();
-			this._markov = new MarkovChain(db);
-			await this._markov.ready();
+			const localDB = this.container.getService("LocalDB");
+			this._markov = new MarkovChain(localDB.db);
 		}
 		return this._markov;
 	}

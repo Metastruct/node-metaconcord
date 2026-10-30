@@ -90,7 +90,7 @@ export const Shat = async (options?: {
 				: undefined;
 		}
 		try {
-			const db = globalThis.MetaConcord.container.getService("SQL").getLocalDatabase();
+			const db = globalThis.MetaConcord.container.getService("LocalDB").getLocalDatabase();
 
 			const url = db.prepare<[], { url: string } | undefined>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1").get()?.url;
 			return { content: url ?? "wtf" };
@@ -150,9 +150,8 @@ const lastReactedUsers = new Set<string>();
 export default async function ShitpostLoader(bot: DiscordBot) {
 	const data = bot.container.getService("Data");
 	const mk = bot.container.getService("Markov");
-	const db = bot.container.getService("SQL").getLocalDatabase();
+	const db = bot.container.getService("LocalDB").getLocalDatabase();
 	const motd = bot.container.getService("Motd");
-	db.exec("CREATE TABLE IF NOT EXISTS media_urls (url VARCHAR(255) NOT NULL UNIQUE);");
 	const now = Date.now();
 	let lastActivityChange = now;
 	let lastSetActivity: Discord.ActivitiesOptions | undefined;
