@@ -4,7 +4,7 @@ import { LocalDB } from "../app/services/index.js";
 
 const database = (()=>{
 	const localDB = new LocalDB({} as Container);
-	localDB.init();
+	localDB.initBackend();
 	return localDB.db;
 })();
 

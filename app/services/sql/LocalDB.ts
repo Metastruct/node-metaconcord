@@ -3,6 +3,7 @@ import { Container, Service } from "../../Container.js";
 import { Kysely, SqliteDialect } from "kysely";
 import { DB } from "#/generated/LocalDBTypes.js";
 import { DBService } from "#/app/services/sql/DBService.js";
+import { migrateToLatest } from "#/lib/kysely-migration.js";
 
 let sqlite: SQLite.Database;
 
@@ -42,9 +43,14 @@ export class LocalDB extends DBService<DB> {
 	#sqliteDatabase: SQLite.Database;
 	#localDB: Kysely<DB>;
 
-	override async init(): Promise<void> {
+	initBackend() {
 		this.#sqliteDatabase = getSQLite();
 		this.#localDB = getSQLiteKysely();
+	}
+
+	override async init() {
+		this.initBackend();
+		await migrateToLatest(this.#localDB);
 	}
 
 	/** @deprecated Do not rely on this anymore, access the database using Kysely via the `.db` property. */
