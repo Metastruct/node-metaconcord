@@ -15,6 +15,7 @@ function getPool() {
 		database: config.database,
 		password: config.password,
 	});
+	return pool;
 }
 
 export class RemoteDB extends DBService<never> {
