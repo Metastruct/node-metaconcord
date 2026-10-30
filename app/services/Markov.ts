@@ -212,7 +212,7 @@ class MarkovChain extends MarkovChainBase {
 
 		const res = await this.#db
 			.selectFrom("markov")
-			.selectAll()
+			.select("message")
 			.where(eb =>
 				eb.or([
 					eb("message", "like", `_% ${sentence} %_`),
@@ -223,7 +223,7 @@ class MarkovChain extends MarkovChainBase {
 			.limit(1)
 			.executeTakeFirst();
 
-		if (!res?.message.endsWith(sentence)) {
+		if (res && !res.message.endsWith(sentence)) {
 			return res.message;
 		}
 
