@@ -223,7 +223,7 @@ class MarkovChain extends MarkovChainBase {
 			.limit(1)
 			.executeTakeFirst();
 
-		if (!res.message.endsWith(sentence)) {
+		if (!res?.message.endsWith(sentence)) {
 			return res.message;
 		}
 
