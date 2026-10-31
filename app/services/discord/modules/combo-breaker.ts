@@ -51,6 +51,11 @@ class Combo {
 				attachment.height,
 				attachment.duration,
 			]),
+			message.embeds.map(embed => [
+				embed.title,
+				embed.description,
+				embed.footer.text,
+			]),
 			message.stickers.map(sticker => sticker.id),
 		]));
 	}
