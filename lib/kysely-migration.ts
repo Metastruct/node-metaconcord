@@ -6,9 +6,11 @@ import pino from "pino";
 
 import type { LocalDatabase } from "#/app/services/sql/LocalDB.js";
 
-const log = pino({ level: "debug" }).child({file: path.basename(import.meta.filename)});
+type Logger = Pick<Console, "info" | "error" | "debug">;
 
-export async function migrateToLatest(db: LocalDatabase) {
+const defaultLog = pino({ level: "debug" }).child({ file: path.basename(import.meta.filename) });
+
+export async function migrateToLatest(db: LocalDatabase, log: Logger = defaultLog) {
 	const migrationFolder = path.join(path.dirname(path.dirname(fileURLToPath(import.meta.url))), "migrations");
 
 	const migrator = new Migrator({

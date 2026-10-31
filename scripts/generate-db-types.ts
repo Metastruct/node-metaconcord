@@ -30,7 +30,7 @@ const databaseTypegen = new KyselyTypegenSQLiteWithBigIntsDialect({ database });
 
 // Run migrations on in-memory db.
 
-await migrateToLatest(database);
+await migrateToLatest(database, console);
 
 // Generate the types.
 
