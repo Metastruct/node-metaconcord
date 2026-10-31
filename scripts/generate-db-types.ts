@@ -12,7 +12,7 @@ import { migrateToLatest } from "#ts/lib/kysely-migration.js";
 const sqlite = SQLite(":memory:");
 sqlite.defaultSafeIntegers();
 const dialect = new SqliteDialect({ database: sqlite });
-const database = new Kysely<any>({ dialect });
+const database = new Kysely<unknown>({ dialect });
 
 // Set up kysely-typegen.
 
