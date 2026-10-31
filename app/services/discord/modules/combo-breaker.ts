@@ -54,7 +54,7 @@ class Combo {
 			message.embeds.map(embed => [
 				embed.title,
 				embed.description,
-				embed.footer.text,
+				embed.footer?.text,
 			]),
 			message.stickers.map(sticker => sticker.id),
 		]));
