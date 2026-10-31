@@ -251,8 +251,7 @@ export default function dashboard(webApp: WebApp): void {
 
 	webApp.app.get("/dashboard/logs", requireAdmin, (req, res) => {
 		res.set("Cache-Control", "no-store");
-		const limit = Math.min(Number(req.query.limit) || 500, 2000);
-		res.json(logBuffer.recent(limit));
+		res.json(logBuffer.recent(Number(req.query.limit ?? 500)).toArray());
 	});
 
 	webApp.app.get("/dashboard/config", requireAdmin, async (_, res) => {

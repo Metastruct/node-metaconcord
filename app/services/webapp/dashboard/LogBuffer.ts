@@ -1,8 +1,13 @@
 import { EventEmitter } from "node:events";
+import { CircularBuffer } from "mnemonist";
 
 export type LogLine = { t: number; stream: "stdout" | "stderr"; line: string };
 
 const CAPACITY = 2000;
+
+function IteratorDrop<T>(iterator: Iterable<T>, count: number) {
+	return Iterator.from(iterator).drop(Math.max(0, count || 0));
+}
 
 /**
  * Captures everything written to stdout/stderr (pino, console, crash dumps) into
@@ -10,7 +15,7 @@ const CAPACITY = 2000;
  * output. Importing this module installs the capture.
  */
 class LogBuffer extends EventEmitter<{ line: [LogLine] }> {
-	private lines: LogLine[] = [];
+	private lines = new CircularBuffer<LogLine>(Array, CAPACITY);
 	private partial = { stdout: "", stderr: "" };
 
 	constructor() {
@@ -20,14 +25,18 @@ class LogBuffer extends EventEmitter<{ line: [LogLine] }> {
 		this.capture("stderr");
 	}
 
-	recent(limit = CAPACITY): LogLine[] {
-		return this.lines.slice(-limit);
+	/**
+	 * Iterates over the most recent entries, oldest first.
+	 * @param limit - Maximum number of entries to return; defaults to {@link CAPACITY | buffer capacity}.
+	 */
+	recent(limit = CAPACITY): IteratorObject<LogLine, void, unknown> {
+		if (limit < 1 || Number.isNaN(limit)) return Iterator.from<LogLine>([]);
+		return IteratorDrop(this.lines, this.lines.size - Math.trunc(limit));
 	}
 
-	push(stream: LogLine["stream"], line: string): void {
+	push(stream: LogLine["stream"], line: LogLine["line"]): void {
 		const entry = { t: Date.now(), stream, line };
 		this.lines.push(entry);
-		if (this.lines.length > CAPACITY) this.lines.splice(0, this.lines.length - CAPACITY);
 		this.emit("line", entry);
 	}
 
