@@ -1,4 +1,5 @@
-@import "_whitney.scss";
+@use "sass:color";
+@use "_whitney.scss";
 
 $link: #2a77be;
 $link-banned: #ff0000;
@@ -70,11 +71,11 @@ main {
 		}
 
 		&.is-admin a .nick {
-			color: lighten(adjust-hue($link, 80), 5%) !important;
+			color: color.adjust(color.adjust($link, $hue: 80), $lightness: 5%) !important;
 		}
 
 		&.is-pirate a .nick {
-			color: adjust-hue($link, 180) !important;
+			color: color.adjust($link, $hue: 180) !important;
 		}
 
 		&.is-afk {
