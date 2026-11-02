@@ -1,10 +1,9 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { SarifLog } from "@microsoft/sarif";
+import type { PhysicalLocation, Result, SarifLog } from "@microsoft/sarif";
 
-const rawLog = readFileSync("eslint-results.sarif", "utf8");
-const log: SarifLog = JSON.parse(rawLog);
+// #region Annotation Classes
 
 abstract class Line {
 	abstract toString(): string;
@@ -47,9 +46,9 @@ abstract class FileInfoLine extends Line {
 	}
 }
 
-class Notice  extends FileInfoLine { protected override type = "notice";  }
-class Warning extends FileInfoLine { protected override type = "warning"; }
-class Error   extends FileInfoLine { protected override type = "error";   }
+class NoticeLine  extends FileInfoLine { protected override type = "notice";  }
+class WarningLine extends FileInfoLine { protected override type = "warning"; }
+class ErrorLine   extends FileInfoLine { protected override type = "error";   }
 
 // class Group {
 // 	#title: string;
@@ -69,22 +68,66 @@ class Error   extends FileInfoLine { protected override type = "error";   }
 // 	}
 // }
 
+// #endregion
+
+// #region Load Sarif
+
+const rawLog = readFileSync("eslint-results.sarif", "utf8");
+const log: SarifLog = JSON.parse(rawLog);
+
+type RequiredFields<T, K extends keyof NonNullable<T>> = T & Required<Pick<NonNullable<T>, K>>;
+
 const results = log.runs[0].results;
 
+type CompletePhysicalLocation = PhysicalLocation & {
+	artifactLocation: RequiredFields<PhysicalLocation["artifactLocation"], "uri">,
+	region: RequiredFields<PhysicalLocation["region"], "startLine" | "endLine">,
+};
+
+function isCompletePhysicalLocation(obj?: PhysicalLocation): obj is CompletePhysicalLocation {
+	return !!obj && typeof obj.artifactLocation?.uri === "string"
+		&& !!obj.region && typeof obj.region.startLine === "number" && typeof obj.region.endLine === "number";
+}
+
+type CompleteResult = Result & {
+	locations: NonNullable<Result["locations"]>,
+	ruleId: NonNullable<Result["ruleId"]>,
+	message: RequiredFields<Result["message"], "text">,
+};
+
+function isCompleteResult(obj?: Result): obj is CompleteResult {
+	return !!obj && Array.isArray(obj.locations)
+		&& typeof obj.ruleId === "string"
+		&& typeof obj.message.text === "string";
+}
+
+
+if (!Array.isArray(results))
+	throw new TypeError("No run in sarif file, or run has no results.");
+
 const lines = results.map(result => {
+	if (!isCompleteResult(result))
+		throw new TypeError("result is missing required properties");
+
 	const location = result.locations[0].physicalLocation;
+
+	if (!isCompletePhysicalLocation(location))
+		throw new TypeError("result.location is missing required properties");
+
 	const filePath = path.relative(path.dirname(import.meta.dirname), fileURLToPath(location.artifactLocation.uri));
 
 	switch (result.level) {
 		case "note":
-			return new Notice(filePath, location.region.startLine, location.region.endLine, result.ruleId, result.message.text);
+			return new NoticeLine(filePath, location.region.startLine, location.region.endLine, result.ruleId, result.message.text);
 		case "warning":
-			return new Warning(filePath, location.region.startLine, location.region.endLine, result.ruleId, result.message.text);
+			return new WarningLine(filePath, location.region.startLine, location.region.endLine, result.ruleId, result.message.text);
 		case "error":
-			return new Error(filePath, location.region.startLine, location.region.endLine, result.ruleId, result.message.text);
+			return new ErrorLine(filePath, location.region.startLine, location.region.endLine, result.ruleId, result.message.text);
 		default:
 			return new DebugLine(JSON.stringify(result));
 	}
 }).map(line => line.toString());
 
 console.log(lines.join("\n"));
+
+// #endregion

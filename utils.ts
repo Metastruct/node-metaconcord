@@ -34,6 +34,8 @@ export const clamp = (number: number, minimum: number, maximum: number): number 
 	return Math.min(Math.max(number, minimum), maximum);
 };
 
+export type WithRequired<T, K extends keyof T> = T & Required<Pick<T, K>>;
+
 const LUA_ESCAPES: Record<string, string> = {
 	"\\": "\\\\",
 	'"': '\\"',

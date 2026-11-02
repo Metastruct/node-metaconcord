@@ -29,6 +29,11 @@ export async function migrateToLatest(db: LocalDatabase, log: Logger = defaultLo
 
 	const { error, results } = await migrator.migrateToLatest();
 
+	if (error)
+		throw new Error(`Failed to migrate: ${error instanceof Error ? error.message : error}`);
+	if (!results)
+		throw new Error(`Failed to migrate: results is ${results}`);
+
 	const countApplied = results.length;
 
 	for (const [i, result] of results.entries()) {
@@ -39,12 +44,9 @@ export async function migrateToLatest(db: LocalDatabase, log: Logger = defaultLo
 		}
 	}
 
-	if (results?.length > 0) {
+	if (results.length > 0) {
 		log.info(`applied ${countApplied} new migration${countApplied === 1 ? "" : "s"}, now at ${countPre+countApplied}/${countTotal}`);
-	} else if (results?.length === 0) {
+	} else if (results.length === 0) {
 		log.debug(`database schema is up-to-date (${countPre}/${countTotal})`);
 	}
-
-	if (error)
-		throw new Error(`Failed to migrate: ${error instanceof Error ? error.message : error}`);
 }

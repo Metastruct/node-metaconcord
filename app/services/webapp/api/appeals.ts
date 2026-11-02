@@ -4,6 +4,7 @@ import express, { type Request } from "express";
 import { rateLimit } from "express-rate-limit";
 import { type Selectable } from "kysely";
 
+import { ServiceNotEnabledError } from "#ts/app/Container.js";
 import { type appeals } from "#ts/generated/LocalDBTypes.js";
 import { f, logger } from "#utils";
 import { Accounts } from "#/app/services/Accounts.js";
@@ -40,17 +41,17 @@ const cleanText = (value: unknown, max: number): string =>
 	typeof value === "string" ? value.replaceAll(TEXT_CONTROL_RE, "").trim().slice(0, max) : "";
 
 type Resolution = "unbanned" | "refused";
-function isResolution(resolution: string): resolution is Resolution {
+function isResolution(resolution: unknown): resolution is Resolution {
 	return resolution === "unbanned" || resolution === "refused";
 }
 
 type AppealRow = Omit<Selectable<appeals>, "resolution"> & { resolution: Resolution };
 
-function isProperAppealRow(appeal: Selectable<appeals>): appeal is AppealRow {
-	return isResolution(appeal.resolution);
+function isProperAppealRow(appeal?: Selectable<appeals>): appeal is AppealRow {
+	return isResolution(appeal?.resolution);
 }
 
-function toAppealRow(appeal: Selectable<appeals>): AppealRow | undefined {
+function toAppealRow(appeal?: Selectable<appeals>): AppealRow | undefined {
 	if (isProperAppealRow(appeal))
 		return appeal;
 }
@@ -151,6 +152,12 @@ const wasManuallyArchived = async (thread: Discord.ThreadChannel): Promise<boole
 export default function appealsAPI(webApp: WebApp): void {
 	// both are soft: endpoints below 503 when either is missing (see requireServices)
 	const localDB = webApp.container.tryService("LocalDB");
+	const db = () => {
+		const database = localDB?.db;
+		if (!database) throw new ServiceNotEnabledError("LocalDB");
+		return database;
+	};
+
 	const json = express.json({ limit: "8kb" });
 	const statusLimiter = rateLimit({
 		keyGenerator: rateLimitKeyGenerator,
@@ -175,7 +182,7 @@ export default function appealsAPI(webApp: WebApp): void {
 	const messagesCache = new Map<string, { at: number; messages: AppealMessage[] }>();
 
 	const openAppeal = async (steamId64: string): Promise<AppealRow | undefined> => {
-		const row = await localDB.db
+		const row = await db()
 			.selectFrom("appeals")
 			.selectAll()
 			.where("steam_id64", "=", steamId64)
@@ -191,7 +198,7 @@ export default function appealsAPI(webApp: WebApp): void {
 	const closeAppeals = async (
 		steamId64: string
 	): Promise<void> => {
-		await localDB.db
+		await db()
 			.updateTable("appeals")
 			.set({
 				closed_at: Math.round(Date.now() / 1000),
@@ -204,9 +211,9 @@ export default function appealsAPI(webApp: WebApp): void {
 
 	const closeAppealRow = async (
 		id: number,
-		resolution: AppealRow["resolution"] = null
+		resolution?: Resolution
 	): Promise<void> => {
-		await localDB.db
+		await db()
 			.updateTable("appeals")
 			.set({
 				closed_at: Math.round(Date.now() / 1000),
@@ -218,11 +225,11 @@ export default function appealsAPI(webApp: WebApp): void {
 	};
 
 	const rowById = async (id: number): Promise<AppealRow | undefined> =>
-		toAppealRow(await localDB.db.selectFrom("appeals").selectAll().where("id", "=", id).executeTakeFirst());
+		toAppealRow(await db().selectFrom("appeals").selectAll().where("id", "=", id).executeTakeFirst());
 
 	/** The most recent appeal for one specific ban, open or resolved. */
 	const rowForBan = async (steamId64: string, bannedAt: number): Promise<AppealRow | undefined> =>
-		toAppealRow(await localDB.db
+		toAppealRow(await db()
 			.selectFrom("appeals")
 			.selectAll()
 			.where("steam_id64", "=", steamId64)
@@ -408,7 +415,7 @@ export default function appealsAPI(webApp: WebApp): void {
 		}
 
 		const createdAt = Math.round(Date.now() / 1000);
-		const inserted = await localDB.db
+		const inserted = await db()
 			.insertInto("appeals")
 			.values({
 				banned_at: ban.whenbanned,
@@ -600,7 +607,7 @@ export default function appealsAPI(webApp: WebApp): void {
 	};
 
 	const openAppealByThread = async (threadId: string): Promise<AppealRow | undefined> =>
-		toAppealRow(await localDB.db
+		toAppealRow(await db()
 			.selectFrom("appeals")
 			.selectAll()
 			.where("thread_id", "=", threadId)
@@ -609,7 +616,7 @@ export default function appealsAPI(webApp: WebApp): void {
 			.executeTakeFirst());
 
 	const openAppealByMessage = async (messageId: string): Promise<AppealRow | undefined> =>
-		toAppealRow(await localDB.db
+		toAppealRow(await db()
 			.selectFrom("appeals")
 			.selectAll()
 			.where("message_id", "=", messageId)

@@ -3,7 +3,7 @@ import * as Discord from "discord.js";
 import express from "express";
 import SteamID from "steamid";
 
-import { AddonURIS, getOrFetchGmodFile, logger } from "#utils";
+import { AddonURIS, getOrFetchGmodFile, logger, type WithRequired } from "#utils";
 import { type Player } from "#/app/services/gamebridge/GameConnection.js";
 import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import { type WebApp } from "#/app/services/webapp/index.js";
@@ -52,7 +52,7 @@ export const megaRex =
 
 const steamProfileUrl = (steamId: string) => `https://steamcommunity.com/profiles/${new SteamID(steamId).getSteamID64()}`;
 
-const formatFrame = (groups: StackMatchGroups): string => {
+const formatFrame = (groups: StackMatchGroups): string | undefined => {
 	if (groups.steamid) {
 		return `[[${groups.steamid}]${groups.steamnick}](${steamProfileUrl(groups.steamid)})`;
 	}
@@ -73,7 +73,7 @@ const formatFrame = (groups: StackMatchGroups): string => {
 				? "mta_gamemode"
 				: addon;
 
-		if (addon && AddonURIS[addonKey]) {
+		if (addon && addonKey && AddonURIS[addonKey]) {
 			return `[${path}](${AddonURIS[addon]}${path}#L${lineno})`;
 		}
 
@@ -195,7 +195,7 @@ export default async function gmodErrorHandlerAPI(webApp: WebApp): Promise<void>
 		const embeds: Discord.APIEmbed[] = [];
 
 		// main embed
-		const embed: Discord.APIEmbed = {
+		const embed: WithRequired<Discord.APIEmbed, "fields"> = {
 			description: stack.replaceAll("```", "\u{200B}`\u{200B}`\u{200B}`"),
 			footer: {
 				text: `${body.gamemode}@${
