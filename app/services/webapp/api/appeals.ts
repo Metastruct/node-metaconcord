@@ -38,13 +38,13 @@ const cleanText = (value: unknown, max: number): string =>
 	typeof value === "string" ? value.replaceAll(TEXT_CONTROL_RE, "").trim().slice(0, max) : "";
 
 type AppealRow = {
-	id: number;
+	id: bigint;
 	steam_id64: string;
-	banned_at: number;
+	banned_at: bigint;
 	thread_id: string;
 	message_id: string;
-	created_at: number;
-	closed_at: number | null;
+	created_at: bigint;
+	closed_at: bigint | null;
 	resolution: "unbanned" | "refused" | null;
 };
 
@@ -185,7 +185,7 @@ export default function appealsAPI(webApp: WebApp): void {
 	};
 
 	const closeAppealRow = async (
-		id: number,
+		id: bigint,
 		resolution: AppealRow["resolution"] = null
 	): Promise<void> => {
 		localDB.getLocalDatabase()
@@ -256,7 +256,7 @@ export default function appealsAPI(webApp: WebApp): void {
 				status: "appealed",
 				ban: entry,
 				profiles,
-				appeal: { id: row.id, createdAt: row.created_at },
+				appeal: { id: Number(row.id), createdAt: Number(row.created_at) },
 			});
 			return;
 		}
@@ -265,7 +265,7 @@ export default function appealsAPI(webApp: WebApp): void {
 				status: "refused",
 				ban: entry,
 				profiles,
-				appeal: { id: row.id, createdAt: row.created_at },
+				appeal: { id: Number(row.id), createdAt: Number(row.created_at) },
 			});
 			return;
 		}
@@ -293,7 +293,7 @@ export default function appealsAPI(webApp: WebApp): void {
 
 		// an appeal left over from an older ban does not block appealing the current one
 		const previous = await openAppeal(session.steamId64);
-		if (previous && previous.banned_at !== ban.whenbanned) {
+		if (previous && Number(previous.banned_at) !== ban.whenbanned) {
 			await closeAppeals(session.steamId64);
 		} else if (previous) {
 			res.status(409).json({ error: "you already have an open appeal" });
@@ -390,7 +390,7 @@ export default function appealsAPI(webApp: WebApp): void {
 			.run(session.steamId64, ban.whenbanned, thread.id, starterId, createdAt);
 
 		log.info(`${session.steamId64} (${name}) appealed their ban, thread ${thread.id}`);
-		res.status(201).json({ status: "appealed", appeal: { id: inserted.lastInsertRowid, createdAt } });
+		res.status(201).json({ status: "appealed", appeal: { id: Number(inserted.lastInsertRowid), createdAt } });
 	});
 
 	/**
