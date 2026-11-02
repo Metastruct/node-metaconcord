@@ -16,17 +16,17 @@ const database = new Kysely<unknown>({ dialect });
 
 // Set up kysely-typegen.
 
-class KyselyTypegenSQLiteWithBigIntsDialect extends KyselyTypegenSQLiteDialect {
-	constructor(...args: ConstructorParameters<typeof KyselyTypegenSQLiteDialect>) {
-		super(...args);
-		Object.assign(this.scalars, {
-			BIGINT: "bigint",
-			INTEGER: "bigint",
-		});
-	}
-}
+// class KyselyTypegenSQLiteWithBigIntsDialect extends KyselyTypegenSQLiteDialect {
+// 	constructor(...args: ConstructorParameters<typeof KyselyTypegenSQLiteDialect>) {
+// 		super(...args);
+// 		Object.assign(this.scalars, {
+// 			BIGINT: "bigint",
+// 			INTEGER: "bigint",
+// 		});
+// 	}
+// }
 
-const databaseTypegen = new KyselyTypegenSQLiteWithBigIntsDialect({ database });
+const databaseTypegen = new KyselyTypegenSQLiteDialect({ database });
 
 // Run migrations on in-memory db.
 
