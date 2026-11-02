@@ -355,7 +355,10 @@ export class Fluxer extends Service {
 				.execute();
 			await trx
 				.insertInto("fluxer_link_codes")
-				.values({ code, discord_user_id: discordUserId, expires_at_ms: BigInt(expiresAt) })
+				.values({
+					code, discord_user_id: discordUserId,
+					expires_at_ms: expiresAt,
+				})
 				.execute();
 		});
 		return { code, expiresAt };
@@ -410,7 +413,7 @@ export class Fluxer extends Service {
 				discord_parent_id: row.discord_parent_id,
 				fluxer_parent_id: row.fluxer_parent_id,
 				channel_kind: row.channel_kind as ThreadKind,
-				relay_enabled: Number(row.relay_enabled),
+				relay_enabled: row.relay_enabled,
 			};
 			this.threadLinksByDiscord.set(link.discord_thread_id, link);
 			this.threadLinksByFluxer.set(link.fluxer_thread_id, link);
@@ -431,7 +434,7 @@ export class Fluxer extends Service {
 
 	private async seedThreadLinks() {
 		if (mappingSeed.threads.length === 0) return;
-		const updatedAt = BigInt(Date.now());
+		const updatedAt = Date.now();
 		// Seed mirror-created threads without dropping runtime-created links.
 		await this.localDB.db
 			.insertInto("fluxer_thread_links")
@@ -441,7 +444,7 @@ export class Fluxer extends Service {
 				discord_parent_id: thread.discordParentId,
 				fluxer_parent_id: thread.fluxerParentId,
 				channel_kind: thread.channelKind,
-				relay_enabled: thread.relayEnabled ? 1n : 0n,
+				relay_enabled: thread.relayEnabled ? 1 : 0,
 				updated_at_ms: updatedAt,
 			})))
 			.onConflict(oc =>
@@ -587,8 +590,8 @@ export class Fluxer extends Service {
 				discord_parent_id: link.discord_parent_id,
 				fluxer_parent_id: link.fluxer_parent_id,
 				channel_kind: link.channel_kind,
-				relay_enabled: BigInt(link.relay_enabled),
-				updated_at_ms: BigInt(Date.now()),
+				relay_enabled: link.relay_enabled,
+				updated_at_ms: Date.now(),
 			})
 			.onConflict(oc =>
 				oc.column("discord_thread_id").doUpdateSet(eb => ({
@@ -1863,7 +1866,7 @@ export class Fluxer extends Service {
 			const code = await trx
 				.deleteFrom("fluxer_link_codes")
 				.where("code", "=", match[1].toUpperCase())
-				.where("expires_at_ms", ">", BigInt(Date.now()))
+				.where("expires_at_ms", ">", Date.now())
 				.returning("discord_user_id")
 				.executeTakeFirst();
 			if (!code) return;
@@ -1883,7 +1886,7 @@ export class Fluxer extends Service {
 				.values({
 					discord_user_id: code.discord_user_id,
 					fluxer_user_id: message.author.id,
-					created_at_ms: BigInt(Date.now()),
+					created_at_ms: Date.now(),
 				})
 				.execute();
 			return { discordUserId: code.discord_user_id, previousFluxerUser, previousDiscordUser };
@@ -1938,7 +1941,7 @@ export class Fluxer extends Service {
 				discord_channel_id: mapping.discord_channel_id,
 				fluxer_channel_id: mapping.fluxer_channel_id,
 				origin: mapping.origin,
-				created_at_ms: BigInt(Date.now()),
+				created_at_ms: Date.now(),
 			})
 			.onConflict(oc => oc.doNothing())
 			.execute();
