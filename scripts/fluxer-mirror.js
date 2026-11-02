@@ -862,19 +862,6 @@ const bridgeRoleMappings = [];
 const database = new BetterSqlite3(databasePath);
 
 database.exec(`
-	CREATE TABLE IF NOT EXISTS fluxer_channel_mappings (
-		discord_channel_id TEXT PRIMARY KEY,
-		fluxer_channel_id TEXT NOT NULL UNIQUE,
-		discord_parent_id TEXT,
-		channel_kind TEXT NOT NULL,
-		relay_enabled INTEGER NOT NULL DEFAULT 0 CHECK (relay_enabled IN (0, 1)),
-		updated_at_ms INTEGER NOT NULL
-	);
-	CREATE TABLE IF NOT EXISTS fluxer_role_mappings (
-		discord_role_id TEXT PRIMARY KEY,
-		fluxer_role_id TEXT NOT NULL UNIQUE,
-		updated_at_ms INTEGER NOT NULL
-	);
 	CREATE TABLE IF NOT EXISTS fluxer_thread_links (
 		discord_thread_id TEXT PRIMARY KEY,
 		fluxer_thread_id TEXT NOT NULL UNIQUE,
@@ -888,29 +875,16 @@ database.exec(`
 database.exec("BEGIN IMMEDIATE");
 try {
 	const updatedAt = Date.now();
-	database.prepare("DELETE FROM fluxer_channel_mappings").run();
+	// Channel and role routes live in mappings.json (written below); only
+	// runtime-created thread links need to be persisted to the database.
 	for (const cat of catOrder) {
-		const mapping = {
+		bridgeChannelMappings.push({
 			discordChannelId: cat.id,
 			fluxerChannelId: fluxerIdByDiscordChannel.get(cat.id),
 			discordParentId: null,
 			channelKind: "category",
 			relayEnabled: false,
-		};
-		bridgeChannelMappings.push(mapping);
-		database
-			.prepare(
-				`INSERT INTO fluxer_channel_mappings
-					(discord_channel_id, fluxer_channel_id, discord_parent_id, channel_kind, relay_enabled, updated_at_ms)
-				 VALUES (?, ?, NULL, 'category', 0, ?)
-				 ON CONFLICT(discord_channel_id) DO UPDATE SET
-					fluxer_channel_id = excluded.fluxer_channel_id,
-					discord_parent_id = excluded.discord_parent_id,
-					channel_kind = excluded.channel_kind,
-					relay_enabled = excluded.relay_enabled,
-					updated_at_ms = excluded.updated_at_ms`
-			)
-			.run(mapping.discordChannelId, mapping.fluxerChannelId, updatedAt);
+		});
 	}
 	for (const ch of orderedChannels) {
 		const channelKind = FORUM_PARENT_TYPES.has(ch.src.type)
@@ -918,35 +892,13 @@ try {
 			: (ch.type === 2
 				? "voice"
 				: "text");
-		const relayEnabled = channelKind === "text" || channelKind === "forum" ? 1 : 0;
-		const mapping = {
+		bridgeChannelMappings.push({
 			discordChannelId: ch.src.id,
 			fluxerChannelId: fluxerIdByDiscordChannel.get(ch.src.id),
 			discordParentId: ch.src.parent_id ?? null,
 			channelKind,
-			relayEnabled: relayEnabled === 1,
-		};
-		bridgeChannelMappings.push(mapping);
-		database
-			.prepare(
-				`INSERT INTO fluxer_channel_mappings
-					(discord_channel_id, fluxer_channel_id, discord_parent_id, channel_kind, relay_enabled, updated_at_ms)
-				 VALUES (?, ?, ?, ?, ?, ?)
-				 ON CONFLICT(discord_channel_id) DO UPDATE SET
-					fluxer_channel_id = excluded.fluxer_channel_id,
-					discord_parent_id = excluded.discord_parent_id,
-					channel_kind = excluded.channel_kind,
-					relay_enabled = excluded.relay_enabled,
-					updated_at_ms = excluded.updated_at_ms`
-			)
-			.run(
-				mapping.discordChannelId,
-				mapping.fluxerChannelId,
-				mapping.discordParentId,
-				mapping.channelKind,
-				relayEnabled,
-				updatedAt
-			);
+			relayEnabled: channelKind === "text" || channelKind === "forum",
+		});
 	}
 	database.prepare("DELETE FROM fluxer_thread_links").run();
 	for (const thread of bridgeThreadMappings) {
@@ -973,18 +925,8 @@ try {
 				updatedAt
 			);
 	}
-	database.prepare("DELETE FROM fluxer_role_mappings").run();
 	for (const [discordRoleId, fluxerRoleId] of fluxerIdByDiscordRole) {
 		bridgeRoleMappings.push({ discordRoleId, fluxerRoleId });
-		database
-			.prepare(
-				`INSERT INTO fluxer_role_mappings (discord_role_id, fluxer_role_id, updated_at_ms)
-				 VALUES (?, ?, ?)
-				 ON CONFLICT(discord_role_id) DO UPDATE SET
-					fluxer_role_id = excluded.fluxer_role_id,
-					updated_at_ms = excluded.updated_at_ms`
-			)
-			.run(discordRoleId, fluxerRoleId, updatedAt);
 	}
 	database.exec("COMMIT");
 } catch (error) {
