@@ -4,12 +4,12 @@ import { rateLimit } from "express-rate-limit";
 
 import { logger } from "#utils";
 import {
+	type AccountProvider,
 	type Accounts,
 	type AccountWithLinks,
 	CODE_PROVIDERS,
 	LastLoginError,
 	LOGIN_PROVIDERS,
-	type Provider,
 	type Role,
 	STAFF_ROLES,
 } from "#/app/services/Accounts.js";
@@ -178,7 +178,7 @@ export const takeRedirect = (
 	return ok ? (stored as string) : fallback;
 };
 
-const isProvider = (value: unknown): value is Provider =>
+const isAccountProvider = (value: unknown): value is AccountProvider =>
 	typeof value === "string" && (LOGIN_PROVIDERS as string[]).concat("minecraft").includes(value);
 
 export default function session(webApp: WebApp): void {
@@ -211,7 +211,7 @@ export default function session(webApp: WebApp): void {
 			return;
 		}
 		const provider = req.params.provider;
-		if (!isProvider(provider)) {
+		if (!isAccountProvider(provider)) {
 			res.status(404).json({ error: "unknown provider" });
 			return;
 		}
@@ -243,7 +243,7 @@ export default function session(webApp: WebApp): void {
 				return;
 			}
 			const provider = (req.body as { provider?: unknown } | undefined)?.provider;
-			if (!isProvider(provider) || !CODE_PROVIDERS.includes(provider)) {
+			if (!isAccountProvider(provider) || !CODE_PROVIDERS.includes(provider)) {
 				res.status(400).json({ error: "provider must be steam or minecraft" });
 				return;
 			}

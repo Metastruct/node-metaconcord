@@ -21,28 +21,28 @@ const log = logger(import.meta);
  * OAuth, OpenID or an in-game code count, imported ones are display only.
  */
 
-export type Provider = "discord" | "steam" | "github" | "gitlab" | "minecraft";
+export type AccountProvider = "discord" | "steam" | "github" | "gitlab" | "minecraft";
 export type LinkSource = "oauth" | "openid" | "ingame" | "import";
 export type Role = "administrator" | "developer" | "trial-developer";
 
 /** Providers that can log someone in, so an account must keep at least one. */
-export const LOGIN_PROVIDERS: Provider[] = ["discord", "steam", "github", "gitlab"];
+export const LOGIN_PROVIDERS: AccountProvider[] = ["discord", "steam", "github", "gitlab"];
 /**
  * Capabilities of each login provider. `email` means the login flow captures a
  * verified email address on the link, which SSO clients can require.
  */
-export const LOGIN_PROVIDER_INFO: Record<Exclude<Provider, "minecraft">, { email: boolean }> = {
+export const LOGIN_PROVIDER_INFO: Record<Exclude<AccountProvider, "minecraft">, { email: boolean }> = {
 	discord: { email: true },
 	steam: { email: false },
 	github: { email: true },
 	gitlab: { email: false },
 };
 /** Login providers whose login captures a verified email address. */
-export const EMAIL_LOGIN_PROVIDERS: Provider[] = LOGIN_PROVIDERS.filter(
+export const EMAIL_LOGIN_PROVIDERS: AccountProvider[] = LOGIN_PROVIDERS.filter(
 	provider => LOGIN_PROVIDER_INFO[provider].email
 );
 /** Providers linked from game chat with a code. */
-export const CODE_PROVIDERS: Provider[] = ["steam", "minecraft"];
+export const CODE_PROVIDERS: AccountProvider[] = ["steam", "minecraft"];
 export const ROLES: Role[] = ["administrator", "developer", "trial-developer"];
 /** What the website calls staff: everything but the onboarding team. */
 export const STAFF_ROLES: Role[] = ["administrator", "developer"];
@@ -82,7 +82,7 @@ export type Account = {
 };
 
 export type AccountLink = {
-	provider: Provider;
+	provider: AccountProvider;
 	providerId: string;
 	name: string;
 	avatar: string;
@@ -95,7 +95,7 @@ export type AccountLink = {
 };
 
 export type LinkInput = {
-	provider: Provider;
+	provider: AccountProvider;
 	providerId: string;
 	name: string;
 	avatar?: string;
@@ -108,7 +108,7 @@ export type LinkInput = {
 export type AccountWithLinks = Account & { links: AccountLink[] };
 
 export class LinkConflictError extends Error {
-	constructor(public provider: Provider) {
+	constructor(public provider: AccountProvider) {
 		super(
 			`this ${provider} account belongs to another account that has other ways to log in; log into that one and unlink it there`
 		);
@@ -133,7 +133,7 @@ type AccountRow = {
 
 type LinkRow = {
 	account_id: string;
-	provider: Provider;
+	provider: AccountProvider;
 	provider_id: string;
 	name: string;
 	avatar: string;
@@ -234,7 +234,7 @@ export class Accounts extends Service {
 	}
 
 	async findByLink(
-		provider: Provider,
+		provider: AccountProvider,
 		providerId: string
 	): Promise<AccountWithLinks | undefined> {
 		const rows = (await this.remoteDB.query(
@@ -246,7 +246,7 @@ export class Accounts extends Service {
 	}
 
 	async linkFor(
-		provider: Provider,
+		provider: AccountProvider,
 		providerId: string
 	): Promise<(AccountLink & { accountId: number }) | undefined> {
 		const rows = (await this.remoteDB.query(
@@ -263,7 +263,7 @@ export class Accounts extends Service {
 	 * name is the one the platform knows the player by.
 	 */
 	async staff(
-		provider: Provider
+		provider: AccountProvider
 	): Promise<{ providerId: string; name: string; roles: Role[] }[]> {
 		const rows = (await this.remoteDB.query(
 			`SELECT a.roles, l.provider_id, l.name
@@ -276,14 +276,14 @@ export class Accounts extends Service {
 	}
 
 	/** The account behind a proven link, or undefined. */
-	async byLink(provider: Provider, providerId: string): Promise<AccountWithLinks | undefined> {
+	async byLink(provider: AccountProvider, providerId: string): Promise<AccountWithLinks | undefined> {
 		const link = await this.linkFor(provider, providerId);
 		if (!link || link.source === "import") return;
 		return this.get(link.accountId);
 	}
 
 	/** A link that proves ownership, imported ones are display only. */
-	static verifiedLink(account: AccountWithLinks, provider: Provider): AccountLink | undefined {
+	static verifiedLink(account: AccountWithLinks, provider: AccountProvider): AccountLink | undefined {
 		return account.links.find(l => l.provider === provider && l.source !== "import");
 	}
 
@@ -355,7 +355,7 @@ export class Accounts extends Service {
 	}
 
 	/** True when the account's only proven login platform is `provider`. */
-	static onlyLoginIs(account: AccountWithLinks, provider: Provider): boolean {
+	static onlyLoginIs(account: AccountWithLinks, provider: AccountProvider): boolean {
 		return account.links
 			.filter(l => LOGIN_PROVIDERS.includes(l.provider) && l.source !== "import")
 			.every(l => l.provider === provider);
@@ -386,7 +386,7 @@ export class Accounts extends Service {
 		);
 	}
 
-	async removeLink(accountId: number, provider: Provider): Promise<AccountWithLinks> {
+	async removeLink(accountId: number, provider: AccountProvider): Promise<AccountWithLinks> {
 		const account = await this.get(accountId);
 		if (!account) throw new Error("no such account");
 		const remaining = account.links.filter(
@@ -714,7 +714,7 @@ export class Accounts extends Service {
 
 	async createLinkCode(
 		accountId: number,
-		provider: Provider
+		provider: AccountProvider
 	): Promise<{ code: string; expiresAt: number }> {
 		if (!CODE_PROVIDERS.includes(provider))
 			throw new Error(`${provider} cannot be linked in game`);
@@ -741,7 +741,7 @@ export class Accounts extends Service {
 	 */
 	async redeemLinkCode(
 		code: string,
-		provider: Provider,
+		provider: AccountProvider,
 		providerId: string,
 		name: string,
 		avatar?: string

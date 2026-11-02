@@ -1,4 +1,4 @@
-import { type Provider } from "#/app/services/Accounts.js";
+import { type AccountProvider } from "#/app/services/Accounts.js";
 import type GameBridge from "./GameBridge.js";
 
 /**
@@ -16,7 +16,7 @@ export const matchLinkCode = (content: string): string | undefined =>
 export const redeemLinkFromChat = async (
 	bridge: GameBridge,
 	code: string,
-	provider: Provider,
+	provider: AccountProvider,
 	providerId: string,
 	name: string,
 	avatar?: string

@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 
 import { type App } from "./index.js";
-import { type ServiceMap, type ServiceName } from "./services/index.js";
+import { type ServiceMap, type ServiceName,type ServiceProvider } from "./services/index.js";
 
-type ProviderFactory = { (container: Container): Service }[];
+type ServiceProviders = ServiceProvider[];
 
 /**
  * What each service needs from the others, in two tiers:
@@ -58,15 +58,15 @@ export class Service {
 
 export class Container {
 	readonly app: App;
-	private providers: ProviderFactory;
+	private providers: ServiceProviders;
 	private services = {} as ServiceMap;
 
-	constructor(app: App, providers: ProviderFactory) {
+	constructor(app: App, providers: ServiceProviders) {
 		this.app = app;
 		this.providers = providers;
 	}
 
-	getProviders(): ProviderFactory {
+	getProviders(): ServiceProviders {
 		return this.providers;
 	}
 

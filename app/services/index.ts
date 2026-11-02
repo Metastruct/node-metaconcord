@@ -20,10 +20,10 @@ import StarboardProvider, { type Starboard } from "./Starboard.js";
 import SteamProvider, { type Steam } from "./Steam.js";
 import WebAppProvider, { type WebApp } from "./webapp/index.js";
 
-type Provider = (container: Container) => Service;
+export type ServiceProvider = (container: Container) => Service;
 /** A provider tagged with the service name it constructs (factories are anonymous). */
-type Entry = { name: string; provider: Provider };
-const svc = (name: string, provider: Provider): Entry => ({ name, provider });
+type Entry = { name: string; provider: ServiceProvider };
+const svc = (name: string, provider: ServiceProvider): Entry => ({ name, provider });
 
 /**
  * Service groups, ordered so every service comes after its hard requirements.
@@ -68,7 +68,7 @@ const ALL: Entry[] = Object.values(SERVICE_GROUPS).flat() as unknown as Entry[];
  * names ("infra,web,DiscordBot"), keeping canonical boot order. Undefined
  * means everything (production).
  */
-export const selectServices = (spec: string | undefined): Provider[] => {
+export const selectServices = (spec: string | undefined): ServiceProvider[] => {
 	if (!spec) return ALL.map(entry => entry.provider);
 	const wanted = new Set<string>();
 	for (const raw of spec.split(",")) {
