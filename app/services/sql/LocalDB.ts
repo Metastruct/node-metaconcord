@@ -41,8 +41,8 @@ function getSQLiteKysely() {
 
 export class LocalDB extends DBService<DB> {
 	override name = "LocalDB";
-	#sqliteDatabase: SQLite.Database;
-	#localDB: Kysely<DB>;
+	#sqliteDatabase?: SQLite.Database;
+	#localDB?: Kysely<DB>;
 
 	initBackend() {
 		this.#sqliteDatabase = getSQLite();
@@ -51,16 +51,17 @@ export class LocalDB extends DBService<DB> {
 
 	override async init() {
 		this.initBackend();
-		await migrateToLatest(this.#localDB);
+		await migrateToLatest(this.db);
 	}
 
 	/** @deprecated Do not rely on this anymore, access the database using Kysely via the `.db` property. */
 	getLocalDatabase() {
+		if (!this.#sqliteDatabase) throw new Error("LocalDB has not been initialized");
 		return this.#sqliteDatabase;
 	}
 
 	public tableExists(tableName: string): boolean {
-		const result = this.#sqliteDatabase
+		const result = this.getLocalDatabase()
 			.prepare<string, { name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name=? LIMIT 1;")
 			.get(tableName);
 
@@ -68,6 +69,7 @@ export class LocalDB extends DBService<DB> {
 	}
 
 	public get db() {
+		if (!this.#localDB) throw new Error("LocalDB has not been initialized");
 		return this.#localDB;
 	}
 }

@@ -22,13 +22,14 @@ function getPool() {
 
 export class RemoteDB extends DBService<never> {
 	override name = "RemoteDB";
-	#pool: Pool;
+	#pool?: Pool;
 
 	override async init(): Promise<void> {
 		this.#pool = getPool();
 	}
 
 	public async query(query: string, values?: unknown[]) {
+		if (!this.#pool) throw new Error("RemoteDB has not been initialized");
 		return (await this.#pool.query(query, values)).rows;
 	}
 
