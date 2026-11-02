@@ -3,15 +3,11 @@ import * as Discord from "discord.js";
 import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
 import { errToMessage } from "#utils";
 
-// JSON.stringify throws on bigints
-const jsonReplacer = (_key: string, value: unknown) =>
-	typeof value === "bigint" ? value.toString() : value;
-
 const makeFile = (content: unknown) => {
 	return <Discord.BaseMessageOptions>{
 		files: [
 			{
-				attachment: Buffer.from(JSON.stringify(content, jsonReplacer, 2), "utf8"),
+				attachment: Buffer.from(JSON.stringify(content, null, 2), "utf8"),
 				name: "sql_result.json",
 			},
 		],
