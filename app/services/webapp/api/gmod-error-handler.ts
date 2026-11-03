@@ -4,8 +4,10 @@ import express from "express";
 import SteamID from "steamid";
 
 import { AddonURIS, getOrFetchGmodFile, logger, type WithRequired } from "#utils";
-import { type Player } from "#/app/services/gamebridge/GameConnection.js";
-import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
+import type {
+	default as GmodConnection,
+	GmodPlayer,
+} from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import { type WebApp } from "#/app/services/webapp/index.js";
 
 import servers from "#config/gmod.servers.json" with { type: "json" };

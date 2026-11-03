@@ -3,8 +3,10 @@ import * as Discord from "discord.js";
 import { localeCompare, logger } from "#utils";
 import { renderPlayerListImage } from "../../../renderPlayerList.js";
 import { renderHeadDataUri } from "../headRender.js";
-import type MinecraftConnection from "../MinecraftConnection.js";
-import {type MinecraftStatus} from "../MinecraftConnection.js";
+import type {
+	default as MinecraftConnection,
+	MinecraftStatus,
+} from "../MinecraftConnection.js";
 import Payload from "./Payload.js";
 import { type StatusRequest } from "./structures/index.js";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };

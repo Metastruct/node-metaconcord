@@ -1,6 +1,10 @@
 import * as Discord from "discord.js";
-import type { Group, GroupInstance, LimitedUserFriend } from "vrchat";
-import { VRChat } from "vrchat";
+import {
+	type Group,
+	type GroupInstance,
+	type LimitedUserFriend,
+	VRChat,
+} from "vrchat";
 
 import { APP_NAME, APP_VERSION, localeCompare, logger } from "#utils";
 import type GameBridge from "../../GameBridge.js";

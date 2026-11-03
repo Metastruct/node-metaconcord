@@ -3,7 +3,10 @@ import dayjs from "dayjs";
 import * as Discord from "discord.js";
 
 import { logger } from "#utils";
-import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
+import type {
+	default as GmodConnection,
+	GmodPlayer,
+} from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import AdminNotifyPayload from "./AdminNotifyPayload.js";
 import Payload from "./Payload.js";
 import ReportChatPayload from "./ReportChatPayload.js";
