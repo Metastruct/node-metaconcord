@@ -7,7 +7,6 @@ export const { up, down } = defineSQLiteMigration({
 		await tx.schema.alterTable("appeals").renameTo("xx-migration-appeals-old").execute();
 		await tx.schema
 			.createTable("appeals")
-			.ifNotExists()
 			.addColumn("id", "integer", col => col.notNull().primaryKey().autoIncrement())
 			.addColumn("steam_id64", "text", col => col.notNull())
 			.addColumn("banned_at", "integer", col => col.notNull())
@@ -28,7 +27,6 @@ export const { up, down } = defineSQLiteMigration({
 		await tx.schema.alterTable("appeals").renameTo("xx-migration-appeals-old").execute();
 		await tx.schema
 			.createTable("appeals")
-			.ifNotExists()
 			.addColumn("id", "integer", col => col.primaryKey().autoIncrement())
 			.addColumn("steam_id64", "text", col => col.notNull())
 			.addColumn("banned_at", "integer", col => col.notNull())
@@ -40,13 +38,11 @@ export const { up, down } = defineSQLiteMigration({
 			.execute();
 		await tx.schema
 			.createIndex("appeals_steam")
-			.ifNotExists()
 			.on("appeals")
 			.column("steam_id64")
 			.execute();
 		await tx.schema
 			.createIndex("appeals_open")
-			.ifNotExists()
 			.unique()
 			.on("appeals")
 			.columns(["steam_id64", "banned_at"])

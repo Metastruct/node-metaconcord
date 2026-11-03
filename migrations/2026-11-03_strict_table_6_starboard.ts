@@ -7,7 +7,6 @@ export const { up, down } = defineSQLiteMigration({
 		await tx.schema.alterTable("starboard").renameTo("xx-migration-starboard-old").execute();
 		await tx.schema
 			.createTable("starboard")
-			.ifNotExists()
 			.addColumn("message_id", "text", col => col.notNull().primaryKey())
 			.modifyEnd(sql`STRICT`)
 			.execute();
@@ -22,7 +21,6 @@ export const { up, down } = defineSQLiteMigration({
 		await tx.schema.alterTable("starboard").renameTo("xx-migration-starboard-old").execute();
 		await tx.schema
 			.createTable("starboard")
-			.ifNotExists()
 			.addColumn("MessageId", "varchar(1000)")
 			.execute();
 		await tx.insertInto("starboard")

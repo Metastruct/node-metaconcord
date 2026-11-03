@@ -7,7 +7,6 @@ export const { up, down } = defineSQLiteMigration({
 		await tx.schema.alterTable("markov").renameTo("xx-migration-markov-old").execute();
 		await tx.schema
 			.createTable("markov")
-			.ifNotExists()
 			.addColumn("message", "text", col => col.notNull())
 			.modifyEnd(sql`STRICT`)
 			.execute();
@@ -21,7 +20,6 @@ export const { up, down } = defineSQLiteMigration({
 		await tx.schema.alterTable("markov").renameTo("xx-migration-markov-old").execute();
 		await tx.schema
 			.createTable("markov")
-			.ifNotExists()
 			.addColumn("message", "varchar(255)")
 			.execute();
 		await tx.insertInto("markov")

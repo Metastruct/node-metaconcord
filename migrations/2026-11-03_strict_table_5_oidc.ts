@@ -7,7 +7,6 @@ export const { up, down } = defineSQLiteMigration({
 		await tx.schema.alterTable("oidc_tokens").renameTo("xx-migration-oidc_tokens-old").execute();
 		await tx.schema
 			.createTable("oidc_tokens")
-			.ifNotExists()
 			.addColumn("id", "text", col => col.notNull().primaryKey())
 			.addColumn("grant_id", "text")
 			.addColumn("payload", "text", col => col.notNull())
@@ -27,7 +26,6 @@ export const { up, down } = defineSQLiteMigration({
 		await tx.schema.alterTable("oidc_uid_index").renameTo("xx-migration-oidc_uid_index-old").execute();
 		await tx.schema
 			.createTable("oidc_uid_index")
-			.ifNotExists()
 			.addColumn("uid", "text", col => col.notNull().primaryKey())
 			.addColumn("id", "text", col => col.notNull().unique().references("oidc_tokens.id").onDelete("cascade").onUpdate("no action"))
 			.modifyEnd(sql`STRICT`)
@@ -43,7 +41,6 @@ export const { up, down } = defineSQLiteMigration({
 		await tx.schema.alterTable("oidc_uid_index").renameTo("xx-migration-oidc_uid_index-old").execute();
 		await tx.schema
 			.createTable("oidc_uid_index")
-			.ifNotExists()
 			.addColumn("uid", "text", col => col.primaryKey())
 			.addColumn("id", "text", col => col.notNull())
 			.execute();
@@ -55,7 +52,6 @@ export const { up, down } = defineSQLiteMigration({
 		await tx.schema.alterTable("oidc_tokens").renameTo("xx-migration-oidc_tokens-old").execute();
 		await tx.schema
 			.createTable("oidc_tokens")
-			.ifNotExists()
 			.addColumn("id", "text", col => col.primaryKey())
 			.addColumn("grant_id", "text")
 			.addColumn("payload", "text", col => col.notNull())

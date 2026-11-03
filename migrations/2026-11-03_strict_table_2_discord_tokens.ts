@@ -7,7 +7,6 @@ export const { up, down } = defineSQLiteMigration({
 		await tx.schema.alterTable("discord_tokens").renameTo("xx-migration-discord_tokens-old").execute();
 		await tx.schema
 			.createTable("discord_tokens")
-			.ifNotExists()
 			.addColumn("user_id", "text", col => col.notNull().primaryKey())
 			.addColumn("steam_id", "text")
 			.addColumn("access_token", "text")
@@ -25,7 +24,6 @@ export const { up, down } = defineSQLiteMigration({
 		await tx.schema.alterTable("discord_tokens").renameTo("xx-migration-discord_tokens-old").execute();
 		await tx.schema
 			.createTable("discord_tokens")
-			.ifNotExists()
 			.addColumn("user_id", "varchar(255)", col => col.primaryKey())
 			.addColumn("steam_id", "varchar(255)")
 			.addColumn("access_token", "varchar(255)")
