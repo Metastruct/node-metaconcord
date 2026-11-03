@@ -2,9 +2,12 @@ import SQLite from "better-sqlite3";
 import { Kysely, SqliteDialect } from "kysely";
 
 import { migrateToLatest } from "#lib/kyselyMigrator";
+import { logger } from "#utils";
 import { DBService } from "#/app/services/sql/DBService.js";
 import { type DB } from "#/generated/LocalDBTypes.js";
 import { type Container, type Service } from "../../Container.js";
+
+const log = logger(import.meta);
 
 let sqlite: SQLite.Database;
 
@@ -32,6 +35,21 @@ function getSQLiteKysely() {
 
 	sqliteKysely = new Kysely<DB>({
 		dialect,
+		//log: ["query", "error"],
+		log(event) {
+			if (event.level === "error") {
+				log.error("Query failed (%d ms): %s\n%s %s",
+					Math.trunc(event.queryDurationMillis*10)/10, event.error, event.query.sql, event.query.parameters);
+				console.error("QUERY FAILED :", {
+					error: event.error,
+					sql: event.query.sql,
+					params: event.query.parameters,
+					durationMs: event.queryDurationMillis,
+				});
+			} else { // `'query'`
+				//console.log("Query executed (%d ms): %s %s", Math.trunc(event.queryDurationMillis*10)/10, event.query.sql, event.query.parameters);
+			}
+		},
 	});
 
 	return sqliteKysely;
