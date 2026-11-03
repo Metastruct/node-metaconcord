@@ -15,6 +15,8 @@ import requestSchema from "./structures/StatusRequest.json" with { type: "json" 
 
 const log = logger(import.meta);
 
+const BANNED_NAME_COLOR = "#FF0000";
+
 const GamemodeAlias = {
 	qbox: "metastruct",
 	"ttt2 (advanced update)": "ttt2",
@@ -89,13 +91,13 @@ function buildSignature(input: {
 	gamemode: string;
 	defcon: number;
 	countdown?: { text: string; time: number };
-	players: { steamId64: string; nick: string; isAfk?: boolean }[];
+	players: { id: string; nick: string; isAfk?: boolean }[];
 }): unknown {
 	return {
 		...input,
 		players: input.players
-			.map(p => ({ steamId64: p.steamId64, nick: p.nick, isAfk: p.isAfk }))
-			.toSorted((a, b) => a.steamId64.localeCompare(b.steamId64)),
+			.map(p => ({ id: p.id, nick: p.nick, isAfk: p.isAfk }))
+			.toSorted((a, b) => a.id.localeCompare(b.id)),
 	};
 }
 export default class StatusPayload extends Payload {
@@ -126,7 +128,9 @@ export default class StatusPayload extends Payload {
 		const updateStatus = async () => {
 			const current_countdown = countdown;
 			const current_defcon = defcon ?? server.defcon ?? 5;
-			const current_players = players ?? server.status.players ?? [];
+			const current_players: GmodPlayer[] =
+				players?.map(({ steamId64, ...rest }) => ({ ...rest, id: steamId64 })) ??
+				server.status.players;
 			const current_map = mapName ?? server.mapName ?? "unknown map";
 			const current_gamemode = gamemode ??
 				server.gamemode ?? { folderName: "???", name: "unknown gamemode" };
@@ -151,8 +155,11 @@ export default class StatusPayload extends Payload {
 					countPresent++;
 				}
 				if (!player.avatar) {
-					const avatar = await Steam.getUserAvatar(player.steamId64);
-					player.avatar = avatar ?? `https://robohash.org/${player.steamId64}`;
+					const avatar = await Steam.getUserAvatar(player.id);
+					player.avatar = avatar ?? `https://robohash.org/${player.id}`;
+				}
+				if (player.isBanned) {
+					player.decoration = { ...player.decoration, nameColor: BANNED_NAME_COLOR };
 				}
 
 				player.nick = player.nick.trim();

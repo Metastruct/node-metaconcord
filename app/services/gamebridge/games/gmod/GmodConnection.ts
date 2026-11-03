@@ -14,6 +14,14 @@ import { attachHandlers } from "./handlers/index.js";
 import RconPayload from "./handlers/RconPayload.js";
 import { type RconResponse } from "./handlers/structures/index.js";
 
+export type GmodPlayer = Player & {
+	ip: string;
+	isBanned?: boolean;
+	isLinux?: boolean;
+	isPirate?: boolean;
+	entIndex?: number;
+};
+
 export type GmodConnectionConfig = GameConnectionConfig & {
 	defaultGamemode?: string;
 	ip?: string | string[];
@@ -24,6 +32,7 @@ export type GmodConnectionConfig = GameConnectionConfig & {
 
 export default class GmodConnection extends GameSocketConnection {
 	declare config: GmodConnectionConfig;
+	declare status: ConnectionStatus<GmodPlayer>;
 	defcon!: number;
 	gamemode!: {
 		folderName: string;

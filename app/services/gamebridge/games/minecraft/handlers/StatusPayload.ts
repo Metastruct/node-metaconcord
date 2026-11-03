@@ -28,7 +28,7 @@ function buildSignature(
 		hostname: status.hostname,
 		version: status.version,
 		maxPlayers: status.maxPlayers,
-		players: players.map(p => p.steamId64).toSorted(localeCompare),
+		players: players.map(p => p.id).toSorted(localeCompare),
 	};
 }
 
@@ -87,12 +87,9 @@ export default class StatusPayload extends Payload {
 		if (!discord.ready) return;
 
 		server.status.players = players.map(player => ({
+			id: player.uuid,
 			nick: player.nick,
-			steamId64: player.uuid,
 			avatar: `https://mc-heads.net/avatar/${player.uuid}`,
-			ip: "",
-			isAdmin: false,
-			isBanned: false,
 		}));
 
 		const count = server.status.players.length;
@@ -120,7 +117,7 @@ export default class StatusPayload extends Payload {
 				const renderPlayers = await Promise.all(
 					server.status.players.map(async player => ({
 						...player,
-						avatar: (await renderHeadDataUri(player.steamId64)) ?? player.avatar,
+						avatar: (await renderHeadDataUri(player.id)) ?? player.avatar,
 					}))
 				);
 				server.playerListImage = await renderPlayerListImage(

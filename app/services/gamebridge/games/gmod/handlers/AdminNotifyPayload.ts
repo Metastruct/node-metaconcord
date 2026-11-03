@@ -31,7 +31,7 @@ export default class AdminNotifyPayload extends Payload {
 			if (!key.startsWith(prefix)) continue;
 
 			const steamId64 = key.slice(prefix.length);
-			const isOnline = server.status.players.some(p => p.steamId64 === steamId64);
+			const isOnline = server.status.players.some(p => p.id === steamId64);
 
 			try {
 				const guild = server.discord.guilds.cache.get(ref.guildId);

@@ -154,11 +154,11 @@ export const SlashBanCommand: SlashCommand = {
 				}
 				await ctx.respond(
 					players
-						.filter(player => player.steamId64.includes(focused.value))
+						.filter(player => player.id.includes(focused.value))
 						.slice(0, 25)
 						.map(player => ({
-							name: `${player.steamId64} (${player.nick.slice(0, 100)})`,
-							value: player.steamId64,
+							name: `${player.id} (${player.nick.slice(0, 100)})`,
+							value: player.id,
 						}))
 				);
 				break;

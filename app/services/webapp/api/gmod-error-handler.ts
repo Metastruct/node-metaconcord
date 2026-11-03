@@ -130,7 +130,7 @@ export default async function gmodErrorHandlerAPI(webApp: WebApp): Promise<void>
 			return ips.includes(ip);
 		});
 		let gameserver: GmodConnection | undefined;
-		let player: Player | undefined;
+		let player: GmodPlayer | undefined;
 		if (server) {
 			// ip matched so it HAS to exist
 			gameserver = gameBridge.servers.gmod.find(s =>
@@ -139,11 +139,11 @@ export default async function gmodErrorHandlerAPI(webApp: WebApp): Promise<void>
 		} else {
 			const allplayers = gameBridge.servers.gmod.reduce(
 				(ps, cs) => ps.concat(cs.status.players),
-				new Array<Player>()
+				new Array<GmodPlayer>()
 			);
 			player = allplayers.find(pl => pl.ip.split(":", 1)[0] === ip); // idk if you can combine that into one call
 			gameserver = gameBridge.servers.gmod.find(srv =>
-				srv.status.players.includes(player as Player)
+				srv.status.players.includes(player as GmodPlayer)
 			);
 		}
 
@@ -220,7 +220,7 @@ export default async function gmodErrorHandlerAPI(webApp: WebApp): Promise<void>
 			embed.author = {
 				name: player.nick,
 				icon_url: (player.avatar as string) ?? undefined,
-				url: `https://steamcommunity.com/profiles/${player.steamId64}`,
+				url: `https://steamcommunity.com/profiles/${player.id}`,
 			};
 			if (player.isLinux) embed.fields = [{ name: "OS:", value: "UNIX", inline: true }];
 		}

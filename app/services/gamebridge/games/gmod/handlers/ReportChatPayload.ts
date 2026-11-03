@@ -31,7 +31,7 @@ export default class ReportChatPayload extends Payload {
 	}
 
 	private static isPlayerOnline(steamId64: string, server: GmodConnection): boolean {
-		return server.status.players.some(p => p.steamId64 === steamId64);
+		return server.status.players.some(p => p.id === steamId64);
 	}
 
 	static override async initialize(server: GmodConnection): Promise<void> {
@@ -127,7 +127,7 @@ export default class ReportChatPayload extends Payload {
 			)) as Discord.ThreadChannel;
 			if (!thread) return;
 
-			const player = server.status.players.find(p => p.steamId64 === steamId64);
+			const player = server.status.players.find(p => p.id === steamId64);
 			const username = player?.nick ?? "Unknown";
 			await thread.send({ content: `${username}: ${content}` });
 		} catch (error) {
@@ -162,7 +162,7 @@ export default class ReportChatPayload extends Payload {
 		for (const [reporterSteamId64, threadArray] of Object.entries(data.reportThreads)) {
 			if (threadArray.length === 0) continue;
 
-			const isOnline = server.status.players.some(p => p.steamId64 === reporterSteamId64);
+			const isOnline = server.status.players.some(p => p.id === reporterSteamId64);
 			if (!isOnline) continue;
 
 			const messages: Array<{ username: string; content: string }> = [];

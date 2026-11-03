@@ -80,13 +80,12 @@ function thumbnailUrl(baseUrl: string, thumbnail?: string): string | undefined {
 
 function basePlayer(player: Player): ServerPlayer {
 	return {
-		id: player.steamId64,
+		id: player.id,
 		nick: player.nick,
 		avatar: player.avatar || undefined,
 		isAdmin: player.isAdmin || undefined,
 		isAfk: player.isAfk || undefined,
 		description: player.description,
-		entIndex: player.entIndex,
 	};
 }
 
@@ -111,9 +110,10 @@ export default async function serversAPI(webApp: WebApp): Promise<void> {
 				thumbnail: thumbnailUrl(baseUrl, server.status.backgroundImage),
 				players: server.status.players.map(p => ({
 					...basePlayer(p),
-					profileUrl: /^\d+$/.test(p.steamId64)
-						? `https://steamcommunity.com/profiles/${p.steamId64}`
+					profileUrl: /^\d+$/.test(p.id)
+						? `https://steamcommunity.com/profiles/${p.id}`
 						: undefined,
+					entIndex: p.entIndex,
 				})),
 				playerCount: server.status.players.length,
 				upSince: server.serverUpSince,
@@ -142,7 +142,7 @@ export default async function serversAPI(webApp: WebApp): Promise<void> {
 				thumbnail: thumbnailUrl(baseUrl, server.status.backgroundImage),
 				players: server.status.players.map(p => ({
 					...basePlayer(p),
-					profileUrl: `https://namemc.com/profile/${p.steamId64}`,
+					profileUrl: `https://namemc.com/profile/${p.id}`,
 				})),
 				playerCount: server.status.players.length,
 				maxPlayers: lastStatus?.maxPlayers,
@@ -206,8 +206,7 @@ export default async function serversAPI(webApp: WebApp): Promise<void> {
 					thumbnail: session.thumbnailUrl || thumbnailUrl(baseUrl, backgroundImage),
 					players: players.map(p => ({
 						...basePlayer(p),
-						id: p.ip,
-						profileUrl: p.ip ? `https://go.resonite.com/user/${p.ip}` : undefined,
+						profileUrl: p.id ? `https://go.resonite.com/user/${p.id}` : undefined,
 					})),
 					playerCount: players.length,
 					maxPlayers: session.maxUsers || undefined,
@@ -244,8 +243,8 @@ export default async function serversAPI(webApp: WebApp): Promise<void> {
 						instance.world.thumbnailImageUrl || instance.world.imageUrl || undefined,
 					players: players.map(p => ({
 						...basePlayer(p),
-						profileUrl: p.steamId64
-							? `https://vrchat.com/home/user/${p.steamId64}`
+						profileUrl: p.id
+							? `https://vrchat.com/home/user/${p.id}`
 							: undefined,
 					})),
 					playerCount: instance.memberCount,
