@@ -14,7 +14,7 @@
 		"exactOptionalPropertyTypes": false,
 		"noPropertyAccessFromIndexSignature": false,
 		"noImplicitReturns": false,
-		"strictNullChecks": false,
+		"noUncheckedIndexedAccess": false,
 		"noImplicitAny": false
 	}
 }
