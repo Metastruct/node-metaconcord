@@ -4,9 +4,8 @@ import express, { type Request } from "express";
 import { rateLimit } from "express-rate-limit";
 import { type Selectable } from "kysely";
 
-import { ServiceNotEnabledError } from "#ts/app/Container.js";
-import { type appeals } from "#ts/generated/LocalDBTypes.js";
 import { f, logger } from "#utils";
+import { ServiceNotEnabledError } from "#/app/Container.js";
 import { Accounts } from "#/app/services/Accounts.js";
 import { type MetaBan, PERMANENT_UNBAN_TIME } from "#/app/services/Bans.js";
 import { EMBED_FIELD_LIMIT } from "#/app/services/discord/index.js";
@@ -14,6 +13,7 @@ import { pickGmodServer, revokeBan } from "#/app/services/gamebridge/games/gmod/
 import { actorLabel } from "#/app/services/gamebridge/games/gmod/banActor.js";
 import { type WebApp } from "#/app/services/webapp/index.js";
 import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
+import { type appeals } from "#/generated/LocalDBTypes.js";
 import { getSession } from "./auth/session.js";
 import { resolveProfiles, toEntry } from "./bans.js";
 
