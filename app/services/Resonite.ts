@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import axios from "axios";
 
 import { logger } from "#utils";
-import { type Container, Service } from "../Container.js";
+import { type Container, type Requirements, Service } from "../Container.js";
 
 import config from "#config/resonite.json" with { type: "json" };
 
@@ -97,6 +97,7 @@ export type ResoniteUser = {
 
 export class Resonite extends Service {
 	override name = "Resonite";
+	override readonly requirements: Requirements = { hard: ["Data"] };
 	ResoniteUserCache: Record<string, ResoniteUser> = {};
 
 	ResoniteToken!: string;

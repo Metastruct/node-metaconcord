@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 
 import { logger } from "#utils";
-import { type Container, Service } from "../Container.js";
+import { type Container, type Requirements, Service } from "../Container.js";
 import { type DiscordBot, type LocalDB } from "./index.js";
 
 import discordConfig from "#config/discord.json" with { type: "json" };
@@ -20,6 +20,7 @@ const filterStarboardId = (btn: Discord.MessageComponentInteraction) =>
 
 export class Starboard extends Service {
 	override name = "Starboard";
+	override readonly requirements: Requirements = { hard: ["LocalDB", "DiscordBot"] };
 	private pendingMessages = new Set<string>();
 	private localDB!: LocalDB;
 	private bot!: DiscordBot;

@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 
-import { type Container, Service } from "#/app/Container.js";
+import { type Container, type Requirements, Service } from "#/app/Container.js";
 import { type WebApp } from "#/app/services/webapp/index.js";
 import type GmodConnection from "./games/gmod/GmodConnection.js";
 import { attachGmod } from "./games/gmod/index.js";
@@ -38,6 +38,7 @@ export interface GameBridgeEvents {
 
 export default class GameBridge extends Service {
 	override name = "GameBridge";
+	override readonly requirements: Requirements = { hard: ["WebApp"] };
 	webApp!: WebApp;
 	/** Each game keeps its own id space, starting at 1 -- ids are only unique within a game. */
 	servers: {

@@ -3,7 +3,7 @@ import * as Discord from "discord.js";
 import { LRUMapWithDelete } from "mnemonist";
 
 import { logger } from "#utils";
-import { type Container, Service } from "#/app/Container.js";
+import { type Container, type Requirements, Service } from "#/app/Container.js";
 import type { DiscordBot } from "#/app/services/discord/index.js";
 import type { LocalDB } from "../sql/LocalDB.js";
 import { FluxerGateway } from "./Gateway.js";
@@ -280,6 +280,7 @@ export function fluxerSnapshotMentions(snapshot: FluxerMessageSnapshot): FluxerU
 
 export class Fluxer extends Service {
 	override name = "Fluxer";
+	override readonly requirements: Requirements = { hard: ["LocalDB", "DiscordBot"] };
 	private localDB!: LocalDB;
 	private discordBot!: DiscordBot;
 	private rest!: FluxerRest;

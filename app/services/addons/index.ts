@@ -1,5 +1,5 @@
 import { logger } from "#utils";
-import { type Container, Service } from "#/app/Container.js";
+import { type Container, type Requirements, Service } from "#/app/Container.js";
 import type GmodConnection from "../gamebridge/games/gmod/GmodConnection.js";
 import type MinecraftConnection from "../gamebridge/games/minecraft/MinecraftConnection.js";
 import { TTLCache } from "./cache.js";
@@ -74,6 +74,7 @@ async function mapLimit<T, R>(
 
 export class Addons extends Service {
 	override name = "Addons";
+	override readonly requirements: Requirements = { hard: ["Data"] };
 	private lastGmodRefresh = new Map<number, number>();
 	private gmodGames = new Map<number, MountedGame[]>();
 	private retryTimers = new Map<number, ReturnType<typeof setTimeout>>();

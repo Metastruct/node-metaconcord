@@ -7,7 +7,7 @@ import type pino from "pino";
 import { pinoHttp } from "pino-http";
 
 import { logger } from "#utils";
-import { type Container, Service, ServiceNotEnabledError } from "#/app/Container.js";
+import { type Container, type Requirements, Service, ServiceNotEnabledError } from "#/app/Container.js";
 import APIs from "./api/index.js";
 import { WsRouter } from "./WsRouter.js";
 
@@ -29,6 +29,7 @@ const PATH_IGNORE = [
 
 export class WebApp extends Service {
 	override name = "WebApp";
+	override readonly requirements: Requirements = { soft: ["LocalDB", "Accounts"] };
 	config = config;
 	app = express();
 	http: HTTPServer;

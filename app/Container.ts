@@ -5,34 +5,9 @@ import { type ServiceMap, type ServiceName,type ServiceProvider } from "./servic
 
 type ServiceProviders = ServiceProvider[];
 
-/**
- * What each service needs from the others, in two tiers:
- *
- * - hard: init()/the constructor touches it, so the boot fails with a clear
- *   error if it is missing. Add the missing service to METACONCORD_SERVICES
- *   or drop the dependent one.
- * - soft: only needed while handling messages/requests, so the dependent
- *   service still runs without it; the features using it degrade (503 or
- *   no-op). Services must read these with container.tryService().
- */
-export type Requirements = { hard?: ServiceName[]; soft?: ServiceName[] };
-
-export const REQUIREMENTS: Partial<Record<ServiceName, Requirements>> = {
-	Accounts: { hard: ["LocalDB", "RemoteDB"], soft: ["Github"] },
-	Addons: { hard: ["Data"] },
-	DiscordBot: {
-		hard: ["Data"],
-		soft: ["GameBridge", "Motd", "Markov", "Github", "Gitlab", "Fluxer", "Bans", "Steam"],
-	},
-	DiscordMetadata: { hard: ["LocalDB", "RemoteDB", "DiscordBot", "Bans", "Accounts"] },
-	Fluxer: { hard: ["LocalDB", "DiscordBot"] },
-	GameBridge: { hard: ["WebApp"] },
-	IRC: { hard: ["DiscordBot"] },
-	Motd: { hard: ["DiscordBot"], soft: ["Data"] },
-	OIDC: { hard: ["WebApp", "LocalDB", "Accounts"] },
-	Resonite: { hard: ["Data"] },
-	Starboard: { hard: ["LocalDB", "DiscordBot"] },
-	WebApp: { soft: ["LocalDB", "Accounts"] },
+export type Requirements = {
+	readonly hard?: readonly ServiceName[];
+	readonly soft?: readonly ServiceName[];
 };
 
 /** Thrown by getService for a service the current run doesn't include. */
@@ -44,6 +19,19 @@ export class ServiceNotEnabledError extends Error {
 
 export abstract class Service {
 	abstract readonly name: string;
+
+	/**
+	 * What each service needs from the others, in two tiers:
+	 *
+	 * - hard: init()/the constructor touches it, so the boot fails with a clear
+	 *   error if it is missing. Add the missing service to METACONCORD_SERVICES
+	 *   or drop the dependent one.
+	 * - soft: only needed while handling messages/requests, so the dependent
+	 *   service still runs without it; the features using it degrade (503 or
+	 *   no-op). Services must read these with container.tryService().
+	 */
+	readonly requirements: Requirements = {};
+
 	container: Container;
 
 	constructor(container: Container) {
@@ -81,7 +69,7 @@ export class Container {
 	validateRequirements(): void {
 		const enabled = new Set(Object.keys(this.services));
 		for (const name of enabled) {
-			for (const requirement of REQUIREMENTS[name]?.hard ?? []) {
+			for (const requirement of this.services[name].requirements.hard ?? []) {
 				if (!enabled.has(requirement)) {
 					throw new Error(
 						`service ${name} requires ${requirement}, which is not enabled — add it to METACONCORD_SERVICES or drop ${name}`
@@ -90,7 +78,7 @@ export class Container {
 			}
 		}
 		for (const name of enabled) {
-			for (const requirement of REQUIREMENTS[name]?.soft ?? []) {
+			for (const requirement of this.services[name].requirements.soft ?? []) {
 				if (!enabled.has(requirement)) {
 					console.warn(
 						`[container] ${name} running without ${requirement}: related features are disabled`

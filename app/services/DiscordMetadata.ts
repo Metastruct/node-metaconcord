@@ -1,7 +1,7 @@
 import SteamID from "steamid";
 
 import {logger} from "#utils";
-import {type Container, Service} from "../Container.js";
+import {type Container, type Requirements, Service} from "../Container.js";
 import {type Role} from "./Accounts.js";
 import {type Accounts, type Bans, type DiscordBot, type LocalDB, type RemoteDB} from "./index.js";
 import {revokeOAuthToken} from "./webapp/api/auth/discord.js";
@@ -103,6 +103,7 @@ type RevokeDBEntry = Pick<LocalDatabaseEntry, "user_id" | "access_token" | "refr
 
 export class DiscordMetadata extends Service {
 	override name = "DiscordMetadata";
+	override readonly requirements: Requirements = { hard: ["LocalDB", "RemoteDB", "DiscordBot", "Bans", "Accounts"] };
 	private ARCOCache: Record<string, ApplicationRoleConnectionObject> = {};
 	private localDB!: LocalDB;
 	private remoteDB!: RemoteDB;

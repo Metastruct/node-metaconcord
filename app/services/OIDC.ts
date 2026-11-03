@@ -10,7 +10,7 @@ import {
 } from "oidc-provider";
 
 import { logger } from "#utils";
-import { type Container, Service } from "../Container.js";
+import { type Container, type Requirements, Service } from "../Container.js";
 import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.js";
 import { type LocalDB } from "./sql/LocalDB.js";
 import { getSessionAccountId } from "./webapp/api/auth/session.js";
@@ -43,6 +43,7 @@ type ClientConfig = {
 
 export class OIDC extends Service {
 	override name = "OIDC";
+	override readonly requirements: Requirements = { hard: ["WebApp", "LocalDB", "Accounts"] };
 	config = OIDCConfig as {
 		issuer: string;
 		cookieKeys: string;

@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 
 import { getAsBase64, logger, sleep } from "#utils";
-import { type Container, Service } from "#/app/Container.js";
+import { type Container, type Requirements, Service } from "#/app/Container.js";
 import { type Data, type GameBridge } from "#/app/services/index.js";
 import { getEventIcon } from "./modules/discord-guild-icon.js";
 import modules from "./modules/index.js";
@@ -23,6 +23,10 @@ const ImgurRegex = /https?:\/\/(?:i.)?imgur.com\/(\w+)(?:.mp4)?/g;
 
 export class DiscordBot extends Service {
 	override name = "DiscordBot";
+	override readonly requirements: Requirements = {
+		hard: ["Data"],
+		soft: ["GameBridge", "Motd", "Markov", "Github", "Gitlab", "Fluxer", "Bans", "Steam"],
+	};
 	bridge!: GameBridge;
 	readonly config = DiscordConfig;
 	readonly discord: Discord.Client = new Discord.Client({

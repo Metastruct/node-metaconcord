@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { Octokit } from "@octokit/rest";
 
 import { isSteamGroupMember, logger } from "#utils";
-import { type Container, Service } from "../Container.js";
+import { type Container, type Requirements, Service } from "../Container.js";
 import { type RemoteDB } from "./sql/RemoteDB.js";
 import { decrypt, encrypt } from "./webapp/secretBox.js";
 
@@ -168,6 +168,7 @@ const toLink = (row: LinkRow): AccountLink => ({
 
 export class Accounts extends Service {
 	override name = "Accounts";
+	override readonly requirements: Requirements = { hard: ["LocalDB", "RemoteDB"], soft: ["Github"] };
 	private remoteDB!: RemoteDB;
 	private cache = new Map<number, { account: AccountWithLinks; at: number }>();
 

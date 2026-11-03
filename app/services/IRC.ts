@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import nIRC from "irc-upd";
 
 import { logger } from "#utils";
-import { type Container, Service } from "../Container.js";
+import { type Container, type Requirements, Service } from "../Container.js";
 
 import config from "#config/irc.json" with { type: "json" };
 
@@ -22,6 +22,7 @@ type message = {
 
 export class IRC extends Service {
 	override name = "IRC";
+	override readonly requirements: Requirements = { hard: ["DiscordBot"] };
 
 	client = new nIRC.Client(config.host, config.nick, {
 		port: config.port,

@@ -1,7 +1,7 @@
 import axios, { type AxiosResponse } from "axios";
 import { scheduleJob } from "node-schedule";
 
-import { type Container, Service } from "../Container.js";
+import { type Container, type Requirements, Service } from "../Container.js";
 import { type DiscordBot } from "./index.js";
 
 import config from "#config/motd.json" with { type: "json" };
@@ -89,6 +89,7 @@ const filter = new Set([
 
 export class Motd extends Service {
 	override name = "Motd";
+	override readonly requirements: Requirements = { hard: ["DiscordBot"], soft: ["Data"] };
 	messages: string[] = [];
 	images: ImgurImage[] = [];
 	lastimages: ImgurImage[] = [];
