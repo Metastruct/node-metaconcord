@@ -3,13 +3,14 @@ import SteamID from "steamid";
 
 import { f, logger } from "#utils";
 import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
+import type { RemoteDB } from "#/app/services/sql/RemoteDB.js";
 import Payload from "./Payload.js";
 import { type VoteKickRequest } from "./structures/index.js";
 import requestSchema from "./structures/VoteKickRequest.json" with { type: "json" };
 
 const log = logger(import.meta);
 
-function reasonToReaction(reason: string) {
+function reasonToReaction(reason?: string) {
 	if (typeof reason !== "string")
 		return "❌";
 
@@ -30,6 +31,24 @@ export default class VoteKickPayload extends Payload {
 	private static votekickCache: {
 		[steamId64: string]: number;
 	} = {};
+
+	private static async getVotekickCount(steamId64: string, remoteDB: RemoteDB): Promise<number> {
+		const cachedCount = this.votekickCache[steamId64];
+		if (typeof cachedCount === "number")
+			return cachedCount;
+
+		const rows = await remoteDB.query(
+			"SELECT votekick_amount FROM playerstats WHERE accountid = $1",
+			[new SteamID(steamId64).accountid]
+		);
+
+		return this.votekickCache[steamId64] = rows[0]?.votekick_amount || 0;
+	}
+
+	private static async incrementVotekickCount(steamId64: string, remoteDB: RemoteDB): Promise<number> {
+		const initialCount = await this.getVotekickCount(steamId64, remoteDB);
+		return this.votekickCache[steamId64] = initialCount + 1;
+	}
 
 	static override async handle(payload: VoteKickRequest, server: GmodConnection): Promise<void> {
 		super.handle(payload, server);
@@ -110,23 +129,9 @@ export default class VoteKickPayload extends Payload {
 
 		if (offenderSteamId64 !== "BOT") {
 			const remoteDB = bridge.container.getService("RemoteDB");
-			if (!this.votekickCache[offenderSteamId64]) {
-				const res = await remoteDB.query(
-					`SELECT votekick_amount FROM playerstats WHERE accountid = ${
-						new SteamID(offender.steamID).accountid
-					}`
-				);
-				if (res[0]) {
-					this.votekickCache[offenderSteamId64] = res[0].votekick_amount;
-				} else {
-					this.votekickCache[offenderSteamId64] = 0;
-				}
-			}
-			this.votekickCache[offenderSteamId64]++;
-			if (this.votekickCache[offenderSteamId64] > 0) {
-				embed.addFields(
-					f("Total Votekick Amount", this.votekickCache[offenderSteamId64].toString())
-				);
+			const votekickCount = await this.incrementVotekickCount(offenderSteamId64, remoteDB);
+			if (votekickCount > 0) {
+				embed.addFields(f("Total Votekick Amount", votekickCount.toString()));
 			}
 		}
 

@@ -168,7 +168,7 @@ export default class ReportChatPayload extends Payload {
 			const messages: Array<{ username: string; content: string }> = [];
 			for (let i = threadArray.length - 1; i >= 0; i--) {
 				const entry = threadArray[i];
-				if (!entry.pendingMessages?.length) {
+				if (!entry?.pendingMessages?.length) {
 					threadArray.splice(i, 1);
 					continue;
 				}

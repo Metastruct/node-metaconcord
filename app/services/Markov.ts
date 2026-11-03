@@ -150,9 +150,9 @@ abstract class MarkovChainBase {
 					}
 				}
 			} else {
-				out.push(chain.at(-1));
+				out.push(chain.at(-1)!);
 				if (callback) {
-					callback(chain.at(-1));
+					callback(chain.at(-1)!);
 				}
 			}
 		}

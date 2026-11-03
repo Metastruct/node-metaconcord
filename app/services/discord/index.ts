@@ -126,7 +126,7 @@ export class DiscordBot extends Service {
 		return this.discord.guilds.cache.get(this.config.bot.primaryGuildId);
 	}
 
-	setActivity(activity: string | Discord.ActivitiesOptions): Promise<void> {
+	setActivity(activity: string | Discord.ActivitiesOptions): void {
 		if (!this.ready) return;
 
 		let opt: Discord.ActivitiesOptions = { name: "Starting up" };
@@ -140,7 +140,7 @@ export class DiscordBot extends Service {
 			opt = activity;
 		}
 
-		this.discord.user.setActivity(opt);
+		this.discord.user?.setActivity(opt);
 	}
 
 	// sets both the bot's avatar and the guild's icon

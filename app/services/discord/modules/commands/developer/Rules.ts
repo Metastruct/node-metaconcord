@@ -92,8 +92,8 @@ const removeRule = async (ctx: Discord.ChatInputCommandInteraction, bot: Discord
 
 const editRule = async (ctx: Discord.ChatInputCommandInteraction, bot: DiscordBot) => {
 	const title = ctx.options.getString("title", true);
-	const position = ctx.options.getNumber("position");
-	const description = ctx.options.getString("description") ?? undefined;
+	const position = ctx.options.getInteger("position");
+	const description = ctx.options.getString("description");
 
 	if (!title && !position && !description) {
 		await ctx.reply(EphemeralResponse("well... you need to edit something at least!"));
@@ -104,8 +104,8 @@ const editRule = async (ctx: Discord.ChatInputCommandInteraction, bot: DiscordBo
 	if (position) {
 		const exists = ruleCache[position - 1];
 		if (exists) {
-			//arr.splice(index + 1, 0, arr.splice(index, 1)[0]);
-			ruleCache.splice(position - 1, 0, ruleCache.splice(choosenRule - 1, 1)[0]);
+			ruleCache.splice(choosenRule - 1, 1);
+			ruleCache.splice(position - 1, 0, rule);
 		} else {
 			await ctx.reply(EphemeralResponse(`Rule ${position} does not exist.`));
 			return;

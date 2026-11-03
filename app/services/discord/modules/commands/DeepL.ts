@@ -360,10 +360,11 @@ export const MenuDeeplCommand: MenuCommand = {
 				text: [text],
 				target_lang: "EN-GB",
 			});
-			if (res && res.translations) {
+			const translation = res.translations?.[0];
+			if (translation) {
 				const from =
-					sourceLangName.get(res.translations[0].detected_source_language) ??
-					res.translations[0].detected_source_language;
+					sourceLangName.get(translation.detected_source_language) ??
+					translation.detected_source_language;
 				const embed: Discord.APIEmbed = {
 					author: {
 						name: msg.author.username,
@@ -375,7 +376,7 @@ export const MenuDeeplCommand: MenuCommand = {
 						icon_url: "https://avatars.githubusercontent.com/u/83310993?s=200&v=4",
 					},
 					description: `
-						\`\`\`\n${msg.content}\`\`\`\n**${from} -> English (British)**\n\`\`\`\n${res.translations[0].text}\`\`\``,
+						\`\`\`\n${msg.content}\`\`\`\n**${from} -> English (British)**\n\`\`\`\n${translation.text}\`\`\``,
 				};
 				await ctx.reply({ embeds: [embed], flags: Discord.MessageFlags.Ephemeral });
 			} else {
