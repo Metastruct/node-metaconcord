@@ -12,7 +12,7 @@ const preexistingTableDefinitions: Record<string, NamedUpgradeFunctions> = {
 			await db.schema
 				.createTable("starboard")
 				.ifNotExists()
-				.addColumn("MessageId", "varchar(1000)", col => col.primaryKey())
+				.addColumn("MessageId", "varchar(1000)")
 				.execute();
 		}],
 	],

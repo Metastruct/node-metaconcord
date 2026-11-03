@@ -56,15 +56,20 @@ export class Starboard extends Service {
 	async isMsgStarred(msgId: string): Promise<boolean> {
 		const res = await this.localDB.db.selectNoFrom(
 			eb => eb.exists(
-				eb => eb.selectFrom("starboard").selectAll().where("MessageId", "=", msgId)
+				eb => eb.selectFrom("starboard").selectAll().where("message_id", "=", msgId)
 			).as("exists")
 		).limit(1).executeTakeFirst();
 		return Boolean(res?.exists);
 	}
 
 	private async starMsg(msgId: string): Promise<void> {
-		const db = this.localDB.getLocalDatabase();
-		db.prepare("INSERT OR IGNORE INTO starboard(MessageId) VALUES(?)").run(msgId);
+		await this.localDB.db
+			.insertInto("starboard")
+			.orIgnore()
+			.values({
+				"message_id": msgId,
+			})
+			.execute();
 	}
 
 	public async handleReactionAdded(reaction: Discord.MessageReaction): Promise<void> {
