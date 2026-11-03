@@ -220,12 +220,9 @@ async function upsertSession(
 		players = session.sessionUsers
 			.filter(u => u.userID !== resonite.UserID)
 			.map(sessionUser => ({
+				id: sessionUser.userID,
 				nick: sessionUser.username,
 				isAfk: !sessionUser.isPresent,
-				steamId64: "0",
-				isAdmin: false,
-				isBanned: false,
-				ip: sessionUser.userID,
 				avatar: undefined,
 			}));
 
@@ -233,7 +230,7 @@ async function upsertSession(
 		// server-list API forwards) - only the render below needs the actual
 		// authenticated bytes.
 		await Promise.all(
-			players.map(async u => (u.avatar = await resonite.GetResoniteUserAvatarURL(u.ip)))
+			players.map(async u => (u.avatar = await resonite.GetResoniteUserAvatarURL(u.id)))
 		);
 
 		// assets.resonite.com can require the requester's own auth to serve the

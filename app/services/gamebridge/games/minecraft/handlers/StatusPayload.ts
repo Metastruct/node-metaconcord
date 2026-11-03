@@ -2,8 +2,11 @@ import * as Discord from "discord.js";
 
 import { localeCompare, logger } from "#utils";
 import { renderPlayerListImage } from "../../../renderPlayerList.js";
-import type MinecraftConnection from "../MinecraftConnection.js";
-import {type MinecraftStatus} from "../MinecraftConnection.js";
+import { renderHeadDataUri } from "../headRender.js";
+import type {
+	default as MinecraftConnection,
+	MinecraftStatus,
+} from "../MinecraftConnection.js";
 import Payload from "./Payload.js";
 import { type StatusRequest } from "./structures/index.js";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
@@ -25,7 +28,7 @@ function buildSignature(
 		hostname: status.hostname,
 		version: status.version,
 		maxPlayers: status.maxPlayers,
-		players: players.map(p => p.steamId64).toSorted(localeCompare),
+		players: players.map(p => p.id).toSorted(localeCompare),
 	};
 }
 
@@ -84,12 +87,9 @@ export default class StatusPayload extends Payload {
 		if (!discord.ready) return;
 
 		server.status.players = players.map(player => ({
+			id: player.uuid,
 			nick: player.nick,
-			steamId64: player.uuid,
 			avatar: `https://mc-heads.net/avatar/${player.uuid}`,
-			ip: "",
-			isAdmin: false,
-			isBanned: false,
 		}));
 
 		const count = server.status.players.length;
@@ -114,8 +114,14 @@ export default class StatusPayload extends Payload {
 		const files: Discord.AttachmentBuilder[] = [];
 		if (count > 0) {
 			try {
+				const renderPlayers = await Promise.all(
+					server.status.players.map(async player => ({
+						...player,
+						avatar: (await renderHeadDataUri(player.id)) ?? player.avatar,
+					}))
+				);
 				server.playerListImage = await renderPlayerListImage(
-					server.status.players,
+					renderPlayers,
 					server.backgroundImage
 				);
 				files.push(

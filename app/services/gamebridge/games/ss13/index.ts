@@ -202,14 +202,11 @@ async function pollInstance(
 		try {
 			const roster = await getPlayerList(host, status.port, instanceConfig.commsKey);
 			players = roster.map((p): Player => ({
+				id: p.ckey,
 				nick: p.name,
 				avatar: p.headshot,
 				isAfk: p.afk === 1,
 				description: p.job ? `(as ${p.job})` : undefined,
-				steamId64: "",
-				isAdmin: false,
-				isBanned: false,
-				ip: "",
 			}));
 		} catch (error) {
 			log.warn(error, "SS13 playerlist topic query failed");

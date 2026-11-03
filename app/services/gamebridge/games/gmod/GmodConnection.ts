@@ -1,14 +1,26 @@
 import { type request as WebSocketRequest } from "websocket";
 
 import type GameBridge from "../../GameBridge.js";
-import type GameConnection from "../../GameConnection.js";
-import {type GameConnectionConfig} from "../../GameConnection.js";
+import type {
+	ConnectionStatus,
+	default as GameConnection,
+	GameConnectionConfig,
+	Player,
+} from "../../GameConnection.js";
 import GameSocketConnection from "../../GameSocketConnection.js";
 import ErrorPayload from "./handlers/ErrorPayload.js";
 import GservPayload, { type GservResult } from "./handlers/GservPayload.js";
 import { attachHandlers } from "./handlers/index.js";
 import RconPayload from "./handlers/RconPayload.js";
 import { type RconResponse } from "./handlers/structures/index.js";
+
+export type GmodPlayer = Player & {
+	ip: string;
+	isBanned?: boolean;
+	isLinux?: boolean;
+	isPirate?: boolean;
+	entIndex?: number;
+};
 
 export type GmodConnectionConfig = GameConnectionConfig & {
 	defaultGamemode?: string;
@@ -20,6 +32,7 @@ export type GmodConnectionConfig = GameConnectionConfig & {
 
 export default class GmodConnection extends GameSocketConnection {
 	declare config: GmodConnectionConfig;
+	declare status: ConnectionStatus<GmodPlayer>;
 	defcon!: number;
 	gamemode!: {
 		folderName: string;

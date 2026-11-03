@@ -57,6 +57,7 @@ export type TopicStatus = {
 };
 
 export type TopicPlayer = {
+	ckey: string;
 	name: string;
 	job?: string;
 	headshot?: string;
@@ -141,6 +142,7 @@ export async function getPlayerList(
 		throw new TypeError(`playerlist topic returned an error: ${raw}`);
 	}
 	return (data as Record<string, unknown>[]).map(entry => ({
+		ckey: typeof entry.ckey === "string" ? entry.ckey : "",
 		name: typeof entry.name === "string" ? entry.name : "Unknown",
 		job: typeof entry.job === "string" ? entry.job : undefined,
 		headshot: typeof entry.headshot === "string" ? entry.headshot : undefined,

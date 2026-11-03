@@ -15,19 +15,25 @@ export type GameConnectionConfig = {
 	backgroundImage?: string | string[];
 };
 
+export type PlayerDecoration = {
+	nameColor?: string;
+	opacity?: number;
+};
+
 export type Player = {
-	steamId64: string;
-	avatar?: string | false; // Metastruct SteamCache can return false...
-	ip: string;
-	isAdmin: boolean;
+	id: string;
+	avatar?: string;
+	isAdmin?: boolean;
 	isAfk?: boolean;
-	isBanned: boolean;
-	isLinux?: boolean;
 	nick: string;
-	isPirate?: boolean;
 	description?: string;
-	/** gmod entity index, for steam://connect/.../GO:_<entIndex> */
-	entIndex?: number;
+	decoration?: PlayerDecoration;
+};
+
+export type ConnectionStatus<TPlayer extends Player = Player> = {
+	backgroundImage?: string;
+	image?: string;
+	players: TPlayer[];
 };
 
 /**
@@ -44,11 +50,7 @@ export default class GameConnection extends EventEmitter {
 	discordIcon: string | undefined = undefined;
 	discordBanner: string | undefined = undefined;
 	playerListImage!: Buffer;
-	status: {
-		backgroundImage?: string;
-		players: Player[];
-		image?: string;
-	} = { players: [] };
+	status: ConnectionStatus = { players: [] };
 	/** The one background image picked for this connection's lifetime. */
 	backgroundImage: string | undefined;
 	mapName!: string;

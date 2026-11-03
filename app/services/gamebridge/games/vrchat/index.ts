@@ -1,6 +1,10 @@
 import * as Discord from "discord.js";
-import type { Group, GroupInstance, LimitedUserFriend } from "vrchat";
-import { VRChat } from "vrchat";
+import {
+	type Group,
+	type GroupInstance,
+	type LimitedUserFriend,
+	VRChat,
+} from "vrchat";
 
 import { APP_NAME, APP_VERSION, localeCompare, logger } from "#utils";
 import type GameBridge from "../../GameBridge.js";
@@ -27,15 +31,10 @@ function attachmentName(instanceId: string): string {
 
 function friendToPlayer(friend: LimitedUserFriend): Player {
 	return {
+		id: friend.id,
 		nick: friend.displayName,
 		// VRChat's avatar image URLs are served without an auth cookie.
 		avatar: friend.currentAvatarImageUrl || friend.iconUrl || undefined,
-		// reused as the generic platform id (and the avatar cache key), like
-		// Minecraft does with its UUID.
-		steamId64: friend.id,
-		ip: "",
-		isAdmin: false,
-		isBanned: false,
 	};
 }
 
@@ -122,7 +121,7 @@ function buildSignature(
 				world: i.world.id,
 				count: i.memberCount,
 				friends: (rosters.get(i.location)?.players ?? [])
-					.map(p => p.steamId64)
+					.map(p => p.id)
 					.toSorted(localeCompare),
 			}))
 			.toSorted((a, b) => a.id.localeCompare(b.id)),
@@ -174,7 +173,7 @@ async function updateRosters(
 			.map(friendToPlayer)
 			.toSorted((a, b) => a.nick.localeCompare(b.nick));
 		const contentKey = JSON.stringify(
-			players.map(p => `${p.steamId64}:${p.avatar ?? ""}`).toSorted(localeCompare)
+			players.map(p => `${p.id}:${p.avatar ?? ""}`).toSorted(localeCompare)
 		);
 
 		const prior = connection.rosters.get(instance.location);
