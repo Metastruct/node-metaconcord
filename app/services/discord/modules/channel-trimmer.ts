@@ -1,7 +1,7 @@
 import { type Message,type TextChannel } from "discord.js";
 import { MinHeap } from "mnemonist";
 
-import { type DateTimeIsh, dateTimeIshToZonedDateTime, dateTimeNow, formatDiscordAbsoluteTimestamp, logger, normalizeDuration } from "#utils";
+import { AssertType, type DateTimeIsh, dateTimeIshToZonedDateTime, dateTimeNow, formatDiscordAbsoluteTimestamp, logger, normalizeDuration } from "#utils";
 import { type DiscordBot } from "../index.js";
 
 const log = logger(import.meta);
@@ -121,7 +121,7 @@ const formatStatsLine = (trimmer: ChannelTrimmer) =>
 	`Max Age: ${durationFormatter.format(roundToDays(trimmer.maxAge))}\n` +
 	`Cut-off: ${formatDiscordAbsoluteTimestamp(dateTimeNow().subtract(trimmer.maxAge))}\n` +
 	`Fetch snowflake: ${trimmer.state.fetchTimestamp}\n` +
-	`Peek: ${trimmer.state.peekMessage().url}`;
+	`Peek: ${trimmer.state.peekMessage()?.url || "`N/A`"}`;
 
 export default function ChannelTrimmerLoader(bot: DiscordBot): void {
 	const trimmers = new Map<TextChannel, ChannelTrimmer>();
@@ -157,7 +157,7 @@ export default function ChannelTrimmerLoader(bot: DiscordBot): void {
 	bot.discord.once("clientReady", () => {
 		Object.entries(bot.config["trim-channels"])
 			.map(([channelId, durationString]) => [bot.getTextChannel(channelId), normalizeDuration(Temporal.Duration.from(durationString))] as const)
-			.filter(([channel]) => !!channel)
+			.filter(AssertType<0, TextChannel>()(([channel]) => !!channel))
 			.forEach(([channel, duration]) => {
 				trimmers.set(channel, new ChannelTrimmer(channel, duration));
 			});

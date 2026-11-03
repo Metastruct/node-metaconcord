@@ -36,6 +36,21 @@ export const clamp = (number: number, minimum: number, maximum: number): number 
 
 export type WithRequired<T, K extends keyof T> = T & Required<Pick<T, K>>;
 
+/**
+ * Returns a predicate factory for a type guard that preserves the original input object type
+ * but narrows it down to {@link TValue | the specified type} at {@link TKey | the given key}.
+ * Call the factory with a predicate that receives the full inferred object type and
+ * returns a boolean validating that the selected property has the asserted type.
+ */
+export function AssertType<TKey extends PropertyKey, TValue>() {
+	return function<TObject extends Record<TKey, unknown>>(
+		predicate: (object: TObject) => boolean
+	): (object: TObject) => object is TObject & Record<TKey, TValue> {
+		return (object): object is TObject & Record<TKey, TValue> =>
+			predicate(object);
+	};
+}
+
 const LUA_ESCAPES: Record<string, string> = {
 	"\\": "\\\\",
 	'"': '\\"',

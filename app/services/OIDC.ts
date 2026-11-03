@@ -96,7 +96,7 @@ export class OIDC extends Service {
 					// The session can outlive deleted accounts. Resetting it to
 					// logged-out (instead of destroying it) keeps its uid, so the
 					// browser recovers without an "authentication session mismatch".
-					const session: Session & { touched?: boolean} = ctx.oidc?.session;
+					const session: (Session & { touched?: boolean}) | undefined = ctx.oidc?.session;
 					if (session) {
 						delete session.accountId;
 						delete session.loginTs;

@@ -138,7 +138,7 @@ export class Starboard extends Service {
 				count = allUsers.size;
 			} else {
 				const users = await reaction.users.fetch();
-				const ego = users.has(message.author.id);
+				const ego = message.author && users.has(message.author.id);
 				count = ego ? reaction.count - 1 : reaction.count;
 			}
 

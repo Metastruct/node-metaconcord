@@ -32,7 +32,7 @@ enum ComboMessageEffect {
 
 class Combo {
 	readonly #channelId: string;
-	#messageHash: string;
+	#messageHash = String();
 
 	#participants = new Set<string>();
 	#doublePosters = new Set<string>();
@@ -146,7 +146,7 @@ export default function ComboBreakerLoader(bot: DiscordBot): void {
 	const comboManager = new ComboManager();
 
 	bot.discord.on("messageCreate", async msg => {
-		if (msg.author.id === bot.discord.user.id)
+		if (msg.author.id === bot.discord.user?.id)
 			return;
 
 		const {combo, effect} = comboManager.onMessage(msg);
@@ -158,7 +158,8 @@ export default function ComboBreakerLoader(bot: DiscordBot): void {
 				if (combo.length >= THRESHOLD_BREAK_THE_COMBO) {
 					combo.break();
 					const shitpost = await Shat({msg: msg.content});
-					msg.channel.send(shitpost);
+					if (shitpost)
+						msg.channel.send(shitpost);
 				}
 				break;
 			case ComboMessageEffect.DOUBLE_POSTED:

@@ -133,13 +133,13 @@ export class FluxerRest {
 		private readonly botToken: string
 	) {}
 
-	async request<T>(
+	async request<TResponse, TRequest extends Record<string, unknown> = Record<string, unknown>>(
 		method: string,
 		path: string,
-		body?: unknown,
+		body?: TRequest,
 		authenticated = true,
 		retryUnsafe = false
-	): Promise<T> {
+	): Promise<TResponse | undefined> {
 		const safePath = path.replace(/(\/webhooks\/\d+\/)[^/?]+/, "$1[token]");
 		const canRetryTransientFailure = method !== "POST" || retryUnsafe;
 		let transientAttempts = 0;
@@ -177,8 +177,8 @@ export class FluxerRest {
 						`Fluxer ${method} ${safePath}: ${text.slice(0, 1000)}`
 					);
 				}
-				if (response.status === 204) return undefined as T;
-				return (await response.json()) as T;
+				if (response.status === 204) return undefined;
+				return await response.json();
 			} catch (error) {
 				if (
 					!canRetryTransientFailure ||
@@ -213,6 +213,7 @@ export class FluxerRest {
 				})),
 			}
 		);
+		if (!response) return;
 		const multipart: { upload_filename: string; upload_id: string }[] = [];
 		for (const plan of response.attachments) {
 			const file = requested[plan.id];

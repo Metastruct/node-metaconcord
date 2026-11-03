@@ -45,8 +45,11 @@ export class FluxerGateway {
 		try {
 			if (!this.gatewayUrl) {
 				const gateway = await this.rest.request<{ url: string }>("GET", "/gateway/bot");
-				this.gatewayUrl = gateway.url;
+				this.gatewayUrl = gateway?.url;
 			}
+			if (!this.gatewayUrl)
+				throw new Error("Missing gateway url.");
+
 			const separator = this.gatewayUrl.includes("?") ? "&" : "?";
 			const socket = new WebSocket(`${this.gatewayUrl}${separator}v=1&encoding=json`);
 			const generation = ++this.generation;

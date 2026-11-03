@@ -313,7 +313,7 @@ export default async function ShitpostLoader(bot: DiscordBot) {
 			if (
 				!posting
 				&& (
-					(lastMsgs.length > 0 && lastMsgs.at(-1).author.id)
+					(lastMsgs.at(-1)?.author.id)
 					||
 					(await bot.getTextChannel(bot.config.channels.chat)?.lastMessage?.fetch())?.author.id
 				) !== client.user.id
