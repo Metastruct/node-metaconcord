@@ -1,11 +1,8 @@
-import type { Container } from "#/app/Container.js";
-import { migrateToLatest } from "#/lib/kysely-migration.js";
-import { LocalDB } from "../app/services/index.js";
+import { migrate } from "#lib/kyselyMigrator";
+import { LocalDB } from "#/app/services/index.js";
 
-const database = (()=>{
-	const localDB = new LocalDB({} as Container);
-	localDB.initBackend();
-	return localDB.db;
-})();
+const direction = (["latest", "up", "down"] as const).find(mode => mode === (process.argv[2] ?? "latest"));
+if (!direction)
+	throw new Error("Usage: scripts/migrate.ts [latest|up|down]");
 
-await migrateToLatest(database);
+await migrate(direction, LocalDB.db);

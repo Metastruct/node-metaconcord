@@ -5,12 +5,11 @@ import SQLite from "better-sqlite3";
 import { Kysely, SqliteDialect } from "kysely";
 import { KyselyTypegenSQLiteDialect } from "kysely-typegen/sqlite";
 
-import { migrateToLatest } from "#ts/lib/kysely-migration.js";
+import { migrateToLatest } from "#lib/kyselyMigrator";
 
 // Create an in-memory SQLite db.
 
 const sqlite = SQLite(":memory:");
-sqlite.defaultSafeIntegers();
 const dialect = new SqliteDialect({ database: sqlite });
 const database = new Kysely<unknown>({ dialect });
 

@@ -1,9 +1,9 @@
 import SQLite from "better-sqlite3";
 import { Kysely, SqliteDialect } from "kysely";
 
+import { migrateToLatest } from "#lib/kyselyMigrator";
 import { DBService } from "#/app/services/sql/DBService.js";
 import { type DB } from "#/generated/LocalDBTypes.js";
-import { migrateToLatest } from "#/lib/kysely-migration.js";
 import { type Container, type Service } from "../../Container.js";
 
 let sqlite: SQLite.Database;
@@ -70,6 +70,10 @@ export class LocalDB extends DBService<DB> {
 	public get db() {
 		if (!this.#localDB) throw new Error("LocalDB has not been initialized");
 		return this.#localDB;
+	}
+
+	public static get db() {
+		return getSQLiteKysely();
 	}
 }
 

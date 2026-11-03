@@ -13,9 +13,11 @@
 		"#polyfills/*": "./polyfills/*",
 		"#/app/*": "./app/*",
 		"#/generated/*": "./generated/*",
-		"#/lib/*": "./lib/*",
 		"#extensions/*": "./extensions/*",
-		"#ts/*.js": "./*.ts"
+		"#lib/*": {
+			"@metaconcord/ts-import": "./lib/*.ts",
+			"default": "./lib/*.js"
+		}
 	},
 	"sideEffects": true,
 	"engines": {
@@ -36,7 +38,7 @@
 		"fluxer:mirror": "node scripts/fluxer-mirror.js",
 		"fluxer:mirror-expressions": "node scripts/fluxer-mirror-expressions.js",
 		"generate": "run-p generate:*",
-		"generate:db-types": "node scripts/generate-db-types.ts",
+		"generate:db-types": "node --conditions=@metaconcord/ts-import scripts/generate-db-types.ts",
 		"generate:scss": "sass resources/ --no-source-map",
 		"lint": "eslint",
 		"lint:fix": "eslint --fix",
