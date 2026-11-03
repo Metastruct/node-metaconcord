@@ -865,7 +865,7 @@ const REF_BRANCH_REGEX = /^[^/]*\/[^/]*\/(?<branch>.*)$/;
 
 /** something like 'refs/heads/master' -> extracts 'master' */
 function getBranchByRef(ref: string) {
-	return ref.match(REF_BRANCH_REGEX).groups.branch;
+	return ref.match(REF_BRANCH_REGEX)?.groups?.branch;
 }
 
 function collectComponentText(
@@ -1107,9 +1107,10 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 			case "everything": {
 				await ctx.deferReply();
 				const msg = ctx.message;
+				const embed = msg.embeds.at(-1);
 				const url =
-					msg.embeds.length > 0
-						? msg.embeds.at(-1).url
+					embed
+						? embed.url
 						: findCommitUrl(msg);
 				if (!url) {
 					await ctx.editReply("url not found for refreshing :( ... aborting");
@@ -1253,7 +1254,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 		const repo = payload.repository;
 		const serverOverride = REPO_SERVER_MAP.get(repo.name);
 		const commits = payload.commits;
-		const branch = getBranchByRef(payload.ref);
+		const branch = getBranchByRef(payload.ref) ?? "";
 
 		let includesLua = false;
 
@@ -1581,7 +1582,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 
 		if (bridge) {
 			const payload = event.payload;
-			const branchName = getBranchByRef(payload.ref);
+			const branchName = getBranchByRef(payload.ref) ?? "";
 			bridge.events.emit("githubPush", {
 				repo: payload.repository.full_name,
 				branch: branchName,
@@ -1809,7 +1810,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 
 		const target = getCheckTarget(
 			run.pull_requests.filter(pr => pr !== null),
-			run.head_branch
+			run.head_branch ?? undefined
 		);
 
 		await webhook

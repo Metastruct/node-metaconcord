@@ -195,10 +195,26 @@ export class FluxerRest {
 		}
 	}
 
+	async requestRequireResponse<TResponse, TRequest extends Record<string, unknown> = Record<string, unknown>>(
+		method: string,
+		path: string,
+		body?: TRequest,
+		authenticated = true,
+		retryUnsafe = false
+	): Promise<TResponse> {
+		const response = await this.request<TResponse, TRequest>(
+			method, path, body, authenticated, retryUnsafe
+		);
+		if (response === undefined) {
+			throw new FluxerApiError(204, `Fluxer ${method} ${path} returned no response body`);
+		}
+		return response;
+	}
+
 	async uploadAttachments(channelId: string, files: BridgeFile[]) {
 		if (files.length === 0) return [];
 		const requested = files.slice(0, 10);
-		const response = await this.request<{ attachments: UploadPlan[] }>(
+		const response = await this.requestRequireResponse<{ attachments: UploadPlan[] }>(
 			"POST",
 			`/channels/${channelId}/attachments`,
 			{
@@ -213,7 +229,6 @@ export class FluxerRest {
 				})),
 			}
 		);
-		if (!response) return;
 		const multipart: { upload_filename: string; upload_id: string }[] = [];
 		for (const plan of response.attachments) {
 			const file = requested[plan.id];

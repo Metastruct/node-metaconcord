@@ -423,10 +423,6 @@ export default function appealsAPI(webApp: WebApp): void {
 				message_id: starterId,
 				steam_id64: session.steamId64,
 				thread_id: thread.id,
-				// These null fields could be omitted if we had `strictNullChecks` enabled.
-				id: null,
-				closed_at: null,
-				resolution: null,
 			})
 			.returning("id")
 			.executeTakeFirstOrThrow();

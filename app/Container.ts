@@ -42,8 +42,8 @@ export class ServiceNotEnabledError extends Error {
 	}
 }
 
-export class Service {
-	readonly name: string;
+export abstract class Service {
+	abstract readonly name: string;
 	container: Container;
 
 	constructor(container: Container) {

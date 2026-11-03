@@ -752,7 +752,7 @@ export class Fluxer extends Service {
 
 	// A message in a native Discord thread whose Fluxer counterpart does not exist yet.
 	private async resolveDiscordThreadRoute(
-		message: Discord.Message | Discord.PartialMessage
+		message: Discord.Message
 	): Promise<ThreadResolution | undefined> {
 		const threadChannel = message.channel;
 		if (!threadChannel.isThread()) return undefined;
@@ -791,7 +791,7 @@ export class Fluxer extends Service {
 				.filter((id): id is string => Boolean(id))
 				.slice(0, 5);
 			const sent = await this.withFluxerWebhook(parentRoute, webhook =>
-				this.rest.request<FluxerMessage>(
+				this.rest.requestRequireResponse<FluxerMessage>(
 					"POST",
 					`/webhooks/${webhook.id}/${encodeURIComponent(webhook.token)}?wait=true`,
 					{
@@ -834,7 +834,7 @@ export class Fluxer extends Service {
 		}
 		const fluxerType = threadChannel.type === Discord.ChannelType.PrivateThread ? 12 : 11;
 		const created = await this.rest
-			.request<FluxerThreadChannel>(
+			.requestRequireResponse<FluxerThreadChannel>(
 				"POST",
 				`/channels/${parentRoute.fluxerChannelId}/threads`,
 				{
@@ -926,7 +926,7 @@ export class Fluxer extends Service {
 			? await this.mappingByDiscordMessage(message.reference.messageId)
 			: undefined;
 		const sent = await this.withFluxerWebhook(route, webhook =>
-			this.rest.request<FluxerMessage>(
+			this.rest.requestRequireResponse<FluxerMessage>(
 				"POST",
 				this.fluxerWebhookPath(webhook, route),
 				{
@@ -979,7 +979,7 @@ export class Fluxer extends Service {
 		await this.saveMessageMapping(message.id, sent.id, route, "discord");
 	}
 
-	private async relayDiscordForward(message: Discord.Message | Discord.PartialMessage, route: ChannelRoute) {
+	private async relayDiscordForward(message: Discord.Message, route: ChannelRoute) {
 		const snapshot = message.messageSnapshots.first();
 		const sourceMapping = message.reference?.messageId
 			? await this.mappingByDiscordMessage(message.reference.messageId)
@@ -988,7 +988,7 @@ export class Fluxer extends Service {
 			// The source is bridged, so create a native Fluxer forward that references it.
 			try {
 				const sent = await this.withFluxerWebhook(route, webhook =>
-					this.rest.request<FluxerMessage>(
+					this.rest.requestRequireResponse<FluxerMessage>(
 						"POST",
 						this.fluxerWebhookPath(webhook, route),
 						{
@@ -1067,7 +1067,7 @@ export class Fluxer extends Service {
 			payload.content = appendContent(header, [payload.content], 4000);
 		}
 		await this.withFluxerWebhook(route, webhook =>
-			this.rest.request<FluxerMessage>(
+			this.rest.requestRequireResponse<FluxerMessage>(
 				"POST",
 				this.fluxerWebhookPath(webhook, route),
 				{
@@ -1576,7 +1576,7 @@ export class Fluxer extends Service {
 		}
 	}
 
-	private async translateDiscordMessage(message: Discord.Message | Discord.PartialMessage): Promise<MentionPayload> {
+	private async translateDiscordMessage(message: Discord.Message): Promise<MentionPayload> {
 		const users = new Set<string>();
 		const roles = new Set<string>();
 		const emojiFallbackById = new Map<string, UnmappedEmoji>();
@@ -1736,7 +1736,7 @@ export class Fluxer extends Service {
 		let pending = this.fluxerWebhooks.get(channelId);
 		if (!pending) {
 			pending = (async () => {
-				const webhooks = await this.rest.request<FluxerWebhook[]>(
+				const webhooks = await this.rest.requestRequireResponse<FluxerWebhook[]>(
 					"GET",
 					`/channels/${channelId}/webhooks`
 				);
@@ -1745,7 +1745,7 @@ export class Fluxer extends Service {
 						item.name === config.webhookName && item.user.id === config.applicationId
 				);
 				if (!webhook) {
-					webhook = await this.rest.request<FluxerWebhook>(
+					webhook = await this.rest.requestRequireResponse<FluxerWebhook>(
 						"POST",
 						`/channels/${channelId}/webhooks`,
 						{ name: config.webhookName }
