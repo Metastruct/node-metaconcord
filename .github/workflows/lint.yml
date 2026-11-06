@@ -32,11 +32,11 @@ jobs:
               if: ${{ !cancelled() && (steps.lint.outcome == 'success' || steps.lint.outcome == 'failure') && hashFiles('eslint-results.sarif') != '' }}
               run: node scripts/sarif_to_annotation.ts
             - run: npm run test:fluxer
-            - run: npm run schema:gen
+            - run: npm run generate:schema
             - name: Check generated schemas are up to date
               run: |
                   git diff --exit-code -- '**/handlers/structures/*.json' || {
-                    echo "::error::Generated JSON schemas are out of date - run 'npm run schema:gen' and commit the result."
+                    echo "::error::Generated JSON schemas are out of date - run 'npm run generate:schema' and commit the result."
                     exit 1
                   }
             - name: Upload lint results to GitHub
