@@ -52,6 +52,7 @@
 		"start": "node dist",
 		"test": "run-s test:* test:dist:*",
 		"test:dist:fluxer": "node --test test/fluxer-formatting-dist.test.js",
+		"test:dist:markov": "node --experimental-test-module-mocks --test dist/test/markov.test.js",
 		"test:dist:oidc": "cross-env NODE_ENV=development node dist/test/oidc.test.js",
 		"test:dist:superreplacer": "node --test dist/test/super-replacer.test.js",
 		"test:fluxer": "node --test test/fluxer-mappings.test.js",

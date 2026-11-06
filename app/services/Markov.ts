@@ -161,7 +161,7 @@ abstract class MarkovChainBase {
 	}
 }
 
-class MarkovChain extends MarkovChainBase {
+export class MarkovChain extends MarkovChainBase {
 	#db: LocalDatabase;
 
 	constructor(db: LocalDatabase) {
