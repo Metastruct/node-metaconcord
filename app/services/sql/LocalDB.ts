@@ -9,6 +9,8 @@ import { type Container, type Service } from "../../Container.js";
 
 const log = logger(import.meta);
 
+const OPTIMIZE_INTERVAL_MS = Temporal.Duration.from({ hours: 24 }).total("milliseconds");
+
 let sqlite: SQLite.Database;
 
 /** Gets the _one_ SQLite instance. */
@@ -18,6 +20,9 @@ function getSQLite() {
 	sqlite = new SQLite(process.env.METACONCORD_DB_PATH ?? "metaconcord.db");
 	sqlite.pragma("journal_mode = WAL");
 	sqlite.pragma("busy_timeout = 5000");
+	sqlite.pragma("recursive_triggers = on");
+	sqlite.pragma("foreign_keys = on");
+	sqlite.pragma("optimize = 0x10002");
 	return sqlite;
 }
 
@@ -60,6 +65,7 @@ export class LocalDB extends DBService<DB> {
 	override name = "LocalDB";
 	#sqliteDatabase?: SQLite.Database;
 	#localDB?: Kysely<DB>;
+	#optimizeTimer?: ReturnType<typeof setInterval>;
 
 	initBackend() {
 		this.#sqliteDatabase = getSQLite();
@@ -69,6 +75,16 @@ export class LocalDB extends DBService<DB> {
 	override async init() {
 		this.initBackend();
 		await migrateToLatest(this.db);
+	}
+
+	override async start() {
+		if (this.#optimizeTimer) return;
+		this.#optimizeTimer = setInterval(() => this.#optimize(), OPTIMIZE_INTERVAL_MS);
+		this.#optimizeTimer.unref();
+	}
+
+	#optimize() {
+		this.#sqliteDatabase?.pragma("optimize");
 	}
 
 	/** @deprecated Do not rely on this anymore, access the database using Kysely via the `.db` property. */
