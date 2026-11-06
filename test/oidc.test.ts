@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import { Container, Service } from "#/app/Container.js";
 import type { App } from "#/app/index.js";
 import OIDCProvider from "#/app/services/OIDC.js";
-import LocalDBProvider from "#/app/services/sql/LocalDB.js";
+import LocalDBProvider, { type LocalDatabase } from "#/app/services/sql/LocalDB.js";
 import WebAppProvider, { type WebApp } from "#/app/services/webapp/index.js";
 import { encrypt } from "#/app/services/webapp/secretBox.js";
 
@@ -89,8 +89,8 @@ const sessionCookie = (accountId: number): string => {
 };
 
 /** Forges a provider session naming a (possibly deleted) account. */
-const providerSession = async (accountId: number, value: string): Promise<void> => {
-	await container.getService("LocalDB").db
+const providerSession = async (db: LocalDatabase, accountId: number, value: string): Promise<void> => {
+	await db
 		.insertInto("oidc_tokens")
 		.values({
 			id: value,
@@ -323,7 +323,7 @@ async function main(): Promise<void> {
 		// to logged-out instead of destroying it, so its uid survives and the
 		// resume-time "authentication session mismatch" never happens
 		const staleUid = `stale-${Date.now()}`;
-		await providerSession(999, staleUid);
+		await providerSession(localDB, 999, staleUid);
 		const { default: KeyGrip } = await import("keygrip");
 		const keys = new KeyGrip([OIDCConfig.cookieKeys]);
 		const staleCookies = new Map<string, string>([
