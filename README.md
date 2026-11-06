@@ -13,15 +13,17 @@ Of course, you'll need the [gmod-metaconcord](https://github.com/Metastruct/gmod
 ### Production
 
 ```bash
-# Install dependencies
-$ npm ci --omit=dev
+# Build the docker image
+$ docker build -t node-metaconcord .
 
-# Generate the gamebridge payload schemas
-$ npm run schema:gen
-
-# Go wacky
-$ npm run build
-$ npm start
+# Run it!
+# (preferably in compose or something, with volumes and a restart policy)
+$ docker run -d -t \
+    -v ./instance/config:/app/config \
+    -v ./instance/database:/app/database \
+    -v ./instance/data:/app/data \
+    -e METACONCORD_DB_PATH=database/metaconcord.db \
+    node-metaconcord
 ```
 
 ### Development
@@ -29,9 +31,6 @@ $ npm start
 ```bash
 # Install dependencies
 $ npm install
-
-# Generate the gamebridge payload schemas
-$ npm run schema:gen
 
 # Go wacky
 $ npm run build

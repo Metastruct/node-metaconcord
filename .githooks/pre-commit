@@ -1,2 +1,2 @@
 #!/bin/sh
-node --run check
+npm run check

@@ -12,10 +12,9 @@ RUN cd /app/config && \
     mv "$f" "${f%.example.json}.json"; \
   done
 
-RUN node --run test:fluxer && \
-  node --run build && \
-  node --run test:fluxer:dist && \
-  rm -r /app/dist/config
+RUN npm run build \
+  && node --run test \
+  && rm -r /app/dist/config
 
 ########################## Stage ##########################
 

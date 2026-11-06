@@ -10,7 +10,10 @@
 	"imports": {
 		"#config/*": "./config/*",
 		"#utils": "./utils.js",
-		"#polyfills/*": "./polyfills/*",
+		"#polyfills/*": {
+			"@metaconcord/ts-import": "./polyfills/*.ts",
+			"default": "./polyfills/*.js"
+		},
 		"#/app/*": "./app/*",
 		"#/generated/*": "./generated/*",
 		"#extensions/*": "./extensions/*",
@@ -24,8 +27,8 @@
 		"node": ">=26.0.0"
 	},
 	"scripts": {
-		"build": "run-s compile",
-		"check": "run-s check:typescript check:eslint",
+		"build": "run-s generate compile",
+		"check": "run-s generate:db-types check:typescript check:eslint",
 		"check:eslint": "eslint",
 		"check:typescript": "tsc --noEmit",
 		"ci:lint": "cross-env SARIF_ESLINT_IGNORE_SUPPRESSED=true eslint --format @microsoft/eslint-formatter-sarif --output-file eslint-results.sarif",
@@ -39,21 +42,20 @@
 		"fluxer:mirror-expressions": "node scripts/fluxer-mirror-expressions.js",
 		"generate": "run-p generate:*",
 		"generate:db-types": "node --conditions=@metaconcord/ts-import scripts/generate-db-types.ts",
+		"generate:schema": "node schema_gen.js",
 		"generate:scss": "sass resources/ --no-source-map",
 		"lint": "eslint",
 		"lint:fix": "eslint --fix",
-		"prebuild": "run-s clean",
-		"precheck": "run-s generate:db-types",
-		"precompile": "run-s generate",
-		"schema:gen": "node schema_gen.js",
+		"pretest": "run-s build",
+		"rebuild": "run-s clean build",
 		"scss-watch": "sass --watch resources/ --no-source-map",
 		"start": "node dist",
-		"test": "run-s test:*",
+		"test": "run-s test:* test:dist:*",
+		"test:dist:fluxer": "node --test test/fluxer-formatting-dist.test.js",
+		"test:dist:oidc": "cross-env NODE_ENV=development node dist/test/oidc.test.js",
+		"test:dist:superreplacer": "node --test dist/test/super-replacer.test.js",
 		"test:fluxer": "node --test test/fluxer-mappings.test.js",
-		"test:fluxer:dist": "node --test test/fluxer-formatting-dist.test.js",
-		"test:oidc": "cross-env NODE_ENV=development node dist/test/oidc.test.js",
-		"test:polyfills": "node --test dist/test/iterator-zip.test.js",
-		"test:superreplacer": "node --test dist/test/super-replacer.test.js"
+		"test:polyfills": "node --conditions=@metaconcord/ts-import --test test/iterator-zip.test.ts"
 	},
 	"dependencies": {
 		"@gitbeaker/rest": "^43.8.0",

@@ -1,4 +1,4 @@
-import "#polyfills/Iterator-zip.js";
+import "#polyfills/Iterator-zip";
 import assert from "node:assert/strict";
 import test from "node:test";
 

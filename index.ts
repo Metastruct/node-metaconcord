@@ -7,7 +7,7 @@ dotenv.config();
 // Capture process output for the dashboard before anything logs
 import "./app/services/webapp/dashboard/LogBuffer.js";
 // Other polyfills, prototype extensions etc.
-import "#polyfills/Iterator-zip.js";
+import "#polyfills/Iterator-zip";
 import "#extensions/index.js";
 
 // Main
