@@ -289,10 +289,10 @@ export default async function gmodErrorHandlerAPI(webApp: WebApp): Promise<void>
 		}
 
 		if (body.v === "test") return;
-		if (matches.some(m => m.groups?.addon === "pac3")) {
+
+		getWebhook().send(payload).catch(log.error.bind(log));
+
+		if (matches.some(m => m.groups?.addon === "pac3"))
 			getPacErrorWebhook().send(payload).catch(log.error.bind(log));
-		} else {
-			getWebhook().send(payload).catch(log.error.bind(log));
-		}
 	});
 }
