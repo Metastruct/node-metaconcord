@@ -15,14 +15,14 @@ import WebAppConfig from "#config/webapp.json" with { type: "json" };
  * needs (SQL, WebApp, a fake Accounts, OIDC) into a standalone Container, so
  * nothing touches Discord, IRC, gamebridge or GitHub. Run with:
  *
- *   npm run test:oidc
+ *   npm run test:dist:oidc
  *
  * Which drives a real authorization-code flow over HTTP against the local
  * webapp, using a forged session cookie (the same AES-GCM one the site sets).
  */
 
-// Keep the run isolated: throwaway sqlite db, localhost issuer, random cookie key.
-process.env.METACONCORD_DB_PATH = "oidc-test.db";
+// Keep the run isolated: in-memory sqlite db, localhost issuer, random cookie key.
+process.env.METACONCORD_DB_PATH = ":memory:";
 const PORT = 8680;
 (WebAppConfig as { port: number }).port = PORT;
 // issuer on the (sub)domain root, endpoints at /oauth/* (what Fluxer's SSO
@@ -62,8 +62,16 @@ class FakeAccounts extends Service {
 	}
 }
 
+// This is required because Container expects there to be a RemoteDB
+// for Accounts, even if we register the fake Accounts service that
+// doesn't actually use it.
+class FakeRemoteDB extends Service {
+	override name = "RemoteDB";
+}
+
 const container = new Container({} as App, [
 	LocalDBProvider,
+	(container: Container) => new FakeRemoteDB(container),
 	WebAppProvider,
 	(container: Container) => new FakeAccounts(container),
 	OIDCProvider,
@@ -80,11 +88,9 @@ const sessionCookie = (accountId: number): string => {
 	return `${SESSION_COOKIE}=${value}`;
 };
 
-const localDB = container.getService("LocalDB").db;
-
 /** Forges a provider session naming a (possibly deleted) account. */
 const providerSession = async (accountId: number, value: string): Promise<void> => {
-	await localDB
+	await container.getService("LocalDB").db
 		.insertInto("oidc_tokens")
 		.values({
 			id: value,
@@ -172,6 +178,7 @@ async function main(): Promise<void> {
 		container.addService(provider(container));
 	}
 	await container.initServices();
+	const localDB = container.getService("LocalDB").db;
 
 	let failures = 0;
 	const check = (name: string, ok: boolean, detail = "") => {
