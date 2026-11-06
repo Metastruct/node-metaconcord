@@ -36,7 +36,7 @@ type StackMatchGroups = {
 	ext?: string;
 	filename?: string;
 	fn: string;
-	fpath?: string;
+	fpath: string;
 	lineno: string;
 	nick?: string;
 	partialsteamid?: string;
@@ -44,8 +44,18 @@ type StackMatchGroups = {
 	rfilename?: string;
 	runnables?: string;
 	stacknr: string;
-	steamid: string;
+	steamid?: string;
 	steamnick?: string;
+};
+
+export const isStackMatchGroups = (groups: unknown): groups is StackMatchGroups => {
+	if (typeof groups !== "object" || !groups) return false;
+	return (
+		"fn" in groups && typeof groups.fn === "string" &&
+		"fpath" in groups && typeof groups.fpath === "string" &&
+		"lineno" in groups && typeof groups.lineno === "string" &&
+		"stacknr" in groups && typeof groups.stacknr === "string"
+	);
 };
 
 export const megaRex =
@@ -86,7 +96,9 @@ const formatFrame = (groups: StackMatchGroups): string | undefined => {
 };
 
 export const SuperReplacer = (_match: string, ...args: unknown[]): string => {
-	const groups = args.at(-1) as StackMatchGroups;
+	const groups = args.at(-1);
+	if (!isStackMatchGroups(groups))
+		throw new TypeError("Expected last argument to be StackMatchGroups. Was this called with the correct RegExp?");
 	return `${groups.stacknr}. ${groups.fn} - ${formatFrame(groups)}:${groups.lineno}`;
 };
 
@@ -277,7 +289,7 @@ export default async function gmodErrorHandlerAPI(webApp: WebApp): Promise<void>
 		}
 
 		if (body.v === "test") return;
-		if (matches.some(m => (m.groups as StackMatchGroups).addon === "pac3")) {
+		if (matches.some(m => m.groups?.addon === "pac3")) {
 			getPacErrorWebhook().send(payload).catch(log.error.bind(log));
 		} else {
 			getWebhook().send(payload).catch(log.error.bind(log));
