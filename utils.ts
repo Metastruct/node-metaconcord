@@ -63,6 +63,14 @@ export function errToMessage(err: unknown) {
 	return err instanceof Error ? err.message : String(err);
 }
 
+// replaces bigints so it can be used with Kysley
+export const jsonKyselify = (value: unknown, space?: number): string =>
+	JSON.stringify(
+		value,
+		(_key, replaced: unknown) => (typeof replaced === "bigint" ? replaced.toString() : replaced),
+		space
+	);
+
 export const stripPrefix = (value: string, prefix: string) =>
 	value.startsWith(prefix) ? value.slice(prefix.length) : value;
 
