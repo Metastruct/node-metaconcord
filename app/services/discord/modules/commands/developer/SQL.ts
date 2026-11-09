@@ -2,13 +2,13 @@ import * as Discord from "discord.js";
 import { sql } from "kysely";
 
 import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
-import { errToMessage, jsonKyselify } from "#utils";
+import { errToMessage, jsonKysleify } from "#utils";
 
 const makeFile = (content: unknown) => {
 	return <Discord.BaseMessageOptions>{
 		files: [
 			{
-				attachment: Buffer.from(jsonKyselify(content, 2), "utf8"),
+				attachment: Buffer.from(jsonKysleify(content, 2), "utf8"),
 				name: "sql_result.json",
 			},
 		],

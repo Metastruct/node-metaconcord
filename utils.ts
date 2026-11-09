@@ -64,7 +64,7 @@ export function errToMessage(err: unknown) {
 }
 
 // replaces bigints so it can be used with Kysley
-export const jsonKyselify = (value: unknown, space?: number): string =>
+export const jsonKysleify = (value: unknown, space?: number): string =>
 	JSON.stringify(
 		value,
 		(_key, replaced: unknown) => (typeof replaced === "bigint" ? replaced.toString() : replaced),
