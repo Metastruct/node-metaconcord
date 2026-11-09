@@ -18,6 +18,12 @@ const STARBOARD_CONFIG = {
 const filterStarboardId = (btn: Discord.MessageComponentInteraction) =>
 	btn.customId.startsWith("starboard");
 
+const attachmentToFile = (attachment: Discord.Attachment): Discord.AttachmentBuilder =>
+	new Discord.AttachmentBuilder(attachment.url, {
+		name: attachment.name,
+		description: attachment.description ?? undefined,
+	}).setSpoiler(attachment.spoiler);
+
 export class Starboard extends Service {
 	override name = "Starboard";
 	private pendingMessages = new Set<string>();
@@ -177,7 +183,7 @@ export class Starboard extends Service {
 				}
 
 				let text = title ? `## ${title}\n` : "";
-				const files: string[] = [];
+				const files: Discord.AttachmentBuilder[] = [];
 
 				const reference = msg.reference;
 				if (reference && reference.messageId) {
@@ -192,14 +198,14 @@ export class Starboard extends Service {
 					} else if (reference.type === 1) {
 						const snap = msg.messageSnapshots.first();
 						text += `-# [forwarded message]\n${snap?.content}`;
-						snap?.attachments.forEach(a => void files.push(a.url));
+						snap?.attachments.forEach(a => void files.push(attachmentToFile(a)));
 					}
 				}
 
 				text += msg.content;
 				text += msg.stickers.size > 0 ? msg.stickers.first()?.url : "";
 
-				msg.attachments.forEach(a => void files.push(a.url));
+				msg.attachments.forEach(a => void files.push(attachmentToFile(a)));
 
 				const channel = targetChannel as Discord.TextChannel;
 
