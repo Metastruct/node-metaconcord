@@ -1,13 +1,14 @@
 import * as Discord from "discord.js";
+import { sql } from "kysely";
 
 import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
-import { errToMessage } from "#utils";
+import { errToMessage, jsonKyselify } from "#utils";
 
 const makeFile = (content: unknown) => {
 	return <Discord.BaseMessageOptions>{
 		files: [
 			{
-				attachment: Buffer.from(JSON.stringify(content, null, 2), "utf8"),
+				attachment: Buffer.from(jsonKyselify(content, 2), "utf8"),
 				name: "sql_result.json",
 			},
 		],
@@ -57,15 +58,17 @@ export const SlashSQLCommand: SlashCommand = {
 						!(<Discord.GuildMemberRoleManager>ctx.member.roles).cache.has(
 							bot.config.roles.elevated
 						)
-					)
+					) {
 						await ctx.reply(
 							EphemeralResponse(
 								`You need the <@&${bot.config.roles.elevated}> role to run SQL commands on me!`
 							)
 						);
+						return;
+					}
 					await ctx.deferReply();
-					const db = bot.container.getService("LocalDB")?.getLocalDatabase();
-					const res = db?.prepare(query).all();
+					const db = bot.container.getService("LocalDB")?.db;
+					const res = db ? await sql.raw(query).execute(db) : undefined;
 					const file = makeFile(res);
 					await ctx.followUp(file);
 					break;
