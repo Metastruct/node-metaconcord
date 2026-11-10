@@ -139,14 +139,6 @@ export class Resonite extends Service {
 		return res.data;
 	}
 
-	/** Publicly listed sessions hosted by the given account. */
-	async GetHostSessions(hostId: string): Promise<ResoniteSession[]> {
-		const res = await axios.get<ResoniteSession[]>(
-			`https://api.resonite.com/sessions?hostId=${encodeURIComponent(hostId)}`
-		);
-		return res.data;
-	}
-
 	// assets.resonite.com can gate content on the requesting identity (e.g. a
 	// user's icon when their profile visibility is restricted), so this needs
 	// the same "res {userId}:{token}" auth used for the API itself - a plain

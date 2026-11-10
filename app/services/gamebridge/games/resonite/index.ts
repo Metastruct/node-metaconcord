@@ -303,10 +303,6 @@ function createConnection(bridge: GameBridge): ResoniteConnection {
 		});
 
 		try {
-			const resonite = bridge.container.getService("Resonite");
-			for (const session of await resonite.GetHostSessions(resonite.UserID)) {
-				await upsertSession(bridge, resonite, session);
-			}
 			await renderStatus(bridge);
 		} catch (error) {
 			log.error(error, "Resonite login seed failed");
