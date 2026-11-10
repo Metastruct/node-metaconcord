@@ -13,7 +13,7 @@ import WebAppConfig from "#config/webapp.json" with { type: "json" };
 /**
  * Local integration test for the OIDC provider. Boots ONLY the services it
  * needs (SQL, WebApp, a fake Accounts, OIDC) into a standalone Container, so
- * nothing touches Discord, IRC, gamebridge or GitHub. Run with:
+ * nothing touches Discord, gamebridge or GitHub. Run with:
  *
  *   npm run test:dist:oidc
  *

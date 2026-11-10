@@ -9,7 +9,6 @@ import FluxerProvider, { type Fluxer } from "./fluxer/index.js";
 import GameBridgeProvider, { type GameBridge } from "./gamebridge/index.js";
 import GithubProvider, { type Github } from "./Github.js";
 import GitlabProvider, { type Gitlab } from "./Gitlab.js";
-import IRCProvider, { type IRC } from "./IRC.js";
 import MarkovProvider, { type Markov } from "./Markov.js";
 import MotdProvider, { type Motd } from "./Motd.js";
 import OIDCProvider, { type OIDC } from "./OIDC.js";
@@ -53,7 +52,6 @@ export const SERVICE_GROUPS = {
 		svc("Fluxer", FluxerProvider),
 		svc("Markov", MarkovProvider),
 		svc("Motd", MotdProvider),
-		svc("IRC", IRCProvider),
 		svc("Starboard", StarboardProvider),
 		svc("DiscordMetadata", DiscordMetadataProvider),
 	],
@@ -98,7 +96,6 @@ export type ServiceMap = {
 	GameBridge: GameBridge;
 	Github: Github;
 	Gitlab: Gitlab;
-	IRC: IRC;
 	Markov: Markov;
 	Motd: Motd;
 	OIDC: OIDC;
@@ -122,7 +119,6 @@ export {Fluxer} from "./fluxer/index.js";
 export {GameBridge} from "./gamebridge/index.js";
 export {Github} from "./Github.js";
 export {Gitlab} from "./Gitlab.js";
-export {IRC} from "./IRC.js";
 export {Markov} from "./Markov.js";
 export {Motd} from "./Motd.js";
 export {OIDC} from "./OIDC.js";

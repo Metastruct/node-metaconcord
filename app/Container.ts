@@ -27,7 +27,6 @@ export const REQUIREMENTS: Partial<Record<ServiceName, Requirements>> = {
 	DiscordMetadata: { hard: ["LocalDB", "RemoteDB", "DiscordBot", "Bans", "Accounts"] },
 	Fluxer: { hard: ["LocalDB", "DiscordBot"] },
 	GameBridge: { hard: ["WebApp"] },
-	IRC: { hard: ["DiscordBot"] },
 	Motd: { hard: ["DiscordBot"], soft: ["Data"] },
 	OIDC: { hard: ["WebApp", "LocalDB", "Accounts"] },
 	Resonite: { hard: ["Data"] },
