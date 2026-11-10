@@ -5,7 +5,7 @@ import packageJson from "eslint-package-json";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import unicorn from "eslint-plugin-unicorn";
 import globals from "globals";
-import { configs as tsConfigs,parser as tsParser, plugin as tsPlugin } from "typescript-eslint";
+import { configs as tsConfigs, parser as tsParser, plugin as tsPlugin } from "typescript-eslint";
 
 export default defineConfig([
 	{
@@ -40,22 +40,22 @@ export default defineConfig([
 		},
 		extends: [
 			"eslintJs/recommended",
+			"@typescript-eslint/recommended-type-checked",
 			"unicorn/recommended",
 		],
 		rules: {
+			//#region Disabled Rules
+
 			// Disabled for now, maybe they can be enabled some time?
-			"unicorn/filename-case": "off", // Will change a lot of paths, fix everything else first for simpler merging.
-			"unicorn/consistent-class-member-order": "off", // Could be a good idea, but it's a bit of work.
+			"@typescript-eslint/no-array-delete": "off", // Only used for GameBridge.servers.
+			"@typescript-eslint/no-unsafe-return": "off", // RemoteDB is untyped.
 			"unicorn/consistent-boolean-name": "off", // Generally cool, but could be some work to figure out if the changes would be visible externally (via APIs?)
+			"unicorn/consistent-class-member-order": "off", // Could be a good idea, but it's a bit of work.
+			"unicorn/filename-case": "off", // Will change a lot of paths, fix everything else first for simpler merging.
 			"unicorn/name-replacements": "off", // Good idea, needs some configuring work. Also see above.
 
-			// Base ESLint rules not in eslintJs/recommended that we add into the mix
-			"radix": "error",
-
-			// Base ESLint rules that conflict or should not be used in general.
-			"no-redeclare": "off",
-
 			// Disabled for aesthetic reasons:
+			"@typescript-eslint/restrict-template-expressions": "off",
 			"unicorn/import-style": "off",
 			"unicorn/no-array-reduce": "off",
 			"unicorn/no-asterisk-prefix-in-documentation-comments": "off",
@@ -73,6 +73,10 @@ export default defineConfig([
 			"unicorn/switch-case-braces": "off",
 
 			// Disabled: Heavy refactoring work would be required:
+			"@typescript-eslint/no-unsafe-argument": "off",
+			"@typescript-eslint/no-unsafe-assignment": "off",
+			"@typescript-eslint/no-unsafe-member-access": "off",
+			"@typescript-eslint/require-await": "off",
 			"unicorn/no-declarations-before-early-exit": "off",
 			"unicorn/no-null": "off",
 			"unicorn/no-top-level-assignment-in-function": "off",
@@ -81,6 +85,9 @@ export default defineConfig([
 			"unicorn/prefer-event-target": "off",
 
 			// Disabled: Necessary evil in order to keep this code relatively fun to work with, without requiring seminars:
+			"@typescript-eslint/no-base-to-string": "off",
+			"@typescript-eslint/no-floating-promises": "off",
+			"@typescript-eslint/no-misused-promises": "off",
 			"unicorn/max-nested-calls": "off",
 			"unicorn/no-array-callback-reference": "off",
 			"unicorn/no-await-expression-member": "off",
@@ -89,24 +96,26 @@ export default defineConfig([
 			"unicorn/no-unsafe-string-replacement": "off",
 			"unicorn/prefer-regexp-test": "off",
 
-			// Demoted to warning: Sometimes violating these makes sense for aesthetic reasons:
-			"unicorn/prefer-simple-condition-first": "warn",
+			//#endregion
 
-			/**
-			 * DOM rules
+			//#region Enabled Rules
+
+			// Base ESLint rules not in eslintJs/recommended that we add into the mix
+			"radix": "error",
+			"eqeqeq": ["error", "always" ],
+
+			// Enable some rules not relected by the recommended config:
+			//"@typescript-eslint/no-deprecated": "warn", // TODO: turn this on
+			"@typescript-eslint/no-misused-spread": "error",
+			"@typescript-eslint/no-unnecessary-template-expression": "error",
+
+			// Rules demoted to warning:
+			"unicorn/prefer-simple-condition-first": "warn", // Sometimes violating these makes sense for aesthetic reasons:
+
+			/*
+			 * Rules that require more complex configuration.
 			 */
 
-			// Disabled for aesthetic reasons:
-			"unicorn/prefer-dom-node-append": "off",
-
-			// Demoted to warning: a bit annoying to deal with without investigating further:
-			"unicorn/prefer-scoped-selector": "warn",
-
-			/**
-			 * Custom settings area
-			 */
-
-			"no-unused-vars": "off",
 			"@typescript-eslint/no-unused-vars": [
 				"warn",
 				{
@@ -120,12 +129,6 @@ export default defineConfig([
 				},
 			],
 
-			"eqeqeq": [
-				"error",
-				"always",
-			],
-
-			"@typescript-eslint/no-explicit-any": "warn",
 			"@typescript-eslint/consistent-type-imports": [
 				"error",
 				{
@@ -190,8 +193,20 @@ export default defineConfig([
 			],
 
 			/**
-			 * Stylistic rules (only used for aesthetics and formatting)
+			 * DOM rules (pretty much only used for the dashboard)
 			 */
+
+			// Disabled for aesthetic reasons:
+			"unicorn/prefer-dom-node-append": "off",
+
+			// Demoted to warning: a bit annoying to deal with without investigating further:
+			"unicorn/prefer-scoped-selector": "warn",
+
+			//#endregion
+
+			//#region Stylistic Rules
+
+			// These are all only used for aesthetics and formatting.
 
 			"stylistic/indent": [
 				"error",
@@ -247,6 +262,8 @@ export default defineConfig([
 				"never",
 			],
 			"stylistic/no-trailing-spaces": "error",
+
+			//#endregion
 		},
 	},
 	{
