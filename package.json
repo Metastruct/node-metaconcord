@@ -16,7 +16,7 @@
 		},
 		"#/app/*": "./app/*",
 		"#/generated/*": "./generated/*",
-		"#jtd/*": "./types/*.jtd.ts",
+		"#jtd/*": "./types/*.jtd.js",
 		"#extensions/*": "./extensions/*",
 		"#lib/*": {
 			"@metaconcord/ts-import": "./lib/*.ts",
