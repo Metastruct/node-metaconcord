@@ -16,6 +16,11 @@ export type Rule = {
 	description?: string;
 };
 
+type FetchablePartial = {
+	partial: boolean;
+	fetch: () => Promise<unknown>;
+};
+
 export const EMBED_FIELD_LIMIT = 1024;
 
 let lastMessageId: string;
@@ -291,12 +296,11 @@ export class DiscordBot extends Service {
 		await (await chan.lastMessage.fetch(false)).reactions.removeAll();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async fetchPartial(obj): Promise<any> {
+	async fetchPartial<T extends FetchablePartial>(obj: T): Promise<Awaited<ReturnType<T["fetch"]>>> {
 		try {
-			return obj.partial ? await obj.fetch() : obj;
+			return (obj.partial ? await obj.fetch() : obj) as Awaited<ReturnType<T["fetch"]>>;
 		} catch {
-			return obj;
+			return obj as Awaited<ReturnType<T["fetch"]>>;
 		}
 	}
 }

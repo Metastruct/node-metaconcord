@@ -283,6 +283,7 @@ export default defineConfig([
 		files: ["migrations/**"],
 		rules: {
 			"@typescript-eslint/no-explicit-any": "off",
+			"@typescript-eslint/no-unsafe-call": "off",
 		},
 	},
 	{
