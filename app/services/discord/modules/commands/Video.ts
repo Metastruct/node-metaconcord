@@ -1,13 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { spawn } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import type Stream from "node:stream";
+import { type JTDDataType } from "ajv/dist/core.js";
+import { Ajv } from "ajv/dist/jtd.js";
 import axios from "axios";
 import * as Discord from "discord.js";
 
 import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
+import { ffprobeSchema } from "#jtd/ffprobe";
 import { logger } from "#utils";
 
 const log = logger("VideoCommand");
@@ -55,7 +58,7 @@ function runProcess(bin: string, args: string[]): Promise<string> {
 
 async function downloadFile(url: string, dest: string): Promise<void> {
 	const writer = createWriteStream(dest);
-	const response = await axios({ url, method: "GET", responseType: "stream" });
+	const response = await axios<Stream>({ url, method: "GET", responseType: "stream" });
 	response.data.pipe(writer);
 	return new Promise((resolve, reject) => {
 		writer.on("finish", resolve);
@@ -71,7 +74,12 @@ interface VideoInfo {
 	hasAudio: boolean;
 }
 
-async function getVideoInfo(input: string): Promise<VideoInfo> {
+const ajv = new Ajv();
+
+type FFProbeOutput = JTDDataType<typeof ffprobeSchema>;
+const ffprobeParse = ajv.compileParser<FFProbeOutput>(ffprobeSchema);
+
+async function getVideoInfo(input: string): Promise<VideoInfo | undefined> {
 	const raw = await runProcess("ffprobe", [
 		"-v",
 		"error",
@@ -81,9 +89,9 @@ async function getVideoInfo(input: string): Promise<VideoInfo> {
 		"json",
 		input,
 	]);
-	const data = JSON.parse(raw);
-	const vs = data.streams.find((s: any): boolean => s.codec_type === "video");
-	const as = data.streams.find((s: any) => s.codec_type === "audio");
+	const data = ffprobeParse(raw);
+	const vs = data?.streams?.find(s => s.codec_type === "video");
+	const as = data?.streams?.find((s) => s.codec_type === "audio");
 	let fps = 30;
 	if (vs?.r_frame_rate) {
 		const [n, d] = vs.r_frame_rate.split("/").map(Number);
@@ -93,8 +101,8 @@ async function getVideoInfo(input: string): Promise<VideoInfo> {
 		fps,
 		sampleRate: Number(as?.sample_rate) || 48_000,
 		channels: Number(as?.channels) || 2,
-		duration: Number(data.format.duration) || 0,
-		hasAudio: !!as,
+		duration: Number(data?.format?.duration) || 0,
+		hasAudio: Boolean(as),
 	};
 }
 
@@ -394,7 +402,7 @@ async function processVideo(
 
 		log.debug("probing video");
 		const info = await getVideoInfo(inputPath);
-		if (info.duration === 0) {
+		if (typeof info?.duration !== "number" || info.duration === 0) {
 			await ctx.followUp(
 				EphemeralResponse("Couldn't determine video duration. Is this actually a video?")
 			);
