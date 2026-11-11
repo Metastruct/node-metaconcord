@@ -211,18 +211,23 @@ export class MarkovChain extends MarkovChainBase {
 			return res?.message ?? null;
 		}
 
-		const res = await this.#db
-			.selectFrom("markov")
-			.select("message")
-			.where(eb =>
-				eb.or([
-					eb("message", "like", `_% ${sentence} %_`),
-					eb("message", "like", `${sentence} %_`),
-				]),
-			)
-			.orderBy(eb => eb.fn("random"))
-			.limit(1)
-			.executeTakeFirst();
+		// Quote the entire input as one literal FTS phrase, not query syntax.
+		// unicode61 folds case and tokenizes punctuation differently from our
+		// space-delimited chains, so filter candidates before random selection.
+		// Tokenless (e.g. symbol-only) quoted phrases naturally match no rows.
+		const phrase = `"${sentence.replaceAll('"', '""')}"`;
+		// Unlike the old LIKE lookup, seed %, _ and the escape char are literal.
+		const literal = sentence.replaceAll(/[!%_]/g, "!$&");
+		// FTS constrains stable IDs first; common terms still visit their candidates
+		// for residual filtering and random ordering (not a ranked search).
+		const { rows } = await sql<{ message: string }>`
+			SELECT message FROM markov
+			WHERE id IN (SELECT rowid FROM markov_ft WHERE markov_ft MATCH ${phrase})
+			AND (message LIKE ${`_% ${literal} %_`} ESCAPE '!'
+				OR message LIKE ${`${literal} %_`} ESCAPE '!')
+			ORDER BY random() LIMIT 1
+		`.execute(this.#db);
+		const res = rows[0];
 
 		if (res && !res.message.endsWith(sentence)) {
 			return res.message;
