@@ -31,10 +31,10 @@ export const ffprobeSchema = {
 				"discriminator": "type",
 				"mapping": {
 					"frame": {
-						"properties": {},
+						"optionalProperties": {},
 					},
 					"packet": {
-						"properties": {},
+						"optionalProperties": {},
 					},
 				},
 			},
