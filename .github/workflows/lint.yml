@@ -26,6 +26,7 @@ jobs:
                   node-version: 26
                   cache: npm
             - run: npm ci
+            - run: npm run generate:db-types
             - id: lint
               run: npm run ci:lint
             - name: Display lint results
