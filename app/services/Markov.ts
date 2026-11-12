@@ -1,7 +1,8 @@
 // thank u mr swadical https://github.com/SwadicalRag/node-markov-lite
-import { sql } from "kysely";
+import { type ExpressionBuilder, sql } from "kysely";
 
 import { logger } from "#utils";
+import { type DB } from "#/generated/LocalDBTypes.js";
 import { type Container, Service } from "../Container.js";
 import type { LocalDatabase } from "./sql/LocalDB.js";
 
@@ -136,7 +137,7 @@ abstract class MarkovChainBase {
 
 			words = this.getWords(data);
 
-			let lastChainLength = chain.length;
+			const lastChainLength = chain.length;
 			chain = this.matchCurrentChain(words, chain, depth);
 
 			if (chain.length <= lastChainLength && chain.length < depth) {
@@ -178,7 +179,7 @@ export class MarkovChain extends MarkovChainBase {
 		const rows = await this.#db
 			.selectFrom("markov")
 			.select("message")
-			.where(sql`rowid`, ">=", (eb) => eb.selectFrom("markov")
+			.where(sql`rowid`, ">=", (eb: ExpressionBuilder<DB, "markov">) => eb.selectFrom("markov")
 				.select(sql`ABS(RANDOM()) % MAX(rowid) + 1`.as("val"))
 			)
 			.limit(limit)

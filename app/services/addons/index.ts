@@ -86,7 +86,7 @@ export class Addons extends Service {
 
 	private githubClient(): GithubClient | undefined {
 		const github = this.container.getService("Github");
-		return github?.octokit as unknown as GithubClient | undefined;
+		return github?.octokit;
 	}
 
 	getAll(): ServerAddons[] {
@@ -132,7 +132,7 @@ export class Addons extends Service {
 					...(restricted.thumbnail && { thumbnail: restricted.thumbnail }),
 					// A partial spread cannot be narrowed back onto the source union.
 					source: restricted.source
-						? ({ ...addon.source, ...restricted.source } as AddonSource)
+						? ({ ...addon.source, ...restricted.source } satisfies AddonSource)
 						: addon.source,
 				};
 			}),

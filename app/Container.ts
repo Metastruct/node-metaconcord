@@ -78,7 +78,7 @@ export class Container {
 	}
 
 	validateRequirements(): void {
-		const enabled = new Set(Object.keys(this.services));
+		const enabled = new Set(Object.keys(this.services) as ServiceName[]);
 		for (const name of enabled) {
 			for (const requirement of REQUIREMENTS[name]?.hard ?? []) {
 				if (!enabled.has(requirement)) {

@@ -1,4 +1,7 @@
 import pkg from "websocket";
+
+/* eslint-disable @typescript-eslint/unbound-method */
+
 const { connection } = pkg;
 const drop = connection.prototype.drop;
 

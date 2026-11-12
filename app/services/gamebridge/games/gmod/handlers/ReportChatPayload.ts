@@ -185,7 +185,7 @@ export default class ReportChatPayload extends Payload {
 					type: "queued",
 					messages: messages,
 					reporterSteamId64: reporterSteamId64,
-				} as QueuedReportChatResponse,
+				} satisfies QueuedReportChatResponse,
 				server
 			);
 		}

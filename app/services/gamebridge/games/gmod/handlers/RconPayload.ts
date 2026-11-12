@@ -52,7 +52,7 @@ export default class RconPayload extends Payload {
 
 			setTimeout(() => {
 				this.callbackMap.delete(identifier);
-				reject("Timeout");
+				reject(new Error("Timeout"));
 			}, 30_000);
 		});
 

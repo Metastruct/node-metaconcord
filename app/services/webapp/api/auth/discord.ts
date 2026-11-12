@@ -189,7 +189,7 @@ export default async function discordOAuth(webApp: WebApp): Promise<void> {
 				return;
 			}
 
-			const userId = eventBody.data?.user_id as string | undefined;
+			const userId = eventBody.data?.user_id;
 			if (!userId) {
 				log.warn({ body: req.body }, "webhook missing user.id");
 				res.sendStatus(400);

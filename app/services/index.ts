@@ -59,7 +59,7 @@ export const SERVICE_GROUPS = {
 
 export type ServiceGroup = keyof typeof SERVICE_GROUPS;
 
-const ALL: Entry[] = Object.values(SERVICE_GROUPS).flat() as unknown as Entry[];
+const ALL: Entry[] = Object.values(SERVICE_GROUPS).flat();
 
 /**
  * Picks providers from a comma separated list of group names and/or service
@@ -84,8 +84,34 @@ export const selectServices = (spec: string | undefined): ServiceProvider[] => {
 	return ALL.filter(entry => wanted.has(entry.name)).map(entry => entry.provider);
 };
 
+export const ServiceNames = [
+	"Accounts",
+	"Addons",
+	"Bans",
+	"Data",
+	"DiscordBot",
+	"DiscordMetadata",
+	"Fluxer",
+	"GameBridge",
+	"Github",
+	"Gitlab",
+	"Markov",
+	"Motd",
+	"OIDC",
+	"Resonite",
+	"LocalDB",
+	"RemoteDB",
+	"Starboard",
+	"Steam",
+	"WebApp",
+] as const;
 
-export type ServiceMap = {
+export type ServiceName = typeof ServiceNames[number];
+
+type DefineServiceMap<T extends Record<ServiceName, Service>
+	& Record<Exclude<keyof T, ServiceName>, never>> = T;
+
+export type ServiceMap = DefineServiceMap<{
 	Accounts: Accounts;
 	Addons: Addons;
 	Bans: Bans;
@@ -105,9 +131,7 @@ export type ServiceMap = {
 	Starboard: Starboard;
 	Steam: Steam;
 	WebApp: WebApp;
-};
-
-export type ServiceName = keyof ServiceMap;
+}>;
 
 export {Accounts} from "./Accounts.js";
 export {Addons} from "./addons/index.js";

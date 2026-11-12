@@ -780,7 +780,7 @@ export class Fluxer extends Service {
 				message.embeds.map(embed => embed.toJSON()),
 				message.content
 			);
-			const forumChannel = parentChannel as Discord.ForumChannel | Discord.MediaChannel;
+			const forumChannel = parentChannel;
 			const fluxerParent = await this.fetchFluxerChannel(parentRoute.fluxerChannelId);
 			const fluxerTagByName = new Map(
 				(fluxerParent?.available_tags ?? []).map(tag => [tag.name, tag.id])
@@ -1029,11 +1029,12 @@ export class Fluxer extends Service {
 			}
 		}
 		// The source is not on Fluxer; relay the snapshot contents as a regular message.
-		const payload = await this.translateDiscordMessage({
-			...message,
-			content: snapshot?.content ?? "",
-			mentions: snapshot?.mentions ?? message.mentions,
-		} as unknown as Discord.Message);
+		const payload = await this.translateDiscordMessage(
+			Object.assign(Object.create(message), {
+				content: snapshot?.content ?? "",
+				mentions: snapshot?.mentions ?? message.mentions,
+			})
+		);
 		const { attachments, fallbackUrls } = await this.prepareFluxerAttachments(
 			route,
 			snapshot ? snapshot.attachments.values().toArray() : []

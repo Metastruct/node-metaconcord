@@ -88,7 +88,10 @@ const evalJs = async (code: string): Promise<string> => {
 			)
 			: undefined) ??
 		new AsyncFunction(code);
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 	const result = await fn();
+
 	return typeof result === "string" ? result : util.inspect(result, { depth: 3, colors: false });
 };
 
