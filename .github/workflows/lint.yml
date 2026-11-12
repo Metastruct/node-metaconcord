@@ -26,7 +26,7 @@ jobs:
                   node-version: 26
                   cache: npm
             - run: npm ci
-            - run: npm run generate:db-types
+            - run: npm run generate:db-types && cd config && for f in *.example.json; do mv "$f" "${f%.example.json}.json"; done
             - id: lint
               run: npm run ci:lint
             - name: Display lint results
