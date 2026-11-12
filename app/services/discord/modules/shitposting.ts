@@ -108,7 +108,7 @@ export const Shat = async (options?: {
 		search = getWord(message);
 	}
 
-	let shat = await markov?.generate(getWord(search)) || await markov?.generate();
+	const shat = await markov?.generate(getWord(search)) || await markov?.generate();
 	return shat ? { content: shat } : undefined;
 };
 
