@@ -1,5 +1,3 @@
-import { type MessageReaction } from "discord.js";
-
 import { type DiscordBot } from "../index.js";
 
 export default function StarboardLoader(bot: DiscordBot): void {
@@ -13,6 +11,6 @@ export default function StarboardLoader(bot: DiscordBot): void {
 		}
 		await bot.container
 			.getService("Starboard")
-			.handleReactionAdded(reaction as MessageReaction);
+			.handleReactionAdded(reaction);
 	});
 }

@@ -77,7 +77,7 @@ function asDmBool(v: unknown): DmBool | undefined {
 }
 
 function asGameState(v: unknown): GameState | undefined {
-	return typeof v === "number" && v in GameState ? (v as GameState) : undefined;
+	return typeof v === "number" && v in GameState ? v : undefined;
 }
 
 export async function getServerStatus(

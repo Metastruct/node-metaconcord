@@ -15,7 +15,7 @@ import { App } from "./app/index.js";
 import { logger } from "./utils.js";
 
 process.on("uncaughtException", err => {
-	logger("App").fatal(err as Error);
+	logger("App").fatal(err);
 	process.exit(1);
 });
 

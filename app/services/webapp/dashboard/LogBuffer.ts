@@ -54,7 +54,7 @@ class LogBuffer extends EventEmitter<{ line: [LogLine] }> {
 				// never let capture break the real write
 			}
 			return (original as (...args: unknown[]) => boolean)(chunk, ...rest);
-		}) as typeof target.write;
+		});
 	}
 }
 

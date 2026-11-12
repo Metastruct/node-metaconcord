@@ -4,7 +4,7 @@ import { Container, Service } from "#/app/Container.js";
 import type { App } from "#/app/index.js";
 import OIDCProvider from "#/app/services/OIDC.js";
 import LocalDBProvider, { type LocalDatabase } from "#/app/services/sql/LocalDB.js";
-import WebAppProvider, { type WebApp } from "#/app/services/webapp/index.js";
+import WebAppProvider from "#/app/services/webapp/index.js";
 import { encrypt } from "#/app/services/webapp/secretBox.js";
 
 import OIDCConfig from "#config/oidc.json" with { type: "json" };
@@ -371,7 +371,7 @@ async function main(): Promise<void> {
 		);
 	} finally {
 		await localDB.destroy();
-		(container.getService("WebApp") as WebApp).http.close();
+		container.getService("WebApp").http.close();
 	}
 
 	if (failures > 0) {

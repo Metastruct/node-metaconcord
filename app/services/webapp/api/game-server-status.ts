@@ -81,7 +81,7 @@ export default async function addGameServerStatusAPI(webApp: WebApp): Promise<vo
 				} catch { /* empty */ }
 			}
 		} else {
-			thumbFilepath = backgroundImage as string;
+			thumbFilepath = backgroundImage;
 		}
 		const backgroundImage64 = thumbFilepath ? await imageToDataURL(thumbFilepath) : "";
 		// #endregion

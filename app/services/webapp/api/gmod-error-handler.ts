@@ -231,7 +231,7 @@ export default async function gmodErrorHandlerAPI(webApp: WebApp): Promise<void>
 
 			embed.author = {
 				name: player.nick,
-				icon_url: (player.avatar as string) ?? undefined,
+				icon_url: player.avatar || undefined,
 				url: `https://steamcommunity.com/profiles/${player.id}`,
 			};
 			if (player.isLinux) embed.fields = [{ name: "OS:", value: "UNIX", inline: true }];

@@ -1,4 +1,4 @@
-import axios, { type AxiosResponse } from "axios";
+import axios from "axios";
 import { scheduleJob } from "node-schedule";
 
 import { type Container, Service } from "../Container.js";
@@ -154,11 +154,11 @@ export class Motd extends Service {
 
 	async getImageInfo(id: string): Promise<ImgurImage | undefined> {
 		try {
-			const res = (await axios.get(`https://api.imgur.com/3/image/${id}`, {
+			const res = await axios.get<ImgurResponse>(`https://api.imgur.com/3/image/${id}`, {
 				headers: {
 					Authorization: `Client-ID ${config.imgurClientId}`,
 				},
-			})) as AxiosResponse<ImgurResponse>;
+			});
 			if (res.data.status === 200) {
 				return res.data.data;
 			}

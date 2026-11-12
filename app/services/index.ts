@@ -59,7 +59,7 @@ export const SERVICE_GROUPS = {
 
 export type ServiceGroup = keyof typeof SERVICE_GROUPS;
 
-const ALL: Entry[] = Object.values(SERVICE_GROUPS).flat() as unknown as Entry[];
+const ALL: Entry[] = Object.values(SERVICE_GROUPS).flat();
 
 /**
  * Picks providers from a comma separated list of group names and/or service

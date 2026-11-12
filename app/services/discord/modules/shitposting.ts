@@ -281,7 +281,7 @@ export default async function ShitpostLoader(bot: DiscordBot) {
 			name: status,
 			state,
 			type: selection.type,
-		} as Discord.ActivitiesOptions;
+		};
 
 		return lastSetActivity;
 	};

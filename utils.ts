@@ -271,7 +271,7 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 	try {
 		if (isGithub) {
 			const github = globalThis.MetaConcord.container.getService("Github");
-			const data = (await github.octokit.graphql(
+			const data: GraphQlQueryResponseData = await github.octokit.graphql(
 				`query text($owner: String!, $repo: String!) {
 							repository(owner: $owner, name: $repo) {
 								object(expression: "${branch ?? "HEAD"}:${gpath.fpath}") {
@@ -282,7 +282,7 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 							}
 						}`,
 				{ owner, repo }
-			)) as GraphQlQueryResponseData;
+			);
 			if (data.repository?.object?.text) {
 				filecontent = data.repository.object.text;
 			} else {

@@ -27,7 +27,7 @@ export const SlashGservCommand: SlashCommand = {
 			return;
 		}
 
-		await ctx.showModal(<Discord.APIModalInteractionResponseCallbackData>{
+		await ctx.showModal({
 			title: "Gserv Command",
 			custom_id: "gserv_modal",
 			components: [

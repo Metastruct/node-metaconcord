@@ -780,7 +780,7 @@ export class Fluxer extends Service {
 				message.embeds.map(embed => embed.toJSON()),
 				message.content
 			);
-			const forumChannel = parentChannel as Discord.ForumChannel | Discord.MediaChannel;
+			const forumChannel = parentChannel;
 			const fluxerParent = await this.fetchFluxerChannel(parentRoute.fluxerChannelId);
 			const fluxerTagByName = new Map(
 				(fluxerParent?.available_tags ?? []).map(tag => [tag.name, tag.id])
