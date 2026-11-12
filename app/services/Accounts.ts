@@ -26,21 +26,26 @@ export type LinkSource = "oauth" | "openid" | "ingame" | "import";
 export type Role = "administrator" | "developer" | "trial-developer";
 
 /** Providers that can log someone in, so an account must keep at least one. */
-export const LOGIN_PROVIDERS: AccountProvider[] = ["discord", "steam", "github", "gitlab"];
+export const LOGIN_PROVIDERS = ["discord", "steam", "github", "gitlab"] as const satisfies Partial<AccountProvider>[];
+type LoginProvider = typeof LOGIN_PROVIDERS[number];
+const isLoginProvider = (provider: unknown) => LOGIN_PROVIDERS.some(loginProvider => loginProvider === provider);
+
 /**
  * Capabilities of each login provider. `email` means the login flow captures a
  * verified email address on the link, which SSO clients can require.
  */
-export const LOGIN_PROVIDER_INFO: Record<Exclude<AccountProvider, "minecraft">, { email: boolean }> = {
+export const LOGIN_PROVIDER_INFO = {
 	discord: { email: true },
 	steam: { email: false },
 	github: { email: true },
 	gitlab: { email: false },
-};
+} as const satisfies Record<LoginProvider, { email: boolean }>;
+
 /** Login providers whose login captures a verified email address. */
-export const EMAIL_LOGIN_PROVIDERS: AccountProvider[] = LOGIN_PROVIDERS.filter(
+export const EMAIL_LOGIN_PROVIDERS = LOGIN_PROVIDERS.filter(
 	provider => LOGIN_PROVIDER_INFO[provider].email
 );
+
 /** Providers linked from game chat with a code. */
 export const CODE_PROVIDERS: AccountProvider[] = ["steam", "minecraft"];
 export const ROLES: Role[] = ["administrator", "developer", "trial-developer"];
@@ -332,10 +337,6 @@ export class Accounts extends Service {
 
 	/**
 	 * Attaches a platform to an account. Re-linking the same platform id refreshes the
-	 * name, avatar and token; a platform id owned by another account is refused.
-	 */
-	/**
-	 * Attaches a platform to an account. Re-linking the same platform id refreshes the
 	 * name, avatar and token. A platform id owned by another account is absorbed when
 	 * that account has no other proven way to log in (someone who signed up twice, once
 	 * per platform): the caller has just proven the platform, so everything on the other
@@ -357,7 +358,7 @@ export class Accounts extends Service {
 	/** True when the account's only proven login platform is `provider`. */
 	static onlyLoginIs(account: AccountWithLinks, provider: AccountProvider): boolean {
 		return account.links
-			.filter(l => LOGIN_PROVIDERS.includes(l.provider) && l.source !== "import")
+			.filter(l => isLoginProvider(l.provider) && l.source !== "import")
 			.every(l => l.provider === provider);
 	}
 
@@ -390,7 +391,7 @@ export class Accounts extends Service {
 		const account = await this.get(accountId);
 		if (!account) throw new Error("no such account");
 		const remaining = account.links.filter(
-			l => l.provider !== provider && LOGIN_PROVIDERS.includes(l.provider)
+			l => l.provider !== provider && isLoginProvider(l.provider)
 		);
 		if (remaining.length === 0) throw new LastLoginError();
 
