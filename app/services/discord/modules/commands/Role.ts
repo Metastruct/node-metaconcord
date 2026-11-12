@@ -83,7 +83,7 @@ const setRoleColorSpecial = async (
 
 		await ctx.followUp(
 			EphemeralResponse(
-				`👍\nhere is your old role color if you want to change back: Primary: \`${role.hexColor}\`${role.colors.secondaryColor ? ` Secondary: ${`#${role.colors.secondaryColor.toString(16).padStart(6, "0")}`}` : ""}${role.colors.tertiaryColor ? ` Tertiary: ${`#${role.colors.tertiaryColor.toString(16).padStart(6, "0")}`}` : ""}`
+				`👍\nhere is your old role color if you want to change back: Primary: \`${role.hexColor}\`${role.colors.secondaryColor ? ` Secondary: #${role.colors.secondaryColor.toString(16).padStart(6, "0")}` : ""}${role.colors.tertiaryColor ? ` Tertiary: #${role.colors.tertiaryColor.toString(16).padStart(6, "0")}` : ""}`
 			)
 		);
 	} catch (error) {
@@ -407,7 +407,7 @@ export const SlashRoleCommand: SlashCommand = {
 		} catch (error) {
 			log.error(error);
 			await ctx.followUp(
-				EphemeralResponse("Something went wrong adding your role :(\n" + error)
+				EphemeralResponse("Something went wrong adding your role :(\n" + String(error))
 			);
 		}
 	},
