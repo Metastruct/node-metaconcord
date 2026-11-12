@@ -270,7 +270,7 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 	let filecontent: string | undefined;
 	try {
 		if (isGithub) {
-			const github = await globalThis.MetaConcord.container.getService("Github");
+			const github = globalThis.MetaConcord.container.getService("Github");
 			const data = (await github.octokit.graphql(
 				`query text($owner: String!, $repo: String!) {
 							repository(owner: $owner, name: $repo) {
