@@ -1,4 +1,4 @@
-import type * as Discord from "discord.js";
+import * as Discord from "discord.js";
 
 import { logger } from "#utils";
 import { matchLinkCode, redeemLinkFromChat } from "../../../linkChat.js";
@@ -110,16 +110,21 @@ export default class ChatPayload extends Payload {
 			let reply: Discord.Message | undefined;
 			if (msg.reference) {
 				try {
-					if (msg.reference.type === 0) {
-						reply = await msg.fetchReference();
-					} else if (msg.reference.type === 1) {
-						reply = undefined;
-						const newContent = mainMsg.content;
-						const snapshot = msg.messageSnapshots.first();
-						if (!snapshot) return;
-						const referenceMessage = await formatForMinecraft(snapshot);
+					switch (msg.reference.type) {
+						case Discord.MessageReferenceType.Default: {
+							reply = await msg.fetchReference();
+							break;
+						}
+						case Discord.MessageReferenceType.Forward: {
+							reply = undefined;
+							const newContent = mainMsg.content;
+							const snapshot = msg.messageSnapshots.first();
+							if (!snapshot) return;
+							const referenceMessage = await formatForMinecraft(snapshot);
 
-						mainMsg.content = `-> Forwarded\n${referenceMessage.content}\n${newContent}`;
+							mainMsg.content = `-> Forwarded\n${referenceMessage.content}\n${newContent}`;
+							break;
+						}
 					}
 				} catch { /* empty */ }
 			}

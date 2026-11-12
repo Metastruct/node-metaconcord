@@ -187,18 +187,23 @@ export class Starboard extends Service {
 
 				const reference = msg.reference;
 				if (reference && reference.messageId) {
-					if (reference.type === 0) {
-						const refMsg = await (
-							client.channels.cache.get(reference.channelId) as Discord.TextChannel
-						).messages.fetch(reference.messageId);
+					switch (reference.type) {
+						case Discord.MessageReferenceType.Default: {
+							const refMsg = await (
+								client.channels.cache.get(reference.channelId) as Discord.TextChannel
+							).messages.fetch(reference.messageId);
 
-						text += `-# [replying to ${
-							refMsg.system ? "System Message" : refMsg.author.username
-						}](${refMsg.url})\n`;
-					} else if (reference.type === 1) {
-						const snap = msg.messageSnapshots.first();
-						text += `-# [forwarded message]\n${snap?.content}`;
-						snap?.attachments.forEach(a => void files.push(attachmentToFile(a)));
+							text += `-# [replying to ${
+								refMsg.system ? "System Message" : refMsg.author.username
+							}](${refMsg.url})\n`;
+							break;
+						}
+						case Discord.MessageReferenceType.Forward: {
+							const snap = msg.messageSnapshots.first();
+							text += `-# [forwarded message]\n${snap?.content}`;
+							snap?.attachments.forEach(a => void files.push(attachmentToFile(a)));
+							break;
+						}
 					}
 				}
 

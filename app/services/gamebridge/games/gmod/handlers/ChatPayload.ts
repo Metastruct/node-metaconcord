@@ -1,4 +1,4 @@
-import type * as Discord from "discord.js";
+import * as Discord from "discord.js";
 
 import { logger } from "#utils";
 import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
@@ -30,17 +30,22 @@ export default class ChatPayload extends Payload {
 			let reply: Discord.Message | undefined;
 			if (msg.reference) {
 				try {
-					if (msg.reference.type === 0) {
-						reply = await msg.fetchReference();
-					} else if (msg.reference.type === 1) {
-						// who knows maybe discord will add more
-						reply = undefined;
-						const newContent = mainMsg.content;
-						const snapshot = msg.messageSnapshots.first(); // discord currently only supports one snapshot
-						if (!snapshot) return;
-						const referenceMessage = await formatDiscordMessage(snapshot);
+					switch (msg.reference.type) {
+						case Discord.MessageReferenceType.Default: {
+							reply = await msg.fetchReference();
+							break;
+						}
+						case Discord.MessageReferenceType.Forward: {
+							// who knows maybe discord will add more
+							reply = undefined;
+							const newContent = mainMsg.content;
+							const snapshot = msg.messageSnapshots.first(); // discord currently only supports one snapshot
+							if (!snapshot) return;
+							const referenceMessage = await formatDiscordMessage(snapshot);
 
-						mainMsg.content = `-> Forwarded\n${referenceMessage.content}\n${newContent}`;
+							mainMsg.content = `-> Forwarded\n${referenceMessage.content}\n${newContent}`;
+							break;
+						}
 					}
 				} catch { /* empty */ }
 			}

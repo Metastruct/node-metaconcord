@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 import SteamID from "steamid";
+import { Types as SteamIdTypes } from "steamid/dist/enums.js";
 
 import { logger, parseDuration } from "#utils";
 import { type MetaBan, PERMANENT_UNBAN_TIME } from "#/app/services/Bans.js";
@@ -168,7 +169,7 @@ const validateBan = (body: unknown, server?: GmodConnection): BanInput | string 
 	} catch {
 		return "steamId is not a valid SteamID";
 	}
-	if (!sid.isValid() || sid.type !== SteamID.Type.INDIVIDUAL)
+	if (!sid.isValid() || sid.type !== SteamIdTypes.INDIVIDUAL)
 		return "steamId must be an individual account";
 
 	const reason = clean(input.reason, REASON_MAX);
@@ -271,7 +272,7 @@ export default function bansAPI(webApp: WebApp): void {
 			res.status(404).json({ error: "not a valid SteamID" });
 			return;
 		}
-		if (!sid.isValid() || sid.type !== SteamID.Type.INDIVIDUAL) {
+		if (!sid.isValid() || sid.type !== SteamIdTypes.INDIVIDUAL) {
 			res.status(404).json({ error: "not an individual SteamID" });
 			return;
 		}
@@ -387,7 +388,7 @@ export default function bansAPI(webApp: WebApp): void {
 			res.status(400).json({ error: "not a valid SteamID" });
 			return;
 		}
-		if (!sid.isValid() || sid.type !== SteamID.Type.INDIVIDUAL) {
+		if (!sid.isValid() || sid.type !== SteamIdTypes.INDIVIDUAL) {
 			res.status(400).json({ error: "not an individual SteamID" });
 			return;
 		}

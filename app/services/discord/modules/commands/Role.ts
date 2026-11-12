@@ -94,7 +94,7 @@ const setRoleColorSpecial = async (
 
 const setRoleIcon = async (ctx: Discord.ChatInputCommandInteraction, download: boolean) => {
 	const premiumTier = ctx.guild?.premiumTier;
-	if (premiumTier && premiumTier < 2) {
+	if (premiumTier && premiumTier < Discord.GuildPremiumTier.Tier2) {
 		await ctx.followUp(
 			EphemeralResponse("Sorry we need Server Boost Level 2 to use this feature...")
 		);
