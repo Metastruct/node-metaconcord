@@ -94,7 +94,8 @@ export class LocalDB extends DBService<DB> {
 	}
 
 	public tableExists(tableName: string): boolean {
-		const result = this.getLocalDatabase()
+		if (!this.#sqliteDatabase) throw new Error("LocalDB has not been initialized");
+		const result = this.#sqliteDatabase
 			.prepare<string, { name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name=? LIMIT 1;")
 			.get(tableName);
 
