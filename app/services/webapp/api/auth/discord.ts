@@ -35,13 +35,6 @@ type AccessTokenResponse = {
 	scope: string;
 };
 
-type LocalDatabaseEntry = {
-	user_id: string;
-	access_token: string;
-	refresh_token: string;
-	expires_at: number;
-};
-
 type CurrentAuthorizationInformation = {
 	application: Discord.APIApplication; // partial application missing?
 	scopes: string[];
@@ -99,7 +92,7 @@ export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
 		if (!res) return false;
 	}
 
-	sql.getLocalDatabase().prepare("DELETE FROM discord_tokens WHERE access_token = ?").run(token);
+	await sql.db.deleteFrom("discord_tokens").where("access_token", "=", token).execute();
 
 	return true;
 };
@@ -206,10 +199,11 @@ export default async function discordOAuth(webApp: WebApp): Promise<void> {
 			res.sendStatus(403);
 			return;
 		}
-		const entries = sql
-			.getLocalDatabase()
-			.prepare<[], LocalDatabaseEntry>("SELECT access_token FROM discord_tokens")
-			.all();
+
+		const entries = await sql.db.selectFrom("discord_tokens")
+			.select("access_token")
+			.execute();
+
 		if (!entries || entries.length === 0) {
 			res.status(404).send("no data");
 			return;
@@ -225,10 +219,11 @@ export default async function discordOAuth(webApp: WebApp): Promise<void> {
 			res.sendStatus(403);
 			return;
 		}
-		const entries = sql
-			.getLocalDatabase()
-			.prepare<[], LocalDatabaseEntry>("SELECT user_id FROM discord_tokens")
-			.all();
+
+		const entries = await sql.db.selectFrom("discord_tokens")
+			.select("user_id")
+			.execute();
+
 		for (const entry of entries ?? []) {
 			await metadata().update(entry.user_id);
 		}
@@ -299,15 +294,19 @@ export default async function discordOAuth(webApp: WebApp): Promise<void> {
 			}
 			setSessionCookie(res, account);
 
-			const db = sql.getLocalDatabase();
-			db.prepare(
-				"INSERT INTO discord_tokens (user_id, access_token, refresh_token, expires_at) VALUES($user_id, $access_token, $refresh_token, $expires_at) ON CONFLICT (user_id) DO UPDATE SET access_token = $access_token, refresh_token = $refresh_token, expires_at = $expires_at"
-			).run({
-				user_id: user.id,
-				access_token: tokens.access_token,
-				refresh_token: tokens.refresh_token,
-				expires_at: Date.now() + tokens.expires_in * 1000,
-			});
+			await sql.db.insertInto("discord_tokens")
+				.values({
+					user_id: user.id,
+					access_token: tokens.access_token,
+					refresh_token: tokens.refresh_token,
+					expires_at: Date.now() + tokens.expires_in * 1000,
+				})
+				.onConflict(ocb => ocb.column("user_id").doUpdateSet({
+					access_token: tokens.access_token,
+					refresh_token: tokens.refresh_token,
+					expires_at: Date.now() + tokens.expires_in * 1000,
+				}))
+				.execute();
 
 			// needs a Steam link on the account, the profile page says so when it is missing
 			await metadata()
