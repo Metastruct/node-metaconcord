@@ -1,4 +1,4 @@
-import { type Kysely, type Transaction } from "kysely";
+import { type Kysely, sql, type Transaction } from "kysely";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -44,3 +44,5 @@ export function defineSQLiteMigration(migration: TxMigration): DBMigration {
 		down: db => db.transaction().execute(migration.down),
 	};
 }
+
+export const NOW_MS = sql<number>`(cast(unixepoch('subsec') * 1000 as integer))`;

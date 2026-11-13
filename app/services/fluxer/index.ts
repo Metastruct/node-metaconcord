@@ -1,10 +1,14 @@
 import { randomBytes } from "node:crypto";
 import * as Discord from "discord.js";
-import { LRUMapWithDelete } from "mnemonist";
+import { type Selectable } from "kysely";
 
 import { logger } from "#utils";
 import { type Container, Service } from "#/app/Container.js";
 import type { DiscordBot } from "#/app/services/discord/index.js";
+import {
+	type fluxer_message_mappings as MessageMapping,
+	type fluxer_thread_links,
+} from "../../../generated/LocalDBTypes.js";
 import type { LocalDB } from "../sql/LocalDB.js";
 import { FluxerGateway } from "./Gateway.js";
 import mappingSeed from "./mappings.json" with { type: "json" };
@@ -31,9 +35,8 @@ const MAX_REFRESH_URLS = 50;
 // Bare attachment links (e.g. a GIF a user saved and pasted) are unsigned and expire.
 const DISCORD_ATTACHMENT_CDN =
 	/https?:\/\/(?:cdn\.discordapp\.com|media\.discordapp\.net)\/attachments?\/\d+\/\d+\/[^\s<>"'`]+/g;
-// Per-message mappings are stored in memory
-const MESSAGE_MAPPING_CACHE_SIZE = 50_000;
-const PERMANENT_MESSAGE_CHANNELS = new Set(mappingSeed.permanentMessageChannelIds);
+
+const PERMANENT_MESSAGE_CHANNELS: ReadonlySet<string> = new Set(mappingSeed.permanentMessageChannelIds);
 
 type ChannelRoute = {
 	discordChannelId: string;
@@ -44,24 +47,9 @@ type ChannelRoute = {
 	relayEnabled: boolean;
 };
 
-type MessageMapping = {
-	discord_message_id: string;
-	fluxer_message_id: string;
-	discord_channel_id: string;
-	fluxer_channel_id: string;
-	origin: "discord" | "fluxer";
-};
-
 type ThreadKind = "thread" | "forum_post";
 
-type ThreadLink = {
-	discord_thread_id: string;
-	fluxer_thread_id: string;
-	discord_parent_id: string;
-	fluxer_parent_id: string;
-	channel_kind: ThreadKind;
-	relay_enabled: number;
-};
+type ThreadLink = Selectable<fluxer_thread_links>;
 
 type SeedThread = {
 	discordThreadId: string;
@@ -302,8 +290,6 @@ export class Fluxer extends Service {
 	private readonly emojiFluxerByDiscord = new Map<string, string>();
 	private readonly emojiDiscordByFluxer = new Map<string, string>();
 	private readonly stickerFluxerByDiscord = new Map<string, string>();
-	private readonly messageMappingsByDiscord = new LRUMapWithDelete<string, MessageMapping>(MESSAGE_MAPPING_CACHE_SIZE);
-	private readonly messageMappingsByFluxer = new LRUMapWithDelete<string, MessageMapping>(MESSAGE_MAPPING_CACHE_SIZE);
 
 	constructor(container: Container) {
 		super(container);
@@ -314,6 +300,7 @@ export class Fluxer extends Service {
 		this.discordBot = this.container.getService("DiscordBot");
 		this.rest = new FluxerRest(config.apiBaseUrl, config.botToken);
 		await this.seedThreadLinks();
+		await this.syncImportantChannels();
 		await this.loadMappings();
 		if (!config.enabled) {
 			log.info("Fluxer bridge is disabled");
@@ -342,6 +329,16 @@ export class Fluxer extends Service {
 			},
 			"Fluxer bridge initialized"
 		);
+	}
+
+	async syncImportantChannels() {
+		await this.localDB.db.transaction().execute(async trx => {
+			await trx.deleteFrom("fluxer_message_mappings_permanent_channels").execute();
+			await trx
+				.insertInto("fluxer_message_mappings_permanent_channels")
+				.values(PERMANENT_MESSAGE_CHANNELS.values().map(channel_id => ({ channel_id })).toArray())
+				.execute();
+		});
 	}
 
 	async createLinkCode(discordUserId: string) {
@@ -406,29 +403,9 @@ export class Fluxer extends Service {
 			this.stickerFluxerByDiscord.set(row.discord_sticker_id, row.fluxer_sticker_id);
 		}
 		const threadRows = await db.selectFrom("fluxer_thread_links").selectAll().execute();
-		for (const row of threadRows) {
-			const link: ThreadLink = {
-				discord_thread_id: row.discord_thread_id,
-				fluxer_thread_id: row.fluxer_thread_id,
-				discord_parent_id: row.discord_parent_id,
-				fluxer_parent_id: row.fluxer_parent_id,
-				channel_kind: row.channel_kind as ThreadKind,
-				relay_enabled: row.relay_enabled,
-			};
+		for (const link of threadRows) {
 			this.threadLinksByDiscord.set(link.discord_thread_id, link);
 			this.threadLinksByFluxer.set(link.fluxer_thread_id, link);
-		}
-		if (PERMANENT_MESSAGE_CHANNELS.size > 0) {
-			const permanentRows = await db
-				.selectFrom("fluxer_message_mappings")
-				.selectAll()
-				.where("discord_channel_id", "in", [...PERMANENT_MESSAGE_CHANNELS])
-				.execute();
-			for (const row of permanentRows) {
-				const mapping = row as MessageMapping;
-				this.messageMappingsByDiscord.set(mapping.discord_message_id, mapping);
-				this.messageMappingsByFluxer.set(mapping.fluxer_message_id, mapping);
-			}
 		}
 	}
 
@@ -584,15 +561,7 @@ export class Fluxer extends Service {
 		this.threadLinksByFluxer.set(link.fluxer_thread_id, link);
 		await this.localDB.db
 			.insertInto("fluxer_thread_links")
-			.values({
-				discord_thread_id: link.discord_thread_id,
-				fluxer_thread_id: link.fluxer_thread_id,
-				discord_parent_id: link.discord_parent_id,
-				fluxer_parent_id: link.fluxer_parent_id,
-				channel_kind: link.channel_kind,
-				relay_enabled: link.relay_enabled,
-				updated_at_ms: Date.now(),
-			})
+			.values(link)
 			.onConflict(oc =>
 				oc.column("discord_thread_id").doUpdateSet(eb => ({
 					fluxer_thread_id: eb.ref("excluded.fluxer_thread_id"),
@@ -671,6 +640,7 @@ export class Fluxer extends Service {
 			fluxer_parent_id: parentId,
 			channel_kind: this.isDiscordForumLike(parentChannel) ? "forum_post" : "thread",
 			relay_enabled: 1,
+			updated_at_ms: Date.now(),
 		};
 		if (link.channel_kind === "thread") {
 			if (
@@ -771,6 +741,7 @@ export class Fluxer extends Service {
 			fluxer_parent_id: parentRoute.fluxerChannelId,
 			channel_kind: isForum ? "forum_post" : "thread",
 			relay_enabled: 1,
+			updated_at_ms: Date.now(),
 		};
 		if (isForum) {
 			const payload = await this.translateDiscordMessage(message);
@@ -875,7 +846,7 @@ export class Fluxer extends Service {
 			route = resolution.route;
 			handled = resolution.handled;
 		}
-		if (!route?.relayEnabled || (await this.mappingByDiscordMessage(message.id))) return;
+		if (!route?.relayEnabled || (await this.mappingByDiscordMessageId(message.id))) return;
 		if (message.partial) message = await message.fetch();
 		if (handled) return;
 		if (message.reference?.type === Discord.MessageReferenceType.Forward) {
@@ -923,7 +894,7 @@ export class Fluxer extends Service {
 				`[View this Discord message](${message.url})`;
 		}
 		const reply = message.reference?.messageId
-			? await this.mappingByDiscordMessage(message.reference.messageId)
+			? await this.mappingByDiscordMessageId(message.reference.messageId)
 			: undefined;
 		const sent = await this.withFluxerWebhook(route, webhook =>
 			this.rest.requestRequireResponse<FluxerMessage>(
@@ -982,7 +953,7 @@ export class Fluxer extends Service {
 	private async relayDiscordForward(message: Discord.Message, route: ChannelRoute) {
 		const snapshot = message.messageSnapshots.first();
 		const sourceMapping = message.reference?.messageId
-			? await this.mappingByDiscordMessage(message.reference.messageId)
+			? await this.mappingByDiscordMessageId(message.reference.messageId)
 			: undefined;
 		if (sourceMapping) {
 			// The source is bridged, so create a native Fluxer forward that references it.
@@ -1144,7 +1115,7 @@ export class Fluxer extends Service {
 	private async relayDiscordUpdate(message: Discord.Message | Discord.PartialMessage) {
 		if (!config.enabled) return;
 		if (message.webhookId && this.discordBridgeWebhookIds.has(message.webhookId)) return;
-		const mapping = await this.mappingByDiscordMessage(message.id);
+		const mapping = await this.mappingByDiscordMessageId(message.id);
 		const route = mapping ? this.routeByDiscordChannel(mapping.discord_channel_id) : undefined;
 		if (!mapping || mapping.origin !== "discord" || !route?.relayEnabled) return;
 		if (message.partial) message = await message.fetch();
@@ -1209,7 +1180,7 @@ export class Fluxer extends Service {
 	private async relayDiscordDelete(messageId: string) {
 		if (!config.enabled) return;
 		if (this.suppressedDiscordDeletes.delete(messageId)) return;
-		const mapping = await this.mappingByDiscordMessage(messageId);
+		const mapping = await this.mappingByDiscordMessageId(messageId);
 		const route = mapping ? this.routeByDiscordChannel(mapping.discord_channel_id) : undefined;
 		if (!mapping || !route?.relayEnabled) return;
 		this.suppress(this.suppressedFluxerDeletes, mapping.fluxer_message_id);
@@ -1324,7 +1295,7 @@ export class Fluxer extends Service {
 			route = resolution.route;
 			handled = resolution.handled;
 		}
-		if (!route?.relayEnabled || (await this.mappingByFluxerMessage(message.id))) return;
+		if (!route?.relayEnabled || (await this.mappingByFluxerMessageId(message.id))) return;
 		if (handled) return;
 		if (isFluxerForward(message)) {
 			await this.relayFluxerForward(message, route);
@@ -1433,7 +1404,7 @@ export class Fluxer extends Service {
 	private async relayFluxerUpdate(message: FluxerMessage) {
 		if (!config.enabled) return;
 		if (message.webhook_id && this.fluxerBridgeWebhookIds.has(message.webhook_id)) return;
-		const mapping = await this.mappingByFluxerMessage(message.id);
+		const mapping = await this.mappingByFluxerMessageId(message.id);
 		if (!mapping || mapping.origin !== "fluxer") return;
 		if (isFluxerForward(message)) return;
 		const route = this.routeByFluxerChannel(mapping.fluxer_channel_id);
@@ -1484,7 +1455,7 @@ export class Fluxer extends Service {
 	private async relayFluxerDelete(messageId: string) {
 		if (!config.enabled) return;
 		if (this.suppressedFluxerDeletes.delete(messageId)) return;
-		const mapping = await this.mappingByFluxerMessage(messageId);
+		const mapping = await this.mappingByFluxerMessageId(messageId);
 		if (!mapping) return;
 		const route = this.routeByFluxerChannel(mapping.fluxer_channel_id);
 		if (!route?.relayEnabled) return;
@@ -1838,7 +1809,7 @@ export class Fluxer extends Service {
 		additions: string[] = []
 	) {
 		const reply = message.message_reference?.message_id
-			? await this.mappingByFluxerMessage(message.message_reference.message_id)
+			? await this.mappingByFluxerMessageId(message.message_reference.message_id)
 			: undefined;
 		const author = message.referenced_message?.author;
 		const name = author?.global_name ?? author?.username ?? "message";
@@ -1910,12 +1881,20 @@ export class Fluxer extends Service {
 		return true;
 	}
 
-	private async mappingByDiscordMessage(id: string) {
-		return this.messageMappingsByDiscord.get(id);
+	private async mappingByDiscordMessageId(id: string) {
+		return await this.localDB.db.selectFrom("fluxer_message_mappings")
+			.selectAll()
+			.where("discord_message_id", "=", id)
+			.limit(1)
+			.executeTakeFirst();
 	}
 
-	private async mappingByFluxerMessage(id: string) {
-		return this.messageMappingsByFluxer.get(id);
+	private async mappingByFluxerMessageId(id: string) {
+		return await this.localDB.db.selectFrom("fluxer_message_mappings")
+			.selectAll()
+			.where("fluxer_message_id", "=", id)
+			.limit(1)
+			.executeTakeFirst();
 	}
 
 	private async saveMessageMapping(
@@ -1924,33 +1903,21 @@ export class Fluxer extends Service {
 		route: ChannelRoute,
 		origin: "discord" | "fluxer"
 	) {
-		const mapping: MessageMapping = {
-			discord_message_id: discordMessageId,
-			fluxer_message_id: fluxerMessageId,
-			discord_channel_id: route.discordChannelId,
-			fluxer_channel_id: route.fluxerChannelId,
-			origin,
-		};
-		this.messageMappingsByDiscord.set(mapping.discord_message_id, mapping);
-		this.messageMappingsByFluxer.set(mapping.fluxer_message_id, mapping);
-		if (!PERMANENT_MESSAGE_CHANNELS.has(route.discordChannelId)) return;
 		await this.localDB.db
 			.insertInto("fluxer_message_mappings")
 			.values({
-				discord_message_id: mapping.discord_message_id,
-				fluxer_message_id: mapping.fluxer_message_id,
-				discord_channel_id: mapping.discord_channel_id,
-				fluxer_channel_id: mapping.fluxer_channel_id,
-				origin: mapping.origin,
-				created_at_ms: Date.now(),
+				discord_message_id: discordMessageId,
+				fluxer_message_id: fluxerMessageId,
+				discord_channel_id: route.discordChannelId,
+				fluxer_channel_id: route.fluxerChannelId,
+				origin,
 			})
 			.onConflict(oc => oc.doNothing())
 			.execute();
 	}
 
-	private async deleteMessageMapping(mapping: MessageMapping) {
-		this.messageMappingsByDiscord.delete(mapping.discord_message_id);
-		this.messageMappingsByFluxer.delete(mapping.fluxer_message_id);
+	// `discord_message_id` is the primary key of the table, so let's only require those values.
+	private async deleteMessageMapping(mapping: Pick<MessageMapping, "discord_message_id" | "discord_channel_id">) {
 		if (!PERMANENT_MESSAGE_CHANNELS.has(mapping.discord_channel_id)) return;
 		await this.localDB.db
 			.deleteFrom("fluxer_message_mappings")

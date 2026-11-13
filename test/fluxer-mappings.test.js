@@ -72,3 +72,10 @@ test("permanent-message backfill routes are embedded and writable", () => {
 		assert.ok(route?.relayEnabled, `missing writable route for ${channelId}`);
 	}
 });
+
+test("permanent-message channel ids are unique", () => {
+	assert.equal(
+		new Set(mappings.permanentMessageChannelIds).size,
+		mappings.permanentMessageChannelIds.length
+	);
+});
