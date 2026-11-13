@@ -29,18 +29,10 @@ export const SlashManageMediaLinks: SlashCommand = {
 			case "remove": {
 				const url = ctx.options.getString("url", true);
 				await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
-				const db = bot.container.getService("LocalDB").getLocalDatabase();
-				if (!db) {
-					ctx.followUp(EphemeralResponse("Could not get the DB :("));
-					return;
-				}
-				const result = db.prepare("DELETE FROM media_urls WHERE url = ?").run(url);
+				const db = bot.container.getService("LocalDB").db;
+				const result = await db.deleteFrom("media_urls").where("url", "=", url).executeTakeFirst();
 				await ctx.followUp(
-					EphemeralResponse(
-						result?.changes !== undefined && result?.changes > 0 // wtf can this not be a oneliner without checking for undefined explicitly somehow?
-							? "👍"
-							: "👎 (probably doesn't exist)"
-					)
+					EphemeralResponse(result.numDeletedRows > 0 ? "👍" : "👎 (probably doesn't exist)")
 				);
 				break;
 			}
@@ -90,19 +82,13 @@ export const MenuManageMediaLinksCommand: MenuCommand = {
 			return;
 		}
 		await ctx.deferReply({ flags: Discord.MessageFlags.Ephemeral });
-		const db = bot.container.getService("LocalDB").getLocalDatabase();
-		if (!db) {
-			ctx.followUp(EphemeralResponse("Could not get the DB :("));
-			return;
-		}
-		const result = db.prepare("DELETE FROM media_urls WHERE url = ?").run(text);
+		const db = bot.container.getService("LocalDB").db;
+		const result = await db.deleteFrom("media_urls")
+			.where("url", "=",  text)
+			.executeTakeFirst();
 		await msg.delete();
 		await ctx.followUp(
-			EphemeralResponse(
-				result?.changes !== undefined && result?.changes > 0
-					? "👍"
-					: "👎 (probably doesn't exist)"
-			)
+			EphemeralResponse(result.numDeletedRows > 0 ? "👍" : "👎 (probably doesn't exist)")
 		);
 	},
 };

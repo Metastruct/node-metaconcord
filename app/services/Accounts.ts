@@ -781,12 +781,11 @@ export class Accounts extends Service {
 	 */
 	private async migrateDiscordTokens(): Promise<void> {
 		const localDB = this.container.getService("LocalDB");
-		const db = localDB.getLocalDatabase();
 		if (!localDB.tableExists("discord_tokens"))
 			return;
-		const rows = db
-			.prepare<[], { user_id: string; steam_id: string | null }>("SELECT user_id, steam_id FROM discord_tokens")
-			.all();
+		const rows = await localDB.db.selectFrom("discord_tokens")
+			.select(["user_id", "steam_id"])
+			.execute();
 		let created = 0;
 		for (const row of rows) {
 			if (await this.linkFor("discord", row.user_id)) continue;

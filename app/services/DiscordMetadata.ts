@@ -1,6 +1,7 @@
 import SteamID from "steamid";
 
 import {logger} from "#utils";
+import { type discord_tokens } from "../../generated/LocalDBTypes.js";
 import {type Container, Service} from "../Container.js";
 import {type Role} from "./Accounts.js";
 import {type Accounts, type Bans, type DiscordBot, type LocalDB, type RemoteDB} from "./index.js";
@@ -92,15 +93,6 @@ const METADATA_SCHEMA: MetadataRecord[] = [
 	},
 ];
 
-type LocalDatabaseEntry = {
-	user_id: string;
-	access_token: string;
-	refresh_token: string;
-	expires_at: number;
-};
-
-type RevokeDBEntry = Pick<LocalDatabaseEntry, "user_id" | "access_token" | "refresh_token">;
-
 export class DiscordMetadata extends Service {
 	override name = "DiscordMetadata";
 	private ARCOCache: Record<string, ApplicationRoleConnectionObject> = {};
@@ -167,7 +159,7 @@ export class DiscordMetadata extends Service {
 		delete this.ARCOCache[userId];
 	}
 
-	private async getAccessToken(userId: string, data: LocalDatabaseEntry) {
+	private async getAccessToken(userId: string, data: discord_tokens) {
 		if (Date.now() <= data.expires_at) return data.access_token;
 
 		const res = await fetch("https://discord.com/api/v10/oauth2/token", {
@@ -201,13 +193,16 @@ export class DiscordMetadata extends Service {
 		}
 
 		const token: AccessTokenResponse = await res.json();
-		const db = this.localDB.getLocalDatabase();
-		db.prepare("UPDATE discord_tokens SET access_token = ?, refresh_token = ?, expires_at = ? WHERE user_id = ?").run(
-			token.access_token,
-			token.refresh_token,
-			Date.now() + token.expires_in * 1000,
-			userId
-		);
+
+		await this.localDB.db.updateTable("discord_tokens")
+			.set({
+				access_token: token.access_token,
+				refresh_token: token.refresh_token,
+				expires_at: Date.now() + token.expires_in * 1000,
+			})
+			.where("user_id", "=", userId)
+			.execute();
+
 		return token.access_token;
 	}
 
@@ -215,10 +210,11 @@ export class DiscordMetadata extends Service {
 		if (this.ARCOCache[userId]) return this.ARCOCache[userId];
 
 		const url = `https://discord.com/api/v10/users/@me/applications/${this.bot.config.bot.applicationId}/role-connection`;
-		const db = this.localDB.getLocalDatabase();
-		const data = db
-			.prepare<[string], LocalDatabaseEntry>("SELECT * FROM discord_tokens where user_id = ?;")
-			.get(userId);
+		const data = await this.localDB.db.selectFrom("discord_tokens")
+			.selectAll()
+			.where("user_id", "=", userId)
+			.executeTakeFirst();
+
 		if (!data) return;
 		const accessToken = await this.getAccessToken(userId, data);
 		if (!accessToken) return;
@@ -238,11 +234,11 @@ export class DiscordMetadata extends Service {
 	}
 
 	async update(userId: string) {
-		const db = this.localDB.getLocalDatabase();
+		const data = await this.localDB.db.selectFrom("discord_tokens")
+			.selectAll()
+			.where("user_id", "=", userId)
+			.executeTakeFirst();
 
-		const data = db
-			.prepare<[string], LocalDatabaseEntry>("SELECT * FROM discord_tokens WHERE user_id = ?;")
-			.get(userId);
 		if (!data) return false;
 
 		// the linked role is about the game account, so it needs a Steam link
@@ -292,7 +288,7 @@ export class DiscordMetadata extends Service {
 	}
 	private async push(
 		userId: string,
-		data: LocalDatabaseEntry,
+		data: discord_tokens,
 		metadata: MetaMetadata,
 		username?: string
 	) {
@@ -345,10 +341,10 @@ export class DiscordMetadata extends Service {
 	}
 
 	private async revokeRoleConnection(userId: string): Promise<boolean> {
-		const db = this.localDB.getLocalDatabase();
-		const data = db
-			.prepare<[string], LocalDatabaseEntry>("SELECT * FROM discord_tokens WHERE user_id = ?;")
-			.get(userId);
+		const data = await this.localDB.db.selectFrom("discord_tokens")
+			.selectAll()
+			.where("user_id", "=", userId)
+			.executeTakeFirst();
 		if (!data) return false;
 
 		const accessToken = await this.getAccessToken(userId, data);
@@ -382,10 +378,11 @@ export class DiscordMetadata extends Service {
 	async revoke(userId: string): Promise<boolean> {
 		await this.revokeRoleConnection(userId).catch(() => {});
 
-		const db = this.localDB.getLocalDatabase();
-		const data = db
-			.prepare<[string], RevokeDBEntry>("SELECT user_id, access_token, refresh_token FROM discord_tokens WHERE user_id = ?;")
-			.get(userId);
+		const data = await this.localDB.db.selectFrom("discord_tokens")
+			.select(["user_id", "access_token", "refresh_token"])
+			.where("user_id", "=",  userId)
+			.executeTakeFirst();
+
 		if (!data) {
 			this.clearUserCaches(userId);
 			return false;
@@ -406,7 +403,9 @@ export class DiscordMetadata extends Service {
 			}),
 		}).catch(() => {});
 
-		db.prepare("DELETE FROM discord_tokens WHERE user_id = ?").run(userId);
+		await this.localDB.db.deleteFrom("discord_tokens")
+			.where("user_id", "=", userId)
+			.execute();
 		this.clearUserCaches(userId);
 		return true;
 	}

@@ -92,10 +92,9 @@ export const Shat = async (options?: {
 				: undefined;
 		}
 		try {
-			const db = globalThis.MetaConcord.container.getService("LocalDB").getLocalDatabase();
-
-			const url = db.prepare<[], { url: string } | undefined>("SELECT url FROM media_urls ORDER BY RANDOM() LIMIT 1").get()?.url;
-			return { content: url ?? "wtf" };
+			const db = MetaConcord.container.getService("LocalDB").db;
+			const row = await db.selectFrom("media_urls").select("url").orderBy(eb => eb.fn("random")).limit(1).executeTakeFirst();
+			return { content: row?.url ?? "wtf" };
 		} catch {
 			return { content: "wtf" };
 		}
@@ -152,7 +151,7 @@ const lastReactedUsers = new Set<string>();
 export default async function ShitpostLoader(bot: DiscordBot) {
 	const data = bot.container.getService("Data");
 	const mk = bot.container.getService("Markov");
-	const db = bot.container.getService("LocalDB").getLocalDatabase();
+	const localDB = bot.container.getService("LocalDB");
 	const motd = bot.container.getService("Motd");
 	const now = Date.now();
 	let lastActivityChange = now;
@@ -363,12 +362,10 @@ export default async function ShitpostLoader(bot: DiscordBot) {
 		) {
 			const url = getMediaUrl(message.content);
 			if (url) {
-				message
-					.delete()
-					.then(() => {
-						db.prepare("DELETE FROM media_urls WHERE url = ?").run(url);
-					})
-					.catch(() => {}); // if it doesn't exist, who cares could be an external link too
+				await Promise.all([
+					message.delete(),
+					localDB.db.deleteFrom("media_urls").where("url", "=", url).execute(),
+				]).catch(() => {});
 			}
 		}
 
@@ -482,9 +479,10 @@ export default async function ShitpostLoader(bot: DiscordBot) {
 		if (!isBot && !isHidden && msg.content.startsWith("http")) {
 			const url = getMediaUrl(msg.content);
 			if (url)
-				db.prepare("INSERT INTO media_urls VALUES($url) ON CONFLICT DO NOTHING").run({
-					url: url,
-				});
+				await localDB.db.insertInto("media_urls")
+					.values({url})
+					.onConflict(ocb => ocb.doNothing())
+					.execute();
 		}
 	});
 }
