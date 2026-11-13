@@ -146,7 +146,7 @@ export default async function gmodErrorHandlerAPI(webApp: WebApp): Promise<void>
 		if (server) {
 			// ip matched so it HAS to exist
 			gameserver = gameBridge.servers.gmod.find(s =>
-				Array.isArray(s.config.ip) ? s.config.ip.includes(ip) : s.config.ip === ip
+				s && (Array.isArray(s.config.ip) ? s.config.ip.includes(ip) : s.config.ip === ip)
 			);
 		} else {
 			const allplayers = gameBridge.servers.gmod.reduce(
@@ -155,7 +155,7 @@ export default async function gmodErrorHandlerAPI(webApp: WebApp): Promise<void>
 			);
 			player = allplayers.find(pl => pl.ip.split(":", 1)[0] === ip); // idk if you can combine that into one call
 			gameserver = gameBridge.servers.gmod.find(srv =>
-				srv.status.players.includes(player as GmodPlayer)
+				srv?.status.players.includes(player as GmodPlayer)
 			);
 		}
 
