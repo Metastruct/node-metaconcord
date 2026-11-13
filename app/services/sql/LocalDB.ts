@@ -87,21 +87,6 @@ export class LocalDB extends DBService<DB> {
 		this.#sqliteDatabase?.pragma("optimize");
 	}
 
-	/** @deprecated Do not rely on this anymore, access the database using Kysely via the `.db` property. */
-	getLocalDatabase() {
-		if (!this.#sqliteDatabase) throw new Error("LocalDB has not been initialized");
-		return this.#sqliteDatabase;
-	}
-
-	public tableExists(tableName: string): boolean {
-		if (!this.#sqliteDatabase) throw new Error("LocalDB has not been initialized");
-		const result = this.#sqliteDatabase
-			.prepare<string, { name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name=? LIMIT 1;")
-			.get(tableName);
-
-		return Boolean(result);
-	}
-
 	public get db() {
 		if (!this.#localDB) throw new Error("LocalDB has not been initialized");
 		return this.#localDB;

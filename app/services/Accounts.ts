@@ -781,8 +781,6 @@ export class Accounts extends Service {
 	 */
 	private async migrateDiscordTokens(): Promise<void> {
 		const localDB = this.container.getService("LocalDB");
-		if (!localDB.tableExists("discord_tokens"))
-			return;
 		const rows = await localDB.db.selectFrom("discord_tokens")
 			.select(["user_id", "steam_id"])
 			.execute();
