@@ -105,7 +105,7 @@ export default defineConfig([
 			"eqeqeq": ["error", "always" ],
 
 			// Enable some rules not relected by the recommended config:
-			//"@typescript-eslint/no-deprecated": "warn", // TODO: turn this on
+			"@typescript-eslint/no-deprecated": "warn",
 			"@typescript-eslint/no-misused-spread": "error",
 			"@typescript-eslint/no-unnecessary-template-expression": "error",
 
