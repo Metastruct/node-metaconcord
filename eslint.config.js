@@ -7,6 +7,8 @@ import unicorn from "eslint-plugin-unicorn";
 import globals from "globals";
 import { configs as tsConfigs, parser as tsParser, plugin as tsPlugin } from "typescript-eslint";
 
+import local from "./eslint-rules/local.js";
+
 export default defineConfig([
 	{
 		ignores: ["dist/", "generated/"],
@@ -37,6 +39,7 @@ export default defineConfig([
 			eslintJs,
 			"@typescript-eslint": tsPlugin,
 			"simple-import-sort": simpleImportSort,
+			local,
 		},
 		extends: [
 			"eslintJs/recommended",
@@ -44,6 +47,8 @@ export default defineConfig([
 			"unicorn/recommended",
 		],
 		rules: {
+			"local/no-unexecuted-query": "error",
+
 			//#region Disabled Rules
 
 			// Disabled for now, maybe they can be enabled some time?
