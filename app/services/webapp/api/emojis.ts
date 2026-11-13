@@ -2,7 +2,9 @@ import { type GuildEmoji } from "discord.js";
 
 import { type WebApp } from "#/app/services/webapp/index.js";
 
-type EmojiWithUrl = GuildEmoji & { url?: string };
+type EmojiJSON = Pick<GuildEmoji, "animated" | "name" | "id" | "requiresColons" | "managed" | "available" | "createdTimestamp" | "identifier">
+	& { guildId: string, author: null, imageURL: string };
+type EmojiJSONWithUrl = EmojiJSON & { url: string };
 
 export default async function addEmojiAPI(webApp: WebApp): Promise<void> {
 	webApp.app.get("/discord/guild/emojis", async (_, res) => {
@@ -22,12 +24,11 @@ export default async function addEmojiAPI(webApp: WebApp): Promise<void> {
 			return;
 		}
 
-		// TODO: `guild.emojis.cache` has a `toJSON` method that could maybe be used to structuredClone this in a better way.
-		// eslint-disable-next-line unicorn/prefer-structured-clone, unicorn/no-unsafe-json-serialization
-		const emojis: EmojiWithUrl[] = JSON.parse(JSON.stringify(guild.emojis.cache));
-		for (const emoji of emojis) {
-			emoji.url = `https://cdn.discordapp.com/emojis/${emoji.id}.${emoji.animated ? "gif" : "png"}?v=1`;
-		}
+		const emojis: EmojiJSONWithUrl[] = guild.emojis.cache.map(emoji => Object.assign({},
+			emoji.toJSON() as EmojiJSON,
+			{
+				url: `https://cdn.discordapp.com/emojis/${emoji.id}.${emoji.animated ? "gif" : "png"}?v=1`,
+			}));
 
 		res.status(200).json(emojis);
 	});
