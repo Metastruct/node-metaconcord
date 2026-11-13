@@ -19,8 +19,6 @@ cache
 !app/services/gamebridge/games/gmod/handlers/structures/*.json
 !app/services/gamebridge/games/minecraft/handlers/structures/*.json
 !app/services/fluxer/mappings.json
-deploy.sh
 markov_data.txt
-metaconcord.db
-metaconcord.db-*
-oidc-test.db
+metaconcord*.db
+metaconcord*.db-*
