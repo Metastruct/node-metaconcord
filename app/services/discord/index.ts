@@ -176,7 +176,6 @@ export class DiscordBot extends Service {
 			const currentNick = this.getNickname();
 			this.data.lastDiscordNickName = currentNick ?? "Meta";
 			if (currentNick === newNick) newNick = "Meta";
-			this.data.save();
 			await this.getGuild()?.members.me?.setNickname(newNick + " Construct", reason);
 			return true;
 		} catch {

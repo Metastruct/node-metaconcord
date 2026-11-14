@@ -19,7 +19,6 @@ const MSG_USE_AUTHOR_PROB = 0.3; // use the author name instead of message
 const MSG_REPLY_REACTION_PROB = 0.05;
 const MSG_REPLY_REACTION_CLEAR_INTERVAL = 1000 * 60 * 60;
 const REACTION_PROB = 0.0025; // probability to react on messages
-const SAVE_INTERVAL = 1000 * 60 * 60 * 0.25; // saves lastmsg/mk at that interval
 const MSG_REPLY_PROB = 0.5; // probability for taking the previous message in the cache
 const GUILD_EMOJI_RATIO = 0.5; // guild to normal emoji ratio for reactions
 const COMMON_EMOJI_RATIO = 0.7;
@@ -296,10 +295,6 @@ export default async function ShitpostLoader(bot: DiscordBot) {
 			const lastmsg = bot.getTextChannel(bot.config.channels.chat)?.lastMessage;
 			if (lastmsg) lastMsgs.push(lastmsg);
 		}
-
-		setInterval(() => {
-			data.save();
-		}, SAVE_INTERVAL); // save data
 
 		setInterval(() => {
 			lastReactedMessages.clear();

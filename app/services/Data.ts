@@ -1,29 +1,59 @@
-import { mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-import { logger } from "#utils";
+import { errToMessage, logger } from "#utils";
 import { type Container, Service } from "../Container.js";
 import { type AddonsStore } from "./addons/types.js";
 import { type Rule } from "./discord/index.js";
 
 const log = logger(import.meta);
+const dataPath = path.join(process.cwd(), "data");
+const toFilePath = (fieldName: string) => path.join(dataPath, `${fieldName}.json`);
+
+type Primitive = string | number | boolean | null | undefined;
+
+function persisted<This extends Data, Value extends Primitive>(
+	target: ClassAccessorDecoratorTarget<This, Value>,
+	context: ClassAccessorDecoratorContext<This, Value>,
+): ClassAccessorDecoratorResult<This, Value> {
+	if (context.static || context.private || typeof context.name !== "string")
+		throw new TypeError("@persisted requires a public instance accessor.");
+
+	const fieldName = context.name;
+
+	return {
+		set(this: This, value: Value): void {
+			target.set.call(this, value);
+			this.save(fieldName);
+		},
+	};
+}
 
 export class Data extends Service {
 	override name = "Data";
-	private dataPath = path.join(process.cwd(), "data");
+
+	#initialized = false;
+	#persistenceSuppressed = false;
+
+	#noPersistence(): Disposable {
+		if (this.#persistenceSuppressed) throw new Error("Persistence is already suppressed.");
+		this.#persistenceSuppressed = true;
+		return { [Symbol.dispose]: () => { this.#persistenceSuppressed = false; } };
+	}
+
+	@persisted accessor lastDiscordGuildEvent: string | undefined;
+	@persisted accessor lastDiscordNickName: string | undefined;
+	@persisted accessor lastMsgTime: number | undefined;
+	@persisted accessor lastResoniteToken: string | undefined;
+	@persisted accessor lastResoniteTokenTime: number | undefined;
 
 	addons: AddonsStore = {};
-	lastDiscordGuildEvent!: string;
-	lastDiscordNickName!: string;
-	lastMsgTime!: number;
-	lastResoniteToken!: string;
-	lastResoniteTokenTime!: number;
 	permaRoles: {
 		[userId: string]: {
 			roles: { [roleId: string]: { adderId: string; timeStamp: number } };
 		};
 	} = {};
-	rules!: Array<Rule>;
+	rules: Array<Rule> = [];
 	tempVoiceChannels: {
 		[ownerId: string]: {
 			channelId: string;
@@ -38,71 +68,108 @@ export class Data extends Service {
 		}>;
 	} = {};
 
-	#toSave = [
-		"addons",
+	// Automatically persisted
+	readonly #primitiveFields = [
 		"lastDiscordGuildEvent",
 		"lastDiscordNickName",
+		"lastMsgTime",
 		"lastResoniteToken",
 		"lastResoniteTokenTime",
-		"lastMsgTime",
+	] as const satisfies Array<keyof this>;
+
+	// Require calling save()
+	readonly #objectFields = [
+		"addons",
 		"permaRoles",
 		"reportThreads",
 		"rules",
 		"tempVoiceChannels",
-	];
+	] as const satisfies Array<keyof this>;
 
-	#deleted = [
-		"muted",
-		"lastMotd",
+	// Used to exist but not anymore
+	readonly #deleted = [
 		"lastDiscordBanner",
 		"lastDiscordGuildIcon",
+		"lastMotd",
+		"muted",
 	];
 
 	override async init(): Promise<void> {
-		try {
-			if (!statSync(this.dataPath).isDirectory()) {
-				unlinkSync(this.dataPath);
-				throw new Error("Data path was not a directory");
-			}
-		} catch {
-			mkdirSync(this.dataPath);
+		if (this.#initialized)
+			throw new Error("Already initialized. Calling init() again could overwrite in-memory data not yet persisted to storage.");
+
+		if (existsSync(dataPath)) {
+			if (!statSync(dataPath).isDirectory())
+				throw new Error(`Data path issue: ${dataPath} exists but is not a directory.`);
+		} else {
+			mkdirSync(dataPath);
 		}
+
 		this.#migrate();
 		this.#load();
+		this.#initialized = true;
 	}
 
 	#migrate() {
 		for (const moduleName of this.#deleted) {
-			const filePath = path.join(this.dataPath, moduleName + ".json");
-			if (statSync(filePath).isFile())
+			const filePath = path.join(dataPath, moduleName + ".json");
+			if (existsSync(filePath))
 				unlinkSync(filePath);
 		}
 	}
 
 	#load() {
-		for (const file of readdirSync(this.dataPath)) {
-			const filePath = path.join(this.dataPath, file);
-			if (statSync(filePath).isFile() && path.extname(filePath) === ".json") {
-				let data: unknown;
-				try {
-					data = JSON.parse(readFileSync(filePath, "utf8"));
-				} catch {
-					data = {};
-				}
-				log.info(`loaded ${file}`);
-				this[path.basename(filePath, ".json")] = data;
+		using _ = this.#noPersistence();
+
+		for (const fieldName of Iterator.concat<string>(this.#primitiveFields, this.#objectFields)) {
+			const filePath = toFilePath(fieldName);
+			try {
+				this[fieldName] = JSON.parse(readFileSync(filePath, "utf8"));
+				log.info(`loaded ${filePath}`);
+			} catch (error) {
+				log.error(`failed to load ${filePath}: ${errToMessage(error)}`);
 			}
 		}
 	}
 
-	save() {
-		for (const moduleName of this.#toSave) {
-			const data = this[moduleName];
-			// if (typeof data !== "object") continue;
-			const filePath = path.join(this.dataPath, moduleName + ".json");
-			// console.log(`Saved ${filePath} with`, data);
-			writeFileSync(filePath, JSON.stringify(data ?? {}));
-		}
+	#isPrimitiveField(fieldName: string) { return (this.#primitiveFields as readonly string[]).includes(fieldName); }
+	#isObjectField(fieldName: string) { return (this.#objectFields as readonly string[]).includes(fieldName); }
+
+	#saveField(fieldName: string, value: unknown): void {
+		if (!this.#isObjectField(fieldName) && !this.#isPrimitiveField(fieldName))
+			throw new RangeError(`Invalid fieldName '${fieldName}'.`);
+
+		if (this.#persistenceSuppressed)
+			return;
+
+		if (!this.#initialized)
+			throw new Error("Tried to save before initializing. Call init() first.");
+
+		if (value === undefined)
+			unlinkSync(toFilePath(fieldName));
+		else
+			writeFileSync(toFilePath(fieldName), JSON.stringify(value) ?? "");
+	}
+
+	/**
+	 * Persist all fields.
+	 * @deprecated Prefer `save(field1, field2, ...)` to only persist what has changed.
+	 */
+	save(): void;
+
+	/**
+	 * Persist one or multiple field(s).
+	 * @param fieldNames The field(s) to persist.
+	 */
+	save(...fieldNames: [string, ...string[]]): void;
+
+	save(...fieldNames: string[]): void {
+		const fields = fieldNames.length === 0
+			? this.#objectFields // No arguments => deprecated behavior: save all.
+			: fieldNames; // >= 1 arguments: save requested fields.
+
+		for (const fieldName of new Set(fields))
+			this.#saveField(fieldName, this[fieldName]);
 	}
 }
 

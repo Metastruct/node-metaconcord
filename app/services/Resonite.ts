@@ -201,15 +201,16 @@ export class Resonite extends Service {
 					data.lastResoniteTokenTime = lastTokenTime = new Date(
 						res.data.entity.created
 					).getTime();
-					data.save();
 					log.info("Retrieved and saved Resonite Token!");
 				}
 			} catch (error) {
 				log.error(error);
 			}
 		}
-		this.ResoniteToken = lastToken;
-		this.LastTokenTime = lastTokenTime;
+		if (lastToken) {
+			this.ResoniteToken = lastToken;
+			this.LastTokenTime = lastTokenTime;
+		}
 	}
 }
 export default function ResoniteProvider(container: Container): Service {
