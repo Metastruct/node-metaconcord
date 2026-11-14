@@ -43,7 +43,7 @@ const refreshRules = async (ctx: Discord.ChatInputCommandInteraction, bot: Disco
 		await channel.send(rules);
 	}
 	data.rules = ruleCache;
-	await data.save();
+	data.save();
 };
 
 const addRule = async (ctx: Discord.ChatInputCommandInteraction, bot: DiscordBot) => {

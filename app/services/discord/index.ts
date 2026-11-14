@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { getAsBase64, logger, sleep } from "#utils";
+import { logger, sleep } from "#utils";
 import { type Container, Service } from "#/app/Container.js";
 import { type Data, type GameBridge } from "#/app/services/index.js";
 import { getEventIcon } from "./modules/discord-guild-icon.js";
@@ -155,16 +155,9 @@ export class DiscordBot extends Service {
 			const guild = this.getGuild();
 			if (!guild) return false;
 
-			if (!path) {
+			if (!path)
 				path = (await getEventIcon()).filePath;
-			}
 
-			const iconURL =
-				this.discord.user.avatarURL({ size: 4096 }) ?? guild.iconURL({ size: 4096 });
-			this.data.lastDiscordGuildIcon = iconURL
-				? ((await getAsBase64(iconURL)) ?? this.data.lastDiscordGuildIcon)
-				: this.data.lastDiscordGuildIcon;
-			await this.data.save();
 			await this.discord.user.setAvatar(path);
 			await guild.setIcon(path, reason);
 			return true;
@@ -183,7 +176,7 @@ export class DiscordBot extends Service {
 			const currentNick = this.getNickname();
 			this.data.lastDiscordNickName = currentNick ?? "Meta";
 			if (currentNick === newNick) newNick = "Meta";
-			await this.data.save();
+			this.data.save();
 			await this.getGuild()?.members.me?.setNickname(newNick + " Construct", reason);
 			return true;
 		} catch {
@@ -200,16 +193,6 @@ export class DiscordBot extends Service {
 		try {
 			const guild = this.getGuild();
 			if (!guild) return false;
-
-			let banner = "";
-			const bannerURL = guild.bannerURL({ size: 4096 });
-			if (bannerURL) {
-				const bannerBase64 = await getAsBase64(bannerURL);
-				banner = bannerBase64 ?? "";
-			}
-			this.data.lastDiscordBanner = banner ?? this.data.lastDiscordBanner;
-			await this.data.save();
-
 			await guild.setBanner(url ?? null, reason);
 			return true;
 		} catch {

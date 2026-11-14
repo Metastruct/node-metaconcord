@@ -141,7 +141,7 @@ export default class AdminNotifyPayload extends Payload {
 					t => t.channelId === threadChannelId
 				);
 				if (idx !== -1) data.reportThreads[steamId64].splice(idx, 1);
-				await data.save();
+				data.save();
 			}
 			this.activeReportEmbeds.delete(this.embedKey(server.config.id, steamId64));
 			await ctx.deferUpdate();

@@ -129,9 +129,6 @@ export class Motd extends Service {
 		const msg: string = this.messages[Math.trunc(Math.random() * this.messages.length)];
 		this.messages = [];
 		if (!msg) return;
-		const data = this.container.getService("Data");
-		data.lastMotd = msg;
-		data.save();
 
 		await axios
 			.post(

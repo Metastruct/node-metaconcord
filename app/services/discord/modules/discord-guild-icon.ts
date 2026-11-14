@@ -107,7 +107,7 @@ export default async function DiscordGuildIconLoader(bot: DiscordBot): Promise<v
 							: `It's ${eventName}!`
 					);
 					data.lastDiscordGuildEvent = eventName;
-					await data.save();
+					data.save();
 				} catch (error) {
 					log.error(error);
 					return;

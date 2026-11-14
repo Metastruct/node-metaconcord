@@ -112,7 +112,7 @@ export class Addons extends Service {
 		const entry = this.get("gmod", serverId);
 		if (!entry || JSON.stringify(entry.games) === JSON.stringify(games)) return;
 		entry.games = games;
-		await this.container.getService("Data").save();
+		this.container.getService("Data").save();
 	}
 
 	/**
@@ -139,12 +139,12 @@ export class Addons extends Service {
 		};
 	}
 
-	private async store(entry: ServerAddons): Promise<void> {
+	private store(entry: ServerAddons) {
 		const data = this.container.getService("Data");
 		data.addons ??= {};
 		data.addons[entry.game] ??= {};
 		data.addons[entry.game]![entry.serverId] = { ...entry, shape: ADDONS_SHAPE };
-		await data.save();
+		data.save();
 	}
 
 	/**
@@ -197,7 +197,7 @@ export class Addons extends Service {
 		const addons = built.map(b => b.addon);
 		const transient = built.filter(b => b.transient).length;
 
-		await this.store({
+		this.store({
 			game: "gmod",
 			serverId: id,
 			serverName: name,
@@ -522,7 +522,7 @@ export class Addons extends Service {
 			});
 		}
 
-		await this.store({
+		this.store({
 			game: "minecraft",
 			serverId: id,
 			serverName: name,

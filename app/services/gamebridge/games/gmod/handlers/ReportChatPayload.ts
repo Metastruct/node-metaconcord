@@ -99,7 +99,7 @@ export default class ReportChatPayload extends Payload {
 				}
 
 				entry.pendingMessages.push({ username, content });
-				await data.save?.();
+				data.save();
 			}
 		});
 	}
@@ -152,7 +152,7 @@ export default class ReportChatPayload extends Payload {
 			reportedSteamId64,
 			pendingMessages: [],
 		});
-		await data.save?.();
+		data.save();
 	}
 
 	static async drainQueuedMessages(server: GmodConnection): Promise<void> {
@@ -176,7 +176,7 @@ export default class ReportChatPayload extends Payload {
 				messages.push(...entry.pendingMessages);
 				entry.pendingMessages = [];
 			}
-			await data.save?.();
+			data.save();
 
 			if (messages.length === 0) continue;
 

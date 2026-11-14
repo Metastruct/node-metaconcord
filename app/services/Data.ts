@@ -1,4 +1,4 @@
-import { promises as fs } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { logger } from "#utils";
@@ -13,25 +13,14 @@ export class Data extends Service {
 	private dataPath = path.join(process.cwd(), "data");
 
 	addons: AddonsStore = {};
-	lastDiscordBanner!: string;
 	lastDiscordGuildEvent!: string;
-	lastDiscordGuildIcon!: string;
 	lastDiscordNickName!: string;
-	lastMotd!: string;
 	lastMsgTime!: number;
 	lastResoniteToken!: string;
 	lastResoniteTokenTime!: number;
 	permaRoles: {
 		[userId: string]: {
 			roles: { [roleId: string]: { adderId: string; timeStamp: number } };
-		};
-	} = {};
-	muted: {
-		[userId: string]: {
-			until?: number;
-			at?: number;
-			reason?: string;
-			muter?: string;
 		};
 	} = {};
 	rules!: Array<Rule>;
@@ -48,42 +37,55 @@ export class Data extends Service {
 			pendingMessages: Array<{ username: string; content: string }>;
 		}>;
 	} = {};
-	toSave = [
+
+	#toSave = [
 		"addons",
-		"lastDiscordBanner",
 		"lastDiscordGuildEvent",
-		"lastDiscordGuildIcon",
 		"lastDiscordNickName",
 		"lastResoniteToken",
 		"lastResoniteTokenTime",
-		"lastMotd",
 		"lastMsgTime",
-		"muted",
 		"permaRoles",
 		"reportThreads",
 		"rules",
 		"tempVoiceChannels",
 	];
 
+	#deleted = [
+		"muted",
+		"lastMotd",
+		"lastDiscordBanner",
+		"lastDiscordGuildIcon",
+	];
+
 	override async init(): Promise<void> {
 		try {
-			if (!(await fs.stat(this.dataPath)).isDirectory()) {
-				await fs.unlink(this.dataPath);
+			if (!statSync(this.dataPath).isDirectory()) {
+				unlinkSync(this.dataPath);
 				throw new Error("Data path was not a directory");
 			}
 		} catch {
-			await fs.mkdir(this.dataPath);
+			mkdirSync(this.dataPath);
 		}
-		await this.load();
+		this.#migrate();
+		this.#load();
 	}
 
-	private async load(): Promise<void> {
-		for (const file of await fs.readdir(this.dataPath)) {
+	#migrate() {
+		for (const moduleName of this.#deleted) {
+			const filePath = path.join(this.dataPath, moduleName + ".json");
+			if (statSync(filePath).isFile())
+				unlinkSync(filePath);
+		}
+	}
+
+	#load() {
+		for (const file of readdirSync(this.dataPath)) {
 			const filePath = path.join(this.dataPath, file);
-			if ((await fs.stat(filePath)).isFile() && path.extname(filePath) === ".json") {
+			if (statSync(filePath).isFile() && path.extname(filePath) === ".json") {
 				let data: unknown;
 				try {
-					data = JSON.parse(await fs.readFile(filePath, "utf8"));
+					data = JSON.parse(readFileSync(filePath, "utf8"));
 				} catch {
 					data = {};
 				}
@@ -93,13 +95,13 @@ export class Data extends Service {
 		}
 	}
 
-	async save(): Promise<void> {
-		for (const moduleName of this.toSave) {
+	save() {
+		for (const moduleName of this.#toSave) {
 			const data = this[moduleName];
 			// if (typeof data !== "object") continue;
 			const filePath = path.join(this.dataPath, moduleName + ".json");
 			// console.log(`Saved ${filePath} with`, data);
-			await fs.writeFile(filePath, JSON.stringify(data ?? {}));
+			writeFileSync(filePath, JSON.stringify(data ?? {}));
 		}
 	}
 }
