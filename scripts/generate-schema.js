@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import stringify from "safe-stable-stringify";
 import { createGenerator, DEFAULT_CONFIG } from "ts-json-schema-generator";
 
-const rootDir = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const structureDirs = [
 	"app/services/gamebridge/games/gmod/handlers/structures",
