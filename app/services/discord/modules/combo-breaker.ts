@@ -108,15 +108,18 @@ class Combo {
 		return this.#participants.size;
 	}
 
-	public toString() {
-		const view = {
+	public toJSON() {
+		return {
 			channelId: this.#channelId,
 			messageHash: this.#messageHash,
 			isActive: this.#isActive(),
 			participants: Array.from(this.#participants),
 			doublePosters: Array.from(this.#doublePosters),
 		};
-		return `Combo${JSON.stringify(view)}`;
+	}
+
+	public toString() {
+		return `Combo${JSON.stringify(this)}`;
 	}
 }
 
@@ -134,11 +137,14 @@ class ComboManager {
 		return { combo, effect: combo.onMessage(message) };
 	}
 
-	public toString() {
-		const view = {
+	public toJSON() {
+		return {
 			combos: this.#combos.values().map(combo => combo.toString()).toArray(),
 		};
-		return `ComboManager${JSON.stringify(view)}`;
+	}
+
+	public toString() {
+		return `ComboManager${JSON.stringify(this)}`;
 	}
 }
 
@@ -150,8 +156,6 @@ export default function ComboBreakerLoader(bot: DiscordBot): void {
 			return;
 
 		const {combo, effect} = comboManager.onMessage(msg);
-
-		//msg.channel.send(combo.toString());
 
 		switch (effect) {
 			case ComboMessageEffect.INCREMENTED:
