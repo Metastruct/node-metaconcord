@@ -19,7 +19,7 @@ function persisted<This extends Data, Value extends Primitive>(
 	if (context.static || context.private || typeof context.name !== "string")
 		throw new TypeError("@persisted requires a public instance accessor.");
 
-	const fieldName = context.name;
+	const fieldName = context.name as keyof This;
 
 	return {
 		set(this: This, value: Value): void {
@@ -161,7 +161,7 @@ export class Data extends Service {
 	 * Persist one or multiple field(s).
 	 * @param fieldNames The field(s) to persist.
 	 */
-	save(...fieldNames: [string, ...string[]]): void;
+	save<T extends keyof this>(...fieldNames: [T, ...T[]]): void;
 
 	save(...fieldNames: string[]): void {
 		const fields = fieldNames.length === 0
