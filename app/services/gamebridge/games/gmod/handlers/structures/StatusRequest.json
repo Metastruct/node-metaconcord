@@ -2,16 +2,6 @@
 	"$ref": "#/definitions/StatusRequest",
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"definitions": {
-		"CountdownType": {
-			"enum": [
-				-1,
-				0,
-				1,
-				2,
-				3
-			],
-			"type": "number"
-		},
 		"StatusRequest": {
 			"additionalProperties": false,
 			"properties": {
@@ -28,7 +18,14 @@
 									"type": "number"
 								},
 								"typ": {
-									"$ref": "#/definitions/CountdownType"
+									"enum": [
+										-1,
+										0,
+										1,
+										2,
+										3
+									],
+									"type": "number"
 								}
 							},
 							"required": [

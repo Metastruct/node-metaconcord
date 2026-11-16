@@ -51,6 +51,8 @@ export function AssertType<TKey extends PropertyKey, TValue>() {
 	};
 }
 
+export type ValueOf<T> = T[keyof T];
+
 const LUA_ESCAPES: Record<string, string> = {
 	"\\": "\\\\",
 	'"': '\\"',

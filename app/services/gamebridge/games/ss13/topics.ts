@@ -6,13 +6,25 @@ import { queryTopic } from "./byondTopic.js";
 type DmBool = 0 | 1;
 
 // Mirrors GAME_STATE_* in code/__DEFINES/subsystems.dm.
-export enum GameState {
-	Startup = 0,
-	Pregame = 1,
-	SettingUp = 2,
-	Playing = 3,
-	Finished = 4,
-}
+
+export const GameStateIdByName = {
+	Startup:   0,
+	Pregame:   1,
+	SettingUp: 2,
+	Playing:   3,
+	Finished:  4,
+} as const;
+
+export const GameStateNameById = [
+	"Startup",   // 0
+	"Pregame",   // 1
+	"SettingUp", // 2
+	"Playing",   // 3
+	"Finished",  // 4
+] as const;
+
+export type GameStateName = keyof typeof GameStateIdByName;
+export type GameStateId = typeof GameStateIdByName[GameStateName];
 
 export type TopicStatus = {
 	/** game version */
@@ -36,7 +48,7 @@ export type TopicStatus = {
 	publicAddress?: string;
 	/** admin count */
 	admins?: number;
-	gamestate?: GameState;
+	gamestate?: GameStateId;
 	mapName?: string;
 	/** Only present when a valid comms key was sent with the query. */
 	activePlayers?: number;
@@ -76,8 +88,9 @@ function asDmBool(v: unknown): DmBool | undefined {
 	return v === 0 || v === 1 ? v : undefined;
 }
 
-function asGameState(v: unknown): GameState | undefined {
-	return typeof v === "number" && v in GameState ? v : undefined;
+const gameStateIds = Object.values(GameStateIdByName);
+function asGameStateId(v: unknown): GameStateId | undefined {
+	return gameStateIds.find(id => id === v);
 }
 
 export async function getServerStatus(
@@ -107,7 +120,7 @@ export async function getServerStatus(
 		identifier: asString(data.identifier),
 		publicAddress: asString(data.public_address),
 		admins: asNumber(data.admins),
-		gamestate: asGameState(data.gamestate),
+		gamestate: asGameStateId(data.gamestate),
 		mapName: asString(data.map_name),
 		activePlayers: asNumber(data.active_players),
 		securityLevel: asString(data.security_level),

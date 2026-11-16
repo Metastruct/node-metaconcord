@@ -1,16 +1,19 @@
 import axios from "axios";
 import jwt from "jsonwebtoken";
 
+import { type ValueOf } from "#utils";
+
 import config from "#config/ss13.json" with { type: "json" };
 
 const USER_AGENT = "node-metaconcord";
 
-export enum WatchdogStatus {
-	Offline = 0,
-	Restoring = 1,
-	Online = 2,
-	DelayedRestart = 3,
-}
+export const WatchdogStatus = {
+	Offline: 0,
+	Restoring: 1,
+	Online: 2,
+	DelayedRestart: 3,
+} as const;
+export type WatchdogStatus = ValueOf<typeof WatchdogStatus>;
 
 export type DreamDaemonResponse = {
 	status: WatchdogStatus | null;
