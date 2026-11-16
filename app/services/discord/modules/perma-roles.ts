@@ -62,7 +62,7 @@ export default async function PermaRolesLoader(bot: DiscordBot): Promise<void> {
 		if (permaRoles[updated.id] && isEmpty(permaRoles[updated.id].roles)) {
 			delete permaRoles[updated.id];
 		}
-		data.save();
+		data.save("permaRoles");
 	});
 
 	bot.discord.on("guildMemberAdd", async member => {

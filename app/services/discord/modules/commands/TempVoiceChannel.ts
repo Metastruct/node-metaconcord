@@ -72,7 +72,7 @@ export const SlashVoiceCommand: SlashCommand = {
 							channelId: channel.id,
 						};
 					}
-					data.save();
+					data.save("tempVoiceChannels");
 					pending.splice(pending.indexOf(ctx.user.id), 1);
 				}, 1000 * 30);
 				await ctx.followUp(

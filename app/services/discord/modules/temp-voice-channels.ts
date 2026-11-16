@@ -18,7 +18,7 @@ export default async function TempVoiceChannelsLoader(bot: DiscordBot): Promise<
 				changes = true;
 			}
 		}
-		if (changes) data.save();
+		if (changes) data.save("tempVoiceChannels");
 	});
 
 	bot.discord.on("clientReady", async () => {
@@ -32,7 +32,7 @@ export default async function TempVoiceChannelsLoader(bot: DiscordBot): Promise<
 					changes = true;
 				}
 			}
-			if (changes) data.save();
+			if (changes) data.save("tempVoiceChannels");
 		}
 	});
 }

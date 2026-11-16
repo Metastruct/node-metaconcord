@@ -112,7 +112,7 @@ export class Addons extends Service {
 		const entry = this.get("gmod", serverId);
 		if (!entry || JSON.stringify(entry.games) === JSON.stringify(games)) return;
 		entry.games = games;
-		this.container.getService("Data").save();
+		this.container.getService("Data").save("addons");
 	}
 
 	/**
@@ -144,7 +144,7 @@ export class Addons extends Service {
 		data.addons ??= {};
 		data.addons[entry.game] ??= {};
 		data.addons[entry.game]![entry.serverId] = { ...entry, shape: ADDONS_SHAPE };
-		data.save();
+		data.save("addons");
 	}
 
 	/**
