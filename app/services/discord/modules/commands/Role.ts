@@ -1,8 +1,8 @@
 import axios from "axios";
 import * as Discord from "discord.js";
 
-import { EphemeralResponse, type SlashCommand } from "#extensions/discord.ts";
 import { logger } from "#utils";
+import { EphemeralResponse, type SlashCommand } from "#/extensions/discord.ts";
 
 import DiscordConfig from "#config/discord.json" with { type: "json" };
 

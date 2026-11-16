@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 
-import { EphemeralResponse, type SlashCommand } from "#extensions/discord.ts";
 import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
+import { EphemeralResponse, type SlashCommand } from "#/extensions/discord.ts";
 
 import servers from "#config/gmod.servers.json" with { type: "json" };
 

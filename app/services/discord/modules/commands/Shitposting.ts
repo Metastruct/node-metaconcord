@@ -1,6 +1,6 @@
 import type * as Discord from "discord.js";
 
-import { type SlashCommand } from "#extensions/discord.ts";
+import type { SlashCommand } from "#/extensions/discord.ts";
 import { Shat } from "../shitposting.ts";
 
 export const SlashRandomImageCommand: SlashCommand = {
@@ -8,7 +8,7 @@ export const SlashRandomImageCommand: SlashCommand = {
 		name: "randomimage",
 		description: "post a random image from the time machine...",
 	},
-	execute: async ctx => {
+	execute: async (ctx: Discord.ChatInputCommandInteraction) => {
 		await ctx.deferReply();
 
 		const res = await Shat({ forceImage: true });

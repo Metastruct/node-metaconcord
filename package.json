@@ -11,11 +11,8 @@
 		"#config/*": "./config/*",
 		"#utils": "./utils.ts",
 		"#polyfills/*": "./polyfills/*.ts",
-		"#/app/*": "./app/*",
-		"#/schemas/*": "./schemas/*",
-		"#/generated/*": "./generated/*",
+		"#/*": "./*",
 		"#jtd/*": "./types/*.jtd.ts",
-		"#extensions/*": "./extensions/*",
 		"#lib/*": "./lib/*.ts"
 	},
 	"sideEffects": true,

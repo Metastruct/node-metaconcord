@@ -9,9 +9,9 @@ import { Ajv } from "ajv/dist/jtd.js";
 import axios from "axios";
 import * as Discord from "discord.js";
 
-import { EphemeralResponse, type SlashCommand } from "#extensions/discord.ts";
 import { ffprobeSchema } from "#jtd/ffprobe";
 import { logger } from "#utils";
+import { EphemeralResponse, type SlashCommand } from "#/extensions/discord.ts";
 
 const log = logger("VideoCommand");
 

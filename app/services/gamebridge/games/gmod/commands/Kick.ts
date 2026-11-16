@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { type SlashCommand } from "#extensions/discord.ts";
+import { type SlashCommand } from "#/extensions/discord.ts";
 
 import servers from "#config/gmod.servers.json" with { type: "json" };
 

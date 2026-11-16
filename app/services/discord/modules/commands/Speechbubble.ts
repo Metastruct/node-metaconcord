@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 
-import { EphemeralResponse, type SlashCommand } from "#extensions/discord.ts";
 import { makeSpeechBubble } from "#utils";
+import { EphemeralResponse, type SlashCommand } from "#/extensions/discord.ts";
 
 export const SlashSpeechbubbleCommand: SlashCommand = {
 	options: {

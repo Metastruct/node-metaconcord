@@ -1,8 +1,8 @@
 import * as Discord from "discord.js";
 import { sql } from "kysely";
 
-import { EphemeralResponse, type SlashCommand } from "#extensions/discord.ts";
 import { errToMessage, jsonKysleify } from "#utils";
+import { EphemeralResponse, type SlashCommand } from "#/extensions/discord.ts";
 
 const makeFile = (content: unknown): Discord.BaseMessageOptions => ({
 	files: [

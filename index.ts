@@ -8,7 +8,7 @@ dotenv.config();
 import "#/app/services/webapp/dashboard/LogBuffer.ts";
 // Other polyfills, prototype extensions etc.
 import "#polyfills/Iterator-zip";
-import "#extensions/index.ts";
+import "#/extensions/index.ts";
 
 // Main
 import { App } from "./app/index.ts";

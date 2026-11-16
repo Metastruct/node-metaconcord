@@ -1,8 +1,8 @@
 import * as Discord from "discord.js";
 
-import { type SlashCommand } from "#extensions/discord.ts";
 import { parseDuration } from "#utils";
 import { type DiscordBot } from "#/app/services/discord/index.ts";
+import { type SlashCommand } from "#/extensions/discord.ts";
 import { issueBan } from "../banActions.ts";
 
 import servers from "#config/gmod.servers.json" with { type: "json" };

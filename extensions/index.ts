@@ -1,3 +1,3 @@
-import "#extensions/discord.ts";
-import "#extensions/websocket.ts";
+import "./discord.ts";
+import "./websocket.ts";
 

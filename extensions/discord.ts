@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { type DiscordBot } from "#/app/services/discord/index.ts";
+import type { DiscordBot } from "#/app/services/discord/index.ts";
 
 import DiscordConfig from "#config/discord.json" with { type: "json" };
 

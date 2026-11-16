@@ -1,4 +1,4 @@
-import { EphemeralResponse, type SlashCommand } from "#extensions/discord.ts";
+import { EphemeralResponse, type SlashCommand } from "#/extensions/discord.ts";
 
 export const SlashFluxerLinkCommand: SlashCommand = {
 	options: {

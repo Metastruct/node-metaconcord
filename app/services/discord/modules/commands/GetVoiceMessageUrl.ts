@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { EphemeralResponse, type MenuCommand } from "#extensions/discord.ts";
+import { EphemeralResponse, type MenuCommand } from "#/extensions/discord.ts";
 
 export const MenuGetVoiceMessageUrlCommand: MenuCommand = {
 	options: {
