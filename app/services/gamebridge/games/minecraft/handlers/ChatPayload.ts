@@ -1,14 +1,14 @@
 import * as Discord from "discord.js";
 
 import { logger } from "#utils";
-import { matchLinkCode, redeemLinkFromChat } from "../../../linkChat.js";
-import type MinecraftConnection from "../MinecraftConnection.js";
-import { chatWebhook } from "../webhooks.js";
-import ConsolePayload from "./ConsolePayload.js";
-import Payload from "./Payload.js";
+import { matchLinkCode, redeemLinkFromChat } from "../../../linkChat.ts";
+import type MinecraftConnection from "../MinecraftConnection.ts";
+import { chatWebhook } from "../webhooks.ts";
+import ConsolePayload from "./ConsolePayload.ts";
+import Payload from "./Payload.ts";
 import requestSchema from "./structures/ChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ChatResponse.json" with { type: "json" };
-import { type ChatRequest, type ChatResponse } from "./structures/index.js";
+import { type ChatRequest, type ChatResponse } from "./structures/index.ts";
 
 const log = logger(import.meta);
 

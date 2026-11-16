@@ -2,9 +2,10 @@
 import { type ExpressionBuilder, sql } from "kysely";
 
 import { logger } from "#utils";
-import { type DB } from "#/generated/LocalDBTypes.js";
-import { type Container, Service } from "../Container.js";
-import type { LocalDatabase } from "./sql/LocalDB.js";
+import { type DB } from "#/generated/LocalDBTypes.ts";
+import { type Container } from "../Container.ts";
+import { Service } from "../Service.ts";
+import type { LocalDatabase } from "./sql/LocalDB.ts";
 
 /* eslint-disable unicorn/no-for-loop */
 

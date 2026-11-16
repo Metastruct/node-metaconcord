@@ -1,8 +1,9 @@
 import { logger } from "#utils";
-import { type Container, Service } from "#/app/Container.js";
-import type GmodConnection from "../gamebridge/games/gmod/GmodConnection.js";
-import type MinecraftConnection from "../gamebridge/games/minecraft/MinecraftConnection.js";
-import { TTLCache } from "./cache.js";
+import { type Container } from "#/app/Container.ts";
+import { Service } from "#/app/Service.ts";
+import type GmodConnection from "../gamebridge/games/gmod/GmodConnection.ts";
+import type MinecraftConnection from "../gamebridge/games/minecraft/MinecraftConnection.ts";
+import { TTLCache } from "./cache.ts";
 import {
 	type GithubClient,
 	type GitResolution,
@@ -16,7 +17,7 @@ import {
 	resolveReadme,
 	SUMMARY_LIMIT,
 	workshopUrl,
-} from "./resolvers.js";
+} from "./resolvers.ts";
 import {
 	type Addon,
 	type AddonGame,
@@ -25,9 +26,9 @@ import {
 	type ReportedMod,
 	type RuntimeComponent,
 	type ServerAddons,
-} from "./types.js";
+} from "./types.ts";
 
-export * from "./types.js";
+export * from "./types.ts";
 
 const log = logger(import.meta);
 const DAY = 24 * 60 * 60 * 1000;

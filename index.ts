@@ -5,14 +5,14 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 // Capture process output for the dashboard before anything logs
-import "./app/services/webapp/dashboard/LogBuffer.js";
+import "#/app/services/webapp/dashboard/LogBuffer.ts";
 // Other polyfills, prototype extensions etc.
 import "#polyfills/Iterator-zip";
-import "#extensions/index.js";
+import "#extensions/index.ts";
 
 // Main
-import { App } from "./app/index.js";
-import { logger } from "./utils.js";
+import { App } from "./app/index.ts";
+import { logger } from "./utils.ts";
 
 process.on("uncaughtException", err => {
 	logger("App").fatal(err);

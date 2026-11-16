@@ -3,7 +3,7 @@ import { diffJson, diffWords } from "diff";
 import * as Discord from "discord.js";
 
 import { f } from "#utils";
-import { type DiscordBot } from "../index.js";
+import { type DiscordBot } from "../index.ts";
 
 const RED_COLOR = Discord.Colors.Red;
 const YELLOW_COLOR = Discord.Colors.Yellow;

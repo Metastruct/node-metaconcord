@@ -2,11 +2,11 @@ import * as signalR from "@microsoft/signalr";
 import * as Discord from "discord.js";
 
 import { formatDiscordRelativeTimestamp, localeCompare, logger } from "#utils";
-import { type Resonite, type ResoniteSession } from "#/app/services/Resonite.js";
-import type GameBridge from "../../GameBridge.js";
-import { type Player } from "../../GameConnection.js";
-import { renderPlayerListImage } from "../../renderPlayerList.js";
-import ResoniteConnection, { RESONITE_ACCENT, type ResoniteSessionState } from "./ResoniteConnection.js";
+import { type Resonite, type ResoniteSession } from "#/app/services/Resonite.ts";
+import type GameBridge from "../../GameBridge.ts";
+import { type Player } from "../../GameConnection.ts";
+import { renderPlayerListImage } from "../../renderPlayerList.ts";
+import ResoniteConnection, { RESONITE_ACCENT, type ResoniteSessionState } from "./ResoniteConnection.ts";
 
 import resoniteConfig from "#config/resonite.json" with { type: "json" };
 

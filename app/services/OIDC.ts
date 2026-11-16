@@ -13,10 +13,11 @@ import {
 
 import { logger } from "#utils";
 import jwksSchema from "#/schemas/jwks.schema.json" with { type: "json" };
-import { type Container, Service } from "../Container.js";
-import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.js";
-import { type LocalDB } from "./sql/LocalDB.js";
-import { getSessionAccountId } from "./webapp/api/auth/session.js";
+import { type Container } from "../Container.ts";
+import { Service } from "../Service.ts";
+import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.ts";
+import { type LocalDB } from "./sql/LocalDB.ts";
+import { getSessionAccountId } from "./webapp/api/auth/session.ts";
 
 import jwks from "#config/jwks.json" with { type: "json" };
 import OIDCConfig from "#config/oidc.json" with { type: "json" };

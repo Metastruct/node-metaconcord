@@ -1,5 +1,4 @@
-import { Container } from "./Container.js";
-import { selectServices } from "./services/index.js";
+import { type Container } from "./Container.ts";
 
 declare global {
 	var MetaConcord: {
@@ -7,17 +6,4 @@ declare global {
 	};
 }
 
-export class App {
-	container: Container;
-
-	constructor() {
-		this.container = new Container(this, selectServices(process.env.METACONCORD_SERVICES));
-	}
-
-	async init(): Promise<void> {
-		for (const provider of this.container.getProviders()) {
-			this.container.addService(provider(this.container));
-		}
-		await this.container.initServices();
-	}
-}
+export { App } from "./App.ts";

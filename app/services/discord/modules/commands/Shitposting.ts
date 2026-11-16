@@ -1,7 +1,7 @@
 import type * as Discord from "discord.js";
 
-import { type SlashCommand } from "#extensions/discord.js";
-import { Shat } from "../shitposting.js";
+import { type SlashCommand } from "#extensions/discord.ts";
+import { Shat } from "../shitposting.ts";
 
 export const SlashRandomImageCommand: SlashCommand = {
 	options: {

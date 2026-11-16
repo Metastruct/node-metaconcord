@@ -7,8 +7,8 @@ import { AddonURIS, getOrFetchGmodFile, logger, type WithRequired } from "#utils
 import type {
 	default as GmodConnection,
 	GmodPlayer,
-} from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
+} from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
+import { type WebApp } from "#/app/services/webapp/index.ts";
 
 import servers from "#config/gmod.servers.json" with { type: "json" };
 import config from "#config/webapp.json" with { type: "json" };

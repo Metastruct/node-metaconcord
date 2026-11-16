@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import { scheduleJob } from "node-schedule";
 
 import { logger } from "#utils";
-import { type DiscordBot } from "../index.js";
+import { type DiscordBot } from "../index.ts";
 
 const log = logger(import.meta);
 

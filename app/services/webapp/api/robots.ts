@@ -1,4 +1,4 @@
-import { type WebApp } from "#/app/services/webapp/index.js";
+import { type WebApp } from "#/app/services/webapp/index.ts";
 
 /** Nothing here is worth indexing, tell the clankers to go away. */
 export default function robots(webApp: WebApp): void {

@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { EphemeralResponse, type MenuCommand } from "#extensions/discord.js";
+import { EphemeralResponse, type MenuCommand } from "#extensions/discord.ts";
 import { logger } from "#utils";
 
 import discordConfig from "#config/discord.json" with { type: "json" };

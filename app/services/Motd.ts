@@ -1,8 +1,9 @@
 import axios from "axios";
 import { scheduleJob } from "node-schedule";
 
-import { type Container, Service } from "../Container.js";
-import { type DiscordBot } from "./index.js";
+import { type Container } from "../Container.ts";
+import { Service } from "../Service.ts";
+import { type DiscordBot } from "./index.ts";
 
 import config from "#config/motd.json" with { type: "json" };
 

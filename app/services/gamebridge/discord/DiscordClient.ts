@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 
 import { logger, sleep } from "#utils";
-import type GameConnection from "#/app/services/gamebridge/GameConnection.js";
+import type GameConnection from "#/app/services/gamebridge/GameConnection.ts";
 
 import config from "#config/discord.json" with { type: "json" };
 

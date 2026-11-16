@@ -1,13 +1,13 @@
-import type MinecraftConnection from "../MinecraftConnection.js";
-import AddonsPayload from "./AddonsPayload.js";
-import AdvancementPayload from "./AdvancementPayload.js";
-import ChatPayload from "./ChatPayload.js";
-import ConsolePayload from "./ConsolePayload.js";
-import DeathPayload from "./DeathPayload.js";
-import JoinLeavePayload from "./JoinLeavePayload.js";
-import type Payload from "./Payload.js";
-import StatsPayload from "./StatsPayload.js";
-import StatusPayload from "./StatusPayload.js";
+import type MinecraftConnection from "../MinecraftConnection.ts";
+import AddonsPayload from "./AddonsPayload.ts";
+import AdvancementPayload from "./AdvancementPayload.ts";
+import ChatPayload from "./ChatPayload.ts";
+import ConsolePayload from "./ConsolePayload.ts";
+import DeathPayload from "./DeathPayload.ts";
+import JoinLeavePayload from "./JoinLeavePayload.ts";
+import type Payload from "./Payload.ts";
+import StatsPayload from "./StatsPayload.ts";
+import StatusPayload from "./StatusPayload.ts";
 
 
 
@@ -31,12 +31,12 @@ export function attachHandlers(connection: MinecraftConnection): void {
 	}
 }
 
-export {default as Payload} from "./Payload.js";
-export {default as AddonsPayload} from "./AddonsPayload.js";
-export {default as AdvancementPayload} from "./AdvancementPayload.js";
-export {default as ChatPayload} from "./ChatPayload.js";
-export {default as ConsolePayload} from "./ConsolePayload.js";
-export {default as DeathPayload} from "./DeathPayload.js";
-export {default as JoinLeavePayload} from "./JoinLeavePayload.js";
-export {default as StatsPayload} from "./StatsPayload.js";
-export {default as StatusPayload} from "./StatusPayload.js";
+export {default as Payload} from "./Payload.ts";
+export {default as AddonsPayload} from "./AddonsPayload.ts";
+export {default as AdvancementPayload} from "./AdvancementPayload.ts";
+export {default as ChatPayload} from "./ChatPayload.ts";
+export {default as ConsolePayload} from "./ConsolePayload.ts";
+export {default as DeathPayload} from "./DeathPayload.ts";
+export {default as JoinLeavePayload} from "./JoinLeavePayload.ts";
+export {default as StatsPayload} from "./StatsPayload.ts";
+export {default as StatusPayload} from "./StatusPayload.ts";

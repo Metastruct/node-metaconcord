@@ -4,11 +4,11 @@ import express from "express";
 import { rateLimit } from "express-rate-limit";
 
 import { logger } from "#utils";
-import { Accounts } from "#/app/services/Accounts.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
-import { requireStaff,type Session } from "./auth/session.js";
-import { MirrorError, mirrorImage } from "./history-images.js";
+import { Accounts } from "#/app/services/Accounts.ts";
+import { type WebApp } from "#/app/services/webapp/index.ts";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";
+import { requireStaff, type Session } from "./auth/session.ts";
+import { MirrorError, mirrorImage } from "./history-images.ts";
 
 import HistoryConfig from "#config/history.json" with { type: "json" };
 

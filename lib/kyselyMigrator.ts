@@ -4,7 +4,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { FileMigrationProvider, Migrator } from "kysely/migration";
 import pino from "pino";
 
-import type { LocalDatabase } from "#/app/services/sql/LocalDB.js";
+import type { LocalDatabase } from "#/app/services/sql/LocalDB.ts";
 
 type Logger = Pick<Console, "info" | "error" | "debug">;
 const defaultLog = pino({ level: "debug" }).child({ file: path.basename(import.meta.filename) });

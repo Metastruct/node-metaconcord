@@ -1,14 +1,14 @@
 import * as Discord from "discord.js";
 
 import { localeCompare, logger } from "#utils";
-import { renderPlayerListImage } from "../../../renderPlayerList.js";
-import { renderHeadDataUri } from "../headRender.js";
+import { renderPlayerListImage } from "../../../renderPlayerList.ts";
+import { renderHeadDataUri } from "../headRender.ts";
 import type {
 	default as MinecraftConnection,
 	MinecraftStatus,
-} from "../MinecraftConnection.js";
-import Payload from "./Payload.js";
-import { type StatusRequest } from "./structures/index.js";
+} from "../MinecraftConnection.ts";
+import Payload from "./Payload.ts";
+import { type StatusRequest } from "./structures/index.ts";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
 
 const log = logger(import.meta);

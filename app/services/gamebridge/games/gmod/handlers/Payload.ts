@@ -1,1 +1,1 @@
-export { default } from "../../../Payload.js";
+export { default } from "../../../Payload.ts";

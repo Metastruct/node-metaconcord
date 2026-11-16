@@ -1,5 +1,5 @@
-import { type WebApp } from "#/app/services/webapp/index.js";
-import { resolveIp } from "./servers.js";
+import { type WebApp } from "#/app/services/webapp/index.ts";
+import { resolveIp } from "./servers.ts";
 
 /** Short links that used to live on the metastruct.net express server. */
 const REDIRECTS: Record<string, string> = {

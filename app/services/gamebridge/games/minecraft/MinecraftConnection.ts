@@ -1,10 +1,10 @@
 import { type request as WebSocketRequest } from "websocket";
 
-import type GameBridge from "../../GameBridge.js";
-import type GameConnection from "../../GameConnection.js";
-import {type GameConnectionConfig} from "../../GameConnection.js";
-import GameSocketConnection from "../../GameSocketConnection.js";
-import { attachHandlers } from "./handlers/index.js";
+import type GameBridge from "../../GameBridge.ts";
+import type GameConnection from "../../GameConnection.ts";
+import { type GameConnectionConfig } from "../../GameConnection.ts";
+import GameSocketConnection from "../../GameSocketConnection.ts";
+import { attachHandlers } from "./handlers/index.ts";
 
 export type MinecraftConnectionConfig = GameConnectionConfig & {
 	ip?: string | string[];

@@ -1,4 +1,4 @@
-import type PayloadRequest from "./PayloadRequest.js";
+import type PayloadRequest from "./PayloadRequest.ts";
 export default interface AdvancementRequest extends PayloadRequest {
 	name: "AdvancementPayload";
 	data: {

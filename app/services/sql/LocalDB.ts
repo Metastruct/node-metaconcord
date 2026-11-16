@@ -3,9 +3,10 @@ import { Kysely, SqliteDialect } from "kysely";
 
 import { migrateToLatest } from "#lib/kyselyMigrator";
 import { logger } from "#utils";
-import { DBService } from "#/app/services/sql/DBService.js";
-import { type DB } from "#/generated/LocalDBTypes.js";
-import { type Container, type Service } from "../../Container.js";
+import { DBService } from "#/app/services/sql/DBService.ts";
+import { type DB } from "#/generated/LocalDBTypes.ts";
+import { type Container } from "../../Container.ts";
+import { type Service } from "../../Service.ts";
 
 const log = logger(import.meta);
 

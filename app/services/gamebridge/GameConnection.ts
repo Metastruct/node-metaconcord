@@ -2,8 +2,8 @@ import { EventEmitter } from "node:events";
 import * as Discord from "discord.js";
 
 import { logger } from "#utils";
-import { DiscordClient } from "./discord/index.js";
-import type GameBridge from "./GameBridge.js";
+import { DiscordClient } from "./discord/index.ts";
+import type GameBridge from "./GameBridge.ts";
 
 const log = logger(import.meta);
 

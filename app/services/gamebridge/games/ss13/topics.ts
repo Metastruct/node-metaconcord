@@ -1,4 +1,4 @@
-import { queryTopic } from "./byondTopic.js";
+import { queryTopic } from "./byondTopic.ts";
 
 // DM has no real boolean type - TRUE/FALSE are just #defined to 1/0, and
 // json_encode() doesn't special-case them into JSON true/false. These fields

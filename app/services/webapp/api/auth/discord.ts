@@ -4,16 +4,16 @@ import { verifyWebhookEventMiddleware } from "discord-interactions";
 import { rateLimit } from "express-rate-limit";
 
 import { logger } from "#utils";
-import { LinkConflictError } from "#/app/services/Accounts.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
+import { LinkConflictError } from "#/app/services/Accounts.ts";
+import { type WebApp } from "#/app/services/webapp/index.ts";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";
 import {
 	cookieOptions,
 	getSessionAccountId,
 	setSessionCookie,
 	storeRedirect,
 	takeRedirect,
-} from "./session.js";
+} from "./session.ts";
 
 import DiscordConfig from "#config/discord.json" with { type: "json" };
 

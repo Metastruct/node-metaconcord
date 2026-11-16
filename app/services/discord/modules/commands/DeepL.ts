@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { EphemeralResponse, type MenuCommand, type SlashCommand } from "#extensions/discord.js";
+import { EphemeralResponse, type MenuCommand, type SlashCommand } from "#extensions/discord.ts";
 
 import config from "#config/deepl.json" with { type: "json" };
 

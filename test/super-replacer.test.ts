@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { AddonURIS } from "#utils";
-import { isStackMatchGroups, megaRex, SuperReplacer } from "#/app/services/webapp/api/gmod-error-handler.js";
+import { isStackMatchGroups, megaRex, SuperReplacer } from "#/app/services/webapp/api/gmod-error-handler.ts";
 
 // -----------------------------------------------------------------------------
 // Deterministic test fixtures

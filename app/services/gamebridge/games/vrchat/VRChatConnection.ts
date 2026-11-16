@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import type { Group, GroupInstance } from "vrchat";
 
-import GameConnection, { type Player } from "../../GameConnection.js";
+import GameConnection, { type Player } from "../../GameConnection.ts";
 
 import config from "#config/vrchat.json" with { type: "json" };
 

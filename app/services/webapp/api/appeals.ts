@@ -5,17 +5,17 @@ import { rateLimit } from "express-rate-limit";
 import { type Selectable } from "kysely";
 
 import { f, logger } from "#utils";
-import { ServiceNotEnabledError } from "#/app/Container.js";
-import { Accounts } from "#/app/services/Accounts.js";
-import { type MetaBan, PERMANENT_UNBAN_TIME } from "#/app/services/Bans.js";
-import { EMBED_FIELD_LIMIT } from "#/app/services/discord/index.js";
-import { pickGmodServer, revokeBan } from "#/app/services/gamebridge/games/gmod/banActions.js";
-import { actorLabel } from "#/app/services/gamebridge/games/gmod/banActor.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
-import { type appeals } from "#/generated/LocalDBTypes.js";
-import { getSession } from "./auth/session.js";
-import { resolveProfiles, toEntry } from "./bans.js";
+import { ServiceNotEnabledError } from "#/app/Service.ts";
+import { Accounts } from "#/app/services/Accounts.ts";
+import { type MetaBan, PERMANENT_UNBAN_TIME } from "#/app/services/Bans.ts";
+import { EMBED_FIELD_LIMIT } from "#/app/services/discord/index.ts";
+import { pickGmodServer, revokeBan } from "#/app/services/gamebridge/games/gmod/banActions.ts";
+import { actorLabel } from "#/app/services/gamebridge/games/gmod/banActor.ts";
+import { type WebApp } from "#/app/services/webapp/index.ts";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";
+import { type appeals } from "#/generated/LocalDBTypes.ts";
+import { getSession } from "./auth/session.ts";
+import { resolveProfiles, toEntry } from "./bans.ts";
 
 const log = logger(import.meta);
 

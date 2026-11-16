@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 
-import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
-import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
+import { EphemeralResponse, type SlashCommand } from "#extensions/discord.ts";
+import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
 // order matters for the menu
 const VALID_GSERV_COMMANDS: [string, string][] = [
 	["qu rehash", "runs both qu and rehash"],

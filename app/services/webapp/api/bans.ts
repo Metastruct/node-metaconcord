@@ -5,22 +5,22 @@ import SteamID from "steamid";
 import { Types as SteamIdTypes } from "steamid/dist/enums.js";
 
 import { logger, parseDuration } from "#utils";
-import { type MetaBan, PERMANENT_UNBAN_TIME } from "#/app/services/Bans.js";
+import { type MetaBan, PERMANENT_UNBAN_TIME } from "#/app/services/Bans.ts";
 import {
 	issueBan,
 	pickGmodServer,
 	revokeBan,
-} from "#/app/services/gamebridge/games/gmod/banActions.js";
+} from "#/app/services/gamebridge/games/gmod/banActions.ts";
 import {
 	type BanActor,
 	githubActor,
 	HARDBAN_ACTOR,
 	parseBanActor,
-} from "#/app/services/gamebridge/games/gmod/banActor.js";
-import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
-import { getSession, isStaff,type Session } from "./auth/session.js";
+} from "#/app/services/gamebridge/games/gmod/banActor.ts";
+import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
+import { type WebApp } from "#/app/services/webapp/index.ts";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";
+import { getSession, isStaff, type Session } from "./auth/session.ts";
 
 const log = logger(import.meta);
 

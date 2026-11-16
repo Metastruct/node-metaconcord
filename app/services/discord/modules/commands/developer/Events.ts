@@ -1,5 +1,5 @@
-import { type SlashCommand } from "#extensions/discord.js";
-import { endEvent } from "#/app/services/discord/modules/discord-events.js";
+import { type SlashCommand } from "#extensions/discord.ts";
+import { endEvent } from "#/app/services/discord/modules/discord-events.ts";
 
 export const SlashEndEvent: SlashCommand = {
 	options: {

@@ -4,7 +4,7 @@ import SQLite from "better-sqlite3";
 import { Kysely, SqliteDialect } from "kysely";
 
 import { migrateToLatest } from "#lib/kyselyMigrator";
-import type { DB } from "#/generated/LocalDBTypes.js";
+import type { DB } from "#/generated/LocalDBTypes.ts";
 
 mock.module("#utils", {
 	exports: { logger: () => ({ error() {} }) },

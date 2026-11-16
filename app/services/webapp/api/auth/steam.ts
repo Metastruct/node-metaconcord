@@ -3,10 +3,10 @@ import type { Request } from "express";
 import { rateLimit } from "express-rate-limit";
 
 import { logger } from "#utils";
-import { LinkConflictError } from "#/app/services/Accounts.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
-import { getSessionAccountId, setSessionCookie, storeRedirect, takeRedirect } from "./session.js";
+import { LinkConflictError } from "#/app/services/Accounts.ts";
+import { type WebApp } from "#/app/services/webapp/index.ts";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";
+import { getSessionAccountId, setSessionCookie, storeRedirect, takeRedirect } from "./session.ts";
 
 const log = logger(import.meta);
 

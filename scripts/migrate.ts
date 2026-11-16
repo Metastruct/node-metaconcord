@@ -1,5 +1,5 @@
 import { migrate } from "#lib/kyselyMigrator";
-import { LocalDB } from "#/app/services/index.js";
+import { LocalDB } from "#/app/services/index.ts";
 
 const direction = (["latest", "up", "down"] as const).find(mode => mode === (process.argv[2] ?? "latest"));
 if (!direction)

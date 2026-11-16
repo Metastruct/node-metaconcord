@@ -1,7 +1,7 @@
-import { type WsRouter } from "#/app/services/webapp/WsRouter.js";
-import { attachWsGame } from "../../attachWsGame.js";
-import type GameBridge from "../../GameBridge.js";
-import GmodConnection, { type GmodConnectionConfig } from "./GmodConnection.js";
+import { type WsRouter } from "#/app/services/webapp/WsRouter.ts";
+import { attachWsGame } from "../../attachWsGame.ts";
+import type GameBridge from "../../GameBridge.ts";
+import GmodConnection, { type GmodConnectionConfig } from "./GmodConnection.ts";
 
 import servers from "#config/gmod.servers.json" with { type: "json" };
 

@@ -1,6 +1,7 @@
 import { Gitlab as Gl } from "@gitbeaker/rest";
 
-import { type Container, Service } from "../Container.js";
+import { type Container } from "../Container.ts";
+import { Service } from "../Service.ts";
 
 import config from "#config/apikeys.json" with { type: "json" };
 

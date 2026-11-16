@@ -1,7 +1,7 @@
 import axios from "axios";
 
 import { logger } from "#utils";
-import { TTLCache } from "./cache.js";
+import { TTLCache } from "./cache.ts";
 import type { AddonSource, GitHost } from "./types.js";
 
 import apikeys from "#config/apikeys.json" with { type: "json" };

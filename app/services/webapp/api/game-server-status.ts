@@ -5,8 +5,8 @@ import mime from "mime";
 import pug from "pug";
 
 import { logger } from "#utils";
-import { renderPlayerListImage } from "#/app/services/gamebridge/renderPlayerList.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
+import { renderPlayerListImage } from "#/app/services/gamebridge/renderPlayerList.ts";
+import { type WebApp } from "#/app/services/webapp/index.ts";
 
 const log = logger(import.meta);
 

@@ -1,8 +1,8 @@
 import * as Discord from "discord.js";
 
-import GameConnection, { type Player } from "../../GameConnection.js";
-import { type WatchdogStatus } from "./tgsClient.js";
-import { type TopicStatus } from "./topics.js";
+import GameConnection, { type Player } from "../../GameConnection.ts";
+import { type WatchdogStatus } from "./tgsClient.ts";
+import { type TopicStatus } from "./topics.ts";
 
 export const SS13_ACCENT = 0x4B_B5_43;
 

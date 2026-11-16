@@ -1,5 +1,5 @@
-import { type AccountProvider } from "#/app/services/Accounts.js";
-import type GameBridge from "./GameBridge.js";
+import { type AccountProvider } from "#/app/services/Accounts.ts";
+import type GameBridge from "./GameBridge.ts";
 
 /**
  * In-game account linking: the profile page hands out a code, the player types

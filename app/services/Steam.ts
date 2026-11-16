@@ -3,7 +3,8 @@ import qs from "qs";
 import SteamID from "steamid";
 
 import { logger } from "#utils";
-import { type Container, Service } from "../Container.js";
+import { type Container } from "../Container.ts";
+import { Service } from "../Service.ts";
 
 import apikeys from "#config/apikeys.json" with { type: "json" };
 

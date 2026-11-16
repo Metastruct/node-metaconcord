@@ -1,8 +1,8 @@
 import * as Discord from "discord.js";
 
-import type MinecraftConnection from "../MinecraftConnection.js";
-import Payload from "./Payload.js";
-import { type JoinLeaveRequest } from "./structures/index.js";
+import type MinecraftConnection from "../MinecraftConnection.ts";
+import Payload from "./Payload.ts";
+import { type JoinLeaveRequest } from "./structures/index.ts";
 import requestSchema from "./structures/JoinLeaveRequest.json" with { type: "json" };
 
 export default class JoinLeavePayload extends Payload {

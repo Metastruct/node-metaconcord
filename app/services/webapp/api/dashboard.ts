@@ -9,10 +9,10 @@ import pug from "pug";
 import { type connection as WebSocketConnection } from "websocket";
 
 import { localeCompare, logger } from "#utils";
-import { logBuffer, type LogLine } from "#/app/services/webapp/dashboard/LogBuffer.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
-import { getSession, getSessionFromCookieHeader, hasRole, type Session } from "./auth/session.js";
+import { logBuffer, type LogLine } from "#/app/services/webapp/dashboard/LogBuffer.ts";
+import { type WebApp } from "#/app/services/webapp/index.ts";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";
+import { getSession, getSessionFromCookieHeader, hasRole, type Session } from "./auth/session.ts";
 
 const log = logger(import.meta);
 

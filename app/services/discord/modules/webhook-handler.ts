@@ -5,18 +5,18 @@ import type {
 	WebhookPipelineEventSchema,
 	WebhookPushEventSchema,
 } from "@gitbeaker/rest";
-import { type components } from "@octokit/openapi-types";
+import type { components } from "@octokit/openapi-types";
 import type { Octokit } from "@octokit/rest";
 import { createNodeMiddleware, Webhooks } from "@octokit/webhooks";
-import { type EmitterWebhookEvent } from "@octokit/webhooks/types";
+import type { EmitterWebhookEvent } from "@octokit/webhooks/types";
 import axios from "axios";
 import { diffChars } from "diff";
 import * as Discord from "discord.js";
 import express from "express";
 
 import { clamp, errToMessage, logger, stripPrefix } from "#utils";
-import { chatWebhook } from "#/app/services/gamebridge/games/gmod/webhooks.js";
-import { type DiscordBot } from "../index.js";
+import { chatWebhook } from "#/app/services/gamebridge/games/gmod/webhooks.ts";
+import { type DiscordBot } from "../index.ts";
 
 import gitlabConfig from "#config/gitlab.json" with { type: "json" };
 import webhookConfig from "#config/webhooks.json" with { type: "json" };

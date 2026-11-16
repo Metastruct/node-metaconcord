@@ -1,12 +1,12 @@
 import { type connection as WebSocketConnection } from "websocket";
 
 import { logger } from "#utils";
-import { type ConsoleGame, consoleHub, type ConsoleListener } from "#/app/services/gamebridge/consoleHub.js";
-import type GameBridge from "#/app/services/gamebridge/GameBridge.js";
-import { type GmodConnectionConfig } from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
-import { type MinecraftConnectionConfig } from "#/app/services/gamebridge/games/minecraft/MinecraftConnection.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
-import { getSession, getSessionFromCookieHeader, isStaff, type Session } from "./auth/session.js";
+import { type ConsoleGame, consoleHub, type ConsoleListener } from "#/app/services/gamebridge/consoleHub.ts";
+import type GameBridge from "#/app/services/gamebridge/GameBridge.ts";
+import { type GmodConnectionConfig } from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
+import { type MinecraftConnectionConfig } from "#/app/services/gamebridge/games/minecraft/MinecraftConnection.ts";
+import { type WebApp } from "#/app/services/webapp/index.ts";
+import { getSession, getSessionFromCookieHeader, isStaff, type Session } from "./auth/session.ts";
 
 import gmodServers from "#config/gmod.servers.json" with { type: "json" };
 import minecraftServers from "#config/minecraft.servers.json" with { type: "json" };

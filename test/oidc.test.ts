@@ -1,11 +1,12 @@
 import crypto from "node:crypto";
 
-import { Container, Service } from "#/app/Container.js";
-import type { App } from "#/app/index.js";
-import OIDCProvider from "#/app/services/OIDC.js";
-import LocalDBProvider, { type LocalDatabase } from "#/app/services/sql/LocalDB.js";
-import WebAppProvider from "#/app/services/webapp/index.js";
-import { encrypt } from "#/app/services/webapp/secretBox.js";
+import { Container } from "#/app/Container.ts";
+import type { App } from "#/app/index.ts";
+import { Service } from "#/app/Service.ts";
+import OIDCProvider from "#/app/services/OIDC.ts";
+import LocalDBProvider, { type LocalDatabase } from "#/app/services/sql/LocalDB.ts";
+import WebAppProvider from "#/app/services/webapp/index.ts";
+import { encrypt } from "#/app/services/webapp/secretBox.ts";
 
 import OIDCConfig from "#config/oidc.json" with { type: "json" };
 import WebAppConfig from "#config/webapp.json" with { type: "json" };

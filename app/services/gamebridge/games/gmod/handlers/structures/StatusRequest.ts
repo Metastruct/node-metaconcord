@@ -1,4 +1,4 @@
-import type PayloadRequest from "./PayloadRequest.js";
+import type PayloadRequest from "./PayloadRequest.ts";
 
 type CountdownType =
 	| -1 // AOWL_COUNTDOWN_FINISHED
