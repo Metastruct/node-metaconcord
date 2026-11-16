@@ -412,7 +412,11 @@ function loginPickerPage(uid: string, fresh = true): string {
  */
 function makeAdapter(localDB: LocalDB): new (name: string) => Adapter {
 	return class SQLiteAdapter implements Adapter {
-		constructor(public name: string) {}
+		public readonly name: string;
+
+		constructor(name: string) {
+			this.name = name;
+		}
 
 		async upsert(id: string, payload: AdapterPayload, expiresIn: number): Promise<void> {
 			const expiresAt = expiresIn ? Date.now() + expiresIn * 1000 : undefined;

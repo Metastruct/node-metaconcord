@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
 import { type App } from "./index.js";
-import { type ServiceMap, type ServiceName,type ServiceProvider } from "./services/index.js";
+import { type ServiceMap, type ServiceName, type ServiceProvider } from "./services/index.js";
 
 type ServiceProviders = ServiceProvider[];
 
@@ -36,8 +36,8 @@ export const REQUIREMENTS: Partial<Record<ServiceName, Requirements>> = {
 
 /** Thrown by getService for a service the current run doesn't include. */
 export class ServiceNotEnabledError extends Error {
-	constructor(public readonly service: string) {
-		super(`service ${service} is not enabled on this instance`);
+	constructor(serviceName: string) {
+		super(`service ${serviceName} is not enabled on this instance`);
 	}
 }
 

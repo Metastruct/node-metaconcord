@@ -12,7 +12,7 @@ import { localeCompare, logger } from "#utils";
 import { logBuffer, type LogLine } from "#/app/services/webapp/dashboard/LogBuffer.js";
 import { type WebApp } from "#/app/services/webapp/index.js";
 import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
-import { getSession, getSessionFromCookieHeader, hasRole,type Session } from "./auth/session.js";
+import { getSession, getSessionFromCookieHeader, hasRole, type Session } from "./auth/session.js";
 
 const log = logger(import.meta);
 
@@ -102,10 +102,16 @@ class DashboardSession {
 	private bash?: ChildProcess;
 	private bashAlive = false;
 
+	private readonly conn: WebSocketConnection;
+	private readonly user: Session;
+
 	constructor(
-		private conn: WebSocketConnection,
-		private user: Session
+		conn: WebSocketConnection,
+		user: Session
 	) {
+		this.conn = conn;
+		this.user = user;
+
 		const onLine = (line: LogLine) => this.send({ type: "log", ...line });
 		logBuffer.on("line", onLine);
 		// the session was only checked at upgrade time, close the socket once it expires

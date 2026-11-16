@@ -113,10 +113,8 @@ export type LinkInput = {
 export type AccountWithLinks = Account & { links: AccountLink[] };
 
 export class LinkConflictError extends Error {
-	constructor(public provider: AccountProvider) {
-		super(
-			`this ${provider} account belongs to another account that has other ways to log in; log into that one and unlink it there`
-		);
+	constructor(provider: AccountProvider) {
+		super(`this ${provider} account belongs to another account that has other ways to log in; log into that one and unlink it there`);
 	}
 }
 

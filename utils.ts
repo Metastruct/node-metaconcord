@@ -231,7 +231,7 @@ interface GitlabResponse {
 
 export const matchGmodPath = (path: PathLike) => {
 	const [, fpath, addon, filename, ext, linenos, linenoe] =
-		new RegExp(GMOD_PATH_MATCH).exec(<string>path) || [];
+		new RegExp(GMOD_PATH_MATCH).exec(path.toString()) || [];
 	return { fpath, addon, filename, ext, linenos, linenoe };
 };
 

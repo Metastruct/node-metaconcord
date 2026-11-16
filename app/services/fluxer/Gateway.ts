@@ -28,12 +28,22 @@ export class FluxerGateway {
 	private readonly failedGenerations = new Set<number>();
 	private reconnectAttempts = 0;
 
+	private readonly rest: FluxerRest;
+	private readonly token: string;
+	private readonly guildId: string;
+	private readonly onDispatch: (event: string, data: unknown) => Promise<void>;
+
 	constructor(
-		private readonly rest: FluxerRest,
-		private readonly token: string,
-		private readonly guildId: string,
-		private readonly onDispatch: (event: string, data: unknown) => Promise<void>
-	) {}
+		rest: FluxerRest,
+		token: string,
+		guildId: string,
+		onDispatch: (event: string, data: unknown) => Promise<void>
+	) {
+		this.rest = rest;
+		this.token = token;
+		this.guildId = guildId;
+		this.onDispatch = onDispatch;
+	}
 
 	start() {
 		void this.connect();

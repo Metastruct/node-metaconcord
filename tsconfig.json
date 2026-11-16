@@ -7,6 +7,8 @@
 		"outDir": "./dist",
 		"sourceMap": true,
 
+		"erasableSyntaxOnly": true,
+
 		"lib": [
 			"ES2025",
 			"ESNext.Collection",

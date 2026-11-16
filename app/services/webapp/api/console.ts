@@ -1,12 +1,12 @@
 import { type connection as WebSocketConnection } from "websocket";
 
 import { logger } from "#utils";
-import { type ConsoleGame, consoleHub,type ConsoleListener } from "#/app/services/gamebridge/consoleHub.js";
+import { type ConsoleGame, consoleHub, type ConsoleListener } from "#/app/services/gamebridge/consoleHub.js";
 import type GameBridge from "#/app/services/gamebridge/GameBridge.js";
 import { type GmodConnectionConfig } from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
 import { type MinecraftConnectionConfig } from "#/app/services/gamebridge/games/minecraft/MinecraftConnection.js";
 import { type WebApp } from "#/app/services/webapp/index.js";
-import { getSession, getSessionFromCookieHeader, isStaff,type Session } from "./auth/session.js";
+import { getSession, getSessionFromCookieHeader, isStaff, type Session } from "./auth/session.js";
 
 import gmodServers from "#config/gmod.servers.json" with { type: "json" };
 import minecraftServers from "#config/minecraft.servers.json" with { type: "json" };
@@ -43,11 +43,19 @@ abstract class ConsoleSession {
 	private lineTimes: number[] = [];
 	private expiryTimer: ReturnType<typeof setTimeout>;
 
+	protected readonly conn: WebSocketConnection;
+	protected readonly user: Session;
+	protected readonly server: HostedServer;
+
 	constructor(
-		protected conn: WebSocketConnection,
-		protected user: Session,
-		protected server: HostedServer
+		conn: WebSocketConnection,
+		user: Session,
+		server: HostedServer
 	) {
+		this.conn = conn;
+		this.user = user;
+		this.server = server;
+
 		// the session was only checked at upgrade time, close the socket once it expires
 		this.expiryTimer = setTimeout(
 			() => {
@@ -129,14 +137,16 @@ abstract class ConsoleSession {
 class BridgeConsoleSession extends ConsoleSession {
 	private listener?: ConsoleListener;
 	private gservRunning = false;
+	private readonly bridge: GameBridge;
 
 	constructor(
 		conn: WebSocketConnection,
 		user: Session,
 		server: HostedServer,
-		private bridge: GameBridge
+		bridge: GameBridge
 	) {
 		super(conn, user, server);
+		this.bridge = bridge;
 	}
 
 	protected async open(): Promise<void> {

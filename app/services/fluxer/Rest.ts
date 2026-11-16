@@ -119,19 +119,28 @@ type UploadPlan = {
 };
 
 export class FluxerApiError extends Error {
+	public readonly status: number;
+
 	constructor(
-		public status: number,
+		status: number,
 		message: string
 	) {
 		super(message);
+		this.status = status;
 	}
 }
 
 export class FluxerRest {
+	private readonly apiBaseUrl: string;
+	private readonly botToken: string;
+
 	constructor(
-		private readonly apiBaseUrl: string,
-		private readonly botToken: string
-	) {}
+		apiBaseUrl: string,
+		botToken: string
+	) {
+		this.apiBaseUrl = apiBaseUrl;
+		this.botToken = botToken;
+	}
 
 	async request<TResponse, TRequest extends Record<string, unknown> = Record<string, unknown>>(
 		method: string,

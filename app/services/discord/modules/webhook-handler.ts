@@ -169,7 +169,7 @@ const GitHub = (): Webhooks => {
 	return gitHubWebhooks;
 };
 
-const BaseEmbed = <Discord.WebhookMessageCreateOptions>{
+const BaseEmbed: Discord.WebhookMessageCreateOptions = {
 	allowedMentions: { parse: ["users"] },
 };
 
@@ -1045,7 +1045,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 		const [action, override] = ctx.customId.split("_", 2);
 		const where = bridge.servers.gmod.filter(server => override ? override.split(",").includes(server.config.id.toString()) : Boolean(server));
 
-		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(x =>
+		const allowed = (ctx.member.roles as Discord.GuildMemberRoleManager).cache.some(x =>
 			allowedRoles.has(x.id)
 		);
 
@@ -1192,10 +1192,10 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 						const reply = await ctx.fetchReply();
 
 						await server.runGserv("qu rehash").then(async () => {
-							const channel = <Discord.TextBasedChannel>(
-								await server.discord.channels.fetch(reply.channelId)
-							);
-							(await channel.messages.fetch(reply)).react("📥");
+							// todo: Can't this just use `reply.channel` somehow?
+							const channel = await server.discord.channels.fetch(reply.channelId) as Discord.TextBasedChannel | null;
+							if (channel)
+								(await channel.messages.fetch(reply)).react("📥");
 						});
 
 						const res = await server.sendLua(
@@ -1208,11 +1208,10 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 							ctx.user.displayName
 						);
 						if (res) {
-							const channel = <Discord.TextBasedChannel>(
-								await server.discord.channels.fetch(reply.channelId)
-							);
-
-							(await channel.messages.fetch(reply)).react("🔁");
+							// todo: Can't this just use `reply.channel` somehow?
+							const channel = await server.discord.channels.fetch(reply.channelId) as Discord.TextBasedChannel | null;
+							if (channel)
+								(await channel.messages.fetch(reply)).react("🔁");
 						}
 						return res;
 					})
@@ -1372,7 +1371,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 			}
 		}
 
-		const baseMessagePayload = <Discord.WebhookMessageCreateOptions>{
+		const baseMessagePayload: Discord.WebhookMessageCreateOptions = {
 			...BaseEmbed,
 			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
 			avatarURL: payload.sender?.avatar_url,
@@ -1385,7 +1384,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 			)
 			: undefined;
 
-		const actionRow = <Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow>>{
+		const actionRow: Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow> = {
 			components: [
 				{
 					type: Discord.ComponentType.Button,
@@ -1874,7 +1873,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 				break;
 		}
 
-		const messagePayload = <Discord.WebhookMessageCreateOptions>{
+		const messagePayload: Discord.WebhookMessageCreateOptions = {
 			...BaseEmbed,
 			username: payload.sender.name ?? payload.sender.login,
 			avatarURL: payload.sender.avatar_url,
@@ -1900,7 +1899,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 		if (!webhook) return;
 		const payload = event.payload;
 
-		const messagePayload = <Discord.WebhookMessageCreateOptions>{
+		const messagePayload: Discord.WebhookMessageCreateOptions = {
 			...BaseEmbed,
 			username: payload.sender?.name ?? payload.sender?.login ?? "unknown",
 			avatarURL: payload.sender?.avatar_url,
@@ -1911,9 +1910,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 						url: payload.organization.url,
 						icon_url: payload.organization.avatar_url,
 					},
-					thumbnail: {
-						url: payload.member?.avatar_url,
-					},
+					thumbnail: payload.member?.avatar_url ? { url: payload.member?.avatar_url } : undefined,
 					title: "Membership " + event.payload.action,
 					description: `[${payload.sender?.login}](${payload.sender?.html_url}) ${event.payload.action} [${payload.member?.login}](${payload.member?.html_url}) ${event.payload.action === "removed" ? "from" : "to"} ${payload.team.name}`,
 					timestamp: new Date().toISOString(),
@@ -2066,7 +2063,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 			}
 		}
 
-		const baseMessagePayload = <Discord.WebhookMessageCreateOptions>{
+		const baseMessagePayload: Discord.WebhookMessageCreateOptions = {
 			...BaseEmbed,
 			username: body.user_name,
 			avatarURL: body.user_avatar,
