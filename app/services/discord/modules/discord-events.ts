@@ -147,6 +147,8 @@ export default async function DiscordEventsLoader(bot: DiscordBot): Promise<void
 				}
 				break;
 			}
+			case Discord.GuildScheduledEventStatus.Canceled:
+				// ? does this need a handler ?
 		}
 	});
 }

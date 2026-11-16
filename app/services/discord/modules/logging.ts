@@ -1,4 +1,4 @@
-import { inspect,type InspectOptions } from "node:util";
+import { inspect, type InspectOptions } from "node:util";
 import { diffJson, diffWords } from "diff";
 import * as Discord from "discord.js";
 
@@ -286,6 +286,8 @@ export default function LoggingLoader(bot: DiscordBot): void {
 			case "Update":
 				embed.setColor(YELLOW_COLOR);
 				break;
+			case "All":
+				break;
 		}
 
 		const mention = member?.mention ?? (executor ? `<@${executor.id}>` : undefined);
@@ -402,6 +404,8 @@ export default function LoggingLoader(bot: DiscordBot): void {
 					embed.addFields(f("Changes", trimfield("```ansi\n" + changes, 1024, true)));
 					break;
 				}
+				case "All":
+					break;
 			}
 		}
 

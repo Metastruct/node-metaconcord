@@ -136,6 +136,13 @@ export default defineConfig([
 				},
 			],
 
+			"@typescript-eslint/switch-exhaustiveness-check": [
+				"error",
+				{
+					"considerDefaultExhaustiveForUnions": true,
+				},
+			],
+
 			"simple-import-sort/imports": [
 				"error",
 				{
