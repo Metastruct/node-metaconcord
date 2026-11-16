@@ -47,20 +47,21 @@ export function attachHandlers(connection: GmodConnection): void {
 	}
 }
 
-export {default as Payload} from "./Payload.ts";
-export {default as AddonsPayload} from "./AddonsPayload.ts";
-export {default as AdminNotifyPayload} from "./AdminNotifyPayload.ts";
-export {default as BanAppealPayload} from "./BanAppealPayload.ts";
-export {default as BanPayload} from "./BanPayload.ts";
-export {default as ChatPayload} from "./ChatPayload.ts";
-export {default as ConsolePayload} from "./ConsolePayload.ts";
-export {default as ErrorPayload} from "./ErrorPayload.ts";
-export {default as GservPayload} from "./GservPayload.ts";
-export {default as JoinLeavePayload} from "./JoinLeavePayload.ts";
-export {default as NotificationPayload} from "./NotificationPayload.ts";
-export {default as RconPayload} from "./RconPayload.ts";
-export {default as ReportChatPayload} from "./ReportChatPayload.ts";
-export {default as StatsPayload} from "./StatsPayload.ts";
-export {default as StatusPayload} from "./StatusPayload.ts";
-export {default as UnbanPayload} from "./UnbanPayload.ts";
-export {default as VoteKickPayload} from "./VoteKickPayload.ts";
+export { default as AddonsPayload } from "./AddonsPayload.ts";
+export { default as AdminNotifyPayload } from "./AdminNotifyPayload.ts";
+export { default as BanAppealPayload } from "./BanAppealPayload.ts";
+export { default as BanPayload } from "./BanPayload.ts";
+export { default as ChatPayload } from "./ChatPayload.ts";
+export { default as ConsolePayload } from "./ConsolePayload.ts";
+export { default as ErrorPayload } from "./ErrorPayload.ts";
+export { default as GservPayload } from "./GservPayload.ts";
+export { default as JoinLeavePayload } from "./JoinLeavePayload.ts";
+export { default as NotificationPayload } from "./NotificationPayload.ts";
+export { default as Payload } from "./Payload.ts";
+export { default as RconPayload } from "./RconPayload.ts";
+export { default as ReportChatPayload } from "./ReportChatPayload.ts";
+export { default as StatsPayload } from "./StatsPayload.ts";
+export { default as StatusPayload } from "./StatusPayload.ts";
+export { default as UnbanPayload } from "./UnbanPayload.ts";
+export { default as VoteKickPayload } from "./VoteKickPayload.ts";
+

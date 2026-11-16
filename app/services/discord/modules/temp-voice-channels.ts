@@ -1,4 +1,4 @@
-import { type DiscordBot } from "../index.ts";
+import type { DiscordBot } from "../index.ts";
 
 export default async function TempVoiceChannelsLoader(bot: DiscordBot): Promise<void> {
 	const data = bot.container.getService("Data");

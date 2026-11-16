@@ -1,7 +1,7 @@
 import type GmodConnection from "../GmodConnection.ts";
 import Payload from "./Payload.ts";
 import requestSchema from "./structures/AddonsRequest.json" with { type: "json" };
-import { type AddonsRequest } from "./structures/index.ts";
+import type { AddonsRequest } from "./structures/index.ts";
 
 export default class AddonsPayload extends Payload {
 	protected static override requestSchema = requestSchema;

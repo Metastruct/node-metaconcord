@@ -1,9 +1,9 @@
 import { ok as assert } from "node:assert";
 import { hash } from "node:crypto";
-import { type Message } from "discord.js";
+import type { Message } from "discord.js";
 
 import { EnumBase, type EnumType } from "#lib/enum";
-import { type DiscordBot } from "../index.ts";
+import type { DiscordBot } from "../index.ts";
 import { Shat } from "./shitposting.ts";
 
 const MESSAGE_COMBO_BREAKER = "C-C-C-COMBO BREAKER!!";

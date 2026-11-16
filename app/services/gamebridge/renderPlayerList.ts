@@ -4,7 +4,7 @@ import { createCanvas, GlobalFonts, loadImage } from "@napi-rs/canvas";
 import { Resvg } from "@resvg/resvg-js";
 
 import { logger } from "#utils";
-import { type Player } from "./GameConnection.ts";
+import type { Player } from "./GameConnection.ts";
 
 const log = logger(import.meta);
 

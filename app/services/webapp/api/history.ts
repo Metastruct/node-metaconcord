@@ -5,7 +5,7 @@ import { rateLimit } from "express-rate-limit";
 
 import { logger } from "#utils";
 import { Accounts } from "#/app/services/Accounts.ts";
-import { type WebApp } from "#/app/services/webapp/index.ts";
+import type { WebApp } from "#/app/services/webapp/index.ts";
 import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";
 import { requireStaff, type Session } from "./auth/session.ts";
 import { MirrorError, mirrorImage } from "./history-images.ts";

@@ -5,7 +5,7 @@ import { f, logger } from "#utils";
 import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
 import type { RemoteDB } from "#/app/services/sql/RemoteDB.ts";
 import Payload from "./Payload.ts";
-import { type VoteKickRequest } from "./structures/index.ts";
+import type { VoteKickRequest } from "./structures/index.ts";
 import requestSchema from "./structures/VoteKickRequest.json" with { type: "json" };
 
 const log = logger(import.meta);

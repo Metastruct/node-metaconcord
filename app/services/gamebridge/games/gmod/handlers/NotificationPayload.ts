@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 
 import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
 import Payload from "./Payload.ts";
-import { type NotificationResponse } from "./structures/index.ts";
+import type { NotificationResponse } from "./structures/index.ts";
 import requestSchema from "./structures/NotificationResponse.json" with { type: "json" };
 
 export default class NotificationPayload extends Payload {

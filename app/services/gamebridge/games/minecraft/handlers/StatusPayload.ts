@@ -8,7 +8,7 @@ import type {
 	MinecraftStatus,
 } from "../MinecraftConnection.ts";
 import Payload from "./Payload.ts";
-import { type StatusRequest } from "./structures/index.ts";
+import type { StatusRequest } from "./structures/index.ts";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
 
 const log = logger(import.meta);

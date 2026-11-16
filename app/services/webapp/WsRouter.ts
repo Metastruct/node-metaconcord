@@ -1,4 +1,4 @@
-import { type Server as HTTPServer } from "node:http";
+import type { Server as HTTPServer } from "node:http";
 import { type request as WebSocketRequest, server as WebSocketServer } from "websocket";
 
 import { logger } from "#utils";

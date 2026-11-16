@@ -1,7 +1,7 @@
-import {
-	type connection as WebSocketConnection,
-	type Message,
-	type request as WebSocketRequest,
+import type {
+	connection as WebSocketConnection,
+	Message,
+	request as WebSocketRequest,
 } from "websocket";
 
 import { logger } from "#utils";

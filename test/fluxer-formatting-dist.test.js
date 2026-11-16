@@ -7,7 +7,7 @@ import {
 	discordEmojiCdnUrl,
 	normalizeEmbeds,
 	rewriteEmojiMarkup,
-} from "../dist/app/services/fluxer/index.ts";
+} from "../app/services/fluxer/index.ts";
 
 test("generated Klipy previews are left for the destination to unfurl", () => {
 	const url = "https://klipy.com/gifs/example";

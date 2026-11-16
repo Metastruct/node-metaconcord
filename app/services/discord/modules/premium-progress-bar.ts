@@ -1,4 +1,4 @@
-import { type DiscordBot } from "../index.ts";
+import type { DiscordBot } from "../index.ts";
 
 const LVL_MAP = [
 	[0, 2],

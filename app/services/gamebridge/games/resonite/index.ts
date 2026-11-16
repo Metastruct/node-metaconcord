@@ -2,9 +2,9 @@ import * as signalR from "@microsoft/signalr";
 import * as Discord from "discord.js";
 
 import { formatDiscordRelativeTimestamp, localeCompare, logger } from "#utils";
-import { type Resonite, type ResoniteSession } from "#/app/services/Resonite.ts";
+import type { Resonite, ResoniteSession } from "#/app/services/Resonite.ts";
 import type GameBridge from "../../GameBridge.ts";
-import { type Player } from "../../GameConnection.ts";
+import type { Player } from "../../GameConnection.ts";
 import { renderPlayerListImage } from "../../renderPlayerList.ts";
 import ResoniteConnection, { RESONITE_ACCENT, type ResoniteSessionState } from "./ResoniteConnection.ts";
 

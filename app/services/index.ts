@@ -1,4 +1,4 @@
-import { type Service } from "../Service.ts";
+import type { Service } from "../Service.ts";
 import AccountsProvider, { type Accounts } from "./Accounts.ts";
 import AddonsProvider, { type Addons } from "./addons/index.ts";
 import BanProvider, { type Bans } from "./Bans.ts";
@@ -17,7 +17,7 @@ import LocalDBProvider, { type LocalDB } from "./sql/LocalDB.ts";
 import RemoteDBProvider, { type RemoteDB } from "./sql/RemoteDB.ts";
 import StarboardProvider, { type Starboard } from "./Starboard.ts";
 import SteamProvider, { type Steam } from "./Steam.ts";
-import { type ServiceName, type ServiceProvider } from "./types.ts";
+import type { ServiceName, ServiceProvider } from "./types.ts";
 import WebAppProvider, { type WebApp } from "./webapp/index.ts";
 
 
@@ -110,21 +110,22 @@ export type ServiceMap = DefineServiceMap<{
 	WebApp: WebApp;
 }>;
 
-export {Accounts} from "./Accounts.ts";
-export {Addons} from "./addons/index.ts";
-export {Bans} from "./Bans.ts";
-export {Data} from "./Data.ts";
-export {DiscordBot} from "./discord/index.ts";
-export {DiscordMetadata} from "./DiscordMetadata.ts";
-export {Fluxer} from "./fluxer/index.ts";
-export {GameBridge} from "./gamebridge/index.ts";
-export {Github} from "./Github.ts";
-export {Gitlab} from "./Gitlab.ts";
-export {Markov} from "./Markov.ts";
-export {Motd} from "./Motd.ts";
-export {OIDC} from "./OIDC.ts";
-export {Resonite} from "./Resonite.ts";
-export {LocalDB} from "./sql/LocalDB.ts";
-export {RemoteDB} from "./sql/RemoteDB.ts";
-export {Steam} from "./Steam.ts";
-export {WebApp} from "./webapp/index.ts";
+export { Accounts } from "./Accounts.ts";
+export { Addons } from "./addons/index.ts";
+export { Bans } from "./Bans.ts";
+export { Data } from "./Data.ts";
+export { DiscordBot } from "./discord/index.ts";
+export { DiscordMetadata } from "./DiscordMetadata.ts";
+export { Fluxer } from "./fluxer/index.ts";
+export { GameBridge } from "./gamebridge/index.ts";
+export { Github } from "./Github.ts";
+export { Gitlab } from "./Gitlab.ts";
+export { Markov } from "./Markov.ts";
+export { Motd } from "./Motd.ts";
+export { OIDC } from "./OIDC.ts";
+export { Resonite } from "./Resonite.ts";
+export { LocalDB } from "./sql/LocalDB.ts";
+export { RemoteDB } from "./sql/RemoteDB.ts";
+export { Steam } from "./Steam.ts";
+export { WebApp } from "./webapp/index.ts";
+

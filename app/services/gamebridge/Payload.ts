@@ -1,5 +1,5 @@
 import { Ajv, type ErrorObject } from "ajv";
-import { type connection as WebSocketConnection } from "websocket";
+import type { connection as WebSocketConnection } from "websocket";
 
 import { logger } from "#utils";
 import type GameConnection from "./GameConnection.ts";

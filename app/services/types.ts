@@ -1,5 +1,5 @@
-import { type Container } from "../Container.ts";
-import { type Service } from "../Service.ts";
+import type { Container } from "../Container.ts";
+import type { Service } from "../Service.ts";
 
 export type ServiceProvider = (container: Container) => Service;
 

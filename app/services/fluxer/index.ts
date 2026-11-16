@@ -1,15 +1,12 @@
 import { randomBytes } from "node:crypto";
 import * as Discord from "discord.js";
-import { type Selectable } from "kysely";
+import type { Selectable } from "kysely";
 
 import { logger } from "#utils";
-import { type Container } from "#/app/Container.ts";
+import type { Container } from "#/app/Container.ts";
 import { Service } from "#/app/Service.ts";
 import type { DiscordBot } from "#/app/services/discord/index.ts";
-import {
-	type fluxer_message_mappings as MessageMapping,
-	type fluxer_thread_links,
-} from "../../../generated/LocalDBTypes.ts";
+import type { fluxer_message_mappings as MessageMapping, fluxer_thread_links } from "#/generated/LocalDBTypes.ts";
 import type { LocalDB } from "../sql/LocalDB.ts";
 import { FluxerGateway } from "./Gateway.ts";
 import mappingSeed from "./mappings.json" with { type: "json" };

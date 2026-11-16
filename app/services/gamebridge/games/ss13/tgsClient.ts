@@ -1,7 +1,7 @@
 import axios from "axios";
 import jwt from "jsonwebtoken";
 
-import { type ValueOf } from "#utils";
+import type { ValueOf } from "#utils";
 
 import config from "#config/ss13.json" with { type: "json" };
 

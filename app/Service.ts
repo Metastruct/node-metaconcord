@@ -1,4 +1,4 @@
-import { type Container } from "./Container.ts";
+import type { Container } from "./Container.ts";
 
 /** Thrown by getService for a service the current run doesn't include. */
 export class ServiceNotEnabledError extends Error {

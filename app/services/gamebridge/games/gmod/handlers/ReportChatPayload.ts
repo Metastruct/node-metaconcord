@@ -1,13 +1,13 @@
 import type * as Discord from "discord.js";
 
 import { logger } from "#utils";
-import { type Data } from "../../../../Data.ts";
+import type { Data } from "../../../../Data.ts";
 import type GmodConnection from "../GmodConnection.ts";
 import Payload from "./Payload.ts";
 import requestSchema from "./structures/ReportChatRequest.json" with { type: "json" };
 import type ReportChatRequest from "./structures/ReportChatRequest.ts";
 import responseSchema from "./structures/ReportChatResponse.json" with { type: "json" };
-import { type QueuedReportChatResponse } from "./structures/ReportChatResponse.ts";
+import type { QueuedReportChatResponse } from "./structures/ReportChatResponse.ts";
 
 const log = logger(import.meta);
 

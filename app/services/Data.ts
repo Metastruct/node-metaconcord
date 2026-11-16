@@ -2,10 +2,10 @@ import { existsSync, mkdirSync, readFileSync, statSync, unlinkSync, writeFileSyn
 import path from "node:path";
 
 import { errToMessage, logger } from "#utils";
-import { type Container } from "../Container.ts";
+import type {Container} from "../Container.ts";
 import { Service } from "../Service.ts";
-import { type AddonsStore } from "./addons/types.ts";
-import { type Rule } from "./discord/index.ts";
+import type {AddonsStore} from "./addons/types.ts";
+import type {Rule} from "./discord/index.ts";
 
 const log = logger(import.meta);
 const dataPath = path.join(process.cwd(), "data");

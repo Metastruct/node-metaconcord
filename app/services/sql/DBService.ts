@@ -1,4 +1,4 @@
-import { type Kysely } from "kysely";
+import type { Kysely } from "kysely";
 
 import { Service } from "../../Service.ts";
 

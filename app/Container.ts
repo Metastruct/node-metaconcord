@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 
-import { type App } from "./index.ts";
+import type { App } from "./index.ts";
 import { type Service, ServiceNotEnabledError } from "./Service.ts";
-import { type ServiceMap } from "./services/index.ts";
-import { type ServiceName, type ServiceProvider } from "./services/types.ts";
+import type { ServiceMap } from "./services/index.ts";
+import type { ServiceName, ServiceProvider } from "./services/types.ts";
 
 type ServiceProviders = ServiceProvider[];
 

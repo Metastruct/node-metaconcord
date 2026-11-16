@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import axios from "axios";
 
 import { logger } from "#utils";
-import { type Container } from "../Container.ts";
+import type { Container } from "../Container.ts";
 import { Service } from "../Service.ts";
 
 import config from "#config/resonite.json" with { type: "json" };

@@ -3,11 +3,11 @@ import SteamID from "steamid";
 
 import { f } from "#utils";
 import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
-import { type PlayerSummary } from "#/app/services/Steam.ts";
+import type { PlayerSummary } from "#/app/services/Steam.ts";
 import { actorLabel, parseBanActor } from "../banActor.ts";
 import Payload from "./Payload.ts";
 import requestSchema from "./structures/BanRequest.json" with { type: "json" };
-import { type BanRequest } from "./structures/index.ts";
+import type { BanRequest } from "./structures/index.ts";
 
 export default class BanPayload extends Payload {
 	protected static override requestSchema = requestSchema;

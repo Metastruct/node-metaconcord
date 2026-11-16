@@ -1,8 +1,8 @@
 import { EventEmitter } from "node:events";
 
-import { type Container } from "#/app/Container.ts";
+import type { Container } from "#/app/Container.ts";
 import { Service } from "#/app/Service.ts";
-import { type WebApp } from "#/app/services/webapp/index.ts";
+import type { WebApp } from "#/app/services/webapp/index.ts";
 import type GmodConnection from "./games/gmod/GmodConnection.ts";
 import { attachGmod } from "./games/gmod/index.ts";
 import { attachMinecraft } from "./games/minecraft/index.ts";

@@ -1,11 +1,11 @@
-import { type PathLike } from "node:fs";
+import type { PathLike } from "node:fs";
 import { stat } from "node:fs/promises";
 import { join } from "node:path";
 import dayjs from "dayjs";
 import { scheduleJob } from "node-schedule";
 
 import { logger } from "#utils";
-import { type DiscordBot } from "../index.ts";
+import type { DiscordBot } from "../index.ts";
 
 const log = logger(import.meta);
 

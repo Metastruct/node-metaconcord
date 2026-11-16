@@ -8,7 +8,7 @@ import {
 
 import { APP_NAME, APP_VERSION, localeCompare, logger } from "#utils";
 import type GameBridge from "../../GameBridge.ts";
-import { type Player } from "../../GameConnection.ts";
+import type { Player } from "../../GameConnection.ts";
 import { renderPlayerListImage } from "../../renderPlayerList.ts";
 import VRChatConnection, { VRCHAT_ACCENT, type VRChatRoster } from "./VRChatConnection.ts";
 

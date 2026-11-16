@@ -16,7 +16,7 @@ import express from "express";
 
 import { clamp, errToMessage, logger, stripPrefix } from "#utils";
 import { chatWebhook } from "#/app/services/gamebridge/games/gmod/webhooks.ts";
-import { type DiscordBot } from "../index.ts";
+import type { DiscordBot } from "../index.ts";
 
 import gitlabConfig from "#config/gitlab.json" with { type: "json" };
 import webhookConfig from "#config/webhooks.json" with { type: "json" };

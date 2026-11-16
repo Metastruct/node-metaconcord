@@ -1,8 +1,8 @@
-import { type request as WebSocketRequest } from "websocket";
+import type { request as WebSocketRequest } from "websocket";
 
 import type GameBridge from "../../GameBridge.ts";
 import type GameConnection from "../../GameConnection.ts";
-import { type GameConnectionConfig } from "../../GameConnection.ts";
+import type { GameConnectionConfig } from "../../GameConnection.ts";
 import GameSocketConnection from "../../GameSocketConnection.ts";
 import { attachHandlers } from "./handlers/index.ts";
 

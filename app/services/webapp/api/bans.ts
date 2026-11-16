@@ -18,7 +18,7 @@ import {
 	parseBanActor,
 } from "#/app/services/gamebridge/games/gmod/banActor.ts";
 import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
-import { type WebApp } from "#/app/services/webapp/index.ts";
+import type { WebApp } from "#/app/services/webapp/index.ts";
 import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";
 import { getSession, isStaff, type Session } from "./auth/session.ts";
 

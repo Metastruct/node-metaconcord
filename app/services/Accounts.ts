@@ -2,9 +2,9 @@ import crypto from "node:crypto";
 import { Octokit } from "@octokit/rest";
 
 import { isSteamGroupMember, logger } from "#utils";
-import { type Container } from "../Container.ts";
+import type { Container } from "../Container.ts";
 import { Service } from "../Service.ts";
-import { type RemoteDB } from "./sql/RemoteDB.ts";
+import type { RemoteDB } from "./sql/RemoteDB.ts";
 import { decrypt, encrypt } from "./webapp/secretBox.ts";
 
 import AccountsConfig from "#config/accounts.json" with { type: "json" };

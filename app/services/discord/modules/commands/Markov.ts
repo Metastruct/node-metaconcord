@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { type SlashCommand } from "#/extensions/discord.ts";
+import type { SlashCommand } from "#/extensions/discord.ts";
 
 export const SlashMarkovCommand: SlashCommand = {
 	options: {

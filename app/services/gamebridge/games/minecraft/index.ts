@@ -1,4 +1,4 @@
-import { type WsRouter } from "#/app/services/webapp/WsRouter.ts";
+import type { WsRouter } from "#/app/services/webapp/WsRouter.ts";
 import { attachWsGame } from "../../attachWsGame.ts";
 import type GameBridge from "../../GameBridge.ts";
 import MinecraftConnection, { type MinecraftConnectionConfig } from "./MinecraftConnection.ts";

@@ -3,10 +3,10 @@ import SteamID from "steamid";
 
 import { f } from "#utils";
 import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
-import { type PlayerSummary } from "#/app/services/Steam.ts";
+import type { PlayerSummary } from "#/app/services/Steam.ts";
 import { actorLabel, parseBanActor } from "../banActor.ts";
 import Payload from "./Payload.ts";
-import { type UnbanRequest } from "./structures/index.ts";
+import type { UnbanRequest } from "./structures/index.ts";
 import requestSchema from "./structures/UnbanRequest.json" with { type: "json" };
 
 export default class UnbanPayload extends Payload {

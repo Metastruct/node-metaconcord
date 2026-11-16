@@ -4,7 +4,7 @@ import * as Discord from "discord.js";
 
 import { formatDiscordRelativeTimestamp, formatDiscordRelativeTimestampSeconds, logger } from "#utils";
 import type GameBridge from "../../GameBridge.ts";
-import { type Player } from "../../GameConnection.ts";
+import type { Player } from "../../GameConnection.ts";
 import { renderPlayerListImage } from "../../renderPlayerList.ts";
 import { queryTopic } from "./byondTopic.ts";
 import SS13Connection, { SS13_ACCENT, type SS13InstanceState, type SS13Status } from "./SS13Connection.ts";

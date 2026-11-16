@@ -6,7 +6,7 @@ import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnec
 import Payload from "./Payload.ts";
 import ReportChatPayload from "./ReportChatPayload.ts";
 import requestSchema from "./structures/AdminNotifyRequest.json" with { type: "json" };
-import { type AdminNotifyRequest } from "./structures/index.ts";
+import type { AdminNotifyRequest } from "./structures/index.ts";
 
 const log = logger(import.meta);
 

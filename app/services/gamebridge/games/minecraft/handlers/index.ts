@@ -31,12 +31,13 @@ export function attachHandlers(connection: MinecraftConnection): void {
 	}
 }
 
-export {default as Payload} from "./Payload.ts";
-export {default as AddonsPayload} from "./AddonsPayload.ts";
-export {default as AdvancementPayload} from "./AdvancementPayload.ts";
-export {default as ChatPayload} from "./ChatPayload.ts";
-export {default as ConsolePayload} from "./ConsolePayload.ts";
-export {default as DeathPayload} from "./DeathPayload.ts";
-export {default as JoinLeavePayload} from "./JoinLeavePayload.ts";
-export {default as StatsPayload} from "./StatsPayload.ts";
-export {default as StatusPayload} from "./StatusPayload.ts";
+export { default as AddonsPayload } from "./AddonsPayload.ts";
+export { default as AdvancementPayload } from "./AdvancementPayload.ts";
+export { default as ChatPayload } from "./ChatPayload.ts";
+export { default as ConsolePayload } from "./ConsolePayload.ts";
+export { default as DeathPayload } from "./DeathPayload.ts";
+export { default as JoinLeavePayload } from "./JoinLeavePayload.ts";
+export { default as Payload } from "./Payload.ts";
+export { default as StatsPayload } from "./StatsPayload.ts";
+export { default as StatusPayload } from "./StatusPayload.ts";
+

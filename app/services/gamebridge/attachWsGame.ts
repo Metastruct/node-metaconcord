@@ -1,9 +1,9 @@
-import { type request as WebSocketRequest } from "websocket";
+import type { request as WebSocketRequest } from "websocket";
 
 import { logger } from "#utils";
-import { type WsRouter } from "#/app/services/webapp/WsRouter.ts";
+import type { WsRouter } from "#/app/services/webapp/WsRouter.ts";
 import type GameBridge from "./GameBridge.ts";
-import { type GameConnectionConfig } from "./GameConnection.ts";
+import type { GameConnectionConfig } from "./GameConnection.ts";
 import type GameSocketConnection from "./GameSocketConnection.ts";
 
 import config from "#config/gamebridge.json" with { type: "json" };

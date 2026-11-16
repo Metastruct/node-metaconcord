@@ -9,7 +9,7 @@ import type { DB } from "#/generated/LocalDBTypes.ts";
 mock.module("#utils", {
 	exports: { logger: () => ({ error() {} }) },
 });
-const { MarkovChain } = await import("#/app/services/Markov.js");
+const { MarkovChain } = await import("#/app/services/Markov.ts");
 
 async function fixture(t: TestContext, messages: string[] = []) {
 	const sqlite = new SQLite(":memory:");

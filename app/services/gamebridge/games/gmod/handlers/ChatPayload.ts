@@ -8,7 +8,7 @@ import { chatWebhook } from "../webhooks.ts";
 import Payload from "./Payload.ts";
 import requestSchema from "./structures/ChatRequest.json" with { type: "json" };
 import responseSchema from "./structures/ChatResponse.json" with { type: "json" };
-import { type ChatRequest, type ChatResponse } from "./structures/index.ts";
+import type { ChatRequest, ChatResponse } from "./structures/index.ts";
 
 const log = logger(import.meta);
 

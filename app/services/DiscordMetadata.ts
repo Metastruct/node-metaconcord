@@ -1,11 +1,11 @@
 import SteamID from "steamid";
 
 import { logger, type ValueOf } from "#utils";
-import { type discord_tokens } from "../../generated/LocalDBTypes.ts";
-import { type Container } from "../Container.ts";
+import type { discord_tokens } from "../../generated/LocalDBTypes.ts";
+import type { Container } from "../Container.ts";
 import { Service } from "../Service.ts";
-import { type Role } from "./Accounts.ts";
-import { type Accounts, type Bans, type DiscordBot, type LocalDB, type RemoteDB } from "./index.ts";
+import type { Role } from "./Accounts.ts";
+import type { Accounts, Bans, DiscordBot, LocalDB, RemoteDB } from "./index.ts";
 import { revokeOAuthToken } from "./webapp/api/auth/discord.ts";
 
 import config from "#config/metadata.json" with { type: "json" };

@@ -1,4 +1,4 @@
-import { type request as WebSocketRequest } from "websocket";
+import type { request as WebSocketRequest } from "websocket";
 
 import type GameBridge from "../../GameBridge.ts";
 import type {
@@ -12,7 +12,7 @@ import ErrorPayload from "./handlers/ErrorPayload.ts";
 import GservPayload, { type GservResult } from "./handlers/GservPayload.ts";
 import { attachHandlers } from "./handlers/index.ts";
 import RconPayload from "./handlers/RconPayload.ts";
-import { type RconResponse } from "./handlers/structures/index.ts";
+import type { RconResponse } from "./handlers/structures/index.ts";
 
 export type GmodPlayer = Player & {
 	ip: string;

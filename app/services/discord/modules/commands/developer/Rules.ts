@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 
 import { errToMessage } from "#utils";
-import { type DiscordBot, type Rule } from "#/app/services/discord/index.ts";
+import type { DiscordBot, Rule } from "#/app/services/discord/index.ts";
 import { EphemeralResponse, type SlashCommand } from "#/extensions/discord.ts";
 
 let ruleCache: Rule[] = [];

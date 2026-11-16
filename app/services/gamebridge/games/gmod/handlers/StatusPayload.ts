@@ -10,7 +10,7 @@ import type {
 import AdminNotifyPayload from "./AdminNotifyPayload.ts";
 import Payload from "./Payload.ts";
 import ReportChatPayload from "./ReportChatPayload.ts";
-import { type StatusRequest } from "./structures/index.ts";
+import type { StatusRequest } from "./structures/index.ts";
 import requestSchema from "./structures/StatusRequest.json" with { type: "json" };
 
 const log = logger(import.meta);

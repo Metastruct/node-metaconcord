@@ -1,4 +1,4 @@
-import { type AccountProvider } from "#/app/services/Accounts.ts";
+import type { AccountProvider } from "#/app/services/Accounts.ts";
 import type GameBridge from "./GameBridge.ts";
 
 /**

@@ -1,4 +1,4 @@
-import { type DiscordBot } from "../index.ts";
+import type { DiscordBot } from "../index.ts";
 
 export default function StarboardLoader(bot: DiscordBot): void {
 	bot.discord.on("messageReactionAdd", async reaction => {

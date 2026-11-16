@@ -1,5 +1,5 @@
 import { logger } from "#utils";
-import { type Container } from "#/app/Container.ts";
+import type { Container } from "#/app/Container.ts";
 import { Service } from "#/app/Service.ts";
 import type GmodConnection from "../gamebridge/games/gmod/GmodConnection.ts";
 import type MinecraftConnection from "../gamebridge/games/minecraft/MinecraftConnection.ts";
@@ -18,14 +18,14 @@ import {
 	SUMMARY_LIMIT,
 	workshopUrl,
 } from "./resolvers.ts";
-import {
-	type Addon,
-	type AddonGame,
-	type AddonSource,
-	type MountedGame,
-	type ReportedMod,
-	type RuntimeComponent,
-	type ServerAddons,
+import type {
+	Addon,
+	AddonGame,
+	AddonSource,
+	MountedGame,
+	ReportedMod,
+	RuntimeComponent,
+	ServerAddons,
 } from "./types.ts";
 
 export * from "./types.ts";

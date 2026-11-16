@@ -1,5 +1,5 @@
 import { logger } from "#utils";
-import { type FluxerRest } from "./Rest.ts";
+import type { FluxerRest } from "./Rest.ts";
 
 const log = logger(import.meta);
 const FATAL_CLOSE_CODES = new Set([4004, 4010, 4011, 4012]);

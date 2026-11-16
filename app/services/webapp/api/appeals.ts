@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import type { Response } from "express";
 import express, { type Request } from "express";
 import { rateLimit } from "express-rate-limit";
-import { type Selectable } from "kysely";
+import type { Selectable } from "kysely";
 
 import { f, logger } from "#utils";
 import { ServiceNotEnabledError } from "#/app/Service.ts";
@@ -11,9 +11,9 @@ import { type MetaBan, PERMANENT_UNBAN_TIME } from "#/app/services/Bans.ts";
 import { EMBED_FIELD_LIMIT } from "#/app/services/discord/index.ts";
 import { pickGmodServer, revokeBan } from "#/app/services/gamebridge/games/gmod/banActions.ts";
 import { actorLabel } from "#/app/services/gamebridge/games/gmod/banActor.ts";
-import { type WebApp } from "#/app/services/webapp/index.ts";
+import type { WebApp } from "#/app/services/webapp/index.ts";
 import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";
-import { type appeals } from "#/generated/LocalDBTypes.ts";
+import type { appeals } from "#/generated/LocalDBTypes.ts";
 import { getSession } from "./auth/session.ts";
 import { resolveProfiles, toEntry } from "./bans.ts";
 

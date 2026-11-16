@@ -1,4 +1,4 @@
-import { type Container } from "./Container.ts";
+import type { Container } from "./Container.ts";
 
 declare global {
 	var MetaConcord: {

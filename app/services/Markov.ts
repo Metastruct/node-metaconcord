@@ -2,8 +2,8 @@
 import { type ExpressionBuilder, sql } from "kysely";
 
 import { logger } from "#utils";
-import { type DB } from "#/generated/LocalDBTypes.ts";
-import { type Container } from "../Container.ts";
+import type { DB } from "#/generated/LocalDBTypes.ts";
+import type { Container } from "../Container.ts";
 import { Service } from "../Service.ts";
 import type { LocalDatabase } from "./sql/LocalDB.ts";
 

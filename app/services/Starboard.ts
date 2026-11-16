@@ -1,9 +1,9 @@
 import * as Discord from "discord.js";
 
 import { logger } from "#utils";
-import { type Container } from "../Container.ts";
+import type { Container } from "../Container.ts";
 import { Service } from "../Service.ts";
-import { type DiscordBot, type LocalDB } from "./index.ts";
+import type { DiscordBot, LocalDB } from "./index.ts";
 
 import discordConfig from "#config/discord.json" with { type: "json" };
 import config from "#config/starboard.json" with { type: "json" };

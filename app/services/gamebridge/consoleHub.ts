@@ -1,6 +1,6 @@
 import { logger } from "#utils";
 import type GameBridge from "./GameBridge.ts";
-import { type WsGameConnection } from "./Payload.ts";
+import type { WsGameConnection } from "./Payload.ts";
 
 const log = logger(import.meta);
 

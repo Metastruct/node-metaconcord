@@ -13,7 +13,7 @@ import {
 	type Role,
 	STAFF_ROLES,
 } from "#/app/services/Accounts.ts";
-import { type WebApp } from "#/app/services/webapp/index.ts";
+import type { WebApp } from "#/app/services/webapp/index.ts";
 import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";
 import { decrypt, encrypt } from "#/app/services/webapp/secretBox.ts";
 

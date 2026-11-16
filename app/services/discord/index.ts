@@ -1,9 +1,9 @@
 import * as Discord from "discord.js";
 
 import { logger, sleep } from "#utils";
-import { type Container } from "#/app/Container.ts";
+import type { Container } from "#/app/Container.ts";
 import { Service } from "#/app/Service.ts";
-import { type Data, type GameBridge } from "#/app/services/index.ts";
+import type { Data, GameBridge } from "#/app/services/index.ts";
 import { getEventIcon } from "./modules/discord-guild-icon.ts";
 import modules from "./modules/index.ts";
 

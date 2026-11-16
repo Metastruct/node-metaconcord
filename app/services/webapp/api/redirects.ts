@@ -1,4 +1,4 @@
-import { type WebApp } from "#/app/services/webapp/index.ts";
+import type { WebApp } from "#/app/services/webapp/index.ts";
 import { resolveIp } from "./servers.ts";
 
 /** Short links that used to live on the metastruct.net express server. */
