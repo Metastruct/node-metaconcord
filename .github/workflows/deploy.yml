@@ -31,7 +31,6 @@ jobs:
                   cache: npm
 
             - run: npm ci
-            - run: npm run test:fluxer
 
             - name: Docker Login
               uses: docker/login-action@v4

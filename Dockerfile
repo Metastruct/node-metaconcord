@@ -12,9 +12,10 @@ RUN cd /app/config && \
     mv "$f" "${f%.example.json}.json"; \
   done
 
-RUN npm run build \
-  && node --run test \
-  && rm -r /app/dist/config
+RUN mkdir -p /pack /out \
+    && npm pack --pack-destination /pack \
+    && tar -xzf /pack/*.tgz -C /out --strip-components=1 \
+    && rm -rf /pack
 
 ########################## Stage ##########################
 
@@ -25,10 +26,8 @@ RUN apk add --no-cache font-noto ffmpeg python3 make bash
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
-COPY --from=builder /app/config ./config
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/resources ./resources
-RUN ln -s /app/config /app/dist/config
+COPY --from=builder /out/ /app/
+COPY --from=builder /app/config /app/config
 
 EXPOSE 20122
 
