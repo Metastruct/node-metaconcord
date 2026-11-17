@@ -3,7 +3,7 @@ WORKDIR /app
 RUN apk add --no-cache python3 make
 
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci && npm cache clean --force
 
 COPY . .
 
@@ -21,14 +21,19 @@ RUN mkdir -p /pack /out \
 
 FROM node:26-alpine AS runner
 WORKDIR /app
+EXPOSE 20122
 RUN apk add --no-cache font-noto ffmpeg python3 make bash
 
+ARG NODE_ENV=production
+ENV NODE_ENV=$NODE_ENV
+
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci && npm cache clean --force
 
 COPY --from=builder /out/ /app/
 COPY --from=builder /app/config /app/config
 
-EXPOSE 20122
+RUN chown -R node:node ./
+USER node
 
 CMD [ "node", "--run", "start" ]

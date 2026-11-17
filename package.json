@@ -48,7 +48,7 @@
 		"test:fluxer-formatting": "node --test --enable-source-maps test/fluxer-formatting-dist.test.js",
 		"test:fluxer-mappings": "node --test test/fluxer-mappings.test.js",
 		"test:markov": "node --experimental-test-module-mocks --test --enable-source-maps test/markov.test.ts",
-		"test:oidc": "cross-env NODE_ENV=development node --test --enable-source-maps test/oidc.test.ts",
+		"test:oidc": "node --test --enable-source-maps test/oidc.test.ts",
 		"test:polyfills": "node --test test/iterator-zip.test.ts",
 		"test:superreplacer": "node --test --enable-source-maps test/super-replacer.test.ts"
 	},
@@ -60,7 +60,7 @@
 		"./extensions",
 		"./lib",
 		"./migrations",
-		"./polyfilly",
+		"./polyfills",
 		"./resources",
 		"./schemas",
 		"./test",
