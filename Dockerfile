@@ -26,6 +26,7 @@ RUN apk add --no-cache font-noto ffmpeg python3 make bash
 
 ARG NODE_ENV=production
 ENV NODE_ENV=$NODE_ENV
+ENV METACONCORD_CACHE_PATH=/tmp/metaconcord-cache
 
 COPY package.json package-lock.json ./
 RUN npm ci && npm cache clean --force
