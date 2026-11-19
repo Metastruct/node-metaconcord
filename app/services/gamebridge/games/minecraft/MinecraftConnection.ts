@@ -44,7 +44,7 @@ export default class MinecraftConnection extends GameSocketConnection {
 	}
 
 	protected async postDisconnected(): Promise<void> {
-		const { default: StatusPayload } = await import("./handlers/StatusPayload.js");
+		const { default: StatusPayload } = await import("./handlers/StatusPayload.ts");
 		await StatusPayload.postDisconnected(this);
 	}
 

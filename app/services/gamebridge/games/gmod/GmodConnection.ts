@@ -69,7 +69,7 @@ export default class GmodConnection extends GameSocketConnection {
 	}
 
 	protected async postDisconnected(): Promise<void> {
-		const { default: StatusPayload } = await import("./handlers/StatusPayload.js");
+		const { default: StatusPayload } = await import("./handlers/StatusPayload.ts");
 		await StatusPayload.handle({ name: "StatusPayload", data: {} }, this);
 	}
 

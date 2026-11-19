@@ -68,8 +68,8 @@ async function sendAction(
 ): Promise<void> {
 	const { default: ConsolePayload } =
 		game === "gmod"
-			? await import("./games/gmod/handlers/ConsolePayload.js")
-			: await import("./games/minecraft/handlers/ConsolePayload.js");
+			? await import("./games/gmod/handlers/ConsolePayload.ts")
+			: await import("./games/minecraft/handlers/ConsolePayload.ts");
 	await ConsolePayload.send(
 		command === undefined ? { action } : { action, command, runner },
 		server
