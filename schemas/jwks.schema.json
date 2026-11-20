@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/logius/main/json-schema/logius-jwks-schema.json",
+  "title": "jwks",
+  "description": "JSON Web Key Set to validate JSON Web Signatures, according to [RFC 7517](https://www.ietf.org/rfc/rfc7517.txt), with the additional restrictions on algorithms listed in the [FSC](https://commonground.gitlab.io/standards/fsc/core/draft-fsc-core-00.html#name-access-token)",
+  "x-generated": "2026-10-09",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/logius-fsc-manager-openapi.yml#/components/schemas/jwks",
+  "type": "object",
+  "properties": {
+    "keys": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/jwk"
+      }
+    }
+  },
+  "required": [
+    "keys"
+  ],
+  "$defs": {
+    "ecPublicKey": {
+      "type": "object",
+      "properties": {
+        "crv": {
+          "type": "string"
+        },
+        "x": {
+          "type": "string",
+          "format": "byte",
+          "description": "Public Key x coordinate. This parameter contains the x coordinate for the\nElliptic Curve point. It is represented as the base64url encoding of\nthe octet string representation of the coordinate, as defined in\nSection 2.3.5 of SEC1 [SEC1]. The length of this octet string MUST\nbe the full size of a coordinate for the curve specified in the \"crv\"\nparameter. For example, if the value of \"crv\" is \"P-521\", the octet\nstring must be 66 octets long.\n"
+        },
+        "y": {
+          "type": "string",
+          "format": "byte",
+          "description": "Public Key y coordinate. This parameter contains the y coordinate for the\nElliptic Curve point. It is represented as the base64url encoding of\nthe octet string representation of the coordinate, as defined in\nSection 2.3.5 of SEC1 [SEC1]. The length of this octet string MUST\nbe the full size of a coordinate for the curve specified in the \"crv\"\nparameter. For example, if the value of \"crv\" is \"P-521\", the octet\nstring must be 66 octets long.\n",
+          "minLength": 66,
+          "maxLength": 66
+        }
+      }
+    },
+    "jwk": {
+      "type": "object",
+      "description": "The value of the \"keys\" parameter is an array of JWK values. By default, the order of the JWK values within the array does not imply an order of preference among them, although applications of JWK Sets can choose to assign a meaning to the order for their purposes, if desired.",
+      "properties": {
+        "kty": {
+          "type": "string",
+          "description": "Public Key Type. This parameter identifies the cryptographic algorithm\nfamily used with the key, such as \"RSA\" or \"EC\".  \"kty\" values should\neither be registered in the IANA \"JSON Web Key Types\" registry\nestablished by [JWA] or be a value that contains a Collision-\nResistant Name. The \"kty\" value is a case-sensitive string.  This\nmember MUST be present in a JWK.\n",
+          "enum": [
+            "RSA",
+            "EC"
+          ]
+        },
+        "use": {
+          "type": "string",
+          "description": "Public Key Use. This parameter identifies the intended use of\nthe public key. The \"use\" parameter is employed to indicate whether\na public key is used for encrypting data or verifying the signature\non data.\n",
+          "enum": [
+            "sig",
+            "enc"
+          ]
+        },
+        "key_ops": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "sign",
+              "verify",
+              "encrypt",
+              "decrypt",
+              "wrapKey",
+              "unwrapKey",
+              "deriveKey",
+              "deriveBits"
+            ]
+          },
+          "description": "Public Key Operations. This parameter identifies the operation(s)\nfor which the key is intended to be used. The \"key_ops\" parameter is\nintended for use cases in which public, private, or symmetric keys\nmay be present.\n\nIts value is an array of key operation values.\n"
+        },
+        "alg": {
+          "type": "string",
+          "description": "Public Key Algorithm. This parameter identifies the algorithm intended for\nuse with the key. The values used should either be registered in the\nIANA \"JSON Web Signature and Encryption Algorithms\" registry\nestablished by [JWA] or be a value that contains a Collision-\nResistant Name. The \"alg\" value is a case-sensitive ASCII string.\nUse of this member is OPTIONAL.\n",
+          "enum": [
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ]
+        },
+        "kid": {
+          "type": "string",
+          "description": "Public Key ID. This parameter is used to match a specific key.  This\nis used, for instance, to choose among a set of keys within a JWK Set\nduring key rollover.  The structure of the \"kid\" value is\nunspecified.  When \"kid\" values are used within a JWK Set, different\nkeys within the JWK Set SHOULD use distinct \"kid\" values.  (One\nexample in which different keys might use the same \"kid\" value is if\nthey have different \"kty\" (key type) values but are considered to be\nequivalent alternatives by the application using them.)  The \"kid\"\nvalue is a case-sensitive string.  Use of this member is OPTIONAL.\nWhen used with JWS or JWE, the \"kid\" value is used to match a JWS or\nJWE \"kid\" Header Parameter value.\n"
+        },
+        "x5u": {
+          "type": "string",
+          "format": "url",
+          "description": "Public Key X.509 URL. This parameter is a URI [RFC3986] that refers to a\nresource for an X.509 public key certificate or certificate chain\n[RFC5280].  The identified resource MUST provide a representation of\nthe certificate or certificate chain that conforms to RFC 5280\n[RFC5280] in PEM-encoded form, with each certificate delimited as\nspecified in Section 6.1 of RFC 4945 [RFC4945].  The key in the first\ncertificate MUST match the public key represented by other members of\nthe JWK.  The protocol used to acquire the resource MUST provide\nintegrity protection; an HTTP GET request to retrieve the certificate\nMUST use TLS [RFC2818] [RFC5246]; the identity of the server MUST be\nvalidated, as per Section 6 of RFC 6125 [RFC6125].  Use of this\nmember is OPTIONAL.\n"
+        },
+        "x5c": {
+          "type": "array",
+          "description": "Public Key X.509 certificate chain. This parameter contains a chain of one\nor more PKIX certificates [RFC5280].  The certificate chain is\nrepresented as a JSON array of certificate value strings.  Each\nstring in the array is a base64-encoded (Section 4 of [RFC4648] --\nnot base64url-encoded) DER [ITU.X690.1994] PKIX certificate value.\nThe PKIX certificate containing the key value MUST be the first\ncertificate.  This MAY be followed by additional certificates, with\neach subsequent certificate being the one used to certify the\nprevious one.  The key in the first certificate MUST match the public\nkey represented by other members of the JWK.  Use of this member is\nOPTIONAL.\n",
+          "items": {
+            "type": "string"
+          }
+        },
+        "x5t": {
+          "type": "string",
+          "description": "Public Key X.509 certificate SHA-1 thumbprint. This parameter is a\nbase64url-encoded SHA-1 thumbprint (a.k.a. digest) of the DER\nencoding of an X.509 certificate [RFC5280]. Note that certificate\nthumbprints are also sometimes known as certificate fingerprints.\nThe key in the certificate MUST match the public key represented by\nother members of the JWK. Use of this member is OPTIONAL.\n"
+        },
+        "x5t#s256": {
+          "type": "string",
+          "description": "Public Key X.509 certificate SHA-256 thumbprint. This parameter is a base64url-encoded SHA-256 thumbprint (a.k.a. digest)\nof the DER encoding of the X.509 certificate [RFC5280] corresponding\nto the key used to digitally sign the JWS. Note that certificate\nthumbprints are also sometimes known as certificate fingerprints.\nUse of this Header Parameter is OPTIONAL.\n"
+        }
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ecPublicKey"
+        },
+        {
+          "$ref": "#/$defs/rsaPublicKey"
+        }
+      ],
+      "required": [
+        "kty"
+      ]
+    },
+    "rsaPublicKey": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "string",
+          "format": "byte",
+          "description": "Public Key modulus. This parameter contains the modulus value for the RSA\npublic key. It is represented as a Base64urlUInt-encoded value.\n\nNote that implementers have found that some cryptographic libraries\nprefix an extra zero-valued octet to the modulus representations they\nreturn, for instance, returning 257 octets for a 2048-bit key, rather\nthan 256. Implementations using such libraries will need to take\ncare to omit the extra octet from the base64url-encoded\nrepresentation.\n"
+        },
+        "e": {
+          "type": "string",
+          "format": "byte",
+          "description": "Public Key exponent. This parameter contains the exponent value for the RSA\npublic key. It is represented as a Base64urlUInt-encoded value.\n\nFor instance, when representing the value 65537, the octet sequence\nto be base64url-encoded MUST consist of the three octets [1, 0, 1];\nthe resulting representation for this value is \"AQAB\".\n"
+        }
+      }
+    }
+  }
+}
