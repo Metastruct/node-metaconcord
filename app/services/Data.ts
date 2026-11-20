@@ -30,7 +30,6 @@ export class Data extends Service {
 	#lastResoniteTokenTime: number | undefined;
 
 	/* eslint-disable stylistic/space-before-function-paren */
-
 	get lastDiscordGuildEvent() { return this.#lastDiscordGuildEvent; }
 	get lastDiscordNickName  () { return this.#lastDiscordNickName  ; }
 	get lastMsgTime          () { return this.#lastMsgTime          ; }
@@ -42,6 +41,7 @@ export class Data extends Service {
 	set lastMsgTime          (v) { this.#lastMsgTime           = v; this.#saveField("lastMsgTime"          , v); }
 	set lastResoniteToken    (v) { this.#lastResoniteToken     = v; this.#saveField("lastResoniteToken"    , v); }
 	set lastResoniteTokenTime(v) { this.#lastResoniteTokenTime = v; this.#saveField("lastResoniteTokenTime", v); }
+	/* eslint-enable stylistic/space-before-function-paren */
 
 
 	addons: AddonsStore = {};
