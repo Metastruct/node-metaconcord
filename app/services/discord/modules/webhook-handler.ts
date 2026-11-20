@@ -13,9 +13,12 @@ import axios from "axios";
 import { diffChars } from "diff";
 import * as Discord from "discord.js";
 import express from "express";
+import { type Selectable } from "kysely";
 
 import { clamp, errToMessage, logger, stripPrefix } from "#utils";
 import { chatWebhook } from "#/app/services/gamebridge/games/gmod/webhooks.js";
+import { type webhook_commit_messages } from "#/generated/LocalDBTypes.js";
+import { type LocalDatabase } from "../../sql/LocalDB.js";
 import { type DiscordBot } from "../index.js";
 
 import gitlabConfig from "#config/gitlab.json" with { type: "json" };
@@ -89,10 +92,11 @@ type MessageComponent =
 	| Discord.TextDisplayBuilder
 	| Discord.APIActionRowComponent<Discord.APIComponentInMessageActionRow>;
 
-// Tracks the commit-push message for a given commit sha for a short while so a
+// Tracks the commit-push message state for a given commit for a short while so a
 // later check_run/check_suite completion can be appended to it in place via edit,
 // instead of flooding the channel with a separate message per check result.
 interface TrackedCommitMessage {
+	key: string;
 	messageId: string;
 	components: MessageComponent[];
 	container: Discord.ContainerBuilder;
@@ -100,56 +104,206 @@ interface TrackedCommitMessage {
 	checks: Map<string, string>;
 }
 
-const MAX_TRACKED_COMMITS = 200;
-const commitMessages = new Map<string, TrackedCommitMessage>();
+type TrackedCommitMessageRow = Selectable<webhook_commit_messages>;
 
-function trackCommitMessage(
-	sha: string,
+// Synchronization only: no persisted message state is cached here.
+// This serializes operations within one application process.
+const operationQueues = new Map<string, Promise<void>>();
+
+function withCommitQueue<T>(
+	key: string,
+	operation: () => Promise<T>
+): Promise<T> {
+	const previous = operationQueues.get(key) ?? Promise.resolve();
+	const result = previous.then(operation);
+
+	// Catch everything so the next operations get executed in all cases.
+	const tail = result.then(() => undefined).catch(() => undefined);
+	operationQueues.set(key, tail);
+
+	void tail.then(() => {
+		if (operationQueues.get(key) === tail) {
+			operationQueues.delete(key);
+		}
+	});
+
+	return result;
+}
+
+type StoredComponent =
+	| Discord.APIContainerComponent
+	| Discord.APITextDisplayComponent
+	| Discord.APIActionRowComponent<
+		Discord.APIComponentInMessageActionRow
+	>;
+
+function serializeComponent(component: MessageComponent): StoredComponent {
+	return (
+		component instanceof Discord.ContainerBuilder ||
+		component instanceof Discord.TextDisplayBuilder
+	) ? component.toJSON()
+		: component;
+}
+
+function restoreComponent(component: StoredComponent): MessageComponent {
+	switch (component.type) {
+		case Discord.ComponentType.Container:
+			return new Discord.ContainerBuilder(component);
+
+		case Discord.ComponentType.TextDisplay:
+			return new Discord.TextDisplayBuilder(component);
+
+		case Discord.ComponentType.ActionRow:
+			return component;
+
+		default:
+			throw new TypeError("Unsupported persisted message component type.");
+	}
+}
+
+function serializeEntry(entry: TrackedCommitMessage): TrackedCommitMessageRow {
+	const containerIndex = entry.components.indexOf(entry.container);
+
+	const checksDisplayIndex = entry.checksDisplay
+		? entry.container.components.indexOf(entry.checksDisplay)
+		: null;
+
+	if (containerIndex === -1 || (typeof checksDisplayIndex === "number" && checksDisplayIndex < 0))
+		throw new Error("Cannot properly serialize entry: tracked message has missing builder references.");
+
+	return {
+		commit_key: entry.key,
+		message_id: entry.messageId,
+		components_json: JSON.stringify(
+			entry.components.map(serializeComponent)
+		),
+		container_index: containerIndex,
+		checks_display_index: checksDisplayIndex,
+		checks_json: JSON.stringify(entry.checks.entries().toArray()),
+		updated_at: Date.now(),
+	};
+}
+
+function restoreEntry(row: TrackedCommitMessageRow): TrackedCommitMessage {
+	const storedComponents = JSON.parse(row.components_json) as StoredComponent[];
+	const components = storedComponents.map(restoreComponent);
+	const container = components[row.container_index];
+
+	if (!(container instanceof Discord.ContainerBuilder))
+		throw new TypeError(`Invalid persisted container for ${row.commit_key}`);
+
+	let checksDisplay: Discord.TextDisplayBuilder | undefined;
+
+	if (typeof row.checks_display_index === "number") {
+		const component = container.components[row.checks_display_index];
+
+		if (!(component instanceof Discord.TextDisplayBuilder))
+			throw new TypeError(`Invalid persisted checks display for ${row.commit_key}`);
+
+		checksDisplay = component;
+	}
+
+	return {
+		key: row.commit_key,
+		messageId: row.message_id,
+		components,
+		container,
+		checksDisplay,
+		checks: new Map(JSON.parse(row.checks_json) as [string, string][]),
+	};
+}
+
+async function readEntry(db: LocalDatabase, key: string): Promise<TrackedCommitMessage | undefined> {
+	const row = await db
+		.selectFrom("webhook_commit_messages")
+		.selectAll()
+		.where("commit_key", "=", key)
+		.executeTakeFirst();
+
+	return row ? restoreEntry(row) : undefined;
+}
+
+async function writeEntry(db: LocalDatabase, entry: TrackedCommitMessage): Promise<void> {
+	const row = serializeEntry(entry);
+
+	await db
+		.insertInto("webhook_commit_messages")
+		.values(row)
+		.onConflict(conflict =>
+			conflict.column("commit_key").doUpdateSet(eb => ({
+				message_id: eb.ref("excluded.message_id"),
+				components_json: eb.ref("excluded.components_json"),
+				container_index: eb.ref("excluded.container_index"),
+				checks_display_index: eb.ref("excluded.checks_display_index"),
+				checks_json: eb.ref("excluded.checks_json"),
+				updated_at: eb.ref("excluded.updated_at"),
+			}))
+		)
+		.execute();
+}
+
+async function trackCommitMessage(
+	db: LocalDatabase,
+	key: string,
 	messageId: string,
 	components: MessageComponent[],
 	container: Discord.ContainerBuilder
-) {
-	if (commitMessages.size >= MAX_TRACKED_COMMITS) {
-		const oldest = commitMessages.keys().next().value;
-		if (oldest) commitMessages.delete(oldest);
-	}
-	commitMessages.set(sha, { messageId, components, container, checks: new Map() });
+): Promise<void> {
+	await withCommitQueue(key, () =>
+		writeEntry(db, {
+			key,
+			messageId,
+			components,
+			container,
+			checks: new Map(),
+		})
+	);
 }
 
-function upsertCheckLine(entry: TrackedCommitMessage, key: string, line: string) {
-	entry.checks.set(key, line);
-	const content = Array.from(entry.checks.values()).join("\n");
+function patchCheckLine(
+	entry: TrackedCommitMessage,
+	checkKey: string,
+	line: string
+): void {
+	entry.checks.set(checkKey, line);
+
+	const content = entry.checks.values().toArray().join("\n");
+
 	if (entry.checksDisplay) {
 		entry.checksDisplay.setContent(content);
 	} else {
-		entry.container.addSeparatorComponents(sep => sep);
-		entry.checksDisplay = new Discord.TextDisplayBuilder().setContent(content);
+		entry.container.addSeparatorComponents(separator => separator);
+
+		entry.checksDisplay = new Discord.TextDisplayBuilder()
+			.setContent(content);
+
 		entry.container.addTextDisplayComponents(entry.checksDisplay);
 	}
 }
 
-// multiple webhooks could trigger at once messing up the order
-const editQueues = new Map<string, Promise<unknown>>();
-
-function queueEdit(
+function updateTrackedCheck(
+	db: LocalDatabase,
 	webhook: Discord.Webhook,
-	messageId: string,
-	components: MessageComponent[]
-): Promise<unknown> {
-	const prev = editQueues.get(messageId) ?? Promise.resolve();
-	const next = prev
-		.then(() =>
-			webhook.editMessage(messageId, {
-				components,
-				flags: Discord.MessageFlags.IsComponentsV2,
-			})
-		)
-		.catch(log.error.bind(log));
-	editQueues.set(messageId, next);
-	next.finally(() => {
-		if (editQueues.get(messageId) === next) editQueues.delete(messageId);
+	key: string,
+	checkKey: string,
+	line: string
+): Promise<boolean> {
+	return withCommitQueue(key, async () => {
+		const tracked = await readEntry(db, key);
+		if (!tracked) return false;
+
+		patchCheckLine(tracked, checkKey, line);
+
+		await writeEntry(db, tracked);
+
+		await webhook.editMessage(tracked.messageId, {
+			components: tracked.components,
+			flags: Discord.MessageFlags.IsComponentsV2,
+			allowedMentions: { parse: [] },
+		});
+
+		return true;
 	});
-	return next;
 }
 
 // built lazily: webhooks.json's secret may be placeholder-empty on fresh
@@ -942,6 +1096,7 @@ function addContainerHeader(
 
 export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<void> {
 	const webapp = bot.container.getService("WebApp");
+	const localDB = bot.container.getService("LocalDB");
 
 	const middleware = createNodeMiddleware(GitHub(), { path: "/" });
 
@@ -1423,7 +1578,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 						components: messageComponents,
 					})
 					.then(msg => {
-						if (sha) trackCommitMessage(sha, msg.id, messageComponents, containers[i]);
+						if (sha) return trackCommitMessage(localDB.db, sha, msg.id, messageComponents, containers[i]);
 					})
 					.catch(log.error.bind(log));
 			}
@@ -1441,7 +1596,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 				})
 				.then(msg => {
 					if (sha && containers[0])
-						trackCommitMessage(sha, msg.id, messageComponents, containers[0]);
+						return trackCommitMessage(localDB.db, sha, msg.id, messageComponents, containers[0]);
 				})
 				.catch(log.error.bind(log));
 		}
@@ -1564,7 +1719,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 		webhook
 			.send(message)
 			.then(msg => {
-				if (sha) trackCommitMessage(sha, msg.id, messageComponents, container);
+				if (sha) return trackCommitMessage(localDB.db, sha, msg.id, messageComponents, container);
 			})
 			.catch(log.error.bind(log));
 		chatWebhook()
@@ -1641,7 +1796,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 			})
 			.catch(log.error.bind(log));
 
-		if (msg) trackCommitMessage(payload.pull_request.head.sha, msg.id, [container], container);
+		if (msg) await trackCommitMessage(localDB.db, payload.pull_request.head.sha, msg.id, [container], container);
 	}
 
 	async function DefaultPullRequestHandler(event: EmitterWebhookEvent<"pull_request">) {
@@ -1718,7 +1873,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 			})
 			.catch(log.error.bind(log));
 
-		if (msg) trackCommitMessage(pr.head.sha, msg.id, [container], container);
+		if (msg) await trackCommitMessage(localDB.db, pr.head.sha, msg.id, [container], container);
 	}
 
 	GitHub().on("pull_request", async event => {
@@ -1758,7 +1913,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 				break;
 
 			default:
-				DefaultPullRequestHandler(event);
+				await DefaultPullRequestHandler(event);
 				break;
 		}
 	});
@@ -1771,15 +1926,13 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 
 		const name = run.name ?? "Workflow";
 
-		const tracked = commitMessages.get(run.head_sha);
-		if (!tracked) return;
-
-		upsertCheckLine(
-			tracked,
+		await updateTrackedCheck(
+			localDB.db,
+			webhook,
+			run.head_sha,
 			`run:${run.id}`,
 			`${CHECK_CONCLUSION_EMOJI.in_progress ?? "🔁"} [${name}](${run.html_url}) in progress`
 		);
-		queueEdit(webhook, tracked.messageId, tracked.components);
 	});
 
 	GitHub().on("workflow_run.completed", async event => {
@@ -1792,16 +1945,15 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 		const repo = payload.repository;
 		const name = run.name ?? "Workflow";
 
-		const tracked = commitMessages.get(run.head_sha);
-		if (tracked) {
-			upsertCheckLine(
-				tracked,
-				`run:${run.id}`,
-				`${CHECK_CONCLUSION_EMOJI[conclusion] ?? "⚪"} [${name}](${run.html_url}) ${conclusion}`
-			);
-			queueEdit(webhook, tracked.messageId, tracked.components);
-			return;
-		}
+		const updated = await updateTrackedCheck(
+			localDB.db,
+			webhook,
+			run.head_sha,
+			`run:${run.id}`,
+			`${CHECK_CONCLUSION_EMOJI[conclusion] ?? "⚪"} [${name}](${run.html_url}) ${conclusion}`
+		);
+
+		if (updated) return;
 
 		const target = getCheckTarget(
 			run.pull_requests.filter(pr => pr !== null),
@@ -2104,7 +2256,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 				destWebhook
 					.send({ ...baseMessagePayload, components: messageComponents })
 					.then(msg => {
-						if (sha) trackCommitMessage(sha, msg.id, messageComponents, containers[i]);
+						if (sha) return trackCommitMessage(localDB.db, sha, msg.id, messageComponents, containers[i]);
 					})
 					.catch(log.error.bind(log));
 			}
@@ -2117,7 +2269,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 				.send({ ...baseMessagePayload, components: messageComponents })
 				.then(msg => {
 					if (sha && containers[0])
-						trackCommitMessage(sha, msg.id, messageComponents, containers[0]);
+						return trackCommitMessage(localDB.db, sha, msg.id, messageComponents, containers[0]);
 				})
 				.catch(log.error.bind(log));
 		}
@@ -2220,7 +2372,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 			.catch(log.error.bind(log));
 
 		if (msg && mr.last_commit)
-			trackCommitMessage(mr.last_commit.id, msg.id, [container], container);
+			await trackCommitMessage(localDB.db, mr.last_commit.id, msg.id, [container], container);
 	}
 
 	const GITLAB_TERMINAL_PIPELINE_STATUSES = new Set(["success", "failed", "canceled", "skipped"]);
@@ -2237,16 +2389,15 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 		const destWebhook = await getGitlabWebhook(project.id);
 		if (!destWebhook) return;
 
-		const tracked = commitMessages.get(pipe.sha);
-		if (tracked) {
-			upsertCheckLine(
-				tracked,
-				"pipeline",
-				`${CHECK_CONCLUSION_EMOJI[status] ?? "⚪"} [Pipeline #${pipe.id}](${pipe.url}) ${status}`
-			);
-			queueEdit(destWebhook, tracked.messageId, tracked.components);
-			return;
-		}
+		const updated = await updateTrackedCheck(
+			localDB.db,
+			destWebhook,
+			pipe.sha,
+			"pipeline",
+			`${CHECK_CONCLUSION_EMOJI[status] ?? "⚪"} [Pipeline #${pipe.id}](${pipe.url}) ${status}`
+		);
+
+		if (updated) return;
 
 		await destWebhook
 			.send({
