@@ -1,0 +1,14 @@
+{
+  "$schema": "../schemas/jwks.schema.json",
+  "keys": [
+    {
+      "kty": "",
+      "crv": "",
+      "x": "",
+      "d": "",
+      "kid": "",
+      "use": "",
+      "alg": ""
+    }
+  ]
+}

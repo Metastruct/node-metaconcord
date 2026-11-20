@@ -1,4 +1,6 @@
 import crypto from "node:crypto";
+import { Ajv2020 as Ajv } from "ajv/dist/2020.js";
+import AjvFormats from "ajv-formats";
 import {
 	type Account,
 	type AccountClaims,
@@ -10,17 +12,26 @@ import {
 } from "oidc-provider";
 
 import { logger } from "#utils";
+import jwksSchema from "#/schemas/jwks.schema.json" with { type: "json" };
 import { type Container, Service } from "../Container.js";
 import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.js";
 import { type LocalDB } from "./sql/LocalDB.js";
 import { getSessionAccountId } from "./webapp/api/auth/session.js";
 
+import jwks from "#config/jwks.json" with { type: "json" };
 import OIDCConfig from "#config/oidc.json" with { type: "json" };
 
 const log = logger(import.meta);
 
 const esc = (value: unknown) =>
 	String(value).replaceAll(/[&<>"]/g, ch => `&#${ch.codePointAt(0)};`);
+
+const ajv = new Ajv();
+AjvFormats.default(ajv);
+ajv.addVocabulary(["x-generated", "x-method", "x-generator", "x-source"]);
+const validateJwks = ajv.compile(jwksSchema);
+
+const jwksIsValid = validateJwks(jwks);
 
 /**
  * An OpenID Connect provider mounted on the WebApp, so other sites can log in
@@ -40,8 +51,13 @@ export class OIDC extends Service {
 		const localDB = this.container.getService("LocalDB");
 		const accounts = this.container.getService("Accounts");
 
+		if (!jwksIsValid) {
+			log.error("Invalid config: the provided jwks fails the schema validation. Falling back to development signing keys.");
+		}
+
 		this.provider = new Provider(this.config.issuer, {
 			adapter: makeAdapter(localDB),
+			jwks: jwksIsValid ? jwks : undefined,
 			clients: this.config.clients.map(client => ({
 				...client,
 				response_types: client.response_types as
