@@ -73,7 +73,8 @@ export const SlashMarkovCommand: SlashCommand = {
 			case "generate":
 				res = await bot.container
 					.getService("Markov")
-					.generate(ctx.options.getString("sentence") ?? undefined, {
+					.generate({
+						sentence: ctx.options.getString("sentence") ?? undefined,
 						depth: ctx.options.getInteger("insanity") ?? undefined,
 						length: ctx.options.getInteger("length") ?? undefined,
 						continuation: ctx.options.getBoolean("continuation") ?? undefined,

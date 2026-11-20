@@ -94,6 +94,7 @@ export default defineConfig([
 			"unicorn/no-break-in-nested-loop": "off",
 			"unicorn/no-new-array": "off",
 			"unicorn/no-unsafe-string-replacement": "off",
+			"unicorn/prefer-regexp-exec": "off",
 			"unicorn/prefer-regexp-test": "off",
 
 			//#endregion

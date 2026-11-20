@@ -254,7 +254,8 @@ export default async function ShitpostLoader(bot: DiscordBot) {
 		const prefix = selection.ctx[Math.trunc(Math.random() * selection.ctx.length)];
 
 		if (prefix !== "custom") {
-			const sentence = await mk.generate(prefix, {
+			const sentence = await mk.generate({
+				sentence: prefix,
 				continuation: false,
 			});
 

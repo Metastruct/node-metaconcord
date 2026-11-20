@@ -286,77 +286,77 @@ const replacementCases: TestCase[] = [
 		name: "converts the even Steam account component correctly",
 		input: `1. fn - [${EVEN_STEAM_ID}]Alice:7`,
 		expected:
-      `1. fn - [[${EVEN_STEAM_ID}]Alice](${EVEN_STEAM_URL}):7`,
+			`1. fn - [[${EVEN_STEAM_ID}]Alice](${EVEN_STEAM_URL}):7`,
 	},
 	{
 		name: "preserves spaces in a Steam nickname",
 		input: `1. fn - [${STEAM_ID}]Alice Example:7`,
 		expected:
-      `1. fn - [[${STEAM_ID}]Alice Example](${STEAM_URL}):7`,
+			`1. fn - [[${STEAM_ID}]Alice Example](${STEAM_URL}):7`,
 	},
 	{
 		name: "preserves colons inside a Steam nickname",
 		input: `1. fn - [${STEAM_ID}]Alice:Admin:7`,
 		expected:
-      `1. fn - [[${STEAM_ID}]Alice:Admin](${STEAM_URL}):7`,
+			`1. fn - [[${STEAM_ID}]Alice:Admin](${STEAM_URL}):7`,
 	},
 	{
 		name: "does not escape Markdown in Steam nicknames",
 		input: `1. fn - [${STEAM_ID}][Alice](example):7`,
 		expected:
-      `1. fn - [[${STEAM_ID}][Alice](example)](${STEAM_URL}):7`,
+			`1. fn - [[${STEAM_ID}][Alice](example)](${STEAM_URL}):7`,
 	},
 	{
 		name: "preserves Unicode nicknames",
 		input: `1. fn - [${STEAM_ID}]玩家 🦊:7`,
 		expected:
-      `1. fn - [[${STEAM_ID}]玩家 🦊](${STEAM_URL}):7`,
+			`1. fn - [[${STEAM_ID}]玩家 🦊](${STEAM_URL}):7`,
 	},
 	{
 		name: "formats a partial Steam ID and filename",
 		input: "1. fn - <0:1:42|Alice><script.lua>:7",
 		expected:
-      `1. fn - <[0:1:42 |Alice](${STEAM_URL})><script.lua>:7`,
+			`1. fn - <[0:1:42 |Alice](${STEAM_URL})><script.lua>:7`,
 	},
 	{
 		name: "preserves runnable filename paths and spaces",
 		input: "1. fn - <0:1:42|Alice><folder/my script.lua>:7",
 		expected:
-      `1. fn - <[0:1:42 |Alice](${STEAM_URL})>` +
+			`1. fn - <[0:1:42 |Alice](${STEAM_URL})>` +
       "<folder/my script.lua>:7",
 	},
 	{
 		name: "formats a partial Steam ID and command",
 		input: "1. fn - <0:1:42|Alice><say:server>:7",
 		expected:
-      `1. fn - <[0:1:42 |Alice](${STEAM_URL})><say:server>:7`,
+			`1. fn - <[0:1:42 |Alice](${STEAM_URL})><say:server>:7`,
 	},
 	{
 		name: "preserves a missing partial-Steam-ID location as undefined fields",
 		input: "1. fn - <0:1:42|Alice>:7",
 		expected:
-      `1. fn - <[0:1:42 |Alice](${STEAM_URL})>` +
+			`1. fn - <[0:1:42 |Alice](${STEAM_URL})>` +
       "<undefined:undefined>:7",
 	},
 	{
 		name: "links a known Lua addon",
 		input: "1. fn - lua/testaddon/init.lua:7",
 		expected:
-      "1. fn - [lua/testaddon/init.lua]" +
+			"1. fn - [lua/testaddon/init.lua]" +
       `(${ADDON_URL}lua/testaddon/init.lua#L7):7`,
 	},
 	{
 		name: "links nested Lua paths",
 		input: "1. fn - lua/testaddon/a/b/init.lua:7",
 		expected:
-      "1. fn - [lua/testaddon/a/b/init.lua]" +
+			"1. fn - [lua/testaddon/a/b/init.lua]" +
       `(${ADDON_URL}lua/testaddon/a/b/init.lua#L7):7`,
 	},
 	{
 		name: "links known gamemode paths",
 		input: "1. fn - gamemodes/testaddon/gamemode/init.lua:7",
 		expected:
-      "1. fn - [gamemodes/testaddon/gamemode/init.lua]" +
+			"1. fn - [gamemodes/testaddon/gamemode/init.lua]" +
       `(${ADDON_URL}gamemodes/testaddon/gamemode/init.lua#L7):7`,
 	},
 	{
@@ -368,14 +368,14 @@ const replacementCases: TestCase[] = [
 		name: "uses the regular mta mapping for Lua paths",
 		input: "1. fn - lua/mta/init.lua:7",
 		expected:
-      "1. fn - [lua/mta/init.lua]" +
+			"1. fn - [lua/mta/init.lua]" +
       `(${MTA_URL}lua/mta/init.lua#L7):7`,
 	},
 	{
 		name: "preserves the original mta gamemode URL lookup",
 		input: "1. fn - gamemodes/mta/gamemode/init.lua:7",
 		expected:
-      "1. fn - [gamemodes/mta/gamemode/init.lua]" +
+			"1. fn - [gamemodes/mta/gamemode/init.lua]" +
       `(${MTA_URL}gamemodes/mta/gamemode/init.lua#L7):7`,
 	},
 	{
@@ -392,21 +392,21 @@ const replacementCases: TestCase[] = [
 		name: "preserves a negative line number in a linked path",
 		input: "1. fn - lua/testaddon/init.lua:-1",
 		expected:
-      "1. fn - [lua/testaddon/init.lua]" +
+			"1. fn - [lua/testaddon/init.lua]" +
       `(${ADDON_URL}lua/testaddon/init.lua#L-1):-1`,
 	},
 	{
 		name: "preserves zero line numbers",
 		input: "1. fn - lua/testaddon/init.lua:0",
 		expected:
-      "1. fn - [lua/testaddon/init.lua]" +
+			"1. fn - [lua/testaddon/init.lua]" +
       `(${ADDON_URL}lua/testaddon/init.lua#L0):0`,
 	},
 	{
 		name: "preserves leading zeroes in stack and line numbers",
 		input: "001. fn - lua/testaddon/init.lua:0007",
 		expected:
-      "001. fn - [lua/testaddon/init.lua]" +
+			"001. fn - [lua/testaddon/init.lua]" +
       `(${ADDON_URL}lua/testaddon/init.lua#L0007):0007`,
 	},
 	{
@@ -418,7 +418,7 @@ const replacementCases: TestCase[] = [
 		name: "preserves non-whitespace function names verbatim",
 		input: "1. object:method<T> - lua/testaddon/init.lua:7",
 		expected:
-      "1. object:method<T> - [lua/testaddon/init.lua]" +
+			"1. object:method<T> - [lua/testaddon/init.lua]" +
       `(${ADDON_URL}lua/testaddon/init.lua#L7):7`,
 	},
 	{

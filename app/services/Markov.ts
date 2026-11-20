@@ -32,6 +32,7 @@ function levenshtein(a: string, b: string): number {
 }
 
 export interface IGenerateOptions {
+	sentence?: string;
 	depth?: number;
 	length?: number;
 	continuation?: boolean;
@@ -249,14 +250,21 @@ export class Markov extends Service {
 		await (await this.getMarkov()).learn(data);
 	}
 
-	async generate(sentence?: string, options?: IGenerateOptions): Promise<string | undefined> {
+	async generate(sentence?: string): Promise<string | undefined>;
+	async generate(options?: IGenerateOptions): Promise<string | undefined>;
+	async generate(input?: string | IGenerateOptions): Promise<string | undefined> {
+		const options = typeof input === "string" ? { sentence: input } : input;
+
 		try {
-			return await (
-				await this.getMarkov()
-			).generate(options?.depth, options?.length, sentence, options?.continuation);
+			return await (await this.getMarkov()).generate(
+				options?.depth,
+				options?.length,
+				options?.sentence,
+				options?.continuation,
+			);
 		} catch (error) {
 			log.error(error);
-			return;
+			return undefined;
 		}
 	}
 

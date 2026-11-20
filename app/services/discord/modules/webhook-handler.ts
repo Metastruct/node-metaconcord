@@ -7,7 +7,7 @@ import type {
 } from "@gitbeaker/rest";
 import { type components } from "@octokit/openapi-types";
 import type { Octokit } from "@octokit/rest";
-import { createNodeMiddleware,Webhooks } from "@octokit/webhooks";
+import { createNodeMiddleware, Webhooks } from "@octokit/webhooks";
 import { type EmitterWebhookEvent } from "@octokit/webhooks/types";
 import axios from "axios";
 import { diffChars } from "diff";
@@ -1043,12 +1043,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 	bot.discord.on("interactionCreate", async (ctx: Discord.Interaction<Discord.CacheType>) => {
 		if (!bridge || !ctx.member || !ctx.isButton()) return;
 		const [action, override] = ctx.customId.split("_", 2);
-		const where =
-			override === undefined
-				? bridge.servers.gmod.filter(s => !!s)
-				: bridge.servers.gmod.filter(s =>
-					override.split(",").includes(s.config.id.toString())
-				);
+		const where = bridge.servers.gmod.filter(server => override ? override.split(",").includes(server.config.id.toString()) : Boolean(server));
 
 		const allowed = (<Discord.GuildMemberRoleManager>ctx.member.roles).cache.some(x =>
 			allowedRoles.has(x.id)
