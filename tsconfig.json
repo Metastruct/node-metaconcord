@@ -4,19 +4,17 @@
 		"@tsconfig/strictest/tsconfig.json"
 	],
 	"compilerOptions": {
-		"outDir": "./dist",
-		"sourceMap": true,
-
 		"noEmit": true,
-		"erasableSyntaxOnly": true,
-		"allowImportingTsExtensions": true,
-
+		
 		"lib": [
 			"ES2025",
 			"ESNext.Collection",
 			"ESNext.Temporal",
 			"DOM",
 		],
+
+		"erasableSyntaxOnly": true,
+		"allowImportingTsExtensions": true,
 
 		// some of these require rather big refactoring, so we agree to not see the issues, mkay?
 		// we still extend from @tsconfig/strictest
