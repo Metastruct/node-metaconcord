@@ -28,7 +28,6 @@ const esc = (value: unknown) =>
 
 const ajv = new Ajv();
 AjvFormats.default(ajv);
-ajv.addVocabulary(["x-generated", "x-method", "x-generator", "x-source"]);
 const validateJwks = ajv.compile(jwksSchema);
 
 const jwksIsValid = validateJwks(jwks);

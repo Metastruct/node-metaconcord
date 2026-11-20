@@ -1,67 +1,160 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/api-evangelist/logius/main/json-schema/logius-jwks-schema.json",
-  "title": "jwks",
-  "description": "JSON Web Key Set to validate JSON Web Signatures, according to [RFC 7517](https://www.ietf.org/rfc/rfc7517.txt), with the additional restrictions on algorithms listed in the [FSC](https://commonground.gitlab.io/standards/fsc/core/draft-fsc-core-00.html#name-access-token)",
-  "x-generated": "2026-10-09",
-  "x-method": "derived",
-  "x-generator": "derive-json-schema.py",
-  "x-source": "openapi/logius-fsc-manager-openapi.yml#/components/schemas/jwks",
+  "$id": "https://raw.githubusercontent.com/Metastruct/node-metaconcord/refs/heads/master/schemas/jwks.schema.json",
+  "title": "Private JSON Web Key Set",
+  "description": "A private asymmetric JWK Set profile based on RFC 7517, RFC 7518, and RFC 8037. Supports RSA, P-256/P-384/P-521 EC keys, and Ed25519/Ed448/X25519/X448 OKP keys. Each key includes public and private components. RSA CRT parameters are required by this profile.",
+  "$comment": "This profile restricts key types, curves, algorithms, uses, and operations. Additional properties are allowed for extensibility.",
   "type": "object",
   "properties": {
     "keys": {
       "type": "array",
+      "description": "Private asymmetric JWKs. An empty array is permitted. Array order does not imply preference unless the application assigns it meaning.",
       "items": {
         "$ref": "#/$defs/jwk"
       }
     }
   },
-  "required": [
-    "keys"
-  ],
+  "required": ["keys"],
+  "additionalProperties": true,
   "$defs": {
-    "ecPublicKey": {
+    "base64url": {
+      "type": "string",
+      "minLength": 2,
+      "pattern": "^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-][AQgw]|[A-Za-z0-9_-]{2}[AEIMQUYcgkosw048])?$(?![\\s\\S])",
+      "description": "Canonical nonempty unpadded base64url encoding, without whitespace and with zero unused pad bits."
+    },
+    "positiveBase64urlUInt": {
+      "type": "string",
+      "allOf": [
+        {
+          "$ref": "#/$defs/base64url"
+        },
+        {
+          "type": "string",
+          "not": {
+            "type": "string",
+            "pattern": "^A[A-P]"
+          }
+        }
+      ],
+      "description": "A strictly positive integer in minimal unsigned big-endian Base64urlUInt representation, without leading zero octets. Excludes the zero value permitted by the general RFC 7518 Base64urlUInt definition."
+    },
+    "octets20": {
+      "type": "string",
+      "$ref": "#/$defs/base64url",
+      "minLength": 27,
+      "maxLength": 27,
+      "description": "Canonical unpadded base64url encoding of exactly 20 octets."
+    },
+    "octets32": {
+      "type": "string",
+      "$ref": "#/$defs/base64url",
+      "minLength": 43,
+      "maxLength": 43,
+      "description": "Canonical unpadded base64url encoding of exactly 32 octets."
+    },
+    "octets48": {
+      "type": "string",
+      "$ref": "#/$defs/base64url",
+      "minLength": 64,
+      "maxLength": 64,
+      "description": "Canonical unpadded base64url encoding of exactly 48 octets."
+    },
+    "octets56": {
+      "type": "string",
+      "$ref": "#/$defs/base64url",
+      "minLength": 75,
+      "maxLength": 75,
+      "description": "Canonical unpadded base64url encoding of exactly 56 octets."
+    },
+    "octets57": {
+      "type": "string",
+      "$ref": "#/$defs/base64url",
+      "minLength": 76,
+      "maxLength": 76,
+      "description": "Canonical unpadded base64url encoding of exactly 57 octets."
+    },
+    "octets66": {
+      "type": "string",
+      "$ref": "#/$defs/base64url",
+      "minLength": 88,
+      "maxLength": 88,
+      "description": "Canonical unpadded base64url encoding of exactly 66 octets."
+    },
+    "base64Certificate": {
+      "type": "string",
+      "minLength": 4,
+      "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/][AQgw]==|[A-Za-z0-9+/]{2}[AEIMQUYcgkosw048]=)?$(?![\\s\\S])",
+      "description": "DER-encoded X.509 certificate represented as canonical standard base64, not base64url, with padding when needed and no whitespace."
+    },
+    "signingMetadata": {
       "type": "object",
+      "description": "Optional signature metadata: use is sig, and key_ops contains only sign and verify.",
       "properties": {
-        "crv": {
-          "type": "string"
-        },
-        "x": {
+        "use": {
           "type": "string",
-          "format": "byte",
-          "description": "Public Key x coordinate. This parameter contains the x coordinate for the\nElliptic Curve point. It is represented as the base64url encoding of\nthe octet string representation of the coordinate, as defined in\nSection 2.3.5 of SEC1 [SEC1]. The length of this octet string MUST\nbe the full size of a coordinate for the curve specified in the \"crv\"\nparameter. For example, if the value of \"crv\" is \"P-521\", the octet\nstring must be 66 octets long.\n"
+          "const": "sig"
         },
-        "y": {
+        "key_ops": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["sign", "verify"]
+          }
+        }
+      }
+    },
+    "agreementMetadata": {
+      "type": "object",
+      "description": "Optional key-agreement metadata: use is enc, and key_ops contains only deriveKey and deriveBits. These operations apply to the asymmetric key, not to any subsequently derived symmetric key.",
+      "properties": {
+        "use": {
           "type": "string",
-          "format": "byte",
-          "description": "Public Key y coordinate. This parameter contains the y coordinate for the\nElliptic Curve point. It is represented as the base64url encoding of\nthe octet string representation of the coordinate, as defined in\nSection 2.3.5 of SEC1 [SEC1]. The length of this octet string MUST\nbe the full size of a coordinate for the curve specified in the \"crv\"\nparameter. For example, if the value of \"crv\" is \"P-521\", the octet\nstring must be 66 octets long.\n",
-          "minLength": 66,
-          "maxLength": 66
+          "const": "enc"
+        },
+        "key_ops": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["deriveKey", "deriveBits"]
+          }
+        }
+      }
+    },
+    "rsaEncryptionMetadata": {
+      "type": "object",
+      "description": "Optional RSA encryption metadata: use is enc, and key_ops contains only encrypt, decrypt, wrapKey, and unwrapKey.",
+      "properties": {
+        "use": {
+          "type": "string",
+          "const": "enc"
+        },
+        "key_ops": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["encrypt", "decrypt", "wrapKey", "unwrapKey"]
+          }
         }
       }
     },
     "jwk": {
       "type": "object",
-      "description": "The value of the \"keys\" parameter is an array of JWK values. By default, the order of the JWK values within the array does not imply an order of preference among them, although applications of JWK Sets can choose to assign a meaning to the order for their purposes, if desired.",
+      "description": "A private asymmetric JWK containing both public and private key components.",
       "properties": {
         "kty": {
           "type": "string",
-          "description": "Public Key Type. This parameter identifies the cryptographic algorithm\nfamily used with the key, such as \"RSA\" or \"EC\".  \"kty\" values should\neither be registered in the IANA \"JSON Web Key Types\" registry\nestablished by [JWA] or be a value that contains a Collision-\nResistant Name. The \"kty\" value is a case-sensitive string.  This\nmember MUST be present in a JWK.\n",
-          "enum": [
-            "RSA",
-            "EC"
-          ]
+          "enum": ["RSA", "EC", "OKP"],
+          "description": "Case-sensitive key type."
         },
         "use": {
           "type": "string",
-          "description": "Public Key Use. This parameter identifies the intended use of\nthe public key. The \"use\" parameter is employed to indicate whether\na public key is used for encrypting data or verifying the signature\non data.\n",
-          "enum": [
-            "sig",
-            "enc"
-          ]
+          "enum": ["sig", "enc"],
+          "description": "Optional intended public-key use: sig for signatures or enc for encryption, including key wrapping and key agreement. RFC 7517 discourages using use together with key_ops; when both are present, their meanings must be consistent."
         },
         "key_ops": {
           "type": "array",
+          "uniqueItems": true,
           "items": {
             "type": "string",
             "enum": [
@@ -75,74 +168,522 @@
               "deriveBits"
             ]
           },
-          "description": "Public Key Operations. This parameter identifies the operation(s)\nfor which the key is intended to be used. The \"key_ops\" parameter is\nintended for use cases in which public, private, or symmetric keys\nmay be present.\n\nIts value is an array of key operation values.\n"
+          "description": "Optional intended operations, without duplicates. Related public- and private-component operations may be listed together. RFC 7517 discourages unrelated operation combinations and explicitly permits sign/verify, encrypt/decrypt, and wrapKey/unwrapKey pairs. It also discourages using key_ops together with use; when both are present, their meanings must be consistent."
         },
         "alg": {
           "type": "string",
-          "description": "Public Key Algorithm. This parameter identifies the algorithm intended for\nuse with the key. The values used should either be registered in the\nIANA \"JSON Web Signature and Encryption Algorithms\" registry\nestablished by [JWA] or be a value that contains a Collision-\nResistant Name. The \"alg\" value is a case-sensitive ASCII string.\nUse of this member is OPTIONAL.\n",
+          "description": "Optional intended algorithm, restricted by key type and curve."
+        },
+        "kid": {
+          "type": "string",
+          "description": "Optional case-sensitive key identifier with application-defined structure. Different keys in a JWK Set should normally have distinct identifiers, with exceptions permitted by RFC 7517."
+        },
+        "x5u": {
+          "type": "string",
+          "format": "uri",
+          "description": "URI identifying a PEM-encoded X.509 certificate or certificate chain. The first certificate's public key must match the JWK, and related JWK metadata must be semantically consistent with that certificate. Retrieval requires integrity protection; HTTP GET retrieval requires TLS with server identity validation."
+        },
+        "x5c": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/base64Certificate"
+          },
+          "description": "Nonempty array of standard-base64-encoded DER X.509 certificates. The first certificate's public key must match the JWK; each subsequent certificate certifies the preceding certificate. Related JWK metadata must be semantically consistent with the first certificate."
+        },
+        "x5t": {
+          "$ref": "#/$defs/octets20",
+          "description": "Unpadded base64url-encoded SHA-1 digest of a DER-encoded X.509 certificate whose public key matches the JWK. Related JWK metadata must be semantically consistent with the certificate. This is a certificate thumbprint, not an RFC 7638 JWK thumbprint."
+        },
+        "x5t#S256": {
+          "$ref": "#/$defs/octets32",
+          "description": "Unpadded base64url-encoded SHA-256 digest of a DER-encoded X.509 certificate whose public key matches the JWK. Related JWK metadata must be semantically consistent with the certificate. This is a certificate thumbprint, not an RFC 7638 JWK thumbprint."
+        }
+      },
+      "required": ["kty"],
+      "oneOf": [
+        {
+          "$ref": "#/$defs/rsaPrivateKey"
+        },
+        {
+          "$ref": "#/$defs/ecPrivateKey"
+        },
+        {
+          "$ref": "#/$defs/okpPrivateKey"
+        }
+      ],
+      "allOf": [
+        {
+          "type": "object",
+          "if": {
+            "type": "object",
+            "properties": {
+              "use": {
+                "type": "string",
+                "const": "sig"
+              }
+            },
+            "required": ["use"]
+          },
+          "then": {
+            "$ref": "#/$defs/signingMetadata"
+          }
+        },
+        {
+          "type": "object",
+          "if": {
+            "type": "object",
+            "properties": {
+              "use": {
+                "type": "string",
+                "const": "enc"
+              }
+            },
+            "required": ["use"]
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "key_ops": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "encrypt",
+                    "decrypt",
+                    "wrapKey",
+                    "unwrapKey",
+                    "deriveKey",
+                    "deriveBits"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "if": {
+            "type": "object",
+            "properties": {
+              "alg": {
+                "type": "string",
+                "enum": [
+                  "RS256",
+                  "RS384",
+                  "RS512",
+                  "PS256",
+                  "PS384",
+                  "PS512",
+                  "ES256",
+                  "ES384",
+                  "ES512",
+                  "EdDSA"
+                ]
+              }
+            },
+            "required": ["alg"]
+          },
+          "then": {
+            "$ref": "#/$defs/signingMetadata"
+          }
+        },
+        {
+          "type": "object",
+          "if": {
+            "type": "object",
+            "properties": {
+              "alg": {
+                "type": "string",
+                "enum": [
+                  "ECDH-ES",
+                  "ECDH-ES+A128KW",
+                  "ECDH-ES+A192KW",
+                  "ECDH-ES+A256KW"
+                ]
+              }
+            },
+            "required": ["alg"]
+          },
+          "then": {
+            "$ref": "#/$defs/agreementMetadata"
+          }
+        },
+        {
+          "type": "object",
+          "if": {
+            "type": "object",
+            "properties": {
+              "alg": {
+                "type": "string",
+                "enum": ["RSA-OAEP", "RSA-OAEP-256"]
+              }
+            },
+            "required": ["alg"]
+          },
+          "then": {
+            "$ref": "#/$defs/rsaEncryptionMetadata"
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "rsaPrivateKey": {
+      "type": "object",
+      "description": "RSA private JWK including public components. This profile requires all first- and second-factor CRT parameters, which is stricter than RFC 7518. The RSA algorithms allowed by this profile require a modulus of at least 2048 significant bits.",
+      "properties": {
+        "kty": {
+          "type": "string",
+          "const": "RSA"
+        },
+        "n": {
+          "$ref": "#/$defs/positiveBase64urlUInt",
+          "description": "RSA modulus."
+        },
+        "e": {
+          "$ref": "#/$defs/positiveBase64urlUInt",
+          "description": "RSA public exponent."
+        },
+        "d": {
+          "$ref": "#/$defs/positiveBase64urlUInt",
+          "description": "RSA private exponent."
+        },
+        "p": {
+          "$ref": "#/$defs/positiveBase64urlUInt",
+          "description": "First prime factor."
+        },
+        "q": {
+          "$ref": "#/$defs/positiveBase64urlUInt",
+          "description": "Second prime factor."
+        },
+        "dp": {
+          "$ref": "#/$defs/positiveBase64urlUInt",
+          "description": "First-factor CRT exponent, d mod (p - 1)."
+        },
+        "dq": {
+          "$ref": "#/$defs/positiveBase64urlUInt",
+          "description": "Second-factor CRT exponent, d mod (q - 1)."
+        },
+        "qi": {
+          "$ref": "#/$defs/positiveBase64urlUInt",
+          "description": "First CRT coefficient, the multiplicative inverse of q modulo p."
+        },
+        "oth": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/rsaOtherPrime"
+          },
+          "description": "Additional prime information for multi-prime RSA, ordered consistently with the CRT representation. Contains one entry for each prime after p and q. Must be omitted for two-prime RSA."
+        },
+        "alg": {
+          "type": "string",
           "enum": [
             "RS256",
             "RS384",
             "RS512",
-            "ES256",
-            "ES384",
-            "ES512",
             "PS256",
             "PS384",
-            "PS512"
-          ]
+            "PS512",
+            "RSA-OAEP",
+            "RSA-OAEP-256"
+          ],
+          "description": "Optional intended RSA algorithm, restricted to this profile's allowlist."
         },
-        "kid": {
-          "type": "string",
-          "description": "Public Key ID. This parameter is used to match a specific key.  This\nis used, for instance, to choose among a set of keys within a JWK Set\nduring key rollover.  The structure of the \"kid\" value is\nunspecified.  When \"kid\" values are used within a JWK Set, different\nkeys within the JWK Set SHOULD use distinct \"kid\" values.  (One\nexample in which different keys might use the same \"kid\" value is if\nthey have different \"kty\" (key type) values but are considered to be\nequivalent alternatives by the application using them.)  The \"kid\"\nvalue is a case-sensitive string.  Use of this member is OPTIONAL.\nWhen used with JWS or JWE, the \"kid\" value is used to match a JWS or\nJWE \"kid\" Header Parameter value.\n"
-        },
-        "x5u": {
-          "type": "string",
-          "format": "url",
-          "description": "Public Key X.509 URL. This parameter is a URI [RFC3986] that refers to a\nresource for an X.509 public key certificate or certificate chain\n[RFC5280].  The identified resource MUST provide a representation of\nthe certificate or certificate chain that conforms to RFC 5280\n[RFC5280] in PEM-encoded form, with each certificate delimited as\nspecified in Section 6.1 of RFC 4945 [RFC4945].  The key in the first\ncertificate MUST match the public key represented by other members of\nthe JWK.  The protocol used to acquire the resource MUST provide\nintegrity protection; an HTTP GET request to retrieve the certificate\nMUST use TLS [RFC2818] [RFC5246]; the identity of the server MUST be\nvalidated, as per Section 6 of RFC 6125 [RFC6125].  Use of this\nmember is OPTIONAL.\n"
-        },
-        "x5c": {
+        "key_ops": {
           "type": "array",
-          "description": "Public Key X.509 certificate chain. This parameter contains a chain of one\nor more PKIX certificates [RFC5280].  The certificate chain is\nrepresented as a JSON array of certificate value strings.  Each\nstring in the array is a base64-encoded (Section 4 of [RFC4648] --\nnot base64url-encoded) DER [ITU.X690.1994] PKIX certificate value.\nThe PKIX certificate containing the key value MUST be the first\ncertificate.  This MAY be followed by additional certificates, with\neach subsequent certificate being the one used to certify the\nprevious one.  The key in the first certificate MUST match the public\nkey represented by other members of the JWK.  Use of this member is\nOPTIONAL.\n",
           "items": {
-            "type": "string"
-          }
-        },
-        "x5t": {
-          "type": "string",
-          "description": "Public Key X.509 certificate SHA-1 thumbprint. This parameter is a\nbase64url-encoded SHA-1 thumbprint (a.k.a. digest) of the DER\nencoding of an X.509 certificate [RFC5280]. Note that certificate\nthumbprints are also sometimes known as certificate fingerprints.\nThe key in the certificate MUST match the public key represented by\nother members of the JWK. Use of this member is OPTIONAL.\n"
-        },
-        "x5t#s256": {
-          "type": "string",
-          "description": "Public Key X.509 certificate SHA-256 thumbprint. This parameter is a base64url-encoded SHA-256 thumbprint (a.k.a. digest)\nof the DER encoding of the X.509 certificate [RFC5280] corresponding\nto the key used to digitally sign the JWS. Note that certificate\nthumbprints are also sometimes known as certificate fingerprints.\nUse of this Header Parameter is OPTIONAL.\n"
+            "type": "string",
+            "enum": [
+              "sign",
+              "verify",
+              "encrypt",
+              "decrypt",
+              "wrapKey",
+              "unwrapKey"
+            ]
+          },
+          "description": "Optional intended RSA operations."
         }
       },
+      "required": ["kty", "n", "e", "d", "p", "q", "dp", "dq", "qi"],
+      "additionalProperties": true
+    },
+    "rsaOtherPrime": {
+      "type": "object",
+      "description": "CRT information for an additional RSA prime factor after p and q.",
+      "properties": {
+        "r": {
+          "$ref": "#/$defs/positiveBase64urlUInt",
+          "description": "Additional prime factor."
+        },
+        "d": {
+          "$ref": "#/$defs/positiveBase64urlUInt",
+          "description": "CRT exponent for this factor, equal to the RSA private exponent mod (r - 1)."
+        },
+        "t": {
+          "$ref": "#/$defs/positiveBase64urlUInt",
+          "description": "CRT coefficient: the multiplicative inverse, modulo r, of the product of all preceding prime factors, including p and q."
+        }
+      },
+      "required": ["r", "d", "t"],
+      "additionalProperties": true
+    },
+    "ecPrivateKey": {
+      "type": "object",
+      "description": "RFC 7518 EC private JWK. Coordinates and private scalars use fixed-width big-endian octet strings, preserving leading zero octets: 32 octets for P-256, 48 for P-384, and 66 for P-521.",
+      "properties": {
+        "kty": {
+          "type": "string",
+          "const": "EC"
+        },
+        "crv": {
+          "type": "string",
+          "enum": ["P-256", "P-384", "P-521"],
+          "description": "Case-sensitive curve identifier."
+        },
+        "x": {
+          "$ref": "#/$defs/base64url",
+          "description": "Public point's x-coordinate as a base64url-encoded fixed-width big-endian octet string."
+        },
+        "y": {
+          "$ref": "#/$defs/base64url",
+          "description": "Public point's y-coordinate as a base64url-encoded fixed-width big-endian octet string."
+        },
+        "d": {
+          "$ref": "#/$defs/base64url",
+          "description": "Private scalar as a base64url-encoded fixed-width big-endian octet string of the size required by the curve order."
+        },
+        "key_ops": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["sign", "verify", "deriveKey", "deriveBits"]
+          },
+          "description": "Optional intended EC operations."
+        }
+      },
+      "required": ["kty", "crv", "x", "y", "d"],
       "oneOf": [
         {
-          "$ref": "#/$defs/ecPublicKey"
+          "type": "object",
+          "properties": {
+            "crv": {
+              "type": "string",
+              "const": "P-256"
+            },
+            "x": {
+              "$ref": "#/$defs/octets32"
+            },
+            "y": {
+              "$ref": "#/$defs/octets32"
+            },
+            "d": {
+              "$ref": "#/$defs/octets32"
+            },
+            "alg": {
+              "type": "string",
+              "enum": [
+                "ES256",
+                "ECDH-ES",
+                "ECDH-ES+A128KW",
+                "ECDH-ES+A192KW",
+                "ECDH-ES+A256KW"
+              ]
+            }
+          }
         },
         {
-          "$ref": "#/$defs/rsaPublicKey"
+          "type": "object",
+          "properties": {
+            "crv": {
+              "type": "string",
+              "const": "P-384"
+            },
+            "x": {
+              "$ref": "#/$defs/octets48"
+            },
+            "y": {
+              "$ref": "#/$defs/octets48"
+            },
+            "d": {
+              "$ref": "#/$defs/octets48"
+            },
+            "alg": {
+              "type": "string",
+              "enum": [
+                "ES384",
+                "ECDH-ES",
+                "ECDH-ES+A128KW",
+                "ECDH-ES+A192KW",
+                "ECDH-ES+A256KW"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "crv": {
+              "type": "string",
+              "const": "P-521"
+            },
+            "x": {
+              "$ref": "#/$defs/octets66"
+            },
+            "y": {
+              "$ref": "#/$defs/octets66"
+            },
+            "d": {
+              "$ref": "#/$defs/octets66"
+            },
+            "alg": {
+              "type": "string",
+              "enum": [
+                "ES512",
+                "ECDH-ES",
+                "ECDH-ES+A128KW",
+                "ECDH-ES+A192KW",
+                "ECDH-ES+A256KW"
+              ]
+            }
+          }
         }
       ],
-      "required": [
-        "kty"
-      ]
+      "additionalProperties": true
     },
-    "rsaPublicKey": {
+    "okpPrivateKey": {
       "type": "object",
+      "description": "RFC 8037 Octet Key Pair private JWK. The x member contains the complete subtype-specific public-key octet string, not a generic affine x-coordinate. Ed25519 and Ed448 are signature subtypes; X25519 and X448 are key-agreement subtypes.",
       "properties": {
-        "n": {
+        "kty": {
           "type": "string",
-          "format": "byte",
-          "description": "Public Key modulus. This parameter contains the modulus value for the RSA\npublic key. It is represented as a Base64urlUInt-encoded value.\n\nNote that implementers have found that some cryptographic libraries\nprefix an extra zero-valued octet to the modulus representations they\nreturn, for instance, returning 257 octets for a 2048-bit key, rather\nthan 256. Implementations using such libraries will need to take\ncare to omit the extra octet from the base64url-encoded\nrepresentation.\n"
+          "const": "OKP"
         },
-        "e": {
+        "crv": {
           "type": "string",
-          "format": "byte",
-          "description": "Public Key exponent. This parameter contains the exponent value for the RSA\npublic key. It is represented as a Base64urlUInt-encoded value.\n\nFor instance, when representing the value 65537, the octet sequence\nto be base64url-encoded MUST consist of the three octets [1, 0, 1];\nthe resulting representation for this value is \"AQAB\".\n"
+          "enum": ["Ed25519", "Ed448", "X25519", "X448"],
+          "description": "Case-sensitive key subtype, determining the key encodings, lengths, and algorithm family."
+        },
+        "x": {
+          "$ref": "#/$defs/base64url",
+          "description": "Base64url-encoded subtype-specific public-key octet string: 32 octets for Ed25519 or X25519, 57 for Ed448, and 56 for X448."
+        },
+        "d": {
+          "$ref": "#/$defs/base64url",
+          "description": "Base64url-encoded subtype-specific private-key octet string: 32 octets for Ed25519 or X25519, 57 for Ed448, and 56 for X448. For Ed25519 and Ed448, this is the RFC 8032 private seed, not an expanded or concatenated secret key. For X25519 and X448, it is the RFC 7748 scalar-input octet string."
         }
-      }
+      },
+      "required": ["kty", "crv", "x", "d"],
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "crv": {
+              "type": "string",
+              "const": "Ed25519"
+            },
+            "x": {
+              "$ref": "#/$defs/octets32"
+            },
+            "d": {
+              "$ref": "#/$defs/octets32"
+            },
+            "alg": {
+              "type": "string",
+              "const": "EdDSA"
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/$defs/signingMetadata"
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "crv": {
+              "type": "string",
+              "const": "Ed448"
+            },
+            "x": {
+              "$ref": "#/$defs/octets57"
+            },
+            "d": {
+              "$ref": "#/$defs/octets57"
+            },
+            "alg": {
+              "type": "string",
+              "const": "EdDSA"
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/$defs/signingMetadata"
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "crv": {
+              "type": "string",
+              "const": "X25519"
+            },
+            "x": {
+              "$ref": "#/$defs/octets32"
+            },
+            "d": {
+              "$ref": "#/$defs/octets32"
+            },
+            "alg": {
+              "type": "string",
+              "enum": [
+                "ECDH-ES",
+                "ECDH-ES+A128KW",
+                "ECDH-ES+A192KW",
+                "ECDH-ES+A256KW"
+              ]
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/$defs/agreementMetadata"
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "crv": {
+              "type": "string",
+              "const": "X448"
+            },
+            "x": {
+              "$ref": "#/$defs/octets56"
+            },
+            "d": {
+              "$ref": "#/$defs/octets56"
+            },
+            "alg": {
+              "type": "string",
+              "enum": [
+                "ECDH-ES",
+                "ECDH-ES+A128KW",
+                "ECDH-ES+A192KW",
+                "ECDH-ES+A256KW"
+              ]
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/$defs/agreementMetadata"
+            }
+          ]
+        }
+      ],
+      "additionalProperties": true
     }
   }
 }
