@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import { matchLinkCode, redeemLinkFromChat } from "../../../linkChat.ts";
 import type MinecraftConnection from "../MinecraftConnection.ts";
 import { chatWebhook } from "../webhooks.ts";

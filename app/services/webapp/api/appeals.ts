@@ -4,7 +4,8 @@ import express, { type Request } from "express";
 import { rateLimit } from "express-rate-limit";
 import type { Selectable } from "kysely";
 
-import { f, logger } from "#utils";
+import { logger } from "#lib/logger";
+import { f } from "#utils";
 import { ServiceNotEnabledError } from "#/app/Service.ts";
 import { Accounts } from "#/app/services/Accounts.ts";
 import { type MetaBan, PERMANENT_UNBAN_TIME } from "#/app/services/Bans.ts";

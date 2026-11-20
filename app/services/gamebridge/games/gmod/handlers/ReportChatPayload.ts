@@ -1,6 +1,6 @@
 import type * as Discord from "discord.js";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type { Data } from "../../../../Data.ts";
 import type GmodConnection from "../GmodConnection.ts";
 import Payload from "./Payload.ts";

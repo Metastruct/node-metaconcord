@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type { DiscordBot } from "#/app/services/discord/index.ts";
 import { gmodSlashCommands } from "#/app/services/gamebridge/games/gmod/commands/index.ts";
 import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL.ts";

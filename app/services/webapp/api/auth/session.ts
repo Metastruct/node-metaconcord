@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import {
 	type AccountProvider,
 	type Accounts,

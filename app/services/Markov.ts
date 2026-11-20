@@ -1,7 +1,7 @@
 // thank u mr swadical https://github.com/SwadicalRag/node-markov-lite
 import { type ExpressionBuilder, sql } from "kysely";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type { DB } from "#/generated/LocalDBTypes.ts";
 import type { Container } from "../Container.ts";
 import { Service } from "../Service.ts";

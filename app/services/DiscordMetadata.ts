@@ -1,6 +1,7 @@
 import SteamID from "steamid";
 
-import { logger, type ValueOf } from "#utils";
+import { logger } from "#lib/logger";
+import type { ValueOf } from "#utils";
 import type { discord_tokens } from "../../generated/LocalDBTypes.ts";
 import type { Container } from "../Container.ts";
 import { Service } from "../Service.ts";

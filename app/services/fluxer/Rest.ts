@@ -1,4 +1,5 @@
-import { logger, sleep } from "#utils";
+import { logger } from "#lib/logger";
+import { sleep } from "#utils";
 
 const log = logger(import.meta);
 

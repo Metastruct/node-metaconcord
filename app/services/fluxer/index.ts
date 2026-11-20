@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import * as Discord from "discord.js";
 import type { Selectable } from "kysely";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type { Container } from "#/app/Container.ts";
 import { Service } from "#/app/Service.ts";
 import type { DiscordBot } from "#/app/services/discord/index.ts";

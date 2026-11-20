@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import { Accounts } from "#/app/services/Accounts.ts";
 import type { WebApp } from "#/app/services/webapp/index.ts";
 import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";

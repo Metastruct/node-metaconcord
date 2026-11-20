@@ -1,4 +1,4 @@
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type { Container } from "#/app/Container.ts";
 import { Service } from "#/app/Service.ts";
 import type GmodConnection from "../gamebridge/games/gmod/GmodConnection.ts";

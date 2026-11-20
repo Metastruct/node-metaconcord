@@ -4,7 +4,7 @@ import path from "node:path";
 import mime from "mime";
 import pug from "pug";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import { renderPlayerListImage } from "#/app/services/gamebridge/renderPlayerList.ts";
 import type { WebApp } from "#/app/services/webapp/index.ts";
 

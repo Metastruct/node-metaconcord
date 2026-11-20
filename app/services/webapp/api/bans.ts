@@ -4,7 +4,8 @@ import { rateLimit } from "express-rate-limit";
 import SteamID from "steamid";
 import { Types as SteamIdTypes } from "steamid/dist/enums.js";
 
-import { logger, parseDuration } from "#utils";
+import { logger } from "#lib/logger";
+import { parseDuration } from "#utils";
 import { type MetaBan, PERMANENT_UNBAN_TIME } from "#/app/services/Bans.ts";
 import {
 	issueBan,

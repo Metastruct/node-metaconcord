@@ -1,4 +1,4 @@
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type { FluxerRest } from "./Rest.ts";
 
 const log = logger(import.meta);

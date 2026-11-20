@@ -6,7 +6,7 @@ import express from "express";
 import type pino from "pino";
 import { pinoHttp } from "pino-http";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type { Container } from "#/app/Container.ts";
 import { Service, ServiceNotEnabledError } from "#/app/Service.ts";
 import APIs from "./api/index.ts";

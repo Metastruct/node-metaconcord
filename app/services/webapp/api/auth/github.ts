@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { Octokit } from "@octokit/rest";
 import { rateLimit } from "express-rate-limit";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import { Accounts, LinkConflictError } from "#/app/services/Accounts.ts";
 import type { WebApp } from "#/app/services/webapp/index.ts";
 import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";

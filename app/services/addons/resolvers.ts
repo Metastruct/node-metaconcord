@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import { TTLCache } from "./cache.ts";
 import type { AddonSource, GitHost } from "./types.js";
 

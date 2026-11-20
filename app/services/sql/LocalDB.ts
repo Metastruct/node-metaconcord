@@ -2,7 +2,7 @@ import SQLite from "better-sqlite3";
 import { Kysely, SqliteDialect } from "kysely";
 
 import { migrateToLatest } from "#lib/kyselyMigrator";
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import { DBService } from "#/app/services/sql/DBService.ts";
 import type { DB } from "#/generated/LocalDBTypes.ts";
 import type { Container } from "../../Container.ts";

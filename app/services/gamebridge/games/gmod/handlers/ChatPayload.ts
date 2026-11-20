@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
 import { formatDiscordMessage } from "../../../discord/formatDiscordMessage.ts";
 import { matchLinkCode, redeemLinkFromChat } from "../../../linkChat.ts";

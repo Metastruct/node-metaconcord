@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type { WebApp } from "#/app/services/webapp/index.ts";
 
 const log = logger(import.meta);

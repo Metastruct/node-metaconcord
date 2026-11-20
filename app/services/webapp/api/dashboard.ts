@@ -8,7 +8,8 @@ import { rateLimit } from "express-rate-limit";
 import pug from "pug";
 import type { connection as WebSocketConnection } from "websocket";
 
-import { localeCompare, logger } from "#utils";
+import { logger } from "#lib/logger";
+import { localeCompare } from "#utils";
 import { logBuffer, type LogLine } from "#/app/services/webapp/dashboard/LogBuffer.ts";
 import type { WebApp } from "#/app/services/webapp/index.ts";
 import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";

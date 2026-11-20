@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 
-import { logger, sleep } from "#utils";
+import { logger } from "#lib/logger";
+import { sleep } from "#utils";
 import type { Container } from "#/app/Container.ts";
 import { Service } from "#/app/Service.ts";
 import type { Data, GameBridge } from "#/app/services/index.ts";

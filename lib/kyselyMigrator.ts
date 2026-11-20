@@ -3,7 +3,7 @@ import * as path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { FileMigrationProvider, Migrator } from "kysely/migration";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type { LocalDatabase } from "#/app/services/sql/LocalDB.ts";
 
 type Logger = Pick<Console, "info" | "error" | "debug">;

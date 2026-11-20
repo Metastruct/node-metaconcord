@@ -1,7 +1,7 @@
 import type { Server as HTTPServer } from "node:http";
 import { type request as WebSocketRequest, server as WebSocketServer } from "websocket";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 
 const log = logger(import.meta);
 

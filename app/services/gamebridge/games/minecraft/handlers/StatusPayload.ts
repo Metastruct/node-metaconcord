@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 
-import { localeCompare, logger } from "#utils";
+import { logger } from "#lib/logger";
+import { localeCompare } from "#utils";
 import { renderPlayerListImage } from "../../../renderPlayerList.ts";
 import { renderHeadDataUri } from "../headRender.ts";
 import type {

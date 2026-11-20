@@ -4,7 +4,7 @@ import type {
 	request as WebSocketRequest,
 } from "websocket";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type GameBridge from "./GameBridge.ts";
 import GameConnection, { type GameConnectionConfig } from "./GameConnection.ts";
 

@@ -1,6 +1,6 @@
 import type { connection as WebSocketConnection } from "websocket";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import { type ConsoleGame, consoleHub, type ConsoleListener } from "#/app/services/gamebridge/consoleHub.ts";
 import type GameBridge from "#/app/services/gamebridge/GameBridge.ts";
 import type { GmodConnectionConfig } from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";

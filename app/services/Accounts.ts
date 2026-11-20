@@ -1,7 +1,8 @@
 import crypto from "node:crypto";
 import { Octokit } from "@octokit/rest";
 
-import { isSteamGroupMember, logger } from "#utils";
+import { logger } from "#lib/logger";
+import { isSteamGroupMember } from "#utils";
 import type { Container } from "../Container.ts";
 import { Service } from "../Service.ts";
 import type { RemoteDB } from "./sql/RemoteDB.ts";

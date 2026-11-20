@@ -1,7 +1,8 @@
 import * as Discord from "discord.js";
 import SteamID from "steamid";
 
-import { f, logger } from "#utils";
+import { logger } from "#lib/logger";
+import { f } from "#utils";
 import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
 import type { RemoteDB } from "#/app/services/sql/RemoteDB.ts";
 import Payload from "./Payload.ts";

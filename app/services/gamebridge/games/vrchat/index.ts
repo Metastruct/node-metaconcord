@@ -6,7 +6,8 @@ import {
 	VRChat,
 } from "vrchat";
 
-import { APP_NAME, APP_VERSION, localeCompare, logger } from "#utils";
+import { logger } from "#lib/logger";
+import { APP_NAME, APP_VERSION, localeCompare } from "#utils";
 import type GameBridge from "../../GameBridge.ts";
 import type { Player } from "../../GameConnection.ts";
 import { renderPlayerListImage } from "../../renderPlayerList.ts";

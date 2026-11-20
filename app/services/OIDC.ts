@@ -11,7 +11,7 @@ import {
 	type Session,
 } from "oidc-provider";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import jwksSchema from "#/schemas/jwks.schema.json" with { type: "json" };
 import type { Container } from "../Container.ts";
 import { Service } from "../Service.ts";

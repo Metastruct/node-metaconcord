@@ -1,6 +1,6 @@
 import { createCanvas, loadImage } from "@napi-rs/canvas";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 
 const log = logger(import.meta);
 

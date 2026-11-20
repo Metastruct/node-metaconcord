@@ -1,7 +1,8 @@
 import type * as Discord from "discord.js";
 import EmojiList from "unicode-emoji-json/data-ordered-emoji.json" with { type: "json" };
 
-import { logger, makeSpeechBubble } from "#utils";
+import { logger } from "#lib/logger";
+import { makeSpeechBubble } from "#utils";
 import type { Markov } from "#/app/services/Markov.ts";
 import type { DiscordBot } from "../index.ts";
 import { events } from "./discord-guild-icon.ts";

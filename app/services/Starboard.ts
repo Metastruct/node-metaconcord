@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type { Container } from "../Container.ts";
 import { Service } from "../Service.ts";
 import type { DiscordBot, LocalDB } from "./index.ts";

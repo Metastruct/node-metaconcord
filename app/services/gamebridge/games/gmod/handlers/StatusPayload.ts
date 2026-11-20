@@ -2,7 +2,7 @@ import path from "node:path";
 import dayjs from "dayjs";
 import * as Discord from "discord.js";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type {
 	default as GmodConnection,
 	GmodPlayer,

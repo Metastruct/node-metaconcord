@@ -10,17 +10,18 @@ import "#/app/services/webapp/dashboard/LogBuffer.ts";
 import "#/extensions/index.ts";
 import "#polyfills/Iterator-zip";
 
-// Main
+import { logger } from "#lib/logger";
 import { App } from "./app/index.ts";
-import { logger } from "./utils.ts";
+
+const log = logger("App");
 
 process.on("uncaughtException", err => {
-	logger("App").fatal(err);
+	log.fatal(err);
 	process.exit(1);
 });
 
 process.on("unhandledRejection", err => {
-	logger("App").error(err as Error, "Unhandled rejection, continuing...");
+	log.error(err as Error, "Unhandled rejection, continuing...");
 });
 
 // This is sadly required because `vrchat` thinks it's a good idea to register a SIGINT handler:

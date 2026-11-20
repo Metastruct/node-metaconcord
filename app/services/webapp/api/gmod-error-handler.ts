@@ -3,7 +3,8 @@ import * as Discord from "discord.js";
 import express from "express";
 import SteamID from "steamid";
 
-import { AddonURIS, getOrFetchGmodFile, logger, type WithRequired } from "#utils";
+import { logger } from "#lib/logger";
+import { AddonURIS, getOrFetchGmodFile, type WithRequired } from "#utils";
 import type {
 	default as GmodConnection,
 	GmodPlayer,

@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 
-import { getOrFetchGmodFile, logger } from "#utils";
+import { logger } from "#lib/logger";
+import { getOrFetchGmodFile } from "#utils";
 import { EphemeralResponse, type SlashCommand } from "#/extensions/discord.ts";
 
 const log = logger(import.meta);

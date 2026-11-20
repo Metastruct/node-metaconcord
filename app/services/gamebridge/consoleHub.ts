@@ -1,4 +1,4 @@
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type GameBridge from "./GameBridge.ts";
 import type { WsGameConnection } from "./Payload.ts";
 

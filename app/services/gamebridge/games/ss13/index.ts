@@ -2,7 +2,8 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration.js";
 import * as Discord from "discord.js";
 
-import { formatDiscordRelativeTimestamp, formatDiscordRelativeTimestampSeconds, logger } from "#utils";
+import { logger } from "#lib/logger";
+import { formatDiscordRelativeTimestamp, formatDiscordRelativeTimestampSeconds } from "#utils";
 import type GameBridge from "../../GameBridge.ts";
 import type { Player } from "../../GameConnection.ts";
 import { renderPlayerListImage } from "../../renderPlayerList.ts";

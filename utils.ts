@@ -5,8 +5,8 @@ import { createCanvas, loadImage } from "@napi-rs/canvas";
 import type { GraphQlQueryResponseData } from "@octokit/graphql";
 import axios from "axios";
 import request, { gql } from "graphql-request";
-import pino from "pino";
 
+import { baseLogger } from "#lib/logger";
 import pkg from "./package.json" with { type: "json" };
 
 import apikeys from "#config/apikeys.json" with { type: "json" };
@@ -15,12 +15,6 @@ import webappconfig from "#config/webapp.json" with { type: "json" };
 export const PROJECT_ROOT_PATH = path.dirname(fileURLToPath(import.meta.url));
 
 export const { name: APP_NAME, version: APP_VERSION } = pkg;
-
-// debug so access logs reach the dashboard buffer, its UI defaults to info+
-const baseLogger = pino({ level: process.env.LOG_LEVEL || "debug" });
-
-export const logger = (meta: ImportMeta | string) =>
-	baseLogger.child({ file: typeof meta === "string" ? meta : path.basename(meta.filename) });
 
 export const sleep = (ms: number): Promise<unknown> =>
 	new Promise(resolve => setTimeout(resolve, ms));

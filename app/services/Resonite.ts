@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import axios from "axios";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import type { Container } from "../Container.ts";
 import { Service } from "../Service.ts";
 

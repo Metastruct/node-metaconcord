@@ -14,7 +14,8 @@ import { diffChars } from "diff";
 import * as Discord from "discord.js";
 import express from "express";
 
-import { clamp, errToMessage, logger, stripPrefix } from "#utils";
+import { logger } from "#lib/logger";
+import { clamp, errToMessage, stripPrefix } from "#utils";
 import { chatWebhook } from "#/app/services/gamebridge/games/gmod/webhooks.ts";
 import type { DiscordBot } from "../index.ts";
 
