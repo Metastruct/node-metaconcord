@@ -1,13 +1,13 @@
-import { promises as fs } from "node:fs";
+import { constants, copyFileSync, mkdirSync, promises as promisesFs } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { FileMigrationProvider, Migrator } from "kysely/migration";
-import pino from "pino";
 
+import { logger } from "#utils";
 import type { LocalDatabase } from "#/app/services/sql/LocalDB.ts";
 
 type Logger = Pick<Console, "info" | "error" | "debug">;
-const defaultLog = pino({ level: "debug" }).child({ file: path.basename(import.meta.filename) });
+const defaultLog = logger(path.basename(import.meta.filename));
 
 type MigrationDirection = "latest" | "up" | "down";
 
@@ -23,10 +23,10 @@ const completedVerb = {
 	down: "rolled back",
 } as const satisfies Record<MigrationDirection, string>;
 
-const migrationFolder = path.join(path.dirname(path.dirname(fileURLToPath(import.meta.url))), "migrations");
+const migrationFolder = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../migrations");
 
 export const provider = new FileMigrationProvider({
-	fs,
+	fs: promisesFs,
 	path,
 	import: (filePath: string) => import(pathToFileURL(filePath).href),
 	migrationFolder,
@@ -77,3 +77,31 @@ export async function migrate(direction: MigrationDirection, db: LocalDatabase, 
 export const migrateToLatest = migrate.bind(undefined, "latest");
 export const migrateUp = migrate.bind(undefined, "up");
 export const migrateDown = migrate.bind(undefined, "down");
+
+const RGX_MIGRATIONNAME = /^[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]$/;
+
+export function makeMigration(name?: string, projectRoot = process.cwd()): string {
+	if (!name)
+		throw new Error("Missing migration name.");
+
+	name = name.trim().replaceAll(/\s+/g, "_");
+
+	if (!RGX_MIGRATIONNAME.test(name))
+		throw new Error("Migration name must start with a letter or number and contain only letters, numbers, underscores, or hyphens.");
+
+	const date = new Date().toISOString().slice(0, 10);
+	const filename = `${date}_${name}.ts`;
+
+	const templatePath = path.join(projectRoot, "resources", "migration-templates", "migration.ts");
+	const destinationPath = path.join(migrationFolder, filename);
+
+	mkdirSync(migrationFolder, { recursive: true });
+
+	copyFileSync(
+		templatePath,
+		destinationPath,
+		constants.COPYFILE_EXCL,
+	);
+
+	return destinationPath;
+}
