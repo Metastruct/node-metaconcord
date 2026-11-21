@@ -13,13 +13,13 @@ import axios from "axios";
 import { diffChars } from "diff";
 import * as Discord from "discord.js";
 import express from "express";
-import { type Selectable } from "kysely";
+import type { Selectable } from "kysely";
 
 import { logger } from "#lib/logger";
 import { clamp, errToMessage, stripPrefix } from "#utils";
 import { chatWebhook } from "#/app/services/gamebridge/games/gmod/webhooks.ts";
-import { type webhook_commit_messages } from "#/generated/LocalDBTypes.js";
-import { type LocalDatabase } from "../../sql/LocalDB.js";
+import type { webhook_commit_messages } from "#/generated/LocalDBTypes.js";
+import type { LocalDatabase } from "../../sql/LocalDB.js";
 import type { DiscordBot } from "../index.ts";
 
 import gitlabConfig from "#config/gitlab.json" with { type: "json" };

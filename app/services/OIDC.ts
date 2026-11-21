@@ -6,6 +6,7 @@ import {
 	type AccountClaims,
 	type Adapter,
 	type AdapterPayload,
+	type ClientMetadata,
 	errors,
 	Provider,
 	type Session,
@@ -55,23 +56,27 @@ export class OIDC extends Service {
 			log.error("Invalid config: the provided jwks fails the schema validation. Falling back to development signing keys.");
 		}
 
+		const clients = this.config.clients.map(client => ({
+			...client,
+			response_types: client.response_types as
+				| (
+						| "code"
+						| "id_token"
+						| "id_token token"
+						| "code id_token"
+						| "code token"
+						| "code id_token token"
+						| "none"
+				)[]
+				| undefined,
+			id_token_signed_response_alg:
+				client.id_token_signed_response_alg as ClientMetadata["id_token_signed_response_alg"],
+		}));
+
 		this.provider = new Provider(this.config.issuer, {
 			adapter: makeAdapter(localDB),
 			jwks: jwksIsValid ? jwks : undefined,
-			clients: this.config.clients.map(client => ({
-				...client,
-				response_types: client.response_types as
-					| (
-							| "code"
-							| "id_token"
-							| "id_token token"
-							| "code id_token"
-							| "code token"
-							| "code id_token token"
-							| "none"
-					)[]
-					| undefined,
-			})),
+			clients,
 			routes: {
 				authorization: "/oauth/authorize",
 				token: "/oauth/token",
@@ -172,6 +177,30 @@ export class OIDC extends Service {
 		});
 
 		this.provider.proxy = true;
+
+		// The provider only checks client_id presence and uniqueness for statically
+		// configured clients. Run each client through the same schema the
+		// authorization endpoint would, so config/jwks mismatches (e.g. an
+		// id_token_signed_response_alg no configured key can sign with) fail
+		// startup instead of 400-ing every login.
+		for (const client of clients) {
+			try {
+				await this.provider.Client.validate(client);
+			} catch (error) {
+				if (error instanceof errors.InvalidClientMetadata) {
+					const reason = error.error_description ?? error.message;
+					log.error(
+						{ err: error, client_id: client.client_id },
+						`Invalid OIDC client configuration for "${client.client_id}": ${reason}`
+					);
+					throw new Error(
+						`Invalid OIDC client configuration for "${client.client_id}": ${reason}`,
+						{ cause: error }
+					);
+				}
+				throw error;
+			}
+		}
 
 		// A stale _session cookie (a leftover host-only copy from before the
 		// cookie gained its Domain attribute, or one the database no longer

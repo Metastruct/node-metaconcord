@@ -120,8 +120,8 @@ export default defineConfig([
 			"unicorn/prefer-simple-condition-first": "warn", // Sometimes violating these makes sense for aesthetic reasons:
 
 			/*
-			* Rules that require more complex configuration.
-			*/
+			 * Rules that require more complex configuration.
+			 */
 
 			"@typescript-eslint/no-unused-vars": [
 				"warn",

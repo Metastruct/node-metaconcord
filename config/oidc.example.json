@@ -8,6 +8,7 @@
 			"redirect_uris": ["https://example.com/callback"],
 			"grant_types": ["authorization_code", "refresh_token"],
 			"response_types": ["code"],
+			"id_token_signed_response_alg": "EdDSA",
 			"scope": "openid email profile offline_access"
 		}
 	]

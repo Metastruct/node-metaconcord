@@ -32,11 +32,11 @@ export default {
 		schema: [],
 		messages: {
 			unexecuted:
-        "This query has not been executed. Call .execute(), " +
-        ".executeTakeFirst(), or another execution method.",
+				"This query has not been executed. Call .execute(), " +
+        		".executeTakeFirst(), or another execution method.",
 			awaitedBuilder:
-        "Awaiting a query builder does not execute it. " +
-        "Call an execution method before awaiting it.",
+				"Awaiting a query builder does not execute it. " +
+        		"Call an execution method before awaiting it.",
 		},
 	},
 
