@@ -65,7 +65,6 @@ export default defineConfig([
 			"unicorn/prefer-combined-guards": "off",
 			"unicorn/prefer-continue": "off",
 			"unicorn/prefer-includes-over-repeated-comparisons": "off",
-			"unicorn/prefer-smaller-scope": "off",
 			"unicorn/prefer-spread": "off",
 			"unicorn/prefer-string-raw": "off",
 			"unicorn/prefer-ternary": "off",
@@ -114,8 +113,8 @@ export default defineConfig([
 			"unicorn/prefer-simple-condition-first": "warn", // Sometimes violating these makes sense for aesthetic reasons:
 
 			/*
-			 * Rules that require more complex configuration.
-			 */
+			* Rules that require more complex configuration.
+			*/
 
 			"@typescript-eslint/no-unused-vars": [
 				"warn",
@@ -183,6 +182,12 @@ export default defineConfig([
 				"error",
 				{
 					"maximumStatements": 3, // seems like a good trade-off
+				},
+			],
+			"unicorn/prefer-smaller-scope": [
+				"error",
+				{
+					"checkTypeAliases": false,
 				},
 			],
 			"unicorn/prefer-https": [
