@@ -1,8 +1,9 @@
 import axios from "axios";
 import SteamID from "steamid";
 
-import { logger } from "#utils";
-import { type Container, Service } from "../Container.js";
+import { logger } from "#lib/logger";
+import type { Container } from "../Container.ts";
+import { Service } from "../Service.ts";
 
 const log = logger(import.meta);
 

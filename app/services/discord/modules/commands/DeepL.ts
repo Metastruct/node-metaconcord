@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 
-import { EphemeralResponse, type MenuCommand, type SlashCommand } from "#extensions/discord.js";
+import { EphemeralResponse, type MenuCommand, type SlashCommand } from "#/extensions/discord.ts";
 
 import config from "#config/deepl.json" with { type: "json" };
 
@@ -295,10 +295,10 @@ export const SlashDeeplCommand: SlashCommand = {
 	execute: async ctx => {
 		const text = ctx.options.getString("text");
 		if (text && Buffer.from(text).length < 128 * 1024) {
-			const to = <TargetLanguageCodes>ctx.options.getString("to") ?? "EN-GB";
-			const from = <SourceLanguageCodes>ctx.options.getString("from");
+			const to = ctx.options.getString("to") as TargetLanguageCodes | undefined ?? "EN-GB";
+			const from = ctx.options.getString("from") as SourceLanguageCodes | undefined;
 			const formality =
-				<DeeplOptions["formality"]>ctx.options.getString("formality") ?? "default";
+				ctx.options.getString("formality") as DeeplOptions["formality"] | undefined ?? "default";
 			const res = await translate({
 				text: [text],
 				target_lang: to,

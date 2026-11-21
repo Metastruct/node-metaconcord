@@ -1,9 +1,10 @@
 import { ok as assert } from "node:assert";
 import { hash } from "node:crypto";
-import { type Message } from "discord.js";
+import type { Message } from "discord.js";
 
-import { type DiscordBot } from "../index.js";
-import { Shat } from "./shitposting.js";
+import { EnumBase, type EnumType } from "#lib/enum";
+import type { DiscordBot } from "../index.ts";
+import { Shat } from "./shitposting.ts";
 
 const MESSAGE_COMBO_BREAKER = "C-C-C-COMBO BREAKER!!";
 const REACTIONS_DOUBLE_POSTER = ["👎","🤔","🤨","😑","😔","😠","🙄"] as const;
@@ -19,16 +20,13 @@ function randomDoublePostReaction() {
 	return REACTIONS_DOUBLE_POSTER[Math.trunc(Math.random() * REACTIONS_DOUBLE_POSTER.length)];
 }
 
-enum ComboMessageEffect {
-	/** Nothing happened (no active combo). */
-	NONE,
-	/** Combo upheld and increased in power level. */
-	INCREMENTED,
-	/** Combo upheld, but this was a double-post by a previous participant. */
-	DOUBLE_POSTED,
-	/** Combo was broken by this message. */
-	BROKEN,
-}
+const ComboMessageEffect = class extends EnumBase {
+	static readonly NONE = Symbol("NONE");
+	static readonly INCREMENTED = Symbol("INCREMENTED");
+	static readonly DOUBLE_POSTED = Symbol("DOUBLE_POSTED");
+	static readonly BROKEN = Symbol("BROKEN");
+};
+type ComboMessageEffect = EnumType<typeof ComboMessageEffect>;
 
 class Combo {
 	readonly #channelId: string;

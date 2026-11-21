@@ -1,11 +1,12 @@
 import * as Discord from "discord.js";
 import SteamID from "steamid";
 
-import { f, logger } from "#utils";
-import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
-import type { RemoteDB } from "#/app/services/sql/RemoteDB.js";
-import Payload from "./Payload.js";
-import { type VoteKickRequest } from "./structures/index.js";
+import { logger } from "#lib/logger";
+import { f } from "#utils";
+import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
+import type { RemoteDB } from "#/app/services/sql/RemoteDB.ts";
+import Payload from "./Payload.ts";
+import type { VoteKickRequest } from "./structures/index.ts";
 import requestSchema from "./structures/VoteKickRequest.json" with { type: "json" };
 
 const log = logger(import.meta);

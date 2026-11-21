@@ -1,5 +1,5 @@
-import { logger } from "#utils";
-import { type FluxerRest } from "./Rest.js";
+import { logger } from "#lib/logger";
+import type { FluxerRest } from "./Rest.ts";
 
 const log = logger(import.meta);
 const FATAL_CLOSE_CODES = new Set([4004, 4010, 4011, 4012]);
@@ -28,12 +28,22 @@ export class FluxerGateway {
 	private readonly failedGenerations = new Set<number>();
 	private reconnectAttempts = 0;
 
+	private readonly rest: FluxerRest;
+	private readonly token: string;
+	private readonly guildId: string;
+	private readonly onDispatch: (event: string, data: unknown) => Promise<void>;
+
 	constructor(
-		private readonly rest: FluxerRest,
-		private readonly token: string,
-		private readonly guildId: string,
-		private readonly onDispatch: (event: string, data: unknown) => Promise<void>
-	) {}
+		rest: FluxerRest,
+		token: string,
+		guildId: string,
+		onDispatch: (event: string, data: unknown) => Promise<void>
+	) {
+		this.rest = rest;
+		this.token = token;
+		this.guildId = guildId;
+		this.onDispatch = onDispatch;
+	}
 
 	start() {
 		void this.connect();

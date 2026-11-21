@@ -11,12 +11,13 @@ import {
 	type Session,
 } from "oidc-provider";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import jwksSchema from "#/schemas/jwks.schema.json" with { type: "json" };
-import { type Container, Service } from "../Container.js";
-import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.js";
-import { type LocalDB } from "./sql/LocalDB.js";
-import { getSessionAccountId } from "./webapp/api/auth/session.js";
+import type { Container } from "../Container.ts";
+import { Service } from "../Service.ts";
+import { EMAIL_LOGIN_PROVIDERS } from "./Accounts.ts";
+import type { LocalDB } from "./sql/LocalDB.ts";
+import { getSessionAccountId } from "./webapp/api/auth/session.ts";
 
 import jwks from "#config/jwks.json" with { type: "json" };
 import OIDCConfig from "#config/oidc.json" with { type: "json" };
@@ -412,7 +413,11 @@ function loginPickerPage(uid: string, fresh = true): string {
  */
 function makeAdapter(localDB: LocalDB): new (name: string) => Adapter {
 	return class SQLiteAdapter implements Adapter {
-		constructor(public name: string) {}
+		public readonly name: string;
+
+		constructor(name: string) {
+			this.name = name;
+		}
 
 		async upsert(id: string, payload: AdapterPayload, expiresIn: number): Promise<void> {
 			const expiresAt = expiresIn ? Date.now() + expiresIn * 1000 : undefined;

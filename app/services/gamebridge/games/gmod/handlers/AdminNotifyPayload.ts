@@ -1,12 +1,13 @@
 import * as Discord from "discord.js";
 import SteamID from "steamid";
 
-import { f, logger } from "#utils";
-import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
-import Payload from "./Payload.js";
-import ReportChatPayload from "./ReportChatPayload.js";
+import { logger } from "#lib/logger";
+import { f } from "#utils";
+import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
+import Payload from "./Payload.ts";
+import ReportChatPayload from "./ReportChatPayload.ts";
 import requestSchema from "./structures/AdminNotifyRequest.json" with { type: "json" };
-import { type AdminNotifyRequest } from "./structures/index.js";
+import type { AdminNotifyRequest } from "./structures/index.ts";
 
 const log = logger(import.meta);
 
@@ -202,7 +203,7 @@ export default class AdminNotifyPayload extends Payload {
 
 		const reportsChannel = (await guild.channels.fetch(
 			discord.config.channels.reports
-		)) as Discord.TextChannel | null;
+		));
 		if (!reportsChannel || !reportsChannel.isTextBased()) return;
 
 		const steamId64 = new SteamID(player.steamId).getSteamID64();

@@ -1,30 +1,30 @@
 import * as Discord from "discord.js";
 
-import { logger } from "#utils";
-import { type DiscordBot } from "#/app/services/discord/index.js";
-import { gmodSlashCommands } from "#/app/services/gamebridge/games/gmod/commands/index.js";
-import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL.js";
+import { logger } from "#lib/logger";
+import type { DiscordBot } from "#/app/services/discord/index.ts";
+import { gmodSlashCommands } from "#/app/services/gamebridge/games/gmod/commands/index.ts";
+import { MenuDeeplCommand, SlashDeeplCommand } from "./DeepL.ts";
 import {
 	MenuManageMediaLinksCommand,
 	SlashForceMotd,
 	SlashManageMediaLinks,
-} from "./developer/BotRelated.js";
-import { SlashEndEvent } from "./developer/Events.js";
-import { SlashFileCommand } from "./developer/File.js";
-import { SlashRuleCommand } from "./developer/Rules.js";
-import { SlashSQLCommand } from "./developer/SQL.js";
-import { SlashFluxerLinkCommand } from "./FluxerLink.js";
-import { MenuGetStickerUrlCommand } from "./GetStickerUrl.js";
-import { MenuGetVoiceMessageUrlCommand } from "./GetVoiceMessageUrl.js";
-import { SlashMarkovCommand } from "./Markov.js";
-import { MenuRemoveHighlightMessageCommand } from "./RemoveHighlightMessage.js";
-import { SlashRoleCommand } from "./Role.js";
-import { SlashRandomImageCommand } from "./Shitposting.js";
-import { SlashSpeechbubbleCommand } from "./Speechbubble.js";
-import { SlashVoiceCommand } from "./TempVoiceChannel.js";
-import { SlashVideoCommand } from "./Video.js";
-import { SlashWhyBanCommand } from "./WhyBan.js";
-import { MenuWhyRoleCommand } from "./WhyRole.js";
+} from "./developer/BotRelated.ts";
+import { SlashEndEvent } from "./developer/Events.ts";
+import { SlashFileCommand } from "./developer/File.ts";
+import { SlashRuleCommand } from "./developer/Rules.ts";
+import { SlashSQLCommand } from "./developer/SQL.ts";
+import { SlashFluxerLinkCommand } from "./FluxerLink.ts";
+import { MenuGetStickerUrlCommand } from "./GetStickerUrl.ts";
+import { MenuGetVoiceMessageUrlCommand } from "./GetVoiceMessageUrl.ts";
+import { SlashMarkovCommand } from "./Markov.ts";
+import { MenuRemoveHighlightMessageCommand } from "./RemoveHighlightMessage.ts";
+import { SlashRoleCommand } from "./Role.ts";
+import { SlashRandomImageCommand } from "./Shitposting.ts";
+import { SlashSpeechbubbleCommand } from "./Speechbubble.ts";
+import { SlashVoiceCommand } from "./TempVoiceChannel.ts";
+import { SlashVideoCommand } from "./Video.ts";
+import { SlashWhyBanCommand } from "./WhyBan.ts";
+import { MenuWhyRoleCommand } from "./WhyRole.ts";
 
 const log = logger("Commands");
 

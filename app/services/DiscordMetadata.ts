@@ -1,13 +1,15 @@
 import SteamID from "steamid";
 
-import {logger} from "#utils";
-import { type discord_tokens } from "../../generated/LocalDBTypes.js";
-import {type Container, Service} from "../Container.js";
-import {type Role} from "./Accounts.js";
-import {type Accounts, type Bans, type DiscordBot, type LocalDB, type RemoteDB} from "./index.js";
-import {revokeOAuthToken} from "./webapp/api/auth/discord.js";
+import { logger } from "#lib/logger";
+import type { ValueOf } from "#utils";
+import type { discord_tokens } from "../../generated/LocalDBTypes.ts";
+import type { Container } from "../Container.ts";
+import { Service } from "../Service.ts";
+import type { Role } from "./Accounts.ts";
+import type { Accounts, Bans, DiscordBot, LocalDB, RemoteDB } from "./index.ts";
+import { revokeOAuthToken } from "./webapp/api/auth/discord.ts";
 
-import config from "#config/metadata.json" with {type: "json"};
+import config from "#config/metadata.json" with { type: "json" };
 
 const log = logger(import.meta);
 
@@ -43,16 +45,17 @@ export type ApplicationRoleConnectionObject = {
 	metadata: MetaMetadata;
 };
 
-enum MetadataType {
-	INTEGER_LESS_THAN_OR_EQUAL = 1,
-	INTEGER_GREATER_THAN_OR_EQUAL = 2,
-	INTEGER_EQUAL = 3,
-	INTEGER_NOT_EQUAL = 4,
-	DATETIME_LESS_THAN_OR_EQUAL = 5,
-	DATETIME_GREATER_THAN_OR_EQUAL = 6,
-	BOOLEAN_EQUAL = 7,
-	BOOLEAN_NOT_EQUAL = 8,
-}
+const MetadataType = {
+	INTEGER_LESS_THAN_OR_EQUAL: 1,
+	INTEGER_GREATER_THAN_OR_EQUAL: 2,
+	INTEGER_EQUAL: 3,
+	INTEGER_NOT_EQUAL: 4,
+	DATETIME_LESS_THAN_OR_EQUAL: 5,
+	DATETIME_GREATER_THAN_OR_EQUAL: 6,
+	BOOLEAN_EQUAL: 7,
+	BOOLEAN_NOT_EQUAL: 8,
+} as const;
+type MetadataType = ValueOf<typeof MetadataType>;
 
 type MetadataRecord = {
 	type: MetadataType;

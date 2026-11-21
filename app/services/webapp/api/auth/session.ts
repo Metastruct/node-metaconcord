@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
 import {
 	type AccountProvider,
 	type Accounts,
@@ -12,10 +12,10 @@ import {
 	LOGIN_PROVIDERS,
 	type Role,
 	STAFF_ROLES,
-} from "#/app/services/Accounts.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
-import { decrypt, encrypt } from "#/app/services/webapp/secretBox.js";
+} from "#/app/services/Accounts.ts";
+import type { WebApp } from "#/app/services/webapp/index.ts";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";
+import { decrypt, encrypt } from "#/app/services/webapp/secretBox.ts";
 
 import WebAppConfig from "#config/webapp.json" with { type: "json" };
 

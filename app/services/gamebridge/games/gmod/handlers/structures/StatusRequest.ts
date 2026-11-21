@@ -1,12 +1,13 @@
-import type PayloadRequest from "./PayloadRequest.js";
+import type PayloadRequest from "./PayloadRequest.ts";
 
-export enum CountdownType {
-	AOWL_COUNTDOWN_FINISHED = -1,
-	AOWL_COUNTDOWN_RESTART = 0,
-	AOWL_COUNTDOWN_MAPCHANGE = 1,
-	AOWL_COUNTDOWN_CUSTOM = 2,
-	AOWL_COUNTDOWN_SILENT = 3,
-}
+type CountdownType =
+	| -1 // AOWL_COUNTDOWN_FINISHED
+	|  0 // AOWL_COUNTDOWN_RESTART
+	|  1 // AOWL_COUNTDOWN_MAPCHANGE
+	|  2 // AOWL_COUNTDOWN_CUSTOM
+	|  3 // AOWL_COUNTDOWN_SILENT
+;
+
 export default interface StatusRequest extends PayloadRequest {
 	name: "StatusPayload";
 	data: {

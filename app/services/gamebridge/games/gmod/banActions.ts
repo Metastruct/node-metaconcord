@@ -1,6 +1,6 @@
 import { luaString, luaStringOrNil } from "#utils";
-import type GameBridge from "../../GameBridge.js";
-import type GmodConnection from "./GmodConnection.js";
+import type GameBridge from "../../GameBridge.ts";
+import type GmodConnection from "./GmodConnection.ts";
 
 export type IssueBanInput = {
 	/** Steam2 rendered id, what banni keys on */

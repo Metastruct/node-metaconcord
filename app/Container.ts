@@ -1,7 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 
-import { type App } from "./index.js";
-import { type ServiceMap, type ServiceName,type ServiceProvider } from "./services/index.js";
+import type { App } from "./index.ts";
+import { type Service, ServiceNotEnabledError } from "./Service.ts";
+import type { ServiceMap } from "./services/index.ts";
+import type { ServiceName, ServiceProvider } from "./services/types.ts";
 
 type ServiceProviders = ServiceProvider[];
 
@@ -33,27 +35,6 @@ export const REQUIREMENTS: Partial<Record<ServiceName, Requirements>> = {
 	Starboard: { hard: ["LocalDB", "DiscordBot"] },
 	WebApp: { soft: ["LocalDB", "Accounts"] },
 };
-
-/** Thrown by getService for a service the current run doesn't include. */
-export class ServiceNotEnabledError extends Error {
-	constructor(public readonly service: string) {
-		super(`service ${service} is not enabled on this instance`);
-	}
-}
-
-export abstract class Service {
-	abstract readonly name: string;
-	container: Container;
-
-	constructor(container: Container) {
-		this.container = container;
-	}
-
-	async init(): Promise<void> {}
-
-	/** Runs after every service has initialized; open sockets/ports here. */
-	async start(): Promise<void> {}
-}
 
 export class Container {
 	readonly app: App;

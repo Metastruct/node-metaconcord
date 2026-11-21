@@ -6,11 +6,12 @@ import {
 	VRChat,
 } from "vrchat";
 
-import { APP_NAME, APP_VERSION, localeCompare, logger } from "#utils";
-import type GameBridge from "../../GameBridge.js";
-import { type Player } from "../../GameConnection.js";
-import { renderPlayerListImage } from "../../renderPlayerList.js";
-import VRChatConnection, { VRCHAT_ACCENT, type VRChatRoster } from "./VRChatConnection.js";
+import { logger } from "#lib/logger";
+import { APP_NAME, APP_VERSION, localeCompare } from "#utils";
+import type GameBridge from "../../GameBridge.ts";
+import type { Player } from "../../GameConnection.ts";
+import { renderPlayerListImage } from "../../renderPlayerList.ts";
+import VRChatConnection, { VRCHAT_ACCENT, type VRChatRoster } from "./VRChatConnection.ts";
 
 import config from "#config/vrchat.json" with { type: "json" };
 

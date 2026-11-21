@@ -4,13 +4,14 @@ import path from "node:path";
 import mime from "mime";
 import pug from "pug";
 
-import { logger } from "#utils";
-import { renderPlayerListImage } from "#/app/services/gamebridge/renderPlayerList.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
+import { logger } from "#lib/logger";
+import { renderPlayerListImage } from "#/app/services/gamebridge/renderPlayerList.ts";
+import type { WebApp } from "#/app/services/webapp/index.ts";
 
 const log = logger(import.meta);
 
-const cacheFolder = path.join(process.cwd(), "cache", "map-thumbnails");
+const cachePath = process.env.METACONCORD_CACHE_PATH || path.join(process.cwd(), "cache");
+const thumbnailCachePath = path.join(cachePath, "map-thumbnails");
 
 const imageToDataURL = async (filePath: PathLike | FileHandle) => {
 	const mimeType = mime.getType(filePath as string);
@@ -46,11 +47,11 @@ export default async function addGameServerStatusAPI(webApp: WebApp): Promise<vo
 		const workshopMap = server.workshopMap;
 		let thumbFilepath: string | undefined;
 		if (workshopMap && backgroundImage?.match(/^https?:\/\//)) {
-			await access(cacheFolder, fs_constants.F_OK).catch(() =>
-				mkdir(cacheFolder, { recursive: true })
+			await access(thumbnailCachePath, fs_constants.F_OK).catch(() =>
+				mkdir(thumbnailCachePath, { recursive: true })
 			);
 
-			const _thumbFilepath = path.join(cacheFolder, workshopMap.id);
+			const _thumbFilepath = path.join(thumbnailCachePath, workshopMap.id);
 			let hasFile = true;
 			// have to assume these are the only extensions we expect...
 			for (const ext of [".webp", ".jpg", ".jpeg", ".png", ".gif"]) {

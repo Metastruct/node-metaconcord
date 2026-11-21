@@ -1,8 +1,8 @@
-import { type Request, type Response } from "express";
+import type { Request, Response } from "express";
 
-import { type AddonGame, Addons } from "#/app/services/addons/index.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
-import { getSession, isStaff } from "./auth/session.js";
+import { type AddonGame, Addons } from "#/app/services/addons/index.ts";
+import type { WebApp } from "#/app/services/webapp/index.ts";
+import { getSession, isStaff } from "./auth/session.ts";
 
 const CACHE_CONTROL = "public, max-age=300, stale-while-revalidate=3600";
 const GAMES: Set<AddonGame> = new Set(["gmod", "minecraft"]);

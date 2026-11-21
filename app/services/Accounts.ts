@@ -1,10 +1,12 @@
 import crypto from "node:crypto";
 import { Octokit } from "@octokit/rest";
 
-import { isSteamGroupMember, logger } from "#utils";
-import { type Container, Service } from "../Container.js";
-import { type RemoteDB } from "./sql/RemoteDB.js";
-import { decrypt, encrypt } from "./webapp/secretBox.js";
+import { logger } from "#lib/logger";
+import { isSteamGroupMember } from "#utils";
+import type { Container } from "../Container.ts";
+import { Service } from "../Service.ts";
+import type { RemoteDB } from "./sql/RemoteDB.ts";
+import { decrypt, encrypt } from "./webapp/secretBox.ts";
 
 import AccountsConfig from "#config/accounts.json" with { type: "json" };
 import GithubConfig from "#config/github.json" with { type: "json" };
@@ -113,10 +115,8 @@ export type LinkInput = {
 export type AccountWithLinks = Account & { links: AccountLink[] };
 
 export class LinkConflictError extends Error {
-	constructor(public provider: AccountProvider) {
-		super(
-			`this ${provider} account belongs to another account that has other ways to log in; log into that one and unlink it there`
-		);
+	constructor(provider: AccountProvider) {
+		super(`this ${provider} account belongs to another account that has other ways to log in; log into that one and unlink it there`);
 	}
 }
 

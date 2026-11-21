@@ -1,16 +1,16 @@
-import ChannelTrimmerLoader from "./channel-trimmer.js";
-import ComboBreakerLoader from "./combo-breaker.js";
-import CommandsLoader from "./commands/index.js";
-import DiscordEventsLoader from "./discord-events.js";
-import DiscordGuildIconLoader from "./discord-guild-icon.js";
-import LoggingLoader from "./logging.js";
-//import MotdRollbackLoader from "./iotdrollback.js";
-import PermaRolesLoader from "./perma-roles.js";
-import ProgressBarLoader from "./premium-progress-bar.js";
-import ShitpostLoader from "./shitposting.js";
-import StarboardLoader from "./starboard.js";
-import TempVoiceChannelsLoader from "./temp-voice-channels.js";
-import WebhookHandlerLoader from "./webhook-handler.js";
+import ChannelTrimmerLoader from "./channel-trimmer.ts";
+import ComboBreakerLoader from "./combo-breaker.ts";
+import CommandsLoader from "./commands/index.ts";
+import DiscordEventsLoader from "./discord-events.ts";
+import DiscordGuildIconLoader from "./discord-guild-icon.ts";
+import LoggingLoader from "./logging.ts";
+//import MotdRollbackLoader from "./iotdrollback.ts";
+import PermaRolesLoader from "./perma-roles.ts";
+import ProgressBarLoader from "./premium-progress-bar.ts";
+import ShitpostLoader from "./shitposting.ts";
+import StarboardLoader from "./starboard.ts";
+import TempVoiceChannelsLoader from "./temp-voice-channels.ts";
+import WebhookHandlerLoader from "./webhook-handler.ts";
 
 export default [
 	ComboBreakerLoader,

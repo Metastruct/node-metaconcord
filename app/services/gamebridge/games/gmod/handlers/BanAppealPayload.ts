@@ -2,11 +2,11 @@ import * as Discord from "discord.js";
 import SteamID from "steamid";
 
 import { f } from "#utils";
-import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.js";
-import { type PlayerSummary } from "#/app/services/Steam.js";
-import Payload from "./Payload.js";
+import type GmodConnection from "#/app/services/gamebridge/games/gmod/GmodConnection.ts";
+import type { PlayerSummary } from "#/app/services/Steam.ts";
+import Payload from "./Payload.ts";
 import requestSchema from "./structures/BanAppealRequest.json" with { type: "json" };
-import { type BanAppealRequest } from "./structures/index.js";
+import type { BanAppealRequest } from "./structures/index.ts";
 
 export default class BanAppealPayload extends Payload {
 	protected static override requestSchema = requestSchema;

@@ -1,7 +1,7 @@
-import { type WsRouter } from "#/app/services/webapp/WsRouter.js";
-import { attachWsGame } from "../../attachWsGame.js";
-import type GameBridge from "../../GameBridge.js";
-import MinecraftConnection, { type MinecraftConnectionConfig } from "./MinecraftConnection.js";
+import type { WsRouter } from "#/app/services/webapp/WsRouter.ts";
+import { attachWsGame } from "../../attachWsGame.ts";
+import type GameBridge from "../../GameBridge.ts";
+import MinecraftConnection, { type MinecraftConnectionConfig } from "./MinecraftConnection.ts";
 
 import servers from "#config/minecraft.servers.json" with { type: "json" };
 

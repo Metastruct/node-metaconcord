@@ -1,5 +1,5 @@
-import { logger } from "#utils";
-import { type WebApp } from "#/app/services/webapp/index.js";
+import { logger } from "#lib/logger";
+import type { WebApp } from "#/app/services/webapp/index.ts";
 
 const log = logger(import.meta);
 

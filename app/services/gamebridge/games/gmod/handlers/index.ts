@@ -1,21 +1,21 @@
-import type GmodConnection from "../GmodConnection.js";
-import AddonsPayload from "./AddonsPayload.js";
-import AdminNotifyPayload from "./AdminNotifyPayload.js";
-import BanAppealPayload from "./BanAppealPayload.js";
-import BanPayload from "./BanPayload.js";
-import ChatPayload from "./ChatPayload.js";
-import ConsolePayload from "./ConsolePayload.js";
-import ErrorPayload from "./ErrorPayload.js";
-import GservPayload from "./GservPayload.js";
-import JoinLeavePayload from "./JoinLeavePayload.js";
-import NotificationPayload from "./NotificationPayload.js";
-import type Payload from "./Payload.js";
-import RconPayload from "./RconPayload.js";
-import ReportChatPayload from "./ReportChatPayload.js";
-import StatsPayload from "./StatsPayload.js";
-import StatusPayload from "./StatusPayload.js";
-import UnbanPayload from "./UnbanPayload.js";
-import VoteKickPayload from "./VoteKickPayload.js";
+import type GmodConnection from "../GmodConnection.ts";
+import AddonsPayload from "./AddonsPayload.ts";
+import AdminNotifyPayload from "./AdminNotifyPayload.ts";
+import BanAppealPayload from "./BanAppealPayload.ts";
+import BanPayload from "./BanPayload.ts";
+import ChatPayload from "./ChatPayload.ts";
+import ConsolePayload from "./ConsolePayload.ts";
+import ErrorPayload from "./ErrorPayload.ts";
+import GservPayload from "./GservPayload.ts";
+import JoinLeavePayload from "./JoinLeavePayload.ts";
+import NotificationPayload from "./NotificationPayload.ts";
+import type Payload from "./Payload.ts";
+import RconPayload from "./RconPayload.ts";
+import ReportChatPayload from "./ReportChatPayload.ts";
+import StatsPayload from "./StatsPayload.ts";
+import StatusPayload from "./StatusPayload.ts";
+import UnbanPayload from "./UnbanPayload.ts";
+import VoteKickPayload from "./VoteKickPayload.ts";
 
 
 
@@ -47,20 +47,21 @@ export function attachHandlers(connection: GmodConnection): void {
 	}
 }
 
-export {default as Payload} from "./Payload.js";
-export {default as AddonsPayload} from "./AddonsPayload.js";
-export {default as AdminNotifyPayload} from "./AdminNotifyPayload.js";
-export {default as BanAppealPayload} from "./BanAppealPayload.js";
-export {default as BanPayload} from "./BanPayload.js";
-export {default as ChatPayload} from "./ChatPayload.js";
-export {default as ConsolePayload} from "./ConsolePayload.js";
-export {default as ErrorPayload} from "./ErrorPayload.js";
-export {default as GservPayload} from "./GservPayload.js";
-export {default as JoinLeavePayload} from "./JoinLeavePayload.js";
-export {default as NotificationPayload} from "./NotificationPayload.js";
-export {default as RconPayload} from "./RconPayload.js";
-export {default as ReportChatPayload} from "./ReportChatPayload.js";
-export {default as StatsPayload} from "./StatsPayload.js";
-export {default as StatusPayload} from "./StatusPayload.js";
-export {default as UnbanPayload} from "./UnbanPayload.js";
-export {default as VoteKickPayload} from "./VoteKickPayload.js";
+export { default as AddonsPayload } from "./AddonsPayload.ts";
+export { default as AdminNotifyPayload } from "./AdminNotifyPayload.ts";
+export { default as BanAppealPayload } from "./BanAppealPayload.ts";
+export { default as BanPayload } from "./BanPayload.ts";
+export { default as ChatPayload } from "./ChatPayload.ts";
+export { default as ConsolePayload } from "./ConsolePayload.ts";
+export { default as ErrorPayload } from "./ErrorPayload.ts";
+export { default as GservPayload } from "./GservPayload.ts";
+export { default as JoinLeavePayload } from "./JoinLeavePayload.ts";
+export { default as NotificationPayload } from "./NotificationPayload.ts";
+export { default as Payload } from "./Payload.ts";
+export { default as RconPayload } from "./RconPayload.ts";
+export { default as ReportChatPayload } from "./ReportChatPayload.ts";
+export { default as StatsPayload } from "./StatsPayload.ts";
+export { default as StatusPayload } from "./StatusPayload.ts";
+export { default as UnbanPayload } from "./UnbanPayload.ts";
+export { default as VoteKickPayload } from "./VoteKickPayload.ts";
+

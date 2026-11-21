@@ -1,9 +1,9 @@
 import { promises as dns } from "node:dns";
 import path from "node:path";
 
-import type { Player } from "#/app/services/gamebridge/GameConnection.js";
-import { GameState } from "#/app/services/gamebridge/games/ss13/topics.js";
-import type { WebApp } from "#/app/services/webapp/index.js";
+import type { Player } from "#/app/services/gamebridge/GameConnection.ts";
+import { GameStateNameById } from "#/app/services/gamebridge/games/ss13/topics.ts";
+import type { WebApp } from "#/app/services/webapp/index.ts";
 
 import ss13Config from "#config/ss13.json" with { type: "json" };
 import vrchatConfig from "#config/vrchat.json" with { type: "json" };
@@ -175,7 +175,7 @@ export default async function serversAPI(webApp: WebApp): Promise<void> {
 					key: `ss13-${instanceId}`,
 					name,
 					map: status.mapName,
-					mode: status.gamestate === undefined ? undefined : GameState[status.gamestate],
+					mode: status.gamestate === undefined ? undefined : GameStateNameById[status.gamestate],
 					thumbnail: thumbnailUrl(baseUrl, backgroundImage),
 					players: players.map(basePlayer),
 					playerCount: players.length,

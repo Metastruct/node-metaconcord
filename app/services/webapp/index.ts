@@ -1,4 +1,4 @@
-import { createServer,type Server as HTTPServer } from "node:http";
+import { createServer, type Server as HTTPServer } from "node:http";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import type { Request, Response } from "express";
@@ -6,10 +6,11 @@ import express from "express";
 import type pino from "pino";
 import { pinoHttp } from "pino-http";
 
-import { logger } from "#utils";
-import { type Container, Service, ServiceNotEnabledError } from "#/app/Container.js";
-import APIs from "./api/index.js";
-import { WsRouter } from "./WsRouter.js";
+import { logger } from "#lib/logger";
+import type { Container } from "#/app/Container.ts";
+import { Service, ServiceNotEnabledError } from "#/app/Service.ts";
+import APIs from "./api/index.ts";
+import { WsRouter } from "./WsRouter.ts";
 
 import config from "#config/webapp.json" with { type: "json" };
 

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { type Octokit } from "@octokit/rest";
+import type { Octokit } from "@octokit/rest";
 import axios from "axios";
 
 import HistoryConfig from "#config/history.json" with { type: "json" };

@@ -1,17 +1,17 @@
 import crypto from "node:crypto";
 import { rateLimit } from "express-rate-limit";
 
-import { logger } from "#utils";
-import { LinkConflictError } from "#/app/services/Accounts.js";
-import { type WebApp } from "#/app/services/webapp/index.js";
-import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.js";
+import { logger } from "#lib/logger";
+import { LinkConflictError } from "#/app/services/Accounts.ts";
+import type { WebApp } from "#/app/services/webapp/index.ts";
+import { rateLimitKeyGenerator } from "#/app/services/webapp/rateLimit.ts";
 import {
 	cookieOptions,
 	getSessionAccountId,
 	setSessionCookie,
 	storeRedirect,
 	takeRedirect,
-} from "./session.js";
+} from "./session.ts";
 
 import GitlabConfig from "#config/gitlab.json" with { type: "json" };
 

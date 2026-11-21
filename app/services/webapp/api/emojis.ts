@@ -1,6 +1,6 @@
-import { type GuildEmoji } from "discord.js";
+import type { GuildEmoji } from "discord.js";
 
-import { type WebApp } from "#/app/services/webapp/index.js";
+import type { WebApp } from "#/app/services/webapp/index.ts";
 
 type EmojiJSON = Pick<GuildEmoji, "animated" | "name" | "id" | "requiresColons" | "managed" | "available" | "createdTimestamp" | "identifier">
 	& { guildId: string, author: null, imageURL: string };

@@ -32,7 +32,6 @@ jobs:
             - name: Display lint results
               if: ${{ !cancelled() && (steps.lint.outcome == 'success' || steps.lint.outcome == 'failure') && hashFiles('eslint-results.sarif') != '' }}
               run: node scripts/sarif_to_annotation.ts
-            - run: npm run test:fluxer
             - run: npm run generate:schema
             - name: Check generated schemas are up to date
               run: |

@@ -10,6 +10,7 @@ resources/game-server-status/style.css
 resources/dashboard/style.css
 cache
 *.sarif
+*.tgz
 
 # Our files
 .env

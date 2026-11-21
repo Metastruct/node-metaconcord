@@ -1,4 +1,4 @@
-import type PayloadRequest from "./PayloadRequest.js";
+import type PayloadRequest from "./PayloadRequest.ts";
 export default interface RconRequest extends PayloadRequest {
 	name: "RconPayload";
 	data: {

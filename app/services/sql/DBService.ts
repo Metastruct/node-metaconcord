@@ -1,6 +1,6 @@
-import { type Kysely } from "kysely";
+import type { Kysely } from "kysely";
 
-import { Service } from "../../Container.js";
+import { Service } from "../../Service.ts";
 
 /**
  * Base service exposing a schema-typed Kysely database instance.

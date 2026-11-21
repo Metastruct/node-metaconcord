@@ -1,33 +1,16 @@
 import { existsSync, mkdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-import { errToMessage, logger } from "#utils";
-import { type Container, Service } from "../Container.js";
-import { type AddonsStore } from "./addons/types.js";
-import { type Rule } from "./discord/index.js";
+import { logger } from "#lib/logger";
+import { errToMessage } from "#utils";
+import type { Container } from "../Container.ts";
+import { Service } from "../Service.ts";
+import type { AddonsStore } from "./addons/types.ts";
+import type { Rule } from "./discord/index.ts";
 
 const log = logger(import.meta);
 const dataPath = path.join(process.cwd(), "data");
 const toFilePath = (fieldName: string) => path.join(dataPath, `${fieldName}.json`);
-
-type Primitive = string | number | boolean | null | undefined;
-
-function persisted<This extends Data, Value extends Primitive>(
-	target: ClassAccessorDecoratorTarget<This, Value>,
-	context: ClassAccessorDecoratorContext<This, Value>,
-): ClassAccessorDecoratorResult<This, Value> {
-	if (context.static || context.private || typeof context.name !== "string")
-		throw new TypeError("@persisted requires a public instance accessor.");
-
-	const fieldName = context.name as keyof This;
-
-	return {
-		set(this: This, value: Value): void {
-			target.set.call(this, value);
-			this.save(fieldName);
-		},
-	};
-}
 
 export class Data extends Service {
 	override name = "Data";
@@ -41,11 +24,26 @@ export class Data extends Service {
 		return { [Symbol.dispose]: () => { this.#persistenceSuppressed = false; } };
 	}
 
-	@persisted accessor lastDiscordGuildEvent: string | undefined;
-	@persisted accessor lastDiscordNickName: string | undefined;
-	@persisted accessor lastMsgTime: number | undefined;
-	@persisted accessor lastResoniteToken: string | undefined;
-	@persisted accessor lastResoniteTokenTime: number | undefined;
+	#lastDiscordGuildEvent: string | undefined;
+	#lastDiscordNickName: string | undefined;
+	#lastMsgTime: number | undefined;
+	#lastResoniteToken: string | undefined;
+	#lastResoniteTokenTime: number | undefined;
+
+	/* eslint-disable stylistic/space-before-function-paren */
+	get lastDiscordGuildEvent() { return this.#lastDiscordGuildEvent; }
+	get lastDiscordNickName  () { return this.#lastDiscordNickName  ; }
+	get lastMsgTime          () { return this.#lastMsgTime          ; }
+	get lastResoniteToken    () { return this.#lastResoniteToken    ; }
+	get lastResoniteTokenTime() { return this.#lastResoniteTokenTime; }
+
+	set lastDiscordGuildEvent(v) { this.#lastDiscordGuildEvent = v; this.#saveField("lastDiscordGuildEvent", v); }
+	set lastDiscordNickName  (v) { this.#lastDiscordNickName   = v; this.#saveField("lastDiscordNickName"  , v); }
+	set lastMsgTime          (v) { this.#lastMsgTime           = v; this.#saveField("lastMsgTime"          , v); }
+	set lastResoniteToken    (v) { this.#lastResoniteToken     = v; this.#saveField("lastResoniteToken"    , v); }
+	set lastResoniteTokenTime(v) { this.#lastResoniteTokenTime = v; this.#saveField("lastResoniteTokenTime", v); }
+	/* eslint-enable stylistic/space-before-function-paren */
+
 
 	addons: AddonsStore = {};
 	permaRoles: {

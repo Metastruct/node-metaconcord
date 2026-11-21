@@ -4,14 +4,14 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type Stream from "node:stream";
-import { type JTDDataType } from "ajv/dist/core.js";
+import type { JTDDataType } from "ajv/dist/core.js";
 import { Ajv } from "ajv/dist/jtd.js";
 import axios from "axios";
 import * as Discord from "discord.js";
 
-import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
 import { ffprobeSchema } from "#jtd/ffprobe";
-import { logger } from "#utils";
+import { logger } from "#lib/logger";
+import { EphemeralResponse, type SlashCommand } from "#/extensions/discord.ts";
 
 const log = logger("VideoCommand");
 

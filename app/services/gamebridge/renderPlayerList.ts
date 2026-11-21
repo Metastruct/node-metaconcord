@@ -3,8 +3,8 @@ import path from "node:path";
 import { createCanvas, GlobalFonts, loadImage } from "@napi-rs/canvas";
 import { Resvg } from "@resvg/resvg-js";
 
-import { logger } from "#utils";
-import { type Player } from "./GameConnection.js";
+import { logger } from "#lib/logger";
+import type { Player } from "./GameConnection.ts";
 
 const log = logger(import.meta);
 

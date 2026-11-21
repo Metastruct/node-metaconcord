@@ -1,19 +1,17 @@
 import * as Discord from "discord.js";
 import { sql } from "kysely";
 
-import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
 import { errToMessage, jsonKysleify } from "#utils";
+import { EphemeralResponse, type SlashCommand } from "#/extensions/discord.ts";
 
-const makeFile = (content: unknown) => {
-	return <Discord.BaseMessageOptions>{
-		files: [
-			{
-				attachment: Buffer.from(jsonKysleify(content, 2), "utf8"),
-				name: "sql_result.json",
-			},
-		],
-	};
-};
+const makeFile = (content: unknown): Discord.BaseMessageOptions => ({
+	files: [
+		{
+			attachment: Buffer.from(jsonKysleify(content, 2), "utf8"),
+			name: "sql_result.json",
+		},
+	],
+});
 
 export const SlashSQLCommand: SlashCommand = {
 	options: {
@@ -55,7 +53,7 @@ export const SlashSQLCommand: SlashCommand = {
 			switch (target) {
 				case "metaconcord": {
 					if (
-						!(<Discord.GuildMemberRoleManager>ctx.member.roles).cache.has(
+						!(ctx.member.roles as Discord.GuildMemberRoleManager).cache.has(
 							bot.config.roles.elevated
 						)
 					) {

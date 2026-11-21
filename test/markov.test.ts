@@ -4,12 +4,12 @@ import SQLite from "better-sqlite3";
 import { Kysely, SqliteDialect } from "kysely";
 
 import { migrateToLatest } from "#lib/kyselyMigrator";
-import type { DB } from "#/generated/LocalDBTypes.js";
+import type { DB } from "#/generated/LocalDBTypes.ts";
 
 mock.module("#utils", {
 	exports: { logger: () => ({ error() {} }) },
 });
-const { MarkovChain } = await import("#/app/services/Markov.js");
+const { MarkovChain } = await import("#/app/services/Markov.ts");
 
 async function fixture(t: TestContext, messages: string[] = []) {
 	const sqlite = new SQLite(":memory:");

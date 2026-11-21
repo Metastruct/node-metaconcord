@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 
 import { errToMessage } from "#utils";
-import { type WebApp } from "#/app/services/webapp/index.js";
+import type { WebApp } from "#/app/services/webapp/index.ts";
 
 import config from "#config/ci.json" with { type: "json" };
 

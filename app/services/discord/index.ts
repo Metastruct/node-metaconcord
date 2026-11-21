@@ -1,10 +1,12 @@
 import * as Discord from "discord.js";
 
-import { logger, sleep } from "#utils";
-import { type Container, Service } from "#/app/Container.js";
-import { type Data, type GameBridge } from "#/app/services/index.js";
-import { getEventIcon } from "./modules/discord-guild-icon.js";
-import modules from "./modules/index.js";
+import { logger } from "#lib/logger";
+import { sleep } from "#utils";
+import type { Container } from "#/app/Container.ts";
+import { Service } from "#/app/Service.ts";
+import type { Data, GameBridge } from "#/app/services/index.ts";
+import { getEventIcon } from "./modules/discord-guild-icon.ts";
+import modules from "./modules/index.ts";
 
 import DiscordConfig from "#config/discord.json" with { type: "json" };
 import motdConfig from "#config/motd.json" with { type: "json" };

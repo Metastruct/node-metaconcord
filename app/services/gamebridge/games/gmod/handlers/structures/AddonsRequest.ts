@@ -1,4 +1,4 @@
-import type PayloadRequest from "./PayloadRequest.js";
+import type PayloadRequest from "./PayloadRequest.ts";
 /** gmod cannot enumerate its own addons, so the native module reads ~/gserv/repos and reports it here on every connect. */
 export default interface AddonsRequest extends PayloadRequest {
 	name: "AddonsPayload";

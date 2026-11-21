@@ -1,6 +1,6 @@
-import { logger } from "#utils";
-import type GameBridge from "./GameBridge.js";
-import { type WsGameConnection } from "./Payload.js";
+import { logger } from "#lib/logger";
+import type GameBridge from "./GameBridge.ts";
+import type { WsGameConnection } from "./Payload.ts";
 
 const log = logger(import.meta);
 
@@ -68,8 +68,8 @@ async function sendAction(
 ): Promise<void> {
 	const { default: ConsolePayload } =
 		game === "gmod"
-			? await import("./games/gmod/handlers/ConsolePayload.js")
-			: await import("./games/minecraft/handlers/ConsolePayload.js");
+			? await import("./games/gmod/handlers/ConsolePayload.ts")
+			: await import("./games/minecraft/handlers/ConsolePayload.ts");
 	await ConsolePayload.send(
 		command === undefined ? { action } : { action, command, runner },
 		server

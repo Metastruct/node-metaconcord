@@ -2,10 +2,13 @@ import eslintJs from "@eslint/js";
 import stylistic from "@stylistic/eslint-plugin";
 import { defineConfig } from "eslint/config";
 import packageJson from "eslint-package-json";
+import { importX } from "eslint-plugin-import-x";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import unicorn from "eslint-plugin-unicorn";
 import globals from "globals";
 import { configs as tsConfigs, parser as tsParser, plugin as tsPlugin } from "typescript-eslint";
+
+import local from "./eslint-rules/local.js";
 
 export default defineConfig([
 	{
@@ -37,6 +40,8 @@ export default defineConfig([
 			eslintJs,
 			"@typescript-eslint": tsPlugin,
 			"simple-import-sort": simpleImportSort,
+			"import-x": importX,
+			local,
 		},
 		extends: [
 			"eslintJs/recommended",
@@ -44,6 +49,8 @@ export default defineConfig([
 			"unicorn/recommended",
 		],
 		rules: {
+			"local/no-unexecuted-query": "error",
+
 			//#region Disabled Rules
 
 			// Disabled for now, maybe they can be enabled some time?
@@ -142,6 +149,8 @@ export default defineConfig([
 					"considerDefaultExhaustiveForUnions": true,
 				},
 			],
+
+			"import-x/consistent-type-specifier-style": [ "error", "prefer-top-level-if-only-type-imports" ],
 
 			"simple-import-sort/imports": [
 				"error",
@@ -313,6 +322,7 @@ export default defineConfig([
 			"package-json/restrict-fields-when-private": "error",
 			"package-json/sort-scripts": "error",
 			"package-json/types-in-dev-dependencies": "error",
+			"package-json/no-http-dependencies": "off", // TODO [eslint-plugin-import-x@>4.18.1] Remove this line again.
 		},
 	},
 ]);

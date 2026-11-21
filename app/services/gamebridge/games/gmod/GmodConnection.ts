@@ -1,18 +1,18 @@
-import { type request as WebSocketRequest } from "websocket";
+import type { request as WebSocketRequest } from "websocket";
 
-import type GameBridge from "../../GameBridge.js";
+import type GameBridge from "../../GameBridge.ts";
 import type {
 	ConnectionStatus,
 	default as GameConnection,
 	GameConnectionConfig,
 	Player,
-} from "../../GameConnection.js";
-import GameSocketConnection from "../../GameSocketConnection.js";
-import ErrorPayload from "./handlers/ErrorPayload.js";
-import GservPayload, { type GservResult } from "./handlers/GservPayload.js";
-import { attachHandlers } from "./handlers/index.js";
-import RconPayload from "./handlers/RconPayload.js";
-import { type RconResponse } from "./handlers/structures/index.js";
+} from "../../GameConnection.ts";
+import GameSocketConnection from "../../GameSocketConnection.ts";
+import ErrorPayload from "./handlers/ErrorPayload.ts";
+import GservPayload, { type GservResult } from "./handlers/GservPayload.ts";
+import { attachHandlers } from "./handlers/index.ts";
+import RconPayload from "./handlers/RconPayload.ts";
+import type { RconResponse } from "./handlers/structures/index.ts";
 
 export type GmodPlayer = Player & {
 	ip: string;
@@ -69,7 +69,7 @@ export default class GmodConnection extends GameSocketConnection {
 	}
 
 	protected async postDisconnected(): Promise<void> {
-		const { default: StatusPayload } = await import("./handlers/StatusPayload.js");
+		const { default: StatusPayload } = await import("./handlers/StatusPayload.ts");
 		await StatusPayload.handle({ name: "StatusPayload", data: {} }, this);
 	}
 

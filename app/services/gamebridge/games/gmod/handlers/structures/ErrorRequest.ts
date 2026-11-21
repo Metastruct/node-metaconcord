@@ -1,4 +1,4 @@
-import type PayloadRequest from "./PayloadRequest.js";
+import type PayloadRequest from "./PayloadRequest.ts";
 export default interface ErrorRequest extends PayloadRequest {
 	name: "ErrorPayload";
 	data: {

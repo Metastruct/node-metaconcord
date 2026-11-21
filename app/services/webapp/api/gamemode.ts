@@ -1,5 +1,5 @@
-import { logger } from "#utils";
-import { type WebApp } from "#/app/services/webapp/index.js";
+import { logger } from "#lib/logger";
+import type { WebApp } from "#/app/services/webapp/index.ts";
 
 import servers from "#config/gmod.servers.json" with { type: "json" };
 

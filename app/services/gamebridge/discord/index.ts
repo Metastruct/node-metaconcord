@@ -1,1 +1,1 @@
-export {default as DiscordClient} from "./DiscordClient.js";
+export {default as DiscordClient} from "./DiscordClient.ts";

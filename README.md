@@ -41,6 +41,33 @@ $ npm run dev
 $ npm run dev:enable-git-hooks
 ```
 
+## Database migrations
+
+#### ⚠️ Don't change existing migrations and never edit the live database by hand, as those changes will be untracked and could conflict with future migrations that assume a wrong pre-existing schema.
+
+This project uses `kysely` to interface the local SQLite database.  
+The schema is defined using  migrations that can be applied one after the other in order to version-control changes and make every change up- and down-gradable.  
+They are also used to auto-generate TypeScript definitions for proper type-checking (see `generate:db-types`).
+
+On every boot of the app, every migration not yet applied to the database is executed automatically. This also applies to the production environment and is actually the only way database changes are applied in production.
+
+Migrations are ordered alphanumerically, so when adding new migrations, make sure they come last or there will be conflicts reported.  
+→ Prefix filenames with the creation date (`YYYY-MM-DD_migrationname.ts`). If you add multiple migrations on the same day, make sure each new filename sorts after any migration already pushed.
+
+```bash
+# Upgrade database by one step
+npm run migrate:up
+
+# Downgrade database by one step
+npm run migrate:down
+
+# Upgrade database all the way up (this is what the app does on start)
+npm run migrate:latest
+
+# Use the included template to create a new migration file with the given name.
+npm run migrate:make "rename starboard column"
+```
+
 ## Accounts and website auth (metastruct.net)
 
 One account per person (`services/Accounts`, Postgres tables `accounts`, `account_links`, `link_codes`, created on start), with any number of linked platforms. Discord, Steam (OpenID), GitHub and GitLab log in and link through `/auth/<provider>`; Steam and Minecraft can also be linked from game chat: the profile page hands out a code and the player types `METACONCORD_LINK <code>` on any relayed server. The chat relays catch it before Discord sees it. The session is the `mcSession` cookie (30 days), resolved to the account on every request (`webapp/api/auth/session.ts`).

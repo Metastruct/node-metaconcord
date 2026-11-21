@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 
-import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
 import { makeSpeechBubble } from "#utils";
+import { EphemeralResponse, type SlashCommand } from "#/extensions/discord.ts";
 
 export const SlashSpeechbubbleCommand: SlashCommand = {
 	options: {
@@ -68,9 +68,9 @@ export const SlashSpeechbubbleCommand: SlashCommand = {
 			const buffer = await makeSpeechBubble(
 				link || attachment?.url || "",
 				ctx.options.getInteger("direction") === 1 ? true : false,
-				<string>ctx.options.getString("fill_color"),
-				<string>ctx.options.getString("line_color"),
-				<number>ctx.options.getNumber("line_width")
+				ctx.options.getString("fill_color") || undefined,
+				ctx.options.getString("line_color") || undefined,
+				ctx.options.getNumber("line_width") || undefined
 			);
 			await ctx.followUp({
 				files: [{ attachment: buffer, name: "funny.gif" }],

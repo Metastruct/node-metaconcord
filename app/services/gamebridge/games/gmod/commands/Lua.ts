@@ -1,8 +1,8 @@
 import * as Discord from "discord.js";
 
-import { EphemeralResponse, type SlashCommand } from "#extensions/discord.js";
 import { f } from "#utils";
-import type RconResponse from "#/app/services/gamebridge/games/gmod/handlers/structures/RconResponse.js";
+import type RconResponse from "#/app/services/gamebridge/games/gmod/handlers/structures/RconResponse.ts";
+import { EphemeralResponse, type SlashCommand } from "#/extensions/discord.ts";
 
 import servers from "#config/gmod.servers.json" with { type: "json" };
 

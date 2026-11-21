@@ -1,4 +1,4 @@
-import type PayloadRequest from "./PayloadRequest.js";
+import type PayloadRequest from "./PayloadRequest.ts";
 export default interface DeathRequest extends PayloadRequest {
 	name: "DeathPayload";
 	data: {
