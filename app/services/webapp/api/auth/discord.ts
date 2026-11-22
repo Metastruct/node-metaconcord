@@ -60,7 +60,7 @@ const basicAuth =
 		"base64"
 	);
 
-export const getOAuthTokens = async (code: string) => {
+export const getOAuthTokens = async (code: string): Promise<AccessTokenResponse | undefined> => {
 	const res = await fetch("https://discord.com/api/v10/oauth2/token", {
 		method: "POST",
 		headers: { Authorization: basicAuth },
@@ -72,7 +72,7 @@ export const getOAuthTokens = async (code: string) => {
 	}).catch(error => {
 		log.error(error, "failed fetching tokens");
 	});
-	if (res && res.ok) return res.json() as Promise<AccessTokenResponse>;
+	return res && res.ok ? res.json() : undefined;
 };
 
 export const revokeOAuthToken = async (token: string, localOnly?: boolean) => {
@@ -107,13 +107,13 @@ export default async function discordOAuth(webApp: WebApp): Promise<void> {
 	const metadata = () => webApp.container.getService("DiscordMetadata");
 	const secretLimiter = rateLimit({ keyGenerator: rateLimitKeyGenerator });
 
-	const getAuthorizationData = async (tokens: AccessTokenResponse) => {
+	const getAuthorizationData = async (tokens: AccessTokenResponse): Promise<CurrentAuthorizationInformation | undefined> => {
 		const res = await fetch("https://discord.com/api/v10/oauth2/@me", {
 			headers: { Authorization: `Bearer ${tokens.access_token}` },
 		}).catch(error => {
 			log.error(error, "failed fetching authorization data");
 		});
-		if (res && res.ok) return res.json() as Promise<CurrentAuthorizationInformation>;
+		return res && res.ok ? res.json() : undefined;
 	};
 
 	// the Linked Roles button on Discord points here, so does the site's login page

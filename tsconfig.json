@@ -21,7 +21,6 @@
 		// to ensure that we need to document below how we're departing from good practices
 		"exactOptionalPropertyTypes": false,
 		"noPropertyAccessFromIndexSignature": false,
-		"noImplicitReturns": false,
 		"noUncheckedIndexedAccess": false
 	}
 }

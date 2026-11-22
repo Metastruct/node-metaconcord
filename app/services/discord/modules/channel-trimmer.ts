@@ -51,6 +51,7 @@ class ChannelTrimmingState {
 			this.#fetchTimestamp = top.id;
 			return this.#cache.pop();
 		}
+		return;
 	}
 
 	public peekMessage() {
@@ -99,6 +100,7 @@ class ChannelTrimmer {
 			await candidate.delete();
 			return candidate;
 		}
+		return;
 	}
 
 	public get state() {

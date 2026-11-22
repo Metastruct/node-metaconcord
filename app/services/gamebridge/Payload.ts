@@ -12,22 +12,23 @@ export default abstract class Payload {
 	protected static requestSchema: Record<string, unknown>;
 	protected static responseSchema: Record<string, unknown>;
 
-	protected static isInvalid(
+	protected static getValidationResult(
 		schema: Record<string, unknown>,
 		payload: unknown
-	): ErrorObject[] | undefined {
+	): ([true, undefined] | [false, ErrorObject[] | undefined]) {
 		const ajv = new Ajv();
 		const validate = ajv.compile(schema);
-		if (!validate(payload)) {
-			return validate.errors ?? undefined;
-		}
+
+		return validate(payload)
+			? [true, undefined]
+			: [false, validate.errors ?? undefined];
 	}
 
 	static validate(schema: Record<string, unknown>, payload: unknown): void {
 		if (!schema) return;
-		const invalid = this.isInvalid(schema, payload);
-		if (invalid) {
-			log.warn({ invalid, payload }, "invalid payload.");
+		const [validated, error] = this.getValidationResult(schema, payload);
+		if (!validated) {
+			log.warn({ error, payload }, "invalid payload.");
 		}
 	}
 

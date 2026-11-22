@@ -41,8 +41,7 @@ const MEDIA_URL_REGEX = new RegExp(
 );
 
 const getMediaUrl = (url: string) => {
-	const match = url.match(MEDIA_URL_REGEX);
-	if (match) return match[0];
+	return url.match(MEDIA_URL_REGEX)?.[0];
 };
 
 const IGNORE_LIST = new Set(["437294613976449024"]);
@@ -200,9 +199,11 @@ export default async function ShitpostLoader(bot: DiscordBot) {
 			const shouldSendSticker = Math.random() <= STICKER_PROB;
 			const shouldSendEmoji = Math.random() <= EMOJI_REPLY_PROB;
 			const shat = await Shat({
-				msg: shouldUseAuthor
-					? ((await mk.exists(options.msg?.author.globalName?.toLowerCase())) ??
-						(await mk.exists(options.msg?.author.username?.toLowerCase())))
+				msg: shouldUseAuthor ?
+					(
+						(await mk.existingWord(options.msg?.author.globalName?.toLowerCase())) ||
+						(await mk.existingWord(options.msg?.author.username?.toLowerCase()))
+					)
 					: options.msg?.content,
 				forceImage: options.forceImage,
 				forceReply: options.forceReply,

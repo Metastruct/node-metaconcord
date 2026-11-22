@@ -399,6 +399,8 @@ async function fetchReadme(
 		);
 		return res.status === 200 && typeof res.data === "string" ? res.data : undefined;
 	}
+
+	return undefined;
 }
 
 /**

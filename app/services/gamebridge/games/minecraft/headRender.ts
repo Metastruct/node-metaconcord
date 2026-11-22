@@ -97,5 +97,6 @@ export async function renderHeadDataUri(identifier: string): Promise<string | un
 	} catch (error) {
 		log.warn(error, `failed to render head for ${identifier}`);
 		failedRenderCache.set(identifier, Date.now());
+		return;
 	}
 }

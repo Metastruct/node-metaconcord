@@ -53,8 +53,7 @@ function isProperAppealRow(appeal?: Selectable<appeals>): appeal is AppealRow {
 }
 
 function toAppealRow(appeal?: Selectable<appeals>): AppealRow | undefined {
-	if (isProperAppealRow(appeal))
-		return appeal;
+	return isProperAppealRow(appeal) ? appeal : undefined;
 }
 
 type AppealMessage = {
@@ -183,17 +182,14 @@ export default function appealsAPI(webApp: WebApp): void {
 	const messagesCache = new Map<string, { at: number; messages: AppealMessage[] }>();
 
 	const openAppeal = async (steamId64: string): Promise<AppealRow | undefined> => {
-		const row = await db()
+		return toAppealRow(await db()
 			.selectFrom("appeals")
 			.selectAll()
 			.where("steam_id64", "=", steamId64)
 			.where("closed_at", "is", null)
 			.orderBy("id", "desc")
 			.limit(1)
-			.executeTakeFirst();
-
-		if (isProperAppealRow(row))
-			return row;
+			.executeTakeFirst());
 	};
 
 	const closeAppeals = async (

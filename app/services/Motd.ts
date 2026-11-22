@@ -161,6 +161,8 @@ export class Motd extends Service {
 				return res.data.data;
 			}
 		} catch { /* empty */ }
+
+		return undefined;
 	}
 
 	async setNicknameFromSentence(motd: string): Promise<boolean | undefined> {

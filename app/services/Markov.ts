@@ -269,10 +269,13 @@ export class Markov extends Service {
 		}
 	}
 
-	async exists(word: string | undefined) {
-		if (!word || word?.trim() === "") return word;
-		const data = await (await this.getMarkov()).queryDB([word]);
-		if (data) return word;
+	async exists(word?: string): Promise<boolean> {
+		if (!word || word?.trim() === "") return false;
+		return Boolean(await (await this.getMarkov()).queryDB([word]));
+	}
+
+	async existingWord(word?: string) {
+		return await this.exists(word) ? word : undefined;
 	}
 
 	async findClosestWord(word: string, maxDist = 1): Promise<string | null> {

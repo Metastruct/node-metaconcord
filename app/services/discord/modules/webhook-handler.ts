@@ -1411,7 +1411,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 		const containers: Discord.ContainerBuilder[] = [];
 		// parallel to `containers`; the commit sha each container's message should be
 		// tracked under so a later check_run/check_suite completion can edit it in place
-		const commitShas: (string | undefined)[] = [];
+		const commitShas: Array<string | undefined> = [];
 
 		const onDefaultBranch = branch === repo.default_branch;
 		const repoLabel = onDefaultBranch
@@ -1577,8 +1577,8 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 						...baseMessagePayload,
 						components: messageComponents,
 					})
-					.then(msg => {
-						if (sha) return trackCommitMessage(localDB.db, sha, msg.id, messageComponents, containers[i]);
+					.then(async msg => {
+						if (sha) await trackCommitMessage(localDB.db, sha, msg.id, messageComponents, containers[i]);
 					})
 					.catch(log.error.bind(log));
 			}
@@ -1594,9 +1594,9 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 					...baseMessagePayload,
 					components: messageComponents,
 				})
-				.then(msg => {
+				.then(async msg => {
 					if (sha && containers[0])
-						return trackCommitMessage(localDB.db, sha, msg.id, messageComponents, containers[0]);
+						await trackCommitMessage(localDB.db, sha, msg.id, messageComponents, containers[0]);
 				})
 				.catch(log.error.bind(log));
 		}
@@ -1718,8 +1718,8 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 		const sha = payload.head_commit?.id ?? commits.at(-1)?.id;
 		webhook
 			.send(message)
-			.then(msg => {
-				if (sha) return trackCommitMessage(localDB.db, sha, msg.id, messageComponents, container);
+			.then(async msg => {
+				if (sha) await trackCommitMessage(localDB.db, sha, msg.id, messageComponents, container);
 			})
 			.catch(log.error.bind(log));
 		chatWebhook()
@@ -2253,8 +2253,8 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 				const sha = commitShas[i];
 				destWebhook
 					.send({ ...baseMessagePayload, components: messageComponents })
-					.then(msg => {
-						if (sha) return trackCommitMessage(localDB.db, sha, msg.id, messageComponents, containers[i]);
+					.then(async msg => {
+						if (sha) await trackCommitMessage(localDB.db, sha, msg.id, messageComponents, containers[i]);
 					})
 					.catch(log.error.bind(log));
 			}
@@ -2265,9 +2265,9 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 			const sha = commitShas[0];
 			destWebhook
 				.send({ ...baseMessagePayload, components: messageComponents })
-				.then(msg => {
+				.then(async msg => {
 					if (sha && containers[0])
-						return trackCommitMessage(localDB.db, sha, msg.id, messageComponents, containers[0]);
+						await trackCommitMessage(localDB.db, sha, msg.id, messageComponents, containers[0]);
 				})
 				.catch(log.error.bind(log));
 		}
