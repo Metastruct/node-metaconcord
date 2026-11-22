@@ -4,7 +4,7 @@ import express from "express";
 import SteamID from "steamid";
 
 import { logger } from "#lib/logger";
-import { AddonURIS, getOrFetchGmodFile, type WithRequired } from "#utils";
+import { AddonURIs, getOrFetchGmodFile, type WithRequired } from "#utils";
 import type {
 	default as GmodConnection,
 	GmodPlayer,
@@ -86,8 +86,8 @@ const formatFrame = (groups: StackMatchGroups): string | undefined => {
 				? "mta_gamemode"
 				: addon;
 
-		if (addon && addonKey && AddonURIS[addonKey]) {
-			return `[${path}](${AddonURIS[addon]}${path}#L${lineno})`;
+		if (addon && addonKey && AddonURIs[addonKey]) {
+			return `[${path}](${AddonURIs[addon]}${path}#L${lineno})`;
 		}
 
 		return path;

@@ -6,7 +6,6 @@ import { logger } from "#lib/logger";
 import { DBService } from "#/app/services/sql/DBService.ts";
 import type { DB } from "#/generated/LocalDBTypes.ts";
 import type { Container } from "../../Container.ts";
-import type { Service } from "../../Service.ts";
 
 const log = logger(import.meta);
 
@@ -63,7 +62,7 @@ function getSQLiteKysely() {
 
 
 export class LocalDB extends DBService<DB> {
-	override name = "LocalDB";
+	override readonly name = "LocalDB";
 	#sqliteDatabase?: SQLite.Database;
 	#localDB?: Kysely<DB>;
 	#optimizeTimer?: ReturnType<typeof setInterval>;
@@ -98,6 +97,6 @@ export class LocalDB extends DBService<DB> {
 	}
 }
 
-export default function LocalDBProvider(container: Container): Service {
+export default function LocalDBProvider(container: Container) {
 	return new LocalDB(container);
 }

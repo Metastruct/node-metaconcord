@@ -7,7 +7,7 @@ import { Service } from "../Service.ts";
 import config from "#config/github.json" with { type: "json" };
 
 export class Github extends Service {
-	override name = "Github";
+	override readonly name = "Github";
 
 	octokit = new Octokit({
 		authStrategy: createAppAuth,
@@ -19,6 +19,6 @@ export class Github extends Service {
 	});
 }
 
-export default function GithubProvider(container: Container): Service {
+export default function GithubProvider(container: Container) {
 	return new Github(container);
 }

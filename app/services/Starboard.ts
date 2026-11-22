@@ -26,7 +26,7 @@ const attachmentToFile = (attachment: Discord.Attachment): Discord.AttachmentBui
 	}).setSpoiler(attachment.spoiler);
 
 export class Starboard extends Service {
-	override name = "Starboard";
+	override readonly name = "Starboard";
 	private pendingMessages = new Set<string>();
 	private localDB!: LocalDB;
 	private bot!: DiscordBot;
@@ -267,6 +267,6 @@ export class Starboard extends Service {
 	}
 }
 
-export default function StarboardProvider(container: Container): Service {
+export default function StarboardProvider(container: Container) {
 	return new Starboard(container);
 }

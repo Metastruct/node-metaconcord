@@ -172,7 +172,7 @@ const toLink = (row: LinkRow): AccountLink => ({
 });
 
 export class Accounts extends Service {
-	override name = "Accounts";
+	override readonly name = "Accounts";
 	private remoteDB!: RemoteDB;
 	private cache = new Map<number, { account: AccountWithLinks; at: number }>();
 
@@ -807,6 +807,6 @@ export class Accounts extends Service {
 	}
 }
 
-export default function AccountsProvider(container: Container): Service {
+export default function AccountsProvider(container: Container) {
 	return new Accounts(container);
 }

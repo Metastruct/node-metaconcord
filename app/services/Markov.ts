@@ -236,7 +236,7 @@ export class MarkovChain extends MarkovChainBase {
 }
 
 export class Markov extends Service {
-	override name = "Markov";
+	override readonly name = "Markov";
 	private _markov: MarkovChain | null = null;
 
 	private async getMarkov(): Promise<MarkovChain> {
@@ -300,6 +300,6 @@ export class Markov extends Service {
 	}
 }
 
-export default function MarkovProvider(container: Container): Service {
+export default function MarkovProvider(container: Container) {
 	return new Markov(container);
 }

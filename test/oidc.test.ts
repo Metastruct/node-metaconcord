@@ -7,6 +7,8 @@ import OIDCProvider from "#/app/services/OIDC.ts";
 import LocalDBProvider, { type LocalDatabase } from "#/app/services/sql/LocalDB.ts";
 import WebAppProvider from "#/app/services/webapp/index.ts";
 import { encrypt } from "#/app/services/webapp/secretBox.ts";
+import type { Accounts } from "../app/services/Accounts.ts";
+import { DBService } from "../app/services/sql/DBService.ts";
 
 import OIDCConfig from "#config/oidc.json" with { type: "json" };
 import WebAppConfig from "#config/webapp.json" with { type: "json" };
@@ -57,7 +59,7 @@ const accountsStore = new Map(
 );
 
 class FakeAccounts extends Service {
-	override name = "Accounts";
+	override readonly name = "Accounts";
 	async get(id: number) {
 		return accountsStore.get(id);
 	}
@@ -66,15 +68,17 @@ class FakeAccounts extends Service {
 // This is required because Container expects there to be a RemoteDB
 // for Accounts, even if we register the fake Accounts service that
 // doesn't actually use it.
-class FakeRemoteDB extends Service {
-	override name = "RemoteDB";
+class FakeRemoteDB extends DBService<never> {
+	override readonly name = "RemoteDB";
+	public async query() { return []; }
+	get db(): never { throw new Error("Method not implemented."); }
 }
 
 const container = new Container({} as App, [
 	LocalDBProvider,
 	(container: Container) => new FakeRemoteDB(container),
 	WebAppProvider,
-	(container: Container) => new FakeAccounts(container),
+	(container: Container) => new FakeAccounts(container) as Accounts,
 	OIDCProvider,
 ]);
 

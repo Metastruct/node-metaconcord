@@ -1,7 +1,8 @@
+import type { ValueOf } from "#utils";
 import type { Container } from "../Container.ts";
-import type { Service } from "../Service.ts";
+import type { ServiceMap } from "./index.ts";
 
-export type ServiceProvider = (container: Container) => Service;
+export type ServiceProvider = (container: Container) => ValueOf<ServiceMap>;
 
 export const ServiceNames = [
 	"Accounts",

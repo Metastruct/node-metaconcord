@@ -43,7 +43,7 @@ const jwksIsValid = validateJwks(jwks);
  * no dynamic registration.
  */
 export class OIDC extends Service {
-	override name = "OIDC";
+	override readonly name = "OIDC";
 	config = OIDCConfig;
 	provider!: Provider;
 
@@ -525,6 +525,6 @@ function makeAdapter(localDB: LocalDB): new (name: string) => Adapter {
 	};
 }
 
-export default function OIDCProvider(container: Container): Service {
+export default function OIDCProvider(container: Container) {
 	return new OIDC(container);
 }

@@ -17,10 +17,10 @@ const log = logger(import.meta);
 
 const BANNED_NAME_COLOR = "#FF0000";
 
-const GamemodeAlias = {
+const GamemodeAlias: Readonly<Record<string, string>> = {
 	qbox: "metastruct",
 	"ttt2 (advanced update)": "ttt2",
-} as const satisfies Record<string, string>;
+};
 
 const GamemodeExtras = {
 	jazztronauts: {
@@ -140,9 +140,7 @@ export default class StatusPayload extends Payload {
 			const current_workshopMap = workshopMap ?? server.workshopMap;
 
 			const mapChanged = server.mapName !== current_map;
-			const gamemodeName =
-				(GamemodeAlias[current_gamemode.name.toLowerCase()] as string) ??
-				current_gamemode.name.toLowerCase();
+			const gamemodeName = GamemodeAlias[current_gamemode.name.toLowerCase()] ?? current_gamemode.name.toLowerCase();
 			const gamemodeExtras = GamemodeExtras[gamemodeName as keyof typeof GamemodeExtras];
 			const gamemodeIcon = gamemodeExtras?.seagull ?? gamemodeExtras?.icon;
 

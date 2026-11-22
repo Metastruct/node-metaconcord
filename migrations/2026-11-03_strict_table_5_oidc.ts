@@ -1,4 +1,4 @@
-import { sql } from "kysely";
+import { type ExpressionBuilder, sql } from "kysely";
 
 import { defineSQLiteMigration } from "#lib/kyselyDefineSQLiteMigration";
 
@@ -20,7 +20,7 @@ export const { up, down } = defineSQLiteMigration({
 		// Warning: deleting orphan data from oidc_uid_index where no matching rows exist in oidc_tokens.
 		// This cannot be undone.
 		await tx.deleteFrom("oidc_uid_index")
-			.where("id", "not in", eb => eb.selectFrom("oidc_tokens").select("id"))
+			.where("id", "not in", (eb: ExpressionBuilder<any, "oidc_uid_index">) => eb.selectFrom("oidc_tokens").select("id"))
 			.execute();
 
 		await tx.schema.alterTable("oidc_uid_index").renameTo("xx-migration-oidc_uid_index-old").execute();

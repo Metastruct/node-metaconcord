@@ -97,7 +97,7 @@ const METADATA_SCHEMA: MetadataRecord[] = [
 ];
 
 export class DiscordMetadata extends Service {
-	override name = "DiscordMetadata";
+	override readonly name = "DiscordMetadata";
 	private ARCOCache: Record<string, ApplicationRoleConnectionObject> = {};
 	private localDB!: LocalDB;
 	private remoteDB!: RemoteDB;
@@ -425,6 +425,6 @@ export class DiscordMetadata extends Service {
 	}
 }
 
-export default function DiscordMetadataProvider(container: Container): Service {
+export default function DiscordMetadataProvider(container: Container) {
 	return new DiscordMetadata(container);
 }

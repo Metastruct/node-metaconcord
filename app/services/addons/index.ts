@@ -74,7 +74,7 @@ async function mapLimit<T, R>(
 }
 
 export class Addons extends Service {
-	override name = "Addons";
+	override readonly name = "Addons";
 	private lastGmodRefresh = new Map<number, number>();
 	private gmodGames = new Map<number, MountedGame[]>();
 	private retryTimers = new Map<number, ReturnType<typeof setTimeout>>();
@@ -535,6 +535,6 @@ export class Addons extends Service {
 	}
 }
 
-export default function AddonsProvider(container: Container): Service {
+export default function AddonsProvider(container: Container) {
 	return new Addons(container);
 }

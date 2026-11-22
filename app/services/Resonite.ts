@@ -97,7 +97,7 @@ export type ResoniteUser = {
 };
 
 export class Resonite extends Service {
-	override name = "Resonite";
+	override readonly name = "Resonite";
 	ResoniteUserCache: Record<string, ResoniteUser> = {};
 
 	ResoniteToken!: string;
@@ -214,6 +214,6 @@ export class Resonite extends Service {
 		}
 	}
 }
-export default function ResoniteProvider(container: Container): Service {
+export default function ResoniteProvider(container: Container) {
 	return new Resonite(container);
 }

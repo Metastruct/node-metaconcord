@@ -1,8 +1,7 @@
 import type { Container } from "#/app/Container.ts";
-import type { Service } from "#/app/Service.ts";
 import GameBridge from "./GameBridge.ts";
 
-export default function GameBridgeProvider(container: Container): Service {
+export default function GameBridgeProvider(container: Container) {
 	return new GameBridge(container);
 }
 

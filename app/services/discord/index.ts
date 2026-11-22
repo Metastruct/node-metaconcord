@@ -29,7 +29,7 @@ let lastMessageId: string;
 const ImgurRegex = /https?:\/\/(?:i.)?imgur.com\/(\w+)(?:.mp4)?/g;
 
 export class DiscordBot extends Service {
-	override name = "DiscordBot";
+	override readonly name = "DiscordBot";
 	bridge!: GameBridge;
 	readonly config = DiscordConfig;
 	readonly discord: Discord.Client = new Discord.Client({
@@ -289,6 +289,6 @@ export class DiscordBot extends Service {
 	}
 }
 
-export default function DiscordBotProvider(container: Container): Service {
+export default function DiscordBotProvider(container: Container) {
 	return new DiscordBot(container);
 }

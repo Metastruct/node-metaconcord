@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { AddonURIS } from "#utils";
+import { AddonURIs } from "#utils";
 import { isStackMatchGroups, megaRex, SuperReplacer } from "#/app/services/webapp/api/gmod-error-handler.ts";
 
 // -----------------------------------------------------------------------------
@@ -28,7 +28,7 @@ type TestCase = {
 	expected: string;
 };
 
-const addonURIs = AddonURIS as unknown as Record<
+const addonURIs = AddonURIs as unknown as Record<
 	string,
   string | undefined
 >;

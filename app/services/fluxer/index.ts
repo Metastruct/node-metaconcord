@@ -265,7 +265,7 @@ export function fluxerSnapshotMentions(snapshot: FluxerMessageSnapshot): FluxerU
 }
 
 export class Fluxer extends Service {
-	override name = "Fluxer";
+	override readonly name = "Fluxer";
 	private localDB!: LocalDB;
 	private discordBot!: DiscordBot;
 	private rest!: FluxerRest;
@@ -1929,6 +1929,6 @@ export class Fluxer extends Service {
 	}
 }
 
-export default function FluxerProvider(container: Container): Service {
+export default function FluxerProvider(container: Container) {
 	return new Fluxer(container);
 }

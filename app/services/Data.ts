@@ -13,7 +13,7 @@ const dataPath = path.join(process.cwd(), "data");
 const toFilePath = (fieldName: string) => path.join(dataPath, `${fieldName}.json`);
 
 export class Data extends Service {
-	override name = "Data";
+	override readonly name = "Data";
 
 	#initialized = false;
 	#persistenceSuppressed = false;
@@ -119,7 +119,7 @@ export class Data extends Service {
 	#load() {
 		using _ = this.#noPersistence();
 
-		for (const fieldName of Iterator.concat<string>(this.#primitiveFields, this.#objectFields)) {
+		for (const fieldName of Iterator.concat<string & keyof this>(this.#primitiveFields, this.#objectFields)) {
 			const filePath = toFilePath(fieldName);
 			try {
 				this[fieldName] = JSON.parse(readFileSync(filePath, "utf8"));
@@ -159,18 +159,19 @@ export class Data extends Service {
 	 * Persist one or multiple field(s).
 	 * @param fieldNames The field(s) to persist.
 	 */
-	save<T extends keyof this>(...fieldNames: [T, ...T[]]): void;
+	save<T extends (string & keyof this)>(...fieldNames: [T, ...T[]]): void;
 
-	save(...fieldNames: string[]): void {
-		const fields = fieldNames.length === 0
-			? this.#objectFields // No arguments => deprecated behavior: save all.
-			: fieldNames; // >= 1 arguments: save requested fields.
+	save<T extends (string & keyof this)>(...fieldNames: T[]): void {
+		const fields: ReadonlyArray<string & keyof this> =
+			fieldNames.length === 0
+				? this.#objectFields // No arguments => deprecated behavior: save all.
+				: fieldNames; // >= 1 arguments: save requested fields.
 
 		for (const fieldName of new Set(fields))
 			this.#saveField(fieldName, this[fieldName]);
 	}
 }
 
-export default function DataProvider(container: Container): Service {
+export default function DataProvider(container: Container) {
 	return new Data(container);
 }

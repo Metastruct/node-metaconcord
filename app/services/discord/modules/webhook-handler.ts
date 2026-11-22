@@ -992,12 +992,12 @@ function joinGitlabDiffFiles(files: CommitDiffSchema[]): string {
 		.join("\n");
 }
 
-const SERVER_EMOJI_MAP = {
-	"1": "1️⃣",
-	"2": "2️⃣",
-	"3": "3️⃣",
-	"4": "4️⃣",
-};
+const SERVER_EMOJI_MAP: ReadonlyMap<number, string> = new Map([
+	[1, "1️⃣"],
+	[2, "2️⃣"],
+	[3, "3️⃣"],
+	[4, "4️⃣"],
+]);
 
 const REPO_SERVER_MAP = new Map([
 	["Lumiens-Map-Vote", [3, 4]],
@@ -1227,7 +1227,7 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 							.runGserv("qu rehash")
 							.then(async () =>
 								(await ctx.fetchReply()).react(
-									SERVER_EMOJI_MAP[server.config.id] ?? "❓"
+									SERVER_EMOJI_MAP.get(server.config.id) ?? "❓"
 								)
 							);
 					})

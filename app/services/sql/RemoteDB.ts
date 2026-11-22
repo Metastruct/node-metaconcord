@@ -2,7 +2,6 @@ import { Pool } from "pg";
 
 import { DBService } from "#/app/services/sql/DBService.ts";
 import type { Container } from "../../Container.ts";
-import type { Service } from "../../Service.ts";
 
 import config from "#config/psql.json" with { type: "json" };
 
@@ -22,7 +21,7 @@ function getPool() {
 }
 
 export class RemoteDB extends DBService<never> {
-	override name = "RemoteDB";
+	override readonly name = "RemoteDB";
 	#pool?: Pool;
 
 	override async init(): Promise<void> {
@@ -39,6 +38,6 @@ export class RemoteDB extends DBService<never> {
 	}
 }
 
-export default function RemoteDBProvider(container: Container): Service {
+export default function RemoteDBProvider(container: Container) {
 	return new RemoteDB(container);
 }

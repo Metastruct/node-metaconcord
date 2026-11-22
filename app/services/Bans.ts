@@ -38,7 +38,7 @@ export type BansStatus = {
 };
 
 export class Bans extends Service {
-	override name = "Bans";
+	override readonly name = "Bans";
 	private banCache: MetaBan[] = [];
 	private lastSuccess = 0;
 	private lastAttempt = 0;
@@ -106,6 +106,6 @@ export class Bans extends Service {
 	}
 }
 
-export default function BansProvider(container: Container): Service {
+export default function BansProvider(container: Container) {
 	return new Bans(container);
 }

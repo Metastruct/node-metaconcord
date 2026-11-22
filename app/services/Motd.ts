@@ -89,7 +89,7 @@ const filter = new Set([
 ]);
 
 export class Motd extends Service {
-	override name = "Motd";
+	override readonly name = "Motd";
 	messages: string[] = [];
 	images: ImgurImage[] = [];
 	lastimages: ImgurImage[] = [];
@@ -174,6 +174,6 @@ export class Motd extends Service {
 		return await this.bot.setNickname(nick, "Random Motd name");
 	}
 }
-export default function MotdProvider(container: Container): Service {
+export default function MotdProvider(container: Container) {
 	return new Motd(container);
 }

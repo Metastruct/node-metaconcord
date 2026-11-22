@@ -108,7 +108,8 @@ export const parseDuration = (input: string): number => {
 		.replaceAll(/\s+/g, "")
 		.matchAll(/(\d+)(y|mo|w|d|h|m|s)/g)) {
 		const amount = Math.trunc(Number(match[1]));
-		if (!Number.isNaN(amount) && amount > 0) len += amount * DURATION_UNITS[match[2]];
+		const unit = match[2] as keyof typeof DURATION_UNITS;
+		if (!Number.isNaN(amount) && amount > 0) len += amount * DURATION_UNITS[unit];
 	}
 	return len;
 };
@@ -173,7 +174,7 @@ export const getStackLines = (input: string, linestart: number, lineend?: number
 		.join("\n");
 };
 
-export const AddonURIS = {
+export const AddonURIs: Readonly<Record<string, string>> = {
 	advdupe2: "https://github.com/wiremod/advdupe2/blob/master/",
 	aowl: "https://gitlab.com/metastruct/internal/aowl/-/blob/master/",
 	arcana: "https://github.com/Metastruct/Arcana/blob/master/",
@@ -249,7 +250,7 @@ export const getOrFetchGmodFile = async (path: PathLike | undefined) => {
 			: file;
 	}
 
-	const url: string | undefined = gpath.addon ? AddonURIS[gpath.addon] : undefined;
+	const url: string | undefined = gpath.addon ? AddonURIs[gpath.addon] : undefined;
 
 	if (!url)
 		return;

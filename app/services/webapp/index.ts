@@ -29,7 +29,7 @@ const PATH_IGNORE = [
 ];
 
 export class WebApp extends Service {
-	override name = "WebApp";
+	override readonly name = "WebApp";
 	config = config;
 	app = express();
 	http: HTTPServer;
@@ -95,6 +95,6 @@ export class WebApp extends Service {
 	}
 }
 
-export default function WebAppProvider(container: Container): Service {
+export default function WebAppProvider(container: Container) {
 	return new WebApp(container);
 };

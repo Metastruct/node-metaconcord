@@ -1,11 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 
 import type { App } from "./index.ts";
-import { type Service, ServiceNotEnabledError } from "./Service.ts";
+import { ServiceNotEnabledError } from "./Service.ts";
 import type { ServiceMap } from "./services/index.ts";
 import type { ServiceName, ServiceProvider } from "./services/types.ts";
-
-type ServiceProviders = ServiceProvider[];
 
 /**
  * What each service needs from the others, in two tiers:
@@ -38,23 +36,23 @@ export const REQUIREMENTS: Partial<Record<ServiceName, Requirements>> = {
 
 export class Container {
 	readonly app: App;
-	private providers: ServiceProviders;
-	private services = {} as ServiceMap;
+	private providers: ServiceProvider[];
+	private services: Partial<ServiceMap> = {};
 
-	constructor(app: App, providers: ServiceProviders) {
+	constructor(app: App, providers: ServiceProvider[]) {
 		this.app = app;
 		this.providers = providers;
 	}
 
-	getProviders(): ServiceProviders {
+	getProviders(): ServiceProvider[] {
 		return this.providers;
 	}
 
-	getServices(): ServiceMap {
+	getServices() {
 		return this.services;
 	}
 
-	addService(service: Service): void {
+	addService<K extends ServiceName>(service: ServiceMap[K] & { readonly name: K }): void {
 		this.services[service.name] = service;
 	}
 
