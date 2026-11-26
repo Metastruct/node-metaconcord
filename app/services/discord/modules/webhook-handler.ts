@@ -1348,10 +1348,8 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 						const reply = await ctx.fetchReply();
 
 						await server.runGserv("qu rehash").then(async () => {
-							// todo: Can't this just use `reply.channel` somehow?
-							const channel = await server.discord.channels.fetch(reply.channelId) as Discord.TextBasedChannel | null;
-							if (channel)
-								(await channel.messages.fetch(reply)).react("📥");
+							const channel = await server.discord.channels.fetch(reply.channelId);
+							return channel?.isTextBased() ? reply.react("📥") : Promise.resolve();
 						});
 
 						const res = await server.sendLua(
@@ -1364,10 +1362,8 @@ export default async function WebhookHandlerLoader(bot: DiscordBot): Promise<voi
 							ctx.user.displayName
 						);
 						if (res) {
-							// todo: Can't this just use `reply.channel` somehow?
-							const channel = await server.discord.channels.fetch(reply.channelId) as Discord.TextBasedChannel | null;
-							if (channel)
-								(await channel.messages.fetch(reply)).react("🔁");
+							const channel = await server.discord.channels.fetch(reply.channelId);
+							return channel?.isTextBased() ? reply.react("🔁") : Promise.resolve();
 						}
 						return res;
 					})
