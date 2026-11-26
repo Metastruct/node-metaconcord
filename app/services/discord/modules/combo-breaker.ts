@@ -32,8 +32,8 @@ class Combo {
 	readonly #channelId: string;
 	#messageHash = String();
 
-	#participants = new Set<string>();
-	#doublePosters = new Set<string>();
+	readonly #participants = new Set<string>();
+	readonly #doublePosters = new Set<string>();
 
 	constructor(channelId: string) {
 		this.#channelId = channelId;
@@ -58,9 +58,10 @@ class Combo {
 		]));
 	}
 
-	#reset() {
+	#reset(newHash = "") {
 		this.#participants.clear();
 		this.#doublePosters.clear();
+		this.#messageHash = newHash;
 	}
 
 	#isActive() {
@@ -75,16 +76,20 @@ class Combo {
 	public onMessage(message: Message): ComboMessageEffect {
 		const authorId = message.author.id;
 		const wasActive = this.#isActive();
+		const wasAlreadyParticipant = this.#participants.has(authorId);
 		const newHash = Combo.#computeMessageHash(message);
 
 		if (newHash !== this.#messageHash) {
-			this.#reset();
-			this.#messageHash = newHash;
+			this.#reset(newHash);
 			this.#participants.add(authorId);
-			return wasActive ? ComboMessageEffect.BROKEN : ComboMessageEffect.NONE;
+
+			// Condition for a valid combobreak: combo must be active and the breaking post must be by a new participant.
+			if (wasActive && !wasAlreadyParticipant)
+				return ComboMessageEffect.BROKEN;
+			return ComboMessageEffect.NONE;
 		}
 
-		if (this.#participants.has(authorId)) {
+		if (wasAlreadyParticipant) {
 			this.#doublePosters.add(authorId);
 			return wasActive ? ComboMessageEffect.DOUBLE_POSTED : ComboMessageEffect.NONE;
 		}
@@ -95,7 +100,6 @@ class Combo {
 
 	public break() {
 		this.#reset();
-		this.#messageHash = "";
 	}
 
 	public get channelId() {
@@ -122,7 +126,7 @@ class Combo {
 }
 
 class ComboManager {
-	#combos = new Map<string, Combo>();
+	readonly #combos = new Map<string, Combo>();
 
 	/**
 	 * Updates the channel's combo state with the given message.
